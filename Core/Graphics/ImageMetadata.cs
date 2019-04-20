@@ -1,0 +1,37 @@
+﻿using Helion.Resources;
+using Helion.Util.Geometry;
+
+namespace Helion.Graphics
+{
+    /// <summary>
+    /// Contains extra data for an image.
+    /// </summary>
+    /// <remarks>
+    /// This class was created to avoid the constructor turning into a giant
+    /// mess. Later on we will get more and more fields and this is the best
+    /// way to encapsulate them.
+    /// </remarks>
+    public class ImageMetadata
+    {
+        /// <summary>
+        /// The offset of the image. These are offsets for the engine to apply
+        /// to images when rendering.
+        /// </summary>
+        public Vec2i Offset { get; }
+
+        /// <summary>
+        /// The namespace this image was located in.
+        /// </summary>
+        public ResourceNamespace Namespace { get; }
+
+        public ImageMetadata() : this(new Vec2i(0, 0), ResourceNamespace.Global)
+        {
+        }
+
+        public ImageMetadata(Vec2i offset, ResourceNamespace resourceNamespace)
+        {
+            Offset = offset;
+            Namespace = resourceNamespace;
+        }
+    }
+}

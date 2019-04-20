@@ -1,0 +1,132 @@
+﻿using Helion.Util;
+
+namespace Helion.Map
+{
+    /// <summary>
+    /// Contains all the entries that belong to a map collection. This is *not*
+    /// intended to be a valid set of data, but a temporary one that is being
+    /// built. This should never be passed around as this type, but instead you
+    /// should try to convert it into a ValidMapEntryCollection when you will
+    /// no longer be adding components.
+    /// </summary>
+    public class MapEntryCollection
+    {
+        /// <summary>
+        /// The name of the map.
+        /// </summary>
+        public string Name = "";
+
+        // The following are a list of all the components that may be present.
+        public Optional<byte[]> Vertices = Optional<byte[]>.Empty();
+        public Optional<byte[]> Sectors = Optional<byte[]>.Empty();
+        public Optional<byte[]> Sidedefs = Optional<byte[]>.Empty();
+        public Optional<byte[]> Linedefs = Optional<byte[]>.Empty();
+        public Optional<byte[]> Segments = Optional<byte[]>.Empty();
+        public Optional<byte[]> Subsectors = Optional<byte[]>.Empty();
+        public Optional<byte[]> Nodes = Optional<byte[]>.Empty();
+        public Optional<byte[]> Things = Optional<byte[]>.Empty();
+        public Optional<byte[]> Blockmap = Optional<byte[]>.Empty();
+        public Optional<byte[]> Reject = Optional<byte[]>.Empty();
+        public Optional<byte[]> Scripts = Optional<byte[]>.Empty();
+        public Optional<byte[]> Behavior = Optional<byte[]>.Empty();
+        public Optional<byte[]> Dialogue = Optional<byte[]>.Empty();
+        public Optional<byte[]> Textmap = Optional<byte[]>.Empty();
+        public Optional<byte[]> Znodes = Optional<byte[]>.Empty();
+
+        /// <summary>
+        /// Creates a blank collection with no components or name set.
+        /// </summary>
+        public MapEntryCollection() { }
+
+        /// <summary>
+        /// Sets all the fields for the map entry collection in one go.
+        /// </summary>
+        /// <remarks>
+        /// This is primarily used by the <see cref="ValidMapEntryCollection"/>
+        /// child class to reduce code duplication and make it easier to spot
+        /// any errors if we add any field to this collection in the future.
+        /// </remarks>
+        /// <param name="name">The name of the map.</param>
+        /// <param name="vertices">The entry for this type.</param>
+        /// <param name="sectors">The entry for this type.</param>
+        /// <param name="sidedefs">The entry for this type.</param>
+        /// <param name="linedefs">The entry for this type.</param>
+        /// <param name="segments">The entry for this type.</param>
+        /// <param name="subsectors">The entry for this type.</param>
+        /// <param name="nodes">The entry for this type.</param>
+        /// <param name="things">The entry for this type.</param>
+        /// <param name="blockmap">The entry for this type.</param>
+        /// <param name="reject">The entry for this type.</param>
+        /// <param name="scripts">The entry for this type.</param>
+        /// <param name="behavior">The entry for this type.</param>
+        /// <param name="dialogue">The entry for this type.</param>
+        /// <param name="textmap">The entry for this type.</param>
+        /// <param name="znodes">The entry for this type.</param>
+        public MapEntryCollection(string name, Optional<byte[]> vertices, Optional<byte[]> sectors, 
+            Optional<byte[]> sidedefs, Optional<byte[]> linedefs, Optional<byte[]> segments, 
+            Optional<byte[]> subsectors, Optional<byte[]> nodes, Optional<byte[]> things, 
+            Optional<byte[]> blockmap, Optional<byte[]> reject, Optional<byte[]> scripts, 
+            Optional<byte[]> behavior, Optional<byte[]> dialogue, Optional<byte[]> textmap, 
+            Optional<byte[]> znodes)
+        {
+            Name = name;
+            Vertices = vertices;
+            Sectors = sectors;
+            Sidedefs = sidedefs;
+            Linedefs = linedefs;
+            Segments = segments;
+            Subsectors = subsectors;
+            Nodes = nodes;
+            Things = things;
+            Blockmap = blockmap;
+            Reject = reject;
+            Scripts = scripts;
+            Behavior = behavior;
+            Dialogue = dialogue;
+            Textmap = textmap;
+            Znodes = znodes;
+        }
+
+        /// <summary>
+        /// Gets the map type for this collection. The value it returns may be 
+        /// invalid so you will have to check against the IsValid property.
+        /// </summary>
+        public MapType MapType => Textmap ? MapType.UDMF : (Behavior ? MapType.Hexen : MapType.Doom);
+
+        /// <summary>
+        /// Checks if this is a well formed map entry collection that is 
+        /// eligible to be converted into a valid map entry collection.
+        /// </summary>
+        /// <returns>True if it's got the required components as per map type,
+        /// false otherwise.</returns>
+        public bool IsValid()
+        {
+            switch (MapType)
+            {
+            case MapType.Doom:
+                return IsDoomMap;
+            case MapType.Hexen:
+                return IsHexenMap;
+            case MapType.UDMF:
+                return IsUDMFMap;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if this is a doom map.
+        /// </summary>
+        public bool IsDoomMap => Vertices && Sectors && Sidedefs && Linedefs && Things;
+
+        /// <summary>
+        /// Checks if this is a hexen map.
+        /// </summary>
+        public bool IsHexenMap => IsDoomMap && Behavior;
+
+        /// <summary>
+        /// Checks if this is a text map.
+        /// </summary>
+        public bool IsUDMFMap => Textmap;
+    }
+}

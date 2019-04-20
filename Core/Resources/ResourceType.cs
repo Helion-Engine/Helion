@@ -1,0 +1,31 @@
+﻿namespace Helion.Resources
+{
+    public enum ResourceType
+    {
+        Behavior,
+        Blockmap,
+        Decorate,
+        Directory,
+        Linedefs,
+        Image,
+        Marker,
+        Nodes,
+        Palette,
+        PaletteImage,
+        Pk3,
+        Pnames,
+        Reject,
+        Scripts,
+        Sectors,
+        Segs,
+        Sidedefs,
+        Subsectors,
+        Things,
+        Text,
+        TextureX,
+        TrueTypeFont,
+        Unknown,
+        Vertexes,
+        Wad
+    }
+}
