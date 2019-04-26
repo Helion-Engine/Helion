@@ -56,9 +56,6 @@ namespace Helion.Util.Container
         /// <summary>
         /// Adds a key, if it exists then overwrites it.
         /// </summary>
-        /// <typeparam name="K1">The first key.</typeparam>
-        /// <typeparam name="K2">The second key.</typeparam>
-        /// <typeparam name="V">The value.</typeparam>
         public void AddOrOverwrite(K1 firstKey, K2 secondKey, V value)
         {
             if (table.TryGetValue(firstKey, out Dictionary<K2, V> map))
@@ -70,8 +67,6 @@ namespace Helion.Util.Container
         /// <summary>
         /// Removes the mapping if it exists.
         /// </summary>
-        /// <typeparam name="K1">The first key.</typeparam>
-        /// <typeparam name="K2">The second key.</typeparam>
         public void Remove(K1 firstKey, K2 secondKey)
         {
             if (table.TryGetValue(firstKey, out Dictionary<K2, V> map))

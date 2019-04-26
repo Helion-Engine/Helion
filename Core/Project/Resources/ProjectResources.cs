@@ -78,9 +78,9 @@ namespace Helion.Project.Resources
         }
 
         /// <summary>
-        /// Similar to <see cref="FindEntry(UpperString)"/>, this funds the
-        /// entry but also will attempt to return the type. If the name matches
-        /// but the type is wrong, an empty value is returned.
+        /// Similar to <see cref="FindEntry(UpperString, ResourceNamespace)"/>, 
+        /// this funds the entry but also will attempt to return the type. If 
+        /// the name matches but the type is wrong, an empty value is returned.
         /// </summary>
         /// <typeparam name="T">The type to get.</typeparam>
         /// <param name="name">The name to get.</param>

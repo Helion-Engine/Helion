@@ -52,7 +52,7 @@ namespace Helion.Entries
         /// or definition. This is primarily to help the resource editor know
         /// when something has changed. It also signals to an archive composer
         /// that before writing all the entries into an archive to disk (or
-        /// wherever) that it may need to rebuild the <see cref="data"/> field
+        /// wherever) that it may need to rebuild the <see cref="Data"/> field
         /// before continuing.
         /// </remarks>
         public bool Changed { get; protected set; } = false;

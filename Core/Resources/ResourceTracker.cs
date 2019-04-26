@@ -89,7 +89,7 @@ namespace Helion.Resources
         /// </summary>
         /// <param name="name">The name of the resource. This is not intended
         /// to contain extensions, but rather just the name.</param>
-        /// <param name="resourceNamespace">The namespace of the resource to
+        /// <param name="priorityNamespace">The namespace of the resource to
         /// look at nefpre cjeclomg ptjers.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
         public Optional<T> GetWithAny(UpperString name, ResourceNamespace priorityNamespace)

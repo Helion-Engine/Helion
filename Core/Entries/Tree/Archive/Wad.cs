@@ -137,7 +137,7 @@ namespace Helion.Entries.Tree.Archive
         /// Reads a wad from the data source provided.
         /// </summary>
         /// <param name="data">The wad data.</param>
-        /// <param name="path">The path to this entry.</param>
+        /// <param name="wadPath">The path to this entry.</param>
         /// <param name="idAllocator">The entry ID allocator.</param>
         /// <param name="classifier">The entry classifier.</param>
         /// <returns>The processed wad if it exists and was able to be

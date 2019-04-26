@@ -8,6 +8,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>C:\Projects\Helion\Core\Core.xml</DocumentationFile>
+    <OutputPath></OutputPath>
+    <NoWarn>1701;1702;CS1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -16,6 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser.NS20" Version="2.3.1" />
+    <PackageReference Include="docfx.console" Version="2.42.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="NLog" Version="4.6.2" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>

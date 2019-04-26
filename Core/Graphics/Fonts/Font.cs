@@ -12,8 +12,8 @@ namespace Helion.Graphics.Fonts
         /// </summary>
         public FontMetrics Metrics { get; }
 
-        private Glyph DefaultGlyph;
-        private Dictionary<char, Glyph> glyphs = new Dictionary<char, Glyph>();
+        private readonly Glyph DefaultGlyph;
+        private readonly Dictionary<char, Glyph> glyphs = new Dictionary<char, Glyph>();
 
         public Font(Glyph defaultGlyph, List<Glyph> glyphs, FontMetrics metrics)
         {
@@ -35,7 +35,7 @@ namespace Helion.Graphics.Fonts
         /// Gets the glyph for the char. If it does not have a glyph mapping
         /// then a default value is returned.
         /// </summary>
-        /// <param name="b">The char.</param>
+        /// <param name="c">The char.</param>
         /// <returns>The glyph for the char.</returns>
         public Glyph this[char c] => glyphs.GetValueOrDefault(c, DefaultGlyph);
     }

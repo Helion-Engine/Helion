@@ -99,7 +99,7 @@ namespace Helion.Project
         /// <summary>
         /// Will perform the actual loading of the URIs. This will either
         /// return a list of all the loaded components, or an error message
-        /// if any of them fail. Like <see cref="Load(List{string})"/>, this
+        /// if any of them fail. Like <see cref="Load(IList{string})"/>, this
         /// will either succeed completely or it will fail and not change the
         /// internal state.
         /// </summary>

@@ -75,8 +75,8 @@ namespace Helion.Resources.Images
         /// <summary>
         /// A shortcut helper function to generate a delete event.
         /// </summary>
-        /// <param name="entry">The entry to create/update.</param>
-        /// <param name="image">The image that was affected.</param>
+        /// <param name="name">The entry name.</param>
+        /// <param name="resourceNamespace">The resource namespace.</param>
         /// <returns></returns>
         public static ImageManagerEvent Delete(UpperString name, ResourceNamespace resourceNamespace)
         {
