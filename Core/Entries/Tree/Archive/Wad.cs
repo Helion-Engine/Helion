@@ -89,8 +89,6 @@ namespace Helion.Entries.Tree.Archive
 
         private static Expected<List<Entry>, string> WadEntriesFromData(byte[] data, EntryClassifier classifier)
         {
-            // Remember that we can Seek() safely on a binary reader:
-            // https://stackoverflow.com/questions/19134172/is-it-safe-to-use-stream-seek-when-a-binaryreader-is-open
             try
             {
                 ByteReader reader = new ByteReader(data);
@@ -104,7 +102,7 @@ namespace Helion.Entries.Tree.Archive
 
                 for (int i = 0; i < numEntries; i++)
                 {
-                    reader.BaseStream.Seek(entryTableOffset, SeekOrigin.Begin);
+                    reader.Offset(entryTableOffset);
                     entryTableOffset += LUMP_TABLE_ENTRY_BYTES;
                     (int offset, int size, string upperName) = ReadDirectoryEntry(reader);
 
@@ -115,7 +113,7 @@ namespace Helion.Entries.Tree.Archive
                     if (offset + size > data.Length)
                         return "Lump entry data location overflows";
 
-                    reader.BaseStream.Seek(offset, SeekOrigin.Begin);
+                    reader.Offset(offset);
                     byte[] lumpData = reader.ReadBytes(size);
 
                     EntryPath path = new EntryPath(upperName);

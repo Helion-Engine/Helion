@@ -10,10 +10,13 @@ namespace Helion.Util
     /// </summary>
     public class ByteReader : BinaryReader
     {
+        private readonly byte[] bytes;
+
         // The docs explicitly say that memory streams do not need to have any
         // .dispose() call invoked because there are no resources to dispose.
         public ByteReader(byte[] data) : base(new MemoryStream(data))
         {
+            bytes = data;
             Assert.Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
         }
 
@@ -60,6 +63,11 @@ namespace Helion.Util
             return BitConverter.ToInt32(data, 0);
         }
 
+        public bool HasBytesRemaining(int amount)
+        {
+            return BaseStream.Position + amount <= bytes.Length;
+        }
+
         /// <summary>
         /// Moves the stream ahead (or backward if negative) by the provided
         /// number of bytes.
@@ -77,6 +85,8 @@ namespace Helion.Util
         /// <param name="offset">The offset to go to.</param>
         public void Offset(int offset)
         {
+            // Remember that we can Seek() safely on a binary reader:
+            // https://stackoverflow.com/questions/19134172/is-it-safe-to-use-stream-seek-when-a-binaryreader-is-open
             BaseStream.Seek(offset, SeekOrigin.Begin);
         }
     }

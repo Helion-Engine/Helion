@@ -33,5 +33,11 @@ namespace Helion.Graphics
             Offset = offset;
             Namespace = resourceNamespace;
         }
+
+        public ImageMetadata(ResourceNamespace resourceNamespace)
+        {
+            Offset = new Vec2i(0, 0);
+            Namespace = resourceNamespace;
+        }
     }
 }

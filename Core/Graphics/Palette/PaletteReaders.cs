@@ -8,7 +8,7 @@ namespace Helion.Graphics.Palette
     /// <summary>
     /// A collection of palette image reader helper methods.
     /// </summary>
-    public class PaletteReaders
+    public static class PaletteReaders
     {
         /// <summary>
         /// Gets the flat dimension from the full length of the data provided.
@@ -28,6 +28,58 @@ namespace Helion.Graphics.Palette
             default:
                 return 0;
             }
+        }
+
+        /// <summary>
+        /// Checks if the data is larger than what is possible. This helps us
+        /// quickly determine if it's corrupt data.
+        /// </summary>
+        /// <param name="data">The data to use for its length.</param>
+        /// <param name="width">The image width.</param>
+        /// <param name="height">The image height.</param>
+        /// <returns>True if the data is larger than it could be, which means
+        /// it is likely corrupt.</returns>
+        private static bool LargerThanMaxColumnDataSize(byte[] data, int width, int height)
+        {
+            // This is an upper bound on the worst case for a column. Suppose
+            // a column has a constant pixel/no-pixel alternating sequence.
+
+            // That means we will get h/2 'posts' (or h/2 + 1 if odd, so we'll
+            // go with that since it covers all cases).
+            int maxPosts = (height / 2) + 1;
+
+            // Each post is made up of a 'header' + 'length' + 2 dummy bytes +
+            // the length of bytes. Since each length would be 1 'index pixel',
+            // then the largest size it can be is 5 bytes. This means we have
+            // 5 * max posts. We add 1 to the end because the last byte has to
+            // be the 0xFF magic number to end the column.
+            int maxBytesPerColumn = (5 * maxPosts) + 1;
+
+            int headerSize = 8 - (width * 4);
+            return data.Length - headerSize > width * maxBytesPerColumn;
+        }
+
+        private static bool InvalidColumnImageDimensions(byte[] data, int width, int height, int offsetX, int offsetY)
+        {
+            return width <= 0 || width >= 4096 ||
+                   height <= 0 || height >= 4096 ||
+                   offsetX < -2048 || offsetX > 2048 ||
+                   offsetY < -2048 || offsetY > 2048 ||
+                   LargerThanMaxColumnDataSize(data, width, height);
+        }
+
+        private static bool LastColumnValid(ByteReader reader, int width)
+        {
+            if (!reader.HasBytesRemaining(width * 4))
+                return false;
+
+            reader.Advance((width - 1) * 4);
+            reader.Offset(reader.ReadInt32());
+
+            // Note: We could actually evaluate the column here as well,
+            // however this seems to be doing the job thus far. Nothing
+            // wrong with more checks though!
+            return reader.HasBytesRemaining(1);
         }
 
         /// <summary>
@@ -55,41 +107,20 @@ namespace Helion.Graphics.Palette
         /// <returns>True if it's likely a column, false otherwise.</returns>
         public static bool LikelyColumn(byte[] data)
         {
-            try
-            {
-                ByteReader reader = new ByteReader(data);
-
-                int width = reader.ReadInt16();
-
-                // We want to read the very last offset. Our heuristic is that
-                // this needs to do the minimal amount of work possible since
-                // image classification for column palette images is slow, so
-                // we're going to assume that if the last offset is valid and
-                // the last column is valid, it's likely a valid palette image.
-                // We also assume no column image has a zero width.
-                reader.Advance(6 + (4 * (width - 1)));
-                int lastOffset = reader.ReadInt32();
-                reader.Offset(lastOffset);
-
-                while (true)
-                {
-                    byte rowStart = reader.ReadByte();
-                    if (rowStart == 0xFF)
-                        break;
-
-                    byte pixelCount = reader.ReadByte();
-                    reader.Advance(2 + pixelCount);
-                }
-
-                // We should be somewhere near the end of the file now if it is
-                // valid. We have to give a bit of buffer room since there are
-                // some images that have a few bytes padded at the end though.
-                return reader.BaseStream.Position >= data.Length - 4;
-            }
-            catch
-            {
+            if (data.Length < 16)
                 return false;
-            }
+
+            ByteReader reader = new ByteReader(data);
+
+            int width = reader.ReadInt16();
+            int height = reader.ReadInt16();
+            int offsetX = reader.ReadInt16();
+            int offsetY = reader.ReadInt16();
+
+            if (InvalidColumnImageDimensions(data, width, height, offsetX, offsetY))
+                return false;
+
+            return LastColumnValid(reader, width);
         }
 
         /// <summary>
@@ -118,7 +149,8 @@ namespace Helion.Graphics.Palette
                 }
             }
 
-            return new PaletteImage(dimension, dimension, indices, new ImageMetadata());
+            ImageMetadata metadata = new ImageMetadata(resourceNamespace);
+            return new PaletteImage(dimension, dimension, indices, metadata);
         }
 
         /// <summary>
