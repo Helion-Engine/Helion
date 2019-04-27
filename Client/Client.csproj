@@ -20,4 +20,8 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="powershell $(ProjectDir)Scripts\PostBuild.ps1 $(OutDir)" />
+  </Target>
+
 </Project>
