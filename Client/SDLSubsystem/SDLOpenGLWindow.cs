@@ -1,4 +1,6 @@
-﻿using Helion.Util;
+﻿using Helion.Render.OpenGL;
+using Helion.Util;
+using NLog;
 using SDL2;
 using System;
 
@@ -6,6 +8,8 @@ namespace Helion.Client.SDLSubsystem
 {
     public class SDLOpenGLWindow : IDisposable
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private const SDL.SDL_WindowFlags WindowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
                                                         SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |
                                                         SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
@@ -58,13 +62,21 @@ namespace Helion.Client.SDLSubsystem
 
         private void CreateGLContext()
         {
-            // TODO: Implement actual versions like 4.4, 4.5, 4.6.
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 6);
+            foreach (GLVersion version in GLVersion.Versions)
+            {
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, version.Major);
+                SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, version.Minor);
 
-            glContextPtr = SDL.SDL_GL_CreateContext(windowPtr);
+                glContextPtr = SDL.SDL_GL_CreateContext(windowPtr);
+                if (glContextPtr != IntPtr.Zero)
+                {
+                    log.Info("Using OpenGL v{0}.{1}", version.Major, version.Minor);
+                    break;
+                }
+            }
+
             if (glContextPtr == IntPtr.Zero)
-                throw new HelionException($"Unable to create SDL OpenGL context: {SDL.SDL_GetError()}");
+                throw new HelionException($"Unable to create SDL OpenGL context, OpenGL version not supported");
         }
 
         private void SetSDLGLAttributes()
@@ -84,7 +96,7 @@ namespace Helion.Client.SDLSubsystem
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposed)
                 return;

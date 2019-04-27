@@ -5,6 +5,8 @@ using System;
 
 namespace Helion.Client.SDLSubsystem
 {
+    // TODO: Is this overkill or pointless? The mapping from C++ to C# may be
+    // a bit weird.
     public class SDLInitializer : IDisposable
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
@@ -37,7 +39,7 @@ namespace Helion.Client.SDLSubsystem
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposed)
                 return;
