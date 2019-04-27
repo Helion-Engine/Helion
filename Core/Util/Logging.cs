@@ -9,7 +9,7 @@ namespace Helion.Util
     /// <summary>
     /// Handles all logging instantiation and setup.
     /// </summary>
-    public class Logging
+    public static class Logging
     {
         private static void SetupConsole(LoggingConfiguration config, CommandLineArgs commandLineArgs)
         {
@@ -22,6 +22,16 @@ namespace Helion.Util
             };
             config.AddTarget(consoleTarget);
             config.AddRuleForAllLevels(consoleTarget);
+        }
+
+        private static void SetupDebugger(LoggingConfiguration config)
+        {
+            DebuggerTarget debuggerTarget = new DebuggerTarget("debugger")
+            {
+                Layout = "${message} ${exception}"
+            };
+            config.AddTarget(debuggerTarget);
+            config.AddRuleForAllLevels(debuggerTarget);
         }
 
         private static void SetupFileLogger(LoggingConfiguration config, CommandLineArgs commandLineArgs)
@@ -50,6 +60,7 @@ namespace Helion.Util
         {
             LoggingConfiguration config = new LoggingConfiguration();
             SetupConsole(config, commandLineArgs);
+            SetupDebugger(config);
             SetupFileLogger(config, commandLineArgs);
 
             LogManager.Configuration = config;

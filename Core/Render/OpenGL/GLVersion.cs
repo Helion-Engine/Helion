@@ -2,8 +2,14 @@
 
 namespace Helion.Render.OpenGL
 {
+    /// <summary>
+    /// Represents a major/minor version that OpenGL can have.
+    /// </summary>
     public class GLVersion
     {
+        /// <summary>
+        /// A list of versions that we support.
+        /// </summary>
         public static readonly List<GLVersion> Versions = new List<GLVersion>()
         {
             new GLVersion(4, 6),
@@ -17,7 +23,14 @@ namespace Helion.Render.OpenGL
             new GLVersion(3, 2)
         };
 
+        /// <summary>
+        /// The major OpenGL version number.
+        /// </summary>
         public int Major;
+
+        /// <summary>
+        /// The minor OpenGL version number.
+        /// </summary>
         public int Minor;
 
         public GLVersion(int major, int minor)
