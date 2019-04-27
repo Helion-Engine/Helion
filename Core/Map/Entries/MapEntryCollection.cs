@@ -17,21 +17,21 @@ namespace Helion.Map
         public string Name = "";
 
         // The following are a list of all the components that may be present.
-        public Optional<byte[]> Vertices = Optional<byte[]>.Empty();
-        public Optional<byte[]> Sectors = Optional<byte[]>.Empty();
-        public Optional<byte[]> Sidedefs = Optional<byte[]>.Empty();
-        public Optional<byte[]> Linedefs = Optional<byte[]>.Empty();
-        public Optional<byte[]> Segments = Optional<byte[]>.Empty();
-        public Optional<byte[]> Subsectors = Optional<byte[]>.Empty();
-        public Optional<byte[]> Nodes = Optional<byte[]>.Empty();
-        public Optional<byte[]> Things = Optional<byte[]>.Empty();
-        public Optional<byte[]> Blockmap = Optional<byte[]>.Empty();
-        public Optional<byte[]> Reject = Optional<byte[]>.Empty();
-        public Optional<byte[]> Scripts = Optional<byte[]>.Empty();
-        public Optional<byte[]> Behavior = Optional<byte[]>.Empty();
-        public Optional<byte[]> Dialogue = Optional<byte[]>.Empty();
-        public Optional<byte[]> Textmap = Optional<byte[]>.Empty();
-        public Optional<byte[]> Znodes = Optional<byte[]>.Empty();
+        public Optional<byte[]> Vertices = Optional.Empty;
+        public Optional<byte[]> Sectors = Optional.Empty;
+        public Optional<byte[]> Sidedefs = Optional.Empty;
+        public Optional<byte[]> Linedefs = Optional.Empty;
+        public Optional<byte[]> Segments = Optional.Empty;
+        public Optional<byte[]> Subsectors = Optional.Empty;
+        public Optional<byte[]> Nodes = Optional.Empty;
+        public Optional<byte[]> Things = Optional.Empty;
+        public Optional<byte[]> Blockmap = Optional.Empty;
+        public Optional<byte[]> Reject = Optional.Empty;
+        public Optional<byte[]> Scripts = Optional.Empty;
+        public Optional<byte[]> Behavior = Optional.Empty;
+        public Optional<byte[]> Dialogue = Optional.Empty;
+        public Optional<byte[]> Textmap = Optional.Empty;
+        public Optional<byte[]> Znodes = Optional.Empty;
 
         /// <summary>
         /// Creates a blank collection with no components or name set.
@@ -62,11 +62,11 @@ namespace Helion.Map
         /// <param name="dialogue">The entry for this type.</param>
         /// <param name="textmap">The entry for this type.</param>
         /// <param name="znodes">The entry for this type.</param>
-        public MapEntryCollection(string name, Optional<byte[]> vertices, Optional<byte[]> sectors, 
-            Optional<byte[]> sidedefs, Optional<byte[]> linedefs, Optional<byte[]> segments, 
-            Optional<byte[]> subsectors, Optional<byte[]> nodes, Optional<byte[]> things, 
-            Optional<byte[]> blockmap, Optional<byte[]> reject, Optional<byte[]> scripts, 
-            Optional<byte[]> behavior, Optional<byte[]> dialogue, Optional<byte[]> textmap, 
+        public MapEntryCollection(string name, Optional<byte[]> vertices, Optional<byte[]> sectors,
+            Optional<byte[]> sidedefs, Optional<byte[]> linedefs, Optional<byte[]> segments,
+            Optional<byte[]> subsectors, Optional<byte[]> nodes, Optional<byte[]> things,
+            Optional<byte[]> blockmap, Optional<byte[]> reject, Optional<byte[]> scripts,
+            Optional<byte[]> behavior, Optional<byte[]> dialogue, Optional<byte[]> textmap,
             Optional<byte[]> znodes)
         {
             Name = name;

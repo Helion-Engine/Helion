@@ -25,7 +25,7 @@ namespace Helion.Resources.Definitions
         public Optional<Pnames> From(byte[] data)
         {
             if ((data.Length - 4) % 8 != 0)
-                return Optional<Pnames>.Empty();
+                return Optional.Empty;
 
             List<UpperString> names = new List<UpperString>();
 
@@ -36,14 +36,14 @@ namespace Helion.Resources.Definitions
                 int actual = (data.Length - 4) / 8;
 
                 if (count > actual)
-                    return Optional<Pnames>.Empty();
+                    return Optional.Empty;
 
                 for (int i = 0; i < count; i++)
                     names.Add(reader.ReadEightByteString());
             }
-            catch 
+            catch
             {
-                return Optional<Pnames>.Empty();
+                return Optional.Empty;
             }
 
             return new Pnames(names);

@@ -33,7 +33,7 @@ namespace Helion.Resources.Sprites
         /// </summary>
         public SpriteRotations Rotations { get; }
 
-        public SpriteFrameManagerEvent(SpriteFrameManagerEventType type, UpperString frameBase, 
+        public SpriteFrameManagerEvent(SpriteFrameManagerEventType type, UpperString frameBase,
             SpriteRotations rotations)
         {
             Type = type;

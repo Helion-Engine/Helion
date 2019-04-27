@@ -50,7 +50,7 @@ namespace Helion.Graphics.Palette
         /// <param name="width">The image width. Should be positive.</param>
         /// <param name="height">The image height, should be positive.</param>
         /// <param name="fillIndex">The index to fill the image with.</param>
-        public PaletteImage(int width, int height, ushort fillIndex = TRANSPARENT_INDEX) : 
+        public PaletteImage(int width, int height, ushort fillIndex = TRANSPARENT_INDEX) :
             this(width, height, fillIndex, new ImageMetadata())
         {
         }

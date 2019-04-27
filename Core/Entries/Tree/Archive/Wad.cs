@@ -32,7 +32,7 @@ namespace Helion.Entries.Tree.Archive
         /// then it will contain the location on the hard disk from where it
         /// was read from.
         /// </summary>
-        public Optional<string> FilePath { get; } = Optional<string>.Empty();
+        public Optional<string> FilePath { get; } = Optional.Empty;
 
         /// <summary>
         /// True if this is an iwad, false if it's a pwad.
@@ -45,7 +45,7 @@ namespace Helion.Entries.Tree.Archive
         /// </summary>
         public bool IsFile => FilePath.HasValue;
 
-        private Wad(EntryId id, List<Entry> entries, string filePath, bool isIwad, EntryIdAllocator idAllocator) : 
+        private Wad(EntryId id, List<Entry> entries, string filePath, bool isIwad, EntryIdAllocator idAllocator) :
             base(id, new EntryPath(System.IO.Path.GetFileName(filePath)))
         {
             FilePath = filePath;
@@ -53,7 +53,7 @@ namespace Helion.Entries.Tree.Archive
             entries.ForEach(entry => AddEntry(entry, idAllocator));
         }
 
-        private Wad(EntryId id, List<Entry> entries, EntryPath path, bool isIwad, EntryIdAllocator idAllocator) : 
+        private Wad(EntryId id, List<Entry> entries, EntryPath path, bool isIwad, EntryIdAllocator idAllocator) :
             base(id, path)
         {
             IsIwad = isIwad;
@@ -142,7 +142,7 @@ namespace Helion.Entries.Tree.Archive
         /// <param name="classifier">The entry classifier.</param>
         /// <returns>The processed wad if it exists and was able to be
         /// catalogued, otherwise an error reason.</returns>
-        public static Expected<Wad, string> FromData(byte[] data, EntryPath wadPath, 
+        public static Expected<Wad, string> FromData(byte[] data, EntryPath wadPath,
             EntryIdAllocator idAllocator, EntryClassifier classifier)
         {
             Expected<List<Entry>, string> entries = WadEntriesFromData(data, classifier);

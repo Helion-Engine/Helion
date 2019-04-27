@@ -28,7 +28,8 @@ namespace Helion.Resources.Sprites
 
         private static bool AreRotationReflections(char first, char second)
         {
-            switch (first) {
+            switch (first)
+            {
             case '2':
                 return second == '8';
             case '3':
@@ -47,8 +48,8 @@ namespace Helion.Resources.Sprites
 
         private static bool IsEightLetterFrame(UpperString frame)
         {
-            return frame.Length == 8 && 
-                   IsValidRotationIndex(frame[5]) && 
+            return frame.Length == 8 &&
+                   IsValidRotationIndex(frame[5]) &&
                    AreRotationReflections(frame[5], frame[7]);
         }
 
@@ -107,7 +108,7 @@ namespace Helion.Resources.Sprites
                 Assert.Fail($"Trying to add the same sprite manager listener twice: {listener}");
             else
                 listeners.Add(listener);
-                // TODO: Emit current state to the listener.
+            // TODO: Emit current state to the listener.
         }
 
         /// <summary>

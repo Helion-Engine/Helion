@@ -65,7 +65,7 @@ namespace Helion.Entries.Tree.Archive
             if (nameToEntry.TryGetValue(name, out Entry entry))
                 if (entry is T entryOfType)
                     return entryOfType;
-            return Optional<T>.Empty();
+            return Optional.Empty;
         }
 
         public abstract ArchiveType GetArchiveType();

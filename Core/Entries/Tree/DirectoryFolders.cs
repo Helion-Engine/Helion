@@ -23,7 +23,7 @@ namespace Helion.Entries.Tree
             get {
                 if (nameToNode.TryGetValue(name, out LinkedListNode<DirectoryEntry> node))
                     return node.Value;
-                return Optional<DirectoryEntry>.Empty();
+                return Optional.Empty;
             }
         }
 
@@ -42,7 +42,8 @@ namespace Helion.Entries.Tree
         /// </returns>
         public DirectoryEntry GetOrCreate(EntryPath basePath, string folderName, EntryIdAllocator idAllocator)
         {
-            return this[folderName].ValueOr(() => {
+            return this[folderName].ValueOr(() =>
+            {
                 EntryPath path = basePath.AppendDirectory(folderName);
                 DirectoryEntry entry = new DirectoryEntry(idAllocator.AllocateId(), path);
 

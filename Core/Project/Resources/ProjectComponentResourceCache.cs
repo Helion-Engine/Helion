@@ -64,7 +64,7 @@ namespace Helion.Project.Resources
                 Images[entry.Path.Name] = imageEntry;
                 break;
             case PaletteImageEntry paletteImageEntry:
-                PaletteImages[entry.Path.Name] =paletteImageEntry;
+                PaletteImages[entry.Path.Name] = paletteImageEntry;
                 break;
             case PnamesEntry pnamesEntry:
                 DefinitionEntries.Pnames = pnamesEntry.Pnames;

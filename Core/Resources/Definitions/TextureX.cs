@@ -1,5 +1,4 @@
-﻿using Helion.Graphics;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
@@ -132,7 +131,7 @@ namespace Helion.Resources.Definitions
             }
             catch
             {
-                return Optional<TextureX>.Empty();
+                return Optional.Empty;
             }
         }
     }

@@ -1,5 +1,5 @@
-﻿using System.Text;
-using Helion.Resources;
+﻿using Helion.Resources;
+using System.Text;
 
 namespace Helion.Entries.Types
 {

@@ -68,7 +68,7 @@ namespace Helion.Util
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator(); 
+            return GetEnumerator();
         }
     }
 }

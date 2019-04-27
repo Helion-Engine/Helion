@@ -142,7 +142,7 @@ namespace Helion.Map
         public static Optional<ValidMapEntryCollection> From(MapEntryCollection map)
         {
             if (!HasRequiredComponents(map) || !HasValidDataStructures(map))
-                return Optional<ValidMapEntryCollection>.Empty();
+                return Optional.Empty;
             return new ValidMapEntryCollection(map);
         }
     }

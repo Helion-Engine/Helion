@@ -40,7 +40,7 @@ namespace Helion.Graphics
             }
             catch
             {
-                return Optional<Image>.Empty();
+                return Optional.Empty;
             }
         }
     }

@@ -88,7 +88,7 @@ namespace Helion.Graphics.Palette
             }
             catch
             {
-               return false;
+                return false;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Helion.Graphics.Palette
         {
             int dimension = FlatDimension(data.Length);
             if (dimension == 0)
-                return Optional<PaletteImage>.Empty();
+                return Optional.Empty;
 
             ushort[] indices = new ushort[dimension * dimension];
 
@@ -178,7 +178,7 @@ namespace Helion.Graphics.Palette
             }
             catch
             {
-                return Optional<PaletteImage>.Empty();
+                return Optional.Empty;
             }
         }
     }

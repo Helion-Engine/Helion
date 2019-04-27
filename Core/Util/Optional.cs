@@ -3,6 +3,34 @@
 namespace Helion.Util
 {
     /// <summary>
+    /// A helper class that enables us to do less typing by providing a simple
+    /// NullOption type that converts into an empty optional.
+    /// </summary>
+    /// <remarks>
+    /// This is designed so that we only have to write `Optional.Empty` when
+    /// returning an empty value instead of something longer (potentially much
+    /// longer!) like Optional&lt;MyReallyLongClassHere&gt;.Empty().
+    /// </remarks>
+    public class Optional
+    {
+        /// <summary>
+        /// A 'tag' class that we'll be using to cause the compiler to invoke
+        /// constructors via overload.
+        /// </summary>
+        public struct NullOption { }
+
+        /// <summary>
+        /// Represents an empty optional value.
+        /// </summary>
+        /// <remarks>
+        /// You can use this almost anywhere that optionals are returned. The
+        /// only place you can't do it is when you're using ternary and the
+        /// compiler can't resolve which function to call.
+        /// </remarks>
+        public static readonly NullOption Empty = new NullOption();
+    }
+
+    /// <summary>
     /// Represents a possibly empty result that the user must check against. It
     /// also provides helpful methods that can be chained together to make any
     /// code operating on optionals a lot cleaner.
@@ -34,6 +62,12 @@ namespace Helion.Util
         public static implicit operator bool(Optional<T> opt) => opt.HasValue;
 
         /// <summary>
+        /// PLZ WORK
+        /// </summary>
+        /// <param name="_"></param>
+        public static implicit operator Optional<T>(Optional.NullOption _) => Empty();
+
+        /// <summary>
         /// A convenience method that lets us return values from a function
         /// without having to write `new Optional...()` every time. Instead,
         /// values can be directly returned which makes the code a bit cleaner.
@@ -46,7 +80,9 @@ namespace Helion.Util
         public static implicit operator Optional<T>(T t) => new Optional<T>(t);
 
         /// <summary>
-        /// Creates an empty optional.
+        /// Creates an empty optional. You are recommended first to try using
+        /// `Optional.Empty` in place of this, and only call this if that does
+        /// not work.
         /// </summary>
         /// <returns>An empty optional.</returns>
         public static Optional<T> Empty() => new Optional<T>(default);

@@ -60,7 +60,7 @@ namespace Helion.Util.Geometry
             else
                 return new Fixed((((ulong)numerator.Bits) << BITS) / (ulong)denominator.Bits);
         }
-        
+
         public static Fixed operator <<(Fixed self, int bits) => new Fixed(self.Bits << bits);
         public static Fixed operator >>(Fixed self, int bits) => new Fixed(self.Bits >> bits);
         public static bool operator ==(Fixed self, Fixed other) => self.Bits == other.Bits;

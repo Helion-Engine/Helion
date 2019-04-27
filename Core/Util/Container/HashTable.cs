@@ -98,7 +98,7 @@ namespace Helion.Util.Container
             if (table.TryGetValue(firstKey, out var map))
                 if (map.TryGetValue(secondKey, out V value))
                     return value;
-            return Optional<V>.Empty();
+            return Optional.Empty;
         }
 
         /// <summary>

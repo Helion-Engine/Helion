@@ -71,7 +71,8 @@ namespace Helion.Entries
         private void ExtractFoldersAndName(string path)
         {
             StringBuilder builder = new StringBuilder();
-            foreach (char c in path) {
+            foreach (char c in path)
+            {
                 if (InvalidFolderCharacter(c))
                     continue;
 

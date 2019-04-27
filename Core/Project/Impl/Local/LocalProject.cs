@@ -3,10 +3,10 @@ using Helion.Entries.Tree.Archive;
 using Helion.Entries.Tree.Archive.Locator;
 using Helion.Project.Component;
 using Helion.Util;
-using System;
-using System.IO;
-using System.Collections.Generic;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Helion.Project.Impl.Local
 {
@@ -32,8 +32,8 @@ namespace Helion.Project.Impl.Local
         {
         }
 
-        public LocalProject(ProjectId id, ProjectInfo info, EntryIdAllocator idAllocator) : 
-            base(id, info, idAllocator, new EntryClassifier(idAllocator)) 
+        public LocalProject(ProjectId id, ProjectInfo info, EntryIdAllocator idAllocator) :
+            base(id, info, idAllocator, new EntryClassifier(idAllocator))
         {
         }
 

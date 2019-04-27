@@ -103,7 +103,7 @@ namespace Helion.Resources
                     if (table.TryGet(resourceNamespace, name, out T resource))
                         return resource;
 
-            return Optional<T>.Empty();
+            return Optional.Empty;
         }
 
         public IEnumerator<HashTableEntry<ResourceNamespace, UpperString, T>> GetEnumerator()

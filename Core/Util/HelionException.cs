@@ -7,7 +7,7 @@ namespace Helion.Util
     /// The base class that all exceptions for this project derive from.
     /// </summary>
     [Serializable]
-    internal class HelionException : Exception
+    public class HelionException : Exception
     {
         public HelionException()
         {

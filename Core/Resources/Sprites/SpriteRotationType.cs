@@ -6,7 +6,7 @@
     public enum SpriteRotationType
     {
         // One single frame (most commonly the XXXXX0 frames).
-        Single, 
+        Single,
 
         // A sprite that has all 8 frames defined.
         Octant,

@@ -22,16 +22,16 @@ namespace Helion.Entries
             ["BLOCKMAP"] = ResourceType.Blockmap,
             ["DECORATE"] = ResourceType.Decorate,
             ["LINEDEFS"] = ResourceType.Linedefs,
-            ["NODES"]    = ResourceType.Nodes,
-            ["PLAYPAL"]  = ResourceType.Palette,
-            ["PNAMES"]   = ResourceType.Pnames,
-            ["REJECT"]   = ResourceType.Reject,
-            ["SCRIPTS"]  = ResourceType.Scripts,
-            ["SECTORS"]  = ResourceType.Sectors,
-            ["SEGS"]     = ResourceType.Segs,
+            ["NODES"] = ResourceType.Nodes,
+            ["PLAYPAL"] = ResourceType.Palette,
+            ["PNAMES"] = ResourceType.Pnames,
+            ["REJECT"] = ResourceType.Reject,
+            ["SCRIPTS"] = ResourceType.Scripts,
+            ["SECTORS"] = ResourceType.Sectors,
+            ["SEGS"] = ResourceType.Segs,
             ["SIDEDEFS"] = ResourceType.Sidedefs,
             ["SSECTORS"] = ResourceType.Subsectors,
-            ["THINGS"]   = ResourceType.Things,
+            ["THINGS"] = ResourceType.Things,
             ["TEXTURE1"] = ResourceType.TextureX,
             ["TEXTURE2"] = ResourceType.TextureX,
             ["TEXTURE3"] = ResourceType.TextureX,
@@ -40,14 +40,14 @@ namespace Helion.Entries
 
         private static readonly Dictionary<string, ResourceType> EXTENSION_TO_TYPE = new Dictionary<string, ResourceType>
         {
-            ["BMP"]  = ResourceType.Image,
-            ["JPG"]  = ResourceType.Image,
-            ["PNG"]  = ResourceType.Image,
-            ["TIF"]  = ResourceType.Image,
+            ["BMP"] = ResourceType.Image,
+            ["JPG"] = ResourceType.Image,
+            ["PNG"] = ResourceType.Image,
+            ["TIF"] = ResourceType.Image,
             ["TIFF"] = ResourceType.Image,
-            ["TTF"]  = ResourceType.TrueTypeFont,
-            ["TXT"]  = ResourceType.Text,
-            ["WAD"]  = ResourceType.Wad
+            ["TTF"] = ResourceType.TrueTypeFont,
+            ["TXT"] = ResourceType.Text,
+            ["WAD"] = ResourceType.Wad
         };
 
         private readonly EntryIdAllocator idAllocator;

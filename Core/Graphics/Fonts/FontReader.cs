@@ -26,7 +26,7 @@ namespace Helion.Graphics.Fonts
                     }
 
                     if (fontCollection.Families.Length == 0)
-                        return Optional<Font>.Empty();
+                        return Optional.Empty;
 
                     return CreateFont(fontCollection.Families[0], alphaCutoff);
                 }
@@ -35,7 +35,7 @@ namespace Helion.Graphics.Fonts
                 }
             }
 
-            return Optional<Font>.Empty();
+            return Optional.Empty;
         }
 
         private static Optional<Font> CreateFont(System.Drawing.FontFamily fontFamily, float alphaCutoff)
@@ -44,7 +44,7 @@ namespace Helion.Graphics.Fonts
             // TODO: Use it like so:
             // https://stackoverflow.com/questions/34473139/new-system-drawing-font-code-behind
 
-            return Optional<Font>.Empty();
+            return Optional.Empty;
         }
     }
 }

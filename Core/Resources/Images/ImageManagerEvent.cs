@@ -40,7 +40,7 @@ namespace Helion.Resources.Images
         /// </summary>
         public Optional<Image> Image { get; }
 
-        public ImageManagerEvent(ImageManagerEventType type, UpperString name, 
+        public ImageManagerEvent(ImageManagerEventType type, UpperString name,
             ResourceNamespace resourceNamespace, Optional<Image> image)
         {
             Type = type;
@@ -80,7 +80,7 @@ namespace Helion.Resources.Images
         /// <returns></returns>
         public static ImageManagerEvent Delete(UpperString name, ResourceNamespace resourceNamespace)
         {
-            return new ImageManagerEvent(ImageManagerEventType.Delete, name, resourceNamespace, Optional<Image>.Empty());
+            return new ImageManagerEvent(ImageManagerEventType.Delete, name, resourceNamespace, Optional.Empty);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
-        public Optional<Pnames> Pnames = Optional<Pnames>.Empty();
+        public Optional<Pnames> Pnames = Optional.Empty;
         public List<TextureX> TextureXList = new List<TextureX>();
     }
 }

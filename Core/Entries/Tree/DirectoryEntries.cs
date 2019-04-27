@@ -23,13 +23,11 @@ namespace Helion.Entries.Tree
         /// </summary>
         /// <param name="id">The ID to look up.</param>
         /// <returns>The entry if the ID exists</returns>
-        public Optional<Entry> this[EntryId id]
-        {
-            get
-            {
+        public Optional<Entry> this[EntryId id] {
+            get {
                 if (idToNode.TryGetValue(id, out LinkedListNode<Entry> node))
                     return node.Value;
-                return Optional<Entry>.Empty();
+                return Optional.Empty;
             }
         }
 

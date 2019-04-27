@@ -27,7 +27,7 @@ namespace Helion.Entries.Tree
         /// </remarks>
         public DirectoryEntries Entries { get; } = new DirectoryEntries();
 
-        public DirectoryEntry(EntryId id, EntryPath path) : base(id, path, new byte[]{}, ResourceNamespace.Global)
+        public DirectoryEntry(EntryId id, EntryPath path) : base(id, path, new byte[] { }, ResourceNamespace.Global)
         {
         }
 

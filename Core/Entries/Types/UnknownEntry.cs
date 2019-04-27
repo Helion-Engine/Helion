@@ -7,7 +7,7 @@ namespace Helion.Entries.Types
     /// </summary>
     public class UnknownEntry : Entry
     {
-        public UnknownEntry(EntryId id, EntryPath path, byte[] data, ResourceNamespace resourceNamespace) : 
+        public UnknownEntry(EntryId id, EntryPath path, byte[] data, ResourceNamespace resourceNamespace) :
             base(id, path, data, resourceNamespace)
         {
         }

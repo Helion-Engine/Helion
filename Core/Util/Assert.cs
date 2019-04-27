@@ -7,7 +7,7 @@ namespace Helion.Util
     /// <summary>
     /// A collection of assertion methods that only work in debug mode.
     /// </summary>
-    public class Assert
+    public static class Assert
     {
         /// <summary>
         /// Should be called when a state should never be reached. Will not be
@@ -33,6 +33,7 @@ namespace Helion.Util
             if (!precondition)
                 Fail(reason);
         }
+
 
         /// <summary>
         /// Checks for an invariant, throws if the invariant is false. 

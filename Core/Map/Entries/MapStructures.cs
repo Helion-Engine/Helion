@@ -38,7 +38,7 @@
         public short Special;
         public short Tag;
 
-        public Sector(short floorHeight, short ceilingHeight, string floorTexture, 
+        public Sector(short floorHeight, short ceilingHeight, string floorTexture,
             string ceilingTexture, short lightLevel, short special, short tag)
         {
             FloorHeight = floorHeight;
@@ -62,7 +62,7 @@
         public string MiddleTexture;
         public ushort SectorIndex;
 
-        public Sidedef(short offsetX, short offsetY, string upperTexture, string lowerTexture, 
+        public Sidedef(short offsetX, short offsetY, string upperTexture, string lowerTexture,
             string middleTexture, ushort sectorIndex)
         {
             OffsetX = offsetX;
@@ -88,7 +88,7 @@
 
         public bool OneSided => LeftSidedef == Constants.NO_SIDEDEF;
 
-        public LinedefDoom(ushort startVertexId, ushort endVertexId, ushort flags, 
+        public LinedefDoom(ushort startVertexId, ushort endVertexId, ushort flags,
             ushort lineType, ushort sectorTag, ushort rightSidedef, ushort leftSidedef)
         {
             StartVertexId = startVertexId;
@@ -115,7 +115,7 @@
 
         public bool OneSided => LeftSidedef == Constants.NO_SIDEDEF;
 
-        public LinedefHexen(ushort startVertexId, ushort endVertexId, ushort flags, byte actionSpecial, 
+        public LinedefHexen(ushort startVertexId, ushort endVertexId, ushort flags, byte actionSpecial,
             byte[] args, ushort rightSidedef, ushort leftSidedef)
         {
             StartVertexId = startVertexId;
@@ -139,7 +139,7 @@
         public ushort Direction; // 0 = front [same direction as linedef], 1 = back
         public short Offset;
 
-        public Segment(ushort startVertexId, ushort endVertexId, ushort angle, ushort linedefId, 
+        public Segment(ushort startVertexId, ushort endVertexId, ushort angle, ushort linedefId,
             ushort direction, short offset)
         {
             StartVertexId = startVertexId;
@@ -194,8 +194,8 @@
         public short RightChild;
         public short LeftChild;
 
-        public Node(short partitionX, short partitionY, short deltaX, short deltaY, 
-            NodeBoundingBox rightBoundingBox, NodeBoundingBox leftBoundingBox, 
+        public Node(short partitionX, short partitionY, short deltaX, short deltaY,
+            NodeBoundingBox rightBoundingBox, NodeBoundingBox leftBoundingBox,
             short rightChild, short leftChild)
         {
             PartitionX = partitionX;
@@ -245,7 +245,7 @@
         public byte ActionSpecial;
         public byte Args;
 
-        public ThingHexen(ushort thingId, short x, short y, short z, ushort angle, ushort type, 
+        public ThingHexen(ushort thingId, short x, short y, short z, ushort angle, ushort type,
             ushort spawnFlags, byte actionSpecial, byte args)
         {
             ThingId = thingId;

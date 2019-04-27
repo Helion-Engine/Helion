@@ -76,7 +76,7 @@ namespace Helion.Graphics.Palette
         public static Optional<Palette> From(byte[] data)
         {
             if (data.Length != 0 && data.Length % BYTES_PER_LAYER != 0)
-                return Optional<Palette>.Empty();
+                return Optional.Empty;
 
             List<PaletteColor[]> paletteLayers = new List<PaletteColor[]>();
             for (int layer = 0; layer < data.Length / BYTES_PER_LAYER; layer++)

@@ -8,7 +8,7 @@ namespace Helion.Entries.Tree.Archive.Locator
     /// </summary>
     public class FilesystemArchiveLocator : ArchiveLocator
     {
-        public Expected<Archive, string> Locate(string uri, EntryClassifier classifier, 
+        public Expected<Archive, string> Locate(string uri, EntryClassifier classifier,
             EntryIdAllocator idAllocator)
         {
             UpperString upperUri = uri;

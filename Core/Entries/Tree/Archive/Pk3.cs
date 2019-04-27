@@ -28,7 +28,7 @@ namespace Helion.Entries.Tree.Archive
         /// then it will contain the location on the hard disk from where it
         /// was read from.
         /// </summary>
-        public Optional<string> FilePath { get; } = Optional<string>.Empty();
+        public Optional<string> FilePath { get; } = Optional.Empty;
 
         /// <summary>
         /// Is true if this was from a file path, false if it's from a memory
@@ -36,14 +36,14 @@ namespace Helion.Entries.Tree.Archive
         /// </summary>
         public bool IsFile => FilePath.HasValue;
 
-        private Pk3(EntryId id, List<Entry> entries, string filePath, EntryIdAllocator idAllocator) : 
+        private Pk3(EntryId id, List<Entry> entries, string filePath, EntryIdAllocator idAllocator) :
             base(id, new EntryPath(System.IO.Path.GetFileName(filePath)))
         {
             FilePath = filePath;
             entries.ForEach(entry => AddEntry(entry, idAllocator));
         }
 
-        private Pk3(EntryId id, List<Entry> entries, EntryPath path, EntryIdAllocator idAllocator) : 
+        private Pk3(EntryId id, List<Entry> entries, EntryPath path, EntryIdAllocator idAllocator) :
             base(id, path)
         {
             entries.ForEach(entry => AddEntry(entry, idAllocator));
@@ -52,7 +52,8 @@ namespace Helion.Entries.Tree.Archive
         private static ResourceNamespace GetNamespaceFrom(EntryPath path)
         {
             ResourceNamespace entryNamespace = ResourceNamespace.Global;
-            path.RootFolder.Then(folder => {
+            path.RootFolder.Then(folder =>
+            {
                 if (FOLDER_TO_NAMESPACE.TryGetValue(folder, out ResourceNamespace foundNamespace))
                     entryNamespace = foundNamespace;
             });
@@ -65,7 +66,7 @@ namespace Helion.Entries.Tree.Archive
             return entry.Length == 0 && (entry.FullName.EndsWith('/') || entry.FullName.EndsWith('\\'));
         }
 
-        private static void ZipDataToEntry(ICollection<Entry> entries, ZipArchiveEntry zipEntry, 
+        private static void ZipDataToEntry(ICollection<Entry> entries, ZipArchiveEntry zipEntry,
             Stream stream, EntryClassifier classifier)
         {
             if (ZipEntryDirectory(zipEntry))
