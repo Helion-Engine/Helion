@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Helion.Render.OpenGL
+namespace Helion.Render.OpenGL.Util
 {
     /// <summary>
     /// Represents a major/minor version that OpenGL can have.
@@ -26,12 +26,12 @@ namespace Helion.Render.OpenGL
         /// <summary>
         /// The major OpenGL version number.
         /// </summary>
-        public int Major;
+        public readonly int Major;
 
         /// <summary>
         /// The minor OpenGL version number.
         /// </summary>
-        public int Minor;
+        public readonly int Minor;
 
         public GLVersion(int major, int minor)
         {

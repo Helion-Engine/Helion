@@ -47,6 +47,8 @@ namespace Helion.Resources.Images
             Name = name;
             Namespace = resourceNamespace;
             Image = image;
+
+            Assert.Postcondition(type == ImageManagerEventType.Delete || image, "Expected image value to be present for create/update");
         }
 
         /// <summary>

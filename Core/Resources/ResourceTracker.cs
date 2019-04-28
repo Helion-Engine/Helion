@@ -26,6 +26,11 @@ namespace Helion.Resources
             table.Clear();
         }
 
+        public bool Contains(UpperString name, ResourceNamespace resourceNamespace)
+        {
+            return table.Get(resourceNamespace, name).HasValue;
+        }
+
         /// <summary>
         /// Adds the element to the resource tracker, or overwrites an existing
         /// reference if already mapped.
