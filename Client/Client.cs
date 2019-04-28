@@ -76,7 +76,12 @@ namespace Helion.Client
         {
             if (Focused)
             {
+                // Calculate current position to center of the screen for the
+                // mouse delta/movement. For an example:
+                // https://stackoverflow.com/questions/9245430/how-to-lock-cursor-to-game-window
                 // TODO
+
+                // Reset the mouse to the center of the screen.
                 Mouse.SetPosition(X + Width / 2f, Y + Height / 2f);
             }
 

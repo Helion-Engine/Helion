@@ -12,6 +12,7 @@ namespace Helion.Render.OpenGL.Texture
 {
     public class GLTextureManager : IDisposable, ImageManagerListener
     {
+        public readonly GLTexture NullTexture;
         private bool disposed = false;
         private readonly float maxAnisotropy;
         private readonly Project project;
@@ -20,8 +21,12 @@ namespace Helion.Render.OpenGL.Texture
 
         public GLTextureManager(GLInfo glInfo, Project targetProject)
         {
+            if (!glInfo.Version.Supports(4, 4))
+                throw new HelionException($"OpenGL version too outdated (you have {glInfo.Version}, need 4.4+)");
+
             project = targetProject;
-            GL.GetFloat((GetPName)All.MaxTextureMaxAnisotropy, out maxAnisotropy);
+            maxAnisotropy = GL.GetFloat((GetPName)All.MaxTextureMaxAnisotropy);
+            NullTexture = CreateTexture("NULL", ResourceNamespace.Global, ImageHelper.CreateNullImage(), false);
 
             project.Resources.ImageManager.Register(this);
         }
@@ -40,7 +45,7 @@ namespace Helion.Render.OpenGL.Texture
             return Math.Max(1, levels);
         }
 
-        private GLTexture CreateTexture(UpperString name, ResourceNamespace resourceNamespace, Image image)
+        private GLTexture CreateTexture(UpperString name, ResourceNamespace resourceNamespace, Image image, bool trackable = true)
         {
             Assert.Precondition(!textures.Contains(name, resourceNamespace), $"Accidentally creating a texture and overwriting it: {name} in {resourceNamespace}");
 
@@ -65,7 +70,13 @@ namespace Helion.Render.OpenGL.Texture
             GLTextureHandle textureHandle = new GLTextureHandle(residentHandle, image.Width, image.Height);
             GLTexture texture = new GLTexture(textureName, handleIndex, textureHandle);
 
-            textures.AddOrOverwrite(name, resourceNamespace, texture);
+            // We made this a flag because we want to be able to add textures
+            // that the user can't override (like the null texture). Note that
+            // anything which is false and not added here needs to manually be
+            // cleaned up.
+            if (trackable)
+                textures.AddOrOverwrite(name, resourceNamespace, texture);
+
             handles.Add(textureHandle);
 
             return texture;
@@ -134,21 +145,6 @@ namespace Helion.Render.OpenGL.Texture
             // TODO
         }
 
-        public void HandleImageEvent(ImageManagerEvent imageEvent)
-        {
-            switch (imageEvent.Type)
-            {
-            case ImageManagerEventType.CreateOrUpdate:
-                CreateOrUpdateTexture(imageEvent.Name, imageEvent.Namespace, imageEvent.Image.Value);
-                break;
-            case ImageManagerEventType.Delete:
-                DeleteTexture(imageEvent.Name, imageEvent.Namespace);
-                break;
-            default:
-                throw new NotSupportedException("Unexpected image event enumeration");
-            }
-        }
-
         private void CreateOrUpdateTexture(UpperString name, ResourceNamespace resourceNamespace, Image image)
         {
             if (textures.Contains(name, resourceNamespace))
@@ -162,13 +158,31 @@ namespace Helion.Render.OpenGL.Texture
             // TODO
         }
 
+        private void DestroyTexture(GLTexture texture)
+        {
+            GL.Arb.MakeTextureHandleNonResident(texture.Handle.ResidentHandle);
+            GL.DeleteTexture(texture.Name);
+        }
+
         private void DestroyAllTextures()
         {
+            DestroyTexture(NullTexture);
             foreach (var textureEntry in textures)
+                DestroyTexture(textureEntry.Value);
+        }
+
+        public void HandleImageEvent(ImageManagerEvent imageEvent)
+        {
+            switch (imageEvent.Type)
             {
-                GLTexture texture = textureEntry.Value;
-                GL.Arb.MakeTextureHandleNonResident(texture.Handle.ResidentHandle);
-                GL.DeleteTexture(texture.Name);
+            case ImageManagerEventType.CreateOrUpdate:
+                CreateOrUpdateTexture(imageEvent.Name, imageEvent.Namespace, imageEvent.Image.Value);
+                break;
+            case ImageManagerEventType.Delete:
+                DeleteTexture(imageEvent.Name, imageEvent.Namespace);
+                break;
+            default:
+                throw new NotSupportedException("Unexpected image event enumeration");
             }
         }
 
