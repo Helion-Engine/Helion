@@ -1,57 +1,70 @@
-﻿using Helion.Client.SDLSubsystem;
-using Helion.Project.Impl.Local;
+﻿using Helion.Project.Impl.Local;
+using Helion.Render.OpenGL;
 using Helion.Util;
 using NLog;
-using SDL2;
-using System;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace Helion.Client
 {
-    public class Client : IDisposable
+    public class Client : GameWindow
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs commandLineArgs;
         private readonly LocalProject project = new LocalProject();
-        private bool disposed = false;
         private bool shouldExit = false;
-        private SDLInitializer sdlInitializer;
-        private SDLOpenGLWindow window;
+        private GLInfo glInfo;
+        private GLRenderer glRenderer;
 
-        public Client(CommandLineArgs args)
+        public Client(CommandLineArgs args) : 
+            base(1024, 768, GraphicsMode.Default, Constants.APPLICATION_NAME, GameWindowFlags.Default)
         {
             commandLineArgs = args;
+
+            LoadProject();
+            CreateGLComponents();
         }
 
-        ~Client()
-        {
-            Dispose(false);
-        }
-
-        private void Initialize()
+        private void LoadProject()
         {
             if (!project.Load(commandLineArgs.Files))
             {
                 log.Error("Unable to load files for client");
                 shouldExit = true;
-                return;
             }
+        }
 
-            sdlInitializer = new SDLInitializer();
-            window = new SDLOpenGLWindow();
+        private void CreateGLComponents()
+        {
+            glInfo = new GLInfo();
+            log.Info("Loaded OpenGL v{0}", glInfo.Version);
+            log.Info("OpenGL Shading Language v{0}", glInfo.ShadingVersion);
+            log.Info("Vendor: {0}", glInfo.Vendor);
+            log.Info("Hardware: {0}", glInfo.Renderer);
+
+            glRenderer = new GLRenderer(glInfo);
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            if (shouldExit)
+                Exit();
+
+            PollInput();
+            RunLogic();
+            Render();
+
+            base.OnUpdateFrame(e);
         }
 
         private void PollInput()
         {
-            while (SDL.SDL_PollEvent(out SDL.SDL_Event sdlEvent) != 0)
-            {
-                switch (sdlEvent.type)
-                {
-                case SDL.SDL_EventType.SDL_QUIT:
-                    shouldExit = true;
-                    break;
-                }
-            }
+            KeyboardState keyboardInput = Keyboard.GetState();
+
+            if (keyboardInput.IsKeyDown(Key.Escape))
+                shouldExit = true;
         }
 
         private void RunLogic()
@@ -61,41 +74,7 @@ namespace Helion.Client
 
         private void Render()
         {
-            window.SwapBuffers();
-        }
-
-        public void Run()
-        {
-            Initialize();
-
-            while (!shouldExit)
-            {
-                PollInput();
-                RunLogic();
-                Render();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (disposed)
-                return;
-
-            if (disposing)
-            {
-                if (window != null)
-                    window.Dispose();
-                if (sdlInitializer != null)
-                    sdlInitializer.Dispose();
-            }
-
-            disposed = true;
+            glRenderer.Clear();
         }
 
         public static void Main(string[] args)
@@ -107,9 +86,10 @@ namespace Helion.Client
             log.Info($"{Constants.APPLICATION_NAME} v{Constants.APPLICATION_VERSION}");
             log.Info("=========================================");
 
-            Client client = new Client(cmdArgs);
-            client.Run();
-            client.Dispose();
+            using (Client client = new Client(cmdArgs))
+            {
+                client.Run(60.0);
+            }
 
             LogManager.Shutdown();
         }

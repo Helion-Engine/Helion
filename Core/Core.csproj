@@ -10,7 +10,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile></DocumentationFile>
     <OutputPath></OutputPath>
-    <NoWarn>1701;1702;CS1591;S1104;S2386;S3887</NoWarn>
+    <NoWarn>1701;1702;CS1591;S1104;S2386;S3887;NU1701</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser.NS20" Version="2.3.1" />
     <PackageReference Include="NLog" Version="4.6.2" />
+    <PackageReference Include="OpenTK" Version="3.0.1" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
 

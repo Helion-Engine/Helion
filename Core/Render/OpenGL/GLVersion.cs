@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL
         /// <summary>
         /// A list of versions that we support.
         /// </summary>
-        public static readonly List<GLVersion> Versions = new List<GLVersion>()
+        public static readonly List<GLVersion> SupportedVersions = new List<GLVersion>()
         {
             new GLVersion(4, 6),
             new GLVersion(4, 5),
@@ -38,5 +38,23 @@ namespace Helion.Render.OpenGL
             Major = major;
             Minor = minor;
         }
+
+        /// <summary>
+        /// Checks if the version supports at least the version provided.
+        /// </summary>
+        /// <param name="major">The major version.</param>
+        /// <param name="minor">The minor version.</param>
+        /// <returns>True if it supports it, false if the version is too low 
+        /// and does not.</returns>
+        public bool Supports(int major, int minor)
+        {
+            if (major > Major)
+                return false;
+            if (major == Major)
+                return Minor >= minor;
+            return true;
+        }
+
+        public override string ToString() => $"{Major}.{Minor}";
     }
 }
