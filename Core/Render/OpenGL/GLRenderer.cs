@@ -1,22 +1,33 @@
-﻿using NLog;
+﻿using Helion.Projects;
+using Helion.Render.OpenGL.Texture;
+using NLog;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL
 {
-    public class GLRenderer 
+    public class GLRenderer : IDisposable
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
+        private bool disposed = false;
         private readonly GLInfo info;
+        private readonly GLTextureManager textureManager;
 
-        public GLRenderer(GLInfo glInfo)
+        public GLRenderer(GLInfo glInfo, Project targetProject)
         {
             info = glInfo;
+            textureManager = new GLTextureManager(glInfo, targetProject);
 
             SetGLStates();
             SetGLDebugger();
+        }
+
+        ~GLRenderer()
+        {
+            Dispose(false);
         }
 
         private void SetGLStates()
@@ -59,10 +70,30 @@ namespace Helion.Render.OpenGL
             }
         }
 
-        public void Clear()
+        public void Clear(Size windowDimension)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             GL.ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            GL.Viewport(windowDimension);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                textureManager.Dispose();
+            }
+
+            disposed = true;
         }
     }
 }

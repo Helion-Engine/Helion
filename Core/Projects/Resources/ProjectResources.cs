@@ -7,7 +7,7 @@ using Helion.Resources.Sprites;
 using Helion.Util;
 using System.Collections.Generic;
 
-namespace Helion.Project.Resources
+namespace Helion.Projects.Resources
 {
     /// <summary>
     /// A collection of project-wide resources.

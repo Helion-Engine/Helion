@@ -5,7 +5,7 @@ using Helion.Resources.Definitions;
 using Helion.Util;
 using System.Collections.Generic;
 
-namespace Helion.Project.Resources
+namespace Helion.Projects.Resources
 {
     /// <summary>
     /// A cache of all the entries for a project component's archive.
@@ -39,7 +39,7 @@ namespace Helion.Project.Resources
         /// </summary>
         public Dictionary<UpperString, TrueTypeFontEntry> TrueTypeFonts = new Dictionary<UpperString, TrueTypeFontEntry>();
 
-        private ResourceTracker<Entry> entryTracker = new ResourceTracker<Entry>();
+        private readonly ResourceTracker<Entry> entryTracker = new ResourceTracker<Entry>();
 
         /// <summary>
         /// Tracks an entry. Handles to it will be cached in this data 

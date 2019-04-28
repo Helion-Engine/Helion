@@ -1,10 +1,10 @@
 ﻿using Helion.Entries;
-using Helion.Project.Resources;
+using Helion.Projects.Resources;
 using Helion.Util;
 using NLog;
 using System.Collections.Generic;
 
-namespace Helion.Project
+namespace Helion.Projects
 {
     /// <summary>
     /// A top level manager for a series of zero or more project components. It
@@ -38,7 +38,7 @@ namespace Helion.Project
         protected EntryClassifier Classifier;
         protected List<ProjectComponent> Components = new List<ProjectComponent>();
 
-        public Project(ProjectId id, ProjectInfo info, EntryIdAllocator entryIdAllocator,
+        protected Project(ProjectId id, ProjectInfo info, EntryIdAllocator entryIdAllocator,
             EntryClassifier entryClassifier)
         {
             Id = id;

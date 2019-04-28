@@ -1,4 +1,4 @@
-﻿namespace Helion.Project
+﻿namespace Helion.Projects
 {
     /// <summary>
     /// A unique ID that is specific to the project. No other project should

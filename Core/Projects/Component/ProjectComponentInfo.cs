@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.Project
+namespace Helion.Projects
 {
     /// <summary>
     /// A container of the project component metadata.

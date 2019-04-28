@@ -1,14 +1,14 @@
 ﻿using Helion.Entries;
 using Helion.Entries.Tree.Archive;
 using Helion.Entries.Tree.Archive.Locator;
-using Helion.Project.Component;
+using Helion.Projects.Component;
 using Helion.Util;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Helion.Project.Impl.Local
+namespace Helion.Projects.Impl.Local
 {
     /// <summary>
     /// A project that is defined locally. All resources for a local project

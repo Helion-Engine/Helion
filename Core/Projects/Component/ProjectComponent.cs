@@ -1,9 +1,9 @@
 ﻿using Helion.Entries;
 using Helion.Entries.Tree.Archive;
-using Helion.Project.Component;
-using Helion.Project.Resources;
+using Helion.Projects.Component;
+using Helion.Projects.Resources;
 
-namespace Helion.Project
+namespace Helion.Projects
 {
     /// <summary>
     /// A component of a project, which wraps around an archive and caches 

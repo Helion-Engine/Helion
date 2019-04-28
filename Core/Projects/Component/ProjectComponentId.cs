@@ -1,4 +1,4 @@
-﻿namespace Helion.Project.Component
+﻿namespace Helion.Projects.Component
 {
     /// <summary>
     /// A unique ID that is specific to the project component. No other 
