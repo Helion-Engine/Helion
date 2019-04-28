@@ -24,9 +24,6 @@ namespace Helion.Client
         {
             commandLineArgs = args;
 
-            // Note: If it's fullscreen we can use:
-            // DisplayDevice.Default.Width and DisplayDevice.Default.Height
-
             LoadProject();
             CreateGLComponents();
         }
@@ -35,7 +32,7 @@ namespace Helion.Client
         {
             if (!project.Load(commandLineArgs.Files))
             {
-                log.Error("Unable to load files for client");
+                log.Error("Unable to load files for the client");
                 shouldExit = true;
             }
         }
@@ -66,29 +63,50 @@ namespace Helion.Client
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            base.OnUpdateFrame(e);
-
             if (shouldExit)
                 Exit();
 
             PollInput();
             RunLogic();
+
+            base.OnUpdateFrame(e);
+        }
+
+        protected override void OnMouseMove(MouseMoveEventArgs e)
+        {
+            if (Focused)
+            {
+                // TODO
+                Mouse.SetPosition(X + Width / 2f, Y + Height / 2f);
+            }
+
+            base.OnMouseMove(e);
+        }
+
+
+        // In the mouse wheel function we manage all the zooming of the camera
+        // this is simply done by changing the FOV of the camera
+        protected override void OnMouseWheel(MouseWheelEventArgs e)
+        {
+            // TODO
+
+            base.OnMouseWheel(e);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            base.OnRenderFrame(e);
-
             glRenderer.Clear(new Size(Width, Height));
 
             SwapBuffers();
+
+            base.OnRenderFrame(e);
         }
 
         protected override void OnUnload(EventArgs e)
         {
-            base.OnUnload(e);
-
             glRenderer.Dispose();
+
+            base.OnUnload(e);
         }
 
         public static void Main(string[] args)

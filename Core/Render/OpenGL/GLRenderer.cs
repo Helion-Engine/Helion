@@ -83,7 +83,7 @@ namespace Helion.Render.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposed)
                 return;
