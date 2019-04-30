@@ -1,11 +1,12 @@
-﻿using Helion.Projects.Impl.Local;
+﻿using Helion.Input;
+using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
 using Helion.Util;
+using Helion.Util.Geometry;
 using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using System.Threading;
 
 namespace Helion.Client
 {
@@ -15,6 +16,9 @@ namespace Helion.Client
 
         private readonly CommandLineArgs commandLineArgs;
         private readonly Console console = new Console();
+        private readonly InputManager inputManager = new InputManager();
+        private readonly InputCollection frameCollection;
+        private readonly InputCollection tickCollection;
         private readonly LocalProject project = new LocalProject();
         private bool shouldExit = false;
         private GLRenderer glRenderer;
@@ -23,6 +27,8 @@ namespace Helion.Client
             base(1024, 768, GraphicsMode.Default, Constants.APPLICATION_NAME, GameWindowFlags.Default)
         {
             commandLineArgs = args;
+            frameCollection = inputManager.RegisterCollection();
+            tickCollection = inputManager.RegisterCollection();
 
             LoadProject();
             CreateGLComponents();
@@ -77,15 +83,16 @@ namespace Helion.Client
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
+            // TODO: Use an InputAdapter that is specific for OpenTK and put
+            // stuff into an input manager.
+
             if (Focused)
             {
-                // Calculate current position to center of the screen for the
-                // mouse delta/movement. For an example:
-                // https://stackoverflow.com/questions/9245430/how-to-lock-cursor-to-game-window
-                // TODO
+                Vec2i center = new Vec2i(Width / 2, Height / 2);
 
-                // Reset the mouse to the center of the screen.
-                Mouse.SetPosition(X + Width / 2f, Y + Height / 2f);
+                // Reset the mouse to the center of the screen. Unfortunately
+                // we have to do this ourselves...
+                Mouse.SetPosition(X + center.X, Y + center.Y);
             }
 
             base.OnMouseMove(e);
@@ -96,7 +103,13 @@ namespace Helion.Client
         // this is simply done by changing the FOV of the camera
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
-            // TODO
+            // TODO: Use an InputAdapter that is specific for OpenTK and put
+            // stuff into an input manager.
+
+            if (Focused)
+            {
+                // TODO
+            }
 
             base.OnMouseWheel(e);
         }
