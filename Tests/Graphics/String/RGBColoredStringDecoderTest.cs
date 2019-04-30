@@ -37,7 +37,7 @@ namespace Helion.Test.Graphics.String
         {
             AssertMatches("", new Tuple<string, Color>[]
                 {
-                    Tuple.Create("", ColoredString.DEFAULT_COLOR),
+                    Tuple.Create("", ColoredString.DefaultColor),
                 }
             );
         }
@@ -47,7 +47,7 @@ namespace Helion.Test.Graphics.String
         {
             AssertMatches("some str", new Tuple<string, Color>[]
                 {
-                    Tuple.Create("some str", ColoredString.DEFAULT_COLOR),
+                    Tuple.Create("some str", ColoredString.DefaultColor),
                 }
             );
         }
@@ -68,7 +68,7 @@ namespace Helion.Test.Graphics.String
         {
             AssertMatches(@"some str\c[1,2,3]", new Tuple<string, Color>[]
                 {
-                    Tuple.Create("some str", ColoredString.DEFAULT_COLOR),
+                    Tuple.Create("some str", ColoredString.DefaultColor),
                 }
             );
         }
@@ -91,7 +91,7 @@ namespace Helion.Test.Graphics.String
         {
             AssertMatches(@"\c[0,0,0hi", new Tuple<string, Color>[]
                 {
-                    Tuple.Create(@"\c[0,0,0hi", ColoredString.DEFAULT_COLOR),
+                    Tuple.Create(@"\c[0,0,0hi", ColoredString.DefaultColor),
                 }
             );
         }
@@ -111,7 +111,7 @@ namespace Helion.Test.Graphics.String
         {
             AssertMatches(@"\c[0,-5,1]hi", new Tuple<string, Color>[]
                 {
-                    Tuple.Create(@"\c[0,-5,1]hi", ColoredString.DEFAULT_COLOR),
+                    Tuple.Create(@"\c[0,-5,1]hi", ColoredString.DefaultColor),
                 }
             );
         }

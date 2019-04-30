@@ -1,8 +1,10 @@
 ﻿using Helion.Graphics.String;
 using Helion.Util.Extensions;
 using NLog;
+using NLog.Targets;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace Helion.Util
@@ -16,9 +18,10 @@ namespace Helion.Util
     /// be a medium for user pressed characters and messages from a variety of
     /// message emitters (ex: loggers).
     /// </remarks>
-    public class Console
+    public class Console : Target
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly string TargetName = "HelionConsole";
 
         /// <summary>
         /// How many console messages wil be logged. Any more than this will
@@ -60,10 +63,35 @@ namespace Helion.Util
         public event EventHandler<ConsoleCommandEventArgs> ConsoleCommandEmitter;
 
         private readonly StringBuilder input = new StringBuilder();
+        private bool disposed = false;
 
         private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
         private static bool IsBackspaceCharacter(char c) => c == 8;
         private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
+
+        public Console()
+        {
+            Name = TargetName;
+            AddToLogger();
+        }
+
+        ~Console()
+        {
+            Dispose(false);
+        }
+
+        private void AddToLogger()
+        {
+            var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
+            LogManager.Configuration.AddTarget(TargetName, this);
+            LogManager.Configuration.LoggingRules.Add(rule);
+            LogManager.ReconfigExistingLoggers();
+        }
+
+        private void RemoveLogger()
+        {
+            LogManager.Configuration.RemoveTarget(TargetName);
+        }
 
         private void RemoveExcessMessagesIfAny()
         {
@@ -161,6 +189,47 @@ namespace Helion.Util
 
             Capacity = Math.Max(1, capacity);
             RemoveExcessMessagesIfAny();
+        }
+
+        protected override void Write(LogEventInfo logEvent)
+        {
+            // We can't switch on this because the values are not a constant.
+            // Therefore we'll provide the most common levels first to avoid
+            // branching evaluations.
+            if (logEvent.Level == LogLevel.Info)
+                AddMessage(logEvent.FormattedMessage);
+            else if (logEvent.Level == LogLevel.Warn)
+                AddMessage(RGBColoredString.Create(Color.Yellow, logEvent.FormattedMessage));
+            else if (logEvent.Level == LogLevel.Error || logEvent.Level == LogLevel.Fatal)
+                AddMessage(RGBColoredString.Create(Color.Red, logEvent.FormattedMessage));
+            else if (logEvent.Level == LogLevel.Debug)
+                AddMessage(RGBColoredString.Create(Color.Cyan, logEvent.FormattedMessage));
+            else if (logEvent.Level == LogLevel.Trace)
+                AddMessage(RGBColoredString.Create(Color.LightCyan, logEvent.FormattedMessage));
+            else
+            {
+                Assert.Fail($"Unexpected logging message type: {logEvent.Level}");
+                AddMessage(RGBColoredString.Create(Color.Pink, logEvent.FormattedMessage));
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                // TODO: Investigate whether this is correct or not, the logger
+                // documentation isn't clear and stackoverflow has some unusual
+                // results for how to properly remove the logger.
+                // The logger stops logging to this target after we dispose of
+                // this object, but I'd like to make sure that it's foolproof.
+                base.Dispose(disposing);
+                RemoveLogger();
+            }
+
+            disposed = true;
         }
     }
 

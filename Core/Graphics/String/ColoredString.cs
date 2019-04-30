@@ -13,7 +13,7 @@ namespace Helion.Graphics.String
         /// The default color that should be applied to all colored strings 
         /// when no color information is available.
         /// </summary>
-        public static readonly Color DEFAULT_COLOR = Color.White;
+        public static readonly Color DefaultColor = Color.White;
 
         private readonly List<ColoredChar> characters;
 

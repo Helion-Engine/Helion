@@ -5,6 +5,7 @@ using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using System.Threading;
 
 namespace Helion.Client
 {
@@ -112,6 +113,7 @@ namespace Helion.Client
         protected override void OnUnload(System.EventArgs e)
         {
             glRenderer.Dispose();
+            console.Dispose();
 
             base.OnUnload(e);
         }

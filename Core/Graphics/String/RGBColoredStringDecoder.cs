@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Helion.Graphics.String
@@ -35,6 +36,36 @@ namespace Helion.Graphics.String
     }
 
     /// <summary>
+    /// A helper class for providing coloring methods.
+    /// </summary>
+    public static class RGBColoredString
+    {
+        /// <summary>
+        /// Takes a list of objects and creates a colored string. Supports any
+        /// color objects being converted to a color string.
+        /// </summary>
+        /// <param name="args">The different argument types.</param>
+        /// <returns>The colored string.</returns>
+        public static string Create(params object[] args)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            Color defaultColor = ColoredString.DefaultColor;
+            builder.Append($"\\c[{defaultColor.R},{defaultColor.G},{defaultColor.B}]");
+
+            Array.ForEach(args, obj =>
+            {
+                if (obj is Color color)
+                    builder.Append($"\\c[{color.R},{color.G},{color.B}]");
+                else
+                    builder.Append(obj);
+            });
+
+            return builder.ToString();
+        }
+    }
+
+    /// <summary>
     /// Provides a method that is able to convert a raw string with color codes
     /// into a colored string. A color code is in the form "\C[rrr,ggg,bbb]".
     /// </summary>
@@ -62,12 +93,12 @@ namespace Helion.Graphics.String
             var wtf = rgbColorCode.Substring(3, len);
             string[] colorTriplet = wtf.Split(',');
 
-            int r = ColoredString.DEFAULT_COLOR.R;
-            int g = ColoredString.DEFAULT_COLOR.G;
-            int b = ColoredString.DEFAULT_COLOR.B;
-            int.TryParse(colorTriplet[0], out r);
-            int.TryParse(colorTriplet[1], out g);
-            int.TryParse(colorTriplet[2], out b);
+            if (!int.TryParse(colorTriplet[0], out int r))
+                r = ColoredString.DefaultColor.R;
+            if (!int.TryParse(colorTriplet[1], out int g))
+                g = ColoredString.DefaultColor.G;
+            if (!int.TryParse(colorTriplet[2], out int b))
+                b = ColoredString.DefaultColor.B;
 
             return Color.FromArgb(
                 (byte)Math.Clamp(r, 0, 255),
@@ -85,7 +116,7 @@ namespace Helion.Graphics.String
         private static List<ColorRange> GetColorRanges(string str)
         {
             List<ColorRange> colorRanges = new List<ColorRange>() {
-                new ColorRange(0, ColoredString.DEFAULT_COLOR)
+                new ColorRange(0, ColoredString.DefaultColor)
             };
 
             MatchCollection matches = COLOR_REGEX.Matches(str);
