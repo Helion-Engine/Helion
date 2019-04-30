@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using System;
 using System.Collections.Generic;
 
 namespace Helion.Util
@@ -32,8 +31,8 @@ namespace Helion.Util
         private static void HandleParsingError(CommandLineArgs result)
         {
             result.ErrorWhileParsing = true;
-            Console.WriteLine("Unable to parse command line args.");
-            Console.WriteLine("Values that would be set by the command line args will be defaulted values!");
+            System.Console.WriteLine("Unable to parse command line args.");
+            System.Console.WriteLine("Values that would be set by the command line args will be defaulted values!");
         }
 
         /// <summary>

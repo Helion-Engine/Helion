@@ -5,8 +5,6 @@ using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using System;
-using System.Drawing;
 
 namespace Helion.Client
 {
@@ -15,6 +13,7 @@ namespace Helion.Client
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs commandLineArgs;
+        private readonly Console console = new Console();
         private readonly LocalProject project = new LocalProject();
         private bool shouldExit = false;
         private GLRenderer glRenderer;
@@ -50,6 +49,9 @@ namespace Helion.Client
 
         private void PollInput()
         {
+            // TODO: Use an InputAdapter that is specific for OpenTK and put
+            // stuff into an input manager.
+
             KeyboardState keyboardInput = Keyboard.GetState();
 
             if (keyboardInput.IsKeyDown(Key.Escape))
@@ -100,14 +102,14 @@ namespace Helion.Client
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            glRenderer.Clear(new Size(Width, Height));
+            glRenderer.Clear(new System.Drawing.Size(Width, Height));
 
             SwapBuffers();
 
             base.OnRenderFrame(e);
         }
 
-        protected override void OnUnload(EventArgs e)
+        protected override void OnUnload(System.EventArgs e)
         {
             glRenderer.Dispose();
 
