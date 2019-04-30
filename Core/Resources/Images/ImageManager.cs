@@ -1,9 +1,9 @@
-﻿using Helion.Entries;
-using Helion.Entries.Types;
+﻿using Helion.Entries.Types;
 using Helion.Graphics;
 using Helion.Graphics.Palette;
 using Helion.Util;
 using Helion.Util.Container;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -16,18 +16,20 @@ namespace Helion.Resources.Images
     /// </summary>
     public class ImageManager : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, Image>>
     {
-        private readonly ResourceTracker<Image> images = new ResourceTracker<Image>();
-        private readonly List<ImageManagerListener> listeners = new List<ImageManagerListener>();
-
-        private void NotifyListener(Entry entry, Image image)
+        private EventHandler<ImageManagerEventArgs> imageEventEmitter;
+        public event EventHandler<ImageManagerEventArgs> ImageEventEmitter
         {
-            // Note that right now this means every image that is registered
-            // will cause an event to be made. We will probably want to batch
-            // them in the future.
-            listeners.ForEach(l => l.HandleImageEvent(ImageManagerEvent.CreateUpdate(entry, image)));
+            add 
+            {
+                NotifyAllImages(value);
+                imageEventEmitter += value;
+            }
+            remove { imageEventEmitter -= value; }
         }
 
-        private void NotifyAllImages(ImageManagerListener listener)
+        private readonly ResourceTracker<Image> images = new ResourceTracker<Image>();
+
+        private void NotifyAllImages(EventHandler<ImageManagerEventArgs> eventHandler)
         {
             foreach (HashTableEntry<ResourceNamespace, UpperString, Image> tableData in this)
             {
@@ -35,9 +37,18 @@ namespace Helion.Resources.Images
                 UpperString name = tableData.SecondKey;
                 Image image = tableData.Value;
 
-                ImageManagerEvent imageEvent = ImageManagerEvent.CreateUpdate(name, resourceNamespace, image);
-                listener.HandleImageEvent(imageEvent);
+                var imageEvent = ImageManagerEventArgs.CreateUpdate(name, resourceNamespace, image);
+                eventHandler(this, imageEvent);
             }
+        }
+
+        private void EmitCreateEvent(UpperString name, ResourceNamespace resourceNamespace, Image image)
+        {
+            var imageEvent = ImageManagerEventArgs.CreateUpdate(name, resourceNamespace, image);
+
+            // As a reminder, this can fire when we load a project before 
+            // registering any listeners.
+            imageEventEmitter?.Invoke(this, imageEvent);
         }
 
         /// <summary>
@@ -47,7 +58,7 @@ namespace Helion.Resources.Images
         public void Add(ImageEntry entry)
         {
             images.AddOrOverwrite(entry.Path.Name, entry.Namespace, entry.Image);
-            NotifyListener(entry, entry.Image);
+            EmitCreateEvent(entry.Path.Name, entry.Namespace, entry.Image);
         }
 
         /// <summary>
@@ -60,38 +71,7 @@ namespace Helion.Resources.Images
         {
             Image image = entry.PaletteImage.ToImage(palette);
             images.AddOrOverwrite(entry.Path.Name, entry.Namespace, image);
-            NotifyListener(entry, image);
-        }
-
-        /// <summary>
-        /// Registers a listener to be notified on any image create, update, or
-        /// delete events. 
-        /// </summary>
-        /// <remarks>
-        /// This will also update it with all the images that currently are 
-        /// registered, so after this function returns then the listener is all
-        /// updated.
-        /// </remarks>
-        /// <param name="listener">The listener to register. Should only be
-        /// registered once.</param>
-        public void Register(ImageManagerListener listener)
-        {
-            if (listeners.Contains(listener))
-                Assert.Fail($"Trying to add the same image manager listener twice: {listener}");
-            else
-            {
-                listeners.Add(listener);
-                NotifyAllImages(listener);
-            }
-        }
-
-        /// <summary>
-        /// Unregisters a listener. Does nothing if not registered.
-        /// </summary>
-        /// <param name="listener">The listener to unregister.</param>
-        public void Unregister(ImageManagerListener listener)
-        {
-            listeners.Remove(listener);
+            EmitCreateEvent(entry.Path.Name, entry.Namespace, image);
         }
 
         public IEnumerator<HashTableEntry<ResourceNamespace, UpperString, Image>> GetEnumerator()

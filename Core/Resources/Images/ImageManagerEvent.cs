@@ -1,6 +1,7 @@
 ﻿using Helion.Entries;
 using Helion.Graphics;
 using Helion.Util;
+using System;
 
 namespace Helion.Resources.Images
 {
@@ -17,7 +18,7 @@ namespace Helion.Resources.Images
     /// An event that contains data about something that occurred in an image
     /// manager.
     /// </summary>
-    public class ImageManagerEvent
+    public class ImageManagerEventArgs : EventArgs
     {
         /// <summary>
         /// The type of event this is.
@@ -40,7 +41,7 @@ namespace Helion.Resources.Images
         /// </summary>
         public Optional<Image> Image { get; }
 
-        public ImageManagerEvent(ImageManagerEventType type, UpperString name,
+        public ImageManagerEventArgs(ImageManagerEventType type, UpperString name,
             ResourceNamespace resourceNamespace, Optional<Image> image)
         {
             Type = type;
@@ -57,9 +58,9 @@ namespace Helion.Resources.Images
         /// <param name="entry">The entry to create/update.</param>
         /// <param name="image">The image that was affected.</param>
         /// <returns></returns>
-        public static ImageManagerEvent CreateUpdate(Entry entry, Image image)
+        public static ImageManagerEventArgs CreateUpdate(Entry entry, Image image)
         {
-            return new ImageManagerEvent(ImageManagerEventType.CreateOrUpdate, entry.Path.Name, entry.Namespace, image);
+            return new ImageManagerEventArgs(ImageManagerEventType.CreateOrUpdate, entry.Path.Name, entry.Namespace, image);
         }
 
         /// <summary>
@@ -69,9 +70,9 @@ namespace Helion.Resources.Images
         /// <param name="resourceNamespace">The namespace of the image.</param>
         /// <param name="image">The image that was affected.</param>
         /// <returns></returns>
-        public static ImageManagerEvent CreateUpdate(UpperString name, ResourceNamespace resourceNamespace, Image image)
+        public static ImageManagerEventArgs CreateUpdate(UpperString name, ResourceNamespace resourceNamespace, Image image)
         {
-            return new ImageManagerEvent(ImageManagerEventType.CreateOrUpdate, name, resourceNamespace, image);
+            return new ImageManagerEventArgs(ImageManagerEventType.CreateOrUpdate, name, resourceNamespace, image);
         }
 
         /// <summary>
@@ -80,9 +81,9 @@ namespace Helion.Resources.Images
         /// <param name="name">The entry name.</param>
         /// <param name="resourceNamespace">The resource namespace.</param>
         /// <returns></returns>
-        public static ImageManagerEvent Delete(UpperString name, ResourceNamespace resourceNamespace)
+        public static ImageManagerEventArgs Delete(UpperString name, ResourceNamespace resourceNamespace)
         {
-            return new ImageManagerEvent(ImageManagerEventType.Delete, name, resourceNamespace, Optional.Empty);
+            return new ImageManagerEventArgs(ImageManagerEventType.Delete, name, resourceNamespace, Optional.Empty);
         }
     }
 }

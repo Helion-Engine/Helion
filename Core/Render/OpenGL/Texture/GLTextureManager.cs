@@ -10,7 +10,7 @@ using System;
 
 namespace Helion.Render.OpenGL.Texture
 {
-    public class GLTextureManager : IDisposable, ImageManagerListener
+    public class GLTextureManager : IDisposable
     {
         public readonly GLTexture NullTexture;
         private bool disposed = false;
@@ -28,7 +28,7 @@ namespace Helion.Render.OpenGL.Texture
             maxAnisotropy = GL.GetFloat((GetPName)All.MaxTextureMaxAnisotropy);
             NullTexture = CreateTexture("NULL", ResourceNamespace.Global, ImageHelper.CreateNullImage(), false);
 
-            project.Resources.ImageManager.Register(this);
+            project.Resources.ImageManager.ImageEventEmitter += HandleImageEvent;
         }
 
         ~GLTextureManager()
@@ -171,7 +171,7 @@ namespace Helion.Render.OpenGL.Texture
                 DestroyTexture(textureEntry.Value);
         }
 
-        public void HandleImageEvent(ImageManagerEvent imageEvent)
+        private void HandleImageEvent(object sender, ImageManagerEventArgs imageEvent)
         {
             switch (imageEvent.Type)
             {
@@ -200,7 +200,7 @@ namespace Helion.Render.OpenGL.Texture
             if (disposing)
             {
                 DestroyAllTextures();
-                project.Resources.ImageManager.Unregister(this);
+                project.Resources.ImageManager.ImageEventEmitter -= HandleImageEvent;
             }
 
             disposed = true;
