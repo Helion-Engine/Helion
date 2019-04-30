@@ -22,6 +22,10 @@ namespace Helion.Input
             return newCollection;
         }
 
-        // TODO: Handle events now!
+        public void HandleInputEvent(object sender, InputEventArgs inputEvent)
+        {
+            foreach (InputCollection collection in collections)
+                collection.HandleInputEvent(inputEvent);
+        }
     }
 }

@@ -17,6 +17,11 @@ namespace Helion.Resources.Images
     public class ImageManager : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, Image>>
     {
         private EventHandler<ImageManagerEventArgs> imageEventEmitter;
+
+        /// <summary>
+        /// Handles emitting all the events. Upon registering, any previously
+        /// added images are sent.
+        /// </summary>
         public event EventHandler<ImageManagerEventArgs> ImageEventEmitter
         {
             add 

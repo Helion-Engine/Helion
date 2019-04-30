@@ -100,7 +100,11 @@ namespace Helion.Input
             return IsUp(key) && InputPrevDown.Contains(key);
         }
 
-        public void HandleInputEvent(object sender, InputEventArgs inputEvent)
+        /// <summary>
+        /// Handles an input event by storing its data.
+        /// </summary>
+        /// <param name="inputEvent">The event to get the data from.</param>
+        public void HandleInputEvent(InputEventArgs inputEvent)
         {
             foreach (InputKey key in inputEvent.InputDown)
                 InputDown.Add(key);

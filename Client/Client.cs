@@ -1,4 +1,5 @@
 ﻿using Helion.Input;
+using Helion.Input.Adapter;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
 using Helion.Util;
@@ -17,6 +18,7 @@ namespace Helion.Client
         private readonly CommandLineArgs commandLineArgs;
         private readonly Console console = new Console();
         private readonly InputManager inputManager = new InputManager();
+        private readonly OpenTKInputAdapter inputAdapter = new OpenTKInputAdapter();
         private readonly InputCollection frameCollection;
         private readonly InputCollection tickCollection;
         private readonly LocalProject project = new LocalProject();
@@ -29,6 +31,7 @@ namespace Helion.Client
             commandLineArgs = args;
             frameCollection = inputManager.RegisterCollection();
             tickCollection = inputManager.RegisterCollection();
+            inputAdapter.InputEventEmitter += inputManager.HandleInputEvent;
 
             LoadProject();
             CreateGLComponents();
@@ -54,68 +57,85 @@ namespace Helion.Client
             glRenderer = new GLRenderer(glInfo, project);
         }
 
-        private void PollInput()
+        private void CheckForExit()
         {
-            // TODO: Use an InputAdapter that is specific for OpenTK and put
-            // stuff into an input manager.
-
-            KeyboardState keyboardInput = Keyboard.GetState();
-
-            if (keyboardInput.IsKeyDown(Key.Escape))
+            KeyboardState keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Key.AltLeft) && keyboardState.IsKeyDown(Key.F4))
                 shouldExit = true;
-        }
 
-        private void RunLogic()
-        {
-            // TODO
-        }
-
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
+            // We may not be the only place who sets `shouldExit = true`, so we
+            // need to keep them separated.
             if (shouldExit)
                 Exit();
+        }
 
-            PollInput();
-            RunLogic();
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
+        {
+            if (Focused)
+                inputAdapter.HandleKeyDown(e);
 
-            base.OnUpdateFrame(e);
+            base.OnKeyDown(e);
+        }
+
+        protected override void OnKeyPress(KeyPressEventArgs e)
+        {
+            if (Focused)
+                inputAdapter.HandleKeyPress(e);
+
+            base.OnKeyPress(e);
+        }
+
+        protected override void OnKeyUp(KeyboardKeyEventArgs e)
+        {
+            if (Focused)
+                inputAdapter.HandleKeyUp(e);
+
+            base.OnKeyDown(e);
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
-            // TODO: Use an InputAdapter that is specific for OpenTK and put
-            // stuff into an input manager.
-
             if (Focused)
             {
-                Vec2i center = new Vec2i(Width / 2, Height / 2);
+                inputAdapter.HandleMouseMovement(e);
 
                 // Reset the mouse to the center of the screen. Unfortunately
                 // we have to do this ourselves...
+                Vec2i center = new Vec2i(Width / 2, Height / 2);
                 Mouse.SetPosition(X + center.X, Y + center.Y);
             }
 
             base.OnMouseMove(e);
         }
 
-
         // In the mouse wheel function we manage all the zooming of the camera
         // this is simply done by changing the FOV of the camera
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
-            // TODO: Use an InputAdapter that is specific for OpenTK and put
-            // stuff into an input manager.
-
             if (Focused)
-            {
-                // TODO
-            }
+                inputAdapter.HandleMouseWheelInput(e);
 
             base.OnMouseWheel(e);
         }
 
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            ConsumableInput consumableTickInput = new ConsumableInput(tickCollection);
+            tickCollection.Tick();
+            // TODO: Send `consumableTickInput` to where it needs to go.
+            // TODO: Perform logic here.
+
+            CheckForExit();
+
+            base.OnUpdateFrame(e);
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            ConsumableInput consumableFrameInput = new ConsumableInput(tickCollection);
+            frameCollection.Tick();
+            // TODO: Send `consumableFrameInput` to where it needs to go.
+
             glRenderer.Clear(new System.Drawing.Size(Width, Height));
 
             SwapBuffers();
@@ -125,6 +145,10 @@ namespace Helion.Client
 
         protected override void OnUnload(System.EventArgs e)
         {
+            // Do this here instead of OnClosing() because this is handled
+            // before the OpenGL context is destroyed. This way we clean up
+            // our side of the renderer first.
+            inputAdapter.InputEventEmitter -= inputManager.HandleInputEvent;
             glRenderer.Dispose();
             console.Dispose();
 
