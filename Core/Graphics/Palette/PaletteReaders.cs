@@ -172,7 +172,7 @@ namespace Helion.Graphics.Palette
 
                 int width = reader.ReadInt16();
                 int height = reader.ReadInt16();
-                Vec2i imageOffsets = new Vec2i(reader.ReadInt16(), reader.ReadInt16());
+                Vec2I imageOffsets = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
 
                 int[] offsets = new int[width];
                 for (int i = 0; i < width; i++)

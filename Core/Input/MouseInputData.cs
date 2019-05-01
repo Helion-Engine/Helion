@@ -11,7 +11,7 @@ namespace Helion.Input
         /// How many units the mouse has moved. This likely is with respect to
         /// the number of pixels it moved.
         /// </summary>
-        public Vec2i Delta = new Vec2i(0, 0);
+        public Vec2I Delta = new Vec2I(0, 0);
 
         /// <summary>
         /// How many scroll events were found.
@@ -33,7 +33,7 @@ namespace Helion.Input
         /// </summary>
         public void Reset()
         {
-            Delta = new Vec2i(0, 0);
+            Delta = new Vec2I(0, 0);
             ScrollDelta = 0;
         }
     }

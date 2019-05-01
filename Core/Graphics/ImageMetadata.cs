@@ -17,18 +17,18 @@ namespace Helion.Graphics
         /// The offset of the image. These are offsets for the engine to apply
         /// to images when rendering.
         /// </summary>
-        public Vec2i Offset { get; }
+        public Vec2I Offset { get; }
 
         /// <summary>
         /// The namespace this image was located in.
         /// </summary>
         public ResourceNamespace Namespace { get; }
 
-        public ImageMetadata() : this(new Vec2i(0, 0), ResourceNamespace.Global)
+        public ImageMetadata() : this(new Vec2I(0, 0), ResourceNamespace.Global)
         {
         }
 
-        public ImageMetadata(Vec2i offset, ResourceNamespace resourceNamespace)
+        public ImageMetadata(Vec2I offset, ResourceNamespace resourceNamespace)
         {
             Offset = offset;
             Namespace = resourceNamespace;
@@ -36,7 +36,7 @@ namespace Helion.Graphics
 
         public ImageMetadata(ResourceNamespace resourceNamespace)
         {
-            Offset = new Vec2i(0, 0);
+            Offset = new Vec2I(0, 0);
             Namespace = resourceNamespace;
         }
     }

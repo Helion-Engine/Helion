@@ -27,7 +27,7 @@ namespace Helion.Input
         private readonly HashSet<InputKey> keysDown = new HashSet<InputKey>();
         private readonly HashSet<InputKey> keysPressed = new HashSet<InputKey>();
         private readonly IList<char> typedCharacters = new List<char>();
-        private Vec2i mouseDelta;
+        private Vec2I mouseDelta;
         private int mouseScroll;
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Helion.Input
             keysDown.Clear();
             keysPressed.Clear();
             typedCharacters.Clear();
-            mouseDelta = new Vec2i(0, 0);
+            mouseDelta = new Vec2I(0, 0);
             mouseScroll = 0;
         }
 
@@ -119,10 +119,10 @@ namespace Helion.Input
         /// </summary>
         /// <returns>The mouse movement, or an zero value result if it was
         /// already consumed.</returns>
-        public Vec2i ConsumeMouseDelta()
+        public Vec2I ConsumeMouseDelta()
         {
-            Vec2i delta = mouseDelta;
-            mouseDelta = new Vec2i(0, 0);
+            Vec2I delta = mouseDelta;
+            mouseDelta = new Vec2I(0, 0);
             return delta;
         }
 

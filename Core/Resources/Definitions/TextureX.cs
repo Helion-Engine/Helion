@@ -18,9 +18,9 @@ namespace Helion.Resources.Definitions
         /// <summary>
         /// The X/Y offset of this texture.
         /// </summary>
-        public Vec2i Offset { get; }
+        public Vec2I Offset { get; }
 
-        public TextureXPatch(short pnamesIndex, Vec2i offset)
+        public TextureXPatch(short pnamesIndex, Vec2I offset)
         {
             Assert.Precondition(pnamesIndex >= 0, "Texture X patch has a negative pnames index");
 
@@ -116,7 +116,7 @@ namespace Helion.Resources.Definitions
                     List<TextureXPatch> patches = new List<TextureXPatch>();
                     for (int patchIndex = 0; patchIndex < numPatches; patchIndex++)
                     {
-                        Vec2i patchOffset = new Vec2i(reader.ReadInt16(), reader.ReadInt16());
+                        Vec2I patchOffset = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
                         short index = reader.ReadInt16();
                         reader.Advance(4); // Skip stepdir/colormap
 

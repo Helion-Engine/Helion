@@ -13,7 +13,7 @@ namespace Helion.Util.Geometry
     /// minimum amount of space we need for basic operations. This class is
     /// best used for temporary shortlived instances.
     /// </remarks>
-    public class Seg2fBase
+    public class Seg2FBase
     {
         /// <summary>
         /// The beginning point of the segment.
@@ -36,7 +36,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="start">The starting point.</param>
         /// <param name="end">The ending point.</param>
-        public Seg2fBase(Vector2 start, Vector2 end)
+        public Seg2FBase(Vector2 start, Vector2 end)
         {
             Assert.Precondition(start != end, "Segment should not be a point");
 
@@ -94,10 +94,10 @@ namespace Helion.Util.Geometry
         /// <param name="seg">The other segment to compare against.</param>
         /// <returns>True if they go the same direction, false otherwise.
         /// </returns>
-        public bool SameDirection(Seg2fBase seg) => SameDirection(seg.Delta);
+        public bool SameDirection(Seg2FBase seg) => SameDirection(seg.Delta);
 
         /// <summary>
-        /// Same as <see cref="SameDirection(Seg2fBase)"/> but uses a delta to
+        /// Same as <see cref="SameDirection(Seg2FBase)"/> but uses a delta to
         /// check.
         /// </summary>
         /// <param name="delta">The delta direction.</param>
@@ -148,7 +148,7 @@ namespace Helion.Util.Geometry
         /// <param name="seg">The segment to check.</param>
         /// <returns>True if the segment has both points on/to the right, or
         /// false if one or more points is on the left.</returns>
-        public bool OnRight(Seg2fBase seg) => OnRight(seg.Start) && OnRight(seg.End);
+        public bool OnRight(Seg2FBase seg) => OnRight(seg.Start) && OnRight(seg.End);
 
         /// <summary>
         /// Checks if the box has all the points on the right side (or on the
@@ -157,7 +157,7 @@ namespace Helion.Util.Geometry
         /// <param name="box">The box to check.</param>
         /// <returns>True if the box has all the points on the right side or
         /// on the segment, false otherwise.</returns>
-        public bool OnRight(Box2f box)
+        public bool OnRight(Box2F box)
         {
             return OnRight(box.BottomLeft) && 
                    OnRight(box.BottomRight) &&
@@ -181,7 +181,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="seg">The segment endpoints to check.</param>
         /// <returns>True if it is, false if not.</returns>
-        public bool DifferentSides(Seg2fBase seg) => OnRight(seg.Start) != OnRight(seg.End);
+        public bool DifferentSides(Seg2FBase seg) => OnRight(seg.Start) != OnRight(seg.End);
 
         /// <summary>
         /// Checks if the segment provided is parallel.
@@ -189,7 +189,7 @@ namespace Helion.Util.Geometry
         /// <param name="seg">The segment to check.</param>
         /// <param name="epsilon">An optional comparison epsilon.</param>
         /// <returns>True if it's parallel, false if not.</returns>
-        public bool Parallel(Seg2fBase seg, float epsilon = 0.00001f)
+        public bool Parallel(Seg2FBase seg, float epsilon = 0.00001f)
         {
             // If both slopes are the same for seg 1 and 2, then we know the
             // slopes are the same, meaning: d1y / d1x = d2y / d2x. Therefore
@@ -222,22 +222,22 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="other">The other segment to check.</param>
         /// <returns>True if an intersection exists, false if not.</returns>
-        public bool Intersects(Seg2fBase other) => Intersection(other, out float t) ? (0 <= t && t <= 1) : false;
+        public bool Intersects(Seg2FBase other) => Intersection(other, out float t) ? (0 <= t && t <= 1) : false;
 
         /// <summary>
         /// Gets the intersection with a segment. This is not intended for line
         /// extension intersection, see the '...AsLine() methods for that.
         /// </summary>
         /// <remarks>
-        /// See <see cref="IntersectionAsLine(Seg2fBase, out float)"/> for one
-        /// and <see cref="IntersectionAsLine(Seg2fBase, out float, out float)"/>
+        /// See <see cref="IntersectionAsLine(Seg2FBase, out float)"/> for one
+        /// and <see cref="IntersectionAsLine(Seg2FBase, out float, out float)"/>
         /// for both intersection times.
         /// </remarks>
         /// <param name="seg">The segment to check.</param>
         /// <param name="t">The output intersection time. If this function
         /// returns false then it will have a default value.</param>
         /// <returns>True if they intersect, false if not.</returns>
-        public bool Intersection(Seg2fBase seg, out float t)
+        public bool Intersection(Seg2FBase seg, out float t)
         {
             float areaStart = DoubleTriArea(Start, End, seg.End);
             float areaEnd = DoubleTriArea(Start, End, seg.Start);
@@ -267,7 +267,7 @@ namespace Helion.Util.Geometry
         /// segment (not the parameter one). This has a default value if the
         /// method returns false.</param>
         /// <returns>True if an intersection exists, false if not.</returns>
-        public bool IntersectionAsLine(Seg2fBase seg, out float tThis)
+        public bool IntersectionAsLine(Seg2FBase seg, out float tThis)
         {
             float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
             if (MathHelper.IsZero(determinant))
@@ -293,7 +293,7 @@ namespace Helion.Util.Geometry
         /// <param name="tOther">Same as `tThis`, but for the other segment.
         /// </param>
         /// <returns>True if an intersection exists, false if not.</returns>
-        public bool IntersectionAsLine(Seg2fBase seg, out float tThis, out float tOther)
+        public bool IntersectionAsLine(Seg2FBase seg, out float tThis, out float tOther)
         {
             float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
             if (MathHelper.IsZero(determinant))
@@ -332,7 +332,7 @@ namespace Helion.Util.Geometry
     /// to use instead of the 'base' version it inherits from, unless there is
     /// proof in the profiler that this has some bottleneck.
     /// </remarks>
-    public class Seg2f : Seg2fBase
+    public class Seg2F : Seg2FBase
     {
         /// <summary>
         /// The inversed components of the delta.
@@ -342,7 +342,7 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// The bounding box of this segment.
         /// </summary>
-        public readonly Box2f Box;
+        public readonly Box2F Box;
 
         /// <summary>
         /// The direction this segment goes.
@@ -354,16 +354,16 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="start">The starting point.</param>
         /// <param name="end">The ending point.</param>
-        public Seg2f(Vector2 start, Vector2 end) : base(start, end)
+        public Seg2F(Vector2 start, Vector2 end) : base(start, end)
         {
             DeltaInverse = new Vector2(1.0f / Delta.X, 1.0f / Delta.Y);
             Box = MakeBox(start, end);
             Direction = CalculateDirection(Delta);
         }
 
-        private static Box2f MakeBox(Vector2 start, Vector2 end)
+        private static Box2F MakeBox(Vector2 start, Vector2 end)
         {
-            return new Box2f(
+            return new Box2F(
                 new Vector2(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
                 new Vector2(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y))
             );
@@ -379,7 +379,8 @@ namespace Helion.Util.Geometry
         }
 
         /// <summary>
-        /// 
+        /// Gets the rotation from a point with respect to another two points
+        /// that make a line.
         /// </summary>
         /// <remarks>
         /// <para>Calculates the side the third point is on.</para>
@@ -403,7 +404,7 @@ namespace Helion.Util.Geometry
         /// the second point.</returns>
         public static SegmentSide Rotation(Vector2 first, Vector2 second, Vector2 third, float epsilon = 0.00001f)
         {
-            return new Seg2fBase(first, second).ToSide(third, epsilon);
+            return new Seg2FBase(first, second).ToSide(third, epsilon);
         }
 
         /// <summary>
@@ -428,7 +429,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="seg">The segment to check.</param>
         /// <returns>True if they overlap, false otherwise.</returns>
-        public bool Overlaps(Seg2fBase seg)
+        public bool Overlaps(Seg2FBase seg)
         {
             float tStart = ToTime(seg.Start);
             float tEnd = ToTime(seg.End);
@@ -440,7 +441,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="box">The box to check.</param>
         /// <returns>True if it intersects, false if not.</returns>
-        public bool Intersects(Box2f box)
+        public bool Intersects(Box2F box)
         {
             if (!Box.Overlaps(box))
                 return false;
@@ -466,7 +467,7 @@ namespace Helion.Util.Geometry
         /// <param name="seg">The segment to check.</param>
         /// <param name="epsilon">The optional epsilon for comparisons.</param>
         /// <returns>True if collinear, false if not.</returns>
-        public bool Collinear(Seg2fBase seg, float epsilon = 0.0001f)
+        public bool Collinear(Seg2FBase seg, float epsilon = 0.0001f)
         {
             // If the midpoint of the provided segment is on the current segment
             // line, it's reasonably collinear.
@@ -489,12 +490,12 @@ namespace Helion.Util.Geometry
         /// </param>
         /// <returns>The two segments, where the first value is [Start, middle]
         /// and the second segment is [middle, End].</returns>
-        public Tuple<Seg2f, Seg2f> Split(float t)
+        public Tuple<Seg2F, Seg2F> Split(float t)
         {
             Assert.Precondition(t > 0 && t < 1, $"Cannot split segment outside the line or at endpoints: {t}");
 
             Vector2 middle = FromTime(t);
-            return Tuple.Create(new Seg2f(Start, middle), new Seg2f(middle, End));
+            return Tuple.Create(new Seg2F(Start, middle), new Seg2F(middle, End));
         }
 
         /// <summary>

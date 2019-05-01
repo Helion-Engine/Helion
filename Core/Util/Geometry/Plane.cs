@@ -36,12 +36,12 @@ namespace Helion.Util.Geometry
                 inverseC = 1.0 / c;
         }
 
-        public double ToZ(Vec2d point)
+        public double ToZ(Vec2D point)
         {
             return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
         }
 
-        public double ToZ(Vec3d point)
+        public double ToZ(Vec3D point)
         {
             return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
         }
@@ -127,12 +127,12 @@ namespace Helion.Util.Geometry
                 inverseC = Fixed.One / c;
         }
 
-        public double ToZ(Vec2fixed point)
+        public double ToZ(Vec2Fixed point)
         {
             return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
         }
 
-        public double ToZ(Vec3fixed point)
+        public double ToZ(Vec3Fixed point)
         {
             return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
         }

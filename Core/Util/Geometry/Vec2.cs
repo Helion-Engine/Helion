@@ -3,126 +3,126 @@ using System.Numerics;
 
 namespace Helion.Util.Geometry
 {
-    public struct Vec2i
+    public struct Vec2I
     {
         public int X;
         public int Y;
 
-        public Vec2i(int x, int y)
+        public Vec2I(int x, int y)
         {
             X = x;
             Y = y;
         }
 
-        public static Vec2i operator +(Vec2i self, Vec2i other) => new Vec2i(self.X + other.X, self.Y + other.Y);
-        public static Vec2i operator -(Vec2i self, Vec2i other) => new Vec2i(self.X - other.X, self.Y - other.Y);
-        public static Vec2i operator *(Vec2i self, Vec2i other) => new Vec2i(self.X * other.X, self.Y * other.Y);
-        public static Vec2i operator /(Vec2i self, Vec2i other) => new Vec2i(self.X / other.X, self.Y / other.Y);
-        public static Vec2i operator <<(Vec2i self, int bits) => new Vec2i(self.X << bits, self.Y << bits);
-        public static Vec2i operator >>(Vec2i self, int bits) => new Vec2i(self.X >> bits, self.Y >> bits);
-        public static bool operator ==(Vec2i self, Vec2i other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vec2i self, Vec2i other) => !(self == other);
+        public static Vec2I operator +(Vec2I self, Vec2I other) => new Vec2I(self.X + other.X, self.Y + other.Y);
+        public static Vec2I operator -(Vec2I self, Vec2I other) => new Vec2I(self.X - other.X, self.Y - other.Y);
+        public static Vec2I operator *(Vec2I self, Vec2I other) => new Vec2I(self.X * other.X, self.Y * other.Y);
+        public static Vec2I operator /(Vec2I self, Vec2I other) => new Vec2I(self.X / other.X, self.Y / other.Y);
+        public static Vec2I operator <<(Vec2I self, int bits) => new Vec2I(self.X << bits, self.Y << bits);
+        public static Vec2I operator >>(Vec2I self, int bits) => new Vec2I(self.X >> bits, self.Y >> bits);
+        public static bool operator ==(Vec2I self, Vec2I other) => self.X == other.X && self.Y == other.Y;
+        public static bool operator !=(Vec2I self, Vec2I other) => !(self == other);
         public int this[int index] => index == 0 ? X : Y;
 
-        public int Dot(Vec2i other) => (X * other.X) + (Y * other.Y);
+        public int Dot(Vec2I other) => (X * other.X) + (Y * other.Y);
         public int LengthSquared() => (X * X) + (Y * Y);
         public int Length() => (int)Math.Sqrt((X * X) + (Y * Y));
-        public int DistanceSquared(Vec2i other) => (this - other).LengthSquared();
-        public int Distance(Vec2i other) => (this - other).Length();
+        public int DistanceSquared(Vec2I other) => (this - other).LengthSquared();
+        public int Distance(Vec2I other) => (this - other).Length();
 
-        public Vec2fixed ToFixed() => new Vec2fixed(new Fixed(X), new Fixed(Y));
+        public Vec2Fixed ToFixed() => new Vec2Fixed(new Fixed(X), new Fixed(Y));
         public Vector2 ToFloat() => new Vector2(X, Y);
-        public Vec2d ToDouble() => new Vec2d(X, Y);
+        public Vec2D ToDouble() => new Vec2D(X, Y);
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2i v && X == v.X && Y == v.Y;
+        public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
-    public struct Vec2d
+    public struct Vec2D
     {
         public double X;
         public double Y;
 
-        public Vec2d(double x, double y)
+        public Vec2D(double x, double y)
         {
             X = x;
             Y = y;
         }
 
-        public static Vec2d operator +(Vec2d self, Vec2d other) => new Vec2d(self.X + other.X, self.Y + other.Y);
-        public static Vec2d operator -(Vec2d self, Vec2d other) => new Vec2d(self.X - other.X, self.Y - other.Y);
-        public static Vec2d operator *(Vec2d self, Vec2d other) => new Vec2d(self.X * other.X, self.Y * other.Y);
-        public static Vec2d operator *(Vec2d self, double value) => new Vec2d(self.X * value, self.Y * value);
-        public static Vec2d operator *(double value, Vec2d self) => new Vec2d(self.X * value, self.Y * value);
-        public static Vec2d operator /(Vec2d self, Vec2d other) => new Vec2d(self.X / other.X, self.Y / other.Y);
-        public static Vec2d operator /(Vec2d self, double value) => new Vec2d(self.X / value, self.Y / value);
-        public static Vec2d operator /(double value, Vec2d self) => new Vec2d(self.X / value, self.Y / value);
-        public static bool operator ==(Vec2d self, Vec2d other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vec2d self, Vec2d other) => !(self == other);
+        public static Vec2D operator +(Vec2D self, Vec2D other) => new Vec2D(self.X + other.X, self.Y + other.Y);
+        public static Vec2D operator -(Vec2D self, Vec2D other) => new Vec2D(self.X - other.X, self.Y - other.Y);
+        public static Vec2D operator *(Vec2D self, Vec2D other) => new Vec2D(self.X * other.X, self.Y * other.Y);
+        public static Vec2D operator *(Vec2D self, double value) => new Vec2D(self.X * value, self.Y * value);
+        public static Vec2D operator *(double value, Vec2D self) => new Vec2D(self.X * value, self.Y * value);
+        public static Vec2D operator /(Vec2D self, Vec2D other) => new Vec2D(self.X / other.X, self.Y / other.Y);
+        public static Vec2D operator /(Vec2D self, double value) => new Vec2D(self.X / value, self.Y / value);
+        public static Vec2D operator /(double value, Vec2D self) => new Vec2D(self.X / value, self.Y / value);
+        public static bool operator ==(Vec2D self, Vec2D other) => self.X == other.X && self.Y == other.Y;
+        public static bool operator !=(Vec2D self, Vec2D other) => !(self == other);
         public double this[int index] => index == 0 ? X : Y;
 
-        public Vec2d Unit() => this / Length();
+        public Vec2D Unit() => this / Length();
         public void Normalize() => this /= Length();
-        public double Dot(Vec2d other) => (X * other.X) + (Y * other.Y);
+        public double Dot(Vec2D other) => (X * other.X) + (Y * other.Y);
         public double LengthSquared() => (X * X) + (Y * Y);
         public double Length() => Math.Sqrt((X * X) + (Y * Y));
-        public double DistanceSquared(Vec2d other) => (this - other).LengthSquared();
-        public double Distance(Vec2d other) => (this - other).Length();
+        public double DistanceSquared(Vec2D other) => (this - other).LengthSquared();
+        public double Distance(Vec2D other) => (this - other).Length();
 
-        public Vec2fixed ToFixed() => new Vec2fixed(new Fixed(X), new Fixed(Y));
+        public Vec2Fixed ToFixed() => new Vec2Fixed(new Fixed(X), new Fixed(Y));
         public Vector2 ToFloat() => new Vector2((float)X, (float)Y);
-        public Vec2i ToInt() => new Vec2i((int)X, (int)Y);
+        public Vec2I ToInt() => new Vec2I((int)X, (int)Y);
 
-        public bool EqualTo(Vec2d other, double epsilon = 0.00001)
+        public bool EqualTo(Vec2D other, double epsilon = 0.00001)
         {
             return MathHelper.AreEqual(X, other.X, epsilon) && MathHelper.AreEqual(Y, other.Y, epsilon);
         }
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2i v && X == v.X && Y == v.Y;
+        public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
-    public struct Vec2fixed
+    public struct Vec2Fixed
     {
         public Fixed X;
         public Fixed Y;
 
-        public Vec2fixed(Fixed x, Fixed y)
+        public Vec2Fixed(Fixed x, Fixed y)
         {
             X = x;
             Y = y;
         }
 
-        public static Vec2fixed operator +(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X + other.X, self.Y + other.Y);
-        public static Vec2fixed operator -(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X - other.X, self.Y - other.Y);
-        public static Vec2fixed operator *(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X * other.X, self.Y * other.Y);
-        public static Vec2fixed operator *(Vec2fixed self, Fixed value) => new Vec2fixed(self.X * value, self.Y * value);
-        public static Vec2fixed operator *(Fixed value, Vec2fixed self) => new Vec2fixed(self.X * value, self.Y * value);
-        public static Vec2fixed operator /(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X / other.X, self.Y / other.Y);
-        public static Vec2fixed operator /(Vec2fixed self, Fixed value) => new Vec2fixed(self.X / value, self.Y / value);
-        public static Vec2fixed operator /(Fixed value, Vec2fixed self) => new Vec2fixed(self.X / value, self.Y / value);
-        public static Vec2fixed operator <<(Vec2fixed self, int bits) => new Vec2fixed(self.X << bits, self.Y << bits);
-        public static Vec2fixed operator >>(Vec2fixed self, int bits) => new Vec2fixed(self.X >> bits, self.Y >> bits);
-        public static bool operator ==(Vec2fixed self, Vec2fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vec2fixed self, Vec2fixed other) => !(self == other);
+        public static Vec2Fixed operator +(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X + other.X, self.Y + other.Y);
+        public static Vec2Fixed operator -(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X - other.X, self.Y - other.Y);
+        public static Vec2Fixed operator *(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X * other.X, self.Y * other.Y);
+        public static Vec2Fixed operator *(Vec2Fixed self, Fixed value) => new Vec2Fixed(self.X * value, self.Y * value);
+        public static Vec2Fixed operator *(Fixed value, Vec2Fixed self) => new Vec2Fixed(self.X * value, self.Y * value);
+        public static Vec2Fixed operator /(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X / other.X, self.Y / other.Y);
+        public static Vec2Fixed operator /(Vec2Fixed self, Fixed value) => new Vec2Fixed(self.X / value, self.Y / value);
+        public static Vec2Fixed operator /(Fixed value, Vec2Fixed self) => new Vec2Fixed(self.X / value, self.Y / value);
+        public static Vec2Fixed operator <<(Vec2Fixed self, int bits) => new Vec2Fixed(self.X << bits, self.Y << bits);
+        public static Vec2Fixed operator >>(Vec2Fixed self, int bits) => new Vec2Fixed(self.X >> bits, self.Y >> bits);
+        public static bool operator ==(Vec2Fixed self, Vec2Fixed other) => self.X == other.X && self.Y == other.Y;
+        public static bool operator !=(Vec2Fixed self, Vec2Fixed other) => !(self == other);
         public Fixed this[int index] => index == 0 ? X : Y;
 
-        public Vec2fixed Unit() => this / Length();
+        public Vec2Fixed Unit() => this / Length();
         public void Normalize() => this /= Length();
-        public Fixed Dot(Vec2fixed other) => (X * other.X) + (Y * other.Y);
+        public Fixed Dot(Vec2Fixed other) => (X * other.X) + (Y * other.Y);
         public Fixed LengthSquared() => (X * X) + (Y * Y);
         public Fixed Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y)));
-        public Fixed DistanceSquared(Vec2fixed other) => (this - other).LengthSquared();
-        public Fixed Distance(Vec2fixed other) => (this - other).Length();
+        public Fixed DistanceSquared(Vec2Fixed other) => (this - other).LengthSquared();
+        public Fixed Distance(Vec2Fixed other) => (this - other).Length();
 
-        public Vec2i ToInt() => new Vec2i(X, Y);
+        public Vec2I ToInt() => new Vec2I(X, Y);
         public Vector2 ToFloat() => new Vector2(X, Y);
-        public Vec2d ToDouble() => new Vec2d(X, Y);
+        public Vec2D ToDouble() => new Vec2D(X, Y);
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2i v && X == v.X && Y == v.Y;
+        public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
@@ -134,9 +134,9 @@ namespace Helion.Util.Geometry
         public static float Length(this Vector2 vec) => (float)Math.Sqrt((vec.X * vec.X) + (vec.Y * vec.Y));
         public static float DistanceSquared(this Vector2 vec, Vector2 other) => (vec - other).LengthSquared();
         public static float Distance(this Vector2 vec, Vector2 other) => (vec - other).Length();
-        public static Vec2i ToInt(this Vector2 vec) => new Vec2i((int)vec.X, (int)vec.Y);
-        public static Vec2fixed ToFixed(this Vector2 vec) => new Vec2fixed(new Fixed(vec.X), new Fixed(vec.Y));
-        public static Vec2d ToDouble(this Vector2 vec) => new Vec2d(vec.X, vec.Y);
+        public static Vec2I ToInt(this Vector2 vec) => new Vec2I((int)vec.X, (int)vec.Y);
+        public static Vec2Fixed ToFixed(this Vector2 vec) => new Vec2Fixed(new Fixed(vec.X), new Fixed(vec.Y));
+        public static Vec2D ToDouble(this Vector2 vec) => new Vec2D(vec.X, vec.Y);
 
         public static bool EqualTo(this Vector2 vec, Vector2 other, float epsilon = 0.00001f)
         {

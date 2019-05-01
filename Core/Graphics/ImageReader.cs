@@ -33,7 +33,7 @@ namespace Helion.Graphics
                 using (MemoryStream stream = new MemoryStream(data))
                 {
                     // TODO: Read PNG offsets if header is PNG.
-                    Vec2i offset = new Vec2i(0, 0);
+                    Vec2I offset = new Vec2I(0, 0);
                     ImageMetadata metadata = new ImageMetadata(offset, resourceNamespace);
                     return new Image(new Bitmap(stream, true), metadata);
                 }

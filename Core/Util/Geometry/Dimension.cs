@@ -5,9 +5,21 @@
     /// </summary>
     public struct Dimension
     {
+        /// <summary>
+        /// The width of the dimension.
+        /// </summary>
         public int Width;
+
+        /// <summary>
+        /// The height of the dimension.
+        /// </summary>
         public int Height;
 
+        /// <summary>
+        /// Creates a new dimension object with the dimensions provided.
+        /// </summary>
+        /// <param name="width">The width which should be >= 0.</param>
+        /// <param name="height">The height which should be >= 0.</param>
         public Dimension(int width, int height)
         {
             Assert.Precondition(width >= 0, "Dimension width must not be negative");

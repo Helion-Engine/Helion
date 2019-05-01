@@ -101,7 +101,7 @@ namespace Helion.Client
 
                 // Reset the mouse to the center of the screen. Unfortunately
                 // we have to do this ourselves...
-                Vec2i center = new Vec2i(Width / 2, Height / 2);
+                Vec2I center = new Vec2I(Width / 2, Height / 2);
                 Mouse.SetPosition(X + center.X, Y + center.Y);
             }
 

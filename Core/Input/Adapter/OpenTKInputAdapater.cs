@@ -222,7 +222,7 @@ namespace Helion.Input.Adapter
         public void HandleMouseMovement(MouseMoveEventArgs e)
         {
             InputEventArgs inputEvent = new InputEventArgs();
-            inputEvent.MouseInput.Delta = new Vec2i(e.XDelta, e.YDelta);
+            inputEvent.MouseInput.Delta = new Vec2I(e.XDelta, e.YDelta);
             EmitEvent(inputEvent);
         }
 

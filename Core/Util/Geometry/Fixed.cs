@@ -10,7 +10,7 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// How many bits make up a single fractional unit.
         /// </summary>
-        public static readonly int BITS = 16;
+        public static readonly int UnitBits = 16;
 
         /// <summary>
         /// A representation of 0.0.
@@ -56,18 +56,24 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="upper">The upper 16 bits.</param>
         /// <param name="lower">The lower 16 bits.</param>
-        public Fixed(ushort upper, ushort lower) : this((upper << BITS) | lower) { }
+        public Fixed(ushort upper, ushort lower) : this((upper << UnitBits) | lower) { }
 
-        public static Fixed FromInt(int i) => new Fixed(i << BITS);
+        /// <summary>
+        /// Takes an integer and turns it into fixed point. This means a value
+        /// of 24 would become 24.0 in fixed point, not 24/65536.
+        /// </summary>
+        /// <param name="i">The integer to make into fixed point.</param>
+        /// <returns>The fixed point value for the integer.</returns>
+        public static Fixed FromInt(int i) => new Fixed(i << UnitBits);
 
-        public static implicit operator int(Fixed f) => f.Bits >> BITS;
+        public static implicit operator int(Fixed f) => f.Bits >> UnitBits;
         public static implicit operator float(Fixed f) => f.Bits / 65536.0f;
         public static implicit operator double(Fixed f) => f.Bits / 65536.0;
 
         public static Fixed operator -(Fixed value) => new Fixed(-value.Bits);
         public static Fixed operator +(Fixed self, Fixed other) => new Fixed(self.Bits + other.Bits);
         public static Fixed operator -(Fixed self, Fixed other) => new Fixed(self.Bits - other.Bits);
-        public static Fixed operator *(Fixed self, Fixed other) => new Fixed(((ulong)self.Bits * (ulong)other.Bits) >> BITS);
+        public static Fixed operator *(Fixed self, Fixed other) => new Fixed(((ulong)self.Bits * (ulong)other.Bits) >> UnitBits);
 
         public static Fixed operator /(Fixed numerator, Fixed denominator)
         {
@@ -76,7 +82,7 @@ namespace Helion.Util.Geometry
             if ((Math.Abs(numerator.Bits) >> 14) >= Math.Abs(denominator.Bits))
                 return new Fixed((numerator.Bits ^ denominator.Bits) < 0 ? 0x80000000 : 0x7FFFFFFF);
             else
-                return new Fixed((((ulong)numerator.Bits) << BITS) / (ulong)denominator.Bits);
+                return new Fixed((((ulong)numerator.Bits) << UnitBits) / (ulong)denominator.Bits);
         }
 
         public static Fixed operator <<(Fixed self, int bits) => new Fixed(self.Bits << bits);
