@@ -100,9 +100,12 @@ namespace Helion.Util.Geometry
         public static Vec2Fixed operator *(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X * other.X, self.Y * other.Y);
         public static Vec2Fixed operator *(Vec2Fixed self, Fixed value) => new Vec2Fixed(self.X * value, self.Y * value);
         public static Vec2Fixed operator *(Fixed value, Vec2Fixed self) => new Vec2Fixed(self.X * value, self.Y * value);
+        public static Vec2Fixed operator *(Vec2Fixed self, int value) => new Vec2Fixed(self.X * value, self.Y * value);
+        public static Vec2Fixed operator *(int value, Vec2Fixed self) => new Vec2Fixed(self.X * value, self.Y * value);
         public static Vec2Fixed operator /(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X / other.X, self.Y / other.Y);
         public static Vec2Fixed operator /(Vec2Fixed self, Fixed value) => new Vec2Fixed(self.X / value, self.Y / value);
         public static Vec2Fixed operator /(Fixed value, Vec2Fixed self) => new Vec2Fixed(self.X / value, self.Y / value);
+        public static Vec2Fixed operator /(Vec2Fixed self, int value) => new Vec2Fixed(self.X / value, self.Y / value);
         public static Vec2Fixed operator <<(Vec2Fixed self, int bits) => new Vec2Fixed(self.X << bits, self.Y << bits);
         public static Vec2Fixed operator >>(Vec2Fixed self, int bits) => new Vec2Fixed(self.X >> bits, self.Y >> bits);
         public static bool operator ==(Vec2Fixed self, Vec2Fixed other) => self.X == other.X && self.Y == other.Y;
@@ -121,6 +124,7 @@ namespace Helion.Util.Geometry
         public Vector2 ToFloat() => new Vector2(X, Y);
         public Vec2D ToDouble() => new Vec2D(X, Y);
 
+        public bool EqualTo(Vec2Fixed other) => Equals(other);
         public override string ToString() => $"{X}, {Y}";
         public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);

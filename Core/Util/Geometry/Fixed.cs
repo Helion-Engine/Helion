@@ -13,6 +13,11 @@ namespace Helion.Util.Geometry
         public static readonly int UnitBits = 16;
 
         /// <summary>
+        /// A small epsilon value that can be used in comparisons.
+        /// </summary>
+        public static readonly Fixed Epsilon = new Fixed(0x00000008);
+
+        /// <summary>
         /// A representation of 0.0.
         /// </summary>
         public static readonly Fixed Zero = FromInt(0);
@@ -74,7 +79,9 @@ namespace Helion.Util.Geometry
         public static Fixed operator +(Fixed self, Fixed other) => new Fixed(self.Bits + other.Bits);
         public static Fixed operator -(Fixed self, Fixed other) => new Fixed(self.Bits - other.Bits);
         public static Fixed operator *(Fixed self, Fixed other) => new Fixed(((ulong)self.Bits * (ulong)other.Bits) >> UnitBits);
-
+        public static Fixed operator *(Fixed self, int value) => new Fixed(((ulong)self.Bits * (ulong)value) >> UnitBits);
+        public static Fixed operator *(int value, Fixed self) => new Fixed(((ulong)self.Bits * (ulong)value) >> UnitBits);
+        public static Fixed operator /(Fixed numerator, int value) => new Fixed(numerator.Bits / value);
         public static Fixed operator /(Fixed numerator, Fixed denominator)
         {
             // This is not an optimization anymore, but it prevents numbers
@@ -89,6 +96,8 @@ namespace Helion.Util.Geometry
         public static Fixed operator >>(Fixed self, int bits) => new Fixed(self.Bits >> bits);
         public static bool operator ==(Fixed self, Fixed other) => self.Bits == other.Bits;
         public static bool operator !=(Fixed self, Fixed other) => !(self == other);
+
+        public Fixed Inverse() => One / this;
 
         public override string ToString() => $"{(float)Bits}";
         public override bool Equals(object obj) => obj is Fixed f && Bits == f.Bits;
