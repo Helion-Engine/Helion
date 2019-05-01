@@ -41,6 +41,7 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public int Dot(Vec3i other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public int LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public int Length() => (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         public int DistanceSquared(Vec3i other) => (this - other).LengthSquared();
@@ -71,12 +72,21 @@ namespace Helion.Util.Geometry
         public static Vec3d operator +(Vec3d self, Vec3d other) => new Vec3d(self.X + other.X, self.Y + other.Y, self.Z + other.Z);
         public static Vec3d operator -(Vec3d self, Vec3d other) => new Vec3d(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
         public static Vec3d operator *(Vec3d self, Vec3d other) => new Vec3d(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
+        public static Vec3d operator *(Vec3d self, double value) => new Vec3d(self.X * value, self.Y * value, self.Z * value);
         public static Vec3d operator /(Vec3d self, Vec3d other) => new Vec3d(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
+        public static Vec3d operator /(Vec3d self, double value) => new Vec3d(self.X / value, self.Y / value, self.Z / value);
+        public static bool operator !=(Vec3d self, Vec3d other) => !(self == other);
+
         public static bool operator ==(Vec3d self, Vec3d other)
         {
             return MathHelper.AreEqual(self.X, other.X) && MathHelper.AreEqual(self.Y, other.Y) && MathHelper.AreEqual(self.Z, other.Z);
         }
-        public static bool operator !=(Vec3d self, Vec3d other) => !(self == other);
+
+        public bool EqualTo(Vec3d other, double epsilon = 0.00001)
+        {
+            return MathHelper.AreEqual(X, other.X, epsilon) && MathHelper.AreEqual(Y, other.Y, epsilon) && MathHelper.AreEqual(Z, other.Z, epsilon);
+        }
+
         public double this[int index] {
             get
             {
@@ -93,6 +103,7 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public double Dot(Vec3d other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         public double DistanceSquared(Vec3d other) => (this - other).LengthSquared();
@@ -145,6 +156,7 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public Fixed Dot(Vec3fixed other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public Fixed LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public Fixed Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y) + (Z * Z)));
         public Fixed DistanceSquared(Vec3fixed other) => (this - other).LengthSquared();
@@ -161,6 +173,14 @@ namespace Helion.Util.Geometry
 
     public static class Vector3Extensions
     {
+        public static bool EqualTo(this Vector3 self, Vector3 other, float epsilon = 0.00001f)
+        {
+            return MathHelper.AreEqual(self.X, other.X, epsilon) && 
+                   MathHelper.AreEqual(self.Y, other.Y, epsilon) && 
+                   MathHelper.AreEqual(self.Z, other.Z, epsilon);
+        }
+
+        public static float Dot(this Vector3 vec, Vector3 other) => (vec.X * other.X) + (vec.Y * other.Y) + (vec.Z * other.Z);
         public static float LengthSquared(this Vector3 vec) => (vec.X * vec.X) + (vec.Y * vec.Y);
         public static float Length(this Vector3 vec) => (float)Math.Sqrt(LengthSquared(vec));
         public static float DistanceSquared(this Vector3 vec, Vector3 other) => (vec - other).LengthSquared();
