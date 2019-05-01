@@ -3,8 +3,6 @@ using System.Numerics;
 
 namespace Helion.Util.Geometry
 {
-    // TODO: Do we want to inherit from Vector<int>? I don't know if that will
-    // get us some kind of vectorization by the VM.
     public struct Vec2i
     {
         public int X;
@@ -36,42 +34,7 @@ namespace Helion.Util.Geometry
         public Vec2d ToDouble() => new Vec2d(X, Y);
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2i i && X == i.X && Y == i.Y;
-        public override int GetHashCode() => HashCode.Combine(X, Y);
-    }
-
-    public struct Vec2fixed
-    {
-        public Fixed X;
-        public Fixed Y;
-
-        public Vec2fixed(Fixed x, Fixed y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public static Vec2fixed operator +(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X + other.X, self.Y + other.Y);
-        public static Vec2fixed operator -(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X - other.X, self.Y - other.Y);
-        public static Vec2fixed operator *(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X * other.X, self.Y * other.Y);
-        public static Vec2fixed operator /(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X / other.X, self.Y / other.Y);
-        public static Vec2fixed operator <<(Vec2fixed self, int bits) => new Vec2fixed(self.X << bits, self.Y << bits);
-        public static Vec2fixed operator >>(Vec2fixed self, int bits) => new Vec2fixed(self.X >> bits, self.Y >> bits);
-        public static bool operator ==(Vec2fixed self, Vec2fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vec2fixed self, Vec2fixed other) => !(self == other);
-        public int this[int index] => index == 0 ? X : Y;
-
-        public int LengthSquared() => (X * X) + (Y * Y);
-        public int Length() => (int)Math.Sqrt((X * X) + (Y * Y));
-        public int DistanceSquared(Vec2fixed other) => (this - other).LengthSquared();
-        public int Distance(Vec2fixed other) => (this - other).Length();
-
-        public Vec2i ToInt() => new Vec2i(X, Y);
-        public Vector2 ToFloat() => new Vector2(X, Y);
-        public Vec2d ToDouble() => new Vec2d(X, Y);
-
-        public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2i i && X == i.X && Y == i.Y;
+        public override bool Equals(object obj) => obj is Vec2i v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
@@ -104,7 +67,42 @@ namespace Helion.Util.Geometry
         public Vec2i ToInt() => new Vec2i((int)X, (int)Y);
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2i i && X == i.X && Y == i.Y;
+        public override bool Equals(object obj) => obj is Vec2i v && X == v.X && Y == v.Y;
+        public override int GetHashCode() => HashCode.Combine(X, Y);
+    }
+
+    public struct Vec2fixed
+    {
+        public Fixed X;
+        public Fixed Y;
+
+        public Vec2fixed(Fixed x, Fixed y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public static Vec2fixed operator +(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X + other.X, self.Y + other.Y);
+        public static Vec2fixed operator -(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X - other.X, self.Y - other.Y);
+        public static Vec2fixed operator *(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X * other.X, self.Y * other.Y);
+        public static Vec2fixed operator /(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X / other.X, self.Y / other.Y);
+        public static Vec2fixed operator <<(Vec2fixed self, int bits) => new Vec2fixed(self.X << bits, self.Y << bits);
+        public static Vec2fixed operator >>(Vec2fixed self, int bits) => new Vec2fixed(self.X >> bits, self.Y >> bits);
+        public static bool operator ==(Vec2fixed self, Vec2fixed other) => self.X == other.X && self.Y == other.Y;
+        public static bool operator !=(Vec2fixed self, Vec2fixed other) => !(self == other);
+        public int this[int index] => index == 0 ? X : Y;
+
+        public int LengthSquared() => (X * X) + (Y * Y);
+        public int Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y)));
+        public int DistanceSquared(Vec2fixed other) => (this - other).LengthSquared();
+        public int Distance(Vec2fixed other) => (this - other).Length();
+
+        public Vec2i ToInt() => new Vec2i(X, Y);
+        public Vector2 ToFloat() => new Vector2(X, Y);
+        public Vec2d ToDouble() => new Vec2d(X, Y);
+
+        public override string ToString() => $"{X}, {Y}";
+        public override bool Equals(object obj) => obj is Vec2i v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
@@ -116,7 +114,7 @@ namespace Helion.Util.Geometry
         public static float Distance(this Vector2 vec, Vector2 other) => (vec - other).Length();
 
         public static Vec2i ToInt(this Vector2 vec) => new Vec2i((int)vec.X, (int)vec.Y);
-        public static Vector2 ToFixed(this Vector2 vec) => new Vector2(new Fixed(vec.X), new Fixed(vec.Y));
+        public static Vec2fixed ToFixed(this Vector2 vec) => new Vec2fixed(new Fixed(vec.X), new Fixed(vec.Y));
         public static Vec2d ToDouble(this Vector2 vec) => new Vec2d(vec.X, vec.Y);
     }
 }

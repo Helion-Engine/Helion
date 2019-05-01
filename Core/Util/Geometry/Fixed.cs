@@ -13,9 +13,24 @@ namespace Helion.Util.Geometry
         public static readonly int BITS = 16;
 
         /// <summary>
+        /// A representation of 0.0.
+        /// </summary>
+        public static readonly Fixed Zero = FromInt(0);
+
+        /// <summary>
+        /// A representation of 1.0.
+        /// </summary>
+        public static readonly Fixed One = FromInt(1);
+
+        /// <summary>
+        /// A representation of -1.0.
+        /// </summary>
+        public static readonly Fixed NegativeOne = FromInt(-1);
+
+        /// <summary>
         /// The bits that make up the fixed point number.
         /// </summary>
-        public int Bits { get; }
+        public readonly int Bits;
 
         /// <summary>
         /// Creates a fixed point number from the bits provided.
@@ -43,10 +58,13 @@ namespace Helion.Util.Geometry
         /// <param name="lower">The lower 16 bits.</param>
         public Fixed(ushort upper, ushort lower) : this((upper << BITS) | lower) { }
 
+        public static Fixed FromInt(int i) => new Fixed(i << BITS);
+
         public static implicit operator int(Fixed f) => f.Bits >> BITS;
         public static implicit operator float(Fixed f) => f.Bits / 65536.0f;
         public static implicit operator double(Fixed f) => f.Bits / 65536.0;
 
+        public static Fixed operator -(Fixed value) => new Fixed(-value.Bits);
         public static Fixed operator +(Fixed self, Fixed other) => new Fixed(self.Bits + other.Bits);
         public static Fixed operator -(Fixed self, Fixed other) => new Fixed(self.Bits - other.Bits);
         public static Fixed operator *(Fixed self, Fixed other) => new Fixed(((ulong)self.Bits * (ulong)other.Bits) >> BITS);

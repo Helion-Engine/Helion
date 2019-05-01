@@ -104,9 +104,15 @@ namespace Helion.Entries.Tree.Archive.Iterator
 
         public IEnumerator<MapEntryCollection> GetEnumerator()
         {
+            // TODO: Need to get the map name from the directory entry above.
+            // The solution to this is to examine the path for maps/ from the
+            // top level, and if so then remember that name and apply it to
+            // the map collection.
+            
             // TODO: This should be cleaned up. Sadly the iterator is a bit
             // buried in everything and it's not trivial to refactor. However
             // an attempt should still be made to try to make this cleaner.
+
             while (directoriesToVisit.Any())
             {
                 DirectoryEntry directoryEntry = directoriesToVisit.First.Value;
