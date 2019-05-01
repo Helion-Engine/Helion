@@ -54,12 +54,16 @@ namespace Helion.Util.Geometry
         public static Vec2d operator -(Vec2d self, Vec2d other) => new Vec2d(self.X - other.X, self.Y - other.Y);
         public static Vec2d operator *(Vec2d self, Vec2d other) => new Vec2d(self.X * other.X, self.Y * other.Y);
         public static Vec2d operator *(Vec2d self, double value) => new Vec2d(self.X * value, self.Y * value);
+        public static Vec2d operator *(double value, Vec2d self) => new Vec2d(self.X * value, self.Y * value);
         public static Vec2d operator /(Vec2d self, Vec2d other) => new Vec2d(self.X / other.X, self.Y / other.Y);
         public static Vec2d operator /(Vec2d self, double value) => new Vec2d(self.X / value, self.Y / value);
+        public static Vec2d operator /(double value, Vec2d self) => new Vec2d(self.X / value, self.Y / value);
         public static bool operator ==(Vec2d self, Vec2d other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2d self, Vec2d other) => !(self == other);
         public double this[int index] => index == 0 ? X : Y;
 
+        public Vec2d Unit() => this / Length();
+        public void Normalize() => this /= Length();
         public double Dot(Vec2d other) => (X * other.X) + (Y * other.Y);
         public double LengthSquared() => (X * X) + (Y * Y);
         public double Length() => Math.Sqrt((X * X) + (Y * Y));
@@ -94,18 +98,24 @@ namespace Helion.Util.Geometry
         public static Vec2fixed operator +(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X + other.X, self.Y + other.Y);
         public static Vec2fixed operator -(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X - other.X, self.Y - other.Y);
         public static Vec2fixed operator *(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X * other.X, self.Y * other.Y);
+        public static Vec2fixed operator *(Vec2fixed self, Fixed value) => new Vec2fixed(self.X * value, self.Y * value);
+        public static Vec2fixed operator *(Fixed value, Vec2fixed self) => new Vec2fixed(self.X * value, self.Y * value);
         public static Vec2fixed operator /(Vec2fixed self, Vec2fixed other) => new Vec2fixed(self.X / other.X, self.Y / other.Y);
+        public static Vec2fixed operator /(Vec2fixed self, Fixed value) => new Vec2fixed(self.X / value, self.Y / value);
+        public static Vec2fixed operator /(Fixed value, Vec2fixed self) => new Vec2fixed(self.X / value, self.Y / value);
         public static Vec2fixed operator <<(Vec2fixed self, int bits) => new Vec2fixed(self.X << bits, self.Y << bits);
         public static Vec2fixed operator >>(Vec2fixed self, int bits) => new Vec2fixed(self.X >> bits, self.Y >> bits);
         public static bool operator ==(Vec2fixed self, Vec2fixed other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2fixed self, Vec2fixed other) => !(self == other);
-        public int this[int index] => index == 0 ? X : Y;
+        public Fixed this[int index] => index == 0 ? X : Y;
 
-        public double Dot(Vec2fixed other) => (X * other.X) + (Y * other.Y);
-        public int LengthSquared() => (X * X) + (Y * Y);
-        public int Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y)));
-        public int DistanceSquared(Vec2fixed other) => (this - other).LengthSquared();
-        public int Distance(Vec2fixed other) => (this - other).Length();
+        public Vec2fixed Unit() => this / Length();
+        public void Normalize() => this /= Length();
+        public Fixed Dot(Vec2fixed other) => (X * other.X) + (Y * other.Y);
+        public Fixed LengthSquared() => (X * X) + (Y * Y);
+        public Fixed Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y)));
+        public Fixed DistanceSquared(Vec2fixed other) => (this - other).LengthSquared();
+        public Fixed Distance(Vec2fixed other) => (this - other).Length();
 
         public Vec2i ToInt() => new Vec2i(X, Y);
         public Vector2 ToFloat() => new Vector2(X, Y);
@@ -119,11 +129,11 @@ namespace Helion.Util.Geometry
     public static class Vector2Extensions
     {
         public static float Dot(this Vector2 vec, Vector2 other) => (vec.X * other.X) + (vec.Y * other.Y);
+        public static Vector2 Unit(this Vector2 vec) => vec / vec.Length();
         public static float LengthSquared(this Vector2 vec) => (vec.X * vec.X) + (vec.Y * vec.Y);
-        public static float Length(this Vector2 vec) => (float)Math.Sqrt(LengthSquared(vec));
+        public static float Length(this Vector2 vec) => (float)Math.Sqrt((vec.X * vec.X) + (vec.Y * vec.Y));
         public static float DistanceSquared(this Vector2 vec, Vector2 other) => (vec - other).LengthSquared();
         public static float Distance(this Vector2 vec, Vector2 other) => (vec - other).Length();
-
         public static Vec2i ToInt(this Vector2 vec) => new Vec2i((int)vec.X, (int)vec.Y);
         public static Vec2fixed ToFixed(this Vector2 vec) => new Vec2fixed(new Fixed(vec.X), new Fixed(vec.Y));
         public static Vec2d ToDouble(this Vector2 vec) => new Vec2d(vec.X, vec.Y);

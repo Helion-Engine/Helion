@@ -18,15 +18,17 @@ namespace Helion.Util.Geometry
             Delta = end - start;
         }
 
+        public static float DoubleTriArea(Vector2 a, Vector2 b, Vector2 c)
+        {
+            return ((a.X - c.X) * (b.Y - c.Y)) - ((a.Y - c.Y) * (b.X - c.X));
+        }
+
         public Vector2 this[int index] => index == 0 ? Start : End;
         public Vector2 this[Endpoint endpoint] => endpoint == Endpoint.Start ? Start : End;
         public Vector2 Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
         public Vector2 FromTime(float t) => Start + (Delta * t);
 
-        public bool SameDirection(Seg2fBase seg)
-        {
-            return SameDirection(seg.Delta);
-        }
+        public bool SameDirection(Seg2fBase seg) => SameDirection(seg.Delta);
 
         public bool SameDirection(Vector2 delta)
         {
@@ -42,7 +44,30 @@ namespace Helion.Util.Geometry
         {
             float value = PerpDot(point);
             bool approxZero = MathHelper.IsZero(value, epsilon);
-            return approxZero ? SegmentSide.On : value < 0 ? SegmentSide.Right : SegmentSide.Left;
+            return approxZero ? SegmentSide.On : (value < 0 ? SegmentSide.Right : SegmentSide.Left);
+        }
+
+        public bool OnRight(Vector2 point) => PerpDot(point) <= 0;
+        public bool OnRight(Seg2fBase seg) => OnRight(seg.Start) && OnRight(seg.End);
+
+        public bool OnRight(Box2f box)
+        {
+            return OnRight(box.BottomLeft) && 
+                   OnRight(box.BottomRight) &&
+                   OnRight(box.TopLeft) &&
+                   OnRight(box.TopRight);
+        }
+
+        public bool DifferentSides(Vector2 first, Vector2 second) => OnRight(first) != OnRight(second);
+        public bool DifferentSides(Seg2fBase seg) => OnRight(seg.Start) != OnRight(seg.End);
+
+        public bool Parallel(Seg2fBase seg, float epsilon = 0.00001f)
+        {
+            // If both slopes are the same for seg 1 and 2, then we know the
+            // slopes are the same, meaning: d1y / d1x = d2y / d2x. Therefore
+            // d1y * d2x == d2y * d1x. This also avoids weird division by zero
+            // errors and all that fun stuff from any vertical lines.
+            return MathHelper.AreEqual(Delta.Y * seg.Delta.X, Delta.X * seg.Delta.Y, epsilon);
         }
 
         public float ClosestDistance(Vector2 point)
@@ -58,33 +83,82 @@ namespace Helion.Util.Geometry
             return point.Distance(FromTime(t));
         }
 
-        public float Length()
+        public bool Intersects(Seg2fBase other) => Intersection(other, out float t) ? (0 <= t && t <= 1) : false;
+
+        public bool Intersection(Seg2fBase seg, out float t)
         {
-            return Delta.Length();
+            float areaStart = DoubleTriArea(Start, End, seg.End);
+            float areaEnd = DoubleTriArea(Start, End, seg.Start);
+
+            if (MathHelper.DifferentSign(areaStart, areaEnd))
+            {
+                float areaThisStart = DoubleTriArea(seg.Start, seg.End, Start);
+                float areaThisEnd = DoubleTriArea(seg.Start, seg.End, End);
+
+                if (MathHelper.DifferentSign(areaStart, areaEnd))
+                {
+                    t = areaThisStart / (areaThisStart - areaThisEnd);
+                    return true;
+                }
+            }
+
+            t = default;
+            return false;
         }
 
-        public float LengthSquared()
+        public bool IntersectionAsLine(Seg2fBase seg, out float tThis)
         {
-            return Delta.LengthSquared();
+            float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
+            if (MathHelper.IsZero(determinant))
+            {
+                tThis = default;
+                return false;
+            }
+
+            Vector2 startDelta = Start - seg.Start;
+            float inverseDeterminant = 1.0f / determinant;
+            tThis = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) * inverseDeterminant;
+            return true;
         }
+
+        public bool IntersectionAsLine(Seg2fBase seg, out float tThis, out float tOther)
+        {
+            float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
+            if (MathHelper.IsZero(determinant))
+            {
+                tThis = default;
+                tOther = default;
+                return false;
+            }
+
+            Vector2 startDelta = Start - seg.Start;
+            float inverseDeterminant = 1.0f / determinant;
+            tThis = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) * inverseDeterminant;
+            tOther = ((-Delta.Y * startDelta.X) + (Delta.X * startDelta.Y)) * inverseDeterminant;
+            return true;
+        }
+
+        public float Length() => Delta.Length();
+
+        public float LengthSquared() => Delta.LengthSquared();
     }
 
     public class Seg2f : Seg2fBase
     {
         public readonly Vector2 DeltaInverse;
-        public readonly BBox2f BBox;
+        public readonly Box2f Box;
         public readonly SegmentDirection Direction;
 
         public Seg2f(Vector2 start, Vector2 end) : base(start, end)
         {
             DeltaInverse = new Vector2(1.0f / Delta.X, 1.0f / Delta.Y);
-            BBox = MakeBox(start, end);
+            Box = MakeBox(start, end);
             Direction = CalculateDirection(Delta);
         }
 
-        private static BBox2f MakeBox(Vector2 start, Vector2 end)
+        private static Box2f MakeBox(Vector2 start, Vector2 end)
         {
-            return new BBox2f(
+            return new Box2f(
                 new Vector2(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
                 new Vector2(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y))
             );
@@ -118,6 +192,26 @@ namespace Helion.Util.Geometry
             return (tStart > 0 && tStart < 1) || (tEnd > 0 && tEnd < 1);
         }
 
+        public bool Intersects(Box2f box)
+        {
+            if (!Box.Overlaps(box))
+                return false;
+
+            switch (Direction)
+            {
+            case SegmentDirection.Vertical:
+                return box.Min.X < Start.X && Start.X < box.Max.X;
+            case SegmentDirection.Horizontal:
+                return box.Min.Y < Start.Y && Start.Y < box.Max.Y;
+            case SegmentDirection.PositiveSlope:
+                return DifferentSides(box.TopLeft, box.BottomRight);
+            case SegmentDirection.NegativeSlope:
+                return DifferentSides(box.BottomLeft, box.TopRight);
+            default:
+                throw new InvalidOperationException("Invalid box intersection direction enumeration");
+            }
+        }
+
         public bool Collinear(Seg2fBase seg, float epsilon = 0.0001f)
         {
             // If the midpoint of the provided segment is on the current segment
@@ -126,5 +220,15 @@ namespace Helion.Util.Geometry
             Vector2 expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
         }
+
+        public Tuple<Seg2f, Seg2f> Split(float t)
+        {
+            Assert.Precondition(t > 0 && t < 1, $"Cannot split segment outside the line or at endpoints: {t}");
+
+            Vector2 middle = FromTime(t);
+            return Tuple.Create(new Seg2f(Start, middle), new Seg2f(middle, End));
+        }
+
+        public Vector2 RightRotateNormal() => new Vector2(Delta.Y, -Delta.X).Unit();
     }
 }

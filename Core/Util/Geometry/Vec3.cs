@@ -19,7 +19,11 @@ namespace Helion.Util.Geometry
         public static Vec3i operator +(Vec3i self, Vec3i other) => new Vec3i(self.X + other.X, self.Y + other.Y, self.Z + other.Z);
         public static Vec3i operator -(Vec3i self, Vec3i other) => new Vec3i(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
         public static Vec3i operator *(Vec3i self, Vec3i other) => new Vec3i(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
+        public static Vec3i operator *(Vec3i self, int value) => new Vec3i(self.X * value, self.Y * value, self.Z * value);
+        public static Vec3i operator *(int value, Vec3i self) => new Vec3i(self.X * value, self.Y * value, self.Z * value);
         public static Vec3i operator /(Vec3i self, Vec3i other) => new Vec3i(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
+        public static Vec3i operator /(Vec3i self, int value) => new Vec3i(self.X / value, self.Y / value, self.Z / value);
+        public static Vec3i operator /(int value, Vec3i self) => new Vec3i(self.X / value, self.Y / value, self.Z / value);
         public static Vec3i operator <<(Vec3i self, int bits) => new Vec3i(self.X << bits, self.Y << bits, self.Z << bits);
         public static Vec3i operator >>(Vec3i self, int bits) => new Vec3i(self.X >> bits, self.Y >> bits, self.Z >> bits);
         public static bool operator ==(Vec3i self, Vec3i other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
@@ -73,8 +77,10 @@ namespace Helion.Util.Geometry
         public static Vec3d operator -(Vec3d self, Vec3d other) => new Vec3d(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
         public static Vec3d operator *(Vec3d self, Vec3d other) => new Vec3d(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
         public static Vec3d operator *(Vec3d self, double value) => new Vec3d(self.X * value, self.Y * value, self.Z * value);
+        public static Vec3d operator *(double value, Vec3d self) => new Vec3d(self.X * value, self.Y * value, self.Z * value);
         public static Vec3d operator /(Vec3d self, Vec3d other) => new Vec3d(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3d operator /(Vec3d self, double value) => new Vec3d(self.X / value, self.Y / value, self.Z / value);
+        public static Vec3d operator /(double value, Vec3d self) => new Vec3d(self.X / value, self.Y / value, self.Z / value);
         public static bool operator !=(Vec3d self, Vec3d other) => !(self == other);
 
         public static bool operator ==(Vec3d self, Vec3d other)
@@ -103,6 +109,8 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public Vec3d Unit() => this / Length();
+        public void Normalize() => this /= Length();
         public double Dot(Vec3d other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
@@ -134,7 +142,11 @@ namespace Helion.Util.Geometry
         public static Vec3fixed operator +(Vec3fixed self, Vec3fixed other) => new Vec3fixed(self.X + other.X, self.Y + other.Y, self.Z + other.Z);
         public static Vec3fixed operator -(Vec3fixed self, Vec3fixed other) => new Vec3fixed(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
         public static Vec3fixed operator *(Vec3fixed self, Vec3fixed other) => new Vec3fixed(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
+        public static Vec3fixed operator *(Vec3fixed self, Fixed value) => new Vec3fixed(self.X * value, self.Y * value, self.Z * value);
+        public static Vec3fixed operator *(Fixed value, Vec3fixed self) => new Vec3fixed(self.X * value, self.Y * value, self.Z * value);
         public static Vec3fixed operator /(Vec3fixed self, Vec3fixed other) => new Vec3fixed(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
+        public static Vec3fixed operator /(Vec3fixed self, Fixed value) => new Vec3fixed(self.X / value, self.Y / value, self.Z / value);
+        public static Vec3fixed operator /(Fixed value, Vec3fixed self) => new Vec3fixed(self.X / value, self.Y / value, self.Z / value);
         public static bool operator ==(Vec3fixed self, Vec3fixed other)
         {
             return MathHelper.AreEqual(self.X, other.X) && MathHelper.AreEqual(self.Y, other.Y) && MathHelper.AreEqual(self.Z, other.Z);
@@ -156,6 +168,8 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public Vec3fixed Unit() => this / Length();
+        public void Normalize() => this /= Length();
         public Fixed Dot(Vec3fixed other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public Fixed LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public Fixed Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y) + (Z * Z)));
@@ -180,12 +194,7 @@ namespace Helion.Util.Geometry
                    MathHelper.AreEqual(self.Z, other.Z, epsilon);
         }
 
-        public static float Dot(this Vector3 vec, Vector3 other) => (vec.X * other.X) + (vec.Y * other.Y) + (vec.Z * other.Z);
-        public static float LengthSquared(this Vector3 vec) => (vec.X * vec.X) + (vec.Y * vec.Y);
-        public static float Length(this Vector3 vec) => (float)Math.Sqrt(LengthSquared(vec));
-        public static float DistanceSquared(this Vector3 vec, Vector3 other) => (vec - other).LengthSquared();
-        public static float Distance(this Vector3 vec, Vector3 other) => (vec - other).Length();
-
+        public static Vector3 Unit(this Vector3 vec) => vec / vec.Length();
         public static Vec3i ToInt(this Vector3 vec) => new Vec3i((int)vec.X, (int)vec.Y, (int)vec.Z);
         public static Vec3fixed ToFixed(this Vector3 vec) => new Vec3fixed(new Fixed(vec.X), new Fixed(vec.Y), new Fixed(vec.Z));
         public static Vec3d ToDouble(this Vector3 vec) => new Vec3d(vec.X, vec.Y, vec.Z);
