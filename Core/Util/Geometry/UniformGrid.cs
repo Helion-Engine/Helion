@@ -35,6 +35,11 @@ namespace Helion.Util.Geometry
         /// </summary>
         public Vec2Fixed Origin => Bounds.Min;
 
+        /// <summary>
+        /// Creates a uniform grid with the bounds provided. Note that the 
+        /// bounds provided will be expanded for optimization reasons.
+        /// </summary>
+        /// <param name="bounds">The desired bounds.</param>
         public UniformGridFixed(Box2Fixed bounds)
         {
             Bounds = ToBounds(bounds);
@@ -190,6 +195,151 @@ namespace Helion.Util.Geometry
                 // pad itself on the left-side so in the very rare literal 
                 // corner case it will not go to block (-1, 0) and avoid 
                 // throwing an exception by being out of bounds.
+                if (error > 0)
+                {
+                    blockIndex += verticalStep;
+                    error -= absDelta.X;
+                }
+                else
+                {
+                    blockIndex += horizontalStep;
+                    error += absDelta.Y;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// A container for a uniformly distributed grid. This also aligns itself 
+    /// to the grid so certain optimizations can be done (ex: power of two 
+    /// shifting instead of divisions).
+    /// </summary>
+    /// <typeparam name="T">The block component for each grid element.
+    /// </typeparam>
+    public class UniformGridD<T>
+    {
+        private const int Dimension = 128;
+
+        /// <summary>
+        /// How many blocks wide the grid is.
+        /// </summary>
+        public readonly int Width;
+
+        /// <summary>
+        /// How many blocks tall the grid is.
+        /// </summary>
+        public readonly int Height;
+
+        /// <summary>
+        /// The bounds of the grid.
+        /// </summary>
+        public readonly Box2D Bounds;
+
+        private readonly T[] blocks;
+
+        /// <summary>
+        /// The origin of the grid.
+        /// </summary>
+        public Vec2D Origin => Bounds.Min;
+
+        /// <summary>
+        /// Creates a uniform grid with the bounds provided. Note that the 
+        /// bounds provided will be expanded for optimization reasons.
+        /// </summary>
+        /// <param name="bounds">The desired bounds.</param>
+        public UniformGridD(Box2D bounds)
+        {
+            Bounds = ToBounds(bounds);
+
+            Vec2D sides = Bounds.Sides();
+            Width = (int)(sides.X / Dimension);
+            Height = (int)(sides.Y / Dimension);
+            blocks = new T[Width * Height];
+        }
+
+        /// <summary>
+        /// Gets the block at the coordinates provided.
+        /// </summary>
+        /// <param name="row">The row, should in [0, Width).</param>
+        /// <param name="col">The column, should in [0, Height).</param>
+        /// <returns></returns>
+        /// <exception cref="System.IndexOutOfRangeException">if the indices 
+        /// are out of range.</exception>
+        public T this[int row, int col] => blocks[(row * Width) + col];
+
+        private static Box2D ToBounds(Box2D bounds)
+        {
+            int alignedLeftBlock = ((int)Math.Floor(bounds.Min.X) / Dimension) - 1;
+            int alignedBottomBlock = (int)Math.Floor(bounds.Min.Y) / Dimension;
+            int alignedRightBlock = ((int)Math.Floor(bounds.Max.X) / Dimension) + 1;
+            int alignedTopBlock = ((int)Math.Floor(bounds.Max.Y) / Dimension) + 1;
+
+            Vec2D origin = new Vec2D(alignedLeftBlock * Dimension, alignedBottomBlock * Dimension);
+            Vec2D topRight = new Vec2D(alignedRightBlock * Dimension, alignedTopBlock * Dimension);
+
+            return new Box2D(origin, topRight);
+        }
+
+        private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + coordinate.Y * Width;
+
+        public bool Iterate(Seg2DBase seg, Func<T, bool> func)
+        {
+            Assert.Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
+            Assert.Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
+
+            Vec2D blockUnitStart = (seg.Start - Origin) / Dimension;
+            Vec2D blockUnitEnd = (seg.End - Origin) / Dimension;
+            Vec2D absDelta = (blockUnitEnd - blockUnitStart).Abs();
+
+            Vec2I startingBlock = blockUnitStart.ToInt();
+            int blockIndex = IndexFromBlockCoordinate(startingBlock);
+            int horizontalStep = 0;
+            int verticalStep = 0;
+            double error;
+            int numBlocks = 1;
+
+            if (MathHelper.IsZero(absDelta.X))
+            {
+                error = double.MaxValue;
+            }
+            else if (blockUnitEnd.X > blockUnitStart.X)
+            {
+                horizontalStep = 1;
+                numBlocks += (int)Math.Floor(blockUnitEnd.X) - startingBlock.X;
+                error = (Math.Floor(blockUnitStart.X) + 1 - blockUnitStart.X) * absDelta.Y;
+            }
+            else
+            {
+                horizontalStep = -1;
+                numBlocks += startingBlock.X - (int)Math.Floor(blockUnitEnd.X);
+                error = (blockUnitStart.X - Math.Floor(blockUnitStart.X)) * absDelta.Y;
+            }
+
+            if (MathHelper.IsZero(absDelta.Y))
+            {
+                error = double.MinValue;
+            }
+            else if (blockUnitEnd.Y > blockUnitStart.Y)
+            {
+                verticalStep = Width;
+                numBlocks += (int)Math.Floor(blockUnitEnd.Y) - startingBlock.Y;
+                error -= (Math.Floor(blockUnitStart.Y) + 1 - blockUnitStart.Y) * absDelta.X;
+            }
+            else
+            {
+                horizontalStep = -Width;
+                numBlocks += startingBlock.Y - (int)Math.Floor(blockUnitEnd.Y);
+                error -= (blockUnitStart.Y - Math.Floor(blockUnitStart.Y)) * absDelta.X;
+            }
+
+            for (int i = numBlocks; i >= 0; i--)
+            {
+                T gridElement = blocks[blockIndex];
+                if (func(gridElement))
+                    return true;
+
                 if (error > 0)
                 {
                     blockIndex += verticalStep;
