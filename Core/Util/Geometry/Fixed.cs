@@ -10,27 +10,47 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// How many bits make up a single fractional unit.
         /// </summary>
-        public static readonly int UnitBits = 16;
+        public const int UnitBits = 16;
+
+        /// <summary>
+        /// The mask for the lower fractional bits.
+        /// </summary>
+        public const int FractionalMask = 0x0000FFFF;
+
+        /// <summary>
+        /// The mask for the upper integral bits.
+        /// </summary>
+        public const int IntegralMask = FractionalMask << UnitBits;
 
         /// <summary>
         /// A small epsilon value that can be used in comparisons.
         /// </summary>
-        public static readonly Fixed Epsilon = new Fixed(0x00000008);
+        public static Fixed Epsilon() => new Fixed(0x00000008);
 
         /// <summary>
         /// A representation of 0.0.
         /// </summary>
-        public static readonly Fixed Zero = FromInt(0);
+        public static Fixed Zero() => FromInt(0);
 
         /// <summary>
         /// A representation of 1.0.
         /// </summary>
-        public static readonly Fixed One = FromInt(1);
+        public static Fixed One() => FromInt(1);
 
         /// <summary>
         /// A representation of -1.0.
         /// </summary>
-        public static readonly Fixed NegativeOne = FromInt(-1);
+        public static Fixed NegativeOne() => FromInt(-1);
+
+        /// <summary>
+        /// The most negative fixed point value.
+        /// </summary>
+        public static Fixed Lowest() => new Fixed(0x80000000);
+
+        /// <summary>
+        /// The largest fixed point value.
+        /// </summary>
+        public static Fixed Max() => new Fixed(0x7FFFFFFF);
 
         /// <summary>
         /// The bits that make up the fixed point number.
@@ -71,17 +91,30 @@ namespace Helion.Util.Geometry
         /// <returns>The fixed point value for the integer.</returns>
         public static Fixed FromInt(int i) => new Fixed(i << UnitBits);
 
-        public static implicit operator int(Fixed f) => f.Bits >> UnitBits;
-        public static implicit operator float(Fixed f) => f.Bits / 65536.0f;
-        public static implicit operator double(Fixed f) => f.Bits / 65536.0;
-
         public static Fixed operator -(Fixed value) => new Fixed(-value.Bits);
         public static Fixed operator +(Fixed self, Fixed other) => new Fixed(self.Bits + other.Bits);
+        public static Fixed operator +(Fixed self, int value) => new Fixed(self.Bits + (value << UnitBits));
         public static Fixed operator -(Fixed self, Fixed other) => new Fixed(self.Bits - other.Bits);
+        public static Fixed operator -(Fixed self, int value) => new Fixed(self.Bits - (value << UnitBits));
         public static Fixed operator *(Fixed self, Fixed other) => new Fixed(((ulong)self.Bits * (ulong)other.Bits) >> UnitBits);
         public static Fixed operator *(Fixed self, int value) => new Fixed(((ulong)self.Bits * (ulong)value) >> UnitBits);
         public static Fixed operator *(int value, Fixed self) => new Fixed(((ulong)self.Bits * (ulong)value) >> UnitBits);
         public static Fixed operator /(Fixed numerator, int value) => new Fixed(numerator.Bits / value);
+        public static Fixed operator <<(Fixed self, int bits) => new Fixed(self.Bits << bits);
+        public static Fixed operator >>(Fixed self, int bits) => new Fixed(self.Bits >> bits);
+        public static Fixed operator &(Fixed numerator, int bits) => new Fixed(numerator.Bits & bits);
+        public static Fixed operator |(Fixed numerator, int bits) => new Fixed(numerator.Bits | bits);
+        public static bool operator ==(Fixed self, Fixed other) => self.Bits == other.Bits;
+        public static bool operator !=(Fixed self, Fixed other) => !(self == other);
+        public static bool operator >(Fixed self, Fixed value) => self.Bits > value.Bits;
+        public static bool operator >=(Fixed self, Fixed value) => self.Bits >= value.Bits;
+        public static bool operator <(Fixed self, Fixed value) => self.Bits < value.Bits;
+        public static bool operator <=(Fixed self, Fixed value) => self.Bits <= value.Bits;
+        public static bool operator >(Fixed self, int value) => self.Bits > (value << UnitBits);
+        public static bool operator >=(Fixed self, int value) => self.Bits >= (value << UnitBits);
+        public static bool operator <(Fixed self, int value) => self.Bits < (value << UnitBits);
+        public static bool operator <=(Fixed self, int value) => self.Bits <= (value << UnitBits);
+
         public static Fixed operator /(Fixed numerator, Fixed denominator)
         {
             // This is not an optimization anymore, but it prevents numbers
@@ -92,12 +125,20 @@ namespace Helion.Util.Geometry
                 return new Fixed((((ulong)numerator.Bits) << UnitBits) / (ulong)denominator.Bits);
         }
 
-        public static Fixed operator <<(Fixed self, int bits) => new Fixed(self.Bits << bits);
-        public static Fixed operator >>(Fixed self, int bits) => new Fixed(self.Bits >> bits);
-        public static bool operator ==(Fixed self, Fixed other) => self.Bits == other.Bits;
-        public static bool operator !=(Fixed self, Fixed other) => !(self == other);
+        public Fixed Floor()
+        {
+            if (Bits < 0)
+                return new Fixed(((Bits - FractionalMask) & IntegralMask) + 1); 
+            else
+                return new Fixed(Bits & IntegralMask);
+        }
 
-        public Fixed Inverse() => One / this;
+        public Fixed Abs() => new Fixed(Math.Abs(Bits));
+        public Fixed Sqrt() => new Fixed(Math.Sqrt(ToDouble()));
+        public Fixed Inverse() => One() / this;
+        public int ToInt() => Bits >> UnitBits;
+        public float ToFloat() => Bits / 65536.0f;
+        public double ToDouble() => Bits / 65536.0;
 
         public override string ToString() => $"{(float)Bits}";
         public override bool Equals(object obj) => obj is Fixed f && Bits == f.Bits;

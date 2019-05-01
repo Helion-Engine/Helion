@@ -102,8 +102,7 @@ namespace Helion.Util.Geometry
         public readonly Fixed FlatHeight;
         private readonly Fixed inverseC;
 
-        public PlaneFixed(Fixed height) :
-            this(Fixed.Zero, Fixed.Zero, Fixed.One, Fixed.FromInt(-height))
+        public PlaneFixed(Fixed height) : this(Fixed.Zero(), Fixed.Zero(), Fixed.One(), -height)
         {
         }
 
@@ -120,19 +119,19 @@ namespace Helion.Util.Geometry
             if (IsFlat)
             {
                 D = d / c;
-                C = Fixed.One;
+                C = Fixed.One();
                 FlatHeight = -d;
             }
             else
-                inverseC = Fixed.One / c;
+                inverseC = Fixed.One() / c;
         }
 
-        public double ToZ(Vec2Fixed point)
+        public Fixed ToZ(Vec2Fixed point)
         {
             return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
         }
 
-        public double ToZ(Vec3Fixed point)
+        public Fixed ToZ(Vec3Fixed point)
         {
             return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
         }

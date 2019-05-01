@@ -24,6 +24,7 @@ namespace Helion.Util.Geometry
         public static bool operator !=(Vec2I self, Vec2I other) => !(self == other);
         public int this[int index] => index == 0 ? X : Y;
 
+        public Vec2I Abs() => new Vec2I(Math.Abs(X), Math.Abs(Y));
         public int Dot(Vec2I other) => (X * other.X) + (Y * other.Y);
         public int LengthSquared() => (X * X) + (Y * Y);
         public int Length() => (int)Math.Sqrt((X * X) + (Y * Y));
@@ -62,6 +63,7 @@ namespace Helion.Util.Geometry
         public static bool operator !=(Vec2D self, Vec2D other) => !(self == other);
         public double this[int index] => index == 0 ? X : Y;
 
+        public Vec2D Abs() => new Vec2D(Math.Abs(X), Math.Abs(Y));
         public Vec2D Unit() => this / Length();
         public void Normalize() => this /= Length();
         public double Dot(Vec2D other) => (X * other.X) + (Y * other.Y);
@@ -112,26 +114,28 @@ namespace Helion.Util.Geometry
         public static bool operator !=(Vec2Fixed self, Vec2Fixed other) => !(self == other);
         public Fixed this[int index] => index == 0 ? X : Y;
 
+        public Vec2Fixed Abs() => new Vec2Fixed(X.Abs(), Y.Abs());
         public Vec2Fixed Unit() => this / Length();
         public void Normalize() => this /= Length();
         public Fixed Dot(Vec2Fixed other) => (X * other.X) + (Y * other.Y);
         public Fixed LengthSquared() => (X * X) + (Y * Y);
-        public Fixed Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y)));
+        public Fixed Length() => new Fixed(Math.Sqrt(((X * X) + (Y * Y)).ToDouble()));
         public Fixed DistanceSquared(Vec2Fixed other) => (this - other).LengthSquared();
         public Fixed Distance(Vec2Fixed other) => (this - other).Length();
 
-        public Vec2I ToInt() => new Vec2I(X, Y);
-        public Vector2 ToFloat() => new Vector2(X, Y);
-        public Vec2D ToDouble() => new Vec2D(X, Y);
+        public Vec2I ToInt() => new Vec2I(X.ToInt(), Y.ToInt());
+        public Vector2 ToFloat() => new Vector2(X.ToFloat(), Y.ToFloat());
+        public Vec2D ToDouble() => new Vec2D(X.ToDouble(), Y.ToDouble());
 
         public bool EqualTo(Vec2Fixed other) => Equals(other);
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
+        public override bool Equals(object obj) => obj is Vec2Fixed v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
     public static class Vector2Extensions
     {
+        public static Vector2 Abs(this Vector2 vec) => new Vector2(Math.Abs(vec.X), Math.Abs(vec.Y));
         public static float Dot(this Vector2 vec, Vector2 other) => (vec.X * other.X) + (vec.Y * other.Y);
         public static Vector2 Unit(this Vector2 vec) => vec / vec.Length();
         public static float LengthSquared(this Vector2 vec) => (vec.X * vec.X) + (vec.Y * vec.Y);

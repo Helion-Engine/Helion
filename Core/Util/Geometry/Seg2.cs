@@ -1137,7 +1137,7 @@ namespace Helion.Util.Geometry
         public SegmentSide ToSide(Vec2Fixed point)
         {
             Fixed value = PerpDot(point);
-            bool approxZero = MathHelper.IsZero(value, Fixed.Epsilon);
+            bool approxZero = MathHelper.IsZero(value, Fixed.Epsilon());
             return approxZero ? SegmentSide.On : (value < 0 ? SegmentSide.Right : SegmentSide.Left);
         }
 
@@ -1203,7 +1203,7 @@ namespace Helion.Util.Geometry
             // slopes are the same, meaning: d1y / d1x = d2y / d2x. Therefore
             // d1y * d2x == d2y * d1x. This also avoids weird division by zero
             // errors and all that fun stuff from any vertical lines.
-            return MathHelper.AreEqual(Delta.Y * seg.Delta.X, Delta.X * seg.Delta.Y, Fixed.Epsilon);
+            return MathHelper.AreEqual(Delta.Y * seg.Delta.X, Delta.X * seg.Delta.Y, Fixed.Epsilon());
         }
 
         /// <summary>
@@ -1230,7 +1230,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="other">The other segment to check.</param>
         /// <returns>True if an intersection exists, false if not.</returns>
-        public bool Intersects(Seg2FixedBase other) => Intersection(other, out Fixed t) ? (0 <= t && t <= 1) : false;
+        public bool Intersects(Seg2FixedBase other) => Intersection(other, out Fixed t) ? (t >= 0 && t <= 1) : false;
 
         /// <summary>
         /// Gets the intersection with a segment. This is not intended for line

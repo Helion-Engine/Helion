@@ -45,6 +45,7 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public Vec3I Abs() => new Vec3I(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
         public int Dot(Vec3I other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public int LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public int Length() => (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
@@ -109,6 +110,7 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public Vec3D Abs() => new Vec3D(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
         public Vec3D Unit() => this / Length();
         public void Normalize() => this /= Length();
         public double Dot(Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
@@ -152,7 +154,7 @@ namespace Helion.Util.Geometry
             return MathHelper.AreEqual(self.X, other.X) && MathHelper.AreEqual(self.Y, other.Y) && MathHelper.AreEqual(self.Z, other.Z);
         }
         public static bool operator !=(Vec3Fixed self, Vec3Fixed other) => !(self == other);
-        public double this[int index] {
+        public Fixed this[int index] {
             get 
             {
                 switch (index)
@@ -168,17 +170,18 @@ namespace Helion.Util.Geometry
             }
         }
 
+        public Vec3Fixed Abs() => new Vec3Fixed(X.Abs(), Y.Abs(), Z.Abs());
         public Vec3Fixed Unit() => this / Length();
         public void Normalize() => this /= Length();
         public Fixed Dot(Vec3Fixed other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public Fixed LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
-        public Fixed Length() => new Fixed(Math.Sqrt((X * X) + (Y * Y) + (Z * Z)));
+        public Fixed Length() => new Fixed(Math.Sqrt(((X * X) + (Y * Y) + (Z * Z)).ToDouble()));
         public Fixed DistanceSquared(Vec3Fixed other) => (this - other).LengthSquared();
         public Fixed Distance(Vec3Fixed other) => (this - other).Length();
 
-        public Vec3D ToDouble() => new Vec3D(X, Y, Z);
-        public Vector3 ToFloat() => new Vector3(X, Y, Z);
-        public Vec3I ToInt() => new Vec3I(X, Y, Z);
+        public Vec3D ToDouble() => new Vec3D(X.ToDouble(), Y.ToDouble(), Z.ToDouble());
+        public Vector3 ToFloat() => new Vector3(X.ToFloat(), Y.ToFloat(), Z.ToFloat());
+        public Vec3I ToInt() => new Vec3I(X.ToInt(), Y.ToInt(), Z.ToInt());
 
         public override string ToString() => $"{X}, {Y}, {Z}";
         public override bool Equals(object obj) => obj is Vec3Fixed v && X == v.X && Y == v.Y && Z == v.Z;
@@ -194,6 +197,7 @@ namespace Helion.Util.Geometry
                    MathHelper.AreEqual(self.Z, other.Z, epsilon);
         }
 
+        public static Vector3 Abs(this Vector3 vec) => new Vector3(Math.Abs(vec.X), Math.Abs(vec.Y), Math.Abs(vec.Z));
         public static Vector3 Unit(this Vector3 vec) => vec / vec.Length();
         public static Vec3I ToInt(this Vector3 vec) => new Vec3I((int)vec.X, (int)vec.Y, (int)vec.Z);
         public static Vec3Fixed ToFixed(this Vector3 vec) => new Vec3Fixed(new Fixed(vec.X), new Fixed(vec.Y), new Fixed(vec.Z));

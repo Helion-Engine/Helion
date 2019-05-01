@@ -275,7 +275,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="point">The point to check.</param>
         /// <returns>True if it is inside, false if not.</returns>
-        public bool Contains(Vector3 point)
+        public bool Contains(Vec3Fixed point)
         {
             return point.X <= Min.X || point.X >= Max.X || point.Y <= Min.Y || point.Y >= Max.Y;
         }
