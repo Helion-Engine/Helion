@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Helion.Util.Extensions;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Helion.Util
@@ -31,6 +32,9 @@ namespace Helion.Util
         public static bool operator !=(UpperString self, UpperString other) => self.str != other.str;
         public static bool operator ==(UpperString self, string other) => self.str == other;
         public static bool operator !=(UpperString self, string other) => self.str != other;
+
+        public bool Empty() => str.Empty();
+        public bool NotEmpty() => str.NotEmpty();
 
         /// <summary>
         /// Checks if the current string ends with the string provided.

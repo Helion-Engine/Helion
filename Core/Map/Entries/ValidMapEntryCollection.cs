@@ -1,6 +1,5 @@
 ﻿using Helion.Map.MapStructures;
 using Helion.Util;
-using Helion.Util.Extensions;
 using System.IO;
 
 namespace Helion.Map
@@ -18,7 +17,7 @@ namespace Helion.Map
         private ValidMapEntryCollection(MapEntryCollection map) : base(map.Name, map.Vertices,
             map.Sectors, map.Sidedefs, map.Linedefs, map.Segments, map.Subsectors, map.Nodes,
             map.Things, map.Blockmap, map.Reject, map.Scripts, map.Behavior, map.Dialogue,
-            map.Textmap, map.Znodes)
+            map.Textmap, map.Znodes, map.Endmap)
         {
             Assert.Postcondition(HasRequiredComponents(this), $"Error when copy constructing a valid map entry collection");
             Assert.Postcondition(HasValidDataStructures(this), $"Trying to make a vlaid map entry collection from invalid data");

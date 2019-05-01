@@ -14,7 +14,7 @@ namespace Helion.Map
         /// <summary>
         /// The name of the map.
         /// </summary>
-        public string Name = "";
+        public UpperString Name = "";
 
         // The following are a list of all the components that may be present.
         public Optional<byte[]> Vertices = Optional.Empty;
@@ -32,6 +32,7 @@ namespace Helion.Map
         public Optional<byte[]> Dialogue = Optional.Empty;
         public Optional<byte[]> Textmap = Optional.Empty;
         public Optional<byte[]> Znodes = Optional.Empty;
+        public Optional<byte[]> Endmap = Optional.Empty;
 
         /// <summary>
         /// Creates a blank collection with no components or name set.
@@ -62,12 +63,13 @@ namespace Helion.Map
         /// <param name="dialogue">The entry for this type.</param>
         /// <param name="textmap">The entry for this type.</param>
         /// <param name="znodes">The entry for this type.</param>
-        public MapEntryCollection(string name, Optional<byte[]> vertices, Optional<byte[]> sectors,
+        /// <param name="endmap">The entry for this type.</param>
+        public MapEntryCollection(UpperString name, Optional<byte[]> vertices, Optional<byte[]> sectors,
             Optional<byte[]> sidedefs, Optional<byte[]> linedefs, Optional<byte[]> segments,
             Optional<byte[]> subsectors, Optional<byte[]> nodes, Optional<byte[]> things,
             Optional<byte[]> blockmap, Optional<byte[]> reject, Optional<byte[]> scripts,
             Optional<byte[]> behavior, Optional<byte[]> dialogue, Optional<byte[]> textmap,
-            Optional<byte[]> znodes)
+            Optional<byte[]> znodes, Optional<byte[]> endmap)
         {
             Name = name;
             Vertices = vertices;
@@ -85,6 +87,7 @@ namespace Helion.Map
             Dialogue = dialogue;
             Textmap = textmap;
             Znodes = znodes;
+            Endmap = endmap;
         }
 
         /// <summary>
@@ -101,6 +104,9 @@ namespace Helion.Map
         /// false otherwise.</returns>
         public bool IsValid()
         {
+            if (Name.Empty())
+                return false;
+
             switch (MapType)
             {
             case MapType.Doom:

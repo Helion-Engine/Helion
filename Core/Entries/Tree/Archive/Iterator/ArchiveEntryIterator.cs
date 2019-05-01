@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,7 +15,7 @@ namespace Helion.Entries.Tree.Archive.Iterator
     /// </remarks>
     public class ArchiveEntryIterator : IEnumerable<Entry>
     {
-        private LinkedList<DirectoryEntry> directoriesToVisit = new LinkedList<DirectoryEntry>();
+        private readonly LinkedList<DirectoryEntry> directoriesToVisit = new LinkedList<DirectoryEntry>();
 
         /// <summary>
         /// Creates an iterator for the provided archive.
@@ -44,22 +43,13 @@ namespace Helion.Entries.Tree.Archive.Iterator
 
                 foreach (Entry entry in directoryEntry.Entries)
                 {
-                    // If we run into an archive, that needs to go onto our 
-                    // list of things to iterate over. We also do not want
-                    // to return it since this is only for entries we can use.
-                    if (entry.IsDirectory())
+                    if (entry is Archive archive)
                     {
-                        if (entry is Archive archive)
-                        {
-                            directoriesToVisit.AddFirst(archive);
-                        }
-                        else
-                        {
-                            Assert.Fail("Ran into a directory that isn't an archive in the Entries list");
-                        }
+                        directoriesToVisit.AddFirst(archive);
+                        continue;
                     }
-                    else
-                        yield return entry;
+
+                    yield return entry;
                 }
             }
         }
