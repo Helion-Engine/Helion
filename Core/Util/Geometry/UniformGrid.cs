@@ -99,6 +99,16 @@ namespace Helion.Util.Geometry
 
         private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + coordinate.Y * Width;
 
+        /// <summary>
+        /// Performs iteration over the grid for the segment provided. The
+        /// function will be invoked on every block the segment intersects.
+        /// </summary>
+        /// <param name="seg">The segment to iterate with.</param>
+        /// <param name="func">The function to call for each block it visits,
+        /// and the return value tells the function whether it should exit 
+        /// (true) or continue (false).</param>
+        /// <returns>True if it terminated due to a true condition from the
+        /// function, false otherwise.</returns>
         public bool Iterate(Seg2FixedBase seg, Func<T, bool> func)
         {
             Assert.Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
@@ -284,15 +294,26 @@ namespace Helion.Util.Geometry
 
         private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + coordinate.Y * Width;
 
+        /// <summary>
+        /// Performs iteration over the grid for the segment provided. The
+        /// function will be invoked on every block the segment intersects.
+        /// </summary>
+        /// <param name="seg">The segment to iterate with.</param>
+        /// <param name="func">The function to call for each block it visits,
+        /// and the return value tells the function whether it should exit 
+        /// (true) or continue (false).</param>
+        /// <returns>True if it terminated due to a true condition from the
+        /// function, false otherwise.</returns>
         public bool Iterate(Seg2DBase seg, Func<T, bool> func)
         {
             Assert.Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
             Assert.Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
 
+            // See the Fixed point implementation of this method for all the
+            // comments on how this all works.
             Vec2D blockUnitStart = (seg.Start - Origin) / Dimension;
             Vec2D blockUnitEnd = (seg.End - Origin) / Dimension;
             Vec2D absDelta = (blockUnitEnd - blockUnitStart).Abs();
-
             Vec2I startingBlock = blockUnitStart.ToInt();
             int blockIndex = IndexFromBlockCoordinate(startingBlock);
             int horizontalStep = 0;
