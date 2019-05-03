@@ -8,6 +8,36 @@ namespace Helion.Util.Geometry
     // identical to the others.
 
     /// <summary>
+    /// The direction a segment goes in from Start -> End.
+    /// </summary>
+    public enum SegmentDirection
+    {
+        Vertical,
+        Horizontal,
+        PositiveSlope,
+        NegativeSlope
+    }
+
+    /// <summary>
+    /// A rotation with respect to a segment.
+    /// </summary>
+    public enum Rotation
+    {
+        Left,
+        On,
+        Right
+    }
+
+    /// <summary>
+    /// A simple enumeration for representing endpoints of a segment.
+    /// </summary>
+    public enum Endpoint
+    {
+        Start,
+        End
+    }
+
+    /// <summary>
     /// The base class of a 2D segment for the type provided.
     /// </summary>
     /// <remarks>
@@ -129,11 +159,11 @@ namespace Helion.Util.Geometry
         /// <param name="point">The point to get.</param>
         /// <param name="epsilon">An optional epsilon for comparison.</param>
         /// <returns>The side it's on.</returns>
-        public SegmentSide ToSide(Vector2 point, float epsilon = 0.00001f)
+        public Rotation ToSide(Vector2 point, float epsilon = 0.00001f)
         {
             float value = PerpDot(point);
             bool approxZero = MathHelper.IsZero(value, epsilon);
-            return approxZero ? SegmentSide.On : (value < 0 ? SegmentSide.Right : SegmentSide.Left);
+            return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);
         }
 
         /// <summary>
@@ -405,7 +435,7 @@ namespace Helion.Util.Geometry
         /// <param name="epsilon">An optional comparison value.</param>
         /// <returns>The side the third point is on relative to the first and
         /// the second point.</returns>
-        public static SegmentSide Rotation(Vector2 first, Vector2 second, Vector2 third, float epsilon = 0.00001f)
+        public static Rotation Rotation(Vector2 first, Vector2 second, Vector2 third, float epsilon = 0.00001f)
         {
             return new Seg2FBase(first, second).ToSide(third, epsilon);
         }
@@ -477,28 +507,6 @@ namespace Helion.Util.Geometry
             Vector2 midpoint = (seg.Start + seg.End) / 2;
             Vector2 expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
-        }
-
-        /// <summary>
-        /// Creates two new segments by splitting at the time provided.
-        /// </summary>
-        /// <remarks>
-        /// While this function would technically work if t is outside of the
-        /// [0, 1] range, it's almost always the case that we do not want it
-        /// to do that and is a logic error. Therefore this has an assertion to
-        /// warn us if we do that.
-        /// </remarks>
-        /// <param name="t">The time to split at. This should being the range
-        /// of (0, 1) as an endpoint split would cause a segment to be a point.
-        /// </param>
-        /// <returns>The two segments, where the first value is [Start, middle]
-        /// and the second segment is [middle, End].</returns>
-        public Tuple<Seg2F, Seg2F> Split(float t)
-        {
-            Assert.Precondition(t > 0 && t < 1, $"Cannot split segment outside the line or at endpoints: {t}");
-
-            Vector2 middle = FromTime(t);
-            return Tuple.Create(new Seg2F(Start, middle), new Seg2F(middle, End));
         }
 
         /// <summary>
@@ -632,11 +640,11 @@ namespace Helion.Util.Geometry
         /// <param name="point">The point to get.</param>
         /// <param name="epsilon">An optional epsilon for comparison.</param>
         /// <returns>The side it's on.</returns>
-        public SegmentSide ToSide(Vec2D point, double epsilon = 0.000001)
+        public Rotation ToSide(Vec2D point, double epsilon = 0.000001)
         {
             double value = PerpDot(point);
             bool approxZero = MathHelper.IsZero(value, epsilon);
-            return approxZero ? SegmentSide.On : (value < 0 ? SegmentSide.Right : SegmentSide.Left);
+            return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);
         }
 
         /// <summary>
@@ -908,7 +916,7 @@ namespace Helion.Util.Geometry
         /// <param name="epsilon">An optional comparison value.</param>
         /// <returns>The side the third point is on relative to the first and
         /// the second point.</returns>
-        public static SegmentSide Rotation(Vec2D first, Vec2D second, Vec2D third, double epsilon = 0.000001)
+        public static Rotation Rotation(Vec2D first, Vec2D second, Vec2D third, double epsilon = 0.000001)
         {
             return new Seg2DBase(first, second).ToSide(third, epsilon);
         }
@@ -980,28 +988,6 @@ namespace Helion.Util.Geometry
             Vec2D midpoint = (seg.Start + seg.End) / 2;
             Vec2D expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
-        }
-
-        /// <summary>
-        /// Creates two new segments by splitting at the time provided.
-        /// </summary>
-        /// <remarks>
-        /// While this function would technically work if t is outside of the
-        /// [0, 1] range, it's almost always the case that we do not want it
-        /// to do that and is a logic error. Therefore this has an assertion to
-        /// warn us if we do that.
-        /// </remarks>
-        /// <param name="t">The time to split at. This should being the range
-        /// of (0, 1) as an endpoint split would cause a segment to be a point.
-        /// </param>
-        /// <returns>The two segments, where the first value is [Start, middle]
-        /// and the second segment is [middle, End].</returns>
-        public Tuple<Seg2D, Seg2D> Split(double t)
-        {
-            Assert.Precondition(t > 0 && t < 1, $"Cannot split segment outside the line or at endpoints: {t}");
-
-            Vec2D middle = FromTime(t);
-            return Tuple.Create(new Seg2D(Start, middle), new Seg2D(middle, End));
         }
 
         /// <summary>
@@ -1134,11 +1120,11 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="point">The point to get.</param>
         /// <returns>The side it's on.</returns>
-        public SegmentSide ToSide(Vec2Fixed point)
+        public Rotation ToSide(Vec2Fixed point)
         {
             Fixed value = PerpDot(point);
             bool approxZero = MathHelper.IsZero(value, Fixed.Epsilon());
-            return approxZero ? SegmentSide.On : (value < 0 ? SegmentSide.Right : SegmentSide.Left);
+            return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);
         }
 
         /// <summary>
@@ -1415,7 +1401,7 @@ namespace Helion.Util.Geometry
         /// <param name="epsilon">An optional comparison value.</param>
         /// <returns>The side the third point is on relative to the first and
         /// the second point.</returns>
-        public static SegmentSide Rotation(Vec2Fixed first, Vec2Fixed second, Vec2Fixed third)
+        public static Rotation Rotation(Vec2Fixed first, Vec2Fixed second, Vec2Fixed third)
         {
             return new Seg2FixedBase(first, second).ToSide(third);
         }
@@ -1487,28 +1473,6 @@ namespace Helion.Util.Geometry
             Vec2Fixed midpoint = (seg.Start + seg.End) / 2;
             Vec2Fixed expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint);
-        }
-
-        /// <summary>
-        /// Creates two new segments by splitting at the time provided.
-        /// </summary>
-        /// <remarks>
-        /// While this function would technically work if t is outside of the
-        /// [0, 1] range, it's almost always the case that we do not want it
-        /// to do that and is a logic error. Therefore this has an assertion to
-        /// warn us if we do that.
-        /// </remarks>
-        /// <param name="t">The time to split at. This should being the range
-        /// of (0, 1) as an endpoint split would cause a segment to be a point.
-        /// </param>
-        /// <returns>The two segments, where the first value is [Start, middle]
-        /// and the second segment is [middle, End].</returns>
-        public Tuple<Seg2Fixed, Seg2Fixed> Split(Fixed t)
-        {
-            Assert.Precondition(t > 0 && t < 1, $"Cannot split segment outside the line or at endpoints: {t}");
-
-            Vec2Fixed middle = FromTime(t);
-            return Tuple.Create(new Seg2Fixed(Start, middle), new Seg2Fixed(middle, End));
         }
 
         /// <summary>
