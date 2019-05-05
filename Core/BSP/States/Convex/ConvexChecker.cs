@@ -14,7 +14,7 @@ namespace Helion.BSP.States.Convex
 
     public class ConvexChecker
     {
-        public ConvexStates States;
+        public ConvexStates States = new ConvexStates();
         private readonly VertexCountTracker vertexTracker = new VertexCountTracker();
         private readonly Dictionary<VertexIndex, List<LinePoint>> vertexMap = new Dictionary<VertexIndex, List<LinePoint>>();
 
@@ -24,6 +24,8 @@ namespace Helion.BSP.States.Convex
             vertexMap.Clear();
             vertexTracker.Reset();
         }
+
+        private bool ValidExecutionState() => States.State == ConvexState.Loaded || States.State == ConvexState.Traversing;
 
         private void SetLoadedStateInfo(List<BspSegment> segments)
         {
@@ -86,9 +88,11 @@ namespace Helion.BSP.States.Convex
 
         public virtual void Execute()
         {
-            Assert.Precondition(States.State == ConvexState.Loaded, "Need to load segments before executing convex traversal");
+            Assert.Precondition(ValidExecutionState(), $"Called convex checker execution in an invalid state");
 
-            BspSegment currentSeg = States.CurrentSegment;
+            States.State = ConvexState.Traversing;
+
+            BspSegment currentSeg = States.CurrentSegment.Value;
             Vec2D firstVertex = currentSeg[States.CurrentEndpoint];
             Vec2D secondVertex = currentSeg.Opposite(States.CurrentEndpoint);
             VertexIndex oppositeIndex = currentSeg.OppositeIndex(States.CurrentEndpoint);

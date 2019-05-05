@@ -21,5 +21,8 @@ namespace Helion.Util
         public static bool DifferentSign(Fixed first, Fixed second) => (first.Bits ^ second.Bits) < 0;
         public static bool DifferentSign(float first, float second) => (first * second) < 0;
         public static bool DifferentSign(double first, double second) => (first * second) < 0;
+
+        public static bool InNormalRange(float value) => value >= 0 && value <= 1;
+        public static bool InNormalRange(double value) => value >= 0 && value <= 1;
     }
 }

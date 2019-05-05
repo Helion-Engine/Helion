@@ -1,4 +1,5 @@
 ﻿using Helion.BSP.Geometry;
+using Helion.Util;
 using Helion.Util.Geometry;
 
 namespace Helion.BSP.States.Convex
@@ -17,8 +18,8 @@ namespace Helion.BSP.States.Convex
     {
         public ConvexState State = ConvexState.NotStarted;
         public ConvexTraversal ConvexTraversal = new ConvexTraversal();
-        public BspSegment StartSegment = null;
-        public BspSegment CurrentSegment = null;
+        public Optional<BspSegment> StartSegment = Optional.Empty;
+        public Optional<BspSegment> CurrentSegment = Optional.Empty;
         public Endpoint CurrentEndpoint = Endpoint.Start;
         public Rotation Rotation = Rotation.On;
         public int SegsVisited = 0;

@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <Folder Include="BSP\States\Miniseg\" />
-    <Folder Include="BSP\States\Partition\" />
   </ItemGroup>
 
 </Project>
