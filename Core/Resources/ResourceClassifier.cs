@@ -25,8 +25,9 @@ namespace Helion.Resources
         /// </summary>
         /// <param name="path">The path of the resource.</param>
         /// <param name="data">The resource data.</param>
-        /// <param name="Namespace">The namespace of the resource.</param>
+        /// <param name="resourceNamespace">The namespace of the resource.
+        /// </param>
         /// <returns>The resource type it is.</returns>
-        ResourceType Classify(EntryPath path, byte[] data, ResourceNamespace Namespace);
+        ResourceType Classify(EntryPath path, byte[] data, ResourceNamespace resourceNamespace);
     }
 }

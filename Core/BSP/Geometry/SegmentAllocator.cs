@@ -2,6 +2,7 @@
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.BSP.Geometry
 {
@@ -31,9 +32,9 @@ namespace Helion.BSP.Geometry
         public BspSegment GetOrCreate(VertexIndex startVertex, VertexIndex endVertex, int frontSectorId, 
             int backSectorId, int lineId)
         {
-            Assert.Precondition(startVertex != endVertex, "Cannot create a segment that is a point");
-            Assert.Precondition(startVertex.Index >= 0 && startVertex.Index < vertexAllocator.Count, "Start vertex out of range.");
-            Assert.Precondition(endVertex.Index >= 0 && endVertex.Index < vertexAllocator.Count, "End vertex out of range.");
+            Precondition(startVertex != endVertex, "Cannot create a segment that is a point");
+            Precondition(startVertex.Index >= 0 && startVertex.Index < vertexAllocator.Count, "Start vertex out of range.");
+            Precondition(endVertex.Index >= 0 && endVertex.Index < vertexAllocator.Count, "End vertex out of range.");
 
             // TODO: Extract all this into a 'segment table' class?
             VertexIndex smallerIndex = startVertex;
@@ -70,7 +71,7 @@ namespace Helion.BSP.Geometry
 
         public Tuple<BspSegment, BspSegment> Split(BspSegment seg, double t)
         {
-            Assert.Precondition(t > 0.0 && t < 1.0, $"Trying to split BSP out of range, or at an endpoint with t = {t}");
+            Precondition(t > 0.0 && t < 1.0, $"Trying to split BSP out of range, or at an endpoint with t = {t}");
 
             Vec2D middle = seg.FromTime(t);
             VertexIndex middleIndex = vertexAllocator[middle];

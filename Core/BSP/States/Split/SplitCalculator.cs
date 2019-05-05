@@ -3,6 +3,7 @@ using Helion.Util;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Split
 {
@@ -73,7 +74,7 @@ namespace Helion.BSP.States.Split
                 }
 
                 bool intersects = segment.IntersectionAsLine(splitter, out double tSegment);
-                Assert.Invariant(intersects, "Non-parallel lines for split calculations must intersect");
+                Invariant(intersects, "Non-parallel lines for split calculations must intersect");
 
                 double nearestDistance = CalculateDistanceToNearestEndpoint(segment, tSegment);
                 if (MathHelper.InNormalRange(nearestDistance))
@@ -123,7 +124,7 @@ namespace Helion.BSP.States.Split
 
         public void Load(List<BspSegment> segments)
         {
-            Assert.Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
+            Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
 
             States = new SplitterStates();
             States.Segments = segments;
@@ -131,8 +132,8 @@ namespace Helion.BSP.States.Split
 
         public virtual void Execute()
         {
-            Assert.Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");
-            Assert.Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
+            Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");
+            Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
 
             BspSegment splitter = States.Segments[States.CurrentSegmentIndex];
             States.CurrentSegScore = CalculateScore(splitter);

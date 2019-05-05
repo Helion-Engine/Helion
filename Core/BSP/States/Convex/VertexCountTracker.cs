@@ -1,4 +1,4 @@
-﻿using Helion.Util;
+﻿using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Convex
 {
@@ -28,7 +28,7 @@ namespace Helion.BSP.States.Convex
                 withThreeOrMoreLines++;
                 break;
             default:
-                Assert.Fail("Should not be tracking a number that is not 1, 2, or 3");
+                Fail("Should not be tracking a number that is not 1, 2, or 3");
                 break;
             }
         }

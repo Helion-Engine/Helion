@@ -6,6 +6,7 @@ using Helion.Resources;
 using Helion.Util;
 using NLog;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Entries
 {
@@ -77,7 +78,7 @@ namespace Helion.Entries
             case ResourceType.Decorate:
                 return new DecorateEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
             case ResourceType.Directory:
-                Assert.Fail($"Entry classifier should not be finding entries that are directory types");
+                Fail($"Entry classifier should not be finding entries that are directory types");
                 break;
             case ResourceType.Linedefs:
                 return new LinedefsEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
@@ -133,7 +134,7 @@ namespace Helion.Entries
                 break;
             }
 
-            Assert.Fail($"Forgot to add resource type {resourceType} to the ToEntry() method");
+            Fail($"Forgot to add resource type {resourceType} to the ToEntry() method");
             return new UnknownEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
         }
 

@@ -1,6 +1,6 @@
 ﻿using Helion.BSP.Geometry;
-using Helion.Util;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.BSP.Node
 {
@@ -24,7 +24,7 @@ namespace Helion.BSP.Node
 
         public BspNode(List<SubsectorEdge> edges)
         {
-            Assert.Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
+            Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
 
             ClockwiseEdges = edges;
         }

@@ -26,6 +26,18 @@ namespace Helion.BSP.Geometry
             }
         }
 
+        public bool TryGetValue(Vec2D vertex, out VertexIndex index)
+        {
+            if (grid.TryGetValue(vertex.X, vertex.Y, out int indexValue))
+            {
+                index = new VertexIndex(indexValue);
+                return true;
+            }
+
+            index = default;
+            return false;
+        }
+
         public Box2D Bounds()
         {
             if (Count == 0)

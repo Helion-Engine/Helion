@@ -1,8 +1,8 @@
 ﻿using Helion.BSP.Geometry;
-using Helion.Util;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
+using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Convex
 {
@@ -88,7 +88,7 @@ namespace Helion.BSP.States.Convex
 
         public virtual void Execute()
         {
-            Assert.Precondition(ValidExecutionState(), $"Called convex checker execution in an invalid state");
+            Precondition(ValidExecutionState(), $"Called convex checker execution in an invalid state");
 
             States.State = ConvexState.Traversing;
 

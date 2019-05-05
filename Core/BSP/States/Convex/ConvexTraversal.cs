@@ -1,8 +1,8 @@
 ﻿using Helion.BSP.Geometry;
-using Helion.Util;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
+using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Convex
 {
@@ -33,13 +33,13 @@ namespace Helion.BSP.States.Convex
 
             if (segment.SegIndex != lastSeg.SegIndex)
             {
-                Assert.Fail($"Trying to add the same segment twice: {segment}");
+                Fail($"Trying to add the same segment twice: {segment}");
                 return false;
             }
 
             if (segment.OppositeIndex(endpoint) != lastSeg.IndexFrom(endpoint))
             {
-                Assert.Fail($"Expect a tail-to-head connection for: {lastSeg} -> {segment}");
+                Fail($"Expect a tail-to-head connection for: {lastSeg} -> {segment}");
                 return false;
             }
 
@@ -48,7 +48,7 @@ namespace Helion.BSP.States.Convex
 
         public void AddTraversal(BspSegment segment, Endpoint endpoint)
         {
-            Assert.Precondition(IsProperlyConnectedEndpoint(segment, endpoint), "Provided a disconnected segment");
+            Precondition(IsProperlyConnectedEndpoint(segment, endpoint), "Provided a disconnected segment");
             Traversal.Add(new ConvexTraversalPoint(segment, endpoint));
         }
     }

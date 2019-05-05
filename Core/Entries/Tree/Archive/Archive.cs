@@ -3,6 +3,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using System.Collections;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Entries.Tree.Archive
 {
@@ -60,7 +61,7 @@ namespace Helion.Entries.Tree.Archive
         /// conditions are met, an empty value otherwise.</returns>
         public Optional<T> GetByNameType<T>(UpperString name) where T : Entry
         {
-            Assert.Precondition(typeof(T) != typeof(Entry), "Should be using a specialization class, not the abstract parent");
+            Precondition(typeof(T) != typeof(Entry), "Should be using a specialization class, not the abstract parent");
 
             if (nameToEntry.TryGetValue(name, out Entry entry))
                 if (entry is T entryOfType)

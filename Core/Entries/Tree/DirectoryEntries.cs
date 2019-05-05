@@ -1,6 +1,7 @@
 ﻿using Helion.Util;
 using System.Collections;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Entries.Tree
 {
@@ -40,7 +41,7 @@ namespace Helion.Entries.Tree
         /// <param name="entry">The entry to add.</param>
         public void AddLast(Entry entry)
         {
-            Assert.Precondition(!idToNode.ContainsKey(entry.Id), $"Trying to add duplicate ID for entry {entry}");
+            Precondition(!idToNode.ContainsKey(entry.Id), $"Trying to add duplicate ID for entry {entry}");
 
             entries.AddLast(entry);
             idToNode[entry.Id] = entries.Last;
