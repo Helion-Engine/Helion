@@ -7,19 +7,6 @@ namespace Helion.BSP.Geometry
 {
     using SegmentTable = Dictionary<VertexIndex, Dictionary<VertexIndex, SegmentIndex>>;
 
-    public struct SegmentIndex
-    {
-        public readonly int Index;
-
-        public SegmentIndex(int index) => Index = index;
-
-        public static bool operator ==(SegmentIndex first, SegmentIndex second) => first.Index == second.Index;
-        public static bool operator !=(SegmentIndex first, SegmentIndex second) => first.Index != second.Index;
-
-        public override bool Equals(object obj) => obj is SegmentIndex index && Index == index.Index;
-        public override int GetHashCode() => HashCode.Combine(Index);
-    }
-
     public class SegmentAllocator
     {
         private readonly VertexAllocator vertexAllocator;
@@ -31,17 +18,18 @@ namespace Helion.BSP.Geometry
         public BspSegment this[SegmentIndex segIndex] => segments[segIndex.Index];
 
         private BspSegment CreateNewSegment(VertexIndex startIndex, VertexIndex endIndex, 
-            SegmentIndex segIndex, int lineId, bool oneSided)
+            SegmentIndex segIndex, int frontSectorId, int backSectorId, int lineId)
         {
             Vec2D start = vertexAllocator[startIndex];
             Vec2D end = vertexAllocator[endIndex];
 
-            BspSegment seg = new BspSegment(start, end, startIndex, endIndex, segIndex, lineId, oneSided);
+            BspSegment seg = new BspSegment(start, end, startIndex, endIndex, segIndex, frontSectorId, backSectorId, lineId);
             segments.Add(seg);
             return seg;
         }
 
-        public BspSegment GetOrCreate(VertexIndex startVertex, VertexIndex endVertex, int lineId, bool oneSided)
+        public BspSegment GetOrCreate(VertexIndex startVertex, VertexIndex endVertex, int frontSectorId, 
+            int backSectorId, int lineId)
         {
             Assert.Precondition(startVertex != endVertex, "Cannot create a segment that is a point");
             Assert.Precondition(startVertex.Index >= 0 && startVertex.Index < vertexAllocator.Count, "Start vertex out of range.");
@@ -66,7 +54,7 @@ namespace Helion.BSP.Geometry
                 {
                     SegmentIndex newSegIndex = new SegmentIndex(segments.Count);
                     largerValues[largerIndex] = newSegIndex;
-                    return CreateNewSegment(startVertex, endVertex, newSegIndex, lineId, oneSided);
+                    return CreateNewSegment(startVertex, endVertex, newSegIndex, frontSectorId, backSectorId, lineId);
                 }
             }
             else
@@ -76,7 +64,7 @@ namespace Helion.BSP.Geometry
 
                 SegmentIndex newSegIndex = new SegmentIndex(segments.Count);
                 largerIndexDict[largerIndex] = newSegIndex;
-                return CreateNewSegment(startVertex, endVertex, newSegIndex, lineId, oneSided);
+                return CreateNewSegment(startVertex, endVertex, newSegIndex, frontSectorId, backSectorId, lineId);
             }
         }
 
@@ -87,8 +75,8 @@ namespace Helion.BSP.Geometry
             Vec2D middle = seg.FromTime(t);
             VertexIndex middleIndex = vertexAllocator[middle];
 
-            BspSegment firstSeg = GetOrCreate(seg.StartIndex, middleIndex, seg.LineId, seg.OneSided);
-            BspSegment secondSeg = GetOrCreate(middleIndex, seg.EndIndex, seg.LineId, seg.OneSided);
+            BspSegment firstSeg = GetOrCreate(seg.StartIndex, middleIndex, seg.FrontSectorId, seg.BackSectorId, seg.LineId);
+            BspSegment secondSeg = GetOrCreate(middleIndex, seg.EndIndex, seg.FrontSectorId, seg.BackSectorId, seg.LineId);
             return Tuple.Create(firstSeg, secondSeg);
         }
     }
