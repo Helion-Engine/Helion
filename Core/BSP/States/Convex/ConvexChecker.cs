@@ -27,7 +27,7 @@ namespace Helion.BSP.States.Convex
 
         private bool ValidExecutionState() => States.State == ConvexState.Loaded || States.State == ConvexState.Traversing;
 
-        private void SetLoadedStateInfo(List<BspSegment> segments)
+        private void SetLoadedStateInfo(IList<BspSegment> segments)
         {
             // We're just picking a random vertex, and taking some random segment that
             // comes out of that vertex.

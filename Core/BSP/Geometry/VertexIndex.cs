@@ -13,5 +13,6 @@ namespace Helion.BSP.Geometry
 
         public override bool Equals(object obj) => obj is VertexIndex index && Index == index.Index;
         public override int GetHashCode() => HashCode.Combine(Index);
+        public override string ToString() => Index.ToString();
     }
 }

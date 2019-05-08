@@ -1,4 +1,5 @@
-﻿using Helion.Map;
+﻿using Helion.BSP.Node;
+using Helion.Map;
 
 namespace Helion.BSP.Builder
 {
@@ -11,6 +12,22 @@ namespace Helion.BSP.Builder
         protected StepwiseBspBuilder(ValidMapEntryCollection map, BspConfig config) :
             base(map, config)
         {
+        }
+
+        public void ExecuteMajorStep()
+        {
+            // TODO
+        }
+
+        public void ExecuteMinorStep()
+        {
+            // TODO
+        }
+
+        public BspNode GetTree()
+        {
+            // TODO
+            return Root;
         }
     }
 }

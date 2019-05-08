@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using Helion.Util.Geometry;
+﻿using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
@@ -11,7 +10,7 @@ namespace Helion.BSP.Geometry
     public class SegmentAllocator
     {
         private readonly VertexAllocator vertexAllocator;
-        private readonly List<BspSegment> segments = new List<BspSegment>();
+        private readonly IList<BspSegment> segments = new List<BspSegment>();
         private readonly SegmentTable segmentTable = new SegmentTable();
 
         public SegmentAllocator(VertexAllocator allocator) => vertexAllocator = allocator;
