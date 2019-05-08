@@ -17,7 +17,7 @@ namespace Helion.BSP.Builder
         public BspNode Build()
         {
             // TODO
-            return root;
+            return Root;
         }
     }
 }

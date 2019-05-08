@@ -40,55 +40,55 @@ namespace Helion.BSP
             SplitCalculator = new SplitCalculator(config);
             Partitioner = new Partitioner(config, VertexAllocator, SegmentAllocator, JunctionClassifier);
         }
-    }
 
-    protected void PopulateAllocatorsFrom(ValidMapEntryCollection map)
-    {
-        // TODO
-    }
+        protected void PopulateAllocatorsFrom(ValidMapEntryCollection map)
+        {
+            // TODO
+        }
 
-    protected void CreateRootWorkItem()
-    {
-        // TODO
-    }
+        protected void CreateRootWorkItem()
+        {
+            // TODO
+        }
 
-    protected void AddConvexTraversalToTopNode()
-    {
-        // TODO
-    }
+        protected void AddConvexTraversalToTopNode()
+        {
+            // TODO
+        }
 
-    protected void StartBuilding()
-    {
-        // TODO
-    }
+        protected void StartBuilding()
+        {
+            // TODO
+        }
 
-    protected void ExecuteConvexityCheck()
-    {
-        // TODO
-    }
+        protected void ExecuteConvexityCheck()
+        {
+            // TODO
+        }
 
-    protected void ExecuteLeafNodeCreation()
-    {
-        // TODO
-    }
+        protected void ExecuteLeafNodeCreation()
+        {
+            // TODO
+        }
 
-    protected void ExecuteSplitterFinding()
-    {
-        // TODO
-    }
+        protected void ExecuteSplitterFinding()
+        {
+            // TODO
+        }
 
-    protected void ExecuteSegmentPartitioning()
-    {
-        // TODO
-    }
+        protected void ExecuteSegmentPartitioning()
+        {
+            // TODO
+        }
 
-    protected void ExecuteMinisegGeneration()
-    {
-        // TODO
-    }
+        protected void ExecuteMinisegGeneration()
+        {
+            // TODO
+        }
 
-    protected void ExecuteSplitFinalization()
-    {
-        // TODO
+        protected void ExecuteSplitFinalization()
+        {
+            // TODO
+        }
     }
 }
