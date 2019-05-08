@@ -6,7 +6,7 @@ namespace Helion.Entries.Tree.Archive.Locator
     /// Searches the local file system for archives. This functions off of full
     /// paths as URIs.
     /// </summary>
-    public class FilesystemArchiveLocator : ArchiveLocator
+    public class FilesystemArchiveLocator : IArchiveLocator
     {
         public Expected<Archive, string> Locate(string uri, EntryClassifier classifier,
             EntryIdAllocator idAllocator)

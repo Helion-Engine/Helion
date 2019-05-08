@@ -16,7 +16,7 @@ namespace Helion.Resources.Sprites
     public class SpriteFrameManager
     {
         private Dictionary<UpperString, SpriteRotations> frameToSprites = new Dictionary<UpperString, SpriteRotations>();
-        private List<SpriteFrameManagerListener> listeners = new List<SpriteFrameManagerListener>();
+        private List<ISpriteFrameManagerListener> listeners = new List<ISpriteFrameManagerListener>();
 
         private static bool SupportedSpriteNamespace(ResourceNamespace resourceNamespace)
         {
@@ -102,7 +102,7 @@ namespace Helion.Resources.Sprites
         /// </summary>
         /// <param name="listener">The listener. This should not be registered
         /// already.</param>
-        public void Register(SpriteFrameManagerListener listener)
+        public void Register(ISpriteFrameManagerListener listener)
         {
             if (listeners.Contains(listener))
                 Assert.Fail($"Trying to add the same sprite manager listener twice: {listener}");
@@ -116,7 +116,7 @@ namespace Helion.Resources.Sprites
         /// </summary>
         /// <param name="listener">The listener to unregister if it is 
         /// registered.</param>
-        public void Unregister(SpriteFrameManagerListener listener)
+        public void Unregister(ISpriteFrameManagerListener listener)
         {
             listeners.Remove(listener);
         }

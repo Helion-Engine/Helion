@@ -4,7 +4,7 @@
     /// Describes objects that are able to register for events with a sprite 
     /// manager and receive notifications for updates.
     /// </summary>
-    public interface SpriteFrameManagerListener
+    public interface ISpriteFrameManagerListener
     {
         /// <summary>
         /// Invoked when an event has occurred in the sprite manager the 
