@@ -10,7 +10,7 @@ namespace Helion.Entries.Tree.Archive.Locator
     /// The implementation will be given some kind of URI and it will be responsible
     /// for finding it, or notifying the caller that it cannot be found.
     /// </summary>
-    public interface ArchiveLocator
+    public interface IArchiveLocator
     {
         /// <summary>
         /// Finds the resource at the URI provided.

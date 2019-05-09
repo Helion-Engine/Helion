@@ -17,7 +17,7 @@ namespace Helion.Resources
     /// time spent classifying and it will also reduce any processing done from
     /// the classification result.
     /// </remarks>
-    public interface ResourceClassifier
+    public interface IResourceClassifier
     {
         /// <summary>
         /// Classifies a resource by using the path and data to determine what 

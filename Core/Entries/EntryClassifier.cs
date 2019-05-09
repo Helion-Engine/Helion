@@ -13,7 +13,7 @@ namespace Helion.Entries
     /// <summary>
     /// Responsible for classifying entries.
     /// </summary>
-    public class EntryClassifier : ResourceClassifier
+    public class EntryClassifier : IResourceClassifier
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
