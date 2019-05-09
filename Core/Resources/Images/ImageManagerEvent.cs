@@ -2,6 +2,7 @@
 using Helion.Graphics;
 using Helion.Util;
 using System;
+using static Helion.Util.Assert;
 
 namespace Helion.Resources.Images
 {
@@ -49,7 +50,7 @@ namespace Helion.Resources.Images
             Namespace = resourceNamespace;
             Image = image;
 
-            Assert.Postcondition(type == ImageManagerEventType.Delete || image, "Expected image value to be present for create/update");
+            Postcondition(type == ImageManagerEventType.Delete || image, "Expected image value to be present for create/update");
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
 {
@@ -9,7 +10,7 @@ namespace Helion.Util.Geometry
 
         public QuantizedGrid(double epsilon)
         {
-            Assert.Precondition(epsilon > 0, "Cannot quantize to an epsilon that is not positive");
+            Precondition(epsilon > 0, "Cannot quantize to an epsilon that is not positive");
 
             quantizationMultiplier = (int)(1.0 / epsilon);
         }

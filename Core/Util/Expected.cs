@@ -1,4 +1,5 @@
 ﻿using System;
+using static Helion.Util.Assert;
 
 namespace Helion.Util
 {
@@ -34,7 +35,7 @@ namespace Helion.Util
 
         private Expected(T value, E error = default)
         {
-            Assert.Precondition(value != null || error != null, "Trying to make an expected with both value/error being null");
+            Precondition(value != null || error != null, "Trying to make an expected with both value/error being null");
 
             Value = value;
             Error = error;

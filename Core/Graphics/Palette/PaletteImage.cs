@@ -1,6 +1,7 @@
 ﻿using Helion.Util;
 using Helion.Util.Extensions;
 using System;
+using static Helion.Util.Assert;
 
 namespace Helion.Graphics.Palette
 {
@@ -65,8 +66,8 @@ namespace Helion.Graphics.Palette
         /// a default value will be constructed for this object.</param>
         public PaletteImage(int width, int height, ushort fillIndex, ImageMetadata metadata = null)
         {
-            Assert.Precondition(width >= 1, "Palette image width should be positive");
-            Assert.Precondition(height >= 1, "Palette image height be positive");
+            Precondition(width >= 1, "Palette image width should be positive");
+            Precondition(height >= 1, "Palette image height be positive");
 
             Width = Math.Max(1, width);
             Height = Math.Max(1, height);
@@ -96,7 +97,7 @@ namespace Helion.Graphics.Palette
         /// a default value will be constructed for this object.</param>
         public PaletteImage(int width, int height, ushort[] indices, ImageMetadata metadata = null)
         {
-            Assert.Precondition(width * height == indices.Length, "Palette image indices and width/height mismatch");
+            Precondition(width * height == indices.Length, "Palette image indices and width/height mismatch");
 
             Width = Math.Max(1, width);
             Height = Math.Max(1, height);

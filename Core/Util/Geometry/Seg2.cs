@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
 {
@@ -72,7 +73,7 @@ namespace Helion.Util.Geometry
         /// <param name="end">The ending point.</param>
         public Seg2FBase(Vector2 start, Vector2 end)
         {
-            Assert.Precondition(start != end, "Segment should not be a point");
+            Precondition(start != end, "Segment should not be a point");
 
             Start = start;
             End = end;
@@ -553,7 +554,7 @@ namespace Helion.Util.Geometry
         /// <param name="end">The ending point.</param>
         public Seg2DBase(Vec2D start, Vec2D end)
         {
-            Assert.Precondition(start != end, "Segment should not be a point");
+            Precondition(start != end, "Segment should not be a point");
 
             Start = start;
             End = end;
@@ -1034,7 +1035,7 @@ namespace Helion.Util.Geometry
         /// <param name="end">The ending point.</param>
         public Seg2FixedBase(Vec2Fixed start, Vec2Fixed end)
         {
-            Assert.Precondition(start != end, "Segment should not be a point");
+            Precondition(start != end, "Segment should not be a point");
 
             Start = start;
             End = end;
