@@ -1,4 +1,5 @@
 ﻿using System;
+using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
 {
@@ -111,8 +112,8 @@ namespace Helion.Util.Geometry
         /// function, false otherwise.</returns>
         public bool Iterate(Seg2FixedBase seg, Func<T, bool> func)
         {
-            Assert.Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
-            Assert.Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
+            Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
+            Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
 
             // This algorithm requires us to be on the unit interval range for 
             // our block coordinates. We also want them to be positive, since 
@@ -306,8 +307,8 @@ namespace Helion.Util.Geometry
         /// function, false otherwise.</returns>
         public bool Iterate(Seg2DBase seg, Func<T, bool> func)
         {
-            Assert.Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
-            Assert.Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
+            Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
+            Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
 
             // See the Fixed point implementation of this method for all the
             // comments on how this all works.

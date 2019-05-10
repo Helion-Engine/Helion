@@ -7,6 +7,7 @@ using Helion.Util;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 using System;
+using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL.Texture
 {
@@ -38,7 +39,7 @@ namespace Helion.Render.OpenGL.Texture
 
         private int CalculateMaxMipmapLevels(Image image)
         {
-            Assert.Precondition(image.Width > 0 && image.Height > 0, "Cannot make mipmap from a zero dimension image");
+            Precondition(image.Width > 0 && image.Height > 0, "Cannot make mipmap from a zero dimension image");
 
             int minDimension = Math.Min(image.Width, image.Height);
             int levels = (int)Math.Log(minDimension, 2.0);
@@ -47,7 +48,7 @@ namespace Helion.Render.OpenGL.Texture
 
         private GLTexture CreateTexture(UpperString name, ResourceNamespace resourceNamespace, Image image, bool trackable = true)
         {
-            Assert.Precondition(!textures.Contains(name, resourceNamespace), $"Accidentally creating a texture and overwriting it: {name} in {resourceNamespace}");
+            Precondition(!textures.Contains(name, resourceNamespace), $"Accidentally creating a texture and overwriting it: {name} in {resourceNamespace}");
 
             int textureName = GL.GenTexture();
             int maxMipmapLevels = CalculateMaxMipmapLevels(image);

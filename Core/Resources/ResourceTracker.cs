@@ -2,6 +2,7 @@
 using Helion.Util.Container;
 using System.Collections;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Resources
 {
@@ -79,7 +80,7 @@ namespace Helion.Resources
         /// <returns>The value if it exists, empty otherwise.</returns>
         public Optional<T> GetWithGlobal(UpperString name, ResourceNamespace resourceNamespace)
         {
-            Assert.Precondition(resourceNamespace != ResourceNamespace.Global, $"Doing redundant 'get with global' check for: {name}");
+            Precondition(resourceNamespace != ResourceNamespace.Global, $"Doing redundant 'get with global' check for: {name}");
 
             Optional<T> desiredNamespaceElement = table.Get(resourceNamespace, name);
             if (desiredNamespaceElement)

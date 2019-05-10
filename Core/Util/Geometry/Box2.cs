@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
 {
@@ -47,8 +48,8 @@ namespace Helion.Util.Geometry
         /// <param name="max">The top right point.</param>
         public Box2F(Vector2 min, Vector2 max)
         {
-            Assert.Precondition(min.X <= max.X, "Bounding box min X > max X");
-            Assert.Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
             Min = min;
             Max = max;
@@ -149,8 +150,8 @@ namespace Helion.Util.Geometry
         /// <param name="max">The top right point.</param>
         public Box2D(Vec2D min, Vec2D max)
         {
-            Assert.Precondition(min.X <= max.X, "Bounding box min X > max X");
-            Assert.Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
             Min = min;
             Max = max;
@@ -251,8 +252,8 @@ namespace Helion.Util.Geometry
         /// <param name="max">The top right point.</param>
         public Box2Fixed(Vec2Fixed min, Vec2Fixed max)
         {
-            Assert.Precondition(min.X <= max.X, "Bounding box min X > max X");
-            Assert.Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
             Min = min;
             Max = max;

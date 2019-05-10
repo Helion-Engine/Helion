@@ -2,6 +2,7 @@
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Resources.Definitions
 {
@@ -22,7 +23,7 @@ namespace Helion.Resources.Definitions
 
         public TextureXPatch(short pnamesIndex, Vec2I offset)
         {
-            Assert.Precondition(pnamesIndex >= 0, "Texture X patch has a negative pnames index");
+            Precondition(pnamesIndex >= 0, "Texture X patch has a negative pnames index");
 
             PnamesIndex = Math.Max((short)0, pnamesIndex);
             Offset = offset;
@@ -56,8 +57,8 @@ namespace Helion.Resources.Definitions
 
         public TextureXImage(UpperString name, int width, int height, List<TextureXPatch> patches)
         {
-            Assert.Precondition(width >= 0, "Texture X image width must not be negative");
-            Assert.Precondition(height >= 0, "Texture X image height must not be negative");
+            Precondition(width >= 0, "Texture X image width must not be negative");
+            Precondition(height >= 0, "Texture X image height must not be negative");
 
             Name = name;
             Patches = patches;

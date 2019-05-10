@@ -1,6 +1,7 @@
 ﻿using Helion.Util;
 using System;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Graphics.Palette
 {
@@ -53,7 +54,7 @@ namespace Helion.Graphics.Palette
 
         private static PaletteColor[] PaletteLayerFrom(Span<byte> data)
         {
-            Assert.Precondition(data.Length == BYTES_PER_LAYER, $"Palette byte span range incorrect: {data.Length}");
+            Precondition(data.Length == BYTES_PER_LAYER, $"Palette byte span range incorrect: {data.Length}");
 
             PaletteColor[] paletteColors = new PaletteColor[NUM_COLORS];
 

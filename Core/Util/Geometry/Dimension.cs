@@ -1,4 +1,6 @@
-﻿namespace Helion.Util.Geometry
+﻿using static Helion.Util.Assert;
+
+namespace Helion.Util.Geometry
 {
     /// <summary>
     /// A simple dimension wrapper around a width and height.
@@ -22,8 +24,8 @@
         /// <param name="height">The height which should be >= 0.</param>
         public Dimension(int width, int height)
         {
-            Assert.Precondition(width >= 0, "Dimension width must not be negative");
-            Assert.Precondition(height >= 0, "Dimension height must not be negative");
+            Precondition(width >= 0, "Dimension width must not be negative");
+            Precondition(height >= 0, "Dimension height must not be negative");
 
             Width = width;
             Height = height;

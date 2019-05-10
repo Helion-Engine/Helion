@@ -1,6 +1,7 @@
 ﻿using Helion.Map.MapStructures;
 using Helion.Util;
 using System.IO;
+using static Helion.Util.Assert;
 
 namespace Helion.Map
 {
@@ -19,8 +20,8 @@ namespace Helion.Map
             map.Things, map.Blockmap, map.Reject, map.Scripts, map.Behavior, map.Dialogue,
             map.Textmap, map.Znodes, map.Endmap)
         {
-            Assert.Postcondition(HasRequiredComponents(this), $"Error when copy constructing a valid map entry collection");
-            Assert.Postcondition(HasValidDataStructures(this), $"Trying to make a vlaid map entry collection from invalid data");
+            Postcondition(HasRequiredComponents(this), $"Error when copy constructing a valid map entry collection");
+            Postcondition(HasValidDataStructures(this), $"Trying to make a vlaid map entry collection from invalid data");
         }
 
         public static bool VerticesValid(MapEntryCollection map)
@@ -125,7 +126,7 @@ namespace Helion.Map
             case MapType.Hexen:
                 return HasValidVanillaSharedDataStructures(map) && HexenLinedefsValid(map) && HexenThingsValid(map);
             case MapType.UDMF:
-                Assert.Fail("UDMF not currently supported");
+                Fail("UDMF not currently supported");
                 return false;
             }
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using static Helion.Util.Assert;
 
 namespace Helion.Util
 {
@@ -17,7 +18,7 @@ namespace Helion.Util
         public ByteReader(byte[] data) : base(new MemoryStream(data))
         {
             bytes = data;
-            Assert.Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
+            Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
         }
 
         /// <summary>

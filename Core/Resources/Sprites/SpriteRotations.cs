@@ -1,4 +1,5 @@
 ﻿using Helion.Util;
+using static Helion.Util.Assert;
 
 namespace Helion.Resources.Sprites
 {
@@ -48,7 +49,7 @@ namespace Helion.Resources.Sprites
         {
             AddRotation(rotation, true);
 
-            Assert.Postcondition(totalFrames == 1, $"Passed in a frame that couldn't be indexed: {rotation}");
+            Postcondition(totalFrames == 1, $"Passed in a frame that couldn't be indexed: {rotation}");
         }
 
         private void FillAllRotations(UpperString rotation, bool existStatus)
@@ -121,7 +122,7 @@ namespace Helion.Resources.Sprites
                 AddRotationWithPossibleMirror(fullFrame, 7, 1);
                 break;
             default:
-                Assert.Fail($"Rotation index should not be reached for {fullFrame}");
+                Fail($"Rotation index should not be reached for {fullFrame}");
                 break;
             }
         }

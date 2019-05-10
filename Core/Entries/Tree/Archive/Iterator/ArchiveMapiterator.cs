@@ -3,6 +3,7 @@ using Helion.Util;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using static Helion.Util.Assert;
 
 namespace Helion.Entries.Tree.Archive.Iterator
 {
@@ -90,7 +91,7 @@ namespace Helion.Entries.Tree.Archive.Iterator
                 currentMap.Znodes = entry.Data;
                 break;
             default:
-                Assert.Fail($"Unexpected map entry name: {entry.Path.Name}");
+                Fail($"Unexpected map entry name: {entry.Path.Name}");
                 break;
             }
         }

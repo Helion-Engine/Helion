@@ -1,5 +1,6 @@
 ﻿using Helion.Util;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Resources.Sprites
 {
@@ -105,7 +106,7 @@ namespace Helion.Resources.Sprites
         public void Register(ISpriteFrameManagerListener listener)
         {
             if (listeners.Contains(listener))
-                Assert.Fail($"Trying to add the same sprite manager listener twice: {listener}");
+                Fail($"Trying to add the same sprite manager listener twice: {listener}");
             else
                 listeners.Add(listener);
             // TODO: Emit current state to the listener.

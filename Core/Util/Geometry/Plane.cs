@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
 {
@@ -18,7 +19,7 @@ namespace Helion.Util.Geometry
 
         public PlaneD(double a, double b, double c, double d)
         {
-            Assert.Precondition(!(MathHelper.IsZero(a) && MathHelper.IsZero(b) && MathHelper.IsZero(c)), "Plane has all zero a/b/c coefficients");
+            Precondition(!(MathHelper.IsZero(a) && MathHelper.IsZero(b) && MathHelper.IsZero(c)), "Plane has all zero a/b/c coefficients");
 
             A = a;
             B = b;
@@ -63,7 +64,7 @@ namespace Helion.Util.Geometry
 
         public PlaneF(float a, float b, float c, float d)
         {
-            Assert.Precondition(!(MathHelper.IsZero(a) && MathHelper.IsZero(b) && MathHelper.IsZero(c)), "Plane has all zero a/b/c coefficients");
+           Precondition(!(MathHelper.IsZero(a) && MathHelper.IsZero(b) && MathHelper.IsZero(c)), "Plane has all zero a/b/c coefficients");
 
             A = a;
             B = b;
@@ -108,7 +109,7 @@ namespace Helion.Util.Geometry
 
         public PlaneFixed(Fixed a, Fixed b, Fixed c, Fixed d)
         {
-            Assert.Precondition(!(MathHelper.IsZero(a) && MathHelper.IsZero(b) && MathHelper.IsZero(c)), "Plane has all zero a/b/c coefficients");
+            Precondition(!(MathHelper.IsZero(a) && MathHelper.IsZero(b) && MathHelper.IsZero(c)), "Plane has all zero a/b/c coefficients");
 
             A = a;
             B = b;

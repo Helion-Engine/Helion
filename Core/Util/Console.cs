@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using static Helion.Util.Assert;
 
 namespace Helion.Util
 {
@@ -185,7 +186,7 @@ namespace Helion.Util
         /// <param name="capacity"></param>
         public void SetCapacity(int capacity)
         {
-            Assert.Precondition(capacity > 0, "Should never be trying to set a non-positive capcity to the console");
+            Precondition(capacity > 0, "Should never be trying to set a non-positive capcity to the console");
 
             Capacity = Math.Max(1, capacity);
             RemoveExcessMessagesIfAny();
@@ -208,7 +209,7 @@ namespace Helion.Util
                 AddMessage(RGBColoredString.Create(Color.LightCyan, logEvent.FormattedMessage));
             else
             {
-                Assert.Fail($"Unexpected logging message type: {logEvent.Level}");
+                Fail($"Unexpected logging message type: {logEvent.Level}");
                 AddMessage(RGBColoredString.Create(Color.Pink, logEvent.FormattedMessage));
             }
         }
@@ -254,7 +255,7 @@ namespace Helion.Util
 
         public ConsoleCommandEventArgs(string text)
         {
-            Assert.Precondition(text.NotEmpty(), "Should not be getting an empty console command");
+            Precondition(text.NotEmpty(), "Should not be getting an empty console command");
 
             string[] tokens = text.Split(' ');
             if (tokens.Length == 0)

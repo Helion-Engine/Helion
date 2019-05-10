@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using static Helion.Util.Assert;
 
 namespace Helion.Graphics
 {
@@ -85,8 +86,8 @@ namespace Helion.Graphics
         /// a default value will be constructed for this object.</param>
         public Image(int width, int height, Color color, ImageMetadata metadata = null)
         {
-            Assert.Precondition(width > 0, "Trying to make a non-positive width image");
-            Assert.Precondition(height > 0, "Trying to make a non-positive height image");
+            Precondition(width > 0, "Trying to make a non-positive width image");
+            Precondition(height > 0, "Trying to make a non-positive height image");
 
             if (metadata != null)
                 Metadata = metadata;
@@ -111,9 +112,9 @@ namespace Helion.Graphics
         /// a default value will be constructed for this object.</param>
         public Image(int width, int height, byte[] argb, ImageMetadata metadata = null)
         {
-            Assert.Precondition(width >= 0, "Trying to make a negative width image");
-            Assert.Precondition(height >= 0, "Trying to make a negative height image");
-            Assert.Precondition(width * height * 4 == argb.Length, "ARGB pixel array width/height mismatch");
+            Precondition(width >= 0, "Trying to make a negative width image");
+            Precondition(height >= 0, "Trying to make a negative height image");
+            Precondition(width * height * 4 == argb.Length, "ARGB pixel array width/height mismatch");
 
             Bitmap = new Bitmap(Math.Max(0, width), Math.Max(0, height), PixelFormat.Format32bppArgb);
 
