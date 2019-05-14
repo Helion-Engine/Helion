@@ -59,7 +59,7 @@ namespace Helion.BSP.States.Convex
             }
         }
 
-        public virtual void Load(List<BspSegment> segments)
+        public virtual void Load(IList<BspSegment> segments)
         {
             Clear();
 

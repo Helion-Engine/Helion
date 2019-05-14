@@ -122,7 +122,7 @@ namespace Helion.BSP.States.Split
             return score;
         }
 
-        public void Load(List<BspSegment> segments)
+        public void Load(IList<BspSegment> segments)
         {
             Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
 

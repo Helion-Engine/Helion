@@ -5,13 +5,15 @@ namespace Helion.BSP.States
 {
     public class BspWorkItem
     {
-        public string BranchPath;
-        public List<BspSegment> Segments;
+        public const string RootWorkPath = "";
 
-        public BspWorkItem(string branchPath, List<BspSegment> segments)
+        public IList<BspSegment> Segments;
+        public string BranchPath;
+
+        public BspWorkItem(IList<BspSegment> segments, string branchPath = RootWorkPath)
         {
-            BranchPath = branchPath;
             Segments = segments;
+            BranchPath = branchPath;
         }
     }
 }

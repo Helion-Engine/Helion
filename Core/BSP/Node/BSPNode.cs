@@ -33,6 +33,46 @@ namespace Helion.BSP.Node
             ClockwiseEdges = edges;
         }
 
+        private void ClearChildren()
+        {
+            Left = null;
+            Right = null;
+        }
+
+        private void HandleLeftDegenerateCase()
+        {
+            ClockwiseEdges = Right.ClockwiseEdges;
+            ClearChildren();
+        }
+
+        private void HandleRightDegenerateCase()
+        {
+            ClockwiseEdges = Left.ClockwiseEdges;
+            ClearChildren();
+        }
+
+        public void StripDegenerateNodes()
+        {
+            if (!IsParent)
+                return;
+
+            Left.StripDegenerateNodes();
+            Right.StripDegenerateNodes();
+
+            if (Left.Degenerate && !Right.Degenerate)
+                HandleLeftDegenerateCase();
+            else if (Right.Degenerate && !Left.Degenerate)
+                HandleRightDegenerateCase();
+            else if (Left.Degenerate && Right.Degenerate)
+                ClearChildren();
+        }
+
+        public void SetChildren(BspNode left, BspNode right)
+        {
+            Left = left;
+            Right = right;
+        }
+
         public int CalculateSubsectorCount()
         {
             if (IsParent)

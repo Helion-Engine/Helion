@@ -16,18 +16,17 @@ namespace Helion.BSP.Builder
 
         public void ExecuteMajorStep()
         {
-            // TODO
+            // TODO: Implement later to loop until the state changes.
+            ExecuteMinorStep();
         }
 
         public void ExecuteMinorStep()
         {
-            // TODO
+            if (Done)
+                return;
+            Execute();
         }
 
-        public BspNode GetTree()
-        {
-            // TODO
-            return Root;
-        }
+        public BspNode GetTree() => Root;
     }
 }

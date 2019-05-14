@@ -28,8 +28,9 @@ namespace Helion.BSP.Geometry
             return seg;
         }
 
-        public BspSegment GetOrCreate(VertexIndex startVertex, VertexIndex endVertex, int frontSectorId, 
-            int backSectorId, int lineId)
+        public BspSegment GetOrCreate(VertexIndex startVertex, VertexIndex endVertex, 
+            int frontSectorId = BspSegment.NoSectorId, int backSectorId = BspSegment.NoSectorId, 
+            int lineId = BspSegment.MinisegLineId)
         {
             Precondition(startVertex != endVertex, "Cannot create a segment that is a point");
             Precondition(startVertex.Index >= 0 && startVertex.Index < vertexAllocator.Count, "Start vertex out of range.");
@@ -68,6 +69,23 @@ namespace Helion.BSP.Geometry
             }
         }
 
+        public bool ContainsSegment(VertexIndex startIndex, VertexIndex endIndex)
+        {
+            // TODO: Use the segment table class if/when created.
+            VertexIndex smallerIndex = startIndex;
+            VertexIndex largerIndex = endIndex;
+            if (startIndex.Index > endIndex.Index)
+            {
+                smallerIndex = endIndex;
+                largerIndex = startIndex;
+            }
+
+            if (segmentTable.TryGetValue(smallerIndex, out var largerValues))
+                if (largerValues.TryGetValue(largerIndex, out SegmentIndex segIndex))
+                    return true;
+            return false;
+        }
+
         public Tuple<BspSegment, BspSegment> Split(BspSegment seg, double t)
         {
             Precondition(t > 0.0 && t < 1.0, $"Trying to split BSP out of range, or at an endpoint with t = {t}");
@@ -79,5 +97,7 @@ namespace Helion.BSP.Geometry
             BspSegment secondSeg = GetOrCreate(middleIndex, seg.EndIndex, seg.FrontSectorId, seg.BackSectorId, seg.LineId);
             return Tuple.Create(firstSeg, secondSeg);
         }
+
+        public IList<BspSegment> ToList() => new List<BspSegment>(segments);
     }
 }

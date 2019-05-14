@@ -196,7 +196,7 @@ namespace Helion.BSP.States.Partition
                 States.LeftSegments.Add(segmentToSplit);
         }
 
-        public void Load(BspSegment splitter, List<BspSegment> segments)
+        public void Load(BspSegment splitter, IList<BspSegment> segments)
         {
             // OPTIMIZE: A better way of finding segs to split would be to
             // take the result when we did the checking for the best

@@ -16,5 +16,11 @@
     {
         public BuilderState Previous = BuilderState.NotStarted;
         public BuilderState Next = BuilderState.NotStarted;
+
+        public void SetState(BuilderState state)
+        {
+            Previous = Next;
+            Next = state;
+        }
     }
 }
