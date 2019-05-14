@@ -104,7 +104,12 @@ namespace Helion.BSP.Node
             return subsectorEdges;
         }
 
-        private static void ReverseEdges(List<SubsectorEdge> edges)
+        /// <summary>
+        /// Reverses the edges of the list provided. This will also mutate the
+        /// list so it will have all new reversed edges.
+        /// </summary>
+        /// <param name="edges">The edges to reverse.</param>
+        private static void ReverseEdgesMutate(List<SubsectorEdge> edges)
         {
             List<SubsectorEdge> reversedEdges = new List<SubsectorEdge>();
 
@@ -145,7 +150,7 @@ namespace Helion.BSP.Node
             Rotation rotation = CalculateRotation(convexTraversal);
             List<SubsectorEdge> edges = CreateSubsectorEdges(convexTraversal, lineToSectors, rotation);
             if (rotation != Rotation.Left)
-                ReverseEdges(edges);
+                ReverseEdgesMutate(edges);
 
             AssertValidSubsectorEdges(edges);
             return edges;
