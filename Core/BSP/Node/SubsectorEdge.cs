@@ -108,12 +108,12 @@ namespace Helion.BSP.Node
         {
             List<SubsectorEdge> reversedEdges = new List<SubsectorEdge>();
 
-            for (int i = edges.Count - 1; i >= 0; i++)
+            edges.Reverse();
+            edges.ForEach(edge =>
             {
-                SubsectorEdge edge = edges[i];
                 int sectorId = edge.SectorId.ValueOr(NoSectorId);
                 reversedEdges.Add(new SubsectorEdge(edge.End, edge.Start, edge.LineId, sectorId));
-            }
+            });
 
             edges.Clear();
             edges.AddRange(reversedEdges);
@@ -124,23 +124,20 @@ namespace Helion.BSP.Node
         {
             Precondition(edges.Count >= 3, "Not enough edges");
 
-            int lastCorrectSector = SubsectorEdge.NoSectorId;
+            int lastCorrectSector = NoSectorId;
 
-            foreach (SubsectorEdge edge in edges) {
-                if (edge.SectorId)
-                {
-                    if (lastCorrectSector == SubsectorEdge.NoSectorId)
-                    {
-                        lastCorrectSector = edge.SectorId.Value;
-                    }
-                    else
-                    {
-                        Precondition(edge.SectorId.Value != lastCorrectSector, "Subsector references multiple sectors");
-                    }
-                }
+            // According to https://stackoverflow.com/questions/204505/preserving-order-with-linq
+            // the order is preserved for a Where() invocation, so we do not 
+            // need to worry about order being scrambled.
+            foreach (SubsectorEdge edge in edges.Where(e => e.SectorId))
+            {
+                if (lastCorrectSector == NoSectorId)
+                    lastCorrectSector = edge.SectorId.Value;
+                else
+                    Precondition(edge.SectorId.Value != lastCorrectSector, "Subsector references multiple sectors");
             }
 
-            Precondition(lastCorrectSector != SubsectorEdge.NoSectorId, "Unable to find a sector for the subsector");
+            Precondition(lastCorrectSector != NoSectorId, "Unable to find a sector for the subsector");
         }
 
         public static IList<SubsectorEdge> FromClockwiseConvexTraversal(ConvexTraversal convexTraversal, IList<SectorLine> lineToSectors)
