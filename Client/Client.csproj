@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <StartupObject>Helion.Client.Client</StartupObject>
     <ApplicationIcon />
   </PropertyGroup>
@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0-preview.19073.11" />
     <PackageReference Include="NLog" Version="4.6.3" />
   </ItemGroup>
 
