@@ -15,6 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BspVisualizer", "BspVisualizer\BspVisualizer.csproj", "{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +38,10 @@ Global
 		{964A9B91-D588-4C47-86BF-646E1D566630}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{964A9B91-D588-4C47-86BF-646E1D566630}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{964A9B91-D588-4C47-86BF-646E1D566630}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
