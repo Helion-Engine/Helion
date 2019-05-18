@@ -100,7 +100,7 @@ namespace Helion.Map
 
         private static bool HasRequiredComponents(MapEntryCollection map)
         {
-            return map.Name.Empty() && (map.IsUDMFMap || map.IsHexenMap || map.IsDoomMap);
+            return !map.Name.Empty() && (map.IsUDMFMap || map.IsHexenMap || map.IsDoomMap);
         }
 
         private static bool HasValidVanillaSharedDataStructures(MapEntryCollection map)

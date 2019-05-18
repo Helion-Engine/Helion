@@ -4,7 +4,7 @@ namespace Helion.BSP.Geometry
 {
     public struct SectorLine
     {
-        public const int NoLineToSectorId = -1;
+        public const int NoLineToSectorId = BspSegment.NoSectorId;
 
         public readonly Vec2D Delta;
         public readonly int FrontSectorId;

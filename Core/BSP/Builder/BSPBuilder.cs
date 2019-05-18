@@ -58,7 +58,7 @@ namespace Helion.BSP
             {
                 VertexIndex start = VertexAllocator[seg.Start];
                 VertexIndex end = VertexAllocator[seg.End];
-                int backSectorIndex = seg.BackSectorIndex.ValueOr(SectorLine.NoLineToSectorId);
+                int backSectorIndex = seg.BackSectorIndex ?? SectorLine.NoLineToSectorId;
                 BspSegment bspSegment = SegmentAllocator.GetOrCreate(start, end, seg.FrontSectorIndex, backSectorIndex, lineId);
                 lineId++;
 

@@ -1,8 +1,11 @@
 ﻿using Helion.Entries;
+using Helion.Entries.Tree.Archive.Iterator;
+using Helion.Map;
 using Helion.Projects.Resources;
 using Helion.Util;
 using NLog;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Projects
 {
@@ -94,6 +97,29 @@ namespace Helion.Projects
             Resources.TrackNewComponents(loadedComponents.Value);
 
             return true;
+        }
+
+        public Optional<ValidMapEntryCollection> GetMap(UpperString mapName)
+        {
+            // TODO: Can we make some cleaner 'reverse iterator' extension?
+            // Like an IList<>.ForEachReverse(...)?
+            for (int i = Components.Count - 1; i >= 0; i--)
+            {
+                ProjectComponent component = Components[i];
+
+                ArchiveMapIterator mapIterator = new ArchiveMapIterator(component.Archive);
+                foreach (MapEntryCollection mapEntryCollection in mapIterator)
+                {
+                    if (mapEntryCollection.Name == mapName)
+                    {
+                        Optional<ValidMapEntryCollection> map = ValidMapEntryCollection.From(mapEntryCollection);
+                        if (map)
+                            return map;
+                    }
+                }
+            }
+
+            return Optional.Empty;
         }
 
         /// <summary>

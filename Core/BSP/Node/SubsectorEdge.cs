@@ -14,7 +14,7 @@ namespace Helion.BSP.Node
         public const int NoSectorId = -1;
 
         public readonly int LineId;
-        public readonly Optional<int> SectorId = Optional.Empty;
+        public readonly int? SectorId;
 
         public bool IsMiniseg => LineId == BspSegment.MinisegLineId;
 
@@ -25,7 +25,6 @@ namespace Helion.BSP.Node
         public SubsectorEdge(Vec2D start, Vec2D end, int lineId, int sectorId) : base(start, end)
         {
             LineId = lineId;
-
             if (sectorId != NoSectorId)
                 SectorId = sectorId;
         }
@@ -116,7 +115,7 @@ namespace Helion.BSP.Node
             edges.Reverse();
             edges.ForEach(edge =>
             {
-                int sectorId = edge.SectorId.ValueOr(NoSectorId);
+                int sectorId = edge.SectorId ?? NoSectorId;
                 reversedEdges.Add(new SubsectorEdge(edge.End, edge.Start, edge.LineId, sectorId));
             });
 
@@ -134,7 +133,7 @@ namespace Helion.BSP.Node
             // According to https://stackoverflow.com/questions/204505/preserving-order-with-linq
             // the order is preserved for a Where() invocation, so we do not 
             // need to worry about order being scrambled.
-            foreach (SubsectorEdge edge in edges.Where(e => e.SectorId))
+            foreach (SubsectorEdge edge in edges.Where(e => e.SectorId.HasValue))
             {
                 if (lastCorrectSector == NoSectorId)
                     lastCorrectSector = edge.SectorId.Value;

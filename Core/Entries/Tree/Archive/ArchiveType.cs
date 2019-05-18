@@ -8,4 +8,14 @@
         Wad,
         Pk3
     }
+
+    /// <summary>
+    /// The type of wad from its header.
+    /// </summary>
+    public enum WadType
+    {
+        Unknown,
+        Iwad,
+        Pwad
+    }
 }

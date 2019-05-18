@@ -3,6 +3,7 @@ using Helion.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Helion.Entries.Tree.Archive
 {
@@ -62,12 +63,25 @@ namespace Helion.Entries.Tree.Archive
 
         private static bool CheckIfIwad(byte[] data) => (data.Length > 0 && data[0] == 'I');
 
-        private static Tuple<int, int> ReadHeader(ByteReader reader)
+        private static WadType WadTypeFrom(string header)
         {
-            reader.ReadInt32(); // Consume remaining IWAD/PWAD letters.
+            switch (header)
+            {
+            case "IWAD":
+                return WadType.Iwad;
+            case "PWAD":
+                return WadType.Pwad;
+            default:
+                return WadType.Unknown;
+            }
+        }
+
+        private static Tuple<WadType, int, int> ReadHeader(ByteReader reader)
+        {
+            WadType wadType = WadTypeFrom(Encoding.UTF8.GetString(reader.ReadBytes(4)));
             int numEntries = reader.ReadInt32();
             int entryTableOffset = reader.ReadInt32();
-            return Tuple.Create(numEntries, entryTableOffset);
+            return Tuple.Create(wadType, numEntries, entryTableOffset);
         }
 
         private static Tuple<int, int, string> ReadDirectoryEntry(ByteReader reader)
@@ -92,8 +106,10 @@ namespace Helion.Entries.Tree.Archive
             try
             {
                 ByteReader reader = new ByteReader(data);
-                (int numEntries, int entryTableOffset) = ReadHeader(reader);
+                (WadType wadType, int numEntries, int entryTableOffset) = ReadHeader(reader);
 
+                if (wadType == WadType.Unknown)
+                    return "Wad header is corrupt";
                 if (entryTableOffset + (numEntries * LUMP_TABLE_ENTRY_BYTES) > data.Length)
                     return "Lump entry table runs out of data";
 

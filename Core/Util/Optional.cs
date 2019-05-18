@@ -96,7 +96,10 @@ namespace Helion.Util
         /// present.</param>
         /// <returns>An optional with the mapped value, or an empty optional
         /// if the mapping function failed or this is empty.</returns>
-        public Optional<U> Map<U>(Func<T, Optional<U>> mapFunc) => HasValue ? mapFunc(Value) : Optional<U>.Empty();
+        public Optional<U> Map<U>(Func<T, Optional<U>> mapFunc) where U : class
+        {
+            return HasValue ? mapFunc(Value) : Optional<U>.Empty();
+        }
 
         /// <summary>
         /// Maps a value to another value.

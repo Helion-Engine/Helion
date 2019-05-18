@@ -12,13 +12,13 @@ namespace Helion.BSP.Geometry
     {
         public bool OneSided;
         public int FrontSectorIndex;
-        public Optional<int> BackSectorIndex;
+        public int? BackSectorIndex;
 
-        public MapSegment(Vec2D start, Vec2D end, bool oneSided, int frontSectorIndex, Optional<int> backSectorIndex = null) :
+        public MapSegment(Vec2D start, Vec2D end, bool oneSided, int frontSectorIndex, int? backSectorIndex = null) :
             base(start, end)
         {
             Precondition(frontSectorIndex >= 0, "Invalid map segment front sector index");
-            if (backSectorIndex)
+            if (backSectorIndex != null)
                 Precondition(backSectorIndex.Value >= 0, "Invalid map segment back sector index");
 
             OneSided = oneSided;

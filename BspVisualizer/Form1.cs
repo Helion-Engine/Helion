@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Helion.BSP.Builder;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -18,8 +19,11 @@ namespace BSPVisualizer
         private static Pen lightGrayPen = new Pen(new SolidBrush(Color.LightGray));
         private static Pen yellowPen = new Pen(new SolidBrush(Color.Yellow));
 
-        public Form1()
+        private StepwiseBspBuilder bspBuilder;
+
+        public Form1(StepwiseBspBuilder bspBuilder)
         {
+            this.bspBuilder = bspBuilder;
             InitializeComponent();
         }
 
