@@ -45,16 +45,16 @@ namespace Helion.Projects.Impl.Local
             return new ProjectComponentInfo(name, new Version(0, 0), uri);
         }
 
-        protected override Expected<List<ProjectComponent>, string> HandleLoad(IList<string> uris)
+        protected override Expected<List<ProjectComponent>> HandleLoad(IList<string> uris)
         {
             List<ProjectComponent> components = new List<ProjectComponent>();
 
             foreach (string uri in uris)
             {
                 log.Info("Loading {0}", uri);
-                Expected<Archive, string> archive = archiveLocator.Locate(uri, Classifier, EntryIdAllocator);
+                Expected<Archive> archive = archiveLocator.Locate(uri, Classifier, EntryIdAllocator);
 
-                if (archive)
+                if (archive.Value != null)
                 {
                     ProjectComponentId componentId = AllocateComponentId();
                     ProjectComponentInfo info = CreateDefaultComponentInfo(uri);

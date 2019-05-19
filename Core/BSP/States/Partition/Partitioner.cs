@@ -47,16 +47,14 @@ namespace Helion.BSP.States.Partition
             return false;
         }
 
-        private void HandleSplitter()
+        private void HandleSplitter(BspSegment splitter)
         {
-            BspSegment splitter = States.Splitter;
-
             States.RightSegments.Add(splitter);
             if (splitter.TwoSided)
                 States.LeftSegments.Add(splitter);
         }
 
-        private void HandleCollinearSegment(BspSegment segment)
+        private void HandleCollinearSegment(BspSegment splitter, BspSegment segment)
         {
             Precondition(!segment.IsMiniseg, "Should never be collinear to a miniseg");
 
@@ -68,7 +66,7 @@ namespace Helion.BSP.States.Partition
             // care about it.
             if (segment.OneSided)
             {
-                if (States.Splitter.SameDirection(segment))
+                if (splitter.SameDirection(segment))
                     States.RightSegments.Add(segment);
                 else
                     States.LeftSegments.Add(segment);
@@ -80,22 +78,18 @@ namespace Helion.BSP.States.Partition
             }
         }
 
-        private void HandleParallelSegment(BspSegment segment)
+        private void HandleParallelSegment(BspSegment splitter, BspSegment segment)
         {
-            BspSegment splitter = States.Splitter;
-
             if (splitter.Collinear(segment))
-                HandleCollinearSegment(segment);
+                HandleCollinearSegment(splitter, segment);
             else if (splitter.OnRight(segment.Start))
                 States.RightSegments.Add(segment);
             else
                 States.LeftSegments.Add(segment);
         }
 
-        private void HandleEndpointIntersectionSplit(BspSegment segmentToSplit, Endpoint endpoint)
+        private void HandleEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, Endpoint endpoint)
         {
-            BspSegment splitter = States.Splitter;
-
             // We know that the endpoint argument is the vertex that was 
             // intersected by the splitter. This means the other endpoint is
             // on the left or the right side of the splitter, so we'll use 
@@ -115,14 +109,12 @@ namespace Helion.BSP.States.Partition
             States.CollinearVertices.Add(index);
         }
 
-        private void HandleNonEndpointIntersectionSplit(BspSegment segmentToSplit, double tSegment)
+        private void HandleNonEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, double tSegment)
         {
-            BspSegment splitter = States.Splitter;
-
             // Note for the future: If we ever change to using pointers or some
             // kind of reference that invalidates on a list resizing (like a
             // std::vector in C++), this will lead to undefined behavior since
-            // it will add new segments.
+            // it will add new segments and cause them to become dangling.
             (BspSegment segA, BspSegment segB) = segmentAllocator.Split(segmentToSplit, tSegment);
 
             // Since we split the segment such that the line is:
@@ -178,19 +170,19 @@ namespace Helion.BSP.States.Partition
                 junctionClassifier.AddSplitJunction(segA, segB);
         }
 
-        private void HandleSplit(BspSegment segmentToSplit, double tSegment, double tSplitter)
+        private void HandleSplit(BspSegment splitter, BspSegment segmentToSplit, double tSegment, double tSplitter)
         {
             Precondition(!BetweenEndpoints(tSplitter), "Should not have a segment crossing the splitter");
 
             if (IntersectionTimeAtEndpoint(segmentToSplit, tSegment, out Endpoint endpoint))
-                HandleEndpointIntersectionSplit(segmentToSplit, endpoint);
+                HandleEndpointIntersectionSplit(splitter, segmentToSplit, endpoint);
             else
-                HandleNonEndpointIntersectionSplit(segmentToSplit, tSegment);
+                HandleNonEndpointIntersectionSplit(splitter, segmentToSplit, tSegment);
         }
 
-        private void HandleSegmentOnSide(BspSegment segmentToSplit)
+        private void HandleSegmentOnSide(BspSegment splitter, BspSegment segmentToSplit)
         {
-            if (States.Splitter.OnRight(segmentToSplit))
+            if (splitter.OnRight(segmentToSplit))
                 States.RightSegments.Add(segmentToSplit);
             else
                 States.LeftSegments.Add(segmentToSplit);
@@ -212,6 +204,8 @@ namespace Helion.BSP.States.Partition
         public virtual void Execute()
         {
             Precondition(States.State != PartitionState.Finished, "Trying to partition when it's already completed");
+            if (States.Splitter == null)
+                throw new NullReferenceException("Unexpected null splitter");
 
             BspSegment splitter = States.Splitter;
             BspSegment segmentToSplit = States.SegsToSplit[States.CurrentSegToPartitionIndex];
@@ -222,13 +216,13 @@ namespace Helion.BSP.States.Partition
 
             if (ReferenceEquals(segmentToSplit, splitter))
             {
-                HandleSplitter();
+                HandleSplitter(splitter);
                 return;
             }
 
             if (segmentToSplit.Parallel(splitter))
             {
-                HandleParallelSegment(segmentToSplit);
+                HandleParallelSegment(splitter, segmentToSplit);
                 return;
             }
 
@@ -236,9 +230,9 @@ namespace Helion.BSP.States.Partition
             Invariant(splits, "A non-parallel line should intersect");
 
             if (MathHelper.InNormalRange(tSegment))
-                HandleSplit(segmentToSplit, tSegment, tSplitter);
+                HandleSplit(splitter, segmentToSplit, tSegment, tSplitter);
             else
-                HandleSegmentOnSide(segmentToSplit);
+                HandleSegmentOnSide(splitter, segmentToSplit);
         }
     }
 }

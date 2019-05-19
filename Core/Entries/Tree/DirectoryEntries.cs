@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
@@ -24,11 +23,12 @@ namespace Helion.Entries.Tree
         /// </summary>
         /// <param name="id">The ID to look up.</param>
         /// <returns>The entry if the ID exists</returns>
-        public Optional<Entry> this[EntryId id] {
-            get {
+        public Entry? this[EntryId id] {
+            get 
+            {
                 if (idToNode.TryGetValue(id, out LinkedListNode<Entry> node))
                     return node.Value;
-                return Optional.Empty;
+                return null;
             }
         }
 

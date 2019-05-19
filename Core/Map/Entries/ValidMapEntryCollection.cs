@@ -26,27 +26,26 @@ namespace Helion.Map
 
         public static bool VerticesValid(MapEntryCollection map)
         {
-            return map.Vertices.MapValueOr(v => v.Length % Vertex.BYTE_SIZE == 0, false);
+            return map.Vertices != null && (map.Vertices.Length % Vertex.BYTE_SIZE == 0);
         }
 
         public static bool SectorsValid(MapEntryCollection map)
         {
-            return map.Sectors.MapValueOr(s => s.Length % Sector.BYTE_SIZE == 0, false);
+            return map.Sectors != null && (map.Sectors.Length % Sector.BYTE_SIZE == 0);
         }
 
         public static bool SidedefsValid(MapEntryCollection map)
         {
-            if (!map.Sectors || !map.Sidedefs)
+            if (map.Sectors == null || map.Sidedefs == null)
                 return false;
 
-            int sectorCount = map.Sectors.Value.Length / Sector.BYTE_SIZE;
+            int sectorCount = map.Sectors.Length / Sector.BYTE_SIZE;
 
-            byte[] sidedefData = map.Sidedefs.Value;
-            if (sidedefData.Length % Sidedef.BYTE_SIZE != 0)
+            if (map.Sidedefs.Length % Sidedef.BYTE_SIZE != 0)
                 return false;
 
-            BinaryReader sidedefReader = new ByteReader(sidedefData);
-            for (int i = 0; i < sidedefData.Length / Sidedef.BYTE_SIZE; i++)
+            BinaryReader sidedefReader = new ByteReader(map.Sidedefs);
+            for (int i = 0; i < map.Sidedefs.Length / Sidedef.BYTE_SIZE; i++)
             {
                 sidedefReader.ReadBytes(28); // Skip until the sector index.
                 if (sidedefReader.ReadInt16() >= sectorCount)
@@ -139,10 +138,10 @@ namespace Helion.Map
         /// collection from.</param>
         /// <returns>A valid object on success, an empty optional on failure.
         /// </returns>
-        public static Optional<ValidMapEntryCollection> From(MapEntryCollection map)
+        public static ValidMapEntryCollection? From(MapEntryCollection map)
         {
             if (!HasRequiredComponents(map) || !HasValidDataStructures(map))
-                return Optional.Empty;
+                return null;
             return new ValidMapEntryCollection(map);
         }
     }

@@ -86,8 +86,8 @@ namespace Helion.Projects
                 return false;
             }
 
-            Expected<List<ProjectComponent>, string> loadedComponents = HandleLoad(uris);
-            if (!loadedComponents)
+            Expected<List<ProjectComponent>> loadedComponents = HandleLoad(uris);
+            if (loadedComponents.Value == null)
             {
                 log.Error($"Unable to load one or more project components: {loadedComponents.Error}");
                 return false;
@@ -99,7 +99,7 @@ namespace Helion.Projects
             return true;
         }
 
-        public Optional<ValidMapEntryCollection> GetMap(UpperString mapName)
+        public ValidMapEntryCollection? GetMap(UpperString mapName)
         {
             // TODO: Can we make some cleaner 'reverse iterator' extension?
             // Like an IList<>.ForEachReverse(...)?
@@ -112,14 +112,14 @@ namespace Helion.Projects
                 {
                     if (mapEntryCollection.Name == mapName)
                     {
-                        Optional<ValidMapEntryCollection> map = ValidMapEntryCollection.From(mapEntryCollection);
-                        if (map)
+                        ValidMapEntryCollection? map = ValidMapEntryCollection.From(mapEntryCollection);
+                        if (map != null)
                             return map;
                     }
                 }
             }
 
-            return Optional.Empty;
+            return null;
         }
 
         /// <summary>
@@ -133,6 +133,6 @@ namespace Helion.Projects
         /// duplicates in this list.</param>
         /// <returns>A list of loaded components, or an error result if loading
         /// failed (and why).</returns>
-        protected abstract Expected<List<ProjectComponent>, string> HandleLoad(IList<string> uris);
+        protected abstract Expected<List<ProjectComponent>> HandleLoad(IList<string> uris);
     }
 }

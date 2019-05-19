@@ -19,11 +19,11 @@ namespace Helion.Entries.Tree
         /// <param name="name">The name of the directory.</param>
         /// <returns>The directory entry for the name, or an empty value if no
         /// directory with the name provided exists under this.</returns>
-        public Optional<DirectoryEntry> this[string name] {
+        public DirectoryEntry? this[string name] {
             get {
                 if (nameToNode.TryGetValue(name, out LinkedListNode<DirectoryEntry> node))
                     return node.Value;
-                return Optional.Empty;
+                return null;
             }
         }
 
@@ -42,16 +42,17 @@ namespace Helion.Entries.Tree
         /// </returns>
         public DirectoryEntry GetOrCreate(EntryPath basePath, string folderName, EntryIdAllocator idAllocator)
         {
-            return this[folderName].ValueOr(() =>
-            {
-                EntryPath path = basePath.AppendDirectory(folderName);
-                DirectoryEntry entry = new DirectoryEntry(idAllocator.AllocateId(), path);
+            DirectoryEntry? storedEntry = this[folderName];
+            if (storedEntry != null)
+                return storedEntry;
 
-                directories.AddLast(entry);
-                nameToNode[folderName] = directories.Last;
+            EntryPath path = basePath.AppendDirectory(folderName);
+            DirectoryEntry entry = new DirectoryEntry(idAllocator.AllocateId(), path);
 
-                return entry;
-            });
+            directories.AddLast(entry);
+            nameToNode[folderName] = directories.Last;
+
+            return entry;
         }
 
         public IEnumerator<DirectoryEntry> GetEnumerator() => directories.GetEnumerator();

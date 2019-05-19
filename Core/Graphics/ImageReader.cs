@@ -26,7 +26,7 @@ namespace Helion.Graphics
             return false;
         }
 
-        public static Optional<Image> Read(byte[] data, ResourceNamespace resourceNamespace)
+        public static Image? Read(byte[] data, ResourceNamespace resourceNamespace)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace Helion.Graphics
             }
             catch
             {
-                return Optional.Empty;
+                return null;
             }
         }
     }

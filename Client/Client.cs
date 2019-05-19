@@ -34,7 +34,10 @@ namespace Helion.Client
             inputAdapter.InputEventEmitter += inputManager.HandleInputEvent;
 
             LoadProject();
-            CreateGLComponents();
+
+            GLInfo glInfo = new GLInfo();
+            glRenderer = new GLRenderer(glInfo, project);
+            PrintGLInfo(glInfo);
         }
 
         private void LoadProject()
@@ -46,15 +49,12 @@ namespace Helion.Client
             }
         }
 
-        private void CreateGLComponents()
+        private void PrintGLInfo(GLInfo glInfo)
         {
-            GLInfo glInfo = new GLInfo();
             log.Info("Loaded OpenGL v{0}", glInfo.Version);
             log.Info("OpenGL Shading Language: {0}", glInfo.ShadingVersion);
             log.Info("Vendor: {0}", glInfo.Vendor);
             log.Info("Hardware: {0}", glInfo.Renderer);
-
-            glRenderer = new GLRenderer(glInfo, project);
         }
 
         private void CheckForExit()

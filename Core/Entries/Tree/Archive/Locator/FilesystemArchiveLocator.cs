@@ -8,15 +8,15 @@ namespace Helion.Entries.Tree.Archive.Locator
     /// </summary>
     public class FilesystemArchiveLocator : IArchiveLocator
     {
-        public Expected<Archive, string> Locate(string uri, EntryClassifier classifier,
+        public Expected<Archive> Locate(string uri, EntryClassifier classifier,
             EntryIdAllocator idAllocator)
         {
             UpperString upperUri = uri;
 
             if (upperUri.EndsWith("WAD"))
             {
-                Expected<Wad, string> wad = Wad.FromFile(uri, idAllocator, classifier);
-                if (wad)
+                Expected<Wad> wad = Wad.FromFile(uri, idAllocator, classifier);
+                if (wad.Value != null)
                     return wad.Value;
                 else
                     return wad.Error;
@@ -24,8 +24,8 @@ namespace Helion.Entries.Tree.Archive.Locator
 
             if (upperUri.EndsWith("PK3"))
             {
-                Expected<Pk3, string> pk3 = Pk3.FromFile(uri, idAllocator, classifier);
-                if (pk3)
+                Expected<Pk3> pk3 = Pk3.FromFile(uri, idAllocator, classifier);
+                if (pk3.Value != null)
                     return pk3.Value;
                 else
                     return pk3.Error;

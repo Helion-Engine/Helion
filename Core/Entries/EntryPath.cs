@@ -47,12 +47,12 @@ namespace Helion.Entries
         /// <summary>
         /// Gets the root (first) folder, if any.
         /// </summary>
-        public Optional<string> RootFolder => Folders.Any() ? Folders.First() : Optional<string>.Empty();
+        public string? RootFolder => Folders.Any() ? Folders.First() : null;
 
         /// <summary>
         /// The last folder, if any.
         /// </summary>
-        public Optional<string> LastFolder => Folders.Any() ? Folders.Last() : Optional<string>.Empty();
+        public string? LastFolder => Folders.Any() ? Folders.Last() : null;
 
         public EntryPath(string path = "")
         {

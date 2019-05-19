@@ -16,7 +16,7 @@ namespace Helion.Resources.Images
     /// </summary>
     public class ImageManager : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, Image>>
     {
-        private EventHandler<ImageManagerEventArgs> imageEventEmitter;
+        private EventHandler<ImageManagerEventArgs>? imageEventEmitter;
 
         /// <summary>
         /// Handles emitting all the events. Upon registering, any previously
@@ -29,7 +29,10 @@ namespace Helion.Resources.Images
                 NotifyAllImages(value);
                 imageEventEmitter += value;
             }
-            remove { imageEventEmitter -= value; }
+            remove 
+            {
+                imageEventEmitter -= value;
+            }
         }
 
         private readonly ResourceTracker<Image> images = new ResourceTracker<Image>();

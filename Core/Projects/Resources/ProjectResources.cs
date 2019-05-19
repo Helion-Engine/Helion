@@ -31,16 +31,16 @@ namespace Helion.Projects.Resources
         {
             Palette palette = Palettes.GetDefaultPalette();
 
-            Optional<Entry> entryOpt = mostRecentEntries.GetWithAny(Defines.Playpal, ResourceNamespace.Global);
-            if (entryOpt.Value is PaletteEntry paletteEntry)
+            Entry? entryOpt = mostRecentEntries.GetWithAny(Defines.Playpal, ResourceNamespace.Global);
+            if (entryOpt != null && entryOpt is PaletteEntry paletteEntry)
                 palette = paletteEntry.Palette;
 
             foreach (ProjectComponent component in components)
             {
                 ProjectComponentResourceCache cache = component.ResourceCache;
-                Optional<PaletteEntry> entry = cache.FindEntryAs<PaletteEntry>(Defines.Playpal);
-                if (entry)
-                    palette = entry.Value.Palette;
+                PaletteEntry? entry = cache.FindEntryAs<PaletteEntry>(Defines.Playpal);
+                if (entry != null)
+                    palette = entry.Palette;
             }
 
             return palette;
@@ -72,7 +72,7 @@ namespace Helion.Projects.Resources
         /// will default to the global namespace if not provided.</param>
         /// <returns>The entry if it exists or an empty value if no entry had
         /// that name.</returns>
-        public Optional<Entry> FindEntry(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public Entry? FindEntry(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
             return mostRecentEntries.GetWithAny(name, resourceNamespace);
         }
@@ -88,10 +88,9 @@ namespace Helion.Projects.Resources
         /// will default to the global namespace if not provided.</param>
         /// <returns>The entry of the type provided with the name, or an empty
         /// value if both conditions are not met.</returns>
-        public Optional<T> FindEntryAs<T>(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public T? FindEntryAs<T>(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global) where T : Entry
         {
-            Optional<Entry> entry = mostRecentEntries.GetWithAny(name, resourceNamespace);
-            return (entry && entry.Value is T entryType) ? entryType : Optional<T>.Empty();
+            return mostRecentEntries.GetWithAny(name, resourceNamespace) as T;
         }
 
         /// <summary>

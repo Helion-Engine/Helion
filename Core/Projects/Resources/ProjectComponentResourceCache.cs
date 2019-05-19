@@ -85,7 +85,7 @@ namespace Helion.Projects.Resources
         /// <param name="name">The name to look up.</param>
         /// <returns>The entry if it exists or an empty value if no entry had
         /// that name.</returns>
-        public Optional<Entry> FindEntry(UpperString name)
+        public Entry? FindEntry(UpperString name)
         {
             return entryTracker.GetWithAny(name, ResourceNamespace.Global);
         }
@@ -99,10 +99,10 @@ namespace Helion.Projects.Resources
         /// <param name="name">The name to get.</param>
         /// <returns>The entry of the type provided with the name, or an empty
         /// value if both conditions are not met.</returns>
-        public Optional<T> FindEntryAs<T>(UpperString name)
+        public T? FindEntryAs<T>(UpperString name) where T : Entry
         {
-            Optional<Entry> entry = entryTracker.GetWithAny(name, ResourceNamespace.Global);
-            return (entry && entry.Value is T entryType) ? entryType : Optional<T>.Empty();
+            Entry? entry = entryTracker.GetWithAny(name, ResourceNamespace.Global);
+            return (entry != null && entry is T entryType) ? entryType : null;
         }
     }
 }

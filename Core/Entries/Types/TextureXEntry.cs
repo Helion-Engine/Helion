@@ -24,9 +24,9 @@ namespace Helion.Entries.Types
         public TextureXEntry(EntryId id, EntryPath path, byte[] data, ResourceNamespace resourceNamespace) :
             base(id, path, data, resourceNamespace)
         {
-            Optional<TextureX> textureX = TextureX.From(data);
-            if (textureX)
-                TextureX = textureX.Value;
+            TextureX? textureX = TextureX.From(data);
+            if (textureX != null)
+                TextureX = textureX;
             else
             {
                 log.Warn("TextureX is corrupt at {0}", path);

@@ -20,6 +20,6 @@ namespace Helion.Entries.Tree.Archive.Locator
         /// <param name="idAllocator">The ID allocator</param>
         /// <returns>The archive, or an error reason on why it cannot be found.
         /// </returns>
-        Expected<Archive, string> Locate(string uri, EntryClassifier classifier, EntryIdAllocator idAllocator);
+        Expected<Archive> Locate(string uri, EntryClassifier classifier, EntryIdAllocator idAllocator);
     }
 }

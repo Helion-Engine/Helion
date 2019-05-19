@@ -51,13 +51,12 @@ namespace Helion.Util.Geometry
             }
         }
 
-        public bool TryGetValue(double x, double y, out T value)
+        public bool TryGetValue(double x, double y, ref T value)
         {
             if (grid.TryGetValue(Quantize(x), out Dictionary<int, T> yValues))
                 if (yValues.TryGetValue(Quantize(y), out value))
                     return true;
 
-            value = default;
             return false;
         }
     }

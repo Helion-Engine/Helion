@@ -28,7 +28,8 @@ namespace Helion.BSP.Geometry
 
         public bool TryGetValue(Vec2D vertex, out VertexIndex index)
         {
-            if (grid.TryGetValue(vertex.X, vertex.Y, out int indexValue))
+            int indexValue = 0;
+            if (grid.TryGetValue(vertex.X, vertex.Y, ref indexValue))
             {
                 index = new VertexIndex(indexValue);
                 return true;

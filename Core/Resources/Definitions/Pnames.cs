@@ -22,10 +22,10 @@ namespace Helion.Resources.Definitions
         /// <param name="data">The Pnames data.</param>
         /// <returns>The object if reading was successful, false otherwise.
         /// </returns>
-        public Optional<Pnames> From(byte[] data)
+        public Pnames? From(byte[] data)
         {
             if ((data.Length - 4) % 8 != 0)
-                return Optional.Empty;
+                return null;
 
             List<UpperString> names = new List<UpperString>();
 
@@ -36,14 +36,14 @@ namespace Helion.Resources.Definitions
                 int actual = (data.Length - 4) / 8;
 
                 if (count > actual)
-                    return Optional.Empty;
+                    return null;
 
                 for (int i = 0; i < count; i++)
                     names.Add(reader.ReadEightByteString());
             }
             catch
             {
-                return Optional.Empty;
+                return null;
             }
 
             return new Pnames(names);

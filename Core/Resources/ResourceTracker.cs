@@ -15,7 +15,7 @@ namespace Helion.Resources
     /// that problem.
     /// </remarks>
     /// <typeparam name="T">The resource type to track.</typeparam>
-    public class ResourceTracker<T> : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, T>>
+    public class ResourceTracker<T> : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, T>> where T : class
     {
         private readonly HashTable<ResourceNamespace, UpperString, T> table = new HashTable<ResourceNamespace, UpperString, T>();
 
@@ -29,7 +29,7 @@ namespace Helion.Resources
 
         public bool Contains(UpperString name, ResourceNamespace resourceNamespace)
         {
-            return table.Get(resourceNamespace, name).HasValue;
+            return table.Get(resourceNamespace, name) != null;
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The namespace of the resource to
         /// only look at.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
-        public Optional<T> GetOnly(UpperString name, ResourceNamespace resourceNamespace)
+        public T? GetOnly(UpperString name, ResourceNamespace resourceNamespace)
         {
             return table.Get(resourceNamespace, name);
         }
@@ -78,12 +78,12 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The namespace of the resource to
         /// look at first. This should not be the global namespace.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
-        public Optional<T> GetWithGlobal(UpperString name, ResourceNamespace resourceNamespace)
+        public T? GetWithGlobal(UpperString name, ResourceNamespace resourceNamespace)
         {
             Precondition(resourceNamespace != ResourceNamespace.Global, $"Doing redundant 'get with global' check for: {name}");
 
-            Optional<T> desiredNamespaceElement = table.Get(resourceNamespace, name);
-            if (desiredNamespaceElement)
+            T? desiredNamespaceElement = table.Get(resourceNamespace, name);
+            if (desiredNamespaceElement != null)
                 return desiredNamespaceElement;
             return table.Get(ResourceNamespace.Global, name);
         }
@@ -98,18 +98,23 @@ namespace Helion.Resources
         /// <param name="priorityNamespace">The namespace of the resource to
         /// look at nefpre cjeclomg ptjers.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
-        public Optional<T> GetWithAny(UpperString name, ResourceNamespace priorityNamespace)
+        public T? GetWithAny(UpperString name, ResourceNamespace priorityNamespace)
         {
-            Optional<T> desiredNamespaceElement = table.Get(priorityNamespace, name);
-            if (desiredNamespaceElement)
+            T? desiredNamespaceElement = table.Get(priorityNamespace, name);
+            if (desiredNamespaceElement != null)
                 return desiredNamespaceElement;
 
             foreach (ResourceNamespace resourceNamespace in table.GetFirstKeys())
+            {
                 if (resourceNamespace != priorityNamespace)
-                    if (table.TryGet(resourceNamespace, name, out T resource))
+                {
+                    T? resource = null;
+                    if (table.TryGet(resourceNamespace, name, ref resource))
                         return resource;
+                }
+            }
 
-            return Optional.Empty;
+            return null;
         }
 
         public IEnumerator<HashTableEntry<ResourceNamespace, UpperString, T>> GetEnumerator()

@@ -40,17 +40,17 @@ namespace Helion.Resources.Images
         /// The actual image that was modified, or an empty value if this was a
         /// delete message.
         /// </summary>
-        public Optional<Image> Image { get; }
+        public Image? Image { get; }
 
         public ImageManagerEventArgs(ImageManagerEventType type, UpperString name,
-            ResourceNamespace resourceNamespace, Optional<Image> image)
+            ResourceNamespace resourceNamespace, Image? image)
         {
             Type = type;
             Name = name;
             Namespace = resourceNamespace;
             Image = image;
 
-            Postcondition(type == ImageManagerEventType.Delete || image, "Expected image value to be present for create/update");
+            Postcondition(type == ImageManagerEventType.Delete || image != null, "Expected image value to be present for create/update");
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Helion.Resources.Images
         /// <returns></returns>
         public static ImageManagerEventArgs Delete(UpperString name, ResourceNamespace resourceNamespace)
         {
-            return new ImageManagerEventArgs(ImageManagerEventType.Delete, name, resourceNamespace, Optional.Empty);
+            return new ImageManagerEventArgs(ImageManagerEventType.Delete, name, resourceNamespace, null);
         }
     }
 }

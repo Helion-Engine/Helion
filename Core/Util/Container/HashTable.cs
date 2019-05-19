@@ -41,7 +41,7 @@ namespace Helion.Util.Container
     /// <typeparam name="K1">The first key.</typeparam>
     /// <typeparam name="K2">The second key.</typeparam>
     /// <typeparam name="V">The value.</typeparam>
-    public class HashTable<K1, K2, V> : IEnumerable<HashTableEntry<K1, K2, V>>
+    public class HashTable<K1, K2, V> : IEnumerable<HashTableEntry<K1, K2, V>> where V : class
     {
         private readonly Dictionary<K1, Dictionary<K2, V>> table = new Dictionary<K1, Dictionary<K2, V>>();
 
@@ -93,12 +93,12 @@ namespace Helion.Util.Container
         /// <param name="secondKey">The second key.</param>
         /// <returns>The value if it exists for the keys, an empty value
         /// otherwise.</returns>
-        public Optional<V> Get(K1 firstKey, K2 secondKey)
+        public V? Get(K1 firstKey, K2 secondKey)
         {
             if (table.TryGetValue(firstKey, out var map))
                 if (map.TryGetValue(secondKey, out V value))
                     return value;
-            return Optional.Empty;
+            return null;
         }
 
         /// <summary>
@@ -110,13 +110,11 @@ namespace Helion.Util.Container
         /// <param name="value">The reference to set if found. It not, it is
         /// set to a default value.</param>
         /// <returns>True if the value was found, false if not.</returns>
-        public bool TryGet(K1 firstKey, K2 secondKey, out V value)
+        public bool TryGet(K1 firstKey, K2 secondKey, ref V? value)
         {
             if (table.TryGetValue(firstKey, out var map))
                 if (map.TryGetValue(secondKey, out value))
                     return true;
-
-            value = default;
             return false;
         }
 

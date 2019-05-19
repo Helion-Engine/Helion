@@ -28,13 +28,13 @@ namespace Helion.Entries.Tree.Archive
         /// then it will contain the location on the hard disk from where it
         /// was read from.
         /// </summary>
-        public Optional<string> FilePath { get; } = Optional.Empty;
+        public string? FilePath { get; }
 
         /// <summary>
         /// Is true if this was from a file path, false if it's from a memory
         /// stream or byte array.
         /// </summary>
-        public bool IsFile => FilePath.HasValue;
+        public bool IsFile => FilePath != null;
 
         private Pk3(EntryId id, List<Entry> entries, string filePath, EntryIdAllocator idAllocator) :
             base(id, new EntryPath(System.IO.Path.GetFileName(filePath)))
@@ -52,11 +52,9 @@ namespace Helion.Entries.Tree.Archive
         private static ResourceNamespace GetNamespaceFrom(EntryPath path)
         {
             ResourceNamespace entryNamespace = ResourceNamespace.Global;
-            path.RootFolder.Then(folder =>
-            {
-                if (FOLDER_TO_NAMESPACE.TryGetValue(folder, out ResourceNamespace foundNamespace))
+            if (path.RootFolder != null)
+                if (FOLDER_TO_NAMESPACE.TryGetValue(path.RootFolder, out ResourceNamespace foundNamespace))
                     entryNamespace = foundNamespace;
-            });
 
             return entryNamespace;
         }
@@ -83,7 +81,7 @@ namespace Helion.Entries.Tree.Archive
             entries.Add(entry);
         }
 
-        private static Expected<List<Entry>, string> Pk3EntriesFromData(byte[] data,
+        private static Expected<List<Entry>> Pk3EntriesFromData(byte[] data,
             EntryClassifier classifier)
         {
             List<Entry> entries = new List<Entry>();
@@ -124,11 +122,11 @@ namespace Helion.Entries.Tree.Archive
         /// <param name="classifier">The entry classifier.</param>
         /// <returns>The processed PK3 data if it exists and was able to be
         /// catalogued, otherwise an error reason.</returns>
-        public static Expected<Pk3, string> FromData(byte[] data, EntryPath path,
+        public static Expected<Pk3> FromData(byte[] data, EntryPath path,
             EntryIdAllocator idAllocator, EntryClassifier classifier)
         {
-            Expected<List<Entry>, string> entries = Pk3EntriesFromData(data, classifier);
-            if (entries)
+            Expected<List<Entry>> entries = Pk3EntriesFromData(data, classifier);
+            if (entries.Value != null)
                 return new Pk3(idAllocator.AllocateId(), entries.Value, path, idAllocator);
             return $"Unable to read PK3 data: {entries.Error}";
         }
@@ -141,14 +139,14 @@ namespace Helion.Entries.Tree.Archive
         /// <param name="classifier">The entry classifier.</param>
         /// <returns>The processed PK3 file if it exists and was able to be
         /// catalogued, otherwise an error reason.</returns>
-        public static Expected<Pk3, string> FromFile(string filePath, EntryIdAllocator idAllocator,
+        public static Expected<Pk3> FromFile(string filePath, EntryIdAllocator idAllocator,
             EntryClassifier classifier)
         {
             try
             {
                 byte[] data = File.ReadAllBytes(filePath);
-                Expected<List<Entry>, string> entries = Pk3EntriesFromData(data, classifier);
-                if (entries)
+                Expected<List<Entry>> entries = Pk3EntriesFromData(data, classifier);
+                if (entries.Value != null)
                     return new Pk3(idAllocator.AllocateId(), entries.Value, filePath, idAllocator);
                 return $"Unable to read PK3 file: {entries.Error}";
             }

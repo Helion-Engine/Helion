@@ -25,9 +25,9 @@ namespace Helion.Entries.Types
         public PaletteEntry(EntryId id, EntryPath path, byte[] data, ResourceNamespace resourceNamespace) :
             base(id, path, data, resourceNamespace)
         {
-            Optional<Palette> palette = Palette.From(data);
-            if (palette)
-                Palette = palette.Value;
+            Palette? palette = Palette.From(data);
+            if (palette != null)
+                Palette = palette;
             else
             {
                 log.Warn("Corrupt palette at {0}", path);

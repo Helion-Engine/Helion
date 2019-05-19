@@ -93,8 +93,8 @@ namespace Helion.Entries
             case ResourceType.PaletteImage:
                 return new PaletteImageEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
             case ResourceType.Pk3:
-                Expected<Pk3, string> pk3 = Pk3.FromData(data, path, idAllocator, this);
-                if (pk3)
+                Expected<Pk3> pk3 = Pk3.FromData(data, path, idAllocator, this);
+                if (pk3.Value != null)
                     return pk3.Value;
                 else
                     log.Warn("Error reading nested PK3 at {0}: {1}", path, pk3.Error);
@@ -126,8 +126,8 @@ namespace Helion.Entries
             case ResourceType.Vertexes:
                 return new VertexesEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
             case ResourceType.Wad:
-                Expected<Wad, string> wad = Wad.FromData(data, path, idAllocator, this);
-                if (wad)
+                Expected<Wad> wad = Wad.FromData(data, path, idAllocator, this);
+                if (wad.Value != null)
                     return wad.Value;
                 else
                     log.Warn("Error reading nested wad at {0}: {1}", path, wad.Error);

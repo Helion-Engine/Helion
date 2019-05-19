@@ -1,6 +1,5 @@
 ﻿using Helion.BSP.Geometry;
 using Helion.BSP.States.Convex;
-using Helion.Util;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -136,9 +135,9 @@ namespace Helion.BSP.Node
             foreach (SubsectorEdge edge in edges.Where(e => e.SectorId.HasValue))
             {
                 if (lastCorrectSector == NoSectorId)
-                    lastCorrectSector = edge.SectorId.Value;
+                    lastCorrectSector = edge.SectorId ?? NoSectorId;
                 else
-                    Precondition(edge.SectorId.Value != lastCorrectSector, "Subsector references multiple sectors");
+                    Precondition(edge.SectorId != lastCorrectSector, "Subsector references multiple sectors");
             }
 
             Precondition(lastCorrectSector != NoSectorId, "Unable to find a sector for the subsector");

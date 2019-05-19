@@ -1,6 +1,5 @@
 ﻿using Helion.Resources;
 using Helion.Resources.Definitions;
-using Helion.Util;
 using NLog;
 
 namespace Helion.Entries.Types
@@ -23,9 +22,9 @@ namespace Helion.Entries.Types
         public PnamesEntry(EntryId id, EntryPath path, byte[] data, ResourceNamespace resourceNamespace) :
             base(id, path, data, resourceNamespace)
         {
-            Optional<Pnames> pnames = Pnames.From(data);
-            if (pnames)
-                Pnames = pnames.Value;
+            Pnames? pnames = Pnames.From(data);
+            if (pnames != null)
+                Pnames = pnames;
             else
             {
                 log.Warn($"Corrupt Pnames at: {Path}");

@@ -11,7 +11,7 @@ namespace Helion.Graphics.Fonts
         /// A native font reading subsystem that leverages the standard library to
         /// read fonts.
         /// </summary>
-        public static Optional<Font> Read(byte[] data, float alphaCutoff)
+        public static Font? Read(byte[] data, float alphaCutoff)
         {
             using (System.Drawing.Text.PrivateFontCollection fontCollection = new System.Drawing.Text.PrivateFontCollection())
             {
@@ -26,7 +26,7 @@ namespace Helion.Graphics.Fonts
                     }
 
                     if (fontCollection.Families.Length == 0)
-                        return Optional.Empty;
+                        return null;
 
                     return CreateFont(fontCollection.Families[0], alphaCutoff);
                 }
@@ -35,16 +35,16 @@ namespace Helion.Graphics.Fonts
                 }
             }
 
-            return Optional.Empty;
+            return null;
         }
 
-        private static Optional<Font> CreateFont(System.Drawing.FontFamily fontFamily, float alphaCutoff)
+        private static Font? CreateFont(System.Drawing.FontFamily fontFamily, float alphaCutoff)
         {
             System.Drawing.Font font = new System.Drawing.Font(fontFamily, RenderFontSize);
             // TODO: Use it like so:
             // https://stackoverflow.com/questions/34473139/new-system-drawing-font-code-behind
 
-            return Optional.Empty;
+            return null;
         }
     }
 }

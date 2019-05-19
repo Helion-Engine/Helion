@@ -17,22 +17,22 @@ namespace Helion.Map
         public UpperString Name = "";
 
         // The following are a list of all the components that may be present.
-        public Optional<byte[]> Vertices = Optional.Empty;
-        public Optional<byte[]> Sectors = Optional.Empty;
-        public Optional<byte[]> Sidedefs = Optional.Empty;
-        public Optional<byte[]> Linedefs = Optional.Empty;
-        public Optional<byte[]> Segments = Optional.Empty;
-        public Optional<byte[]> Subsectors = Optional.Empty;
-        public Optional<byte[]> Nodes = Optional.Empty;
-        public Optional<byte[]> Things = Optional.Empty;
-        public Optional<byte[]> Blockmap = Optional.Empty;
-        public Optional<byte[]> Reject = Optional.Empty;
-        public Optional<byte[]> Scripts = Optional.Empty;
-        public Optional<byte[]> Behavior = Optional.Empty;
-        public Optional<byte[]> Dialogue = Optional.Empty;
-        public Optional<byte[]> Textmap = Optional.Empty;
-        public Optional<byte[]> Znodes = Optional.Empty;
-        public Optional<byte[]> Endmap = Optional.Empty;
+        public byte[]? Vertices = null;
+        public byte[]? Sectors = null;
+        public byte[]? Sidedefs = null;
+        public byte[]? Linedefs = null;
+        public byte[]? Segments = null;
+        public byte[]? Subsectors = null;
+        public byte[]? Nodes = null;
+        public byte[]? Things = null;
+        public byte[]? Blockmap = null;
+        public byte[]? Reject = null;
+        public byte[]? Scripts = null;
+        public byte[]? Behavior = null;
+        public byte[]? Dialogue = null;
+        public byte[]? Textmap = null;
+        public byte[]? Znodes = null;
+        public byte[]? Endmap = null;
 
         /// <summary>
         /// Creates a blank collection with no components or name set.
@@ -64,12 +64,10 @@ namespace Helion.Map
         /// <param name="textmap">The entry for this type.</param>
         /// <param name="znodes">The entry for this type.</param>
         /// <param name="endmap">The entry for this type.</param>
-        public MapEntryCollection(UpperString name, Optional<byte[]> vertices, Optional<byte[]> sectors,
-            Optional<byte[]> sidedefs, Optional<byte[]> linedefs, Optional<byte[]> segments,
-            Optional<byte[]> subsectors, Optional<byte[]> nodes, Optional<byte[]> things,
-            Optional<byte[]> blockmap, Optional<byte[]> reject, Optional<byte[]> scripts,
-            Optional<byte[]> behavior, Optional<byte[]> dialogue, Optional<byte[]> textmap,
-            Optional<byte[]> znodes, Optional<byte[]> endmap)
+        public MapEntryCollection(UpperString name, byte[]? vertices, byte[]? sectors,
+            byte[]? sidedefs, byte[]? linedefs, byte[]? segments, byte[]? subsectors, byte[]? nodes,
+            byte[]? things, byte[]? blockmap, byte[]? reject, byte[]? scripts, byte[]? behavior, 
+            byte[]? dialogue, byte[]? textmap, byte[]? znodes, byte[]? endmap)
         {
             Name = name;
             Vertices = vertices;
@@ -94,7 +92,7 @@ namespace Helion.Map
         /// Gets the map type for this collection. The value it returns may be 
         /// invalid so you will have to check against the IsValid property.
         /// </summary>
-        public MapType MapType => Textmap ? MapType.UDMF : (Behavior ? MapType.Hexen : MapType.Doom);
+        public MapType MapType => IsUDMFMap ? MapType.UDMF : (IsHexenMap ? MapType.Hexen : MapType.Doom);
 
         /// <summary>
         /// Checks if this is a well formed map entry collection that is 
@@ -123,16 +121,16 @@ namespace Helion.Map
         /// <summary>
         /// Checks if this is a doom map.
         /// </summary>
-        public bool IsDoomMap => Vertices && Sectors && Sidedefs && Linedefs && Things;
+        public bool IsDoomMap => Vertices != null && Sectors != null && Sidedefs != null && Linedefs != null && Things != null;
 
         /// <summary>
         /// Checks if this is a hexen map.
         /// </summary>
-        public bool IsHexenMap => IsDoomMap && Behavior;
+        public bool IsHexenMap => IsDoomMap && Behavior != null;
 
         /// <summary>
         /// Checks if this is a text map.
         /// </summary>
-        public bool IsUDMFMap => Textmap;
+        public bool IsUDMFMap => Textmap != null;
     }
 }

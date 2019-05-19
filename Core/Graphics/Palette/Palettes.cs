@@ -28,9 +28,9 @@ namespace Helion.Graphics.Palette
                     offset += 3;
                 }
 
-                Optional<Palette> palette = Palette.From(data);
-                if (palette)
-                    defaultPalette = palette.Value;
+                Palette? palette = Palette.From(data);
+                if (palette != null)
+                    defaultPalette = palette;
                 else
                     throw new HelionException("Should never fail to create a default palette");
             }

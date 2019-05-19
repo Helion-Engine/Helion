@@ -26,9 +26,9 @@ namespace Helion.Entries.Types
         public ImageEntry(EntryId id, EntryPath path, byte[] data, ResourceNamespace resourceNamespace) :
             base(id, path, data, resourceNamespace)
         {
-            Optional<Image> image = ImageReader.Read(data, resourceNamespace);
-            if (image)
-                Image = image.Value;
+            Image? image = ImageReader.Read(data, resourceNamespace);
+            if (image != null)
+                Image = image;
             else
             {
                 log.Warn("Unable to read image at {0}", path);

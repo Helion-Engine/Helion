@@ -89,7 +89,7 @@ namespace Helion.Resources.Definitions
         /// <param name="data">The data to read.</param>
         /// <returns>The Texture1/2/3 data, or an empty value if the data is
         /// corrupt.</returns>
-        public Optional<TextureX> From(byte[] data)
+        public TextureX? From(byte[] data)
         {
             List<TextureXImage> definitions = new List<TextureXImage>();
 
@@ -132,7 +132,7 @@ namespace Helion.Resources.Definitions
             }
             catch
             {
-                return Optional.Empty;
+                return null;
             }
         }
     }

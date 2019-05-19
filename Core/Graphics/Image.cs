@@ -54,7 +54,7 @@ namespace Helion.Graphics
         /// ARGB format.</param>
         /// <param name="metadata">Optional metadata. If null is provided, then
         /// a default value will be constructed for this object.</param>
-        public Image(Bitmap bitmap, ImageMetadata metadata = null)
+        public Image(Bitmap bitmap, ImageMetadata? metadata = null)
         {
             Bitmap = EnsureInArgbFormat(bitmap);
 
@@ -84,7 +84,7 @@ namespace Helion.Graphics
         /// <param name="color">The color to fill the image with.</param>
         /// <param name="metadata">Optional metadata. If null is provided, then
         /// a default value will be constructed for this object.</param>
-        public Image(int width, int height, Color color, ImageMetadata metadata = null)
+        public Image(int width, int height, Color color, ImageMetadata? metadata = null)
         {
             Precondition(width > 0, "Trying to make a non-positive width image");
             Precondition(height > 0, "Trying to make a non-positive height image");
@@ -110,7 +110,7 @@ namespace Helion.Graphics
         /// </param>
         /// <param name="metadata">Optional metadata. If null is provided, then
         /// a default value will be constructed for this object.</param>
-        public Image(int width, int height, byte[] argb, ImageMetadata metadata = null)
+        public Image(int width, int height, byte[] argb, ImageMetadata? metadata = null)
         {
             Precondition(width >= 0, "Trying to make a negative width image");
             Precondition(height >= 0, "Trying to make a negative height image");

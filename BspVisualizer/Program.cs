@@ -1,7 +1,6 @@
 ﻿using Helion.BSP.Builder;
 using Helion.Map;
 using Helion.Projects.Impl.Local;
-using Helion.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -65,10 +64,10 @@ namespace BSPVisualizer
                 return;
             }
 
-            Optional<ValidMapEntryCollection> map = project.GetMap(args[1]);
-            if (map)
+            ValidMapEntryCollection? map = project.GetMap(args[1]);
+            if (map != null)
             {
-                StepwiseBspBuilder bspBuilder = new StepwiseBspBuilder(map.Value);
+                StepwiseBspBuilder bspBuilder = new StepwiseBspBuilder(map);
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);

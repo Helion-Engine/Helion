@@ -146,8 +146,14 @@ namespace Helion.Render.OpenGL.Texture
             // TODO
         }
 
-        private void CreateOrUpdateTexture(UpperString name, ResourceNamespace resourceNamespace, Image image)
+        private void CreateOrUpdateTexture(UpperString name, ResourceNamespace resourceNamespace, Image? image)
         {
+            if (image == null)
+            {
+                Fail($"Should never have a null image ({name} in {resourceNamespace}) when creating/updating a texture");
+                return;
+            }
+
             if (textures.Contains(name, resourceNamespace))
                 UpdateTextureData(name, resourceNamespace, image);
             else
@@ -177,7 +183,7 @@ namespace Helion.Render.OpenGL.Texture
             switch (imageEvent.Type)
             {
             case ImageManagerEventType.CreateOrUpdate:
-                CreateOrUpdateTexture(imageEvent.Name, imageEvent.Namespace, imageEvent.Image.Value);
+                CreateOrUpdateTexture(imageEvent.Name, imageEvent.Namespace, imageEvent.Image);
                 break;
             case ImageManagerEventType.Delete:
                 DeleteTexture(imageEvent.Name, imageEvent.Namespace);

@@ -31,8 +31,11 @@ namespace Helion.BSP.Geometry
     {
         // TODO: This should be removed when we turn a ValidMapEntryCollection
         // into a proper pre-processed class.
-        private static IList<Vertex> GetVertices(byte[] data)
+        private static IList<Vertex> GetVertices(byte[]? data)
         {
+            if (data == null)
+                return new List<Vertex>();
+
             int numVertices = data.Length / Vertex.BYTE_SIZE;
             IList<Vertex> vertices = new List<Vertex>();
 
@@ -45,8 +48,11 @@ namespace Helion.BSP.Geometry
 
         // TODO: This should be removed when we turn a ValidMapEntryCollection
         // into a proper pre-processed class.
-        private static IList<LinedefDoom> GetDoomLinedefs(byte[] data)
+        private static IList<LinedefDoom> GetDoomLinedefs(byte[]? data)
         {
+            if (data == null)
+                return new List<LinedefDoom>();
+
             int numLines = data.Length / LinedefDoom.BYTE_SIZE;
             IList<LinedefDoom> linedefs = new List<LinedefDoom>();
 
@@ -68,8 +74,11 @@ namespace Helion.BSP.Geometry
 
         // TODO: This should be removed when we turn a ValidMapEntryCollection
         // into a proper pre-processed class.
-        private static IList<LinedefHexen> GetHexenLinedefs(byte[] data)
+        private static IList<LinedefHexen> GetHexenLinedefs(byte[]? data)
         {
+            if (data == null)
+                return new List<LinedefHexen>();
+
             int numLines = data.Length / LinedefHexen.BYTE_SIZE;
             IList<LinedefHexen> linedefs = new List<LinedefHexen>();
 
@@ -91,8 +100,11 @@ namespace Helion.BSP.Geometry
 
         // TODO: This should be removed when we turn a ValidMapEntryCollection
         // into a proper pre-processed class.
-        private static IList<Sidedef> GetSidedefs(byte[] data)
+        private static IList<Sidedef> GetSidedefs(byte[]? data)
         {
+            if (data == null)
+                return new List<Sidedef>();
+
             int numSides = data.Length / Sidedef.BYTE_SIZE;
             IList<Sidedef> sidedefs = new List<Sidedef>();
 
@@ -115,9 +127,9 @@ namespace Helion.BSP.Geometry
         {
             IList<MapSegment> mapSegments = new List<MapSegment>();
 
-            IList<Vertex> vertices = GetVertices(map.Vertices.Value);
-            IList<LinedefDoom> linedefs = GetDoomLinedefs(map.Linedefs.Value);
-            IList<Sidedef> sidedefs = GetSidedefs(map.Sidedefs.Value);
+            IList<Vertex> vertices = GetVertices(map.Vertices);
+            IList<LinedefDoom> linedefs = GetDoomLinedefs(map.Linedefs);
+            IList<Sidedef> sidedefs = GetSidedefs(map.Sidedefs);
 
             foreach (LinedefDoom line in linedefs)
             {
@@ -148,9 +160,9 @@ namespace Helion.BSP.Geometry
         {
             IList<MapSegment> mapSegments = new List<MapSegment>();
 
-            IList<Vertex> vertices = GetVertices(map.Vertices.Value);
-            IList<LinedefHexen> linedefs = GetHexenLinedefs(map.Linedefs.Value);
-            IList<Sidedef> sidedefs = GetSidedefs(map.Sidedefs.Value);
+            IList<Vertex> vertices = GetVertices(map.Vertices);
+            IList<LinedefHexen> linedefs = GetHexenLinedefs(map.Linedefs);
+            IList<Sidedef> sidedefs = GetSidedefs(map.Sidedefs);
 
             foreach (LinedefHexen line in linedefs)
             {

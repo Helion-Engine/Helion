@@ -13,7 +13,7 @@ namespace Helion.BSP.States.Partition
     public class PartitionStates
     {
         public PartitionState State = PartitionState.Loaded;
-        public BspSegment Splitter = null;
+        public BspSegment? Splitter;
         public int CurrentSegToPartitionIndex = 0;
         public IList<BspSegment> SegsToSplit = new List<BspSegment>();
         public IList<BspSegment> LeftSegments = new List<BspSegment>();

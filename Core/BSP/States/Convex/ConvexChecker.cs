@@ -1,4 +1,5 @@
 ﻿using Helion.BSP.Geometry;
+using Helion.Util;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,10 +90,12 @@ namespace Helion.BSP.States.Convex
         public virtual void Execute()
         {
             Precondition(ValidExecutionState(), $"Called convex checker execution in an invalid state");
+            if (States.CurrentSegment == null)
+                throw new HelionException("Invalid convext checker current segment state");
 
             States.State = ConvexState.Traversing;
 
-            BspSegment currentSeg = States.CurrentSegment.Value;
+            BspSegment currentSeg = States.CurrentSegment;
             Vec2D firstVertex = currentSeg[States.CurrentEndpoint];
             Vec2D secondVertex = currentSeg.Opposite(States.CurrentEndpoint);
             VertexIndex oppositeIndex = currentSeg.OppositeIndex(States.CurrentEndpoint);

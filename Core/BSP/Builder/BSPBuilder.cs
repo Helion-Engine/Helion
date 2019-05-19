@@ -6,6 +6,8 @@ using Helion.BSP.States.Miniseg;
 using Helion.BSP.States.Partition;
 using Helion.BSP.States.Split;
 using Helion.Map;
+using Helion.Util;
+using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
@@ -153,7 +155,9 @@ namespace Helion.BSP
                 break;
 
             case SplitterState.Finished:
-                BspSegment splitter = SplitCalculator.States.BestSplitter.Value;
+                if (SplitCalculator.States.BestSplitter == null)
+                    throw new HelionException("Invalid split calculator state");
+                BspSegment splitter = SplitCalculator.States.BestSplitter;
                 Partitioner.Load(splitter, WorkItems.Peek().Segments);
                 States.SetState(BuilderState.PartitioningSegments);
                 break;
@@ -170,7 +174,9 @@ namespace Helion.BSP
                 break;
 
             case PartitionState.Finished:
-                BspSegment splitter = Partitioner.States.Splitter;
+                if (Partitioner.States.Splitter == null)
+                    throw new NullReferenceException("Unexpected null partition splitter");
+                BspSegment? splitter = Partitioner.States.Splitter;
                 MinisegCreator.Load(splitter, Partitioner.States.CollinearVertices);
                 States.SetState(BuilderState.GeneratingMinisegs);
                 break;
@@ -197,8 +203,10 @@ namespace Helion.BSP
             string path = WorkItems.Peek().BranchPath;
 
             BspNode parentNode = NodeStack.Pop();
-            parentNode.SetChildren(new BspNode(), new BspNode());
-            parentNode.Splitter = SplitCalculator.States.BestSplitter.Value;
+            BspNode leftChild = new BspNode();
+            BspNode rightChild = new BspNode();
+            parentNode.SetChildren(leftChild, rightChild);
+            parentNode.Splitter = SplitCalculator.States.BestSplitter;
 
             WorkItems.Pop();
 
@@ -213,8 +221,8 @@ namespace Helion.BSP
 
             WorkItems.Push(new BspWorkItem(right, path + "R"));
             WorkItems.Push(new BspWorkItem(left, path + "L"));
-            NodeStack.Push(parentNode.Right);
-            NodeStack.Push(parentNode.Left);
+            NodeStack.Push(rightChild);
+            NodeStack.Push(leftChild);
 
             States.SetState(BuilderState.CheckingConvexity);
         }

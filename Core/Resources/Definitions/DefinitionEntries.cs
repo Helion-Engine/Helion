@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Helion.Resources.Definitions
 {
@@ -8,7 +7,7 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
-        public Optional<Pnames> Pnames = Optional.Empty;
+        public Pnames? Pnames;
         public List<TextureX> TextureXList = new List<TextureX>();
     }
 }

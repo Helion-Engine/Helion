@@ -64,7 +64,7 @@ namespace Helion.Graphics.Palette
         /// <param name="fillIndex">The index to fill the image with.</param>
         /// <param name="metadata">Optional metadata. If null is provided, then
         /// a default value will be constructed for this object.</param>
-        public PaletteImage(int width, int height, ushort fillIndex, ImageMetadata metadata = null)
+        public PaletteImage(int width, int height, ushort fillIndex, ImageMetadata? metadata = null)
         {
             Precondition(width >= 1, "Palette image width should be positive");
             Precondition(height >= 1, "Palette image height be positive");
@@ -95,7 +95,7 @@ namespace Helion.Graphics.Palette
         /// equal to the width times the height.</param>
         /// <param name="metadata">Optional metadata. If null is provided, then
         /// a default value will be constructed for this object.</param>
-        public PaletteImage(int width, int height, ushort[] indices, ImageMetadata metadata = null)
+        public PaletteImage(int width, int height, ushort[] indices, ImageMetadata? metadata = null)
         {
             Precondition(width * height == indices.Length, "Palette image indices and width/height mismatch");
 

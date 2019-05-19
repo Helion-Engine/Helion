@@ -38,9 +38,9 @@ namespace Helion.Entries.Tree.Archive
         /// <param name="name">The name of the entry to get.</param>
         /// <returns>The entry if it exists, or an empty value otherwise.
         /// </returns>
-        public Optional<Entry> GetByName(UpperString name)
+        public Entry? GetByName(UpperString name)
         {
-            return nameToEntry.TryGetValue(name, out Entry entry) ? entry : Optional<Entry>.Empty();
+            return nameToEntry.TryGetValue(name, out Entry entry) ? entry : null;
         }
 
         /// <summary>
@@ -59,14 +59,14 @@ namespace Helion.Entries.Tree.Archive
         /// an extension).</param>
         /// <returns>The optional value with the entry and casted type if both
         /// conditions are met, an empty value otherwise.</returns>
-        public Optional<T> GetByNameType<T>(UpperString name) where T : Entry
+        public T? GetByNameType<T>(UpperString name) where T : Entry
         {
             Precondition(typeof(T) != typeof(Entry), "Should be using a specialization class, not the abstract parent");
 
             if (nameToEntry.TryGetValue(name, out Entry entry))
                 if (entry is T entryOfType)
                     return entryOfType;
-            return Optional.Empty;
+            return null;
         }
 
         public abstract ArchiveType GetArchiveType();

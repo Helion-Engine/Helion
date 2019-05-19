@@ -34,9 +34,9 @@ namespace Helion.Entries.Types
 
         private void HandleFlat()
         {
-            Optional<PaletteImage> image = PaletteReaders.ReadFlat(Data, Namespace);
-            if (image)
-                PaletteImage = image.Value;
+            PaletteImage? image = PaletteReaders.ReadFlat(Data, Namespace);
+            if (image != null)
+                PaletteImage = image;
             else
             {
                 log.Warn("Corrupt flat palette image at {0}", Path);
@@ -46,9 +46,9 @@ namespace Helion.Entries.Types
 
         private void HandleColumn()
         {
-            Optional<PaletteImage> image = PaletteReaders.ReadColumn(Data, Namespace);
-            if (image)
-                PaletteImage = image.Value;
+            PaletteImage? image = PaletteReaders.ReadColumn(Data, Namespace);
+            if (image != null)
+                PaletteImage = image;
             else
             {
                 log.Warn("Corrupt column palette image at {0}", Path);

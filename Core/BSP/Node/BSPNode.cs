@@ -6,10 +6,10 @@ namespace Helion.BSP.Node
 {
     public class BspNode
     {
-        public BspNode Left;
-        public BspNode Right;
-        public BspSegment Splitter;
-        public IList<SubsectorEdge> ClockwiseEdges;
+        public BspNode? Left;
+        public BspNode? Right;
+        public BspSegment? Splitter;
+        public IList<SubsectorEdge> ClockwiseEdges = new List<SubsectorEdge>();
 
         public bool IsParent => Left != null;
         public bool IsSubsector => ClockwiseEdges.Count > 0;
@@ -41,23 +41,27 @@ namespace Helion.BSP.Node
 
         private void HandleLeftDegenerateCase()
         {
-            ClockwiseEdges = Right.ClockwiseEdges;
+            if (Right != null)
+                ClockwiseEdges = Right.ClockwiseEdges;
             ClearChildren();
         }
 
         private void HandleRightDegenerateCase()
         {
-            ClockwiseEdges = Left.ClockwiseEdges;
+            if (Left != null)
+                ClockwiseEdges = Left.ClockwiseEdges;
             ClearChildren();
         }
 
         public void StripDegenerateNodes()
         {
-            if (!IsParent)
+            if (Left == null || Right == null)
                 return;
 
-            Left.StripDegenerateNodes();
-            Right.StripDegenerateNodes();
+            if (Left != null)
+                Left.StripDegenerateNodes();
+            if (Right != null)
+                Right.StripDegenerateNodes();
 
             if (Left.Degenerate && !Right.Degenerate)
                 HandleLeftDegenerateCase();
@@ -75,7 +79,7 @@ namespace Helion.BSP.Node
 
         public int CalculateSubsectorCount()
         {
-            if (IsParent)
+            if (Left != null && Right != null)
                 return Left.CalculateSubsectorCount() + Right.CalculateSubsectorCount();
             else
                 return IsSubsector ? 1 : 0;
@@ -83,7 +87,7 @@ namespace Helion.BSP.Node
 
         public int CalculateParentNodeCount()
         {
-            if (IsParent)
+            if (Left != null && Right != null)
                 return 1 + Left.CalculateSubsectorCount() + Right.CalculateSubsectorCount();
             else
                 return 0;
