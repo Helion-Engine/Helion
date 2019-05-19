@@ -1,8 +1,9 @@
 ﻿using Helion.BSP.Builder;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BSPVisualizer
+namespace BspVisualizer
 {
     public partial class Form1 : Form
     {
@@ -71,6 +72,11 @@ namespace BSPVisualizer
                         cyanBrush, bspBuilder.States.Next.ToString());
         }
 
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            canvasPanel.Invalidate();
+        }
+
         private void Panel1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -80,6 +86,56 @@ namespace BSPVisualizer
             PaintShadowLines(g, windowBounds);
             PaintCurrentState(g, windowBounds);
             PaintTextInfo(g, windowBounds);
+        }
+
+        void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            bool consumedKey = true;
+            bool needsRepaint = true;
+
+            switch (e.KeyChar)
+            {
+                case 'w':
+                case 'W':
+                    MoveCameraUp();
+                    break;
+                case 'a':
+                case 'A':
+                    MoveCameraLeft();
+                    break;
+                case 's':
+                case 'S':
+                    MoveCameraDown();
+                    break;
+                case 'd':
+                case 'D':
+                    MoveCameraRight();
+                    break;
+                case '-':
+                    ZoomOut();
+                    break;
+                case '=':
+                    ZoomIn();
+                    break;
+                case 'n':
+                case 'N':
+                    bspBuilder.ExecuteMinorStep();
+                    break;
+                case 'm':
+                case 'M':
+                    bspBuilder.ExecuteMajorStep();
+                    break;
+                default:
+                    needsRepaint = false;
+                    consumedKey = false;
+                    break;
+            }
+
+            if (consumedKey)
+                e.Handled = false;
+
+            if (needsRepaint)
+                canvasPanel.Invalidate();
         }
     }
 }

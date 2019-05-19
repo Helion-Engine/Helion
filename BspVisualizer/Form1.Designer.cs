@@ -1,4 +1,4 @@
-﻿namespace BSPVisualizer
+﻿namespace BspVisualizer
 {
     partial class Form1
     {
@@ -51,6 +51,9 @@
             this.Controls.Add(this.canvasPanel);
             this.Name = "Form1";
             this.Text = "BSP Visualizer";
+            this.Resize += Form1_Resize;
+            this.KeyPreview = true;
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Form1_KeyPress);
             this.ResumeLayout(false);
             this.PerformLayout();
 
