@@ -55,13 +55,13 @@ namespace Helion.BSP.Node
 
         public void StripDegenerateNodes()
         {
-            if (Left == null || Right == null)
-                return;
-
             if (Left != null)
                 Left.StripDegenerateNodes();
             if (Right != null)
                 Right.StripDegenerateNodes();
+
+            if (Left == null || Right == null)
+                return;
 
             if (Left.Degenerate && !Right.Degenerate)
                 HandleLeftDegenerateCase();

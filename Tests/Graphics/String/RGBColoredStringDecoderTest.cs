@@ -15,8 +15,10 @@ namespace Helion.Test.Graphics.String
             int startIndex = 0;
             int endIndex = 0;
 
-            foreach ((string str, Color color) in expectedColors)
+            foreach (var stringColorPair in expectedColors)
             {
+                (string str, Color color) = stringColorPair;
+
                 endIndex = startIndex + str.Length;
 
                 for (int i = startIndex; i < endIndex; i++)

@@ -52,8 +52,9 @@ namespace Helion.BSP.States.Miniseg
         // which is bad design unless we have to for optimization reasons.
         public void NotifyDoneAddingOneSidedSegments()
         {
-            foreach ((VertexIndex index, Junction junction) in vertexToJunction)
+            foreach (var vertexJunctionPair in vertexToJunction)
             {
+                (VertexIndex index, Junction junction) = vertexJunctionPair;
                 if (junction.HasUnexpectedSegCount())
                     log.Warn("BSP junction at index {0} has wrong amount of one-sided lines, BSP tree likely to be malformed", index);
 

@@ -15,12 +15,12 @@
     public class BuilderStates
     {
         public BuilderState Previous = BuilderState.NotStarted;
-        public BuilderState Next = BuilderState.NotStarted;
+        public BuilderState Current = BuilderState.NotStarted;
 
         public void SetState(BuilderState state)
         {
-            Previous = Next;
-            Next = state;
+            Previous = Current;
+            Current = state;
         }
     }
 }

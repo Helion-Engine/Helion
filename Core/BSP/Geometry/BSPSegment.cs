@@ -45,5 +45,10 @@ namespace Helion.BSP.Geometry
         public Endpoint EndpointFrom(VertexIndex index) => index == StartIndex ? Endpoint.Start : Endpoint.End;
         public VertexIndex IndexFrom(Endpoint endpoint) => endpoint == Endpoint.Start ? StartIndex : EndIndex;
         public VertexIndex OppositeIndex(Endpoint endpoint) => endpoint == Endpoint.Start ? EndIndex : StartIndex;
+
+        public override string ToString()
+        {
+            return $"({Start}) -> ({End}) [front={FrontSectorId}, back={BackSectorId}, lineId={LineId}, oneSided={OneSided}]";
+        }
     }
 }

@@ -1,44 +1,54 @@
 ﻿using Helion.Util.Geometry;
 using System;
+using System.Drawing;
 
 namespace BspVisualizer
 {
     public partial class Form1
     {
-        private static double MaxMapUnitsPerPixel = 2048.0;
-        private static double MinMapUnitsPerPixel = 1.0 / MaxMapUnitsPerPixel;
+        private static float MovementFactor = 64.0f;
+        private static float MaxMapUnitsPerPixel = 2048.0f;
+        private static float MinMapUnitsPerPixel = 1.0f / MaxMapUnitsPerPixel;
 
-        private Vec2I camera = new Vec2I(0, 0);
-        private double mapUnitsPerPixel = 16.0;
+        /// <summary>
+        /// Takes a point in the world coordinates and transforms it to the
+        /// window coordinates.
+        /// </summary>
+        /// <param name="point">The point to transform.</param>
+        /// <returns>The window coordinate for the point.</returns>
+        private Vec2I TransformPoint(Vec2D vertex)
+        {
+            return new Vec2I((int)((vertex.X - camera.X) * zoom), (int)((-vertex.Y + camera.Y) * zoom));
+        }
 
         private void MoveCameraUp()
         {
-            camera.Y += (int)(mapUnitsPerPixel / 2);
+            camera.Y += (int)(MovementFactor / zoom);
         }
 
         private void MoveCameraLeft()
         {
-            camera.X -= (int)(mapUnitsPerPixel / 2);
+            camera.X -= (int)(MovementFactor / zoom);
         }
 
         private void MoveCameraDown()
         {
-            camera.Y -= (int)(mapUnitsPerPixel / 2);
+            camera.Y -= (int)(MovementFactor / zoom);
         }
 
         private void MoveCameraRight()
         {
-            camera.X += (int)(mapUnitsPerPixel / 2);
+            camera.X += (int)(MovementFactor / zoom);
         }
 
         private void ZoomOut()
         {
-            mapUnitsPerPixel = Math.Clamp(mapUnitsPerPixel * 2, MinMapUnitsPerPixel, MaxMapUnitsPerPixel);
+            zoom = Math.Clamp(zoom / 2, MinMapUnitsPerPixel, MaxMapUnitsPerPixel);
         }
 
         private void ZoomIn()
         {
-            mapUnitsPerPixel = Math.Clamp(mapUnitsPerPixel / 2, MinMapUnitsPerPixel, MaxMapUnitsPerPixel);
+            zoom = Math.Clamp(zoom * 2, MinMapUnitsPerPixel, MaxMapUnitsPerPixel);
         }
     }
 }

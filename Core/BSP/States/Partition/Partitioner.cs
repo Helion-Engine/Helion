@@ -211,8 +211,8 @@ namespace Helion.BSP.States.Partition
             BspSegment segmentToSplit = States.SegsToSplit[States.CurrentSegToPartitionIndex];
             States.CurrentSegToPartitionIndex++;
 
-            bool moreSplitsToDo = (States.CurrentSegToPartitionIndex >= States.SegsToSplit.Count);
-            States.State = (moreSplitsToDo ? PartitionState.Working : PartitionState.Finished);
+            bool doneAllSplitting = (States.CurrentSegToPartitionIndex >= States.SegsToSplit.Count);
+            States.State = (doneAllSplitting ? PartitionState.Finished : PartitionState.Working);
 
             if (ReferenceEquals(segmentToSplit, splitter))
             {

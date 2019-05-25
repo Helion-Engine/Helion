@@ -120,9 +120,9 @@ namespace Helion.Util.Container
 
         public IEnumerator<HashTableEntry<K1, K2, V>> GetEnumerator()
         {
-            foreach ((K1 firstKey, var map) in table)
-                foreach ((K2 secondKey, V value) in map)
-                    yield return new HashTableEntry<K1, K2, V>(firstKey, secondKey, value);
+            foreach (var firstKeyMap in table)
+                foreach (var secondKeyValue in firstKeyMap.Value)
+                    yield return new HashTableEntry<K1, K2, V>(firstKeyMap.Key, secondKeyValue.Key, secondKeyValue.Value);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

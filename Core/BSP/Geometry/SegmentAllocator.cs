@@ -13,8 +13,11 @@ namespace Helion.BSP.Geometry
         private readonly IList<BspSegment> segments = new List<BspSegment>();
         private readonly SegmentTable segmentTable = new SegmentTable();
 
+        public int Count => segments.Count;
+
         public SegmentAllocator(VertexAllocator allocator) => vertexAllocator = allocator;
 
+        public BspSegment this[int segIndex] => segments[segIndex];
         public BspSegment this[SegmentIndex segIndex] => segments[segIndex.Index];
 
         private BspSegment CreateNewSegment(VertexIndex startIndex, VertexIndex endIndex, 

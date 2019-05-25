@@ -18,21 +18,21 @@ namespace Helion.BSP
         protected const int RecursiveOverflowAmount = 10000;
 
         protected BspConfig Config;
-        protected VertexAllocator VertexAllocator;
-        protected SegmentAllocator SegmentAllocator;
         protected JunctionClassifier junctionClassifier;
         protected IList<SectorLine> lineIdToSector = new List<SectorLine>();
         protected Stack<BspWorkItem> WorkItems = new Stack<BspWorkItem>();
         protected Stack<BspNode> NodeStack = new Stack<BspNode>();
         protected BspNode Root = new BspNode();
         public BuilderStates States = new BuilderStates();
+        public VertexAllocator VertexAllocator;
+        public SegmentAllocator SegmentAllocator;
         public ConvexChecker ConvexChecker = new ConvexChecker();
         public SplitCalculator SplitCalculator;
         public Partitioner Partitioner;
         public JunctionClassifier JunctionClassifier = new JunctionClassifier();
         public MinisegCreator MinisegCreator;
 
-        public bool Done => States.Next == BuilderState.Complete;
+        public bool Done => States.Current == BuilderState.Complete;
 
         protected BspBuilder(ValidMapEntryCollection map) : this(map, new BspConfig())
         {
@@ -229,10 +229,7 @@ namespace Helion.BSP
 
         protected void Execute()
         {
-            // TODO: Is this needed anymore now that we use .SetState()?
-            States.Next = States.Previous;
-
-            switch (States.Next)
+            switch (States.Current)
             {
             case BuilderState.NotStarted:
                 StartBuilding();
