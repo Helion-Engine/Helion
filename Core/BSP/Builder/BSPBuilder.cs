@@ -18,7 +18,6 @@ namespace Helion.BSP
         protected const int RecursiveOverflowAmount = 10000;
 
         protected BspConfig Config;
-        protected JunctionClassifier junctionClassifier;
         protected IList<SectorLine> lineIdToSector = new List<SectorLine>();
         protected Stack<BspWorkItem> WorkItems = new Stack<BspWorkItem>();
         protected Stack<BspNode> NodeStack = new Stack<BspNode>();
@@ -43,10 +42,9 @@ namespace Helion.BSP
             Config = config;
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
             SegmentAllocator = new SegmentAllocator(VertexAllocator);
-            junctionClassifier = new JunctionClassifier();
             SplitCalculator = new SplitCalculator(config);
             Partitioner = new Partitioner(config, VertexAllocator, SegmentAllocator, JunctionClassifier);
-            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator);
+            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, JunctionClassifier);
 
             PopulateAllocatorsFrom(map);
             WorkItems.Push(new BspWorkItem(SegmentAllocator.ToList()));
@@ -84,7 +82,7 @@ namespace Helion.BSP
             // every single line. For a very degenerate map, this could even be
             // O(n^2). I am however not opposed to doing this if someone can 
             // find a clean way to do it and show the performance hit is okay.
-            junctionClassifier.NotifyDoneAddingOneSidedSegments();
+            JunctionClassifier.NotifyDoneAddingOneSidedSegments();
         }
 
         protected void AddConvexTraversalToTopNode()
@@ -210,7 +208,7 @@ namespace Helion.BSP
 
             WorkItems.Pop();
 
-            // We arbitrarily decided to build left first, so left is stacked after.
+            // We arbitrarily decide to build left first, so left is stacked after.
             IList<BspSegment> right = Partitioner.States.RightSegments;
             IList<BspSegment> left = Partitioner.States.LeftSegments;
             foreach (BspSegment segment in MinisegCreator.States.Minisegs)

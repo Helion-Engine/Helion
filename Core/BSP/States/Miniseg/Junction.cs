@@ -88,9 +88,6 @@ namespace Helion.BSP.States.Miniseg
             return Wedges.Where(w => w.Between(point)).Any();
         }
 
-        public bool HasUnexpectedSegCount()
-        {
-            return InboundSegments.Count != OutboundSegments.Count;
-        }
+        public bool HasUnexpectedSegCount() => InboundSegments.Count != OutboundSegments.Count;
     }
 }

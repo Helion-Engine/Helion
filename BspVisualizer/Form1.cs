@@ -67,6 +67,7 @@ namespace BspVisualizer
             PaintShadowLines(g);
             PaintCurrentWorkItem(g);
             PaintCurrentState(g, windowBounds);
+            PaintVertices(g);
             PaintTextInfo(g, windowBounds);
         }
 
@@ -77,40 +78,44 @@ namespace BspVisualizer
 
             switch (e.KeyChar)
             {
-                case 'w':
-                case 'W':
-                    MoveCameraUp();
-                    break;
-                case 'a':
-                case 'A':
-                    MoveCameraLeft();
-                    break;
-                case 's':
-                case 'S':
-                    MoveCameraDown();
-                    break;
-                case 'd':
-                case 'D':
-                    MoveCameraRight();
-                    break;
-                case '-':
-                    ZoomOut();
-                    break;
-                case '=':
-                    ZoomIn();
-                    break;
-                case 'n':
-                case 'N':
-                    bspBuilder.ExecuteMinorStep();
-                    break;
-                case 'm':
-                case 'M':
-                    bspBuilder.ExecuteMajorStep();
-                    break;
-                default:
-                    needsRepaint = false;
-                    consumedKey = false;
-                    break;
+            case 'w':
+            case 'W':
+                MoveCameraUp();
+                break;
+            case 'a':
+            case 'A':
+                MoveCameraLeft();
+                break;
+            case 's':
+            case 'S':
+                MoveCameraDown();
+                break;
+            case 'd':
+            case 'D':
+                MoveCameraRight();
+                break;
+            case '-':
+                ZoomOut();
+                break;
+            case '=':
+                ZoomIn();
+                break;
+            case 'b':
+            case 'B':
+                bspBuilder.ExecuteMinorStep();
+                break;
+            case 'n':
+            case 'N':
+                bspBuilder.ExecuteMajorStep();
+                break;
+            case 'm':
+            case 'M':
+                bspBuilder.ExecuteFullCycleStep();
+                break;
+            default:
+                needsRepaint = false;
+                consumedKey = false;
+                break;
             }
 
             if (consumedKey)

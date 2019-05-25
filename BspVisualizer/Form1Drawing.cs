@@ -1,10 +1,10 @@
 ﻿using Helion.BSP.Geometry;
 using Helion.BSP.States;
 using Helion.BSP.States.Convex;
+using Helion.BSP.States.Miniseg;
 using Helion.BSP.States.Partition;
 using Helion.BSP.States.Split;
 using Helion.Util.Geometry;
-using System;
 using System.Drawing;
 
 namespace BspVisualizer
@@ -24,11 +24,26 @@ namespace BspVisualizer
             g.DrawLine(pen, start.X, start.Y, end.X, end.Y);
         }
 
+        private void DrawVertex(Graphics g, Brush brush, Vec2D vertex)
+        {
+            Vec2I point = TransformPoint(vertex);
+
+            // When we're zoomed out, points can become very dominant on the
+            // screen, so we want smaller ones when zoomed out.
+            if (zoom < 0.125f)
+                g.FillRectangle(brush, new Rectangle(new Point(point.X, point.Y), new Size(1, 1)));
+            else
+            {
+                Size size = (zoom < 0.25f ? new Size(2, 2) : new Size(3, 3));
+                g.FillRectangle(brush, new Rectangle(new Point(point.X - 1, point.Y - 1), size));
+            }
+        }
+
         private void AddMajorStateInfo()
         {
             bottomLeftCornerDrawer.Add(
-                Tuple.Create(Color.White, "State: "),
-                Tuple.Create(Color.Cyan, bspBuilder.States.Current.ToString())
+                Color.White, "State: ", 
+                Color.Cyan, bspBuilder.States.Current.ToString()
             );
         }
 
@@ -52,6 +67,12 @@ namespace BspVisualizer
                 DrawSegment(g, seg.OneSided ? whitePen : grayPen, seg);
         }
 
+        private void PaintVertices(Graphics g)
+        {
+            foreach (Vec2D vertex in bspBuilder.VertexAllocator)
+                DrawVertex(g, cyanBrush, vertex);
+        }
+
         private void PaintTextInfo(Graphics g, Rectangle windowBounds)
         {
             bottomLeftCornerDrawer.DrawAndClear(g, windowBounds, defaultFont);
@@ -64,9 +85,6 @@ namespace BspVisualizer
             case BuilderState.CheckingConvexity:
                 DrawCheckingConvexity(g);
                 break;
-            case BuilderState.CreatingLeafNode:
-                DrawCreatingLeafNode(g);
-                break;
             case BuilderState.FindingSplitter:
                 DrawFindingSplitter(g);
                 break;
@@ -76,10 +94,9 @@ namespace BspVisualizer
             case BuilderState.GeneratingMinisegs:
                 DrawGeneratingMinisegs(g);
                 break;
-            case BuilderState.FinishingSplit:
-                DrawFinishingSplit(g);
-                break;
             case BuilderState.NotStarted:
+            case BuilderState.CreatingLeafNode:
+            case BuilderState.FinishingSplit:
             case BuilderState.Complete:
             default:
                 break;
@@ -95,26 +112,27 @@ namespace BspVisualizer
             if (states.CurrentSegment != null)
                 DrawSegment(g, cyanPen, states.CurrentSegment);
 
-            bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Substate: "), Tuple.Create(Color.Cyan, states.State.ToString()));
-            bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, $"Visited {states.SegsVisited} / {states.TotalSegs} segs"));
-            bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Rotation: "), Tuple.Create(Color.Aqua, states.Rotation.ToString()));
-        }
-
-        private void DrawCreatingLeafNode(Graphics g)
-        {
-            // TODO
+            bottomLeftCornerDrawer.Add(Color.White, "Substate: ", Color.Cyan, states.State.ToString());
+            bottomLeftCornerDrawer.Add(Color.White, $"Visited {states.SegsVisited} / {states.TotalSegs} segs");
+            bottomLeftCornerDrawer.Add(Color.White, "Rotation: ", Color.Aqua, states.Rotation.ToString());
         }
 
         private void DrawFindingSplitter(Graphics g)
         {
             SplitterStates states = bspBuilder.SplitCalculator.States;
 
-            bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Substate: "), Tuple.Create(Color.Cyan, states.State.ToString()));
+            bottomLeftCornerDrawer.Add(Color.White, "Substate: ", Color.Cyan, states.State.ToString());
 
             if (states.BestSplitter != null)
             {
-                bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Best segment score: "), Tuple.Create(Color.LightGreen, states.BestSegScore.ToString()));
-                bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Best segment: "), Tuple.Create(Color.Cyan, states.BestSplitter.ToString()));
+                bottomLeftCornerDrawer.Add(
+                    Color.White, "Best segment score: ", 
+                    Color.LightGreen, states.BestSegScore.ToString()
+                );
+                bottomLeftCornerDrawer.Add(
+                    Color.White, "Best segment: ", 
+                    Color.Cyan, states.BestSplitter.ToString()
+                );
 
                 DrawSegment(g, redPen, states.BestSplitter);
             }
@@ -123,10 +141,13 @@ namespace BspVisualizer
             {
                 BspSegment currentSegment = states.Segments[states.CurrentSegmentIndex];
 
-                bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Current segment score: "), Tuple.Create(Color.LightGreen, states.CurrentSegScore.ToString()));
                 bottomLeftCornerDrawer.Add(
-                    Tuple.Create(Color.White, $"Current segment ({states.CurrentSegmentIndex} / {states.Segments.Count}): "),
-                    Tuple.Create(Color.Cyan, currentSegment.ToString())
+                    Color.White, "Current segment score: ", 
+                    Color.LightGreen, states.CurrentSegScore.ToString()
+                );
+                bottomLeftCornerDrawer.Add(
+                    Color.White, $"Current segment ({states.CurrentSegmentIndex} / {states.Segments.Count}): ",
+                    Color.Cyan, currentSegment.ToString()
                 );
 
                 DrawSegment(g, cyanPen, currentSegment);
@@ -137,7 +158,7 @@ namespace BspVisualizer
         {
             PartitionStates states = bspBuilder.Partitioner.States;
 
-            bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, "Substate: "), Tuple.Create(Color.Cyan, states.State.ToString()));
+            bottomLeftCornerDrawer.Add(Color.White, "Substate: ", Color.Cyan, states.State.ToString());
 
             foreach (BspSegment leftSegment in states.LeftSegments)
                 DrawSegment(g, bluePen, leftSegment);
@@ -152,18 +173,50 @@ namespace BspVisualizer
                 BspSegment currentSegment = states.SegsToSplit[states.CurrentSegToPartitionIndex];
                 DrawSegment(g, cyanPen, currentSegment);
 
-                bottomLeftCornerDrawer.Add(Tuple.Create(Color.White, $"Segment {states.CurrentSegToPartitionIndex} / {states.SegsToSplit.Count}"));
+                bottomLeftCornerDrawer.Add(Color.White, $"Segment {states.CurrentSegToPartitionIndex} / {states.SegsToSplit.Count}");
             }
         }
 
         private void DrawGeneratingMinisegs(Graphics g)
         {
-            // TODO
-        }
+            MinisegStates states = bspBuilder.MinisegCreator.States;
 
-        private void DrawFinishingSplit(Graphics g)
-        {
-            // TODO
+            bottomLeftCornerDrawer.Add(
+                Color.White, "Substate: ", 
+                Color.Cyan, states.State.ToString()
+            );
+            bottomLeftCornerDrawer.Add(
+                Color.White, "In void: ", 
+                Color.LightGreen, states.VoidStatus.ToString()
+            );
+
+            foreach (BspSegment miniseg in states.Minisegs)
+                DrawSegment(g, redPen, miniseg);
+
+            if (states.CurrentVertexListIndex + 1 < states.Vertices.Count)
+            {
+                VertexSplitterTime firstVertexTime = states.Vertices[states.CurrentVertexListIndex];
+                Vec2D firstVertex = bspBuilder.VertexAllocator[firstVertexTime.Index];
+
+                VertexSplitterTime secondVertexTime = states.Vertices[states.CurrentVertexListIndex + 1];
+                Vec2D secondVertex = bspBuilder.VertexAllocator[secondVertexTime.Index];
+
+                // The corner drawers are a stack that builds upwards from the
+                // bottom, so the order to drawing them is reversed.
+                bottomLeftCornerDrawer.Add(
+                    Color.White, "Second vertex: ",
+                    Color.LightGreen, secondVertex.ToString(),
+                    Color.White, "at t = ",
+                    Color.Cyan, secondVertexTime.tSplitter.ToString()
+                );
+
+                bottomLeftCornerDrawer.Add(
+                    Color.White, "First vertex: ",
+                    Color.LightGreen, firstVertex.ToString(),
+                    Color.White, "at t = ",
+                    Color.Cyan, firstVertexTime.tSplitter.ToString()
+                );
+            }
         }
     }
 }

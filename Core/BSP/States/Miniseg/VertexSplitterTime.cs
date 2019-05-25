@@ -1,8 +1,9 @@
 ﻿using Helion.BSP.Geometry;
+using System;
 
 namespace Helion.BSP.States.Miniseg
 {
-    public class VertexSplitterTime
+    public class VertexSplitterTime : IComparable<VertexSplitterTime>
     {
         public VertexIndex Index;
         public double tSplitter;
@@ -13,14 +14,6 @@ namespace Helion.BSP.States.Miniseg
             tSplitter = splitterTime;
         }
 
-        public static bool operator <(VertexSplitterTime first, VertexSplitterTime second)
-        {
-            return first.tSplitter < second.tSplitter;
-        }
-
-        public static bool operator >(VertexSplitterTime first, VertexSplitterTime second)
-        {
-            return first.tSplitter > second.tSplitter;
-        }
+        public int CompareTo(VertexSplitterTime other) => tSplitter.CompareTo(other.tSplitter);
     }
 }

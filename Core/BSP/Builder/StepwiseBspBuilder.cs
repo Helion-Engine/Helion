@@ -15,6 +15,21 @@ namespace Helion.BSP.Builder
         {
         }
 
+        public void ExecuteFullCycleStep()
+        {
+            if (Done)
+                return;
+
+            if (States.Current == BuilderState.CheckingConvexity)
+                ExecuteMajorStep();
+
+            while (States.Current != BuilderState.CheckingConvexity && !Done)
+                ExecuteMajorStep();
+        }
+
+        /// <summary>
+        /// Advances to the next major state.
+        /// </summary>
         public void ExecuteMajorStep()
         {
             if (Done)
@@ -29,6 +44,9 @@ namespace Helion.BSP.Builder
             }
         }
 
+        /// <summary>
+        /// Advances the smallest atomic unit possible.
+        /// </summary>
         public void ExecuteMinorStep()
         {
             if (Done)

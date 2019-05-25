@@ -1,4 +1,5 @@
-﻿using Helion.Util.Geometry;
+﻿using Helion.Util;
+using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -64,11 +65,30 @@ namespace BspVisualizer
             });
         }
 
-        // TODO: Convert to accepting objects[] so we can have more condensed code!
-        public void Add(params Tuple<Color, string>[] coloredMessages)
+        public void Add(params object[] coloredMessages)
         {
+            if (coloredMessages.Length % 2 != 0)
+                throw new HelionException("Expecting an even sequence of color/string objects");
+
             List<Tuple<Color, string>> messageComponents = new List<Tuple<Color, string>>();
-            Array.ForEach(coloredMessages, messageComponents.Add);
+
+            for (int i = 0; i < coloredMessages.Length; i += 2)
+            {
+                // Unfortunately nullable types and structs are not friendly,
+                // so this needs to be done instead. We just want the program
+                // to die if the developer ever makes a mistake that causes it
+                // to fail here.
+                if (!(coloredMessages[i] is Color))
+                    throw new HelionException("Expecting a color as the first type of the colored message pair");
+                if (!(coloredMessages[i + 1] is string))
+                    throw new HelionException("Expecting a string as the second type of the colored message pair");
+
+                Color color = (Color)coloredMessages[i];
+                string message = (string)coloredMessages[i + 1];
+
+                messageComponents.Add(Tuple.Create(color, message));
+            }
+
             messageLists.Add(messageComponents);
         }
 

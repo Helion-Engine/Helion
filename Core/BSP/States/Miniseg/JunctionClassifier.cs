@@ -66,11 +66,15 @@ namespace Helion.BSP.States.Miniseg
         {
             VertexIndex middleVertexIndex = inboundSegment.EndIndex;
             Precondition(outboundSegment.StartIndex == middleVertexIndex, "Adding split junction where inbound/outbound segs are not connected");
+            Precondition(!vertexToJunction.ContainsKey(middleVertexIndex), "When creating a split, the middle vertex shouldn't already exist as a junction");
 
-            // Because we will be calling this in the middle of the BSP 
-            // algorithm, we want to dynamically add them as we go. For 
-            // that reason we will invoke the junction creator directly.
-            Junction junction = vertexToJunction[middleVertexIndex];
+            // We create new junctions because this function is called from a
+            // newly created split. This means the middle vertex is new and the
+            // junction cannot exist by virtue of the pivot point never having
+            // existed.
+            Junction junction = new Junction();
+            vertexToJunction[middleVertexIndex] = junction;
+
             junction.InboundSegments.Add(inboundSegment);
             junction.OutboundSegments.Add(outboundSegment);
             junction.AddWedge(inboundSegment, outboundSegment);
@@ -79,7 +83,7 @@ namespace Helion.BSP.States.Miniseg
         public bool CheckCrossingVoid(VertexIndex firstIndex, Vec2D secondVertex)
         {
             if (vertexToJunction.TryGetValue(firstIndex, out Junction junction))
-                return junction.BetweenWedge(secondVertex);
+                return !junction.BetweenWedge(secondVertex);
             return false;
         }
     }

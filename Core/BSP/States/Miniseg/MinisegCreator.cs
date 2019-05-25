@@ -11,14 +11,16 @@ namespace Helion.BSP.States.Miniseg
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         public MinisegStates States = new MinisegStates();
-        public JunctionClassifier JunctionClassifier = new JunctionClassifier();
+        private readonly JunctionClassifier junctionClassifier;
         private readonly VertexAllocator vertexAllocator;
         private readonly SegmentAllocator segmentAllocator;
 
-        public MinisegCreator(VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator)
+        public MinisegCreator(VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator, 
+            JunctionClassifier junctionClassifier)
         {
             this.vertexAllocator = vertexAllocator;
             this.segmentAllocator = segmentAllocator;
+            this.junctionClassifier = junctionClassifier;
         }
 
         private void HandleMinisegGeneration(VertexSplitterTime first, VertexSplitterTime second)
@@ -32,11 +34,12 @@ namespace Helion.BSP.States.Miniseg
                 return;
 
             Vec2D secondVertex = vertexAllocator[second.Index];
-            if (JunctionClassifier.CheckCrossingVoid(first.Index, secondVertex))
+            if (junctionClassifier.CheckCrossingVoid(first.Index, secondVertex))
+                States.VoidStatus = VoidStatus.InVoid;
+            else
             {
                 BspSegment miniseg = segmentAllocator.GetOrCreate(first.Index, second.Index);
                 States.Minisegs.Add(miniseg);
-                States.VoidStatus = VoidStatus.InVoid;
             }
         }
 
@@ -58,18 +61,18 @@ namespace Helion.BSP.States.Miniseg
         public void Execute()
         {
             Precondition(States.State != MinisegState.Finished, "Trying to do miniseg generation when already finished");
-            Precondition(States.CurrentListIndex + 1 < States.Vertices.Count, "Overflow of vertex sliding window");
+            Precondition(States.CurrentVertexListIndex + 1 < States.Vertices.Count, "Overflow of vertex sliding window");
 
-            VertexSplitterTime first = States.Vertices[States.CurrentListIndex];
-            VertexSplitterTime second = States.Vertices[States.CurrentListIndex + 1];
-            States.CurrentListIndex++;
+            VertexSplitterTime first = States.Vertices[States.CurrentVertexListIndex];
+            VertexSplitterTime second = States.Vertices[States.CurrentVertexListIndex + 1];
+            States.CurrentVertexListIndex++;
 
             HandleMinisegGeneration(first, second);
 
-            bool isDone = (States.CurrentListIndex + 1 >= States.Vertices.Count);
+            bool isDone = (States.CurrentVertexListIndex + 1 >= States.Vertices.Count);
             States.State = (isDone ? MinisegState.Finished : MinisegState.Working);
 
-            if (isDone && JunctionClassifier.IsDanglingJunction(second.Index))
+            if (isDone && junctionClassifier.IsDanglingJunction(second.Index))
                 log.Warn("BSP miniseg generation found dangling junction, BSP tree likely malformed");
         }
     }

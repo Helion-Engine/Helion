@@ -23,6 +23,6 @@ namespace Helion.BSP.States.Miniseg
         public VoidStatus VoidStatus = VoidStatus.NotStarted;
         public List<VertexSplitterTime> Vertices = new List<VertexSplitterTime>();
         public List<BspSegment> Minisegs = new List<BspSegment>();
-        public int CurrentListIndex = 0;
+        public int CurrentVertexListIndex = 0;
     }
 }

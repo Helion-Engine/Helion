@@ -1,10 +1,11 @@
 ﻿using Helion.Util.Geometry;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Helion.BSP.Geometry
 {
-    public class VertexAllocator
+    public class VertexAllocator : IEnumerable<Vec2D>
     {
         private readonly List<Vec2D> vertices = new List<Vec2D>();
         private readonly QuantizedGrid<int> grid;
@@ -56,5 +57,8 @@ namespace Helion.BSP.Geometry
 
             return new Box2D(min, max);
         }
+
+        public IEnumerator<Vec2D> GetEnumerator() => vertices.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
