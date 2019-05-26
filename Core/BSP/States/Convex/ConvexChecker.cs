@@ -19,13 +19,6 @@ namespace Helion.BSP.States.Convex
         private readonly VertexCountTracker vertexTracker = new VertexCountTracker();
         private readonly Dictionary<VertexIndex, List<LinePoint>> vertexMap = new Dictionary<VertexIndex, List<LinePoint>>();
 
-        private void Clear()
-        {
-            States = new ConvexStates();
-            vertexMap.Clear();
-            vertexTracker.Reset();
-        }
-
         private bool ValidExecutionState() => States.State == ConvexState.Loaded || States.State == ConvexState.Traversing;
 
         private void SetLoadedStateInfo(IList<BspSegment> segments)
@@ -60,9 +53,21 @@ namespace Helion.BSP.States.Convex
             }
         }
 
+        private bool CompletedTraversalCycle(BspSegment segment)
+        {
+            return States.SegsVisited > 2 && ReferenceEquals(segment, States.StartSegment);
+        }
+
+        private void Reset()
+        {
+            States = new ConvexStates();
+            vertexMap.Clear();
+            vertexTracker.Reset();
+        }
+
         public virtual void Load(IList<BspSegment> segments)
         {
-            Clear();
+            Reset();
 
             foreach (BspSegment segment in segments)
             {
@@ -95,27 +100,46 @@ namespace Helion.BSP.States.Convex
 
             States.State = ConvexState.Traversing;
 
+            // We traverse around the suspected enclosed polygon with each of
+            // the following rules:
+            //    - NextSeg is the next attached segment in the cycle iteration
+            //    - CurrentSeg and NextSeg share a 'pivot' vertex
+            //    - CurrentEndpoint is the endpoint on the current segment that
+            //      is not the pivot vertex
+            //    - The third vertex is the vertex on the NextSeg that is not
+            //      the pivot
+            //
+            // This is summed up by this image (assuming clockwise traversal):
+            //
+            //    Current endpoint             Pivot (aka: Opposite endpoint)
+            //         (0)-----[CurrentSeg]-----(1)
+            //                                   |
+            //                                   |NextSeg
+            //                                   |
+            //                                  (2) Third vertex
+            //
+            // Each number is the vertex in the rotation order.
+
             BspSegment currentSeg = States.CurrentSegment;
             Vec2D firstVertex = currentSeg[States.CurrentEndpoint];
             Vec2D secondVertex = currentSeg.Opposite(States.CurrentEndpoint);
-            VertexIndex oppositeIndex = currentSeg.OppositeIndex(States.CurrentEndpoint);
+            VertexIndex pivotIndex = currentSeg.OppositeIndex(States.CurrentEndpoint);
 
-            // Since we know there are exactly two lines at each endpoint, check
-            // the first one and see if it it's the current line are are on. If not
-            // then it's our next seg, otherwise the second pair is our next seg.
-            List<LinePoint> linesAtOppositeVertex = vertexMap[oppositeIndex];
-            BspSegment nextSeg = linesAtOppositeVertex[0].Segment;
+            // Since we know there are exactly two lines at each endpoint, we
+            // can select the next segment by whichever of the two is not the
+            // current segment.
+            List<LinePoint> linesAtPivot = vertexMap[pivotIndex];
+            Invariant(linesAtPivot.Count == 2, "Expected two lines for every endpoint");
+
+            BspSegment nextSeg = linesAtPivot[0].Segment;
             if (ReferenceEquals(currentSeg, nextSeg))
-                nextSeg = linesAtOppositeVertex[1].Segment;
+                nextSeg = linesAtPivot[1].Segment;
 
-            // We are on a current segment in the suspected convex polygon, now
-            // we need to go to the next/third vertex and see what rotation
-            // it has (if any, it could be two srtaight lines).
-            Endpoint nextSegPivotEndpoint = nextSeg.EndpointFrom(oppositeIndex);
+            Endpoint nextSegPivotEndpoint = nextSeg.EndpointFrom(pivotIndex);
             Vec2D thirdVertex = nextSeg.Opposite(nextSegPivotEndpoint);
 
             Rotation rotation = BspSegment.Rotation(firstVertex, secondVertex, thirdVertex);
-            if (rotation != Rotation.On)
+            if (rotation != Rotation.On) 
             {
                 if (States.Rotation == Rotation.On)
                 {
@@ -133,8 +157,7 @@ namespace Helion.BSP.States.Convex
             States.CurrentEndpoint = nextSegPivotEndpoint;
             States.SegsVisited++;
 
-            // Until we cycle back to the original segment, traversal is not done.
-            if (!ReferenceEquals(currentSeg, States.StartSegment))
+            if (!CompletedTraversalCycle(nextSeg))
                 return;
 
             // If we never rotated, it's a straight degenerate line (and not a single

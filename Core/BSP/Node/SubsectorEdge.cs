@@ -60,16 +60,28 @@ namespace Helion.BSP.Node
         }
 
         private static int GetSectorIdFrom(BspSegment segment, SectorLine sectorLine, Rotation rotation) {
+            // Note that for this method, it is possible for a traversal to go
+            // in a direction that would traverse the back side of a one-sided
+            // line segment and still be a proper traversal.
+            //
+            // This occurs because the random segment chooser may pick a two
+            // sided line segment, and if so then it has to arbitrarily pick
+            // a direction to go. This direction cannot be known whether it
+            // is the correct direction or not (ex: if it picks a vertical
+            // line, do we know if we're on the left side of a convex polygon
+            // or the right side? We don't without analyzing lines around it).
+            // Because if this (and to keep the code simple), it will go in an
+            // arbitary direction and reverse the segments later on if needed.
+            // Therefore we can assume that if we hit a one sided segment then
+            // it's okay to assume we're grabbing the correct side since the
+            // user should not be providing a malformed map.
+            if (segment.OneSided)
+                return sectorLine.FrontSectorId;
+
             if (segment.SameDirection(sectorLine.Delta))
-            {
-                Precondition(!segment.OneSided || rotation != Rotation.Left, "Trying to get the back sector ID of a one sided line");
                 return rotation == Rotation.Right ? sectorLine.FrontSectorId : sectorLine.BackSectorId;
-            }
             else
-            {
-                Precondition(!segment.OneSided || rotation != Rotation.Right, "Trying to get the back sector ID of a one sided line");
                 return rotation == Rotation.Right ? sectorLine.BackSectorId : sectorLine.FrontSectorId;
-            }
         }
 
         private static List<SubsectorEdge> CreateSubsectorEdges(ConvexTraversal convexTraversal, IList<SectorLine> lineToSectors, Rotation rotation)
@@ -137,7 +149,7 @@ namespace Helion.BSP.Node
                 if (lastCorrectSector == NoSectorId)
                     lastCorrectSector = edge.SectorId ?? NoSectorId;
                 else
-                    Precondition(edge.SectorId != lastCorrectSector, "Subsector references multiple sectors");
+                    Precondition(edge.SectorId == lastCorrectSector, "Subsector references multiple sectors");
             }
 
             Precondition(lastCorrectSector != NoSectorId, "Unable to find a sector for the subsector");

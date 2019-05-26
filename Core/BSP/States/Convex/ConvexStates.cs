@@ -5,7 +5,6 @@ namespace Helion.BSP.States.Convex
 {
     public enum ConvexState
     {
-        NotStarted,
         Loaded,
         Traversing,
         FinishedIsDegenerate,
@@ -15,7 +14,7 @@ namespace Helion.BSP.States.Convex
 
     public class ConvexStates
     {
-        public ConvexState State = ConvexState.NotStarted;
+        public ConvexState State = ConvexState.Loaded;
         public ConvexTraversal ConvexTraversal = new ConvexTraversal();
         public BspSegment? StartSegment;
         public BspSegment? CurrentSegment;
