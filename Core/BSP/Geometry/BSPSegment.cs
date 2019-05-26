@@ -43,6 +43,7 @@ namespace Helion.BSP.Geometry
         }
 
         public Endpoint EndpointFrom(VertexIndex index) => index == StartIndex ? Endpoint.Start : Endpoint.End;
+        public Endpoint OppositeEndpoint(VertexIndex index) => index == StartIndex ? Endpoint.End : Endpoint.Start;
         public VertexIndex IndexFrom(Endpoint endpoint) => endpoint == Endpoint.Start ? StartIndex : EndIndex;
         public VertexIndex OppositeIndex(Endpoint endpoint) => endpoint == Endpoint.Start ? EndIndex : StartIndex;
 
