@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.canvasPanel = new System.Windows.Forms.Panel();
+            this.canvasPanel = new DrawPanel();
             this.SuspendLayout();
             // 
             // canvasPanel
@@ -61,7 +61,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Panel canvasPanel;
+        private DrawPanel canvasPanel;
     }
 }
 
