@@ -155,10 +155,7 @@ namespace Helion.BSP
                 break;
 
             case SplitterState.Finished:
-                if (SplitCalculator.States.BestSplitter == null)
-                    throw new HelionException("Invalid split calculator state (likely convex polygon that was classified as splittable wrongly)");
-                BspSegment splitter = SplitCalculator.States.BestSplitter;
-                Partitioner.Load(splitter, WorkItems.Peek().Segments);
+                Partitioner.Load(SplitCalculator.States.BestSplitter, WorkItems.Peek().Segments);
                 States.SetState(BuilderState.PartitioningSegments);
                 break;
             }

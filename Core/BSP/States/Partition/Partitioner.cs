@@ -187,8 +187,12 @@ namespace Helion.BSP.States.Partition
                 States.LeftSegments.Add(segmentToSplit);
         }
 
-        public void Load(BspSegment splitter, IList<BspSegment> segments)
+        public void Load(BspSegment? splitter, IList<BspSegment> segments)
         {
+            if (splitter == null)
+                throw new HelionException("Invalid split calculator state (likely convex polygon that was classified as splittable wrongly)");
+            Precondition(!splitter.IsMiniseg, "Cannot have a miniseg as a splitter");
+
             // OPTIMIZE: A better way of finding segs to split would be to
             // take the result when we did the checking for the best
             // splitter and remember having all the segments to be split for

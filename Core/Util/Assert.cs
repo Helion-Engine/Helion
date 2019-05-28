@@ -34,7 +34,6 @@ namespace Helion.Util
                 Fail(reason);
         }
 
-
         /// <summary>
         /// Checks for an invariant, throws if the invariant is false. 
         /// This is intended to be used to track the internal state, indicating
