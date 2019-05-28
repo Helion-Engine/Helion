@@ -7,6 +7,7 @@ using Helion.BSP.States.Partition;
 using Helion.BSP.States.Split;
 using Helion.Map;
 using Helion.Util;
+using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
@@ -88,7 +89,8 @@ namespace Helion.BSP
         protected void AddConvexTraversalToTopNode()
         {
             ConvexTraversal traversal = ConvexChecker.States.ConvexTraversal;
-            IList<SubsectorEdge> edges = SubsectorEdge.FromClockwiseConvexTraversal(traversal, lineIdToSector);
+            Rotation rotation = ConvexChecker.States.Rotation;
+            IList<SubsectorEdge> edges = SubsectorEdge.FromClockwiseTraversal(traversal, lineIdToSector, rotation);
             NodeStack.Peek().ClockwiseEdges = edges;
         }
 
@@ -140,7 +142,7 @@ namespace Helion.BSP
                 States.SetState(BuilderState.Complete);
             }
             else
-                States.SetState(BuilderState.CheckingConvexity);
+                LoadNextWorkItem();
         }
 
         protected void ExecuteSplitterFinding()
@@ -198,15 +200,14 @@ namespace Helion.BSP
 
         protected void ExecuteSplitFinalization()
         {
-            string path = WorkItems.Peek().BranchPath;
+            BspWorkItem currentWorkItem = WorkItems.Pop();
+            string path = currentWorkItem.BranchPath;
 
             BspNode parentNode = NodeStack.Pop();
             BspNode leftChild = new BspNode();
             BspNode rightChild = new BspNode();
             parentNode.SetChildren(leftChild, rightChild);
             parentNode.Splitter = SplitCalculator.States.BestSplitter;
-
-            WorkItems.Pop();
 
             // We arbitrarily decide to build left first, so left is stacked after.
             IList<BspSegment> right = Partitioner.States.RightSegments;

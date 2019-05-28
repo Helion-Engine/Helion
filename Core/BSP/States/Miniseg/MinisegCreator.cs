@@ -1,6 +1,5 @@
 ﻿using Helion.BSP.Geometry;
 using Helion.Util.Geometry;
-using NLog;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
@@ -8,8 +7,6 @@ namespace Helion.BSP.States.Miniseg
 {
     public class MinisegCreator
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
-
         public MinisegStates States = new MinisegStates();
         private readonly JunctionClassifier junctionClassifier;
         private readonly VertexAllocator vertexAllocator;
@@ -71,9 +68,6 @@ namespace Helion.BSP.States.Miniseg
 
             bool isDone = (States.CurrentVertexListIndex + 1 >= States.Vertices.Count);
             States.State = (isDone ? MinisegState.Finished : MinisegState.Working);
-
-            if (isDone && junctionClassifier.IsDanglingJunction(second.Index))
-                log.Warn("BSP miniseg generation found dangling junction, BSP tree likely malformed");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Helion.Util.Geometry;
+using static Helion.Util.Assert;
 
 namespace Helion.BSP.Geometry
 {
@@ -28,7 +29,9 @@ namespace Helion.BSP.Geometry
             FrontSectorId = frontSectorId;
             BackSectorId = backSectorId;
             LineId = lineId;
-            OneSided = (backSectorId == NoSectorId);
+            OneSided = (!IsMiniseg && backSectorId == NoSectorId);
+
+            Postcondition(Length() > 0.001, "Extremely small split detected");
         }
 
         public BspSegment(BspSegment seg) : base(seg.Start, seg.End)

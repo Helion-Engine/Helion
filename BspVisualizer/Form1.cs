@@ -1,5 +1,6 @@
 ﻿using Helion.BSP.Builder;
 using Helion.BSP.Geometry;
+using Helion.BSP.States;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
@@ -111,6 +112,12 @@ namespace BspVisualizer
             case 'm':
             case 'M':
                 bspBuilder.ExecuteFullCycleStep();
+                break;
+            case 'c':
+            case 'C':
+                BspWorkItem? workItem = bspBuilder.GetCurrentWorkItem();
+                if (workItem != null)
+                    Clipboard.SetText(workItem.BranchPath);
                 break;
             default:
                 needsRepaint = false;

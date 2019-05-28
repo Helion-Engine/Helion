@@ -12,17 +12,6 @@ namespace Helion.BSP.States.Miniseg
 
         private Dictionary<VertexIndex, Junction> vertexToJunction = new Dictionary<VertexIndex, Junction>();
 
-        public bool IsDanglingJunction(VertexIndex vertexIndex)
-        {
-            if (vertexToJunction.TryGetValue(vertexIndex, out Junction junction))
-                return junction.OutboundSegments.Count > 0;
-            else
-            {
-                Fail("Should never fail to get a junction we assumed to have added");
-                return false;
-            }
-        }
-
         public void AddOneSidedSegment(BspSegment segment)
         {
             Precondition(segment.OneSided, "Adding a two sided segment to something for one sided only");
@@ -45,7 +34,7 @@ namespace Helion.BSP.States.Miniseg
             }
 
             Precondition(!startJunction.OutboundSegments.Contains(segment), "Adding same segment to outbound junction twice");
-            endJunction.OutboundSegments.Add(segment);
+            startJunction.OutboundSegments.Add(segment);
         }
 
         // TODO: Would like to not have this, it requires the user to know it
@@ -64,6 +53,7 @@ namespace Helion.BSP.States.Miniseg
 
         public void AddSplitJunction(BspSegment inboundSegment, BspSegment outboundSegment)
         {
+            Precondition(inboundSegment.SegIndex != outboundSegment.SegIndex, "Trying to add the same segment as an inbound/outbound junction");
             VertexIndex middleVertexIndex = inboundSegment.EndIndex;
             Precondition(outboundSegment.StartIndex == middleVertexIndex, "Adding split junction where inbound/outbound segs are not connected");
             Precondition(!vertexToJunction.ContainsKey(middleVertexIndex), "When creating a split, the middle vertex shouldn't already exist as a junction");

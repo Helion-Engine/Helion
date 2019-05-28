@@ -69,6 +69,9 @@ namespace BspVisualizer
             {
                 StepwiseBspBuilder bspBuilder = new StepwiseBspBuilder(map);
 
+                if (args.Length >= 3)
+                    bspBuilder.ExecuteUntilBranch(args[2]);
+
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new Form1(bspBuilder));

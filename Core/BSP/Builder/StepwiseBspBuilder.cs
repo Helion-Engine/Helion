@@ -55,6 +55,26 @@ namespace Helion.BSP.Builder
             Execute();
         }
 
+        /// <summary>
+        /// Moves until either the current work item is the branch provided, or
+        /// the building is done.
+        /// </summary>
+        /// <param name="branch">The branch path to go to.</param>
+        public void ExecuteUntilBranch(string branch)
+        {
+            string upperBranch = branch.ToUpper();
+            while (!Done)
+            {
+                BspWorkItem? item = GetCurrentWorkItem();
+                if (item != null)
+                {
+                    if (item.BranchPath == upperBranch)
+                        break;
+                    ExecuteFullCycleStep();
+                }
+            }
+        }
+
         public BspNode GetTree() => Root;
         public BspWorkItem? GetCurrentWorkItem() => WorkItems.TryPeek(out BspWorkItem result) ? result : null;
     }

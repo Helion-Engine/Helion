@@ -104,7 +104,6 @@ namespace Helion.BSP.States.Partition
             else
                 States.LeftSegments.Add(segmentToSplit);
 
-
             VertexIndex index = segmentToSplit.IndexFrom(endpoint);
             States.CollinearVertices.Add(index);
         }

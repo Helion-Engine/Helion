@@ -1,21 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
 {
     public class QuantizedGrid<T>
     {
+        private readonly double epsilon;
         private readonly int quantizationMultiplier;
         private readonly Dictionary<int, Dictionary<int, T>> grid = new Dictionary<int, Dictionary<int, T>>();
 
-        public QuantizedGrid(double epsilon)
+        public QuantizedGrid(double epsilonRadius)
         {
-            Precondition(epsilon > 0, "Cannot quantize to an epsilon that is not positive");
+            Precondition(epsilonRadius > 0, "Cannot quantize to an epsilon that is not positive");
 
-            quantizationMultiplier = (int)(1.0 / epsilon);
+            epsilon = epsilonRadius;
+            quantizationMultiplier = (int)(2.0 / epsilonRadius);
         }
 
-        private int Quantize(double value) => (int)(value * quantizationMultiplier);
+        /// <summary>
+        /// Quantizes a double to an integral grid.
+        /// </summary>
+        /// <param name="value">The value to quantize.</param>
+        /// <returns>The quantized value.</returns>
+        private int Quantize(double value) => (int)Math.Floor((value + epsilon) * quantizationMultiplier);
 
         public bool Contains(double x, double y)
         {
@@ -56,7 +64,6 @@ namespace Helion.Util.Geometry
             if (grid.TryGetValue(Quantize(x), out Dictionary<int, T> yValues))
                 if (yValues.TryGetValue(Quantize(y), out value))
                     return true;
-
             return false;
         }
     }

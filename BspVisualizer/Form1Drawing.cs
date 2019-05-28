@@ -19,19 +19,19 @@ namespace BspVisualizer
         /// <param name="segment">The segment to draw.</param>
         private void DrawSegment(Graphics g, Pen pen, BspSegment segment)
         {
-            Vec2I start = TransformPoint(segment.Start);
-            Vec2I end = TransformPoint(segment.End);
+            Point start = TransformPoint(segment.Start);
+            Point end = TransformPoint(segment.End);
             g.DrawLine(pen, start.X, start.Y, end.X, end.Y);
         }
 
         private void DrawVertex(Graphics g, Brush brush, Vec2D vertex)
         {
-            Vec2I point = TransformPoint(vertex);
+            Point point = TransformPoint(vertex);
 
             // When we're zoomed out, points can become very dominant on the
             // screen, so we want smaller ones when zoomed out.
             if (zoom < 0.125f)
-                g.FillRectangle(brush, new Rectangle(new Point(point.X, point.Y), new Size(1, 1)));
+                g.FillRectangle(brush, new Rectangle(point, new Size(1, 1)));
             else
             {
                 Size size = (zoom < 0.25f ? new Size(2, 2) : new Size(3, 3));
@@ -64,7 +64,9 @@ namespace BspVisualizer
                 return;
 
             foreach (BspSegment seg in workItem.Segments)
-                DrawSegment(g, seg.OneSided ? whitePen : grayPen, seg);
+                DrawSegment(g, seg.IsMiniseg ? yellowPen : (seg.OneSided ? whitePen : grayPen), seg);
+
+            bottomLeftCornerDrawer.Add(Color.White, "Node path:", Color.Red, workItem.BranchPath);
         }
 
         private void PaintVertices(Graphics g)

@@ -1,5 +1,6 @@
 ﻿using Helion.Util.Geometry;
 using System;
+using System.Drawing;
 
 namespace BspVisualizer
 {
@@ -15,9 +16,9 @@ namespace BspVisualizer
         /// </summary>
         /// <param name="point">The point to transform.</param>
         /// <returns>The window coordinate for the point.</returns>
-        private Vec2I TransformPoint(Vec2D vertex)
+        private Point TransformPoint(Vec2D vertex)
         {
-            return new Vec2I((int)((vertex.X - camera.X) * zoom), (int)((-vertex.Y + camera.Y) * zoom));
+            return new Point((int)((vertex.X - camera.X) * zoom), (int)((-vertex.Y + camera.Y) * zoom));
         }
 
         private void MoveCameraUp()
