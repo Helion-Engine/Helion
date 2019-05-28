@@ -36,12 +36,46 @@ namespace Helion.BSP.States.Partition
 
         private bool IntersectionTimeAtEndpoint(BspSegment segmentToSplit, double tSegment, out Endpoint endpoint)
         {
+            // Note that we cannot attempt to look up the endpoint, because it
+            // is possible that it may detect an unrelated vertex from a split
+            // on another side which happens to be right where the split would
+            // happen.
+            //
+            // For example, suppose a perpendicular split is going to occur.
+            // The vertical splitter line would intersect it like so at the X:
+            //
+            //      o
+            //      | Splitter
+            //      o
+            //
+            // o----X----o
+            //   Segment
+            //
+            // Now suppose that the bottom side of `Segment` was recursed on
+            // first, and some splitter happened to already create a vertex at
+            // the exact point that `Splitter` would hit `Segment` on the X. If
+            // we were to check the vertex allocator for whether a vertex is 
+            // near/at X or not, it will return true. However this split will 
+            // clearly not be hitting an endpoint of `Segment`, so we'd get a 
+            // 'true' result when it is definitely not intersecting at/near an
+            // endpoint.
+            //
+            // Therefore our only solution is to do it by checking distances.
+
             Vec2D vertex = segmentToSplit.FromTime(tSegment);
-            if (vertexAllocator.TryGetValue(vertex, out VertexIndex index))
+
+            if (vertex.Distance(segmentToSplit.Start) <= config.VertexWeldingEpsilon)
             {
-                endpoint = segmentToSplit.EndpointFrom(index);
+                endpoint = Endpoint.Start;
                 return true;
             }
+
+            if (vertex.Distance(segmentToSplit.End) <= config.VertexWeldingEpsilon)
+            {
+                endpoint = Endpoint.End;
+                return true;
+            }
+
 
             endpoint = default;
             return false;

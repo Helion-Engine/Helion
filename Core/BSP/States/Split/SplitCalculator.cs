@@ -16,7 +16,7 @@ namespace Helion.BSP.States.Split
 
         private bool IsAxisAligned(BspSegment seg)
         {
-            return seg.Direction != SegmentDirection.Vertical && seg.Direction != SegmentDirection.Horizontal;
+            return seg.Direction == SegmentDirection.Vertical || seg.Direction == SegmentDirection.Horizontal;
         }
 
         private static double CalculateDistanceToNearestEndpoint(BspSegment segment, double tSegment)
@@ -36,6 +36,21 @@ namespace Helion.BSP.States.Split
             return splitCount == 0 && (leftLines == 0 || rightLines == 0);
         }
 
+        private static bool IsEffectivelyRightOfSplitter(BspSegment splitter, BspSegment segment)
+        {
+            Rotation startSide = splitter.ToSide(segment.Start);
+
+            if (startSide == Rotation.On)
+            {
+                Rotation endSide = splitter.ToSide(segment.End);
+                Precondition(endSide != Rotation.On, "Spllitter and segment are too close to determine sides");
+
+                return endSide == Rotation.Right;
+            }
+
+            return startSide == Rotation.Right;
+        }
+
         private bool SplitOccursAtEndpoint(double distance) => CheckEndpointEpsilon(distance, config.VertexWeldingEpsilon);
 
         private bool IntersectionNearButNotAtEndpoint(double distance)
@@ -49,7 +64,7 @@ namespace Helion.BSP.States.Split
             SplitWeights splitWeights = config.SplitWeights;
             int score = 0;
 
-            if (IsAxisAligned(splitter))
+            if (!IsAxisAligned(splitter))
                 score += splitWeights.NotAxisAlignedScore;
 
             int splitCount = 0;
@@ -64,7 +79,7 @@ namespace Helion.BSP.States.Split
                 {
                     if (!splitter.Collinear(segment))
                     {
-                        if (splitter.OnRight(segment))
+                        if (IsEffectivelyRightOfSplitter(splitter, segment))
                             linesOnRight++;
                         else
                             linesOnLeft++;
@@ -81,7 +96,7 @@ namespace Helion.BSP.States.Split
                 {
                     if (SplitOccursAtEndpoint(nearestDistance))
                     {
-                        if (splitter.OnRight(segment))
+                        if (IsEffectivelyRightOfSplitter(splitter, segment))
                             linesOnRight++;
                         else
                             linesOnLeft++;
@@ -91,7 +106,7 @@ namespace Helion.BSP.States.Split
                         splitCount++;
                     }
                 }
-                else if (splitter.OnRight(segment))
+                else if (IsEffectivelyRightOfSplitter(splitter, segment))
                     linesOnRight++;
                 else
                     linesOnLeft++;
@@ -110,7 +125,7 @@ namespace Helion.BSP.States.Split
             // map and has no intersections. The only cases for this are if we 
             // pick an edge on the outside hull of the map (which we do not 
             // want as a splitter ever unless it splits something) or a 
-            // degenerate /convex hull which we don't care about as those 
+            // degenerate/convex hull which we don't care about as those 
             // shapes should never be passed into this function. Therefore, if
             // it's zero or more collinear traversals with no partitions, that 
             // is always the worst case.
@@ -140,6 +155,7 @@ namespace Helion.BSP.States.Split
 
             if (States.CurrentSegScore < States.BestSegScore)
             {
+                Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
                 States.BestSegScore = States.CurrentSegScore;
                 States.BestSplitter = splitter;
             }
