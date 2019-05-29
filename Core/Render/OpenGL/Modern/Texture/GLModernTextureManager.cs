@@ -1,6 +1,6 @@
 ﻿using Helion.Graphics;
 using Helion.Projects;
-using Helion.Render.OpenGL.Util;
+using Helion.Render.OpenGL.Shared;
 using Helion.Resources;
 using Helion.Resources.Images;
 using Helion.Util;
@@ -9,9 +9,9 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using static Helion.Util.Assert;
 
-namespace Helion.Render.OpenGL.Texture
+namespace Helion.Render.OpenGL.Modern.Texture
 {
-    public class GLTextureManager : IDisposable
+    public class GLModernTextureManager : GLTextureManager
     {
         public readonly GLTexture NullTexture;
         private bool disposed = false;
@@ -20,7 +20,7 @@ namespace Helion.Render.OpenGL.Texture
         private readonly ResourceTracker<GLTexture> textures = new ResourceTracker<GLTexture>();
         private readonly DynamicArray<GLTextureHandle> handles = new DynamicArray<GLTextureHandle>();
 
-        public GLTextureManager(GLInfo glInfo, Project targetProject)
+        public GLModernTextureManager(GLInfo glInfo, Project targetProject)
         {
             if (!glInfo.Version.Supports(4, 4))
                 throw new HelionException($"OpenGL version too outdated (you have {glInfo.Version}, need 4.4+)");
@@ -32,18 +32,9 @@ namespace Helion.Render.OpenGL.Texture
             project.Resources.ImageManager.ImageEventEmitter += HandleImageEvent;
         }
 
-        ~GLTextureManager()
+        ~GLModernTextureManager()
         {
             Dispose(false);
-        }
-
-        private int CalculateMaxMipmapLevels(Image image)
-        {
-            Precondition(image.Width > 0 && image.Height > 0, "Cannot make mipmap from a zero dimension image");
-
-            int minDimension = Math.Min(image.Width, image.Height);
-            int levels = (int)Math.Log(minDimension, 2.0);
-            return Math.Max(1, levels);
         }
 
         private GLTexture CreateTexture(UpperString name, ResourceNamespace resourceNamespace, Image image, bool trackable = true)
@@ -87,18 +78,6 @@ namespace Helion.Render.OpenGL.Texture
         {
             GL.TexStorage2D(TextureTarget2d.Texture2D, maxMipmapLevels, SizedInternalFormat.Rgba8, 
                 image.Width, image.Height);
-        }
-
-        private void UploadTexturePixels(Image image)
-        {
-            var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
-            var lockMode = System.Drawing.Imaging.ImageLockMode.ReadOnly;
-            var format = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
-            System.Drawing.Imaging.BitmapData bitmapData = image.Bitmap.LockBits(pixelArea, lockMode, format);
-
-            GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedInt8888, bitmapData.Scan0);
-
-            image.Bitmap.UnlockBits(bitmapData);
         }
 
         private void SetTextureAnisostropy()
@@ -193,7 +172,12 @@ namespace Helion.Render.OpenGL.Texture
             }
         }
 
-        public void Dispose()
+        protected override void PerformTextureUpload(Image image, IntPtr dataPtr)
+        {
+            GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedInt8888, dataPtr);
+        }
+
+        public override void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);

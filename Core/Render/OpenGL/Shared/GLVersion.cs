@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Helion.Render.OpenGL.Util
+namespace Helion.Render.OpenGL.Shared
 {
     /// <summary>
     /// Represents a major/minor version that OpenGL can have.

@@ -1,5 +1,4 @@
-﻿using Helion.Projects;
-using Helion.Render.OpenGL.Texture;
+﻿using Helion.Render.OpenGL.Shared;
 using NLog;
 using OpenTK.Graphics.OpenGL4;
 using System;
@@ -8,33 +7,27 @@ using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL
 {
-    public class GLRenderer : IDisposable
+    public abstract class GLRenderer : IDisposable
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        private bool disposed = false;
-        private readonly GLInfo info;
-        private readonly GLTextureManager textureManager;
+        protected readonly GLInfo info;
 
-        public GLRenderer(GLInfo glInfo, Project targetProject)
+        public GLRenderer(GLInfo glInfo)
         {
             info = glInfo;
-            textureManager = new GLTextureManager(glInfo, targetProject);
 
             SetGLStates();
             SetGLDebugger();
         }
 
-        ~GLRenderer()
-        {
-            Dispose(false);
-        }
-
         private void SetGLStates()
         {
             GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.Enable(EnableCap.Multisample);
+
+            if (info.Version.Supports(3, 2))
+                GL.Enable(EnableCap.TextureCubeMapSeamless);
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -77,23 +70,6 @@ namespace Helion.Render.OpenGL
             GL.Viewport(windowDimension);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposed)
-                return;
-
-            if (disposing)
-            {
-                textureManager.Dispose();
-            }
-
-            disposed = true;
-        }
+        public abstract void Dispose();
     }
 }

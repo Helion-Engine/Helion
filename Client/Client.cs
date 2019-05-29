@@ -2,6 +2,8 @@
 using Helion.Input.Adapter;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
+using Helion.Render.OpenGL.Legacy;
+using Helion.Render.OpenGL.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
@@ -36,7 +38,7 @@ namespace Helion.Client
             LoadProject();
 
             GLInfo glInfo = new GLInfo();
-            glRenderer = new GLRenderer(glInfo, project);
+            glRenderer = new GLLegacyRenderer(glInfo, project);
             PrintGLInfo(glInfo);
         }
 

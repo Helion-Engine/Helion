@@ -1,7 +1,7 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
 
-namespace Helion.Render.OpenGL.Util
+namespace Helion.Render.OpenGL.Shared
 {
     public static class GLHelper
     {

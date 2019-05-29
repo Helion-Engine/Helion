@@ -1,9 +1,8 @@
-﻿using Helion.Render.OpenGL.Util;
-using NLog;
-using OpenTK.Graphics.OpenGL4;
+﻿using NLog;
+using OpenTK.Graphics.OpenGL;
 using System.Text.RegularExpressions;
 
-namespace Helion.Render.OpenGL
+namespace Helion.Render.OpenGL.Shared
 {
     public class GLInfo
     {

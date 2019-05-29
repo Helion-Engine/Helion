@@ -1,4 +1,4 @@
-﻿namespace Helion.Render.OpenGL.Texture
+﻿namespace Helion.Render.OpenGL.Modern.Texture
 {
     /// <summary>
     /// Information for a texture that we create.

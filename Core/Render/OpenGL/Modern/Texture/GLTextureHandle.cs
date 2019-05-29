@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Helion.Render.OpenGL.Texture
+namespace Helion.Render.OpenGL.Modern.Texture
 {
     /// <summary>
     /// A texture handle that is packed tightly to place on the GPU.
