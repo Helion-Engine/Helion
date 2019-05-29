@@ -15,7 +15,7 @@ namespace Helion.Render.OpenGL.Legacy.Texture
             Dimension = dimension;
         }
 
-        internal void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
+        internal void Bind(TextureUnit textureUnit)
         {
             GL.ActiveTexture(textureUnit);
             GL.BindTexture(TextureTarget.Texture2D, Handle);
@@ -25,7 +25,7 @@ namespace Helion.Render.OpenGL.Legacy.Texture
 
         public void BindAnd(Action action, TextureUnit textureUnit = TextureUnit.Texture0)
         {
-            Bind();
+            Bind(textureUnit);
             action.Invoke();
             Unbind();
         }
