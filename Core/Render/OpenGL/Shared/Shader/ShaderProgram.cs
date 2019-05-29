@@ -1,4 +1,5 @@
-﻿using Helion.Util;
+﻿using Helion.Render.OpenGL.Shared.Buffer.Vao;
+using Helion.Util;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -22,7 +23,7 @@ namespace Helion.Render.OpenGL.Shared.Shader
         private readonly int program;
         private readonly Dictionary<string, int> uniforms = new Dictionary<string, int>();
 
-        private ShaderProgram(ShaderBuilder builder)
+        private ShaderProgram(ShaderBuilder builder, VertexArrayObject? vao = null)
         {
             Precondition(builder.IsValid, "Must be a valid shader builder");
 
@@ -32,6 +33,8 @@ namespace Helion.Render.OpenGL.Shared.Shader
             program = GL.CreateProgram();
             GL.AttachShader(program, vertexShader);
             GL.AttachShader(program, fragmentShader);
+            if (vao != null)
+                SetAttributeLocations(vao);
             LinkProgramOrThrow();
 
             GL.DetachShader(program, vertexShader);
@@ -44,9 +47,9 @@ namespace Helion.Render.OpenGL.Shared.Shader
 
         ~ShaderProgram() => Dispose(false);
 
-        public static ShaderProgram? Create(ShaderBuilder builder)
+        public static ShaderProgram? Create(ShaderBuilder builder, VertexArrayObject? vao = null)
         {
-            return builder.IsValid ? new ShaderProgram(builder) : null;
+            return builder.IsValid ? new ShaderProgram(builder, vao) : null;
         }
 
         private int CreateAndCompileShaderOrThrow(ShaderType shaderType, string vertexShaderText)
@@ -64,6 +67,8 @@ namespace Helion.Render.OpenGL.Shared.Shader
 
             return shaderId;
         }
+
+        private void SetAttributeLocations(VertexArrayObject vao) => vao.BindShaderLocations(program);
 
         private void LinkProgramOrThrow()
         {

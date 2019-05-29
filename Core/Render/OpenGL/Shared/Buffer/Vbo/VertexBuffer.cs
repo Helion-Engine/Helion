@@ -31,7 +31,7 @@ namespace Helion.Render.OpenGL.Shared.Buffer.Vbo
         {
             if (NeedsUploading)
             {
-                BindAnd(() => GL.BufferData(BufferTarget.ArrayBuffer, typeByteSize * data.Length, data.Data, GetHint()));
+                GL.BufferData(BufferTarget.ArrayBuffer, typeByteSize * data.Length, data.Data, GetHint());
                 NeedsUploading = false;
             }
         }
@@ -74,6 +74,11 @@ namespace Helion.Render.OpenGL.Shared.Buffer.Vbo
             action.Invoke();
             Unbind();
         }
+
+        public void BindAndDraw()
+        {
+            BindAnd(() => { GL.DrawArrays(PrimitiveType.Triangles, 0, data.Length); });
+        } 
 
         protected virtual void Dispose(bool disposing)
         {

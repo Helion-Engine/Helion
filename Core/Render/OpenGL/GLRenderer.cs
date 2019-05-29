@@ -70,6 +70,8 @@ namespace Helion.Render.OpenGL
             GL.Viewport(windowDimension);
         }
 
+        public abstract void Render();
+
         public abstract void Dispose();
     }
 }

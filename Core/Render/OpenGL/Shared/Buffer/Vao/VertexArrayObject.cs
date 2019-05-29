@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Helion.Render.OpenGL.Shared.Buffer.Vbo;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace Helion.Render.OpenGL.Shared.Buffer.Vao
     {
         private bool disposed;
         private int vao;
-        public List<VertexArrayObjectElement> Attributes = new List<VertexArrayObjectElement>();
+        public List<VaoAttribute> Attributes = new List<VaoAttribute>();
 
-        public VertexArrayObject(params VertexArrayObjectElement[] attributes)
+        public VertexArrayObject(params VaoAttribute[] attributes)
         {
             Array.ForEach(attributes, Attributes.Add);
             Precondition(NoDuplicatedIndices(), "Duplicate VAO indices found, should only have one index per attribute");
@@ -23,6 +24,25 @@ namespace Helion.Render.OpenGL.Shared.Buffer.Vao
         ~VertexArrayObject() => Dispose(false);
 
         private bool NoDuplicatedIndices() => Attributes.GroupBy(attr => attr.Index).All(g => g.Count() == 1);
+
+        public void BindShaderLocations(int programId)
+        {
+            Attributes.ForEach(attr => attr.BindShaderLocation(programId));
+        }
+
+        public void BindAttributesTo<T>(VertexBuffer<T> vbo) where T : struct
+        {
+            vbo.BindAnd(() =>
+            {
+                int stride = Attributes.Select(attr => attr.ByteLength()).Sum();
+                int offset = 0;
+                foreach (VaoAttribute attr in Attributes)
+                {
+                    attr.Enable(stride, offset);
+                    offset += attr.ByteLength();
+                }
+            });
+        }
 
         public void Bind() => GL.BindVertexArray(vao);
 

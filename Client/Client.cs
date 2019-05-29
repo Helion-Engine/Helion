@@ -139,6 +139,7 @@ namespace Helion.Client
             // TODO: Send `consumableFrameInput` to where it needs to go.
 
             glRenderer.Clear(new System.Drawing.Size(Width, Height));
+            glRenderer.Render();
 
             SwapBuffers();
 

@@ -78,8 +78,10 @@ namespace Helion.Render.OpenGL.Legacy.Texture
 
         protected override void PerformTextureUpload(Image image, IntPtr dataPtr)
         {
+            // Because the C# image format is 'ARGB', we can get it into the 
+            // RGBA format by doing a BGRA format and then reversing it.
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 
-                          0, PixelFormat.Rgba, PixelType.UnsignedInt8888, dataPtr);
+                          0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, dataPtr);
         }
 
         protected virtual void Dispose(bool disposing)

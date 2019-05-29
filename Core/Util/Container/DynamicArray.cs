@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using static Helion.Util.Assert;
 
 namespace Helion.Util.Container
 {
@@ -31,7 +32,12 @@ namespace Helion.Util.Container
         /// </summary>
         public int Capacity => Data.Length;
 
-        public DynamicArray(int capacity = 8) => Data = new T[capacity];
+        public DynamicArray(int capacity = 8)
+        {
+            Precondition(capacity > 0, "Must have a positive capacity");
+
+            Data = new T[capacity];
+        }
 
         public T this[int index] => Data[index];
 
