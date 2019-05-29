@@ -2,6 +2,7 @@
 using Helion.Render.OpenGL.Legacy.Renderers.Console;
 using Helion.Render.OpenGL.Legacy.Texture;
 using Helion.Render.OpenGL.Shared;
+using OpenTK.Graphics.OpenGL;
 using System;
 
 namespace Helion.Render.OpenGL.Legacy
@@ -25,6 +26,7 @@ namespace Helion.Render.OpenGL.Legacy
 
         public override void Render()
         {
+            GL.ActiveTexture(TextureUnit.Texture0);
             consoleRenderer.Render();
         }
 

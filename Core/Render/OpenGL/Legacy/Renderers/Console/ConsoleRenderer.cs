@@ -1,8 +1,8 @@
-﻿using OpenTK.Graphics.OpenGL;
-using Helion.Render.OpenGL.Shared.Buffer.Vao;
+﻿using Helion.Render.OpenGL.Shared.Buffer.Vao;
 using Helion.Render.OpenGL.Shared.Buffer.Vbo;
 using Helion.Render.OpenGL.Shared.Shader;
 using Helion.Render.OpenGL.Legacy.Texture;
+using OpenTK.Graphics.OpenGL;
 using System;
 
 namespace Helion.Render.OpenGL.Legacy.Renderers.Console
