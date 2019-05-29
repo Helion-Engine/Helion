@@ -1,5 +1,5 @@
 ﻿using Helion.BSP.Builder;
-using Helion.Map;
+using Helion.Maps;
 using Helion.Projects.Impl.Local;
 using System;
 using System.Collections.Generic;

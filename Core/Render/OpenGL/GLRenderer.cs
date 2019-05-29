@@ -1,4 +1,5 @@
 ﻿using Helion.Render.OpenGL.Shared;
+using Helion.World;
 using NLog;
 using OpenTK.Graphics.OpenGL4;
 using System;
@@ -70,7 +71,7 @@ namespace Helion.Render.OpenGL
             GL.Viewport(windowDimension);
         }
 
-        public abstract void Render();
+        public abstract void RenderWorld(WorldBase world);
 
         public abstract void Dispose();
     }

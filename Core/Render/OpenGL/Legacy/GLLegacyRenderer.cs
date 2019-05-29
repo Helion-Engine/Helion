@@ -2,6 +2,7 @@
 using Helion.Render.OpenGL.Legacy.Renderers.Console;
 using Helion.Render.OpenGL.Legacy.Texture;
 using Helion.Render.OpenGL.Shared;
+using Helion.World;
 using OpenTK.Graphics.OpenGL;
 using System;
 
@@ -24,10 +25,11 @@ namespace Helion.Render.OpenGL.Legacy
             Dispose(false);
         }
 
-        public override void Render()
+        public override void RenderWorld(WorldBase world)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
-            consoleRenderer.Render();
+
+            // TODO
         }
 
         protected virtual void Dispose(bool disposing)

@@ -46,21 +46,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Console
 
         public void Render()
         {
-            shaderProgram.BindAnd(() =>
-            {
-                // TODO: Temporary!
-                vbo.Add(
-                    new ConsoleVertex(0.0f, 0.5f, 0.5f, 0.0f),
-                    new ConsoleVertex(-0.5f, -0.5f, 0.0f, 1.0f),
-                    new ConsoleVertex(0.5f, -0.5f, 1.0f, 1.0f)
-                );
-
-                // TODO: Temporary!
-                textureManager.NullTexture.BindAnd(() =>
-                {
-                    vbo.BindAndDraw();
-                });
-            });
+            // TODO
         }
 
         public void Dispose()

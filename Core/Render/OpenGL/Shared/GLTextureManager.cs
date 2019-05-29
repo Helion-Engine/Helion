@@ -7,6 +7,7 @@ namespace Helion.Render.OpenGL.Shared
     public abstract class GLTextureManager : IDisposable
     {
         public abstract void Dispose();
+
         protected abstract void PerformTextureUpload(Image image, IntPtr dataPtr);
 
         /// <summary>

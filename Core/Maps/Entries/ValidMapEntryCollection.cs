@@ -1,9 +1,9 @@
-﻿using Helion.Map.MapStructures;
+﻿using Helion.Maps.MapStructures;
 using Helion.Util;
 using System.IO;
 using static Helion.Util.Assert;
 
-namespace Helion.Map
+namespace Helion.Maps
 {
     // TODO: Can we convert any of these readers to `unsafe` to speed it up?
     // It would probably be a lot faster by just using pointers into the data
@@ -26,12 +26,12 @@ namespace Helion.Map
 
         public static bool VerticesValid(MapEntryCollection map)
         {
-            return map.Vertices != null && (map.Vertices.Length % Vertex.BYTE_SIZE == 0);
+            return map.Vertices != null && (map.Vertices.Length % Vertex.Bytes == 0);
         }
 
         public static bool SectorsValid(MapEntryCollection map)
         {
-            return map.Sectors != null && (map.Sectors.Length % Sector.BYTE_SIZE == 0);
+            return map.Sectors != null && (map.Sectors.Length % Sector.Bytes == 0);
         }
 
         public static bool SidedefsValid(MapEntryCollection map)
@@ -39,13 +39,13 @@ namespace Helion.Map
             if (map.Sectors == null || map.Sidedefs == null)
                 return false;
 
-            int sectorCount = map.Sectors.Length / Sector.BYTE_SIZE;
+            int sectorCount = map.Sectors.Length / Sector.Bytes;
 
-            if (map.Sidedefs.Length % Sidedef.BYTE_SIZE != 0)
+            if (map.Sidedefs.Length % Sidedef.Bytes != 0)
                 return false;
 
             BinaryReader sidedefReader = new ByteReader(map.Sidedefs);
-            for (int i = 0; i < map.Sidedefs.Length / Sidedef.BYTE_SIZE; i++)
+            for (int i = 0; i < map.Sidedefs.Length / Sidedef.Bytes; i++)
             {
                 sidedefReader.ReadBytes(28); // Skip until the sector index.
                 if (sidedefReader.ReadInt16() >= sectorCount)

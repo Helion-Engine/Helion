@@ -1,4 +1,4 @@
-﻿namespace Helion.Map
+﻿namespace Helion.Maps
 {
     /// <summary>
     /// An enumeration of every action special ID.

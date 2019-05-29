@@ -1,4 +1,4 @@
-﻿namespace Helion.Map.MapStructures
+﻿namespace Helion.Maps.MapStructures
 {
     /// <summary>
     /// A list of vanilla specific constants.
@@ -14,7 +14,7 @@
 
     public struct Vertex
     {
-        public static readonly int BYTE_SIZE = 4;
+        public static readonly int Bytes = 4;
 
         public short X;
         public short Y;
@@ -28,7 +28,7 @@
 
     public struct Sector
     {
-        public static readonly int BYTE_SIZE = 26;
+        public static readonly int Bytes = 26;
 
         public short FloorHeight;
         public short CeilingHeight;
@@ -53,7 +53,7 @@
 
     public struct Sidedef
     {
-        public static readonly int BYTE_SIZE = 30;
+        public static readonly int Bytes = 30;
 
         public short OffsetX;
         public short OffsetY;
@@ -76,7 +76,7 @@
 
     public struct LinedefDoom
     {
-        public static readonly int BYTE_SIZE = 14;
+        public static readonly int Bytes = 14;
 
         public ushort StartVertexId;
         public ushort EndVertexId;
@@ -103,7 +103,7 @@
 
     struct LinedefHexen
     {
-        public static readonly int BYTE_SIZE = 16;
+        public static readonly int Bytes = 16;
 
         public ushort StartVertexId;
         public ushort EndVertexId;
@@ -130,7 +130,7 @@
 
     public struct Segment
     {
-        public static readonly int BYTE_SIZE = 12;
+        public static readonly int Bytes = 12;
 
         public ushort StartVertexId;
         public ushort EndVertexId;
@@ -153,7 +153,7 @@
 
     public struct Subsector
     {
-        public static readonly int BYTE_SIZE = 4;
+        public static readonly int Bytes = 4;
 
         public ushort SegmentCount;
         public ushort FirstSegmentId;
@@ -183,7 +183,7 @@
 
     public struct Node
     {
-        public static readonly int BYTE_SIZE = 28;
+        public static readonly int Bytes = 28;
 
         public short PartitionX;
         public short PartitionY;
@@ -211,7 +211,7 @@
 
     public struct ThingDoom
     {
-        public static readonly int BYTE_SIZE = 10;
+        public static readonly int Bytes = 10;
 
         public short X;
         public short Y;
@@ -233,7 +233,7 @@
 
     struct ThingHexen
     {
-        public static readonly int BYTE_SIZE = 20;
+        public static readonly int Bytes = 20;
 
         public ushort ThingId;
         public short X;

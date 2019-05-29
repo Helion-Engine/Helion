@@ -1,5 +1,5 @@
-﻿using Helion.Map;
-using Helion.Map.MapStructures;
+﻿using Helion.Maps;
+using Helion.Maps.MapStructures;
 using Helion.Util;
 using Helion.Util.Geometry;
 using System;
@@ -43,7 +43,7 @@ namespace Helion.BSP.Geometry
             if (data == null)
                 return new List<Vertex>();
 
-            int numVertices = data.Length / Vertex.BYTE_SIZE;
+            int numVertices = data.Length / Vertex.Bytes;
             IList<Vertex> vertices = new List<Vertex>();
 
             ByteReader reader = new ByteReader(data);
@@ -60,7 +60,7 @@ namespace Helion.BSP.Geometry
             if (data == null)
                 return new List<LinedefDoom>();
 
-            int numLines = data.Length / LinedefDoom.BYTE_SIZE;
+            int numLines = data.Length / LinedefDoom.Bytes;
             IList<LinedefDoom> linedefs = new List<LinedefDoom>();
 
             ByteReader reader = new ByteReader(data);
@@ -86,7 +86,7 @@ namespace Helion.BSP.Geometry
             if (data == null)
                 return new List<LinedefHexen>();
 
-            int numLines = data.Length / LinedefHexen.BYTE_SIZE;
+            int numLines = data.Length / LinedefHexen.Bytes;
             IList<LinedefHexen> linedefs = new List<LinedefHexen>();
 
             ByteReader reader = new ByteReader(data);
@@ -112,7 +112,7 @@ namespace Helion.BSP.Geometry
             if (data == null)
                 return new List<Sidedef>();
 
-            int numSides = data.Length / Sidedef.BYTE_SIZE;
+            int numSides = data.Length / Sidedef.Bytes;
             IList<Sidedef> sidedefs = new List<Sidedef>();
 
             ByteReader reader = new ByteReader(data);

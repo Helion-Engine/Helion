@@ -1,4 +1,4 @@
-﻿namespace Helion.Map
+﻿namespace Helion.Maps.Actions
 {
     /// <summary>
     /// An action special that is attached to a line in a map.
@@ -8,7 +8,7 @@
         /// <summary>
         /// How many arguments are supported by the action special.
         /// </summary>
-        public const int ARG_COUNT = 5;
+        public const int ArgCount = 5;
 
         /// <summary>
         /// The action special identifier.

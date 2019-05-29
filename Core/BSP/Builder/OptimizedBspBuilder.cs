@@ -1,5 +1,5 @@
 ﻿using Helion.BSP.Node;
-using Helion.Map;
+using Helion.Maps;
 
 namespace Helion.BSP.Builder
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.Map
+namespace Helion.Maps
 {
     /// <summary>
     /// An enumeration of all the flags on things.

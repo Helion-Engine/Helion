@@ -1,4 +1,4 @@
-﻿namespace Helion.Map
+﻿namespace Helion.Maps
 {
     /// <summary>
     /// The different supported map types.

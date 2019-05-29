@@ -1,6 +1,6 @@
 ﻿using Helion.BSP.Node;
 using Helion.BSP.States;
-using Helion.Map;
+using Helion.Maps;
 
 namespace Helion.BSP.Builder
 {

@@ -1,6 +1,6 @@
 ﻿using Helion.Entries;
 using Helion.Entries.Tree.Archive.Iterator;
-using Helion.Map;
+using Helion.Maps;
 using Helion.Projects.Resources;
 using Helion.Util;
 using NLog;

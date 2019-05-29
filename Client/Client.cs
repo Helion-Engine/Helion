@@ -1,15 +1,18 @@
 ﻿using Helion.Input;
 using Helion.Input.Adapter;
+using Helion.Maps;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Legacy;
 using Helion.Render.OpenGL.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.World.Impl.SinglePlayer;
 using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using System.Diagnostics;
 
 namespace Helion.Client
 {
@@ -26,6 +29,7 @@ namespace Helion.Client
         private readonly LocalProject project = new LocalProject();
         private bool shouldExit = false;
         private GLRenderer glRenderer;
+        private SinglePlayerWorld? world;
 
         public Client(CommandLineArgs args) : 
             base(1024, 768, GraphicsMode.Default, Constants.APPLICATION_NAME, GameWindowFlags.Default)
@@ -124,8 +128,12 @@ namespace Helion.Client
         {
             ConsumableInput consumableTickInput = new ConsumableInput(tickCollection);
             tickCollection.Tick();
-            // TODO: Send `consumableTickInput` to where it needs to go.
-            // TODO: Perform logic here.
+
+            if (world != null)
+            {
+                world.HandleTickInput(consumableTickInput);
+                world.Tick();
+            }
 
             CheckForExit();
 
@@ -136,10 +144,14 @@ namespace Helion.Client
         {
             ConsumableInput consumableFrameInput = new ConsumableInput(tickCollection);
             frameCollection.Tick();
-            // TODO: Send `consumableFrameInput` to where it needs to go.
 
             glRenderer.Clear(new System.Drawing.Size(Width, Height));
-            glRenderer.Render();
+
+            if (world != null)
+            {
+                world.HandleFrameInput(consumableFrameInput);
+                glRenderer.RenderWorld(world);
+            }
 
             SwapBuffers();
 
