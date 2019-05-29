@@ -8,6 +8,9 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.Geometry
 {
+    /// <summary>
+    /// A simple wrapper around a segment in a map.
+    /// </summary>
     public class MapSegment : Seg2DBase
     {
         public bool OneSided;
@@ -27,6 +30,10 @@ namespace Helion.BSP.Geometry
         }
     }
 
+    /// <summary>
+    /// A helper class that converts a valid map entry collection into a series
+    /// of segments.
+    /// </summary>
     public static class MapSegmentGenerator
     {
         // TODO: This should be removed when we turn a ValidMapEntryCollection
@@ -185,6 +192,11 @@ namespace Helion.BSP.Geometry
             return mapSegments;
         }
 
+        /// <summary>
+        /// Generates all the map segments from the map collection provided.
+        /// </summary>
+        /// <param name="map">The map to create segments from.</param>
+        /// <returns>A list of all the segments.</returns>
         public static IList<MapSegment> Generate(ValidMapEntryCollection map)
         {
             switch (map.MapType)

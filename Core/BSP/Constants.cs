@@ -9,6 +9,5 @@
         /// The smallest distance allowed before vertices start welding.
         /// </summary>
         public const double AtomicWidth = 0.005;
-        public const double AtomicWidthSquared = AtomicWidth * AtomicWidth;
     }
 }

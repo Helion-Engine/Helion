@@ -4,6 +4,10 @@ using Helion.Map;
 
 namespace Helion.BSP.Builder
 {
+    /// <summary>
+    /// An implementation of the BSP builder which uses debuggable/steppable
+    /// executions so we can easily see what is happening at each step.
+    /// </summary>
     public class StepwiseBspBuilder : BspBuilder
     {
         public StepwiseBspBuilder(ValidMapEntryCollection map) : this(map, new BspConfig())
@@ -15,6 +19,10 @@ namespace Helion.BSP.Builder
         {
         }
 
+        /// <summary>
+        /// Steps through all major states until it reaches the convexity check
+        /// or it completes.
+        /// </summary>
         public void ExecuteFullCycleStep()
         {
             if (Done)
@@ -75,7 +83,16 @@ namespace Helion.BSP.Builder
             }
         }
 
+        /// <summary>
+        /// Gets the root node of the tree.
+        /// </summary>
+        /// <returns>The root node of the tree that is being built.</returns>
         public BspNode GetTree() => Root;
+
+        /// <summary>
+        /// Gets the current work item.
+        /// </summary>
+        /// <returns>The current work item, if any.</returns>
         public BspWorkItem? GetCurrentWorkItem() => WorkItems.TryPeek(out BspWorkItem result) ? result : null;
     }
 }

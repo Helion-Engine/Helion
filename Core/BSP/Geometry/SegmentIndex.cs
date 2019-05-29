@@ -2,6 +2,9 @@
 
 namespace Helion.BSP.Geometry
 {
+    /// <summary>
+    /// The index of a segment.
+    /// </summary>
     public struct SegmentIndex
     {
         public readonly int Index;

@@ -3,6 +3,9 @@ using Helion.Util.Geometry;
 
 namespace Helion.BSP.States.Convex
 {
+    /// <summary>
+    /// An enumeration for the state of the convex checker.
+    /// </summary>
     public enum ConvexState
     {
         Loaded,
@@ -12,6 +15,9 @@ namespace Helion.BSP.States.Convex
         FinishedIsSplittable,
     }
 
+    /// <summary>
+    /// A tracker of convex state information.
+    /// </summary>
     public class ConvexStates
     {
         public ConvexState State = ConvexState.Loaded;

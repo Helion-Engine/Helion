@@ -2,6 +2,9 @@
 
 namespace Helion.BSP.Geometry
 {
+    /// <summary>
+    /// The index of a vertex.
+    /// </summary>
     public struct VertexIndex
     {
         public readonly int Index;

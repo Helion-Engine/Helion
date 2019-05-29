@@ -6,9 +6,26 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Convex
 {
+    /// <summary>
+    /// A single point which contains information on how the segment was
+    /// traversed.
+    /// </summary>
     public class ConvexTraversalPoint
     {
+        /// <summary>
+        /// The segment for this traversal.
+        /// </summary>
         public readonly BspSegment Segment;
+
+        /// <summary>
+        /// The endpoint to which we arrived at the segment first when doing
+        /// traversal.
+        /// </summary>
+        /// <remarks>
+        /// Note that the endpoint indicates which endpoint of the segment we had
+        /// arrived at first. For example, if Endpoint == End, that means we went
+        /// through the segment from End -> Start.
+        /// </remarks>
         public readonly Endpoint Endpoint;
 
         public ConvexTraversalPoint(BspSegment segment, Endpoint endpoint)
@@ -17,9 +34,16 @@ namespace Helion.BSP.States.Convex
             Endpoint = endpoint;
         }
 
+        /// <summary>
+        /// Gets the point to which we arrived at this segment first.
+        /// </summary>
+        /// <returns>The point for the endpoint of the segment.</returns>
         public Vec2D ToPoint() => Segment[Endpoint];
     }
 
+    /// <summary>
+    /// The information for a convex traversal of a set of connected lines.
+    /// </summary>
     public class ConvexTraversal
     {
         /// <summary>
@@ -71,6 +95,13 @@ namespace Helion.BSP.States.Convex
             return true;
         }
 
+        /// <summary>
+        /// Adds a new segment to the traversal. It is assumed that this is a
+        /// valid addition.
+        /// </summary>
+        /// <param name="segment">The segment visited.</param>
+        /// <param name="endpoint">The first vertex endpoint that was visited
+        /// when traversing the convex subsector.</param>
         public void AddTraversal(BspSegment segment, Endpoint endpoint)
         {
             Precondition(IsProperlyConnectedEndpoint(segment, endpoint), "Provided a disconnected segment");

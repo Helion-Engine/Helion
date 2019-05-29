@@ -8,13 +8,39 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.Node
 {
+    /// <summary>
+    /// An edge of a subsector, or better put: a segment on the edge of a 
+    /// convex polygon that is the leaf of a BSP tree.
+    /// </summary>
     public class SubsectorEdge : Seg2DBase
     {
+        /// <summary>
+        /// The unique identifier for no subsector.
+        /// </summary>
+        /// <remarks>
+        /// By definition of a subsector, it must have at least one edge that
+        /// is not a miniseg. A mathematical proof demonstrates that it's not
+        /// possible to have a sector composed entirely of minisegs. A 
+        /// corollary of this is that SectorId should never be equal to the
+        /// value of this in the final BSP tree.
+        /// </remarks>
         public const int NoSectorId = -1;
 
+        /// <summary>
+        /// The line that this edge is part of. This is a miniseg if it equals
+        /// <see cref="BspSegment.MinisegLineId"/>.
+        /// </summary>
         public readonly int LineId;
+
+        /// <summary>
+        /// The sector ID for this subsector. It can be missing and be equal to
+        /// <see cref="NoSectorId"/> if it is a miniseg.
+        /// </summary>
         public readonly int? SectorId;
 
+        /// <summary>
+        /// True if it's a miniseg, false if not.
+        /// </summary>
         public bool IsMiniseg => LineId == BspSegment.MinisegLineId;
 
         public SubsectorEdge(Vec2D start, Vec2D end) : this(start, end, BspSegment.MinisegLineId, NoSectorId)
@@ -57,11 +83,6 @@ namespace Helion.BSP.Node
                 return rotation == Rotation.Right ? sectorLine.FrontSectorId : sectorLine.BackSectorId;
             else
                 return rotation == Rotation.Right ? sectorLine.BackSectorId : sectorLine.FrontSectorId;
-
-            //if (segment.SameDirection(sectorLine.Delta))
-            //    return rotation == Rotation.Right ? sectorLine.FrontSectorId : sectorLine.BackSectorId;
-            //else
-            //    return rotation == Rotation.Right ? sectorLine.BackSectorId : sectorLine.FrontSectorId;
         }
 
         private static List<SubsectorEdge> CreateSubsectorEdges(ConvexTraversal convexTraversal, 
@@ -139,6 +160,16 @@ namespace Helion.BSP.Node
             Precondition(lastCorrectSector != NoSectorId, "Unable to find a sector for the subsector (entire sector is minisegs?)");
         }
 
+        /// <summary>
+        /// Creates a list of subsector edges from a convex traversal. This
+        /// must only be called on what would be a valid convex subsector.
+        /// </summary>
+        /// <param name="convexTraversal">The traversal we did for a convex
+        /// subsector.</param>
+        /// <param name="lineToSectors">The mapping of line IDs as an index to
+        /// the sector information.</param>
+        /// <param name="rotation">The convex traversal rotation.</param>
+        /// <returns>A list of subsector edges.</returns>
         public static IList<SubsectorEdge> FromClockwiseTraversal(ConvexTraversal convexTraversal, 
             IList<SectorLine> lineToSectors, Rotation rotation)
         {

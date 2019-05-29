@@ -6,7 +6,6 @@ using Helion.BSP.States.Miniseg;
 using Helion.BSP.States.Partition;
 using Helion.BSP.States.Split;
 using Helion.Map;
-using Helion.Util;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
@@ -14,24 +13,90 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP
 {
+    /// <summary>
+    /// The BSP tree builder that manages building the entire tree from some
+    /// level.
+    /// </summary>
     public abstract class BspBuilder
     {
+        /// <summary>
+        /// A counter which is used to make sure that we don't enter some 
+        /// infinite loop due to any bugs. In a properly implemented builder
+        /// this will never be reached.
+        /// </summary>
         protected const int RecursiveOverflowAmount = 10000;
 
+        /// <summary>
+        /// The config file with BSP building information.
+        /// </summary>
         protected BspConfig Config;
+
+        /// <summary>
+        /// A list of all the lines that map onto sectors.
+        /// </summary>
         protected IList<SectorLine> lineIdToSector = new List<SectorLine>();
+
+        /// <summary>
+        /// All the work items when building a tree.
+        /// </summary>
         protected Stack<BspWorkItem> WorkItems = new Stack<BspWorkItem>();
+
+        /// <summary>
+        /// A stack of nodes that parallels the work items stack.
+        /// </summary>
         protected Stack<BspNode> NodeStack = new Stack<BspNode>();
+
+        /// <summary>
+        /// The root of the tree.
+        /// </summary>
         protected BspNode Root = new BspNode();
+
+        /// <summary>
+        /// The current state of the builder.
+        /// </summary>
         public BuilderStates States = new BuilderStates();
+
+        /// <summary>
+        /// The allocator for all vertices in the map.
+        /// </summary>
         public VertexAllocator VertexAllocator;
+
+        /// <summary>
+        /// The segment allocator for all segments and splits in the map.
+        /// </summary>
         public SegmentAllocator SegmentAllocator;
+
+        /// <summary>
+        /// Manages the convexity checking states of BSP building.
+        /// </summary>
         public ConvexChecker ConvexChecker = new ConvexChecker();
+
+        /// <summary>
+        /// The calculator for split scores for a set of segments.
+        /// </summary>
         public SplitCalculator SplitCalculator;
+
+        /// <summary>
+        /// A line partitioning helper after a splitter is chosen.
+        /// </summary>
         public Partitioner Partitioner;
+
+        /// <summary>
+        /// Classifies junctions, which tell us whether we are inside the map
+        /// or outside of it relative to some point (when making minisegs).
+        /// </summary>
         public JunctionClassifier JunctionClassifier = new JunctionClassifier();
+
+        /// <summary>
+        /// The creator of minisegs, which are segments along a splitter that
+        /// are not segments originally part of the level.
+        /// </summary>
         public MinisegCreator MinisegCreator;
 
+        /// <summary>
+        /// True if building is done and the tree can be extracted/read, false
+        /// if building still needs to be done.
+        /// </summary>
         public bool Done => States.Current == BuilderState.Complete;
 
         protected BspBuilder(ValidMapEntryCollection map) : this(map, new BspConfig())
@@ -52,6 +117,11 @@ namespace Helion.BSP
             NodeStack.Push(Root);
         }
 
+        /// <summary>
+        /// Goes through all the vertices/line segments in the map provided and
+        /// populates the vertex/segment allocators with the appropriate data.
+        /// </summary>
+        /// <param name="map">The map to get the components from.</param>
         protected void PopulateAllocatorsFrom(ValidMapEntryCollection map)
         {
             int lineId = 0;
@@ -86,6 +156,10 @@ namespace Helion.BSP
             JunctionClassifier.NotifyDoneAddingOneSidedSegments();
         }
 
+        /// <summary>
+        /// Takes the convex traversal that was done and adds it to the top BSP 
+        /// node on the stack. This effectively creates the subsector.
+        /// </summary>
         protected void AddConvexTraversalToTopNode()
         {
             ConvexTraversal traversal = ConvexChecker.States.ConvexTraversal;
@@ -94,6 +168,10 @@ namespace Helion.BSP
             NodeStack.Peek().ClockwiseEdges = edges;
         }
 
+        /// <summary>
+        /// Loads the next work item, which starts a full 'cycle' (from 
+        /// convex checking to leaf node generation or miniseg splitting).
+        /// </summary>
         protected void LoadNextWorkItem()
         {
             Invariant(WorkItems.Count > 0, "Expected a root work item to be present");
@@ -102,6 +180,10 @@ namespace Helion.BSP
             States.SetState(BuilderState.CheckingConvexity);
         }
 
+        /// <summary>
+        /// Performs the convexity check and populates the appropriate convex 
+        /// checker states.
+        /// </summary>
         protected void ExecuteConvexityCheck()
         {
             Invariant(WorkItems.Count < RecursiveOverflowAmount, "BSP recursive overflow detected");
@@ -125,6 +207,10 @@ namespace Helion.BSP
             }
         }
 
+        /// <summary>
+        /// Performs leaf node creation and sets the state to either convex
+        /// checking or complete.
+        /// </summary>
         protected void ExecuteLeafNodeCreation()
         {
             ConvexState convexState = ConvexChecker.States.State;
@@ -145,6 +231,9 @@ namespace Helion.BSP
                 LoadNextWorkItem();
         }
 
+        /// <summary>
+        /// Performs splitter finding.
+        /// </summary>
         protected void ExecuteSplitterFinding()
         {
             switch (SplitCalculator.States.State)
@@ -161,6 +250,10 @@ namespace Helion.BSP
             }
         }
 
+        /// <summary>
+        /// Takes the splitter found in the previous step and performs segment
+        /// partitioning.
+        /// </summary>
         protected void ExecuteSegmentPartitioning()
         {
             switch (Partitioner.States.State)
@@ -180,6 +273,10 @@ namespace Helion.BSP
             }
         }
 
+        /// <summary>
+        /// Generates minisegs along the partitioning line inside the level
+        /// where no segments are.
+        /// </summary>
         protected void ExecuteMinisegGeneration()
         {
             switch (MinisegCreator.States.State)
@@ -195,6 +292,9 @@ namespace Helion.BSP
             }
         }
 
+        /// <summary>
+        /// Finishes up the splitting.
+        /// </summary>
         protected void ExecuteSplitFinalization()
         {
             BspWorkItem currentWorkItem = WorkItems.Pop();
@@ -223,6 +323,9 @@ namespace Helion.BSP
             LoadNextWorkItem();
         }
 
+        /// <summary>
+        /// Performs an split-wise step.
+        /// </summary>
         protected void Execute()
         {
             switch (States.Current)

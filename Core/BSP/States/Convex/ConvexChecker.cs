@@ -7,15 +7,30 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Convex
 {
+    /// <summary>
+    /// A readable enumeration for how many segments go inbound/outbound from
+    /// some vertex.
+    /// </summary>
+    /// <remarks>
+    /// This was made because using `bool` is less clear.
+    /// </remarks>
     public enum VertexCounter
     {
         LessThanThree,
         Three
     }
 
+    /// <summary>
+    /// An instance that is responsible for convexity checking and remembering
+    /// traversal ordering.
+    /// </summary>
     public class ConvexChecker
     {
+        /// <summary>
+        /// The state of this convex checker.
+        /// </summary>
         public ConvexStates States = new ConvexStates();
+
         private readonly VertexCountTracker vertexTracker = new VertexCountTracker();
         private readonly Dictionary<VertexIndex, List<LinePoint>> vertexMap = new Dictionary<VertexIndex, List<LinePoint>>();
 
@@ -65,6 +80,10 @@ namespace Helion.BSP.States.Convex
             vertexTracker.Reset();
         }
 
+        /// <summary>
+        /// Loads the segments for execution.
+        /// </summary>
+        /// <param name="segments">The segments to check for convexity.</param>
         public virtual void Load(IList<BspSegment> segments)
         {
             Reset();
@@ -92,6 +111,9 @@ namespace Helion.BSP.States.Convex
             SetLoadedStateInfo(segments);
         }
 
+        /// <summary>
+        /// Executes a single step in convex checking.
+        /// </summary>
         public virtual void Execute()
         {
             Precondition(ValidExecutionState(), $"Called convex checker execution in an invalid state");

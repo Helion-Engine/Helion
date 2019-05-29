@@ -4,15 +4,46 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.Node
 {
+    /// <summary>
+    /// A node in a BSP tree.
+    /// </summary>
     public class BspNode
     {
+        /// <summary>
+        /// The left node. This is null if its a degenerate or leaf node.
+        /// </summary>
         public BspNode? Left;
+
+        /// <summary>
+        /// The right node. This is null if its a degenerate or leaf node.
+        /// </summary>
         public BspNode? Right;
+
+        /// <summary>
+        /// The splitter that made up this node. This is only present if it
+        /// is a parent node.
+        /// </summary>
         public BspSegment? Splitter;
+
+        /// <summary>
+        /// A list of all the clockwise edges. This is populated if and only if
+        /// this is a subsector.
+        /// </summary>
         public IList<SubsectorEdge> ClockwiseEdges = new List<SubsectorEdge>();
 
-        public bool IsParent => Left != null;
+        /// <summary>
+        /// True if it's a parent (has children), false otherwise.
+        /// </summary>
+        public bool IsParent => Left != null && Right != null;
+
+        /// <summary>
+        /// True if it is a subsector, false if not.
+        /// </summary>
         public bool IsSubsector => ClockwiseEdges.Count > 0;
+
+        /// <summary>
+        /// True if it's a degenerate node due to a bad BSP map, false if not.
+        /// </summary>
         public bool Degenerate => !IsParent && !IsSubsector;
 
         public BspNode()
@@ -53,6 +84,11 @@ namespace Helion.BSP.Node
             ClearChildren();
         }
 
+        /// <summary>
+        /// Recursively compresses all the degenerate nodes so that no nodes
+        /// exist in the tree that are degenerate, unless every single node is
+        /// degenerate.
+        /// </summary>
         public void StripDegenerateNodes()
         {
             if (Left != null)
@@ -71,12 +107,22 @@ namespace Helion.BSP.Node
                 ClearChildren();
         }
 
+        /// <summary>
+        /// Sets the children for the left and right side. This effectively
+        /// turns it into a parent node.
+        /// </summary>
+        /// <param name="left">The left chlid.</param>
+        /// <param name="right">The right child.</param>
         public void SetChildren(BspNode left, BspNode right)
         {
             Left = left;
             Right = right;
         }
 
+        /// <summary>
+        /// Recursively counts how many subsectors there are.
+        /// </summary>
+        /// <returns>The number of subsectors at and under this node.</returns>
         public int CalculateSubsectorCount()
         {
             if (Left != null && Right != null)
@@ -85,6 +131,10 @@ namespace Helion.BSP.Node
                 return IsSubsector ? 1 : 0;
         }
 
+        /// <summary>
+        /// Recursively counts how many parent nodes there are.
+        /// </summary>
+        /// <returns>The number of parents at and under this node.</returns>
         public int CalculateParentNodeCount()
         {
             if (Left != null && Right != null)
@@ -93,6 +143,10 @@ namespace Helion.BSP.Node
                 return 0;
         }
 
+        /// <summary>
+        /// Recursively counts how many nodes there are.
+        /// </summary>
+        /// <returns>The number of nodes at and under this node.</returns>
         public int CalculateTotalNodeCount()
         {
             int left = Left != null ? Left.CalculateTotalNodeCount() : 0;
