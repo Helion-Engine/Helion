@@ -3,10 +3,27 @@ using Helion.Util.Geometry;
 
 namespace Helion.BSP.States.Miniseg
 {
+    /// <summary>
+    /// A helper object which contains a pair of one-sided segments that is
+    /// used to determine if we are inside the map or outside.
+    /// </summary>
     public class JunctionWedge
     {
+        /// <summary>
+        /// The segment that has the ending point equaling the outbound start
+        /// endpoint.
+        /// </summary>
         public BspSegment Inbound;
+
+        /// <summary>
+        /// The segment that has the starting point equal to the ending point
+        /// of the inbound segment.
+        /// </summary>
         public BspSegment Outbound;
+
+        /// <summary>
+        /// True if the angle formed by Inbound -> Outbound is obtuse or not.
+        /// </summary>
         public bool Obtuse;
 
         public JunctionWedge(BspSegment inbound, BspSegment outbound)
@@ -16,6 +33,12 @@ namespace Helion.BSP.States.Miniseg
             Obtuse = !inbound.OnRight(outbound);
         }
 
+        /// <summary>
+        /// Checks if a point is inside of the wedge area, which means it is
+        /// inside the map.
+        /// </summary>
+        /// <param name="point">The point to check.</param>
+        /// <returns>True if it's between the wedge, false if not.</returns>
         public bool Between(Vec2D point)
         {
             // There are two cases: acute (includes parallel), and obtuse. The 

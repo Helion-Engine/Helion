@@ -7,9 +7,17 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Split
 {
+    /// <summary>
+    /// A helper class that calculates splits based on a score of a segment 
+    /// relative to all the other segments.
+    /// </summary>
     public class SplitCalculator
     {
+        /// <summary>
+        /// The splitter states for this calculator.
+        /// </summary>
         public SplitterStates States = new SplitterStates();
+
         private readonly BspConfig config;
 
         public SplitCalculator(BspConfig bspConfig) => config = bspConfig;
@@ -137,6 +145,10 @@ namespace Helion.BSP.States.Split
             return score;
         }
 
+        /// <summary>
+        /// Loads the segments to evaluate which is the best splitter.
+        /// </summary>
+        /// <param name="segments">The segments to load.</param>
         public void Load(IList<BspSegment> segments)
         {
             Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
@@ -145,6 +157,9 @@ namespace Helion.BSP.States.Split
             States.Segments = segments;
         }
 
+        /// <summary>
+        /// Performs some atomic step to calculate the best splitter.
+        /// </summary>
         public virtual void Execute()
         {
             Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");

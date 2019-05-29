@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Helion.BSP.States.Partition
 {
+    /// <summary>
+    /// All the states the partitioner can be in.
+    /// </summary>
     public enum PartitionState
     {
         Loaded,
@@ -10,6 +13,9 @@ namespace Helion.BSP.States.Partition
         Finished
     }
 
+    /// <summary>
+    /// Stateful information for the partitioner.
+    /// </summary>
     public class PartitionStates
     {
         public PartitionState State = PartitionState.Loaded;

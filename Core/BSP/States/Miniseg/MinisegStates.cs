@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Helion.BSP.States.Miniseg
 {
+    /// <summary>
+    /// The states the miniseg generator can be in.
+    /// </summary>
     public enum MinisegState
     {
         Loaded,
@@ -10,6 +13,10 @@ namespace Helion.BSP.States.Miniseg
         Finished
     }
 
+    /// <summary>
+    /// Information on whether the miniseg creator was passing through the void
+    /// (the empty space outside of the map) or the non-void inside of the map.
+    /// </summary>
     public enum VoidStatus
     {
         NotStarted,
@@ -17,6 +24,9 @@ namespace Helion.BSP.States.Miniseg
         NotInVoid
     }
 
+    /// <summary>
+    /// All the states for the miniseg creator.
+    /// </summary>
     public class MinisegStates
     {
         public MinisegState State = MinisegState.Loaded;

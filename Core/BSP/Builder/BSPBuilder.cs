@@ -109,7 +109,7 @@ namespace Helion.BSP
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
             SegmentAllocator = new SegmentAllocator(VertexAllocator);
             SplitCalculator = new SplitCalculator(config);
-            Partitioner = new Partitioner(config, VertexAllocator, SegmentAllocator, JunctionClassifier);
+            Partitioner = new Partitioner(config, SegmentAllocator, JunctionClassifier);
             MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, JunctionClassifier);
 
             PopulateAllocatorsFrom(map);

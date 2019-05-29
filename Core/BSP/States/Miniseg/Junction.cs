@@ -6,10 +6,34 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Miniseg
 {
+    /// <summary>
+    /// Represents all the wedges of one sided lines that occur at a vertex.
+    /// </summary>
+    /// <remarks>
+    /// A junction is used in determining whether some point is inside or 
+    /// outside of the map. Each junction is composed of a series of wedges,
+    /// which are two one-sided-segments that share exactly one vertex. Each
+    /// vertex can have many one-sided line segments coming out of it, so the
+    /// junction is responsible for picking the two segments that have the
+    /// closest angle to each other and making a wedge out of that.
+    /// </remarks>
     public class Junction
     {
+        /// <summary>
+        /// All the inbound segments, which means they end on the vertex for 
+        /// this junction.
+        /// </summary>
         public readonly List<BspSegment> InboundSegments = new List<BspSegment>();
+
+        /// <summary>
+        /// All the outbound segments, which means they start on the vertex for 
+        /// this junction.
+        /// </summary>
         public readonly List<BspSegment> OutboundSegments = new List<BspSegment>();
+
+        /// <summary>
+        /// All the compiled wedges from the inbound/outbound segment pairs.
+        /// </summary>
         public readonly List<JunctionWedge> Wedges = new List<JunctionWedge>();
 
         /// <summary>
@@ -44,6 +68,9 @@ namespace Helion.BSP.States.Miniseg
             return score;
         }
 
+        /// <summary>
+        /// Generates all the wedges from the tracked in/outbound segments.
+        /// </summary>
         // TODO: Is there a way we can get rid of having to explicitly call
         // this functIon? I don't like 'having to know to call functions' on
         // a class to make it work. Why not generate it lazily as we need it?
@@ -78,16 +105,36 @@ namespace Helion.BSP.States.Miniseg
             }
         }
 
+        /// <summary>
+        /// Adds a wedge, which implies we know that this is a valid segment.
+        /// </summary>
+        /// <remarks>
+        /// This is intended for when a one-sided segment is split by some
+        /// splitter, since we know that new split point will create a wedge.
+        /// </remarks>
+        /// <param name="inbound">The inbound segment.</param>
+        /// <param name="outbound">The outbound segment.</param>
         public void AddWedge(BspSegment inbound, BspSegment outbound)
         {
             Wedges.Add(new JunctionWedge(inbound, outbound));
         }
 
+        /// <summary>
+        /// Checks if a point is between the angle of any wedges at this
+        /// junction.
+        /// </summary>
+        /// <param name="point">The point to check.</param>
+        /// <returns>True if it's between the wedge, false if not.</returns>
         public bool BetweenWedge(Vec2D point)
         {
             return Wedges.Where(w => w.Between(point)).Any();
         }
 
+        /// <summary>
+        /// Checks if there is some kind of mismatch in segment counts. Intended
+        /// for debugging. This being true implies a malformed map.
+        /// </summary>
+        /// <returns>True if there is a bad count, false if not.</returns>
         public bool HasUnexpectedSegCount() => InboundSegments.Count != OutboundSegments.Count;
     }
 }

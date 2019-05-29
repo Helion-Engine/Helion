@@ -9,21 +9,25 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Partition
 {
+    /// <summary>
+    /// Responsible for partitioning the map with some splitter.
+    /// </summary>
     public class Partitioner
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// The states for this partitioner.
+        /// </summary>
         public PartitionStates States = new PartitionStates();
+
         private readonly BspConfig config;
-        private readonly VertexAllocator vertexAllocator;
         private readonly SegmentAllocator segmentAllocator;
         private readonly JunctionClassifier junctionClassifier;
 
-        public Partitioner(BspConfig config, VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator,
-            JunctionClassifier junctionClassifier)
+        public Partitioner(BspConfig config, SegmentAllocator segmentAllocator, JunctionClassifier junctionClassifier)
         {
             this.config = config;
-            this.vertexAllocator = vertexAllocator;
             this.segmentAllocator = segmentAllocator;
             this.junctionClassifier = junctionClassifier;
         }
@@ -221,6 +225,12 @@ namespace Helion.BSP.States.Partition
                 States.LeftSegments.Add(segmentToSplit);
         }
 
+        /// <summary>
+        /// Loads the segments and the splitter.
+        /// </summary>
+        /// <param name="splitter">The splitter segment.</param>
+        /// <param name="segments">The segments to split, which also should
+        /// contain the splitter as well.</param>
         public void Load(BspSegment? splitter, IList<BspSegment> segments)
         {
             if (splitter == null)
@@ -238,6 +248,9 @@ namespace Helion.BSP.States.Partition
             States.SegsToSplit = segments;
         }
 
+        /// <summary>
+        /// Performs an atomic splitting operation.
+        /// </summary>
         public virtual void Execute()
         {
             Precondition(States.State != PartitionState.Finished, "Trying to partition when it's already completed");

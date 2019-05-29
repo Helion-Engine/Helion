@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Helion.BSP.States.Split
 {
+    /// <summary>
+    /// All the states for a split calculator object.
+    /// </summary>
     public enum SplitterState
     {
         Loaded,
@@ -10,6 +13,9 @@ namespace Helion.BSP.States.Split
         Finished
     }
 
+    /// <summary>
+    /// The stateful information for the split calculator.
+    /// </summary>
     public class SplitterStates
     {
         public SplitterState State = SplitterState.Loaded;

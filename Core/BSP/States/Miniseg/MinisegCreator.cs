@@ -5,9 +5,18 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Miniseg
 {
+    /// <summary>
+    /// The instance responsible for creating minisegs, which are segments that
+    /// do not exist in the lines of the original map but are required to make
+    /// a convex enclosed polygon (aka, the subsector, a leaf in the BSP tree).
+    /// </summary>
     public class MinisegCreator
     {
+        /// <summary>
+        /// The states for this object.
+        /// </summary>
         public MinisegStates States = new MinisegStates();
+
         private readonly JunctionClassifier junctionClassifier;
         private readonly VertexAllocator vertexAllocator;
         private readonly SegmentAllocator segmentAllocator;
@@ -40,6 +49,13 @@ namespace Helion.BSP.States.Miniseg
             }
         }
 
+        /// <summary>
+        /// Loads all the collinear vertices that were found from the splitter.
+        /// </summary>
+        /// <param name="splitter">The splitter that was used.</param>
+        /// <param name="collinearVertices">All the vertices that lay on the
+        /// line of the splitter, including ones that were created by the 
+        /// splitter when partitioning the map.</param>
         public void Load(BspSegment splitter, HashSet<VertexIndex> collinearVertices)
         {
             Precondition(collinearVertices.Count >= 2, "Requires two or more vertices for miniseg generation (the splitter should have contributed two)");
@@ -55,6 +71,9 @@ namespace Helion.BSP.States.Miniseg
             States.Vertices.Sort();
         }
 
+        /// <summary>
+        /// Advances to the next state, which may create a miniseg.
+        /// </summary>
         public void Execute()
         {
             Precondition(States.State != MinisegState.Finished, "Trying to do miniseg generation when already finished");

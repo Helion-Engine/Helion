@@ -6,12 +6,28 @@ using static Helion.Util.Assert;
 
 namespace Helion.BSP.States.Miniseg
 {
+    /// <summary>
+    /// The main helper class which tracks all the junctions in the map and is
+    /// used to check if a point is inside the map or not. This is required for
+    /// miniseg generation.
+    /// </summary>
     public class JunctionClassifier
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private Dictionary<VertexIndex, Junction> vertexToJunction = new Dictionary<VertexIndex, Junction>();
 
+        /// <summary>
+        /// To be called every time a one sided segment is discovered when 
+        /// reading the valid map entry collection. After that, then the
+        /// <see cref="NotifyDoneAddingOneSidedSegments"/> should be invoked.
+        /// </summary>
+        /// <remarks>
+        /// This does not make any junctions, that has to be held off until
+        /// later for both code cleanliness and performance reasons.
+        /// </remarks>
+        /// <param name="segment">The segment to track, which should be one
+        /// sided.</param>
         public void AddOneSidedSegment(BspSegment segment)
         {
             Precondition(segment.OneSided, "Adding a two sided segment to something for one sided only");
@@ -37,10 +53,24 @@ namespace Helion.BSP.States.Miniseg
             startJunction.OutboundSegments.Add(segment);
         }
 
-        // TODO: Would like to not have this, it requires the user to know it
-        // which is bad design unless we have to for optimization reasons.
+        /// <summary>
+        /// Tells the junction classifier that we will not be adding anymore
+        /// junctions from <see cref="AddOneSidedSegment"/> anymore. It will
+        /// then compile all the junctions.
+        /// </summary>
+        /// <remarks>
+        /// The only way to add new junctions after calling this should be
+        /// through <see cref="AddSplitJunction"/>. This is unfortunately
+        /// needed since creating the junctions on the fly while adding new
+        /// segments would be extra work and extra code. It might be worth
+        /// doing one day however since it is a code smell due to requiring
+        /// users to know about this function.
+        /// </remarks>
         public void NotifyDoneAddingOneSidedSegments()
         {
+            // TODO: Would like to not have this, it requires the user to know it
+            // which is bad design unless we have to for optimization reasons.
+
             foreach (var vertexJunctionPair in vertexToJunction)
             {
                 (VertexIndex index, Junction junction) = vertexJunctionPair;
@@ -51,6 +81,12 @@ namespace Helion.BSP.States.Miniseg
             }
         }
 
+        /// <summary>
+        /// A function called during BSP partitioning where we create a new 
+        /// junction when we split a one sided line in two.
+        /// </summary>
+        /// <param name="inboundSegment">The inbound segment.</param>
+        /// <param name="outboundSegment">The outbound segment.</param>
         public void AddSplitJunction(BspSegment inboundSegment, BspSegment outboundSegment)
         {
             Precondition(inboundSegment.SegIndex != outboundSegment.SegIndex, "Trying to add the same segment as an inbound/outbound junction");
@@ -70,6 +106,15 @@ namespace Helion.BSP.States.Miniseg
             junction.AddWedge(inboundSegment, outboundSegment);
         }
 
+        /// <summary>
+        /// Checks if the indices from the values provided cross the void or 
+        /// not, where the void is the space outside the map.
+        /// </summary>
+        /// <param name="firstIndex">The index of the first segment.</param>
+        /// <param name="secondVertex">The actual vertex coordinate of the
+        /// second segment.</param>
+        /// <returns>True if the two vertices are crossing the void, false if
+        /// it is inside the map.</returns>
         public bool CheckCrossingVoid(VertexIndex firstIndex, Vec2D secondVertex)
         {
             if (vertexToJunction.TryGetValue(firstIndex, out Junction junction))
