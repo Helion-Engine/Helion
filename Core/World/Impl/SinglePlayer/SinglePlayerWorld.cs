@@ -11,7 +11,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
         }
 
-        protected static SinglePlayerWorld? From(Project project, ValidMapEntryCollection map)
+        protected static SinglePlayerWorld? From(Project project, Map map)
         {
             WorldGeometry? geometry = WorldGeometry.From(map);
             if (geometry == null)

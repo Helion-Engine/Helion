@@ -1,6 +1,5 @@
 ﻿using Helion.Input;
 using Helion.Input.Adapter;
-using Helion.Maps;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Legacy;
@@ -12,7 +11,6 @@ using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using System.Diagnostics;
 
 namespace Helion.Client
 {

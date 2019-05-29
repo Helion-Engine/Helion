@@ -19,7 +19,7 @@ namespace Helion.World.Geometry
         {
         }
 
-        public static WorldGeometry From(ValidMapEntryCollection map)
+        public static WorldGeometry From(Map map)
         {
             WorldGeometry geometry = new WorldGeometry();
             
