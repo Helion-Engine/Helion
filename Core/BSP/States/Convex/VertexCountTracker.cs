@@ -1,6 +1,6 @@
 ﻿using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Convex
+namespace Helion.Bsp.States.Convex
 {
     /// <summary>
     /// Keeps track of how many times a segment enters and exits a vertex. This

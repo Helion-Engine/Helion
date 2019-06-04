@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
 
-namespace Helion.BSP.States.Split
+namespace Helion.Bsp.States.Split
 {
     /// <summary>
     /// All the states for a split calculator object.

@@ -1,5 +1,5 @@
-﻿using Helion.BSP.Builder;
-using Helion.BSP.Node;
+﻿using Helion.Bsp.Builder;
+using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Util.Geometry;

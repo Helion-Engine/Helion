@@ -1,8 +1,8 @@
-﻿using Helion.BSP.Node;
-using Helion.BSP.States;
+﻿using Helion.Bsp.Node;
+using Helion.Bsp.States;
 using Helion.Maps;
 
-namespace Helion.BSP.Builder
+namespace Helion.Bsp.Builder
 {
     /// <summary>
     /// An implementation of the BSP builder which uses debuggable/steppable

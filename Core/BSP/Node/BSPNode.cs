@@ -1,8 +1,8 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.Node
+namespace Helion.Bsp.Node
 {
     /// <summary>
     /// A node in a BSP tree.

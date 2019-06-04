@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
 
-namespace Helion.BSP.States.Miniseg
+namespace Helion.Bsp.States.Miniseg
 {
     /// <summary>
     /// The states the miniseg generator can be in.

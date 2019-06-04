@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using Helion.BSP.Geometry;
+using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 using NLog;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Miniseg
+namespace Helion.Bsp.States.Miniseg
 {
     /// <summary>
     /// The main helper class which tracks all the junctions in the map and is

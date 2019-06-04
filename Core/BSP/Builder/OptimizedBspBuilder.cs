@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Node;
+﻿using Helion.Bsp.Node;
 using Helion.Maps;
 
-namespace Helion.BSP.Builder
+namespace Helion.Bsp.Builder
 {
     /// <summary>
     /// An optimized version of the BSP builder that should be used for when we

@@ -1,17 +1,17 @@
-﻿using Helion.BSP.Geometry;
-using Helion.BSP.Node;
-using Helion.BSP.States;
-using Helion.BSP.States.Convex;
-using Helion.BSP.States.Miniseg;
-using Helion.BSP.States.Partition;
-using Helion.BSP.States.Split;
+﻿using Helion.Bsp.Geometry;
+using Helion.Bsp.Node;
+using Helion.Bsp.States;
+using Helion.Bsp.States.Convex;
+using Helion.Bsp.States.Miniseg;
+using Helion.Bsp.States.Partition;
+using Helion.Bsp.States.Split;
 using Helion.Maps;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP
+namespace Helion.Bsp
 {
     /// <summary>
     /// The BSP tree builder that manages building the entire tree from some
@@ -128,12 +128,13 @@ namespace Helion.BSP
             {
                 VertexIndex start = VertexAllocator[line.StartVertex.Position];
                 VertexIndex end = VertexAllocator[line.EndVertex.Position];
-                int backSectorIndex = line.Back?.Id ?? SectorLine.NoLineToSectorId;
-                BspSegment bspSegment = SegmentAllocator.GetOrCreate(start, end, line.Front.Id, backSectorIndex, line.Id);
+                int frontSectorIndex = line.Front.Sector.Id;
+                int backSectorIndex = line.Back?.Sector.Id ?? SectorLine.NoLineToSectorId;
+                BspSegment bspSegment = SegmentAllocator.GetOrCreate(start, end, frontSectorIndex, backSectorIndex, line.Id);
 
                 if (line.OneSided)
                     JunctionClassifier.AddOneSidedSegment(bspSegment);
-                lineIdToSector.Add(new SectorLine(line.Segment.Delta, line.Front.Sector.Id, backSectorIndex));
+                lineIdToSector.Add(new SectorLine(line.Segment.Delta, frontSectorIndex, backSectorIndex));
             });
 
             // We wait until we added every seg so that junction creation can

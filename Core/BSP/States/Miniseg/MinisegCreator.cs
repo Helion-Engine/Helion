@@ -1,9 +1,9 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Miniseg
+namespace Helion.Bsp.States.Miniseg
 {
     /// <summary>
     /// The instance responsible for creating minisegs, which are segments that

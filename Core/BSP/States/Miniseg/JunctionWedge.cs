@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 
-namespace Helion.BSP.States.Miniseg
+namespace Helion.Bsp.States.Miniseg
 {
     /// <summary>
     /// A helper object which contains a pair of one-sided segments that is

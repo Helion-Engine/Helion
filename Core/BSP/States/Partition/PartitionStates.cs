@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
 
-namespace Helion.BSP.States.Partition
+namespace Helion.Bsp.States.Partition
 {
     /// <summary>
     /// All the states the partitioner can be in.

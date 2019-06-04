@@ -1,4 +1,4 @@
-﻿namespace Helion.BSP.States
+﻿namespace Helion.Bsp.States
 {
     /// <summary>
     /// All the states the BSP builder can be in.

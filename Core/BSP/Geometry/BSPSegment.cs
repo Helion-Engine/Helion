@@ -1,7 +1,7 @@
 ﻿using Helion.Util.Geometry;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.Geometry
+namespace Helion.Bsp.Geometry
 {
     /// <summary>
     /// A BSP segment that contains extra line information in addition to a

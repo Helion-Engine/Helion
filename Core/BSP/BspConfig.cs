@@ -1,6 +1,6 @@
-﻿using Helion.BSP.States.Split;
+﻿using Helion.Bsp.States.Split;
 
-namespace Helion.BSP
+namespace Helion.Bsp
 {
     /// <summary>
     /// A simple configuration class that holds tunable parameters

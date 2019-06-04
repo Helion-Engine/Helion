@@ -1,12 +1,12 @@
-﻿using Helion.BSP.Geometry;
-using Helion.BSP.States.Convex;
+﻿using Helion.Bsp.Geometry;
+using Helion.Bsp.States.Convex;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.Node
+namespace Helion.Bsp.Node
 {
     /// <summary>
     /// An edge of a subsector, or better put: a segment on the edge of a 

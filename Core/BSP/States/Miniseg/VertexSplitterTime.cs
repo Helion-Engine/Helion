@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using System;
 
-namespace Helion.BSP.States.Miniseg
+namespace Helion.Bsp.States.Miniseg
 {
     /// <summary>
     /// A simple wrapper around the time that a vertex was created.

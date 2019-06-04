@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.BSP.Geometry
+namespace Helion.Bsp.Geometry
 {
     /// <summary>
     /// The index of a vertex.

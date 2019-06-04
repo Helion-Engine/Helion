@@ -1,8 +1,8 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States
+namespace Helion.Bsp.States
 {
     /// <summary>
     /// A collection of work item information for some stage in the BSP tree.

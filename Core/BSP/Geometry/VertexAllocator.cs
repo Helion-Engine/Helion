@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.Geometry
+namespace Helion.Bsp.Geometry
 {
     /// <summary>
     /// An allocator of vertices. Also responsible for welding vertices to each

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.Geometry
+namespace Helion.Bsp.Geometry
 {
     // This may be converted into a class in the future. Right now this is
     // intended to be a mapping of a segments points to a segment index. The

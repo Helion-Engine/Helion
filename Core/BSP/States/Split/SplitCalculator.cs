@@ -1,11 +1,11 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Split
+namespace Helion.Bsp.States.Split
 {
     /// <summary>
     /// A helper class that calculates splits based on a score of a segment 

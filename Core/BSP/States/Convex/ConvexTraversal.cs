@@ -1,10 +1,10 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Convex
+namespace Helion.Bsp.States.Convex
 {
     /// <summary>
     /// A single point which contains information on how the segment was

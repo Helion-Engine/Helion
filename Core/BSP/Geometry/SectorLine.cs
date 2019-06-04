@@ -1,6 +1,6 @@
 ﻿using Helion.Util.Geometry;
 
-namespace Helion.BSP.Geometry
+namespace Helion.Bsp.Geometry
 {
     /// <summary>
     /// A simple wrapper for a line that has sector information.

@@ -1,5 +1,5 @@
-﻿using Helion.BSP.Geometry;
-using Helion.BSP.States.Miniseg;
+﻿using Helion.Bsp.Geometry;
+using Helion.Bsp.States.Miniseg;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Partition
+namespace Helion.Bsp.States.Partition
 {
     /// <summary>
     /// Responsible for partitioning the map with some splitter.

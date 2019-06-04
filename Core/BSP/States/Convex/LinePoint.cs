@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 
-namespace Helion.BSP.States.Convex
+namespace Helion.Bsp.States.Convex
 {
     // TODO: Can we merge this with ConvexTraversalPoint? It's the same thing,
     // and may be a leftover from the C++ porting over.

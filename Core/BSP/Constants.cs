@@ -1,4 +1,4 @@
-﻿namespace Helion.BSP
+﻿namespace Helion.Bsp
 {
     /// <summary>
     /// A collection of constants for BSP generation.

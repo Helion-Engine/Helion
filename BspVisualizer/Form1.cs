@@ -1,6 +1,6 @@
-﻿using Helion.BSP.Builder;
-using Helion.BSP.Geometry;
-using Helion.BSP.States;
+﻿using Helion.Bsp.Builder;
+using Helion.Bsp.Geometry;
+using Helion.Bsp.States;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;

@@ -1,10 +1,10 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
 using static Helion.Util.Assert;
 
-namespace Helion.BSP.States.Miniseg
+namespace Helion.Bsp.States.Miniseg
 {
     /// <summary>
     /// Represents all the wedges of one sided lines that occur at a vertex.

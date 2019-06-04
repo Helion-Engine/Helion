@@ -1,7 +1,7 @@
-﻿using Helion.BSP.Geometry;
+﻿using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 
-namespace Helion.BSP.States.Convex
+namespace Helion.Bsp.States.Convex
 {
     /// <summary>
     /// An enumeration for the state of the convex checker.
