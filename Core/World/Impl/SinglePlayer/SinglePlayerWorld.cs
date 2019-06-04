@@ -7,17 +7,18 @@ namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
-        protected SinglePlayerWorld(Project project, WorldGeometry geometry) : base(project, geometry)
+        private SinglePlayerWorld(Project project, Map map, BspTree bspTree) : base(project, map, bspTree)
         {
+            // TODO
         }
 
-        protected static SinglePlayerWorld? From(Project project, Map map)
+        public static SinglePlayerWorld? Create(Project project, Map map)
         {
-            WorldGeometry? geometry = WorldGeometry.From(map);
-            if (geometry == null)
+            BspTree? bspTree = BspTree.Create(map);
+            if (bspTree == null)
                 return null;
 
-            return new SinglePlayerWorld(project, geometry);
+            return new SinglePlayerWorld(project, map, bspTree);
         }
 
         public void HandleTickInput(ConsumableInput tickInput)

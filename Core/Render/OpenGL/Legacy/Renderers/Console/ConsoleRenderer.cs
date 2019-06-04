@@ -11,23 +11,21 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Console
     {
         protected bool disposed;
         private GLLegacyTextureManager textureManager;
-        private ShaderProgram shaderProgram = ConsoleShader.CreateShaderProgramOrThrow();
-        private StreamVertexBuffer<ConsoleVertex> vbo = new StreamVertexBuffer<ConsoleVertex>();
         private VertexArrayObject vao = new VertexArrayObject(
             new VaoAttributeF("pos", 0, 2, VertexAttribPointerType.Float),
             new VaoAttributeF("uv", 1, 2, VertexAttribPointerType.Float)
         );
+        private StreamVertexBuffer<ConsoleVertex> vbo = new StreamVertexBuffer<ConsoleVertex>();
+        private ShaderProgram shaderProgram;
 
         public ConsoleRenderer(GLLegacyTextureManager glTextureManager)
         {
             textureManager = glTextureManager;
+            shaderProgram = ConsoleShader.CreateShaderProgramOrThrow(vao);
             vao.BindAttributesTo(vbo);
         }
 
-        ~ConsoleRenderer()
-        {
-            Dispose(false);
-        }
+        ~ConsoleRenderer() => Dispose(false);
 
         protected virtual void Dispose(bool disposing)
         {
@@ -44,7 +42,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Console
             disposed = true;
         }
 
-        public void Render()
+        public void Render(Util.Console console)
         {
             // TODO
         }

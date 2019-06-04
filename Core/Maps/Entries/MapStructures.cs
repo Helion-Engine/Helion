@@ -5,11 +5,11 @@
     /// </summary>
     public static class Constants
     {
-        public static readonly ushort NO_SIDEDEF = 0xFFFF;
-        public static readonly ushort NODE_IS_SUBSECTOR_MASK = 0x8000;
-        public static readonly ushort BLOCKMAP_LIST_START = 0x0000;
-        public static readonly ushort BLOCKMAP_LIST_END = 0xFFFF;
-        public static readonly float ANGLE_TO_FULL_RANGE_FACTOR = 65536.0f / 360.0f;
+        public static readonly ushort NoSidedef = 0xFFFF;
+        public static readonly ushort NodeIsSubsectorMask = 0x8000;
+        public static readonly ushort BlockmapListStart = 0x0000;
+        public static readonly ushort BlockmapListEnd = 0xFFFF;
+        public static readonly float AngleToFullRangeFactor = 65536.0f / 360.0f;
     }
 
     public struct Vertex
@@ -86,7 +86,7 @@
         public ushort RightSidedef;
         public ushort LeftSidedef;
 
-        public bool OneSided => LeftSidedef == Constants.NO_SIDEDEF;
+        public bool OneSided => LeftSidedef == Constants.NoSidedef;
 
         public LinedefDoom(ushort startVertexId, ushort endVertexId, ushort flags,
             ushort lineType, ushort sectorTag, ushort rightSidedef, ushort leftSidedef)
@@ -113,7 +113,7 @@
         public ushort RightSidedef;
         public ushort LeftSidedef;
 
-        public bool OneSided => LeftSidedef == Constants.NO_SIDEDEF;
+        public bool OneSided => LeftSidedef == Constants.NoSidedef;
 
         public LinedefHexen(ushort startVertexId, ushort endVertexId, ushort flags, byte actionSpecial,
             byte[] args, ushort rightSidedef, ushort leftSidedef)
@@ -228,7 +228,7 @@
             SpawnFlags = spawnFlags;
         }
 
-        public ushort FromDegreesToFullRange() => (ushort)(Angle * Constants.ANGLE_TO_FULL_RANGE_FACTOR);
+        public ushort FromDegreesToFullRange() => (ushort)(Angle * Constants.AngleToFullRangeFactor);
     }
 
     struct ThingHexen
@@ -259,6 +259,6 @@
             Args = args;
         }
 
-        public ushort FromDegreesToFullRange() => (ushort)(Angle * Constants.ANGLE_TO_FULL_RANGE_FACTOR);
+        public ushort FromDegreesToFullRange() => (ushort)(Angle * Constants.AngleToFullRangeFactor);
     }
 }

@@ -76,10 +76,7 @@ namespace Helion.Util
             AddToLogger();
         }
 
-        ~Console()
-        {
-            Dispose(false);
-        }
+        ~Console() => Dispose(false);
 
         private void AddToLogger()
         {
@@ -253,6 +250,11 @@ namespace Helion.Util
         /// </summary>
         public readonly List<string> Args = new List<string>();
 
+        /// <summary>
+        /// Parsest the text provided into a console command event.
+        /// </summary>
+        /// <param name="text">The input to parse. This should not be empty.
+        /// </param>
         public ConsoleCommandEventArgs(string text)
         {
             Precondition(text.NotEmpty(), "Should not be getting an empty console command");

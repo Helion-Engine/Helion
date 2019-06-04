@@ -1,5 +1,6 @@
 ﻿using Helion.Projects;
 using Helion.Render.OpenGL.Legacy.Renderers.Console;
+using Helion.Render.OpenGL.Legacy.Renderers.World;
 using Helion.Render.OpenGL.Legacy.Texture;
 using Helion.Render.OpenGL.Shared;
 using Helion.World;
@@ -13,11 +14,13 @@ namespace Helion.Render.OpenGL.Legacy
         private bool disposed = false;
         private GLLegacyTextureManager textureManager;
         private ConsoleRenderer consoleRenderer;
+        private WorldRenderer worldRenderer;
 
         public GLLegacyRenderer(GLInfo info, Project project) : base(info)
         {
             textureManager = new GLLegacyTextureManager(project);
             consoleRenderer = new ConsoleRenderer(textureManager);
+            worldRenderer = new WorldRenderer(textureManager);
         }
 
         ~GLLegacyRenderer()
@@ -25,11 +28,16 @@ namespace Helion.Render.OpenGL.Legacy
             Dispose(false);
         }
 
+        public override void RenderConsole(Util.Console console)
+        {
+            GL.ActiveTexture(TextureUnit.Texture0);
+            consoleRenderer.Render(console);
+        }
+
         public override void RenderWorld(WorldBase world)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
-
-            // TODO
+            worldRenderer.Render(world);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -38,7 +46,11 @@ namespace Helion.Render.OpenGL.Legacy
                 return;
 
             if (disposing)
+            {
+                worldRenderer.Dispose();
+                consoleRenderer.Dispose();
                 textureManager.Dispose();
+            }
 
             disposed = true;
         }

@@ -10,11 +10,11 @@ namespace Helion.BSP.Builder
     /// </summary>
     public class StepwiseBspBuilder : BspBuilder
     {
-        public StepwiseBspBuilder(ValidMapEntryCollection map) : this(map, new BspConfig())
+        public StepwiseBspBuilder(Map map) : this(map, new BspConfig())
         {
         }
 
-        public StepwiseBspBuilder(ValidMapEntryCollection map, BspConfig config) :
+        public StepwiseBspBuilder(Map map, BspConfig config) :
             base(map, config)
         {
         }

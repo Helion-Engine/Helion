@@ -30,6 +30,9 @@ namespace Helion.Render.OpenGL.Shared.Buffer.Vao
             Attributes.ForEach(attr => attr.BindShaderLocation(programId));
         }
 
+        // TODO: This function should be abolished and handled as part of the
+        // vbo creation, as it requires a user to know it must be called and 
+        // that is not good.
         public void BindAttributesTo<T>(VertexBuffer<T> vbo) where T : struct
         {
             vbo.BindAnd(() =>

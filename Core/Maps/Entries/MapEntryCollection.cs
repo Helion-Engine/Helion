@@ -37,55 +37,8 @@ namespace Helion.Maps
         /// <summary>
         /// Creates a blank collection with no components or name set.
         /// </summary>
-        public MapEntryCollection() { }
-
-        /// <summary>
-        /// Sets all the fields for the map entry collection in one go.
-        /// </summary>
-        /// <remarks>
-        /// This is primarily used by the <see cref="ValidMapEntryCollection"/>
-        /// child class to reduce code duplication and make it easier to spot
-        /// any errors if we add any field to this collection in the future.
-        /// </remarks>
-        /// <param name="name">The name of the map.</param>
-        /// <param name="vertices">The entry for this type.</param>
-        /// <param name="sectors">The entry for this type.</param>
-        /// <param name="sidedefs">The entry for this type.</param>
-        /// <param name="linedefs">The entry for this type.</param>
-        /// <param name="segments">The entry for this type.</param>
-        /// <param name="subsectors">The entry for this type.</param>
-        /// <param name="nodes">The entry for this type.</param>
-        /// <param name="things">The entry for this type.</param>
-        /// <param name="blockmap">The entry for this type.</param>
-        /// <param name="reject">The entry for this type.</param>
-        /// <param name="scripts">The entry for this type.</param>
-        /// <param name="behavior">The entry for this type.</param>
-        /// <param name="dialogue">The entry for this type.</param>
-        /// <param name="textmap">The entry for this type.</param>
-        /// <param name="znodes">The entry for this type.</param>
-        /// <param name="endmap">The entry for this type.</param>
-        public MapEntryCollection(UpperString name, byte[]? vertices, byte[]? sectors,
-            byte[]? sidedefs, byte[]? linedefs, byte[]? segments, byte[]? subsectors, byte[]? nodes,
-            byte[]? things, byte[]? blockmap, byte[]? reject, byte[]? scripts, byte[]? behavior, 
-            byte[]? dialogue, byte[]? textmap, byte[]? znodes, byte[]? endmap)
+        public MapEntryCollection()
         {
-            Name = name;
-            Vertices = vertices;
-            Sectors = sectors;
-            Sidedefs = sidedefs;
-            Linedefs = linedefs;
-            Segments = segments;
-            Subsectors = subsectors;
-            Nodes = nodes;
-            Things = things;
-            Blockmap = blockmap;
-            Reject = reject;
-            Scripts = scripts;
-            Behavior = behavior;
-            Dialogue = dialogue;
-            Textmap = textmap;
-            Znodes = znodes;
-            Endmap = endmap;
         }
 
         /// <summary>

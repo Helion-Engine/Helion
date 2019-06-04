@@ -8,13 +8,27 @@ namespace Helion.Maps.Geometry
     public class Vertex
     {
         public readonly int Id;
-        public Vec2D Position;
         public readonly List<Line> Lines = new List<Line>();
+        private Vec2D position;
+        private Vec2Fixed fixedPosition;
 
-        public Vertex(int id, Vec2D position)
+        public Vec2D Position 
+        {
+            get => position;
+            set 
+            {
+                position = value;
+                fixedPosition = new Vec2Fixed(new Fixed(position.X), new Fixed(position.Y));
+                Lines.ForEach(line => line.UpdateSegments());
+            }
+        }
+
+        public Vec2Fixed FixedPosition => fixedPosition;
+
+        public Vertex(int id, Vec2D pos)
         {
             Id = id;
-            Position = position;
+            Position = pos;
         }
 
         public void Add(Line line)

@@ -1,6 +1,6 @@
 ﻿namespace Helion.Render.OpenGL.Legacy.Renderers.Console
 {
-    public struct ConsoleVertex
+    public readonly struct ConsoleVertex
     {
         public readonly float X;
         public readonly float Y;

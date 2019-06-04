@@ -5,7 +5,6 @@ using Helion.Projects.Resources;
 using Helion.Util;
 using NLog;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.Projects
 {
@@ -99,7 +98,7 @@ namespace Helion.Projects
             return true;
         }
 
-        public ValidMapEntryCollection? GetMap(UpperString mapName)
+        public Map? GetMap(UpperString mapName)
         {
             // TODO: Can we make some cleaner 'reverse iterator' extension?
             // Like an IList<>.ForEachReverse(...)?
@@ -112,7 +111,7 @@ namespace Helion.Projects
                 {
                     if (mapEntryCollection.Name == mapName)
                     {
-                        ValidMapEntryCollection? map = ValidMapEntryCollection.From(mapEntryCollection);
+                        Map? map = Map.From(mapEntryCollection);
                         if (map != null)
                             return map;
                     }

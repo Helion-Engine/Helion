@@ -1,5 +1,6 @@
 ﻿using Helion.Input;
 using Helion.Input.Adapter;
+using Helion.Maps;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Legacy;
@@ -26,7 +27,7 @@ namespace Helion.Client
         private readonly InputCollection tickCollection;
         private readonly LocalProject project = new LocalProject();
         private bool shouldExit = false;
-        private GLRenderer glRenderer;
+        private GLRenderer renderer;
         private SinglePlayerWorld? world;
 
         public Client(CommandLineArgs args) : 
@@ -40,8 +41,15 @@ namespace Helion.Client
             LoadProject();
 
             GLInfo glInfo = new GLInfo();
-            glRenderer = new GLLegacyRenderer(glInfo, project);
+            renderer = new GLLegacyRenderer(glInfo, project);
             PrintGLInfo(glInfo);
+
+            // TODO: Temporary!
+            // ================================================================
+            Map? map = project.GetMap("MAP01");
+            if (map != null)
+                world = SinglePlayerWorld.Create(project, map);
+            // ================================================================
         }
 
         private void LoadProject()
@@ -112,8 +120,6 @@ namespace Helion.Client
             base.OnMouseMove(e);
         }
 
-        // In the mouse wheel function we manage all the zooming of the camera
-        // this is simply done by changing the FOV of the camera
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             if (Focused)
@@ -143,12 +149,12 @@ namespace Helion.Client
             ConsumableInput consumableFrameInput = new ConsumableInput(tickCollection);
             frameCollection.Tick();
 
-            glRenderer.Clear(new System.Drawing.Size(Width, Height));
+            renderer.Clear(new System.Drawing.Size(Width, Height));
 
             if (world != null)
             {
                 world.HandleFrameInput(consumableFrameInput);
-                glRenderer.RenderWorld(world);
+                renderer.RenderWorld(world);
             }
 
             SwapBuffers();
@@ -162,7 +168,7 @@ namespace Helion.Client
             // before the OpenGL context is destroyed. This way we clean up
             // our side of the renderer first.
             inputAdapter.InputEventEmitter -= inputManager.HandleInputEvent;
-            glRenderer.Dispose();
+            renderer.Dispose();
             console.Dispose();
 
             base.OnUnload(e);

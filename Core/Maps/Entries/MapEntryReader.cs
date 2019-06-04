@@ -6,6 +6,10 @@ using NLog;
 
 namespace Helion.Maps.Entries
 {
+    /// <summary>
+    /// A static helper class for taking raw map data and turning it into map
+    /// components.
+    /// </summary>
     public static class MapEntryReader
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
@@ -175,6 +179,11 @@ namespace Helion.Maps.Entries
             return mapEntries.IsHexenMap ? ReadHexenLines(map, mapEntries) : ReadDoomLines(map, mapEntries);
         }
 
+        private static bool HasGeometry(Map map)
+        {
+            return map.Vertices.Count > 0 && map.Lines.Count > 0 && map.Sides.Count > 0 && map.Sectors.Count > 0;
+        }
+
         public static bool ReadInto(MapEntryCollection mapEntries, Map map)
         {
             if (!mapEntries.IsValid())
@@ -200,7 +209,7 @@ namespace Helion.Maps.Entries
                 return false;
             }
 
-            return true;
+            return HasGeometry(map);
         }
     }
 }

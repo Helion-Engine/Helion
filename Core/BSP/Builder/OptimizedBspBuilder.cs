@@ -9,13 +9,14 @@ namespace Helion.BSP.Builder
     /// </summary>
     public class OptimizedBspBuilder : BspBuilder
     {
-        public OptimizedBspBuilder(ValidMapEntryCollection map) : this(map, new BspConfig())
+        public OptimizedBspBuilder(Map map) : this(map, new BspConfig())
         {
         }
 
-        public OptimizedBspBuilder(ValidMapEntryCollection map, BspConfig config) :
+        public OptimizedBspBuilder(Map map, BspConfig config) :
             base(map, config)
         {
+            // TODO: We need to make the optimized components and set them.
         }
 
         /// <summary>

@@ -99,11 +99,11 @@ namespace Helion.BSP
         /// </summary>
         public bool Done => States.Current == BuilderState.Complete;
 
-        protected BspBuilder(ValidMapEntryCollection map) : this(map, new BspConfig())
+        protected BspBuilder(Map map) : this(map, new BspConfig())
         {
         }
 
-        protected BspBuilder(ValidMapEntryCollection map, BspConfig config)
+        protected BspBuilder(Map map, BspConfig config)
         {
             Config = config;
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
@@ -122,21 +122,19 @@ namespace Helion.BSP
         /// populates the vertex/segment allocators with the appropriate data.
         /// </summary>
         /// <param name="map">The map to get the components from.</param>
-        protected void PopulateAllocatorsFrom(ValidMapEntryCollection map)
+        protected void PopulateAllocatorsFrom(Map map)
         {
-            int lineId = 0;
-            foreach (MapSegment seg in MapSegmentGenerator.Generate(map))
+            map.Lines.ForEach(line =>
             {
-                VertexIndex start = VertexAllocator[seg.Start];
-                VertexIndex end = VertexAllocator[seg.End];
-                int backSectorIndex = seg.BackSectorIndex ?? SectorLine.NoLineToSectorId;
-                BspSegment bspSegment = SegmentAllocator.GetOrCreate(start, end, seg.FrontSectorIndex, backSectorIndex, lineId);
-                lineId++;
+                VertexIndex start = VertexAllocator[line.StartVertex.Position];
+                VertexIndex end = VertexAllocator[line.EndVertex.Position];
+                int backSectorIndex = line.Back?.Id ?? SectorLine.NoLineToSectorId;
+                BspSegment bspSegment = SegmentAllocator.GetOrCreate(start, end, line.Front.Id, backSectorIndex, line.Id);
 
-                if (seg.OneSided)
+                if (line.OneSided)
                     JunctionClassifier.AddOneSidedSegment(bspSegment);
-                lineIdToSector.Add(new SectorLine(seg.Delta, seg.FrontSectorIndex, backSectorIndex));
-            }
+                lineIdToSector.Add(new SectorLine(line.Segment.Delta, line.Front.Sector.Id, backSectorIndex));
+            });
 
             // We wait until we added every seg so that junction creation can
             // be done with knowledge of all the lines that exist. The junction
