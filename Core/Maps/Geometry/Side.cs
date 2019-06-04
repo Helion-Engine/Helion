@@ -12,10 +12,8 @@ namespace Helion.Maps.Geometry
         public string UpperTexture;
         public readonly Sector Sector;
 
-        public Line Line 
-        {
-            get 
-            {
+        public Line Line {
+            get {
                 if (line == null)
                     throw new HelionException("Trying to get the line for a side that has not had it set");
                 return line;
@@ -26,6 +24,7 @@ namespace Helion.Maps.Geometry
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
         public bool IsBack => !IsFront;
+        public Side? PartnerSide => ReferenceEquals(this, Line.Front) ? Line.Front : (Line.TwoSided ? Line.Back : null);
 
         public Side(int id, Vec2I offset, string lowerTexture, string middleTexture, string upperTexture, 
             Sector sector)

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Helion.Render.OpenGL.Shared.Triangulator
+namespace Helion.Render.Shared.Triangulator
 {
     /// <summary>
     /// A simple triangle that is the result of a triangulation of some world

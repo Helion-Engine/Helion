@@ -31,7 +31,7 @@ namespace Helion.Client
         private SinglePlayerWorld? world;
 
         public Client(CommandLineArgs args) : 
-            base(1024, 768, GraphicsMode.Default, Constants.APPLICATION_NAME, GameWindowFlags.Default)
+            base(1024, 768, GraphicsMode.Default, Constants.ApplicationName, GameWindowFlags.Default)
         {
             commandLineArgs = args;
             frameCollection = inputManager.RegisterCollection();
@@ -180,12 +180,12 @@ namespace Helion.Client
 
             Logging.Initialize(cmdArgs);
             log.Info("=========================================");
-            log.Info($"{Constants.APPLICATION_NAME} v{Constants.APPLICATION_VERSION}");
+            log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
             log.Info("=========================================");
 
             using (Client client = new Client(cmdArgs))
             {
-                // We run at an update rate of 35 Hz, but we want max rendering 
+                // We run at an update rate of 35 Hz, and we want max rendering
                 // speed so we use a value of zero for that.
                 client.Run(35.0, 0.0);
             }

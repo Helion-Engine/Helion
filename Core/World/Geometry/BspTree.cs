@@ -35,7 +35,7 @@ namespace Helion.World.Geometry
         /// A compact struct for all the nodes, specifically to speed up all
         /// recursive BSP traversal.
         /// </summary>
-        private BspNodeCompact[] nodes = new BspNodeCompact[0];
+        public BspNodeCompact[] Nodes = new BspNodeCompact[0];
 
         /// <summary>
         /// The next available subsector index. This is used only for building 
@@ -45,7 +45,7 @@ namespace Helion.World.Geometry
 
         /// <summary>
         /// The next available node index. This is used only for building the 
-        /// <see cref="nodes"/> list.
+        /// <see cref="Nodes"/> list.
         /// </summary>
         private uint nextNodeIndex;
 
@@ -56,7 +56,7 @@ namespace Helion.World.Geometry
         /// This is the end index of the nodes array because the recursive
         /// traversal fills in the array from post-order traversal.
         /// </remarks>
-        private BspNodeCompact Root => nodes[^1];
+        private BspNodeCompact Root => Nodes[^1];
 
         private BspTree(BspNode root, Map map)
         {
@@ -94,7 +94,7 @@ namespace Helion.World.Geometry
 
             Segments = new List<Segment>(segmentCountGuess);
             Subsectors = new Subsector[subsectorNodeCount];
-            nodes = new BspNodeCompact[parentNodeCount];
+            Nodes = new BspNodeCompact[parentNodeCount];
 
             RecursivelyCreateComponents(root, map);
 
@@ -170,7 +170,7 @@ namespace Helion.World.Geometry
             Box2Fixed bbox = MakeBoundingBoxFrom(left, right);
 
             BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, splitter, bbox);
-            nodes[nextNodeIndex] = compactNode;
+            Nodes[nextNodeIndex] = compactNode;
 
             return BspCreateResult.Node(nextNodeIndex++);
         }
@@ -184,8 +184,8 @@ namespace Helion.World.Geometry
 
         private Box2Fixed MakeBoundingBoxFrom(BspCreateResult left, BspCreateResult right)
         {
-            Box2Fixed leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : nodes[left.Index].BoundingBox);
-            Box2Fixed rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : nodes[right.Index].BoundingBox);
+            Box2Fixed leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
+            Box2Fixed rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
             return Box2Fixed.Combine(leftBox, rightBox);
         }
 
@@ -205,14 +205,14 @@ namespace Helion.World.Geometry
                     if (node.IsRightSubsector)
                         return Subsectors[node.RightChildAsSubsector];
                     else
-                        node = nodes[node.RightChild];
+                        node = Nodes[node.RightChild];
                 }
                 else
                 {
                     if (node.IsLeftSubsector)
                         return Subsectors[node.LeftChildAsSubsector];
                     else
-                        node = nodes[node.LeftChild];
+                        node = Nodes[node.LeftChild];
                 }
             }
         }
@@ -237,7 +237,7 @@ namespace Helion.World.Geometry
 
         /// <summary>
         /// The index into either <see cref="BspTree.Segments"/> or
-        /// <see cref="BspTree.nodes"/> for the component.
+        /// <see cref="BspTree.Nodes"/> for the component.
         /// </summary>
         public readonly uint Index;
 
