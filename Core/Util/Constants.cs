@@ -7,17 +7,17 @@ namespace Helion.Util
     /// </summary>
     public class Constants
     {
-        public static readonly string APPLICATION_NAME = "Helion";
-        public static readonly Version APPLICATION_VERSION = new Version(0, 1, 0, 0);
+        public static readonly string ApplicationName = "Helion";
+        public static readonly Version ApplicationVersion = new Version(0, 1, 0, 0);
 
-        public static readonly string CONFIG_DEFAULT_PATH = "config.cfg";
+        public static readonly string ConfigDefaultPath = "config.cfg";
 
-        public static readonly string NO_TEXTURE = "-";
-        public static readonly string SKY_TEXTURE = "F_SKY1";
-        public static readonly string NULL_TEXTURE_NAME = "NULL";
-        public static readonly string PLAYER_CLASS = "PLAYER";
-        public static readonly ulong TICKS_PER_NANOS = 28L * 1000L * 1000L;
+        public static readonly string NoTexture = "-";
+        public static readonly string SkyTexture = "F_SKY1";
+        public static readonly string NulLTextureName = "NULL";
+        public static readonly string PlayerClass = "PLAYER";
+        public static readonly ulong TicksPerNanos = 28L * 1000L * 1000L;
 
-        public static readonly float FONT_ALPHA_CUTOFF = 0.5f;
+        public static readonly float FontAlphaCutoff = 0.5f;
     }
 }

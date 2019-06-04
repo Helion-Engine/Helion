@@ -10,7 +10,7 @@ namespace Helion.World.Geometry
     {
         public readonly int Id;
         public Side? Side;
-        public readonly int OffsetX = 0;
+        public readonly int OffsetX;
 
         public Line? Line => Side?.Line;
         public bool IsMiniseg => Side == null;
