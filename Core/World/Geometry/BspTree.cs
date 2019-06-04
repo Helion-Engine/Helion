@@ -12,16 +12,50 @@ using static Helion.Util.Assert;
 
 namespace Helion.World.Geometry
 {
+    /// <summary>
+    /// The compiled BSP tree that condenses the builder data into a cache
+    /// efficient data structure.
+    /// </summary>
     public class BspTree
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// All the segments, which are the edges of the subsector.
+        /// </summary>
         public List<Segment> Segments = new List<Segment>();
+
+        /// <summary>
+        /// All the subsectors, the convex leaves at the bottom of the BSP 
+        /// tree.
+        /// </summary>
         public Subsector[] Subsectors = new Subsector[0];
+
+        /// <summary>
+        /// A compact struct for all the nodes, specifically to speed up all
+        /// recursive BSP traversal.
+        /// </summary>
         private BspNodeCompact[] nodes = new BspNodeCompact[0];
+
+        /// <summary>
+        /// The next available subsector index. This is used only for building 
+        /// the <see cref="Subsectors"/> list.
+        /// </summary>
         private uint nextSubsectorIndex;
+
+        /// <summary>
+        /// The next available node index. This is used only for building the 
+        /// <see cref="nodes"/> list.
+        /// </summary>
         private uint nextNodeIndex;
 
+        /// <summary>
+        /// The root node of the tree.
+        /// </summary>
+        /// <remarks>
+        /// This is the end index of the nodes array because the recursive
+        /// traversal fills in the array from post-order traversal.
+        /// </remarks>
         private BspNodeCompact Root => nodes[^1];
 
         private BspTree(BspNode root, Map map)
@@ -30,6 +64,13 @@ namespace Helion.World.Geometry
             CreateComponents(root, map);
         }
 
+        /// <summary>
+        /// Creates a BSP from the map provided. This can fail if the geometry
+        /// for the map is corrupt and we cannot make a BSP tree.
+        /// </summary>
+        /// <param name="map">The map to build the tree from.</param>
+        /// <returns>A built BSP tree, or a null value if the geometry for the
+        /// map is (extremely) corrupt.</returns>
         public static BspTree? Create(Map map)
         {
             OptimizedBspBuilder builder = new OptimizedBspBuilder(map);
@@ -148,6 +189,11 @@ namespace Helion.World.Geometry
             return Box2Fixed.Combine(leftBox, rightBox);
         }
 
+        /// <summary>
+        /// Gets the subsector that maps onto the point provided.
+        /// </summary>
+        /// <param name="point">The point to get the subsector for.</param>
+        /// <returns>The subsector for the provided point.</returns>
         public Subsector ToSubsector(Vec2Fixed point)
         {
             BspNodeCompact node = Root;
@@ -171,6 +217,11 @@ namespace Helion.World.Geometry
             }
         }
 
+        /// <summary>
+        /// Gets the sector that maps onto the point provided.
+        /// </summary>
+        /// <param name="point">The point to get the sector for.</param>
+        /// <returns>The sector for the provided point.</returns>
         public Sector ToSector(Vec2Fixed point) => ToSubsector(point).Sector;
     }
 

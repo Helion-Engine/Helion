@@ -10,7 +10,7 @@ namespace Helion.World.Geometry
     {
         public readonly int Id;
         public Side? Side;
-        public readonly int LineXOffset = 0;
+        public readonly int OffsetX = 0;
 
         public Line? Line => Side?.Line;
         public bool IsMiniseg => Side == null;
@@ -19,15 +19,17 @@ namespace Helion.World.Geometry
         {
             Id = id;
             Side = side;
-
-            if (side != null)
-                LineXOffset = CalculateLineXOffset();
+            OffsetX = CalculateLineXOffset();
         }
 
         private int CalculateLineXOffset()
         {
-            // TODO
-            return 0;
+            if (Side == null || Line == null)
+                return 0;
+
+            if (Side.IsFront)
+                return (int)(Line.StartVertex.Position - Start.ToDouble()).Length();
+            return (int)(Line.EndVertex.Position - End.ToDouble()).Length();
         }
     }
 }

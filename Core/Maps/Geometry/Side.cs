@@ -24,6 +24,9 @@ namespace Helion.Maps.Geometry
         }
         private Line? line;
 
+        public bool IsFront => ReferenceEquals(this, Line.Front);
+        public bool IsBack => !IsFront;
+
         public Side(int id, Vec2I offset, string lowerTexture, string middleTexture, string upperTexture, 
             Sector sector)
         {
