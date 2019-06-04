@@ -14,6 +14,12 @@ namespace Helion.Util.Geometry
             Y = y;
         }
 
+        public Vec2I(Vec3I vec)
+        {
+            X = vec.X;
+            Y = vec.Y;
+        }
+
         public static Vec2I operator +(Vec2I self, Vec2I other) => new Vec2I(self.X + other.X, self.Y + other.Y);
         public static Vec2I operator -(Vec2I self, Vec2I other) => new Vec2I(self.X - other.X, self.Y - other.Y);
         public static Vec2I operator *(Vec2I self, Vec2I other) => new Vec2I(self.X * other.X, self.Y * other.Y);
@@ -49,6 +55,12 @@ namespace Helion.Util.Geometry
         {
             X = x;
             Y = y;
+        }
+
+        public Vec2D(Vec3D vec)
+        {
+            X = vec.X;
+            Y = vec.Y;
         }
 
         public static Vec2D operator +(Vec2D self, Vec2D other) => new Vec2D(self.X + other.X, self.Y + other.Y);
@@ -95,6 +107,12 @@ namespace Helion.Util.Geometry
         {
             X = x;
             Y = y;
+        }
+
+        public Vec2Fixed(Vec3Fixed vec)
+        {
+            X = vec.X;
+            Y = vec.Y;
         }
 
         public static Vec2Fixed operator +(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X + other.X, self.Y + other.Y);

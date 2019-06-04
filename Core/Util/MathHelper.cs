@@ -5,6 +5,10 @@ namespace Helion.Util
 {
     public static class MathHelper
     {
+        public const float QuarterPi = (float)(Math.PI / 4);
+        public const float HalfPi = (float)(Math.PI / 2);
+        public const float TwoPi = (float)(2 * Math.PI);
+
         public static bool IsZero(int i) => i == 0;
         public static bool IsZero(Fixed fixedPoint) => fixedPoint.Bits == 0;
         public static bool IsZero(Fixed fixedPoint, Fixed epsilon) => fixedPoint.Abs() < epsilon;

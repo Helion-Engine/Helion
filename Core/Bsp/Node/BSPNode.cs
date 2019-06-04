@@ -138,7 +138,7 @@ namespace Helion.Bsp.Node
         public int CalculateParentNodeCount()
         {
             if (Left != null && Right != null)
-                return 1 + Left.CalculateSubsectorCount() + Right.CalculateSubsectorCount();
+                return 1 + Left.CalculateParentNodeCount() + Right.CalculateParentNodeCount();
             else
                 return 0;
         }

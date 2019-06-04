@@ -16,7 +16,7 @@ namespace Helion.World.Geometry
         /// <summary>
         /// The mask that is used for grabbing the lower 15 bits.
         /// </summary>
-        private const ushort SubsectorMask = (ushort)0x7FFFU;
+        public const ushort SubsectorMask = (ushort)0x7FFFU;
 
         /// <summary>
         /// A left child index, which is either an index to a subsector, or a 
@@ -82,5 +82,13 @@ namespace Helion.World.Geometry
             Splitter = splitter;
             BoundingBox = boundingBox;
         }
+
+        /// <summary>
+        /// Checks if the index is a subsector.
+        /// </summary>
+        /// <param name="index">The subsector index.</param>
+        /// <returns>True if it's a subsector index, false if it's a node 
+        /// index.</returns>
+        public static bool IsSubsectorIndex(ushort index) => (index & IsSubsectorBit) > 0;
     }
 }

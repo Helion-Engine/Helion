@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Legacy.Renderers.Console;
 using Helion.Render.OpenGL.Legacy.Renderers.World;
 using Helion.Render.OpenGL.Legacy.Texture;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.Shared;
 using Helion.World;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -34,10 +35,10 @@ namespace Helion.Render.OpenGL.Legacy
             consoleRenderer.Render(console);
         }
 
-        public override void RenderWorld(WorldBase world)
+        public override void RenderWorld(WorldBase world, Camera camera)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
-            worldRenderer.Render(world);
+            worldRenderer.Render(world, camera);
         }
 
         protected virtual void Dispose(bool disposing)

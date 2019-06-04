@@ -1,4 +1,5 @@
 ﻿using Helion.Render.OpenGL.Shared;
+using Helion.Render.Shared;
 using Helion.Util;
 using Helion.World;
 using NLog;
@@ -74,7 +75,7 @@ namespace Helion.Render.OpenGL
 
         public abstract void RenderConsole(Console console);
 
-        public abstract void RenderWorld(WorldBase world);
+        public abstract void RenderWorld(WorldBase world, Camera camera);
 
         public abstract void Dispose();
     }
