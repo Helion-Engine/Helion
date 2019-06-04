@@ -39,22 +39,48 @@ namespace Helion.Bsp.Node
         public readonly int? SectorId;
 
         /// <summary>
+        /// If this segment is on the front of the line or not. This is not
+        /// meaningful if it is a miniseg, and can be either true or false.
+        /// </summary>
+        public readonly bool IsFront;
+
+        /// <summary>
         /// True if it's a miniseg, false if not.
         /// </summary>
         public bool IsMiniseg => LineId == BspSegment.MinisegLineId;
 
-        public SubsectorEdge(Vec2D start, Vec2D end) : this(start, end, BspSegment.MinisegLineId, NoSectorId)
+        /// <summary>
+        /// Creates a subsector edge from a miniseg start/end point.
+        /// </summary>
+        /// <param name="start">The starting point.</param>
+        /// <param name="end">The ending point.</param>
+        public SubsectorEdge(Vec2D start, Vec2D end) : 
+            this(start, end, true, BspSegment.MinisegLineId, NoSectorId)
         {
         }
 
-        public SubsectorEdge(Vec2D start, Vec2D end, int lineId, int sectorId) : base(start, end)
+        public SubsectorEdge(Vec2D start, Vec2D end, bool front, int lineId, int sectorId) : 
+            base(start, end)
         {
+            IsFront = front;
             LineId = lineId;
             if (sectorId != NoSectorId)
                 SectorId = sectorId;
         }
 
-        private static int GetSectorIdFrom(BspSegment segment, Endpoint originatingEndpoint,
+        /// <summary>
+        /// Gets the sector ID, and whether this is running along the front
+        /// side of the line (true) or the back side (false).
+        /// </summary>
+        /// <param name="segment">The segment that was formed.</param>
+        /// <param name="originatingEndpoint">The endpoint we are starting to
+        /// traverse along.</param>
+        /// <param name="sectorLine">The line with sector info,</param>
+        /// <param name="rotation">The rotation of the segment traversal.
+        /// </param>
+        /// <returns>A pair of a sector ID and a boolean status for whether we
+        /// are on the front (true) or back side (false) of the line.</returns>
+        private static (int, bool) GetSectorAndSideFrom(BspSegment segment, Endpoint originatingEndpoint,
             SectorLine sectorLine, Rotation rotation)
         {
             // Note that for this method, it is possible for a traversal to go
@@ -76,13 +102,23 @@ namespace Helion.Bsp.Node
             // it's okay to assume we're grabbing the correct side since the
             // user should not be providing a malformed map.
             if (segment.OneSided)
-                return sectorLine.FrontSectorId;
+                return (sectorLine.FrontSectorId, true);
 
             // If we're moving along with the line...
             if (originatingEndpoint == Endpoint.Start)
-                return rotation == Rotation.Right ? sectorLine.FrontSectorId : sectorLine.BackSectorId;
+            {
+                if (rotation == Rotation.Right)
+                    return (sectorLine.FrontSectorId, true);
+                else
+                    return (sectorLine.BackSectorId, false);
+            }
             else
-                return rotation == Rotation.Right ? sectorLine.BackSectorId : sectorLine.FrontSectorId;
+            {
+                if (rotation == Rotation.Right)
+                    return (sectorLine.BackSectorId, false);
+                else
+                    return (sectorLine.FrontSectorId, true);
+            }
         }
 
         private static List<SubsectorEdge> CreateSubsectorEdges(ConvexTraversal convexTraversal, 
@@ -108,8 +144,8 @@ namespace Helion.Bsp.Node
                     Precondition(segment.LineId < lineToSectors.Count, "Segment has bad line ID or line to sectors list is invalid");
 
                     SectorLine sectorLine = lineToSectors[segment.LineId];
-                    int sectorId = GetSectorIdFrom(segment, originatingEndpoint, sectorLine, rotation);
-                    subsectorEdges.Add(new SubsectorEdge(startPoint, endingPoint, segment.LineId, sectorId));
+                    (int sectorId, bool isFront) = GetSectorAndSideFrom(segment, originatingEndpoint, sectorLine, rotation);
+                    subsectorEdges.Add(new SubsectorEdge(startPoint, endingPoint, isFront, segment.LineId, sectorId));
                 }
 
                 startPoint = endingPoint;
@@ -132,7 +168,7 @@ namespace Helion.Bsp.Node
             edges.ForEach(edge =>
             {
                 int sectorId = edge.SectorId ?? NoSectorId;
-                reversedEdges.Add(new SubsectorEdge(edge.End, edge.Start, edge.LineId, sectorId));
+                reversedEdges.Add(new SubsectorEdge(edge.End, edge.Start, edge.IsFront, edge.LineId, sectorId));
             });
 
             edges.Clear();

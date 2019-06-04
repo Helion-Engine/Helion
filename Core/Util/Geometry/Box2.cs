@@ -1,4 +1,7 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using static Helion.Util.Assert;
 
 namespace Helion.Util.Geometry
@@ -257,6 +260,36 @@ namespace Helion.Util.Geometry
 
             Min = min;
             Max = max;
+        }
+
+        /// <summary>
+        /// Creates a bigger box from a series of smaller boxes, returning such
+        /// a box that encapsulates minimally all the provided arguments.
+        /// </summary>
+        /// <param name="firstBox">The first box in the sequence.</param>
+        /// <param name="boxes">The remaining boxes, if any.</param>
+        /// <returns>A box that encases all of the args tightly.</returns>
+        public static Box2Fixed Combine(Box2Fixed firstBox, params Box2Fixed[] boxes)
+        {
+            Vec2Fixed min = firstBox.Min;
+            Vec2Fixed max = firstBox.Max;
+
+            foreach (Box2Fixed box in boxes)
+            {
+                min.X = MathHelper.Min(min.X, box.Min.X);
+                min.Y = MathHelper.Min(min.Y, box.Min.Y);
+                max.X = MathHelper.Max(max.X, box.Max.X);
+                max.Y = MathHelper.Max(max.Y, box.Max.Y);
+            }
+
+            return new Box2Fixed(min, max);
+        }
+
+        public static Box2Fixed BoundSegments<FixedSeg>(List<FixedSeg> segments) where FixedSeg : Seg2Fixed
+        {
+            Precondition(segments.Count > 0, "Cannot bound segments when none are provided");
+
+            return Combine(segments.First().Box, segments.Skip(1).Select(s => s.Box).ToArray());
         }
 
         /// <summary>

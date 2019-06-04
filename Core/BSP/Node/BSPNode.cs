@@ -44,7 +44,7 @@ namespace Helion.Bsp.Node
         /// <summary>
         /// True if it's a degenerate node due to a bad BSP map, false if not.
         /// </summary>
-        public bool Degenerate => !IsParent && !IsSubsector;
+        public bool IsDegenerate => !IsParent && !IsSubsector;
 
         public BspNode()
         {
@@ -99,11 +99,11 @@ namespace Helion.Bsp.Node
             if (Left == null || Right == null)
                 return;
 
-            if (Left.Degenerate && !Right.Degenerate)
+            if (Left.IsDegenerate && !Right.IsDegenerate)
                 HandleLeftDegenerateCase();
-            else if (Right.Degenerate && !Left.Degenerate)
+            else if (Right.IsDegenerate && !Left.IsDegenerate)
                 HandleRightDegenerateCase();
-            else if (Left.Degenerate && Right.Degenerate)
+            else if (Left.IsDegenerate && Right.IsDegenerate)
                 ClearChildren();
         }
 

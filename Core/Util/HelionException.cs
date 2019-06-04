@@ -4,7 +4,8 @@ using System.Runtime.Serialization;
 namespace Helion.Util
 {
     /// <summary>
-    /// The base class that all exceptions for this project derive from.
+    /// The base class that all exceptions for this project derive from. These
+    /// are to be reserved for critical errors that should never happen.
     /// </summary>
     [Serializable]
     public class HelionException : Exception

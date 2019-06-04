@@ -24,5 +24,8 @@ namespace Helion.Util
 
         public static bool InNormalRange(float value) => value >= 0 && value <= 1;
         public static bool InNormalRange(double value) => value >= 0 && value <= 1;
+
+        public static Fixed Min(Fixed first, Fixed second) => first.Bits < second.Bits ? first : second;
+        public static Fixed Max(Fixed first, Fixed second) => first.Bits < second.Bits ? second : first;
     }
 }
