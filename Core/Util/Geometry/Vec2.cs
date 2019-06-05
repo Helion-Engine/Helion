@@ -168,5 +168,11 @@ namespace Helion.Util.Geometry
         {
             return MathHelper.AreEqual(vec.X, other.X, epsilon) && MathHelper.AreEqual(vec.Y, other.Y, epsilon);
         }
+
+        public static void Deconstruct(this Vector2 vec, out float x, out float y)
+        {
+            x = vec.X;
+            y = vec.Y;
+        }
     }
 }

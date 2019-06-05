@@ -7,16 +7,16 @@
         public readonly float Z;
         public readonly float U;
         public readonly float V;
-        public readonly byte Brightness;
+        public readonly float UnitLightLevel;
 
-        public WorldVertex(float x, float y, float z, float u, float v, byte brightness)
+        public WorldVertex(float x, float y, float z, float u, float v, float unitLightLevel)
         {
             X = x;
             Y = y;
             Z = z;
             U = u;
             V = v;
-            Brightness = brightness;
+            UnitLightLevel = unitLightLevel;
         }
     }
 }

@@ -24,10 +24,7 @@ namespace Helion.Render.Shared.Triangulator
         public static SegmentTriangles? Triangulate(Segment segment)
         {
             if (segment.Side == null || segment.IsMiniseg)
-            {
-                Fail("Should not be calling triangulation on a miniseg");
                 return null;
-            }
 
             WallTriangles middle = TriangulateMiddle(segment, segment.Side.Sector);
             WallTriangles? upper = null;
@@ -59,7 +56,7 @@ namespace Helion.Render.Shared.Triangulator
 
         private static WallTriangles TriangulateUpper(Segment segment, Sector frontSector, Sector backSector)
         {
-            Precondition(segment.Line?.OneSided ?? false, "Should not be upper triangulating a one sided line");
+            Precondition(segment.Line?.TwoSided ?? false, "Should not be upper triangulating a segment for a one-sided line (or a miniseg)");
 
             SectorFlat floor = backSector.Ceiling;
             SectorFlat ceiling = frontSector.Ceiling;
@@ -69,7 +66,7 @@ namespace Helion.Render.Shared.Triangulator
 
         private static WallTriangles TriangulateLower(Segment segment, Sector frontSector, Sector backSector)
         {
-            Precondition(segment.Line?.OneSided ?? false, "Should not be lower triangulating a one sided line");
+            Precondition(segment.Line?.TwoSided ?? false, "Should not be lower triangulating a segment for a one sided (or miniseg) line");
 
             SectorFlat floor = frontSector.Floor;
             SectorFlat ceiling = backSector.Floor;

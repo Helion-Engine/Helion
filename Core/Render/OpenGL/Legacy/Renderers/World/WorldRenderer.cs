@@ -16,9 +16,9 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         protected bool disposed;
-        private GLLegacyTextureManager textureManager;
+        private readonly GLLegacyTextureManager textureManager;
+        private readonly WorldRenderableGeometry renderableGeometry;
         private WeakReference? lastProcessedWorld = null;
-        private WorldRenderableGeometry renderableGeometry = new WorldRenderableGeometry();
         private VertexArrayObject vao = new VertexArrayObject(
             new VaoAttributeF("pos", 0, 3, VertexAttribPointerType.Float),
             new VaoAttributeF("uv", 1, 2, VertexAttribPointerType.Float),
@@ -31,6 +31,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
         public WorldRenderer(GLLegacyTextureManager glTextureManager)
         {
             textureManager = glTextureManager;
+            renderableGeometry = new WorldRenderableGeometry(glTextureManager);
             vao.BindAttributesTo(vbo);
             shaderProgram = WorldShader.CreateShaderProgramOrThrow(vao);
         }

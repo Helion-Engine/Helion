@@ -13,7 +13,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile></DocumentationFile>
     <OutputPath></OutputPath>
-    <NoWarn>1701;1702;CS1591;S1104;S2386;S3887;NU1701</NoWarn>
+    <NoWarn>1701;1702;CS1591;S1104;S1135;S2386;S3887;NU1701</NoWarn>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 
