@@ -1,7 +1,7 @@
 ﻿using Helion.Util;
 using Helion.Util.Geometry;
+using OpenTK;
 using System;
-using System.Numerics;
 
 namespace Helion.Render.Shared
 {
@@ -30,7 +30,7 @@ namespace Helion.Render.Shared
             set
             {
                 position = value;
-                positionFixed = new Vec2Fixed(position.ToFixed());
+                positionFixed = new Vec2Fixed(new Fixed(value.X), new Fixed(value.Y));
             }
         }
         private Vector3 position;
@@ -59,7 +59,7 @@ namespace Helion.Render.Shared
         /// <summary>
         /// Creates a camera at the origin facing north.
         /// </summary>
-        public Camera() : this(new Vector3(0, 0, 0), MathHelper.HalfPi)
+        public Camera() : this(new Vector3(0, 0, 0), Helion.Util.MathHelper.HalfPi)
         {
         }
 
@@ -82,7 +82,10 @@ namespace Helion.Render.Shared
 
         private static float ClampPitch(float pitchRadians)
         {
-            return Math.Clamp(pitchRadians, -MathHelper.HalfPi, MathHelper.HalfPi);
+            // We want to avoid looking straight up or down, if there is a
+            // danger of gimbal lock.
+            float notQuiteVertical = Util.MathHelper.HalfPi - 0.001f;
+            return Math.Clamp(pitchRadians, -notQuiteVertical, notQuiteVertical);
         }
 
         /// <summary>
@@ -99,5 +102,7 @@ namespace Helion.Render.Shared
             float z = (float)Math.Sin(ClampPitch(pitchRadians));
             return Vector3.Normalize(new Vector3(x, y, z));
         }
+
+        public Matrix4 ViewMatrix() => Matrix4.LookAt(Position, Position + Direction, Up);
     }
 }

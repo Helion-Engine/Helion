@@ -6,6 +6,7 @@ using Helion.Render.Shared;
 using Helion.World;
 using Helion.World.Geometry;
 using NLog;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
 
@@ -47,7 +48,14 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
 
         private void SetUniforms(Camera camera)
         {
-            // TODO: Make MVP matrix from camera pos/view.
+            Matrix4 view = camera.ViewMatrix();
+
+            // TODO: Get actual values for the fov, aspect, zNear, and zFar.
+            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.HalfPi, 1.3333f, 0.1f, 10000.0f, out Matrix4 projection);
+
+            // We have no model transformation as the world geometry is already
+            // in the world space.
+            shaderProgram.SetMatrix("mvp", projection * view);
         }
 
         private void RenderBspTree(WorldBase world, Camera camera)
@@ -84,6 +92,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
         private void RenderSubsector(WorldBase world, Subsector subsector)
         {
             // TODO: Draw sprites by texture type
+
             // TODO: Draw elements by texture type
         }
 

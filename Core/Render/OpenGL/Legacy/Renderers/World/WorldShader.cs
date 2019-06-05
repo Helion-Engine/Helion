@@ -22,11 +22,13 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
                 out float alphaFrag;
                 out float unitBrightnessFrag;
 
+                uniform mat4 mvp;
+
                 void main() {
                     uvFrag = uv;
                     alphaFrag = alpha;
                     unitBrightnessFrag = unitBrightness;
-                    gl_Position = vec4(pos, 1.0);
+                    gl_Position = mvp * vec4(pos, 1.0);
                 }
             ";
 
