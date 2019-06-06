@@ -3,12 +3,14 @@ using Helion.Render.OpenGL.Renderers.Console;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
+using Helion.Resources.Images;
 using Helion.World;
 using NLog;
 using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
 {
@@ -98,6 +100,25 @@ namespace Helion.Render.OpenGL
         {
             GL.ActiveTexture(TextureUnit.Texture0);
             worldRenderer.Render(world, camera);
+        }
+
+        public void HandleTextureEvent(object sender, ImageManagerEventArgs imageEvent)
+        {
+            switch (imageEvent.Type)
+            {
+            case ImageManagerEventType.CreateOrUpdate:
+                if (imageEvent.Image != null)
+                    textureManager.CreateOrUpdateTexture(imageEvent.Image, imageEvent.Name, imageEvent.Namespace);
+                else
+                    Fail("Image create/update event cannot have a null image");
+                break;
+            case ImageManagerEventType.Delete:
+                textureManager.DeleteTexture(imageEvent.Name);
+                break;
+            default:
+                Fail("Unexpected image event enumeration");
+                break;
+            }
         }
 
         protected virtual void Dispose(bool disposing)

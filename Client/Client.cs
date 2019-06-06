@@ -41,6 +41,7 @@ namespace Helion.Client
             GLInfo glInfo = new GLInfo();
             renderer = new GLRenderer(glInfo, project);
             PrintGLInfo(glInfo);
+            project.Resources.ImageManager.ImageEventEmitter += renderer.HandleTextureEvent;
 
             // TODO: Temporary!
             // ================================================================
@@ -166,6 +167,7 @@ namespace Helion.Client
             // before the OpenGL context is destroyed. This way we clean up
             // our side of the renderer first.
             inputAdapter.InputEventEmitter -= inputManager.HandleInputEvent;
+            project.Resources.ImageManager.ImageEventEmitter -= renderer.HandleTextureEvent;
             renderer.Dispose();
             console.Dispose();
 

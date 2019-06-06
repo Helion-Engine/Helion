@@ -1,7 +1,9 @@
 ﻿using Helion.Graphics;
 using Helion.Projects;
+using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Geometry;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ namespace Helion.Render.OpenGL.Texture
     public class GLTextureManager : IDisposable
     {
         public readonly GLTexture NullTexture;
-        protected bool disposed;
+        private bool disposed;
         private readonly List<GLTexture> textures = new List<GLTexture>();
         private readonly Dictionary<UpperString, GLTexture> nameToTexture = new Dictionary<UpperString, GLTexture>();
 
@@ -89,6 +91,14 @@ namespace Helion.Render.OpenGL.Texture
             return texture;
         }
 
+        private void TrackTexture(GLTexture texture, UpperString name, ResourceNamespace resourceNamespace)
+        {
+            textures.Add(texture);
+
+            // TODO: Support namespace handling as well.
+            nameToTexture[name] = texture;
+        }
+
         private void DestroyTexture(GLTexture texture) => GL.DeleteTexture(texture.Handle);
 
         private void DestroyAllTextures()
@@ -96,6 +106,22 @@ namespace Helion.Render.OpenGL.Texture
             textures.ForEach(DestroyTexture);
             textures.Clear();
             nameToTexture.Clear();
+        }
+
+        public void CreateOrUpdateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
+        {
+            // TODO: Lookup by namespace as well, need a ResourceNamespaceTracker.
+            if (nameToTexture.ContainsKey(name))
+            {
+                // TODO: Update if exists
+            }
+            else
+                TrackTexture(CreateTexture(image), name, resourceNamespace);
+        }
+
+        public void DeleteTexture(UpperString name)
+        {
+            // TODO
         }
 
         public GLTexture Get(UpperString name)
@@ -117,7 +143,7 @@ namespace Helion.Render.OpenGL.Texture
 
         public void BindTextureIndex(TextureTarget target, int index) => GL.BindTexture(target, index);
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposed)
                 return;
