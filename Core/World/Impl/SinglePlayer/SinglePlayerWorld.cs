@@ -2,17 +2,18 @@
 using Helion.Maps;
 using Helion.Projects;
 using Helion.Render.Shared;
+using Helion.Util;
 using Helion.World.Geometry;
+using System.Numerics;
 
 namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
-        public Camera Camera { get; } = new Camera();
+        public Camera Camera { get; } = new Camera(new Vector3(-96, 768, 70), MathHelper.HalfPi);
 
         private SinglePlayerWorld(Project project, Map map, BspTree bspTree) : base(project, map, bspTree)
         {
-            // TODO
         }
 
         public static SinglePlayerWorld? Create(Project project, Map map)

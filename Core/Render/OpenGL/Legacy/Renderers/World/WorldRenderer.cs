@@ -5,7 +5,6 @@ using Helion.Render.OpenGL.Shared.Shader;
 using Helion.Render.Shared;
 using Helion.World;
 using Helion.World.Geometry;
-using NLog;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -14,8 +13,6 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
 {
     public class WorldRenderer : IDisposable
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
-
         protected bool disposed;
         private readonly GLLegacyTextureManager textureManager;
         private readonly WorldRenderableGeometry renderableGeometry;
@@ -48,14 +45,21 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
 
         private void SetUniforms(Camera camera)
         {
+            // We have no model transformation as the world geometry is already
+            // in the world space.
             Matrix4 view = camera.ViewMatrix();
 
             // TODO: Get actual values for the fov, aspect, zNear, and zFar.
-            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.HalfPi, 1.3333f, 0.1f, 10000.0f, out Matrix4 projection);
+            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, 1.3333f, 0.1f, 10000.0f, out Matrix4 projection);
 
-            // We have no model transformation as the world geometry is already
-            // in the world space.
-            shaderProgram.SetMatrix("mvp", projection * view);
+            // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
+            // of left multiplication. Instead of doing p * v * m, it has to
+            // be done in the opposite direction (m * v * p) due to a design
+            // decision according to a lead developer. This will seem wrong
+            // for anyone used to the C++/OpenGL way of multiplying.
+            Matrix4 mvp = view * projection;
+
+            shaderProgram.SetMatrix("mvp", mvp);
         }
 
         private void RenderBspTree(WorldBase world, Camera camera)
@@ -91,9 +95,42 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
 
         private void RenderSubsector(WorldBase world, Subsector subsector)
         {
-            // TODO: Draw sprites by texture type
+            RenderSubsectorSegments(subsector);
+            RenderSubsectorFlats(subsector);
+        }
 
-            // TODO: Draw elements by texture type
+        private void RenderSubsectorSegments(Subsector subsector)
+        {
+            // OpenGL uses uint's for the texture indices, so the chances of a
+            // texture allocating a bitwise match to this are probably either
+            // near, or at zero.
+            int lastTextureHandle = -1;
+
+            foreach (Segment segment in subsector.ClockwiseEdges)
+            {
+                foreach (WorldVertexWall wall in renderableGeometry.Segments[segment.Id].Walls)
+                {
+                    if (wall.NoTexture)
+                        continue;
+
+                    // TODO: We can do better by analyzing every segment first,
+                    // as a bad case could be a series of segments changing the
+                    // textures every second texture (ex: A, B, A, B, etc).
+                    if (wall.TextureHandle != lastTextureHandle)
+                    {
+                        textureManager.BindTextureIndex(TextureTarget.Texture2D, wall.TextureHandle);
+                        lastTextureHandle = wall.TextureHandle;
+                    }
+
+                    vbo.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
+                    vbo.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+                }
+            }
+        }
+
+        private void RenderSubsectorFlats(Subsector subsector)
+        {
+            // TODO
         }
 
         private bool IsVisible(ushort index)
@@ -128,6 +165,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
             {
                 SetUniforms(camera);
                 RenderBspTree(world, camera);
+                vbo.BindAndDraw();
             });
         }
 

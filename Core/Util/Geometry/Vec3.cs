@@ -202,5 +202,6 @@ namespace Helion.Util.Geometry
         public static Vec3I ToInt(this Vector3 vec) => new Vec3I((int)vec.X, (int)vec.Y, (int)vec.Z);
         public static Vec3Fixed ToFixed(this Vector3 vec) => new Vec3Fixed(new Fixed(vec.X), new Fixed(vec.Y), new Fixed(vec.Z));
         public static Vec3D ToDouble(this Vector3 vec) => new Vec3D(vec.X, vec.Y, vec.Z);
+        public static OpenTK.Vector3 ToOpenTKVector(this Vector3 vec) => new OpenTK.Vector3(vec.X, vec.Y, vec.Z);
     }
 }

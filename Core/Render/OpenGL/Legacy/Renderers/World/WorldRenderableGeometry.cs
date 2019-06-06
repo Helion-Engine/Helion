@@ -22,18 +22,20 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
     public struct WorldVertexWall
     {
         public bool NoTexture;
+        public int TextureHandle;
         public WorldVertex TopLeft;
         public WorldVertex TopRight;
         public WorldVertex BottomLeft;
         public WorldVertex BottomRight;
 
-        public WorldVertexWall(bool noTexture, WorldVertex topLeft, WorldVertex topRight, 
+        public WorldVertexWall(bool noTexture, int textureHandle, WorldVertex topLeft, WorldVertex topRight, 
             WorldVertex bottomLeft, WorldVertex bottomRight)
         {
             Precondition(bottomLeft.Z <= topLeft.Z, "Top left corner higher than the bottom left");
             Precondition(bottomRight.Z <= topRight.Z, "Top right corner higher than the bottom right");
 
             NoTexture = noTexture;
+            TextureHandle = textureHandle;
             TopLeft = topLeft;
             TopRight = topRight;
             BottomLeft = bottomLeft;
@@ -110,6 +112,9 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
             float top = topLeft.Z;
             float bottom = bottomRight.Z;
 
+            // TODO: Support alpha.
+            float alpha = 1.0f;
+
             // TODO: Support the 'texture' namespace.
             GLTexture texture = textureManager.Get(textureName);
             bool noTexture = (textureName == Constants.NoTexture);
@@ -121,11 +126,11 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.World
             Vector2 deltaUV = widthHeight * texture.InverseUV;
             (float rightU, float bottomV) = (leftU + deltaUV.X, topV + deltaUV.Y);
 
-            WorldVertex topLeftVertex = new WorldVertex(left.X, left.Y, top, leftU, topV, lightLevel);
-            WorldVertex topRightVertex = new WorldVertex(right.X, right.Y, top, rightU, topV, lightLevel);
-            WorldVertex bottomLeftVertex = new WorldVertex(left.X, left.Y, bottom, leftU, bottomV, lightLevel);
-            WorldVertex bottomRightVertex = new WorldVertex(right.X, right.Y, bottom, rightU, bottomV, lightLevel);
-            return new WorldVertexWall(noTexture, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
+            WorldVertex topLeftVertex = new WorldVertex(left.X, left.Y, top, leftU, topV, alpha, lightLevel);
+            WorldVertex topRightVertex = new WorldVertex(right.X, right.Y, top, rightU, topV, alpha, lightLevel);
+            WorldVertex bottomLeftVertex = new WorldVertex(left.X, left.Y, bottom, leftU, bottomV, alpha, lightLevel);
+            WorldVertex bottomRightVertex = new WorldVertex(right.X, right.Y, bottom, rightU, bottomV, alpha, lightLevel);
+            return new WorldVertexWall(noTexture, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
         }
 
         private WorldVertexSegment CreateWorldVertexSegment(SegmentTriangles? triangles, Segment segment)

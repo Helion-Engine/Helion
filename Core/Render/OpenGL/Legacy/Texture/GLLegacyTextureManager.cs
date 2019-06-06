@@ -32,8 +32,10 @@ namespace Helion.Render.OpenGL.Legacy.Texture
         {
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+
+            // TODO: This should be 'clamp to edge' for sprites.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
         }
 
         private GLTexture CreateTexture(Image image)
@@ -75,6 +77,8 @@ namespace Helion.Render.OpenGL.Legacy.Texture
                 return NullTexture;
             }
         }
+
+        public void BindTextureIndex(TextureTarget target, int index) => GL.BindTexture(target, index);
 
         protected override void PerformTextureUpload(Image image, IntPtr dataPtr)
         {

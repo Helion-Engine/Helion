@@ -35,7 +35,9 @@ namespace Helion.Render.OpenGL
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Ccw);
+            // TODO: This ideally should be CCW because we make our triangles
+            // in CCW format. Is it getting changed due to the MVP transform?
+            GL.FrontFace(FrontFaceDirection.Cw);
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
         }

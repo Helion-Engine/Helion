@@ -24,10 +24,7 @@ namespace Helion.Render.OpenGL.Legacy
             worldRenderer = new WorldRenderer(textureManager);
         }
 
-        ~GLLegacyRenderer()
-        {
-            Dispose(false);
-        }
+        ~GLLegacyRenderer() => Dispose(false);
 
         public override void RenderConsole(Util.Console console)
         {

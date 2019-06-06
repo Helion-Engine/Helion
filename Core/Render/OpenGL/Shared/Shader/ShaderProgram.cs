@@ -111,7 +111,7 @@ namespace Helion.Render.OpenGL.Shared.Shader
         public void SetFloat(string name, float data) => GL.Uniform1(uniforms[name], data);
         public void SetVector3(string name, Vector3 data) => GL.Uniform3(uniforms[name], data);
         public void SetVector4(string name, Vector4 data) => GL.Uniform4(uniforms[name], data);
-        public void SetMatrix(string name, Matrix4 data) => GL.UniformMatrix4(uniforms[name], true, ref data);
+        public void SetMatrix(string name, Matrix4 data) => GL.UniformMatrix4(uniforms[name], false, ref data);
 
         protected virtual void Dispose(bool disposing)
         {

@@ -185,6 +185,9 @@ namespace Helion.Client
 
             using (Client client = new Client(cmdArgs))
             {
+                // TODO: Should be configurable.
+                client.VSync = VSyncMode.Off;
+
                 // We run at an update rate of 35 Hz, and we want max rendering
                 // speed so we use a value of zero for that.
                 client.Run(35.0, 0.0);

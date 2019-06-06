@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using Helion.Util.Geometry;
+﻿using Helion.Util.Geometry;
 using OpenTK;
 using System;
 
@@ -59,7 +58,7 @@ namespace Helion.Render.Shared
         /// <summary>
         /// Creates a camera at the origin facing north.
         /// </summary>
-        public Camera() : this(new Vector3(0, 0, 0), Helion.Util.MathHelper.HalfPi)
+        public Camera() : this(new System.Numerics.Vector3(0, 0, 0), Util.MathHelper.HalfPi)
         {
         }
 
@@ -72,9 +71,9 @@ namespace Helion.Render.Shared
         /// <param name="pitchRadians">The vertical looking angle in radians. 
         /// This should be between [-pi/2, pi/2], or else it will be clamped
         /// to that range.</param>
-        public Camera(Vector3 position, float yawRadians, float pitchRadians = 0)
+        public Camera(System.Numerics.Vector3 position, float yawRadians, float pitchRadians = 0)
         {
-            Position = position;
+            Position = position.ToOpenTKVector();
             Direction = DirectionFrom(yawRadians, pitchRadians);
             Yaw = yawRadians;
             Pitch = pitchRadians;
