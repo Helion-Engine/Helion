@@ -61,7 +61,7 @@ namespace Helion.Render.OpenGL
             {
                 GL.Enable(EnableCap.DebugOutput);
                 GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, 
-                                         int length, System.IntPtr message, System.IntPtr userParam) =>
+                                         int length, IntPtr message, IntPtr userParam) =>
                 {
                     string msg = Marshal.PtrToStringAnsi(message, length);
 
@@ -77,7 +77,7 @@ namespace Helion.Render.OpenGL
                     default:
                         break;
                     }
-                }, System.IntPtr.Zero);
+                }, IntPtr.Zero);
             }
         }
 
