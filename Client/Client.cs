@@ -3,8 +3,6 @@ using Helion.Input.Adapter;
 using Helion.Maps;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Legacy;
-using Helion.Render.OpenGL.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World.Impl.SinglePlayer;
@@ -41,7 +39,7 @@ namespace Helion.Client
             LoadProject();
 
             GLInfo glInfo = new GLInfo();
-            renderer = new GLLegacyRenderer(glInfo, project);
+            renderer = new GLRenderer(glInfo, project);
             PrintGLInfo(glInfo);
 
             // TODO: Temporary!

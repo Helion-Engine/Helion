@@ -1,27 +1,39 @@
-﻿using Helion.Render.OpenGL.Shared;
+﻿using Helion.Projects;
+using Helion.Render.OpenGL.Renderers.Console;
+using Helion.Render.OpenGL.Renderers.World;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
-using Helion.Util;
 using Helion.World;
 using NLog;
 using OpenTK.Graphics.OpenGL4;
+using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL
 {
-    public abstract class GLRenderer : System.IDisposable
+    public class GLRenderer : IDisposable
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        protected readonly GLInfo info;
+        private bool disposed = false;
+        private GLTextureManager textureManager;
+        private ConsoleRenderer consoleRenderer;
+        private WorldRenderer worldRenderer;
+        private readonly GLInfo info;
 
-        public GLRenderer(GLInfo glInfo)
+        public GLRenderer(GLInfo glInfo, Project project)
         {
             info = glInfo;
+            textureManager = new GLTextureManager(project);
+            consoleRenderer = new ConsoleRenderer(textureManager);
+            worldRenderer = new WorldRenderer(textureManager);
 
             SetGLStates();
             SetGLDebugger();
         }
+
+        ~GLRenderer() => Dispose(false);
 
         private void SetGLStates()
         {
@@ -34,9 +46,10 @@ namespace Helion.Render.OpenGL
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
+            // Note that we cull CCW faces even though we supply our VBOs with
+            // CCW rotations. The view transformation causes the faces to end
+            // up being CW, so we want to cull any that are CCW.
             GL.Enable(EnableCap.CullFace);
-            // TODO: This ideally should be CCW because we make our triangles
-            // in CCW format. Is it getting changed due to the MVP transform?
             GL.FrontFace(FrontFaceDirection.Cw);
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
@@ -75,10 +88,37 @@ namespace Helion.Render.OpenGL
             GL.Viewport(windowDimension);
         }
 
-        public abstract void RenderConsole(Console console);
+        public void RenderConsole(Util.Console console)
+        {
+            GL.ActiveTexture(TextureUnit.Texture0);
+            consoleRenderer.Render(console);
+        }
 
-        public abstract void RenderWorld(WorldBase world, Camera camera);
+        public void RenderWorld(WorldBase world, Camera camera)
+        {
+            GL.ActiveTexture(TextureUnit.Texture0);
+            worldRenderer.Render(world, camera);
+        }
 
-        public abstract void Dispose();
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                worldRenderer.Dispose();
+                consoleRenderer.Dispose();
+                textureManager.Dispose();
+            }
+
+            disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }
