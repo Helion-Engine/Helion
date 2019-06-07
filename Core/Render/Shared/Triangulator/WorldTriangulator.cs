@@ -100,6 +100,17 @@ namespace Helion.Render.Shared.Triangulator
             return (upper, lower);
         }
 
+        private static Triangle FloorReversedTriangle(Triangle tri, float floorZ)
+        {
+            Vector3 revFirst = new Vector3(tri.First.X, tri.First.Y, floorZ);
+            Vector3 revSecond = new Vector3(tri.Second.X, tri.Second.Y, floorZ);
+            Vector3 revThird = new Vector3(tri.Third.X, tri.Third.Y, floorZ);
+
+            // Remember that the fan for the subsector is reversed not only in
+            // traversal but also in vertices, as vertices 0-1-2 becomes 0-2-1.
+            return new Triangle(revFirst, revThird, revSecond);
+        }
+
         /// <summary>
         /// Triangulates the subsector.
         /// </summary>
@@ -122,7 +133,7 @@ namespace Helion.Render.Shared.Triangulator
             List<Triangle> ceiling = fanVertices.ToList();
 
             List<Triangle> floor = fanVertices.Reverse()
-                                              .Select(tri => new Triangle(tri.First, tri.Third, tri.Second))
+                                              .Select(tri => FloorReversedTriangle(tri, floorZ))
                                               .ToList();
 
             return new SubsectorTriangles(subsector, floor, ceiling);
