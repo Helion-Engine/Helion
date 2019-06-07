@@ -15,6 +15,7 @@ namespace Helion.Render.OpenGL.Texture
         public readonly GLTexture NullTexture;
         private bool disposed;
         private readonly GLInfo info;
+        private readonly float AnisotropyMax = GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
         private readonly List<GLTexture> textures = new List<GLTexture>();
         private readonly Dictionary<UpperString, GLTexture> nameToTexture = new Dictionary<UpperString, GLTexture>();
 
@@ -78,8 +79,8 @@ namespace Helion.Render.OpenGL.Texture
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
             // TODO: We should check if this is supported first.
-            TextureParameterName anisotropyName = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
-            GL.TexParameter(TextureTarget.Texture2D, anisotropyName, info.AnisotropyMax);
+            TextureParameterName anisotropyPname = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+            GL.TexParameter(TextureTarget.Texture2D, anisotropyPname, AnisotropyMax);
         }
 
         private GLTexture CreateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)

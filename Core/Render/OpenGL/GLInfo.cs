@@ -13,7 +13,6 @@ namespace Helion.Render.OpenGL
         public readonly GLVersion Version = GetGLVersion(GL.GetString(StringName.Version));
         public readonly string ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
         public readonly string Renderer = GL.GetString(StringName.Renderer);
-        public readonly float AnisotropyMax = GL.GetFloat((GetPName)All.MaxTextureMaxAnisotropy);
 
         private static GLVersion GetGLVersion(string version)
         {
