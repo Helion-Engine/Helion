@@ -26,6 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         );
         private StreamVertexBuffer<WorldVertex> vbo = new StreamVertexBuffer<WorldVertex>();
         private ShaderProgram shaderProgram;
+        private int lastTextureHandle;
 
         public WorldRenderer(GLTextureManager glTextureManager)
         {
@@ -66,6 +67,7 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void RenderBspTree(WorldBase world, Camera camera)
         {
+            lastTextureHandle = -1;
             ushort index = world.BspTree.RootIndex;
             RenderNode(world, index, camera);
         }
@@ -75,7 +77,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             if (BspNodeCompact.IsSubsectorIndex(index))
             {
                 Subsector subsector = world.BspTree.Subsectors[index & BspNodeCompact.SubsectorMask];
-                RenderSubsector(world, subsector);
+                RenderSubsector(subsector);
                 return;
             }
 
@@ -95,7 +97,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             }
         }
 
-        private void RenderSubsector(WorldBase world, Subsector subsector)
+        private void RenderSubsector(Subsector subsector)
         {
             RenderSubsectorSegments(subsector);
             RenderSubsectorFlats(subsector);
@@ -103,12 +105,9 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void RenderSubsectorSegments(Subsector subsector)
         {
-            // OpenGL uses uint's for the texture indices, so the chances of a
-            // texture allocating a bitwise match to this are probably either
-            // near, or at zero.
-            // TODO: This has no memory of our previous draw invocation, we
-            // should consider making this a variable inside the object.
-            int lastTextureHandle = -1;
+            // TODO: We can do better by analyzing every segment first,
+            // as a bad case could be a series of segments changing the
+            // textures every second texture (ex: A, B, A, B, etc).
 
             foreach (Segment segment in subsector.ClockwiseEdges)
             {
@@ -117,9 +116,6 @@ namespace Helion.Render.OpenGL.Renderers.World
                     if (wall.NoTexture)
                         continue;
 
-                    // TODO: We can do better by analyzing every segment first,
-                    // as a bad case could be a series of segments changing the
-                    // textures every second texture (ex: A, B, A, B, etc).
                     if (wall.TextureHandle != lastTextureHandle)
                     {
                         vbo.BindAndDrawIfNotEmpty();
@@ -152,9 +148,6 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void RenderSubsectorFlats(Subsector subsector)
         {
-            // See RenderSubsectorSegments() for more info on this.
-            int lastTextureHandle = -1;
-
             RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Floor, ref lastTextureHandle);
             RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Ceiling, ref lastTextureHandle);
             vbo.BindAndDrawIfNotEmpty();
