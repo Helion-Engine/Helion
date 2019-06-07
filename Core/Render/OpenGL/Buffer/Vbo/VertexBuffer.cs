@@ -17,6 +17,9 @@ namespace Helion.Render.OpenGL.Buffer.Vbo
         private int typeByteSize;
         private DynamicArray<T> data = new DynamicArray<T>();
 
+        public bool Empty => data.Length == 0;
+        public bool NotEmpty => !Empty;
+
         protected VertexBuffer()
         {
             vbo = GL.GenBuffer();
@@ -78,7 +81,13 @@ namespace Helion.Render.OpenGL.Buffer.Vbo
         public void BindAndDraw()
         {
             BindAnd(() => { GL.DrawArrays(PrimitiveType.Triangles, 0, data.Length); });
-        } 
+        }
+
+        public void BindAndDrawIfNotEmpty()
+        {
+            if (NotEmpty)
+                BindAndDraw();
+        }
 
         protected virtual void Dispose(bool disposing)
         {

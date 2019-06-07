@@ -118,6 +118,8 @@ namespace Helion.Render.OpenGL.Renderers.World
                     // textures every second texture (ex: A, B, A, B, etc).
                     if (wall.TextureHandle != lastTextureHandle)
                     {
+                        vbo.BindAndDrawIfNotEmpty();
+
                         textureManager.BindTextureIndex(TextureTarget.Texture2D, wall.TextureHandle);
                         lastTextureHandle = wall.TextureHandle;
                     }
@@ -126,6 +128,8 @@ namespace Helion.Render.OpenGL.Renderers.World
                     vbo.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
                 }
             }
+
+            vbo.BindAndDrawIfNotEmpty();
         }
 
         private void RenderSubsectorFlats(Subsector subsector)
@@ -159,13 +163,15 @@ namespace Helion.Render.OpenGL.Renderers.World
         public void Render(WorldBase world, Camera camera)
         {
             if (ShouldUpdateToNewWorld(world))
+            {
                 renderableGeometry.Load(world);
+                lastProcessedWorld = new WeakReference(world);
+            }
 
             shaderProgram.BindAnd(() => 
             {
                 SetUniforms(camera);
                 RenderBspTree(world, camera);
-                vbo.BindAndDraw();
             });
         }
 

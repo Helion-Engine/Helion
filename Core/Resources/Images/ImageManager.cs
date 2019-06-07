@@ -140,9 +140,6 @@ namespace Helion.Resources.Images
                 yield return imageData;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

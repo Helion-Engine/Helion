@@ -7,6 +7,7 @@ using Helion.World;
 using Helion.World.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using static Helion.Util.Assert;
 
@@ -118,6 +119,8 @@ namespace Helion.Render.OpenGL.Renderers.World
             // TODO: Support the 'texture' namespace.
             GLTexture texture = textureManager.Get(textureName);
             bool noTexture = (textureName == Constants.NoTexture);
+            //if (!noTexture)
+            //    Debug.WriteLine($"{textureName} -> {texture.Handle} ({texture.Dimension.Width} x {texture.Dimension.Height})");
             Vector2 widthHeight = GetWallDimensions(topLeft, bottomRight);
 
             // TODO: Handle upper/lower unpegged.
