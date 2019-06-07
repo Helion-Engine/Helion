@@ -53,9 +53,6 @@ namespace Helion.Render.OpenGL.Renderers.World
         public WorldVertexWall(bool noTexture, int textureHandle, WorldVertex topLeft, WorldVertex topRight, 
             WorldVertex bottomLeft, WorldVertex bottomRight)
         {
-            Precondition(bottomLeft.Z <= topLeft.Z, "Top left corner higher than the bottom left");
-            Precondition(bottomRight.Z <= topRight.Z, "Top right corner higher than the bottom right");
-
             NoTexture = noTexture;
             TextureHandle = textureHandle;
             TopLeft = topLeft;

@@ -144,7 +144,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                 lastTextureHandle = flat.TextureHandle;
             }
 
-            for (int i = 1; i < flat.Fan.Length - 1; i++)
+            for (int i = 0; i < flat.Fan.Length - 1; i++)
                 vbo.Add(flat.Root, flat.Fan[i], flat.Fan[i + 1]);
         }
 

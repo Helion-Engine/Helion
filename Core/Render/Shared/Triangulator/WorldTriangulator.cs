@@ -125,9 +125,7 @@ namespace Helion.Render.Shared.Triangulator
             float floorZ = subsector.Sector.Floor.Z;
             float ceilZ = subsector.Sector.Ceiling.Z;
 
-            List<Vector3> ceiling = segs.Select(e => new Vector3(e.Start.ToFloat(), ceilZ)).ToList();
-            Vector3 root = ceiling.First();
-
+            List<Vector3> ceiling = segs.Select(seg => new Vector3(seg.Start.ToFloat(), ceilZ)).ToList();
             List<Vector3> floor = ceiling.Select(pos => new Vector3(pos.X, pos.Y, floorZ)).ToList();
             floor.Reverse();
 
