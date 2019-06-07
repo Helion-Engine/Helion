@@ -90,15 +90,19 @@ namespace Helion.Render.OpenGL
             GL.Viewport(windowDimension);
         }
 
-        public void RenderConsole(Util.Console console)
+        public void RenderStart(Rectangle viewport)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
+            GL.Viewport(viewport);
+        }
+
+        public void RenderConsole(Util.Console console)
+        {
             consoleRenderer.Render(console);
         }
 
         public void RenderWorld(WorldBase world, Camera camera)
         {
-            GL.ActiveTexture(TextureUnit.Texture0);
             worldRenderer.Render(world, camera);
         }
 

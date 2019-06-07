@@ -134,9 +134,28 @@ namespace Helion.Render.OpenGL.Renderers.World
             vbo.BindAndDrawIfNotEmpty();
         }
 
+        private void RenderSubsectorFlat(WorldVertexFlat flat, ref int lastTextureHandle)
+        {
+            if (flat.TextureHandle != lastTextureHandle)
+            {
+                vbo.BindAndDrawIfNotEmpty();
+
+                textureManager.BindTextureIndex(TextureTarget.Texture2D, flat.TextureHandle);
+                lastTextureHandle = flat.TextureHandle;
+            }
+
+            for (int i = 1; i < flat.Fan.Length - 1; i++)
+                vbo.Add(flat.Root, flat.Fan[i], flat.Fan[i + 1]);
+        }
+
         private void RenderSubsectorFlats(Subsector subsector)
         {
-            // TODO
+            // See RenderSubsectorSegments() for more info on this.
+            int lastTextureHandle = -1;
+
+            RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Floor, ref lastTextureHandle);
+            RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Ceiling, ref lastTextureHandle);
+            vbo.BindAndDrawIfNotEmpty();
         }
 
         private bool IsVisible(ushort index)

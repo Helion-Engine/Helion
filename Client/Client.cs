@@ -148,6 +148,7 @@ namespace Helion.Client
             ConsumableInput consumableFrameInput = new ConsumableInput(tickCollection);
             frameCollection.Tick();
 
+            renderer.RenderStart(ClientRectangle);
             renderer.Clear(new System.Drawing.Size(Width, Height));
 
             if (world != null)
@@ -187,6 +188,8 @@ namespace Helion.Client
             {
                 // TODO: Should be configurable.
                 client.VSync = VSyncMode.Off;
+                client.CursorVisible = false;
+                client.WindowState = WindowState.Fullscreen;
 
                 // We run at an update rate of 35 Hz, and we want max rendering
                 // speed so we use a value of zero for that.

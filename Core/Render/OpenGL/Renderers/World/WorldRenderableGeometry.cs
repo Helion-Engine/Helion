@@ -7,17 +7,38 @@ using Helion.World;
 using Helion.World.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World
 {
-    // TODO: Would it be better to have middle/upper/lower here instead of the
-    // array in case it means this is just a reference? (no locality?)
     public struct WorldVertexFlat
     {
+        public int TextureHandle;
+        public WorldVertex Root;
         public WorldVertex[] Fan;
+
+        public WorldVertexFlat(int textureHandle, WorldVertex root, WorldVertex[] fan)
+        {
+            Precondition(fan.Length >= 2, "A fan must at least form a triangle");
+
+            TextureHandle = textureHandle;
+            Root = root;
+            Fan = fan;
+        }
+    }
+
+    public struct WorldVertexSubsector
+    {
+        public WorldVertexFlat Floor;
+        public WorldVertexFlat Ceiling;
+
+        public WorldVertexSubsector(WorldVertexFlat floor, WorldVertexFlat ceiling)
+        {
+            Floor = floor;
+            Ceiling = ceiling;
+        }
     }
 
     public struct WorldVertexWall
@@ -64,6 +85,7 @@ namespace Helion.Render.OpenGL.Renderers.World
     public class WorldRenderableGeometry
     {
         public WorldVertexSegment[] Segments = new WorldVertexSegment[0];
+        public WorldVertexSubsector[] Subsectors = new WorldVertexSubsector[0];
         private readonly GLTextureManager textureManager;
 
         public WorldRenderableGeometry(GLTextureManager glTextureManager)
@@ -89,9 +111,42 @@ namespace Helion.Render.OpenGL.Renderers.World
             return true;
         }
 
+        private WorldVertex VertexToWorldVertex(Vector3 pos, Sector sector, GLTexture texture)
+        {
+            // TODO: Support offsets when the time comes.
+            float u = pos.X / texture.Dimension.Width;
+            float v = pos.Y / texture.Dimension.Height;
+            return new WorldVertex(pos.X, pos.Y, pos.Z, u, v, 1.0f, sector.UnitLightLevel);
+        }
+
+        private WorldVertexFlat MakeFlat(List<Vector3> vertices, Sector sector, SectorFlat flat)
+        {
+            GLTexture texture = textureManager.Get(flat.Texture);
+
+            WorldVertex root = VertexToWorldVertex(vertices[0], sector, texture);
+            WorldVertex[] fan = vertices.Skip(1).Select(v => VertexToWorldVertex(v, sector, texture)).ToArray();
+            return new WorldVertexFlat(texture.Handle, root, fan);
+        }
+
+        private WorldVertexSubsector CreateWorldVertexSubsector(SubsectorTriangles triangles, Subsector subsector)
+        {
+            Sector sector = subsector.Sector;
+
+            WorldVertexFlat floor = MakeFlat(triangles.FloorVertices, sector, sector.Floor);
+            WorldVertexFlat ceiling = MakeFlat(triangles.CeilingVertices, sector, sector.Ceiling);
+            return new WorldVertexSubsector(floor, ceiling);
+        }
+
         private void LoadSubsectors(Subsector[] subsectors)
         {
-            // TODO
+            Subsectors = new WorldVertexSubsector[subsectors.Length];
+
+            Array.ForEach(subsectors, subsector =>
+            {
+                SubsectorTriangles triangles = WorldTriangulator.Triangulate(subsector);
+                WorldVertexSubsector vertices = CreateWorldVertexSubsector(triangles, subsector);
+                Subsectors[subsector.Id] = vertices;
+            });
         }
 
         private static Vector2 GetWallDimensions(Vector3 topLeft, Vector3 bottomRight)

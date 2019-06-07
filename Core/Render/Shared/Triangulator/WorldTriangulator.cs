@@ -124,17 +124,12 @@ namespace Helion.Render.Shared.Triangulator
             // TODO: Properly handle slopes when the time comes.
             float floorZ = subsector.Sector.Floor.Z;
             float ceilZ = subsector.Sector.Ceiling.Z;
-            Vector3 root = new Vector3(segs.First().Start.ToFloat(), ceilZ);
 
-            var fanVertices = segs.Skip(1).SkipLast(1)
-                                  .Select(e => (new Vector3(e.Start.ToFloat(), ceilZ), new Vector3(e.End.ToFloat(), ceilZ)))
-                                  .Select(fan => new Triangle(root, fan.Item1, fan.Item2));
+            List<Vector3> ceiling = segs.Select(e => new Vector3(e.Start.ToFloat(), ceilZ)).ToList();
+            Vector3 root = ceiling.First();
 
-            List<Triangle> ceiling = fanVertices.ToList();
-
-            List<Triangle> floor = fanVertices.Reverse()
-                                              .Select(tri => FloorReversedTriangle(tri, floorZ))
-                                              .ToList();
+            List<Vector3> floor = ceiling.Select(pos => new Vector3(pos.X, pos.Y, floorZ)).ToList();
+            floor.Reverse();
 
             return new SubsectorTriangles(subsector, floor, ceiling);
         }
