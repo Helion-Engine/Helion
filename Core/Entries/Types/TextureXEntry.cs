@@ -1,6 +1,5 @@
 ﻿using Helion.Resources;
-using Helion.Resources.Definitions;
-using Helion.Util;
+using Helion.Resources.Definitions.Texture;
 using NLog;
 
 namespace Helion.Entries.Types

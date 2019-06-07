@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL
         public GLRenderer(GLInfo glInfo, Project project)
         {
             info = glInfo;
-            textureManager = new GLTextureManager(project);
+            textureManager = new GLTextureManager(glInfo, project);
             consoleRenderer = new ConsoleRenderer(textureManager);
             worldRenderer = new WorldRenderer(textureManager);
 

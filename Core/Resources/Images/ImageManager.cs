@@ -1,11 +1,15 @@
 ﻿using Helion.Entries.Types;
 using Helion.Graphics;
 using Helion.Graphics.Palette;
+using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
+using NLog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Resources.Images
 {
@@ -16,7 +20,7 @@ namespace Helion.Resources.Images
     /// </summary>
     public class ImageManager : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, Image>>
     {
-        private EventHandler<ImageManagerEventArgs>? imageEventEmitter;
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Handles emitting all the events. Upon registering, any previously
@@ -34,6 +38,7 @@ namespace Helion.Resources.Images
                 imageEventEmitter -= value;
             }
         }
+        private EventHandler<ImageManagerEventArgs>? imageEventEmitter;
 
         private readonly ResourceTracker<Image> images = new ResourceTracker<Image>();
 
@@ -59,14 +64,61 @@ namespace Helion.Resources.Images
             imageEventEmitter?.Invoke(this, imageEvent);
         }
 
+        private (Image Image, UpperString Name) ImageFromTextureX(Pnames pnames, TextureXImage imageDefinition)
+        {
+            ImageMetadata metadata = new ImageMetadata(ResourceNamespace.Textures);
+            Image image = new Image(imageDefinition.Width, imageDefinition.Height, Image.Transparent, metadata);
+
+            foreach (TextureXPatch patch in imageDefinition.Patches)
+            {
+                if (patch.PnamesIndex < 0 || patch.PnamesIndex >= pnames.Names.Count)
+                {
+                    log.Warn("Unable to find patch index {0} for texture X definition '{1}'", patch.PnamesIndex, imageDefinition.Name);
+                    continue;
+                }
+
+                UpperString patchName = pnames.Names[patch.PnamesIndex];
+                Image? patchImage = images.GetWithGlobal(patchName, ResourceNamespace.Textures);
+                if (patchImage == null)
+                {
+                    log.Warn("Unable to find patch '{0}' for texture X definition '{1}'", patchName, imageDefinition.Name);
+                    continue;
+                }
+
+                patchImage.DrawOnTopOf(image, patch.Offset);
+            }
+
+            return (image, imageDefinition.Name);
+        }
+
+        /// <summary>
+        /// Adds an image to be tracked by the manager for some image entry.
+        /// </summary>
+        /// <param name="entry">The image entry to track.</param>
+        public void Add(ImageEntry entry) => Add(entry.Image, entry.Path.Name);
+
         /// <summary>
         /// Adds an image to be tracked by the manager.
         /// </summary>
-        /// <param name="entry">The image entry to track.</param>
-        public void Add(ImageEntry entry)
+        /// <param name="image">The image to track.</param>
+        /// <param name="name">The name of the image.</param>
+        public void Add(Image image, UpperString name)
         {
-            images.AddOrOverwrite(entry.Path.Name, entry.Namespace, entry.Image);
-            EmitCreateEvent(entry.Path.Name, entry.Namespace, entry.Image);
+            images.AddOrOverwrite(name, image.Metadata.Namespace, image);
+            EmitCreateEvent(name, image.Metadata.Namespace, image);
+        }
+
+        /// <summary>
+        /// Will compile a series of new images from the vanilla definition
+        /// entries provided.
+        /// </summary>
+        /// <param name="pnames">The patch name to indices.</param>
+        /// <param name="textureXList">The texture definitions.</param>
+        public void AddDefinitions(Pnames pnames, List<TextureX> textureXList)
+        {
+            textureXList.SelectMany(textureX => textureX.Definitions)
+                        .Select(textureXImage => ImageFromTextureX(pnames, textureXImage))
+                        .Each(imagePair => Add(imagePair.Image, imagePair.Name));
         }
 
         /// <summary>

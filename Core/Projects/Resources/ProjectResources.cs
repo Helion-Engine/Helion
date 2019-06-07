@@ -2,9 +2,11 @@
 using Helion.Entries.Types;
 using Helion.Graphics.Palette;
 using Helion.Resources;
+using Helion.Resources.Definitions;
 using Helion.Resources.Images;
 using Helion.Resources.Sprites;
 using Helion.Util;
+using System;
 using System.Collections.Generic;
 
 namespace Helion.Projects.Resources
@@ -63,6 +65,14 @@ namespace Helion.Projects.Resources
             }
         }
 
+        private void TrackDefinitionEntries(ProjectComponent component)
+        {
+            DefinitionEntries definitionEntries = component.ResourceCache.DefinitionEntries;
+
+            if (definitionEntries.Pnames != null && definitionEntries.TextureXList.Count > 0)
+                ImageManager.AddDefinitions(definitionEntries.Pnames, definitionEntries.TextureXList);
+        }
+
         /// <summary>
         /// Looks up an entry by name. The most recent entry in the entire
         /// archive with the name is loaded.
@@ -104,9 +114,14 @@ namespace Helion.Projects.Resources
             Palette latestPalette = FindLatestPalette(components);
 
             foreach (ProjectComponent component in components)
+            {
                 foreach (Entry entry in component.Archive)
                     if (!entry.Corrupt)
                         TrackEntry(entry, latestPalette);
+
+                TrackDefinitionEntries(component);
+            }
+
         }
     }
 }

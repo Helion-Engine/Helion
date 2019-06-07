@@ -1,7 +1,9 @@
 ﻿using Helion.Util;
+using Helion.Util.Geometry;
 using NLog;
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using static Helion.Util.Assert;
@@ -14,6 +16,12 @@ namespace Helion.Graphics
     /// </summary>
     public class Image
     {
+        /// <summary>
+        /// The background transparent color. Since this class name clashes 
+        /// with the System.Drawing namespace, this helps remedy this issue.
+        /// </summary>
+        public static readonly Color Transparent = Color.Transparent;
+
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -166,6 +174,20 @@ namespace Helion.Graphics
             for (int row = 0; row < Bitmap.Height; row++)
                 for (int col = 0; col < Bitmap.Width; col++)
                     Bitmap.SetPixel(col, row, color);
+        }
+
+        /// <summary>
+        /// Draws the current image on top of the first argument, at the offset
+        /// provided.
+        /// </summary>
+        /// <param name="image">The image on the bottom, meaning it will have
+        /// the current image drawn on top of this.</param>
+        /// <param name="offset">The offset to which the image will be drawn
+        /// at.</param>
+        public void DrawOnTopOf(Image image, Vec2I offset)
+        {
+            System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap);
+            g.DrawImage(Bitmap, new Point(offset.X, offset.Y));
         }
     }
 }

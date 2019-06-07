@@ -3,7 +3,6 @@ using Helion.Projects;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Geometry;
-using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -15,12 +14,14 @@ namespace Helion.Render.OpenGL.Texture
     {
         public readonly GLTexture NullTexture;
         private bool disposed;
+        private readonly GLInfo info;
         private readonly List<GLTexture> textures = new List<GLTexture>();
         private readonly Dictionary<UpperString, GLTexture> nameToTexture = new Dictionary<UpperString, GLTexture>();
 
-        public GLTextureManager(Project project)
+        public GLTextureManager(GLInfo glInfo, Project project)
         {
-            NullTexture = CreateTexture(ImageHelper.CreateNullImage());
+            info = glInfo;
+            NullTexture = CreateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
 
             // TODO: Check for anisostropy/extension
             // TODO: Register with project for getting updates
@@ -77,18 +78,25 @@ namespace Helion.Render.OpenGL.Texture
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
         }
 
-        private GLTexture CreateTexture(Image image)
+        private GLTexture CreateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
         {
             GLTexture texture = new GLTexture(GL.GenTexture(), new Dimension(image.Width, image.Height));
 
             texture.BindAnd(() =>
             {
+                SetObjectLabel(texture.Handle, $"Texture [{resourceNamespace}]: {name}");
                 UploadTexturePixels(image);
                 SetTextureParameters();
                 GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
             });
 
             return texture;
+        }
+
+        private void SetObjectLabel(int textureHandle, string labelName)
+        {
+            if (info.Version.Supports(4, 3))
+                GL.ObjectLabel(ObjectLabelIdentifier.Texture, textureHandle, labelName.Length, labelName);
         }
 
         private void TrackTexture(GLTexture texture, UpperString name, ResourceNamespace resourceNamespace)
@@ -116,7 +124,10 @@ namespace Helion.Render.OpenGL.Texture
                 // TODO: Update if exists
             }
             else
-                TrackTexture(CreateTexture(image), name, resourceNamespace);
+            {
+                GLTexture texture = CreateTexture(image, name, resourceNamespace);
+                TrackTexture(texture, name, resourceNamespace);
+            }
         }
 
         public void DeleteTexture(UpperString name)
