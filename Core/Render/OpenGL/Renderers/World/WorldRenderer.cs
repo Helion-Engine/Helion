@@ -104,6 +104,8 @@ namespace Helion.Render.OpenGL.Renderers.World
             // OpenGL uses uint's for the texture indices, so the chances of a
             // texture allocating a bitwise match to this are probably either
             // near, or at zero.
+            // TODO: This has no memory of our previous draw invocation, we
+            // should consider making this a variable inside the object.
             int lastTextureHandle = -1;
 
             foreach (Segment segment in subsector.ClockwiseEdges)

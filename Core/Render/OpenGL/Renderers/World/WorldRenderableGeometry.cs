@@ -104,7 +104,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         }
 
         private WorldVertexWall MakeWall(WallTriangles triangles, string textureName, 
-            Vec2I offset, float lightLevel)
+            Vector2 offset, float lightLevel)
         {
             Vector3 topLeft = triangles.UpperTriangle.First;
             Vector3 bottomRight = triangles.LowerTriangle.Third;
@@ -119,13 +119,11 @@ namespace Helion.Render.OpenGL.Renderers.World
             // TODO: Support the 'texture' namespace.
             GLTexture texture = textureManager.Get(textureName);
             bool noTexture = (textureName == Constants.NoTexture);
-            //if (!noTexture)
-            //    Debug.WriteLine($"{textureName} -> {texture.Handle} ({texture.Dimension.Width} x {texture.Dimension.Height})");
             Vector2 widthHeight = GetWallDimensions(topLeft, bottomRight);
 
             // TODO: Handle upper/lower unpegged.
 
-            (float leftU, float topV) = offset.ToFloat() * texture.InverseUV;
+            (float leftU, float topV) = offset * texture.InverseUV;
             Vector2 deltaUV = widthHeight * texture.InverseUV;
             (float rightU, float bottomV) = (leftU + deltaUV.X, topV + deltaUV.Y);
 
@@ -148,7 +146,7 @@ namespace Helion.Render.OpenGL.Renderers.World
 
             Side side = segment.Side;
             float lightLevel = side.Sector.UnitLightLevel;
-            Vec2I offset = new Vec2I(side.Offset.X + segment.OffsetX, side.Offset.Y);
+            Vector2 offset = new Vector2(side.Offset.X + segment.OffsetX, side.Offset.Y);
 
             if (triangles.Lower != null && triangles.Upper != null)
             {
