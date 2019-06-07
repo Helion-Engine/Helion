@@ -23,10 +23,6 @@ namespace Helion.Render.OpenGL.Texture
         {
             info = glInfo;
             NullTexture = CreateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
-
-            // TODO: Check for anisostropy/extension
-            // TODO: Register with project for getting updates
-            // TODO: Unregister on destruction
         }
 
         ~GLTextureManager() => Dispose(false);
