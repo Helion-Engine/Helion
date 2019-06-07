@@ -8,6 +8,7 @@ using Helion.World.Geometry;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Drawing;
 
 namespace Helion.Render.OpenGL.Renderers.World
 {
@@ -43,14 +44,15 @@ namespace Helion.Render.OpenGL.Renderers.World
                    !ReferenceEquals(lastProcessedWorld.Target, world);
         }
 
-        private void SetUniforms(Camera camera)
+        private void SetUniforms(Camera camera, Rectangle viewport)
         {
             // We have no model transformation as the world geometry is already
             // in the world space.
             Matrix4 view = camera.ViewMatrix();
 
-            // TODO: Get actual values for the fov, aspect, zNear, and zFar.
-            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, 1.3333f, 0.1f, 10000.0f, out Matrix4 projection);
+            // TODO: Get config values for zNear and zFar.
+            float aspectRatio = (float)viewport.Width / viewport.Height;
+            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, aspectRatio, 0.1f, 10000.0f, out Matrix4 projection);
 
             // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
             // of left multiplication. Instead of doing p * v * m, it has to
@@ -181,7 +183,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             disposed = true;
         }
 
-        public void Render(WorldBase world, Camera camera)
+        public void Render(WorldBase world, Camera camera, Rectangle viewport)
         {
             if (ShouldUpdateToNewWorld(world))
             {
@@ -191,7 +193,7 @@ namespace Helion.Render.OpenGL.Renderers.World
 
             shaderProgram.BindAnd(() => 
             {
-                SetUniforms(camera);
+                SetUniforms(camera, viewport);
                 RenderBspTree(world, camera);
             });
         }

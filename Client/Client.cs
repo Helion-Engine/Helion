@@ -154,7 +154,7 @@ namespace Helion.Client
             if (world != null)
             {
                 world.HandleFrameInput(consumableFrameInput);
-                renderer.RenderWorld(world, world.Camera);
+                renderer.RenderWorld(world, world.Camera, ClientRectangle);
             }
 
             SwapBuffers();

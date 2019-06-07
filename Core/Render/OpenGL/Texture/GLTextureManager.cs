@@ -70,12 +70,16 @@ namespace Helion.Render.OpenGL.Texture
 
         private void SetTextureParameters()
         {
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLHelper.MinToMagFilter(TextureMinFilter.LinearMipmapLinear));
 
             // TODO: This should be 'clamp to edge' for sprites.
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            // TODO: We should check if this is supported first.
+            TextureParameterName anisotropyName = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+            GL.TexParameter(TextureTarget.Texture2D, anisotropyName, info.AnisotropyMax);
         }
 
         private GLTexture CreateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
