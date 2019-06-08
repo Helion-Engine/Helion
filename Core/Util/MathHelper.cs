@@ -31,5 +31,9 @@ namespace Helion.Util
 
         public static Fixed Min(Fixed first, Fixed second) => first.Bits < second.Bits ? first : second;
         public static Fixed Max(Fixed first, Fixed second) => first.Bits < second.Bits ? second : first;
+
+        // TODO: Make an extension method on primitives?
+        public static float Interpolate(float start, float end, float t) => start + (t * (end - start));
+        public static double Interpolate(double start, double end, double t) => start + (t * (end - start));
     }
 }

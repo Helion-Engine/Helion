@@ -52,6 +52,7 @@ namespace Helion.Util.Geometry
         public int DistanceSquared(Vec3I other) => (this - other).LengthSquared();
         public int Distance(Vec3I other) => (this - other).Length();
 
+        public Vec2I To2D() => new Vec2I(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));
         public Vector3 ToFloat() => new Vector3(X, Y, Z);
         public Vec3D ToDouble() => new Vec3D(X, Y, Z);
@@ -118,7 +119,9 @@ namespace Helion.Util.Geometry
         public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
         public double Distance(Vec3D other) => (this - other).Length();
+        public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
 
+        public Vec2D To2D() => new Vec2D(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));
         public Vector3 ToFloat() => new Vector3((float)X, (float)Y, (float)Z);
         public Vec3I ToInt() => new Vec3I((int)X, (int)Y, (int)Z);
@@ -178,7 +181,9 @@ namespace Helion.Util.Geometry
         public Fixed Length() => new Fixed(Math.Sqrt(((X * X) + (Y * Y) + (Z * Z)).ToDouble()));
         public Fixed DistanceSquared(Vec3Fixed other) => (this - other).LengthSquared();
         public Fixed Distance(Vec3Fixed other) => (this - other).Length();
+        public Vec3Fixed Interpolate(Vec3Fixed end, float t) => ToDouble().Interpolate(end.ToDouble(), t).ToFixed();
 
+        public Vec2Fixed To2D() => new Vec2Fixed(X, Y);
         public Vec3D ToDouble() => new Vec3D(X.ToDouble(), Y.ToDouble(), Z.ToDouble());
         public Vector3 ToFloat() => new Vector3(X.ToFloat(), Y.ToFloat(), Z.ToFloat());
         public Vec3I ToInt() => new Vec3I(X.ToInt(), Y.ToInt(), Z.ToInt());
@@ -199,6 +204,8 @@ namespace Helion.Util.Geometry
 
         public static Vector3 Abs(this Vector3 vec) => new Vector3(Math.Abs(vec.X), Math.Abs(vec.Y), Math.Abs(vec.Z));
         public static Vector3 Unit(this Vector3 vec) => vec / vec.Length();
+        public static Vector3 Interpolate(this Vector3 start, Vector3 end, float t) => start + (t * (end - start));
+        public static Vector2 To2D(this Vector3 vec) => new Vector2(vec.X, vec.Y);
         public static Vec3I ToInt(this Vector3 vec) => new Vec3I((int)vec.X, (int)vec.Y, (int)vec.Z);
         public static Vec3Fixed ToFixed(this Vector3 vec) => new Vec3Fixed(new Fixed(vec.X), new Fixed(vec.Y), new Fixed(vec.Z));
         public static Vec3D ToDouble(this Vector3 vec) => new Vec3D(vec.X, vec.Y, vec.Z);

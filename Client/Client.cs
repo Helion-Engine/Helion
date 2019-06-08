@@ -3,8 +3,10 @@ using Helion.Input.Adapter;
 using Helion.Maps;
 using Helion.Projects.Impl.Local;
 using Helion.Render.OpenGL;
+using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Time;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
 using OpenTK;
@@ -24,6 +26,7 @@ namespace Helion.Client
         private readonly InputCollection frameCollection;
         private readonly InputCollection tickCollection;
         private readonly LocalProject project = new LocalProject();
+        private readonly Ticker ticker = new Ticker(Constants.TicksPerSecond);
         private bool shouldExit = false;
         private GLRenderer renderer;
         private SinglePlayerWorld? world;
@@ -47,7 +50,10 @@ namespace Helion.Client
             // ================================================================
             Map? map = project.GetMap("MAP01");
             if (map != null)
+            {
                 world = SinglePlayerWorld.Create(project, map);
+                ticker.Start();
+            }
             // ================================================================
         }
 
@@ -80,6 +86,53 @@ namespace Helion.Client
                 Exit();
         }
 
+        private void PollInput()
+        {
+            MouseState state = Mouse.GetCursorState();
+            Vec2I center = new Vec2I(Width / 2, Height / 2);
+            Vec2I deltaPixels = new Vec2I(state.X, state.Y) - center;
+
+            inputAdapter.HandleMouseMovement(deltaPixels);
+        }
+
+        private void RunLogic(TickerInfo tickerInfo)
+        {
+            ConsumableInput consumableTickInput = new ConsumableInput(tickCollection);
+            tickCollection.Tick();
+
+            if (world != null)
+            {
+                world.HandleTickInput(consumableTickInput);
+
+                int ticksToRun = tickerInfo.Ticks;
+                while (ticksToRun > 0)
+                {
+                    world.Tick();
+                    ticksToRun--;
+                }
+            }
+
+            CheckForExit();
+        }
+
+        private void Render(TickerInfo tickerInfo)
+        {
+            ConsumableInput consumableFrameInput = new ConsumableInput(frameCollection);
+            frameCollection.Tick();
+
+            renderer.RenderStart(ClientRectangle);
+            renderer.Clear(new System.Drawing.Size(Width, Height));
+
+            if (world != null)
+            {
+                RenderInfo renderInfo = new RenderInfo(world.Camera, tickerInfo.Fraction, ClientRectangle);
+                world.HandleFrameInput(consumableFrameInput);
+                renderer.RenderWorld(world, renderInfo);
+            }
+
+            SwapBuffers();
+        }
+
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             if (Focused)
@@ -108,7 +161,7 @@ namespace Helion.Client
         {
             if (Focused)
             {
-                inputAdapter.HandleMouseMovement(e);
+                PollInput();
 
                 // Reset the mouse to the center of the screen. Unfortunately
                 // we have to do this ourselves...
@@ -127,37 +180,11 @@ namespace Helion.Client
             base.OnMouseWheel(e);
         }
 
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            ConsumableInput consumableTickInput = new ConsumableInput(tickCollection);
-            tickCollection.Tick();
-
-            if (world != null)
-            {
-                world.HandleTickInput(consumableTickInput);
-                world.Tick();
-            }
-
-            CheckForExit();
-
-            base.OnUpdateFrame(e);
-        }
-
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            ConsumableInput consumableFrameInput = new ConsumableInput(tickCollection);
-            frameCollection.Tick();
-
-            renderer.RenderStart(ClientRectangle);
-            renderer.Clear(new System.Drawing.Size(Width, Height));
-
-            if (world != null)
-            {
-                world.HandleFrameInput(consumableFrameInput);
-                renderer.RenderWorld(world, world.Camera, ClientRectangle);
-            }
-
-            SwapBuffers();
+            TickerInfo tickerInfo = ticker.GetTickerInfo();
+            RunLogic(tickerInfo);
+            Render(tickerInfo);
 
             base.OnRenderFrame(e);
         }

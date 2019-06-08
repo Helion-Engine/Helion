@@ -3,12 +3,12 @@ using Helion.Render.OpenGL.Buffer.Vbo;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
+using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Geometry;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Drawing;
 
 namespace Helion.Render.OpenGL.Renderers.World
 {
@@ -45,34 +45,34 @@ namespace Helion.Render.OpenGL.Renderers.World
                    !ReferenceEquals(lastProcessedWorld.Target, world);
         }
 
-        private void SetUniforms(Camera camera, Rectangle viewport)
+        private void SetUniforms(RenderInfo renderInfo)
         {
-            // We have no model transformation as the world geometry is already
-            // in the world space.
-            Matrix4 view = camera.ViewMatrix();
-
             // TODO: Get config values for zNear and zFar.
-            float aspectRatio = (float)viewport.Width / viewport.Height;
+            float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
             Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, aspectRatio, 0.1f, 10000.0f, out Matrix4 projection);
 
+            // Note that we have no model matrix, everything is already in the
+            // world space.
+            //
             // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
             // of left multiplication. Instead of doing p * v * m, it has to
             // be done in the opposite direction (m * v * p) due to a design
             // decision according to a lead developer. This will seem wrong
             // for anyone used to the C++/OpenGL way of multiplying.
+            Matrix4 view = Camera.ViewMatrix(renderInfo.CameraInfo);
             Matrix4 mvp = view * projection;
 
             shaderProgram.SetMatrix("mvp", mvp);
         }
 
-        private void RenderBspTree(WorldBase world, Camera camera)
+        private void RenderBspTree(WorldBase world, RenderInfo renderInfo)
         {
             lastTextureHandle = -1;
             ushort index = world.BspTree.RootIndex;
-            RenderNode(world, index, camera);
+            RenderNode(world, index, renderInfo.CameraInfo.PositionFixed);
         }
 
-        private void RenderNode(WorldBase world, ushort index, Camera camera)
+        private void RenderNode(WorldBase world, ushort index, Vec2Fixed position)
         {
             if (BspNodeCompact.IsSubsectorIndex(index))
             {
@@ -83,17 +83,17 @@ namespace Helion.Render.OpenGL.Renderers.World
 
             BspNodeCompact node = world.BspTree.Nodes[index];
 
-            if (node.Splitter.OnRight(camera.PositionFixed))
+            if (node.Splitter.OnRight(position))
             {
-                RenderNode(world, node.RightChild, camera);
+                RenderNode(world, node.RightChild, position);
                 if (IsVisible(node.LeftChild))
-                    RenderNode(world, node.LeftChild, camera);
+                    RenderNode(world, node.LeftChild, position);
             }
             else
             {
-                RenderNode(world, node.LeftChild, camera);
+                RenderNode(world, node.LeftChild, position);
                 if (IsVisible(node.RightChild))
-                    RenderNode(world, node.RightChild, camera);
+                    RenderNode(world, node.RightChild, position);
             }
         }
 
@@ -176,7 +176,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             disposed = true;
         }
 
-        public void Render(WorldBase world, Camera camera, Rectangle viewport)
+        public void Render(WorldBase world, RenderInfo renderInfo)
         {
             if (ShouldUpdateToNewWorld(world))
             {
@@ -186,8 +186,8 @@ namespace Helion.Render.OpenGL.Renderers.World
 
             shaderProgram.BindAnd(() => 
             {
-                SetUniforms(camera, viewport);
-                RenderBspTree(world, camera);
+                SetUniforms(renderInfo);
+                RenderBspTree(world, renderInfo);
             });
         }
 

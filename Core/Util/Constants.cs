@@ -14,9 +14,10 @@ namespace Helion.Util
 
         public static readonly string NoTexture = "-";
         public static readonly string SkyTexture = "F_SKY1";
-        public static readonly string NulLTextureName = "NULL";
+        public static readonly string NullTextureName = "NULL";
         public static readonly string PlayerClass = "PLAYER";
         public static readonly ulong TicksPerNanos = 28L * 1000L * 1000L;
+        public static readonly double TicksPerSecond = 35.0;
 
         public static readonly float FontAlphaCutoff = 0.5f;
     }

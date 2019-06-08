@@ -219,10 +219,10 @@ namespace Helion.Input.Adapter
             }
         }
 
-        public void HandleMouseMovement(MouseMoveEventArgs e)
+        public void HandleMouseMovement(Vec2I deltaPixels /* MouseMoveEventArgs e */)
         {
             InputEventArgs inputEvent = new InputEventArgs();
-            inputEvent.MouseInput.Delta = new Vec2I(e.XDelta, e.YDelta);
+            inputEvent.MouseInput.Delta = new Vec2I(-deltaPixels.X, -deltaPixels.Y);
             EmitEvent(inputEvent);
         }
 

@@ -82,7 +82,7 @@ namespace Helion.Input
         /// it was consumed before this invocation.</returns>
         public bool ConsumeKeyPressedOrDown(InputKey inputKey)
         {
-            bool contains = keysPressed.Contains(inputKey);
+            bool contains = keysPressed.Contains(inputKey) || keysDown.Contains(inputKey);
             keysPressed.Remove(inputKey);
             keysDown.Remove(inputKey);
             return contains;

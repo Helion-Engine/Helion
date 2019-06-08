@@ -101,9 +101,9 @@ namespace Helion.Render.OpenGL
             consoleRenderer.Render(console);
         }
 
-        public void RenderWorld(WorldBase world, Camera camera, Rectangle viewport)
+        public void RenderWorld(WorldBase world, RenderInfo renderInfo)
         {
-            worldRenderer.Render(world, camera, viewport);
+            worldRenderer.Render(world, renderInfo);
         }
 
         public void HandleTextureEvent(object sender, ImageManagerEventArgs imageEvent)
