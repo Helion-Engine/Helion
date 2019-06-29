@@ -56,7 +56,9 @@ namespace Helion.Util.Container
         /// </summary>
         public void Clear()
         {
-            Data = new T[Capacity];
+            // TODO: We don't need to remove the array if we just overwrite
+            // stuff into it.
+            //Data = new T[Capacity];
             Length = 0;
         }
 

@@ -9,6 +9,7 @@ using Helion.World.Geometry;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.World
 {
@@ -26,7 +27,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         );
         private StreamVertexBuffer<WorldVertex> vbo = new StreamVertexBuffer<WorldVertex>();
         private ShaderProgram shaderProgram;
-        private int lastTextureHandle;
+        private Dictionary<int, List<WorldVertex>> textureIdToVertices = new Dictionary<int, List<WorldVertex>>();
 
         public WorldRenderer(GLTextureManager glTextureManager)
         {
@@ -67,9 +68,25 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void RenderBspTree(WorldBase world, RenderInfo renderInfo)
         {
-            lastTextureHandle = -1;
             ushort index = world.BspTree.RootIndex;
             RenderNode(world, index, renderInfo.CameraInfo.PositionFixed);
+        }
+
+        private void RenderGeometry()
+        {
+            foreach (var handleListPair in textureIdToVertices)
+            {
+                int textureHandle = handleListPair.Key;
+                textureManager.BindTextureIndex(TextureTarget.Texture2D, textureHandle);
+
+                List<WorldVertex> vertices = handleListPair.Value;
+                vbo.Clear();
+                foreach (WorldVertex v in vertices)
+                    vbo.Add(v);
+                vbo.Upload();
+
+                vbo.DrawArrays(vertices.Count);
+            }
         }
 
         private void RenderNode(WorldBase world, ushort index, Vec2Fixed position)
@@ -116,41 +133,62 @@ namespace Helion.Render.OpenGL.Renderers.World
                     if (wall.NoTexture)
                         continue;
 
-                    if (wall.TextureHandle != lastTextureHandle)
+                    if (textureIdToVertices.TryGetValue(wall.TextureHandle, out List<WorldVertex> L))
                     {
-                        vbo.BindAndDrawIfNotEmpty();
-
-                        textureManager.BindTextureIndex(TextureTarget.Texture2D, wall.TextureHandle);
-                        lastTextureHandle = wall.TextureHandle;
+                        L.Add(wall.TopLeft);
+                        L.Add(wall.BottomLeft);
+                        L.Add(wall.TopRight);
+                        L.Add(wall.TopRight);
+                        L.Add(wall.BottomLeft);
+                        L.Add(wall.BottomRight);
                     }
-
-                    vbo.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
-                    vbo.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+                    else
+                    {
+                        List<WorldVertex> newList = new List<WorldVertex>
+                        {
+                            wall.TopLeft,
+                            wall.BottomLeft,
+                            wall.TopRight,
+                            wall.TopRight,
+                            wall.BottomLeft,
+                            wall.BottomRight
+                        };
+                        textureIdToVertices[wall.TextureHandle] = newList;
+                    }
                 }
             }
-
-            vbo.BindAndDrawIfNotEmpty();
         }
 
-        private void RenderSubsectorFlat(WorldVertexFlat flat, ref int lastTextureHandle)
+        private void RenderSubsectorFlat(WorldVertexFlat flat)
         {
-            if (flat.TextureHandle != lastTextureHandle)
+            int texHandle = flat.TextureHandle;
+
+            if (textureIdToVertices.TryGetValue(texHandle, out List<WorldVertex> L))
             {
-                vbo.BindAndDrawIfNotEmpty();
-
-                textureManager.BindTextureIndex(TextureTarget.Texture2D, flat.TextureHandle);
-                lastTextureHandle = flat.TextureHandle;
+                for (int i = 0; i < flat.Fan.Length - 1; i++)
+                {
+                    L.Add(flat.Root);
+                    L.Add(flat.Fan[i]);
+                    L.Add(flat.Fan[i + 1]);
+                }
             }
-
-            for (int i = 0; i < flat.Fan.Length - 1; i++)
-                vbo.Add(flat.Root, flat.Fan[i], flat.Fan[i + 1]);
+            else
+            {
+                List<WorldVertex> newList = new List<WorldVertex>();
+                for (int i = 0; i < flat.Fan.Length - 1; i++)
+                {
+                    newList.Add(flat.Root);
+                    newList.Add(flat.Fan[i]);
+                    newList.Add(flat.Fan[i + 1]);
+                }
+                textureIdToVertices[texHandle] = newList;
+            }
         }
 
         private void RenderSubsectorFlats(Subsector subsector)
         {
-            RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Floor, ref lastTextureHandle);
-            RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Ceiling, ref lastTextureHandle);
-            vbo.BindAndDrawIfNotEmpty();
+            RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Floor);
+            RenderSubsectorFlat(renderableGeometry.Subsectors[subsector.Id].Ceiling);
         }
 
         private bool IsVisible(ushort index)
@@ -184,10 +222,20 @@ namespace Helion.Render.OpenGL.Renderers.World
                 lastProcessedWorld = new WeakReference(world);
             }
 
-            shaderProgram.BindAnd(() => 
+            textureIdToVertices.Clear();
+
+            vao.BindAnd(() =>
             {
-                SetUniforms(renderInfo);
-                RenderBspTree(world, renderInfo);
+                vbo.BindAnd(() =>
+                {
+                    shaderProgram.BindAnd(() =>
+                    {
+                        shaderProgram.SetInt("boundTexture", 0);
+                        SetUniforms(renderInfo);
+                        RenderBspTree(world, renderInfo);
+                        RenderGeometry();
+                    });
+                });
             });
         }
 

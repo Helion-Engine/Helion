@@ -33,9 +33,17 @@ namespace Helion.Render.OpenGL.Shader
             program = GL.CreateProgram();
             GL.AttachShader(program, vertexShader);
             GL.AttachShader(program, fragmentShader);
+
             if (vao != null)
+            {
+                vao.Bind();
                 SetAttributeLocations(vao);
+            }
+
             LinkProgramOrThrow();
+
+            if (vao != null)
+                vao.Unbind();
 
             GL.DetachShader(program, vertexShader);
             GL.DetachShader(program, fragmentShader);

@@ -35,15 +35,18 @@ namespace Helion.Render.OpenGL.Buffer.Vao
         // that is not good.
         public void BindAttributesTo<T>(VertexBuffer<T> vbo) where T : struct
         {
-            vbo.BindAnd(() =>
+            BindAnd(() =>
             {
-                int stride = Attributes.Select(attr => attr.ByteLength()).Sum();
-                int offset = 0;
-                foreach (VaoAttribute attr in Attributes)
+                vbo.BindAnd(() =>
                 {
-                    attr.Enable(stride, offset);
-                    offset += attr.ByteLength();
-                }
+                    int stride = Attributes.Select(attr => attr.ByteLength()).Sum();
+                    int offset = 0;
+                    foreach (VaoAttribute attr in Attributes)
+                    {
+                        attr.Enable(stride, offset);
+                        offset += attr.ByteLength();
+                    }
+                });
             });
         }
 

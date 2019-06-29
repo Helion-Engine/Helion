@@ -28,20 +28,22 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleTickInput(ConsumableInput tickInput)
         {
+            Camera.Tick();
+
             //=================================================================
             // TODO: Temporary!
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.W))
-                Camera.MoveForward(4);
+                Camera.MoveForward(18);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.A))
-                Camera.MoveLeft(4);
+                Camera.MoveLeft(13);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.S))
-                Camera.MoveBackward(4);
+                Camera.MoveBackward(18);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.D))
-                Camera.MoveRight(4);
+                Camera.MoveRight(13);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.Space))
-                Camera.MoveUp(4);
+                Camera.MoveUp(10);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.C))
-                Camera.MoveDown(4);
+                Camera.MoveDown(10);
             //=================================================================
         }
 
@@ -56,7 +58,6 @@ namespace Helion.World.Impl.SinglePlayer
 
         public override void Tick()
         {
-            Camera.Tick();
             base.Tick();
         }
     }
