@@ -33,13 +33,13 @@ namespace Helion.World.Impl.SinglePlayer
             //=================================================================
             // TODO: Temporary!
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.W))
-                Camera.MoveForward(18);
+                Camera.MoveForward(12);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.A))
-                Camera.MoveLeft(13);
+                Camera.MoveLeft(8);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.S))
-                Camera.MoveBackward(18);
+                Camera.MoveBackward(12);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.D))
-                Camera.MoveRight(13);
+                Camera.MoveRight(8);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.Space))
                 Camera.MoveUp(10);
             if (tickInput.ConsumeKeyPressedOrDown(InputKey.C))

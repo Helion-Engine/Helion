@@ -31,6 +31,12 @@ namespace Helion.Client
         private GLRenderer renderer;
         private SinglePlayerWorld? world;
 
+        private bool tracking = false;
+        private int gen0 = 0;
+        private int gen1 = 0;
+        private int gen2 = 0;
+        private int gen3 = 0;
+
         public Client(CommandLineArgs args) : 
             base(1024, 768, GraphicsMode.Default, Constants.ApplicationName, GameWindowFlags.Default)
         {
@@ -184,6 +190,42 @@ namespace Helion.Client
             TickerInfo tickerInfo = ticker.GetTickerInfo();
             RunLogic(tickerInfo);
             Render(tickerInfo);
+
+            if (!tracking)
+            {
+                tracking = true;
+                gen0 = System.GC.CollectionCount(0);
+                gen1 = System.GC.CollectionCount(1);
+                gen2 = System.GC.CollectionCount(2);
+                gen3 = System.GC.CollectionCount(3);
+            }
+            else
+            {
+                int g0 = System.GC.CollectionCount(0);
+                if (g0 > gen0)
+                {
+                    //log.Info($"Gen 0 collection {gen0} -> {g0}");
+                    gen0 = g0;
+                }
+                int g1 = System.GC.CollectionCount(1);
+                if (g1 > gen1)
+                {
+                    //log.Info($"Gen 1 collection {gen1} -> {g1}");
+                    gen1 = g1;
+                }
+                int g2 = System.GC.CollectionCount(2);
+                if (g2 > gen2)
+                {
+                    //log.Info($"Gen 2 collection {gen2} -> {g2}");
+                    gen2 = g2;
+                }
+                int g3 = System.GC.CollectionCount(3);
+                if (g3 > gen3)
+                {
+                    //log.Info($"Gen 3 collection {gen3} -> {g3}");
+                    gen3 = g3;
+                }
+            }
 
             base.OnRenderFrame(e);
         }

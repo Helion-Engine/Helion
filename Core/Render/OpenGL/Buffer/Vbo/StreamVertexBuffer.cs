@@ -6,7 +6,7 @@ namespace Helion.Render.OpenGL.Buffer.Vbo
     {
         protected override BufferUsageHint GetHint() => BufferUsageHint.StreamDraw;
 
-        protected override void Unbind()
+        public override void Unbind()
         {
             base.Unbind();
             Clear();

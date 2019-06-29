@@ -54,13 +54,7 @@ namespace Helion.Util.Container
         /// Clears the data. The underlying data becomes eligible for garbage
         /// collection, and a new array with the current capacity is created.
         /// </summary>
-        public void Clear()
-        {
-            // TODO: We don't need to remove the array if we just overwrite
-            // stuff into it.
-            //Data = new T[Capacity];
-            Length = 0;
-        }
+        public void Clear() => Length = 0;
 
         /// <summary>
         /// Adds a new element to the array, and resizes if full. Amortized

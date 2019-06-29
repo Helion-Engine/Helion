@@ -63,13 +63,13 @@ namespace Helion.Render.OpenGL.Buffer.Vbo
 
         public virtual void Clear() => data.Clear();
 
-        protected void Bind()
+        public void Bind()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             DeployData();
-        } 
+        }
 
-        protected virtual void Unbind() => GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        public virtual void Unbind() => GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
         public void BindAnd(Action action)
         {

@@ -104,9 +104,9 @@ namespace Helion.Render.OpenGL.Shader
             }
         }
 
-        protected void Bind() => GL.UseProgram(program);
+        public void Bind() => GL.UseProgram(program);
 
-        protected void Unbind() => GL.UseProgram(0);
+        public void Unbind() => GL.UseProgram(0);
 
         public void BindAnd(Action action)
         {

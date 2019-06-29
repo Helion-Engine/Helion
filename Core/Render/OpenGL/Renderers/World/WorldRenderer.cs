@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Buffer.Vbo;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Geometry;
@@ -27,7 +28,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         );
         private StreamVertexBuffer<WorldVertex> vbo = new StreamVertexBuffer<WorldVertex>();
         private ShaderProgram shaderProgram;
-        private Dictionary<int, List<WorldVertex>> textureIdToVertices = new Dictionary<int, List<WorldVertex>>();
+        private Dictionary<int, DynamicArray<WorldVertex>> textureIdToVertices = new Dictionary<int, DynamicArray<WorldVertex>>();
 
         public WorldRenderer(GLTextureManager glTextureManager)
         {
@@ -79,13 +80,13 @@ namespace Helion.Render.OpenGL.Renderers.World
                 int textureHandle = handleListPair.Key;
                 textureManager.BindTextureIndex(TextureTarget.Texture2D, textureHandle);
 
-                List<WorldVertex> vertices = handleListPair.Value;
+                DynamicArray<WorldVertex> vertices = handleListPair.Value;
                 vbo.Clear();
-                foreach (WorldVertex v in vertices)
-                    vbo.Add(v);
+                for (int i = 0; i < vertices.Length; i++)
+                    vbo.Add(vertices[i]);
                 vbo.Upload();
 
-                vbo.DrawArrays(vertices.Count);
+                vbo.DrawArrays(vertices.Length);
             }
         }
 
@@ -133,7 +134,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                     if (wall.NoTexture)
                         continue;
 
-                    if (textureIdToVertices.TryGetValue(wall.TextureHandle, out List<WorldVertex> L))
+                    if (textureIdToVertices.TryGetValue(wall.TextureHandle, out DynamicArray<WorldVertex> L))
                     {
                         L.Add(wall.TopLeft);
                         L.Add(wall.BottomLeft);
@@ -144,15 +145,14 @@ namespace Helion.Render.OpenGL.Renderers.World
                     }
                     else
                     {
-                        List<WorldVertex> newList = new List<WorldVertex>
-                        {
-                            wall.TopLeft,
-                            wall.BottomLeft,
-                            wall.TopRight,
-                            wall.TopRight,
-                            wall.BottomLeft,
-                            wall.BottomRight
-                        };
+                        // Note: We only ever allocate the list once.
+                        DynamicArray<WorldVertex> newList = new DynamicArray<WorldVertex>(256);
+                        newList.Add(wall.TopLeft);
+                        newList.Add(wall.BottomLeft);
+                        newList.Add(wall.TopRight);
+                        newList.Add(wall.TopRight);
+                        newList.Add(wall.BottomLeft);
+                        newList.Add(wall.BottomRight);
                         textureIdToVertices[wall.TextureHandle] = newList;
                     }
                 }
@@ -163,7 +163,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         {
             int texHandle = flat.TextureHandle;
 
-            if (textureIdToVertices.TryGetValue(texHandle, out List<WorldVertex> L))
+            if (textureIdToVertices.TryGetValue(texHandle, out DynamicArray<WorldVertex> L))
             {
                 for (int i = 0; i < flat.Fan.Length - 1; i++)
                 {
@@ -174,7 +174,8 @@ namespace Helion.Render.OpenGL.Renderers.World
             }
             else
             {
-                List<WorldVertex> newList = new List<WorldVertex>();
+                // This is only allocated once.
+                DynamicArray<WorldVertex> newList = new DynamicArray<WorldVertex>();
                 for (int i = 0; i < flat.Fan.Length - 1; i++)
                 {
                     newList.Add(flat.Root);
@@ -222,21 +223,21 @@ namespace Helion.Render.OpenGL.Renderers.World
                 lastProcessedWorld = new WeakReference(world);
             }
 
-            textureIdToVertices.Clear();
+            foreach (DynamicArray<WorldVertex> dynamicArray in textureIdToVertices.Values)
+                dynamicArray.Clear();
 
-            vao.BindAnd(() =>
-            {
-                vbo.BindAnd(() =>
-                {
-                    shaderProgram.BindAnd(() =>
-                    {
-                        shaderProgram.SetInt("boundTexture", 0);
-                        SetUniforms(renderInfo);
-                        RenderBspTree(world, renderInfo);
-                        RenderGeometry();
-                    });
-                });
-            });
+            vao.Bind();
+            vbo.Bind();
+            shaderProgram.Bind();
+
+            shaderProgram.SetInt("boundTexture", 0);
+            SetUniforms(renderInfo);
+            RenderBspTree(world, renderInfo);
+            RenderGeometry();
+
+            shaderProgram.Unbind();
+            vbo.Unbind();
+            vao.Unbind();
         }
 
         public void Dispose()

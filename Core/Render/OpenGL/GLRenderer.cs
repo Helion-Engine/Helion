@@ -59,28 +59,29 @@ namespace Helion.Render.OpenGL
 
         private void SetGLDebugger()
         {
-            if (info.Version.Supports(4, 3))
-            {
-                GL.Enable(EnableCap.DebugOutput);
-                GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, 
-                                         int length, IntPtr message, IntPtr userParam) =>
-                {
-                    string msg = Marshal.PtrToStringAnsi(message, length);
+            // Apparently this is creating garbage, lets try without it on.
+            //if (info.Version.Supports(4, 3))
+            //{
+            //    GL.Enable(EnableCap.DebugOutput);
+            //    GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, 
+            //                             int length, IntPtr message, IntPtr userParam) =>
+            //    {
+            //        string msg = Marshal.PtrToStringAnsi(message, length);
 
-                    switch (severity)
-                    {
-                    case DebugSeverity.DebugSeverityHigh:
-                    case DebugSeverity.DebugSeverityMedium:
-                        log.Error("[GLDebug type={0}] {1}", type, msg);
-                        break;
-                    case DebugSeverity.DebugSeverityLow:
-                        log.Warn("[GLDebug type={0}] {1}", type, msg);
-                        break;
-                    default:
-                        break;
-                    }
-                }, IntPtr.Zero);
-            }
+            //        switch (severity)
+            //        {
+            //        case DebugSeverity.DebugSeverityHigh:
+            //        case DebugSeverity.DebugSeverityMedium:
+            //            log.Error("[GLDebug type={0}] {1}", type, msg);
+            //            break;
+            //        case DebugSeverity.DebugSeverityLow:
+            //            log.Warn("[GLDebug type={0}] {1}", type, msg);
+            //            break;
+            //        default:
+            //            break;
+            //        }
+            //    }, IntPtr.Zero);
+            //}
         }
 
         public void Clear(Size windowDimension)
