@@ -8,6 +8,7 @@ using Helion.World;
 using NLog;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using static Helion.Util.Assert;
@@ -57,31 +58,31 @@ namespace Helion.Render.OpenGL
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
         }
 
+        [Conditional("DEBUG")]
         private void SetGLDebugger()
         {
-            // Apparently this is creating garbage, lets try without it on.
-            //if (info.Version.Supports(4, 3))
-            //{
-            //    GL.Enable(EnableCap.DebugOutput);
-            //    GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, 
-            //                             int length, IntPtr message, IntPtr userParam) =>
-            //    {
-            //        string msg = Marshal.PtrToStringAnsi(message, length);
+            if (info.Version.Supports(4, 3))
+            {
+                GL.Enable(EnableCap.DebugOutput);
+                GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity,
+                                         int length, IntPtr message, IntPtr userParam) =>
+                {
+                    string msg = Marshal.PtrToStringAnsi(message, length);
 
-            //        switch (severity)
-            //        {
-            //        case DebugSeverity.DebugSeverityHigh:
-            //        case DebugSeverity.DebugSeverityMedium:
-            //            log.Error("[GLDebug type={0}] {1}", type, msg);
-            //            break;
-            //        case DebugSeverity.DebugSeverityLow:
-            //            log.Warn("[GLDebug type={0}] {1}", type, msg);
-            //            break;
-            //        default:
-            //            break;
-            //        }
-            //    }, IntPtr.Zero);
-            //}
+                    switch (severity)
+                    {
+                    case DebugSeverity.DebugSeverityHigh:
+                    case DebugSeverity.DebugSeverityMedium:
+                        log.Error("[GLDebug type={0}] {1}", type, msg);
+                        break;
+                    case DebugSeverity.DebugSeverityLow:
+                        log.Warn("[GLDebug type={0}] {1}", type, msg);
+                        break;
+                    default:
+                        break;
+                    }
+                }, IntPtr.Zero);
+            }
         }
 
         public void Clear(Size windowDimension)
@@ -117,9 +118,11 @@ namespace Helion.Render.OpenGL
                 else
                     Fail("Image create/update event cannot have a null image");
                 break;
+
             case ImageManagerEventType.Delete:
                 textureManager.DeleteTexture(imageEvent.Name);
                 break;
+
             default:
                 Fail("Unexpected image event enumeration");
                 break;

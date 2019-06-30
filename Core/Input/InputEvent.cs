@@ -5,9 +5,9 @@ namespace Helion.Input
 {
     public class InputEventArgs : EventArgs
     {
-        public HashSet<InputKey> InputDown = new HashSet<InputKey>();
-        public HashSet<InputKey> InputUp = new HashSet<InputKey>();
-        public List<char> CharactersTyped = new List<char>();
-        public MouseInputData MouseInput = new MouseInputData();
+        public readonly HashSet<InputKey> InputDown = new HashSet<InputKey>();
+        public readonly HashSet<InputKey> InputUp = new HashSet<InputKey>();
+        public readonly List<char> CharactersTyped = new List<char>();
+        public readonly MouseInputData MouseInput = new MouseInputData();
     }
 }

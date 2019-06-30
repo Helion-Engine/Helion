@@ -99,6 +99,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                 return;
             }
 
+            // TODO: Is it worth doing the a = index, b = a ^ 1 optimization?
             BspNodeCompact node = world.BspTree.Nodes[index];
 
             if (node.Splitter.OnRight(position))
@@ -123,10 +124,6 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void RenderSubsectorSegments(Subsector subsector)
         {
-            // TODO: We can do better by analyzing every segment first,
-            // as a bad case could be a series of segments changing the
-            // textures every second texture (ex: A, B, A, B, etc).
-
             foreach (Segment segment in subsector.ClockwiseEdges)
             {
                 foreach (WorldVertexWall wall in renderableGeometry.Segments[segment.Id].Walls)
@@ -134,6 +131,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                     if (wall.NoTexture)
                         continue;
 
+                    // TODO: Can we do a 'bool getOrCreate()' so this is simpler?
                     if (textureIdToVertices.TryGetValue(wall.TextureHandle, out DynamicArray<WorldVertex> L))
                     {
                         L.Add(wall.TopLeft);
@@ -163,6 +161,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         {
             int texHandle = flat.TextureHandle;
 
+            // TODO: Can we do a 'bool getOrCreate()' so this is simpler?
             if (textureIdToVertices.TryGetValue(texHandle, out DynamicArray<WorldVertex> L))
             {
                 for (int i = 0; i < flat.Fan.Length - 1; i++)
@@ -174,7 +173,6 @@ namespace Helion.Render.OpenGL.Renderers.World
             }
             else
             {
-                // This is only allocated once.
                 DynamicArray<WorldVertex> newList = new DynamicArray<WorldVertex>();
                 for (int i = 0; i < flat.Fan.Length - 1; i++)
                 {
@@ -182,6 +180,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                     newList.Add(flat.Fan[i]);
                     newList.Add(flat.Fan[i + 1]);
                 }
+
                 textureIdToVertices[texHandle] = newList;
             }
         }
@@ -226,18 +225,19 @@ namespace Helion.Render.OpenGL.Renderers.World
             foreach (DynamicArray<WorldVertex> dynamicArray in textureIdToVertices.Values)
                 dynamicArray.Clear();
 
-            vao.Bind();
-            vbo.Bind();
-            shaderProgram.Bind();
-
-            shaderProgram.SetInt("boundTexture", 0);
-            SetUniforms(renderInfo);
-            RenderBspTree(world, renderInfo);
-            RenderGeometry();
-
-            shaderProgram.Unbind();
-            vbo.Unbind();
-            vao.Unbind();
+            vao.BindAnd(() =>
+            {
+                vbo.BindAnd(() =>
+                {
+                    shaderProgram.BindAnd(() =>
+                    {
+                        shaderProgram.SetInt("boundTexture", 0);
+                        SetUniforms(renderInfo);
+                        RenderBspTree(world, renderInfo);
+                        RenderGeometry();
+                    });
+                });
+            });
         }
 
         public void Dispose()

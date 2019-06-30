@@ -56,7 +56,7 @@ namespace Helion.World.Geometry
         /// This is the end index of the nodes array because the recursive
         /// traversal fills in the array from post-order traversal.
         /// </remarks>
-        public BspNodeCompact Root => Nodes[^1];
+        public BspNodeCompact Root => Nodes[Nodes.Length - 1];
 
         /// <summary>
         /// The index of the root node. This will always be a BSP node.

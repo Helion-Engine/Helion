@@ -30,6 +30,8 @@ namespace Helion.Render.OpenGL.Buffer.Vbo
 
         protected abstract BufferUsageHint GetHint();
 
+        // TODO: The API needs some serious cleanup now!
+
         protected void DeployData()
         {
             if (NeedsUploading)
