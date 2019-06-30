@@ -8,7 +8,7 @@ namespace Helion.Bsp
     public class BspConfig
     {
         /// <summary>
-        /// The epsilon distance to which any verices within this distance will
+        /// The epsilon distance to which any vertices within this distance will
         /// be assumed to be the same vertex.
         /// </summary>
         public readonly double VertexWeldingEpsilon = Constants.AtomicWidth;

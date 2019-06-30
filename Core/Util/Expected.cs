@@ -25,7 +25,7 @@ namespace Helion.Util
 
         private Expected(T? value, string? error = null)
         {
-            Precondition(value != null, "Trying to make an expected with both value/error being null");
+            Precondition(value != null ^ error != null, "Trying to make an expected with both value/error being both null or both empty");
 
             Value = value;
             Error = error ?? "";
