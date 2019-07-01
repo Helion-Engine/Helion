@@ -22,6 +22,12 @@ namespace Helion.Entries
             ["BEHAVIOR"] = ResourceType.Behavior,
             ["BLOCKMAP"] = ResourceType.Blockmap,
             ["DECORATE"] = ResourceType.Decorate,
+            ["GL_LEVEL"] = ResourceType.GLMapMarker,
+            ["GL_NODES"] = ResourceType.GLNodes,
+            ["GL_PVS"] = ResourceType.GLPVS,
+            ["GL_SEGS"] = ResourceType.GLSegments,
+            ["GL_SSECT"] = ResourceType.GLSubsectors,
+            ["GL_VERT"] = ResourceType.GLVertices,
             ["LINEDEFS"] = ResourceType.Linedefs,
             ["NODES"] = ResourceType.Nodes,
             ["PLAYPAL"] = ResourceType.Palette,
@@ -80,6 +86,18 @@ namespace Helion.Entries
             case ResourceType.Directory:
                 Fail($"Entry classifier should not be finding entries that are directory types");
                 break;
+            case ResourceType.GLMapMarker:
+                return new GLMapMarkerEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
+            case ResourceType.GLNodes:
+                return new GLNodesEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
+            case ResourceType.GLPVS:
+                return new GLPvsEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
+            case ResourceType.GLSegments:
+                return new GLSegmentsEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
+            case ResourceType.GLSubsectors:
+                return new GLSubsectorsEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
+            case ResourceType.GLVertices:
+                return new GLVerticesEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
             case ResourceType.Linedefs:
                 return new LinedefsEntry(idAllocator.AllocateId(), path, data, resourceNamespace);
             case ResourceType.Image:
@@ -177,6 +195,10 @@ namespace Helion.Entries
 
             if (PaletteReaders.LikelyFlat(data) || PaletteReaders.LikelyColumn(data))
                 return ResourceType.PaletteImage;
+            
+            // This is for GL_XXXXX where X is the level name.
+            if (path.Name.StartsWith("GL_"))
+                return ResourceType.GLMapMarker;
 
             return ResourceType.Unknown;
         }
