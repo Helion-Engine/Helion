@@ -1,5 +1,7 @@
 ﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
+using System.Linq;
+using Helion.Util.Geometry;
 using static Helion.Util.Assert;
 
 namespace Helion.Bsp.Node
@@ -60,8 +62,18 @@ namespace Helion.Bsp.Node
         public BspNode(IList<SubsectorEdge> edges)
         {
             Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
+            Precondition(EdgesAreHeadToTail(edges), "BSP node subsector edges are not closed");
 
             ClockwiseEdges = edges;
+        }
+
+        private static bool EdgesAreHeadToTail(IList<SubsectorEdge> edges)
+        {
+            for (int i = 1; i < edges.Count; i++)
+                if (edges[i - 1].End != edges[i].Start)
+                    return false;
+            
+            return edges[0].Start == edges.Last().End;
         }
 
         private void ClearChildren()
@@ -91,10 +103,8 @@ namespace Helion.Bsp.Node
         /// </summary>
         public void StripDegenerateNodes()
         {
-            if (Left != null)
-                Left.StripDegenerateNodes();
-            if (Right != null)
-                Right.StripDegenerateNodes();
+            Left?.StripDegenerateNodes();
+            Right?.StripDegenerateNodes();
 
             if (Left == null || Right == null)
                 return;
@@ -149,8 +159,8 @@ namespace Helion.Bsp.Node
         /// <returns>The number of nodes at and under this node.</returns>
         public int CalculateTotalNodeCount()
         {
-            int left = Left != null ? Left.CalculateTotalNodeCount() : 0;
-            int right = Right != null ? Right.CalculateTotalNodeCount() : 0;
+            int left = Left?.CalculateTotalNodeCount() ?? 0;
+            int right = Right?.CalculateTotalNodeCount() ?? 0;
             return 1 + left + right;
         }
     }

@@ -18,8 +18,7 @@ namespace Helion.Entries.Tree.Archive.Locator
                 Expected<Wad> wad = Wad.FromFile(uri, idAllocator, classifier);
                 if (wad.Value != null)
                     return wad.Value;
-                else
-                    return wad.Error;
+                return wad.Error;
             }
 
             if (upperUri.EndsWith("PK3"))
@@ -27,8 +26,7 @@ namespace Helion.Entries.Tree.Archive.Locator
                 Expected<Pk3> pk3 = Pk3.FromFile(uri, idAllocator, classifier);
                 if (pk3.Value != null)
                     return pk3.Value;
-                else
-                    return pk3.Error;
+                return pk3.Error;
             }
 
             return $"Archive file extension is not supported: {uri}";

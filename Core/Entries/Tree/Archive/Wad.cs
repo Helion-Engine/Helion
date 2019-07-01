@@ -2,6 +2,7 @@
 using Helion.Util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -162,6 +163,7 @@ namespace Helion.Entries.Tree.Archive
             Expected<List<Entry>> entries = WadEntriesFromData(data, classifier);
             if (entries.Value != null)
                 return new Wad(idAllocator.AllocateId(), entries.Value, wadPath, CheckIfIwad(data), idAllocator);
+            
             return $"Unable to read wad data: {entries.Error}";
         }
 
@@ -180,8 +182,10 @@ namespace Helion.Entries.Tree.Archive
             {
                 byte[] data = File.ReadAllBytes(filePath);
                 Expected<List<Entry>> entries = WadEntriesFromData(data, classifier);
+                
                 if (entries.Value != null)
                     return new Wad(idAllocator.AllocateId(), entries.Value, filePath, CheckIfIwad(data), idAllocator);
+                
                 return $"Unable to read wad file: {entries.Error}";
             }
             catch (Exception e)

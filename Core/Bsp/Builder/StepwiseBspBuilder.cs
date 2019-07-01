@@ -8,13 +8,13 @@ namespace Helion.Bsp.Builder
     /// An implementation of the BSP builder which uses debuggable/steppable
     /// executions so we can easily see what is happening at each step.
     /// </summary>
-    public class StepwiseBspBuilder : BspBuilder
+    public class StepwiseBspBuilderBase : BspBuilderBase
     {
-        public StepwiseBspBuilder(Map map) : this(map, new BspConfig())
+        public StepwiseBspBuilderBase(Map map) : this(map, new BspConfig())
         {
         }
 
-        public StepwiseBspBuilder(Map map, BspConfig config) :
+        public StepwiseBspBuilderBase(Map map, BspConfig config) :
             base(map, config)
         {
         }
@@ -81,6 +81,22 @@ namespace Helion.Bsp.Builder
                     ExecuteFullCycleStep();
                 }
             }
+        }
+        
+        /// <summary>
+        /// Builds the entire tree and returns the root node upon completion.
+        /// </summary>
+        /// <returns>The root node of the built tree.</returns>
+        public override BspNode? Build()
+        {
+            if (!Done)
+            {
+                while (!Done)
+                    Execute();
+                Root.StripDegenerateNodes();
+            }
+            
+            return Root.IsDegenerate ? null : Root;
         }
 
         /// <summary>

@@ -53,7 +53,7 @@ namespace Helion.Render.OpenGL
             // CCW rotations. The view transformation causes the faces to end
             // up being CW, so we want to cull any that are CCW.
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Cw);
+            GL.FrontFace(FrontFaceDirection.Ccw);
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
         }
@@ -64,8 +64,7 @@ namespace Helion.Render.OpenGL
             if (info.Version.Supports(4, 3))
             {
                 GL.Enable(EnableCap.DebugOutput);
-                GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity,
-                                         int length, IntPtr message, IntPtr userParam) =>
+                GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
                 {
                     string msg = Marshal.PtrToStringAnsi(message, length);
 

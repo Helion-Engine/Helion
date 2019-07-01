@@ -17,9 +17,9 @@ namespace Helion.World.Impl.SinglePlayer
         {
         }
 
-        public static SinglePlayerWorld? Create(Project project, Map map)
+        public static SinglePlayerWorld? Create(Project project, Map map, MapEntryCollection? mapEntryCollection)
         {
-            BspTree? bspTree = BspTree.Create(map);
+            BspTree? bspTree = BspTree.Create(map, mapEntryCollection);
             if (bspTree == null)
                 return null;
 

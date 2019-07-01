@@ -31,15 +31,15 @@ namespace BspVisualizer
         private static Vec2I cornerOffset = new Vec2I(4, 4);
         private static StringCornerDrawer bottomLeftCornerDrawer = new StringCornerDrawer(Corner.BottomLeft, cornerOffset);
 
-        private StepwiseBspBuilder bspBuilder;
+        private StepwiseBspBuilderBase bspBuilderBase;
         private List<BspSegment> shadowSegments;
         private Vector2 camera = new Vector2(0, 0);
         private float zoom = 0.25f;
 
-        public Form1(StepwiseBspBuilder builder)
+        public Form1(StepwiseBspBuilderBase builderBase)
         {
-            bspBuilder = builder;
-            shadowSegments = GetShadowSegments(builder.SegmentAllocator);
+            bspBuilderBase = builderBase;
+            shadowSegments = GetShadowSegments(builderBase.SegmentAllocator);
 
             InitializeComponent();
         }
@@ -103,19 +103,19 @@ namespace BspVisualizer
                 break;
             case 'b':
             case 'B':
-                bspBuilder.ExecuteMinorStep();
+                bspBuilderBase.ExecuteMinorStep();
                 break;
             case 'n':
             case 'N':
-                bspBuilder.ExecuteMajorStep();
+                bspBuilderBase.ExecuteMajorStep();
                 break;
             case 'm':
             case 'M':
-                bspBuilder.ExecuteFullCycleStep();
+                bspBuilderBase.ExecuteFullCycleStep();
                 break;
             case 'c':
             case 'C':
-                BspWorkItem? workItem = bspBuilder.GetCurrentWorkItem();
+                BspWorkItem? workItem = bspBuilderBase.GetCurrentWorkItem();
                 if (workItem != null)
                     Clipboard.SetText(workItem.BranchPath);
                 break;

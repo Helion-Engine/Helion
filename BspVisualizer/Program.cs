@@ -64,17 +64,17 @@ namespace BspVisualizer
                 return;
             }
 
-            Map? map = project.GetMap(args[1]);
+            (Map? map, MapEntryCollection? _)  = project.GetMap(args[1]);
             if (map != null)
             {
-                StepwiseBspBuilder bspBuilder = new StepwiseBspBuilder(map);
+                StepwiseBspBuilderBase bspBuilderBase = new StepwiseBspBuilderBase(map);
 
                 if (args.Length >= 3)
-                    bspBuilder.ExecuteUntilBranch(args[2]);
+                    bspBuilderBase.ExecuteUntilBranch(args[2]);
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Form1(bspBuilder));
+                Application.Run(new Form1(bspBuilderBase));
             }
             else
                 MessageBox.Show($"Map '{args[1]}' does not exist or is corrupt", "BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);

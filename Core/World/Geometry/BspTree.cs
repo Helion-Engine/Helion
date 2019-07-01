@@ -8,6 +8,8 @@ using Helion.Util.Geometry;
 using NLog;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Bsp.Builder.GLBSP;
+using NLog.Fluent;
 using static Helion.Util.Assert;
 
 namespace Helion.World.Geometry
@@ -69,25 +71,42 @@ namespace Helion.World.Geometry
             CreateComponents(root, map);
         }
 
+        private static BspTree? CreateFromInternalBspBuilder(Map map)
+        {
+            IBspBuilder builderBase = new OptimizedBspBuilderBase(map);
+            BspNode? root = builderBase.Build();
+
+            if (root != null) 
+                return new BspTree(root, map);
+            
+            log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
+            return null;
+        }
+        
         /// <summary>
         /// Creates a BSP from the map provided. This can fail if the geometry
         /// for the map is corrupt and we cannot make a BSP tree.
         /// </summary>
         /// <param name="map">The map to build the tree from.</param>
+        /// <param name="mapEntryCollection">An optional parameter which may
+        /// contain GLBSP nodes that we can use.</param>
         /// <returns>A built BSP tree, or a null value if the geometry for the
-        /// map is (extremely) corrupt.</returns>
-        public static BspTree? Create(Map map)
+        /// map is corrupt beyond repair.</returns>
+        public static BspTree? Create(Map map, MapEntryCollection? mapEntryCollection = null)
         {
-            OptimizedBspBuilder builder = new OptimizedBspBuilder(map);
-            BspNode root = builder.Build();
-
-            if (root.IsDegenerate)
+            // For now, we'll attempt to make GLBSP nodes if the level has
+            // them. When we don't need this anymore, we will remove it.
+            if (mapEntryCollection != null)
             {
-                log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
-                return null;
+                IBspBuilder glBspBuilder = new GLBspBuilder(map, mapEntryCollection);
+                BspNode? rootNode = glBspBuilder.Build();
+                if (rootNode != null)
+                    return new BspTree(rootNode, map);
+
+                log.Warn("Unable to build BSP tree from GLBSP nodes for map '{0}', attempting with internal node builder...", map.Name);
             }
 
-            return new BspTree(root, map);
+            return CreateFromInternalBspBuilder(map);
         }
 
         private void CreateComponents(BspNode root, Map map)

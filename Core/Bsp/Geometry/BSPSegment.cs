@@ -3,6 +3,9 @@ using static Helion.Util.Assert;
 
 namespace Helion.Bsp.Geometry
 {
+    // TODO: This class sort of sucks, should be done better. Its particular
+    //       pain point is when we want to find out the side/direction.
+    
     /// <summary>
     /// A BSP segment that contains extra line information in addition to a
     /// double-based segment.
@@ -85,18 +88,9 @@ namespace Helion.Bsp.Geometry
             LineId = lineId;
             OneSided = (!IsMiniseg && backSectorId == NoSectorId);
 
-            Postcondition(Length() > 0.001, "Extremely small split detected");
-        }
-
-        public BspSegment(BspSegment seg) : base(seg.Start, seg.End)
-        {
-            StartIndex = seg.StartIndex;
-            EndIndex = seg.EndIndex;
-            SegIndex = seg.SegIndex;
-            FrontSectorId = seg.FrontSectorId;
-            BackSectorId = seg.BackSectorId;
-            LineId = seg.LineId;
-            OneSided = seg.OneSided;
+            // TODO: When we remove GLBSP, remove this... it seems to like cuts
+            //       that end up being small (we originally were at 0.001).
+            Postcondition(Length() > 0.00001, "Extremely small split detected");
         }
 
         /// <summary>

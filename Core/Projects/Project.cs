@@ -97,8 +97,8 @@ namespace Helion.Projects
 
             return true;
         }
-
-        public Map? GetMap(UpperString mapName)
+        
+        public (Map?, MapEntryCollection?) GetMap(UpperString mapName)
         {
             // TODO: Can we make some cleaner 'reverse iterator' extension?
             // Like an IList<>.ForEachReverse(...)?
@@ -113,12 +113,12 @@ namespace Helion.Projects
                     {
                         Map? map = Map.From(mapEntryCollection);
                         if (map != null)
-                            return map;
+                            return (map, mapEntryCollection);
                     }
                 }
             }
 
-            return null;
+            return (null, null);
         }
 
         /// <summary>

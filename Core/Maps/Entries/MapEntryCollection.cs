@@ -33,13 +33,12 @@ namespace Helion.Maps
         public byte[]? Textmap = null;
         public byte[]? Znodes = null;
         public byte[]? Endmap = null;
-
-        /// <summary>
-        /// Creates a blank collection with no components or name set.
-        /// </summary>
-        public MapEntryCollection()
-        {
-        }
+        public byte[]? GLMap = null;
+        public byte[]? GLVertices = null;
+        public byte[]? GLSegments = null;
+        public byte[]? GLSubsectors = null;
+        public byte[]? GLNodes = null;
+        public byte[]? GLPVS = null;
 
         /// <summary>
         /// Gets the map type for this collection. The value it returns may be 

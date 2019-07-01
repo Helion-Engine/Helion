@@ -11,13 +11,15 @@ namespace Helion.Util
     /// </summary>
     public class ByteReader : BinaryReader
     {
+        public readonly int Length; 
         private readonly byte[] bytes;
-
+        
         // The docs explicitly say that memory streams do not need to have any
         // .dispose() call invoked because there are no resources to dispose.
         public ByteReader(byte[] data) : base(new MemoryStream(data))
         {
             bytes = data;
+            Length = data.Length;
             Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
         }
 
@@ -53,13 +55,29 @@ namespace Helion.Util
         }
 
         /// <summary>
+        /// Reads in the provided characters as a string. This does not do any
+        /// bounds checking and will throw if it reads out of bounds.
+        /// </summary>
+        /// <param name="length">How many characters to read.</param>
+        /// <returns>The string that was read.</returns>
+        public string ReadStringLength(int length)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            for (int i = 0; i < length; i++)
+                builder.Append((char)ReadByte());
+
+            return builder.ToString();
+        }
+
+        /// <summary>
         /// Reads a 32-bit big endian integer. Throws if any errors result from
         /// reading the data (such as not enough data).
         /// </summary>
         /// <returns>The desired big endian integer.</returns>
         public int ReadInt32BE()
         {
-            byte[] data = base.ReadBytes(4);
+            byte[] data = ReadBytes(4);
             Array.Reverse(data);
             return BitConverter.ToInt32(data, 0);
         }

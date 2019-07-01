@@ -97,7 +97,7 @@ namespace Helion.Bsp.Node
             // We don't without analyzing lines around it).
             //
             // Because of this (and to keep the code simple), it will go in an
-            // arbitary direction and reverse the segments later on if needed.
+            // arbitrary direction and reverse the segments later on if needed.
             // Therefore we can assume that if we hit a one sided segment then
             // it's okay to assume we're grabbing the correct side since the
             // user should not be providing a malformed map.

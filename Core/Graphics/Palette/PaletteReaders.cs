@@ -74,7 +74,11 @@ namespace Helion.Graphics.Palette
                 return false;
 
             reader.Advance((width - 1) * 4);
-            reader.Offset(reader.ReadInt32());
+
+            int offset = reader.ReadInt32();
+            if (offset < 0 || offset >= reader.Length)
+                return false;
+            reader.Offset(offset);
 
             // Note: We could actually evaluate the column here as well,
             // however this seems to be doing the job thus far. Nothing

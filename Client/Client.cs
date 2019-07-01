@@ -48,10 +48,10 @@ namespace Helion.Client
 
             // TODO: Temporary!
             // ================================================================
-            Map? map = project.GetMap("MAP01");
+            (Map? map, MapEntryCollection? MapEntryCollection) = project.GetMap("MAP01");
             if (map != null)
             {
-                world = SinglePlayerWorld.Create(project, map);
+                world = SinglePlayerWorld.Create(project, map, MapEntryCollection);
                 ticker.Start();
             }
             // ================================================================

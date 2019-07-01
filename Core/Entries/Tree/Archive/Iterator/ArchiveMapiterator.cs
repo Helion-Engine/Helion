@@ -16,7 +16,8 @@ namespace Helion.Entries.Tree.Archive.Iterator
         {
             "THINGS", "LINEDEFS", "SIDEDEFS", "VERTEXES", "SEGS", "SSECTORS",
             "NODES", "SECTORS", "REJECT", "BLOCKMAP", "BEHAVIOR", "SCRIPTS",
-            "TEXTMAP", "ZNODES", "DIALOGUE", "ENDMAP"
+            "TEXTMAP", "ZNODES", "DIALOGUE", "ENDMAP", "GL_LEVEL", "GL_VERT", 
+            "GL_SEGS", "GL_SSECT", "GL_NODES", "GL_PVS"
         };
 
         private readonly LinkedList<DirectoryEntry> directoriesToVisit = new LinkedList<DirectoryEntry>();
@@ -29,7 +30,17 @@ namespace Helion.Entries.Tree.Archive.Iterator
             AddAllDirectoriesRecursive(archive);
         }
 
-        private static bool IsMapEntry(UpperString name) => MapEntryNames.Contains(name);
+        private bool IsGLBSPMapHeader(UpperString entryName)
+        {
+            // Unfortunately GLBSP decided it'd allow things like GL_XXXXX
+            // where the X's are the map name if it's less/equal to 5 letters.
+            return currentMap.Name.Length <= 5 && (entryName == "GL_" + currentMap.Name);
+        }
+
+        private bool IsMapEntry(UpperString entryName)
+        {
+            return IsGLBSPMapHeader(entryName) || MapEntryNames.Contains(entryName);
+        }
 
         private void ResetMapTrackingData()
         {
@@ -40,6 +51,12 @@ namespace Helion.Entries.Tree.Archive.Iterator
 
         private void TrackMapEntry(UpperString entryName, Entry entry)
         {
+            if (IsGLBSPMapHeader(entryName))
+            {
+                currentMap.GLMap = entry.Data;
+                return;
+            }
+            
             switch (entryName.ToString())
             {
             case "BEHAVIOR":
@@ -53,6 +70,24 @@ namespace Helion.Entries.Tree.Archive.Iterator
                 break;
             case "ENDMAP":
                 currentMap.Endmap = entry.Data;
+                break;
+            case "GL_LEVEL":
+                currentMap.GLMap = entry.Data;
+                break;
+            case "GL_NODES":
+                currentMap.GLNodes = entry.Data;
+                break;
+            case "GL_PVS":
+                currentMap.GLPVS = entry.Data;
+                break;
+            case "GL_SEGS":
+                currentMap.GLSegments = entry.Data;
+                break;
+            case "GL_SSECT":
+                currentMap.GLSubsectors = entry.Data;
+                break;
+            case "GL_VERT":
+                currentMap.GLVertices = entry.Data;
                 break;
             case "LINEDEFS":
                 currentMap.Linedefs = entry.Data;

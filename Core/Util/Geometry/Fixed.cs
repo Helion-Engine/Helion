@@ -81,7 +81,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="upper">The upper 16 bits.</param>
         /// <param name="lower">The lower 16 bits.</param>
-        public Fixed(ushort upper, ushort lower) : this((upper << UnitBits) | lower) { }
+        public Fixed(short upper, ushort lower) : this(BitsFromUpperAndLower(upper, lower)) { }
 
         /// <summary>
         /// Takes an integer and turns it into fixed point. This means a value
@@ -90,6 +90,12 @@ namespace Helion.Util.Geometry
         /// <param name="i">The integer to make into fixed point.</param>
         /// <returns>The fixed point value for the integer.</returns>
         public static Fixed FromInt(int i) => new Fixed(i << UnitBits);
+
+        private static int BitsFromUpperAndLower(short upper, ushort lower)
+        {
+            uint bits = (uint)((ushort)upper << UnitBits);
+            return (int)(bits | lower);
+        }
 
         public static Fixed operator -(Fixed value) => new Fixed(-value.Bits);
         public static Fixed operator +(Fixed self, Fixed other) => new Fixed(self.Bits + other.Bits);
