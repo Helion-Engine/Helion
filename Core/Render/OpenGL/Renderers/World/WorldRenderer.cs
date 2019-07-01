@@ -49,9 +49,9 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void SetUniforms(RenderInfo renderInfo)
         {
-            // TODO: Get config values for zNear and zFar.
+            // TODO: Get config values for this.
             float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
-            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, aspectRatio, 0.1f, 10000.0f, out Matrix4 projection);
+            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, aspectRatio, 16.0f, 8192.0f, out Matrix4 projection);
 
             // Note that we have no model matrix, everything is already in the
             // world space.
