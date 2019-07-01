@@ -21,14 +21,14 @@ namespace Helion.Render.Shared.Triangulator
         /// be a miniseg.</param>
         /// <returns>A series of triangulations, or null if this is called on a
         /// miniseg.</returns>
-        public static SegmentTriangles? Triangulate(Segment segment)
+        public static SegmentWalls? Triangulate(Segment segment)
         {
             if (segment.Side == null || segment.IsMiniseg)
                 return null;
 
-            WallTriangles middle = TriangulateMiddle(segment, segment.Side.Sector);
-            WallTriangles? upper = null;
-            WallTriangles? lower = null;
+            WallQuad middle = TriangulateMiddle(segment, segment.Side.Sector);
+            WallQuad? upper = null;
+            WallQuad? lower = null;
 
             if (segment.Line != null && segment.Line.TwoSided)
             {
@@ -45,33 +45,33 @@ namespace Helion.Render.Shared.Triangulator
             if (segment.Line == null)
                 throw new HelionException("Should never have a null line with a non-miniseg");
 
-            return new SegmentTriangles(segment, segment.Line, segment.Side, upper, middle, lower);
+            return new SegmentWalls(segment, segment.Line, segment.Side, upper, middle, lower);
         }
 
-        private static WallTriangles TriangulateMiddle(Segment segment, Sector sector)
+        private static WallQuad TriangulateMiddle(Segment segment, Sector sector)
         {
             (Triangle upper, Triangle lower) = TriangulateWall(segment, sector.Floor, sector.Ceiling);
-            return new WallTriangles(sector.Floor, sector.Ceiling, upper, lower);
+            return new WallQuad(sector.Floor, sector.Ceiling, upper, lower);
         }
 
-        private static WallTriangles TriangulateUpper(Segment segment, Sector frontSector, Sector backSector)
+        private static WallQuad TriangulateUpper(Segment segment, Sector frontSector, Sector backSector)
         {
             Precondition(segment.Line?.TwoSided ?? false, "Should not be upper triangulating a segment for a one-sided line (or a miniseg)");
 
             SectorFlat floor = backSector.Ceiling;
             SectorFlat ceiling = frontSector.Ceiling;
             (Triangle upper, Triangle lower) = TriangulateWall(segment, floor, ceiling);
-            return new WallTriangles(floor, ceiling, upper, lower);
+            return new WallQuad(floor, ceiling, upper, lower);
         }
 
-        private static WallTriangles TriangulateLower(Segment segment, Sector frontSector, Sector backSector)
+        private static WallQuad TriangulateLower(Segment segment, Sector frontSector, Sector backSector)
         {
             Precondition(segment.Line?.TwoSided ?? false, "Should not be lower triangulating a segment for a one sided (or miniseg) line");
 
             SectorFlat floor = frontSector.Floor;
             SectorFlat ceiling = backSector.Floor;
             (Triangle upper, Triangle lower) = TriangulateWall(segment, floor, ceiling);
-            return new WallTriangles(floor, ceiling, upper, lower);
+            return new WallQuad(floor, ceiling, upper, lower);
         }
 
         private static (Triangle, Triangle) TriangulateWall(Segment segment, SectorFlat floor, SectorFlat ceiling)

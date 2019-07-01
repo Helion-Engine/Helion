@@ -1,15 +1,15 @@
 ﻿using Helion.Bsp.Builder;
+using Helion.Bsp.Builder.GLBSP;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Bsp.Builder.GLBSP;
-using NLog.Fluent;
 using static Helion.Util.Assert;
 
 namespace Helion.World.Geometry

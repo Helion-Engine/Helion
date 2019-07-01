@@ -136,7 +136,7 @@ namespace Helion.Render.OpenGL.Texture
             // TODO
         }
 
-        public GLTexture Get(UpperString name)
+        public GLTexture Get(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
             // TODO: Support namespaces as an optional parameter.
             return nameToTexture.TryGetValue(name, out GLTexture texture) ? texture : NullTexture;

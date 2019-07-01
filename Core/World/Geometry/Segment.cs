@@ -1,4 +1,5 @@
 ﻿using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util.Geometry;
 
 namespace Helion.World.Geometry

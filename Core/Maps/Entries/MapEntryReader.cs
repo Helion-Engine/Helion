@@ -1,5 +1,6 @@
 ﻿using Helion.Maps.Actions;
 using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
@@ -96,6 +97,20 @@ namespace Helion.Maps.Entries
             return true;
         }
 
+        private static LineFlags MakeLineFlags(ushort flags)
+        {
+            LineFlags lineFlags = new LineFlags();
+
+            // TODO: Record the remaining flags!
+
+            if ((flags & (ushort)LineFlag.UpperUnpegged) != 0)
+                lineFlags.Unpegged.Upper = true;
+            if ((flags & (ushort)LineFlag.LowerUnpegged) != 0)
+                lineFlags.Unpegged.Lower = true;
+            
+            return lineFlags;
+        }
+
         private static bool ReadDoomLines(Map map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Linedefs == null)
@@ -127,8 +142,9 @@ namespace Helion.Maps.Entries
                 Vertex endVertex = map.Vertices[endVertexId];
                 Side front = map.Sides[rightSidedef];
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
+                LineFlags lineFlags = MakeLineFlags(flags);
 
-                Line line = new Line(id, startVertex, endVertex, front, back);
+                Line line = new Line(id, startVertex, endVertex, lineFlags, front, back);
                 map.Lines.Add(line);
             }
 
@@ -166,8 +182,9 @@ namespace Helion.Maps.Entries
                 Vertex endVertex = map.Vertices[endVertexId];
                 Side front = map.Sides[rightSidedef];
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
+                LineFlags lineFlags = MakeLineFlags(flags);
 
-                Line line = new Line(id, startVertex, endVertex, front, back);
+                Line line = new Line(id, startVertex, endVertex, lineFlags, front, back);
                 map.Lines.Add(line);
             }
 

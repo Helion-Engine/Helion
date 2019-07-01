@@ -12,10 +12,10 @@ namespace Helion.Util
 
         public static readonly string ConfigDefaultPath = "config.cfg";
 
-        public static readonly string NoTexture = "-";
-        public static readonly string SkyTexture = "F_SKY1";
-        public static readonly string NullTextureName = "NULL";
-        public static readonly string PlayerClass = "PLAYER";
+        public static readonly UpperString NoTexture = "-";
+        public static readonly UpperString SkyTexture = "F_SKY1";
+        public static readonly UpperString NullTextureName = "NULL";
+        public static readonly UpperString PlayerClass = "PLAYER";
         public static readonly ulong TicksPerNanos = 28L * 1000L * 1000L;
         public static readonly double TicksPerSecond = 35.0;
 

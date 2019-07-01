@@ -49,9 +49,6 @@ namespace Helion.Render.OpenGL
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            // Note that we cull CCW faces even though we supply our VBOs with
-            // CCW rotations. The view transformation causes the faces to end
-            // up being CW, so we want to cull any that are CCW.
             GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.CullFace(CullFaceMode.Back);
@@ -61,27 +58,27 @@ namespace Helion.Render.OpenGL
         [Conditional("DEBUG")]
         private void SetGLDebugger()
         {
-            if (info.Version.Supports(4, 3))
+            if (!info.Version.Supports(4, 3)) 
+                return;
+            
+            GL.Enable(EnableCap.DebugOutput);
+            GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
-                GL.Enable(EnableCap.DebugOutput);
-                GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
-                {
-                    string msg = Marshal.PtrToStringAnsi(message, length);
+                string msg = Marshal.PtrToStringAnsi(message, length);
 
-                    switch (severity)
-                    {
-                    case DebugSeverity.DebugSeverityHigh:
-                    case DebugSeverity.DebugSeverityMedium:
-                        log.Error("[GLDebug type={0}] {1}", type, msg);
-                        break;
-                    case DebugSeverity.DebugSeverityLow:
-                        log.Warn("[GLDebug type={0}] {1}", type, msg);
-                        break;
-                    default:
-                        break;
-                    }
-                }, IntPtr.Zero);
-            }
+                switch (severity)
+                {
+                case DebugSeverity.DebugSeverityHigh:
+                case DebugSeverity.DebugSeverityMedium:
+                    log.Error("[GLDebug type={0}] {1}", type, msg);
+                    break;
+                case DebugSeverity.DebugSeverityLow:
+                    log.Warn("[GLDebug type={0}] {1}", type, msg);
+                    break;
+                default:
+                    break;
+                }
+            }, IntPtr.Zero);
         }
 
         public void Clear(Size windowDimension)

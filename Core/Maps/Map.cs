@@ -1,5 +1,6 @@
 ﻿using Helion.Maps.Entries;
 using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using System.Collections.Generic;
 
