@@ -36,6 +36,8 @@ namespace Helion.Util.Geometry
         public int Length() => (int)Math.Sqrt((X * X) + (Y * Y));
         public int DistanceSquared(Vec2I other) => (this - other).LengthSquared();
         public int Distance(Vec2I other) => (this - other).Length();
+        public Vec2I OriginRightRotate90() => new Vec2I(Y, -X);
+        public Vec2I OriginLeftRotate90() => new Vec2I(-Y, X);
 
         public Vec2Fixed ToFixed() => new Vec2Fixed(new Fixed(X), new Fixed(Y));
         public Vector2 ToFloat() => new Vector2(X, Y);
@@ -84,6 +86,8 @@ namespace Helion.Util.Geometry
         public double DistanceSquared(Vec2D other) => (this - other).LengthSquared();
         public double Distance(Vec2D other) => (this - other).Length();
         public Vec2D Interpolate(Vec2D end, double t) => this + (t * (end - this));
+        public Vec2D OriginRightRotate90() => new Vec2D(Y, -X);
+        public Vec2D OriginLeftRotate90() => new Vec2D(-Y, X);
 
         public Vec2Fixed ToFixed() => new Vec2Fixed(new Fixed(X), new Fixed(Y));
         public Vector2 ToFloat() => new Vector2((float)X, (float)Y);
@@ -142,7 +146,9 @@ namespace Helion.Util.Geometry
         public Fixed DistanceSquared(Vec2Fixed other) => (this - other).LengthSquared();
         public Fixed Distance(Vec2Fixed other) => (this - other).Length();
         public Vec2Fixed Interpolate(Vec2Fixed end, float t) => ToDouble().Interpolate(end.ToDouble(), t).ToFixed();
-
+        public Vec2Fixed OriginRightRotate90() => new Vec2Fixed(Y, -X);
+        public Vec2Fixed OriginLeftRotate90() => new Vec2Fixed(-Y, X);
+        
         public Vec2I ToInt() => new Vec2I(X.ToInt(), Y.ToInt());
         public Vector2 ToFloat() => new Vector2(X.ToFloat(), Y.ToFloat());
         public Vec2D ToDouble() => new Vec2D(X.ToDouble(), Y.ToDouble());
@@ -166,6 +172,8 @@ namespace Helion.Util.Geometry
         public static Vec2I ToInt(this Vector2 vec) => new Vec2I((int)vec.X, (int)vec.Y);
         public static Vec2Fixed ToFixed(this Vector2 vec) => new Vec2Fixed(new Fixed(vec.X), new Fixed(vec.Y));
         public static Vec2D ToDouble(this Vector2 vec) => new Vec2D(vec.X, vec.Y);
+        public static Vector2 OriginRightRotate90(this Vector2 vec) => new Vector2(vec.Y, -vec.X);
+        public static Vector2 OriginLeftRotate90(this Vector2 vec) => new Vector2(-vec.Y, vec.X);
 
         public static bool EqualTo(this Vector2 vec, Vector2 other, float epsilon = 0.00001f)
         {

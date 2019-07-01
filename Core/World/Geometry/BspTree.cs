@@ -106,7 +106,8 @@ namespace Helion.World.Geometry
                 log.Warn("Unable to build BSP tree from GLBSP nodes for map '{0}', attempting with internal node builder...", map.Name);
             }
 
-            return CreateFromInternalBspBuilder(map);
+            log.Error("Internal BSP builder disabled currently, cannot build BSP tree");
+            return null;
         }
 
         private void CreateComponents(BspNode root, Map map)

@@ -1,3 +1,4 @@
+using System;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Maps;
@@ -7,6 +8,9 @@ using Helion.Util.Geometry;
 using NLog;
 using System.Collections.Generic;
 using Helion.Maps.Geometry.Lines;
+
+// TODO: We can refactor the read[Geometry]V[N] functions into a unified one.
+//       There's very little differences between ReadAbcV1 and ReadAbcV2.
 
 namespace Helion.Bsp.Builder.GLBSP
 {
@@ -19,9 +23,13 @@ namespace Helion.Bsp.Builder.GLBSP
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private const int GLSegmentV1Bytes = 10;
+        private const int GLSegmentV5Bytes = 16;
         private const int GLSubsectorV1Bytes = 4;
+        private const int GLSubsectorV3Bytes = 8;
         private const int GLNodesV1Bytes = 28;
-        private const ushort GLSegmentVertexIsGL = 1 << 15;
+        private const int GLNodesV4Bytes = 32;
+        private const uint GLSegmentV1VertexIsGL = 0x00008000U;
+        private const uint GLSegmentV5VertexIsGL = 0x80000000U;
         private const ushort GLSegmentIsMiniseg = (ushort) 0xFFFFU;
         private const uint GLNodeIsSubsectorV1Mask = 1 << 15;
 
@@ -56,12 +64,12 @@ namespace Helion.Bsp.Builder.GLBSP
                     break;
                 case GLBspVersion.Five:
                     ReadVerticesV5(mapEntryCollection.GLVertices);
-                    ReadSegmentsV5(mapEntryCollection.GLSegments, map.Vertices);
-                    ReadSubsectorsV3(mapEntryCollection.GLSubsectors);
+                    ReadSegmentsV5(mapEntryCollection.GLSegments, map.Vertices, map.Lines);
+                    ReadSubsectorsV3(mapEntryCollection.GLSubsectors, map.Lines);
                     ReadNodesV4(mapEntryCollection.GLNodes);
                     break;
                 default:
-                    log.Error("Cannot build GLBSP nodes from unsupported version: {}", version);
+                    log.Error("Cannot build GLBSP nodes from unsupported version: {0}", version);
                     break;
                 }
             }
@@ -71,9 +79,9 @@ namespace Helion.Bsp.Builder.GLBSP
                 // they should never be triggered unless we screwed up.
                 throw;
             }
-            catch
+            catch (Exception e)
             {
-                log.Error("Cannot read GLBSP data, components are malformed");
+                log.Error("Cannot read GLBSP data, components are malformed (reason: {0})", e.Message);
             }
         }
 
@@ -114,12 +122,12 @@ namespace Helion.Bsp.Builder.GLBSP
             return new Box2D(new Vec2D(left, bottom), new Vec2D(right, top));
         }
 
-        private Vec2D GetVertex(ushort index, List<Vertex> vertices)
+        private Vec2D GetVertex(uint index, List<Vertex> vertices, uint vertexMask)
         {
-            if ((index & GLSegmentVertexIsGL) == 0) 
-                return vertices[index].Position;
+            if ((index & vertexMask) == 0) 
+                return vertices[(int)index].Position;
             
-            int glVertexIndex = index & ~GLSegmentVertexIsGL;
+            int glVertexIndex = (int)(index & ~vertexMask);
             return glVertices[glVertexIndex].ToDouble();
         }
 
@@ -189,6 +197,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 glVertices.Add(ReadVertexData(reader));
         }
 
+        // Only difference is the header being "gNd5", but we don't care.
         private void ReadVerticesV5(byte[] data) => ReadVerticesV2(data);
         
         private void ReadSegmentsV1(byte[] data, List<Vertex> vertices, List<Line> lines)
@@ -204,8 +213,8 @@ namespace Helion.Bsp.Builder.GLBSP
             
             for (int i = 0; i < numSegments; i++)
             {
-                Vec2D start = GetVertex(reader.ReadUInt16(), vertices);
-                Vec2D end = GetVertex(reader.ReadUInt16(), vertices);
+                Vec2D start = GetVertex(reader.ReadUInt16(), vertices, GLSegmentV1VertexIsGL);
+                Vec2D end = GetVertex(reader.ReadUInt16(), vertices, GLSegmentV1VertexIsGL);
                 ushort lineId = reader.ReadUInt16();
                 reader.Advance(2); // Don't care about 'is front side' (right now).
                 reader.Advance(2); // Don't care about partner segs (right now).
@@ -214,9 +223,27 @@ namespace Helion.Bsp.Builder.GLBSP
             }
         }
 
-        private void ReadSegmentsV5(byte[] data, List<Vertex> vertices)
+        private void ReadSegmentsV5(byte[] data, List<Vertex> vertices, List<Line> lines)
         {
-            throw new System.NotImplementedException("Segments V5 to be implemented");
+            if (data.Length % GLSegmentV5Bytes != 0)
+            {
+                log.Error("Cannot read GL_SEGS V5 entry, corrupt size");
+                throw new HelionException("Corrupt GL_SEGS entry");
+            }
+
+            int numSegments = data.Length / GLSegmentV5Bytes;
+            ByteReader reader = new ByteReader(data);
+            
+            for (int i = 0; i < numSegments; i++)
+            {
+                Vec2D start = GetVertex(reader.ReadUInt32(), vertices, GLSegmentV5VertexIsGL);
+                Vec2D end = GetVertex(reader.ReadUInt32(), vertices, GLSegmentV5VertexIsGL);
+                ushort lineId = reader.ReadUInt16();
+                reader.Advance(2); // Don't care about 'is front side' (right now).
+                reader.Advance(4); // Don't care about partner segs (right now).
+                
+                segments.Add(MakeBspSegment(start, end, lineId, lines));
+            }
         }
         
         private void ReadSubsectorsV1(byte[] data, List<Line> lines)
@@ -235,6 +262,9 @@ namespace Helion.Bsp.Builder.GLBSP
                 int totalSegs = reader.ReadUInt16();
                 int segOffset = reader.ReadUInt16();
 
+                if (totalSegs < 3)
+                    throw new HelionException("Subsector has less than 3 edges, GLBSP build is malformed");
+
                 List<SubsectorEdge> edges = new List<SubsectorEdge>();
                 for (int segIndex = 0; segIndex < totalSegs; segIndex++)
                     edges.Add(MakeSubsectorEdge(segOffset + segIndex, lines));
@@ -243,9 +273,30 @@ namespace Helion.Bsp.Builder.GLBSP
             }
         }
         
-        private void ReadSubsectorsV3(byte[] data)
+        private void ReadSubsectorsV3(byte[] data, List<Line> lines)
         {
-            throw new System.NotImplementedException("Subsectors V3 to be implemented");
+            if (data.Length % GLSubsectorV3Bytes != 0)
+            {
+                log.Error("Cannot read GL_SSECT V3 entry, corrupt size");
+                throw new HelionException("Corrupt GL_SSECT entry");
+            }
+
+            int numSubsectors = data.Length / GLSubsectorV3Bytes;
+            ByteReader reader = new ByteReader(data);
+
+            for (int i = 0; i < numSubsectors; i++)
+            {
+                // We're assuming no one will ever have > ~2 billion lines by
+                // reading an int instead of uint.
+                int totalSegs = reader.ReadInt32();
+                int segOffset = reader.ReadInt32();
+
+                List<SubsectorEdge> edges = new List<SubsectorEdge>();
+                for (int segIndex = 0; segIndex < totalSegs; segIndex++)
+                    edges.Add(MakeSubsectorEdge(segOffset + segIndex, lines));
+                
+                subsectorNodes.Add(new BspNode(edges));
+            }
         }
         
         private void ReadNodesV1(byte[] data)
@@ -282,7 +333,34 @@ namespace Helion.Bsp.Builder.GLBSP
 
         private void ReadNodesV4(byte[] data)
         {
-            throw new System.NotImplementedException("Nodes V4 to be implemented");
+            if (data.Length % GLNodesV4Bytes != 0)
+            {
+                log.Error("Cannot read GLNODES V4 entry, corrupt size");
+                throw new HelionException("Corrupt GL_NODES entry");
+            }
+            
+            if (data.Length == 0)
+            {
+                log.Error("Cannot read GLNODES V4 entry, no nodes present");
+                throw new HelionException("GL_NODES entry has no nodes");
+            }
+
+            int numNodes = data.Length / GLNodesV4Bytes;
+            ByteReader reader = new ByteReader(data);
+            List<GLNode> nodes = new List<GLNode>();
+
+            for (int i = 0; i < numNodes; i++)
+            {
+                Vec2D splitterStart = new Vec2D(reader.ReadInt16(), reader.ReadInt16());
+                Vec2D delta = new Vec2D(reader.ReadInt16(), reader.ReadInt16());
+                Seg2D splitter = new Seg2D(splitterStart, splitterStart + delta);
+                Box2D rightBox = ReadNodeBox(reader);
+                Box2D leftBox = ReadNodeBox(reader);
+                
+                nodes.Add(new GLNode(splitter, rightBox, leftBox, reader.ReadUInt32(), reader.ReadUInt32()));
+            }
+
+            root = RecursivelyReadNodes(nodes, (uint)nodes.Count - 1, GLNodeIsSubsectorV1Mask);
         }
 
         public BspNode? Build()

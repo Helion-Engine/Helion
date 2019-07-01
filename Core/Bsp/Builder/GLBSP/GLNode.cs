@@ -7,10 +7,10 @@ namespace Helion.Bsp.Builder.GLBSP
         public readonly Seg2D Splitter;
         public readonly Box2D RightBox;
         public readonly Box2D LeftBox;
-        public readonly ushort RightChild;
-        public readonly ushort LeftChild;
+        public readonly uint RightChild;
+        public readonly uint LeftChild;
 
-        public GLNode(Seg2D splitter, Box2D rightBox, Box2D leftBox, ushort rightChild, ushort leftChild)
+        public GLNode(Seg2D splitter, Box2D rightBox, Box2D leftBox, uint rightChild, uint leftChild)
         {
             Splitter = splitter;
             RightBox = rightBox;

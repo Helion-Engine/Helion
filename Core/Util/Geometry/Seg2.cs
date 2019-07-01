@@ -355,6 +355,13 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <returns>The squared length of the segment</returns>
         public float LengthSquared() => Delta.LengthSquared();
+        
+        /// <summary>
+        /// Gets the normal for this segment, which is equal to rotating the
+        /// delta to the right by 90 degrees.
+        /// </summary>
+        /// <returns>The 90 degree right angle rotation of the delta.</returns>
+        public Vector2 RightNormal() => Delta.OriginRightRotate90();
     }
 
     /// <summary>
@@ -509,14 +516,6 @@ namespace Helion.Util.Geometry
             Vector2 expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
         }
-
-        /// <summary>
-        /// Gets the right rotated normal with respect to the direction of this
-        /// segment.
-        /// </summary>
-        /// <returns>The 90 degree right angle rotation of this line, and is
-        /// normalized.</returns>
-        public Vector2 RightRotateNormal() => new Vector2(Delta.Y, -Delta.X).Unit();
     }
 
     /// <summary>
@@ -836,6 +835,13 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <returns>The squared length of the segment</returns>
         public double LengthSquared() => Delta.LengthSquared();
+        
+        /// <summary>
+        /// Gets the normal for this segment, which is equal to rotating the
+        /// delta to the right by 90 degrees.
+        /// </summary>
+        /// <returns>The 90 degree right angle rotation of the delta.</returns>
+        public Vec2D RightNormal() => Delta.OriginRightRotate90();
     }
 
     /// <summary>
@@ -990,14 +996,6 @@ namespace Helion.Util.Geometry
             Vec2D expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
         }
-
-        /// <summary>
-        /// Gets the right rotated normal with respect to the direction of this
-        /// segment.
-        /// </summary>
-        /// <returns>The 90 degree right angle rotation of this line, and is
-        /// normalized.</returns>
-        public Vec2D RightRotateNormal() => new Vec2D(Delta.Y, -Delta.X).Unit();
     }
 
     /// <summary>
@@ -1315,6 +1313,13 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <returns>The squared length of the segment</returns>
         public Fixed LengthSquared() => Delta.LengthSquared();
+        
+        /// <summary>
+        /// Gets the normal for this segment, which is equal to rotating the
+        /// delta to the right by 90 degrees.
+        /// </summary>
+        /// <returns>The 90 degree right angle rotation of the delta.</returns>
+        public Vec2Fixed RightNormal() => Delta.OriginRightRotate90();
     }
 
     /// <summary>
@@ -1475,13 +1480,5 @@ namespace Helion.Util.Geometry
             Vec2Fixed expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint);
         }
-
-        /// <summary>
-        /// Gets the right rotated normal with respect to the direction of this
-        /// segment.
-        /// </summary>
-        /// <returns>The 90 degree right angle rotation of this line, and is
-        /// normalized.</returns>
-        public Vec2Fixed RightRotateNormal() => new Vec2Fixed(Delta.Y, -Delta.X).Unit();
     }
 }
