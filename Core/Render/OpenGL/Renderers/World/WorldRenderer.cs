@@ -1,5 +1,6 @@
 ﻿using Helion.Render.OpenGL.Buffer.Vao;
 using Helion.Render.OpenGL.Buffer.Vbo;
+using Helion.Render.OpenGL.Renderers.World.Sky;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
@@ -29,13 +30,15 @@ namespace Helion.Render.OpenGL.Renderers.World
         private StreamVertexBuffer<WorldVertex> vbo = new StreamVertexBuffer<WorldVertex>();
         private ShaderProgram shaderProgram;
         private Dictionary<int, DynamicArray<WorldVertex>> textureIdToVertices = new Dictionary<int, DynamicArray<WorldVertex>>();
-
+        private WorldSkyRenderer skyRenderer;
+        
         public WorldRenderer(GLTextureManager glTextureManager)
         {
             textureManager = glTextureManager;
             renderableGeometry = new WorldRenderableGeometry(glTextureManager);
             vao.BindAttributesTo(vbo);
             shaderProgram = WorldShader.CreateShaderProgramOrThrow(vao);
+            skyRenderer = new WorldSkyRenderer();
         }
 
         ~WorldRenderer() => Dispose(false);
@@ -67,13 +70,13 @@ namespace Helion.Render.OpenGL.Renderers.World
             shaderProgram.SetMatrix("mvp", mvp);
         }
 
-        private void RenderBspTree(WorldBase world, RenderInfo renderInfo)
+        private void PopulateRenderingBuffersFromBSP(WorldBase world, RenderInfo renderInfo)
         {
             ushort index = world.BspTree.RootIndex;
             RenderNode(world, index, renderInfo.CameraInfo.PositionFixed);
         }
 
-        private void RenderGeometry()
+        private void ExecuteGeometryDrawCalls()
         {
             foreach (var handleListPair in textureIdToVertices)
             {
@@ -81,9 +84,12 @@ namespace Helion.Render.OpenGL.Renderers.World
                 textureManager.BindTextureIndex(TextureTarget.Texture2D, textureHandle);
 
                 DynamicArray<WorldVertex> vertices = handleListPair.Value;
+                
+                // TODO: Should do a 'BlockCopy' here to speed up copying, not
+                //       adding each vertex one by one...
                 vbo.Clear();
-                for (int i = 0; i < vertices.Length; i++)
-                    vbo.Add(vertices[i]);
+                foreach (WorldVertex vertex in vertices)
+                    vbo.Add(vertex);
                 vbo.Upload();
 
                 vbo.DrawArrays(vertices.Length);
@@ -131,28 +137,23 @@ namespace Helion.Render.OpenGL.Renderers.World
                     if (wall.NoTexture)
                         continue;
 
-                    // TODO: Can we do a 'bool getOrCreate()' so this is simpler?
-                    if (textureIdToVertices.TryGetValue(wall.TextureHandle, out DynamicArray<WorldVertex> L))
+                    int texHandle = wall.TextureHandle;
+                    
+                    if (!textureIdToVertices.TryGetValue(texHandle, out var vertexArray))
                     {
-                        L.Add(wall.TopLeft);
-                        L.Add(wall.BottomLeft);
-                        L.Add(wall.TopRight);
-                        L.Add(wall.TopRight);
-                        L.Add(wall.BottomLeft);
-                        L.Add(wall.BottomRight);
+                        vertexArray = new DynamicArray<WorldVertex>();
+                        textureIdToVertices[texHandle] = vertexArray;
                     }
-                    else
-                    {
-                        // Note: We only ever allocate the list once.
-                        DynamicArray<WorldVertex> newList = new DynamicArray<WorldVertex>(256);
-                        newList.Add(wall.TopLeft);
-                        newList.Add(wall.BottomLeft);
-                        newList.Add(wall.TopRight);
-                        newList.Add(wall.TopRight);
-                        newList.Add(wall.BottomLeft);
-                        newList.Add(wall.BottomRight);
-                        textureIdToVertices[wall.TextureHandle] = newList;
-                    }
+
+                    // Top left triangle (vertices 0 -> 1 -> 2).
+                    vertexArray.Add(wall.TopLeft);
+                    vertexArray.Add(wall.BottomLeft);
+                    vertexArray.Add(wall.TopRight);
+                    
+                    // Bottom right triangle (vertices 2 -> 1 -> 3).
+                    vertexArray.Add(wall.TopRight);
+                    vertexArray.Add(wall.BottomLeft);
+                    vertexArray.Add(wall.BottomRight);
                 }
             }
         }
@@ -161,27 +162,17 @@ namespace Helion.Render.OpenGL.Renderers.World
         {
             int texHandle = flat.TextureHandle;
 
-            // TODO: Can we do a 'bool getOrCreate()' so this is simpler?
-            if (textureIdToVertices.TryGetValue(texHandle, out DynamicArray<WorldVertex> L))
+            if (!textureIdToVertices.TryGetValue(texHandle, out var vertexArray))
             {
-                for (int i = 0; i < flat.Fan.Length - 1; i++)
-                {
-                    L.Add(flat.Root);
-                    L.Add(flat.Fan[i]);
-                    L.Add(flat.Fan[i + 1]);
-                }
+                vertexArray = new DynamicArray<WorldVertex>();
+                textureIdToVertices[texHandle] = vertexArray;
             }
-            else
-            {
-                DynamicArray<WorldVertex> newList = new DynamicArray<WorldVertex>();
-                for (int i = 0; i < flat.Fan.Length - 1; i++)
-                {
-                    newList.Add(flat.Root);
-                    newList.Add(flat.Fan[i]);
-                    newList.Add(flat.Fan[i + 1]);
-                }
 
-                textureIdToVertices[texHandle] = newList;
+            for (int i = 0; i < flat.Fan.Length - 1; i++)
+            {
+                vertexArray.Add(flat.Root);
+                vertexArray.Add(flat.Fan[i]);
+                vertexArray.Add(flat.Fan[i + 1]);
             }
         }
 
@@ -195,8 +186,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         {
             if (BspNodeCompact.IsSubsectorIndex(index))
                 return renderableGeometry.CheckSubsectorVisibility(index);
-            else
-                return renderableGeometry.CheckNodeVisibility(index);
+            return renderableGeometry.CheckNodeVisibility(index);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -214,17 +204,15 @@ namespace Helion.Render.OpenGL.Renderers.World
             disposed = true;
         }
 
-        public void Render(WorldBase world, RenderInfo renderInfo)
+        private void ClearRenderingBuffers()
         {
-            if (ShouldUpdateToNewWorld(world))
-            {
-                renderableGeometry.Load(world);
-                lastProcessedWorld = new WeakReference(world);
-            }
-
             foreach (DynamicArray<WorldVertex> dynamicArray in textureIdToVertices.Values)
                 dynamicArray.Clear();
+            skyRenderer.Clear();
+        }
 
+        private void RenderGeometry(RenderInfo renderInfo)
+        {
             vao.BindAnd(() =>
             {
                 vbo.BindAnd(() =>
@@ -233,11 +221,25 @@ namespace Helion.Render.OpenGL.Renderers.World
                     {
                         shaderProgram.SetInt("boundTexture", 0);
                         SetUniforms(renderInfo);
-                        RenderBspTree(world, renderInfo);
-                        RenderGeometry();
+                        ExecuteGeometryDrawCalls();
                     });
                 });
             });
+        }
+
+        public void Render(WorldBase world, RenderInfo renderInfo)
+        {
+            if (ShouldUpdateToNewWorld(world))
+            {
+                renderableGeometry.Load(world);
+                lastProcessedWorld = new WeakReference(world);
+            }
+
+            ClearRenderingBuffers();
+            PopulateRenderingBuffersFromBSP(world, renderInfo);
+            RenderGeometry(renderInfo);
+
+            skyRenderer.Render();
         }
 
         public void Dispose()
