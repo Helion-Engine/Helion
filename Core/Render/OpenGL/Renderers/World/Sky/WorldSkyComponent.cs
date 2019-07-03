@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Sky
             new VaoAttributeF("uv", 1, 2, VertexAttribPointerType.Float)
         );
 
-        public WorldSkyComponent(int spanCount = 2, int verticesPerSpan = 16)
+        public WorldSkyComponent(int spanCount = 4, int verticesPerSpan = 16)
         {
             Precondition(spanCount > 0, "Sky cylinder needs a positive span amount");
             Precondition(verticesPerSpan > 0, "Sky cylinder needs a positive amount of vertices per span");
@@ -95,7 +95,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Sky
             // best to do it here.
             vertices.Zip(vertices.Skip(1), (start, end) => (start, end))
                     .Batch(verticesPerSpan)
-                    .Select(vertexPairs => new WorldSkyWallSpan(vertexPairs))
+                    .Select(vertexPairs => new WorldSkyWallSpan(vertexPairs, verticesPerSpan))
                     .ForEach(UploadWallVertices);
         }
 
@@ -129,9 +129,23 @@ namespace Helion.Render.OpenGL.Renderers.World.Sky
         
         private void SetSkyboxUniforms(RenderInfo renderInfo)
         {
-            Matrix4 yawRotate = Matrix4.CreateRotationY(renderInfo.CameraInfo.Yaw);
-            Matrix4 pitchRotate = Matrix4.CreateRotationX(renderInfo.CameraInfo.Pitch);
-            skyboxShaderProgram.SetMatrix("mvp", yawRotate * pitchRotate);
+            // Because our circle is in the NDC cube, this causes the entire
+            // thing to be rendered. We don't want that. Since it's a cylinder
+            // around the camera, we can scale it by 2 and move it back by 1
+            // so that only the part we are looking at (after a rotation around
+            // the Y axis) shows up in the NDC box.
+            //
+            // We also move vertically up by 0.1 units on the NDC cube because
+            // the horizon starts showing the seams of the two skies otherwise.
+            //
+            // Note that because of our choice of height, the pitch will cause
+            // it to rotate outside of the NDC box. I'll fix that later.
+            Matrix4 mvp = Matrix4.CreateRotationY(renderInfo.CameraInfo.Yaw) *
+                          //Matrix4.CreateRotationX(renderInfo.CameraInfo.Pitch) *
+                          Matrix4.CreateScale(2.0f, 1.0f, 2.0f) *
+                          Matrix4.CreateTranslation(0, -0.1f, -1.0f);
+
+            skyboxShaderProgram.SetMatrix("mvp", mvp);
         }
         
         public void Clear()

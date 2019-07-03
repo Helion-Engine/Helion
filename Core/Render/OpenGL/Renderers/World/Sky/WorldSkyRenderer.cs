@@ -8,24 +8,28 @@ namespace Helion.Render.OpenGL.Renderers.World.Sky
     {
         // For now we are only supporting one sky. We will have to change stuff
         // around if we want to support multiple skies later.
-        private readonly WorldSkyComponent defaultSky = new WorldSkyComponent();
+        private readonly WorldSkyComponent defaultSky = new WorldSkyComponent(4, 16);
 
         public void Clear() => defaultSky.Clear();
 
         private void RenderGeometryToStencilBuffer(RenderInfo renderInfo)
         {
-            //GL.ColorMask(false, false, false, false);
+            GL.StencilMask(0xFF);
+            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
             GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
+
+            GL.ColorMask(false, false, false, false);
             
             defaultSky.RenderSkyGeometry(renderInfo);
 
-            //GL.ColorMask(true, true, true, true);
+            GL.ColorMask(true, true, true, true);
         }
 
         private void RenderSkyboxAtStencilPixels(GLTexture skyTexture, RenderInfo renderInfo)
         {
-            GL.StencilMask(0x00);
             GL.StencilFunc(StencilFunction.Equal, 1, 0xFF);
+            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+            
             GL.Disable(EnableCap.DepthTest);
             
             defaultSky.RenderSkybox(skyTexture, renderInfo);
@@ -41,11 +45,9 @@ namespace Helion.Render.OpenGL.Renderers.World.Sky
         public void Render(GLTexture skyTexture, RenderInfo renderInfo)
         {
             GL.Enable(EnableCap.StencilTest);
-            GL.StencilMask(0xFF);
-            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
 
             RenderGeometryToStencilBuffer(renderInfo);
-            //RenderSkyboxAtStencilPixels(skyTexture, renderInfo);
+            RenderSkyboxAtStencilPixels(skyTexture, renderInfo);
             
             GL.Disable(EnableCap.StencilTest);
         }

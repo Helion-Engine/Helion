@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 namespace Helion.Render.OpenGL.Renderers.World.Sky
@@ -8,14 +7,14 @@ namespace Helion.Render.OpenGL.Renderers.World.Sky
     {
         public readonly List<WorldSkyWall> Walls = new List<WorldSkyWall>();
         
-        public WorldSkyWallSpan(IEnumerable<(Vector2 start, Vector2 end)> vertexPairs)
+        public WorldSkyWallSpan(IEnumerable<(Vector2 start, Vector2 end)> vertexPairs, int numPairs)
         {
             // Suppose we have 4 line segments for this span. We want to make
             // the first wall component U coordinate to go from [0.0, 0.25],
             // and the next one from [0.25, 0.5]... etc. We also assume that
             // our vertex pair list is not massive in size so doing a count
             // is acceptable for such a small container.
-            float deltaU = 1.0f / (vertexPairs.Count() + 1);
+            float deltaU = 1.0f / numPairs;
             float startU = 0.0f;
             float endU = startU + deltaU;
 

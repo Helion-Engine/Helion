@@ -32,7 +32,7 @@ namespace Helion.Client
         private SinglePlayerWorld? world;
 
         public Client(CommandLineArgs args) : 
-            base(1024, 768, GraphicsMode.Default, Constants.ApplicationName, GameWindowFlags.Default)
+            base(1024, 768, CreateGraphicsMode(), Constants.ApplicationName, GameWindowFlags.Default)
         {
             commandLineArgs = args;
             frameCollection = inputManager.RegisterCollection();
@@ -55,6 +55,12 @@ namespace Helion.Client
                 ticker.Start();
             }
             // ================================================================
+        }
+        
+        private static GraphicsMode CreateGraphicsMode()
+        {
+            // TODO: Should read value from config for samples
+            return new GraphicsMode(new ColorFormat(32), 24, 8, 4);
         }
 
         private void LoadProject()
