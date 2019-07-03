@@ -109,16 +109,12 @@ namespace Helion.Bsp.Node
             {
                 if (rotation == Rotation.Right)
                     return (sectorLine.FrontSectorId, true);
-                else
-                    return (sectorLine.BackSectorId, false);
+                return (sectorLine.BackSectorId, false);
             }
-            else
-            {
-                if (rotation == Rotation.Right)
-                    return (sectorLine.BackSectorId, false);
-                else
-                    return (sectorLine.FrontSectorId, true);
-            }
+            
+            if (rotation == Rotation.Right)
+                return (sectorLine.BackSectorId, false);
+            return (sectorLine.FrontSectorId, true);
         }
 
         private static List<SubsectorEdge> CreateSubsectorEdges(ConvexTraversal convexTraversal, 

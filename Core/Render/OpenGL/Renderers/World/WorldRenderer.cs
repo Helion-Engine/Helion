@@ -4,11 +4,11 @@ using Helion.Render.OpenGL.Renderers.World.Sky;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
+using Helion.Resources;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Geometry;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -17,21 +17,21 @@ namespace Helion.Render.OpenGL.Renderers.World
 {
     public class WorldRenderer : IDisposable
     {
-        protected bool disposed;
+        private bool disposed;
         private readonly GLTextureManager textureManager;
         private readonly WorldRenderableGeometry renderableGeometry;
         private WeakReference? lastProcessedWorld = null;
+        private ShaderProgram shaderProgram;
+        private WorldSkyRenderer skyRenderer;
+        private StreamVertexBuffer<WorldVertex> vbo = new StreamVertexBuffer<WorldVertex>();
+        private Dictionary<int, DynamicArray<WorldVertex>> textureIdToVertices = new Dictionary<int, DynamicArray<WorldVertex>>();
         private VertexArrayObject vao = new VertexArrayObject(
             new VaoAttributeF("pos", 0, 3, VertexAttribPointerType.Float),
             new VaoAttributeF("uv", 1, 2, VertexAttribPointerType.Float),
             new VaoAttributeF("alpha", 2, 1, VertexAttribPointerType.Float),
             new VaoAttributeF("unitBrightness", 3, 1, VertexAttribPointerType.Float)
         );
-        private StreamVertexBuffer<WorldVertex> vbo = new StreamVertexBuffer<WorldVertex>();
-        private ShaderProgram shaderProgram;
-        private Dictionary<int, DynamicArray<WorldVertex>> textureIdToVertices = new Dictionary<int, DynamicArray<WorldVertex>>();
-        private WorldSkyRenderer skyRenderer;
-        
+
         public WorldRenderer(GLTextureManager glTextureManager)
         {
             textureManager = glTextureManager;
@@ -52,22 +52,8 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private void SetUniforms(RenderInfo renderInfo)
         {
-            // TODO: Get config values for this.
-            float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
-            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, aspectRatio, 16.0f, 8192.0f, out Matrix4 projection);
-
-            // Note that we have no model matrix, everything is already in the
-            // world space.
-            //
-            // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
-            // of left multiplication. Instead of doing p * v * m, it has to
-            // be done in the opposite direction (m * v * p) due to a design
-            // decision according to a lead developer. This will seem wrong
-            // for anyone used to the C++/OpenGL way of multiplying.
-            Matrix4 view = Camera.ViewMatrix(renderInfo.CameraInfo);
-            Matrix4 mvp = view * projection;
-
-            shaderProgram.SetMatrix("mvp", mvp);
+            shaderProgram.SetInt("boundTexture", 0);
+            shaderProgram.SetMatrix("mvp", GLRenderer.CreateMVP(renderInfo));
         }
 
         private void PopulateRenderingBuffersFromBSP(WorldBase world, RenderInfo renderInfo)
@@ -86,7 +72,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                 DynamicArray<WorldVertex> vertices = handleListPair.Value;
                 
                 // TODO: Should do a 'BlockCopy' here to speed up copying, not
-                //       adding each vertex one by one...
+                //       adding each vertex one by one... plus the iterator...
                 vbo.Clear();
                 foreach (WorldVertex vertex in vertices)
                     vbo.Add(vertex);
@@ -105,7 +91,7 @@ namespace Helion.Render.OpenGL.Renderers.World
                 return;
             }
 
-            // TODO: Is it worth doing the a = index, b = a ^ 1 optimization?
+            // TODO: Is it worth doing the a = index, a = a ^ 1 optimization?
             BspNodeCompact node = world.BspTree.Nodes[index];
 
             if (node.Splitter.OnRight(position))
@@ -134,26 +120,32 @@ namespace Helion.Render.OpenGL.Renderers.World
             {
                 foreach (WorldVertexWall wall in renderableGeometry.Segments[segment.Id].Walls)
                 {
-                    if (wall.NoTexture)
+                    if (wall.FloorHigherThanCeiling || (wall.NoTexture && !wall.IsSky))
                         continue;
 
-                    int texHandle = wall.TextureHandle;
-                    
-                    if (!textureIdToVertices.TryGetValue(texHandle, out var vertexArray))
+                    if (wall.IsSky)
                     {
-                        vertexArray = new DynamicArray<WorldVertex>();
-                        textureIdToVertices[texHandle] = vertexArray;
+                        skyRenderer.AddTriangle(wall.TopLeft, wall.BottomLeft, wall.TopRight);
+                        skyRenderer.AddTriangle(wall.TopRight, wall.BottomLeft, wall.BottomRight);
                     }
+                    else
+                    {
+                        int texHandle = wall.TextureHandle;
+                        
+                        if (!textureIdToVertices.TryGetValue(texHandle, out var vertexArray))
+                        {
+                            vertexArray = new DynamicArray<WorldVertex>();
+                            textureIdToVertices[texHandle] = vertexArray;
+                        }
 
-                    // Top left triangle (vertices 0 -> 1 -> 2).
-                    vertexArray.Add(wall.TopLeft);
-                    vertexArray.Add(wall.BottomLeft);
-                    vertexArray.Add(wall.TopRight);
-                    
-                    // Bottom right triangle (vertices 2 -> 1 -> 3).
-                    vertexArray.Add(wall.TopRight);
-                    vertexArray.Add(wall.BottomLeft);
-                    vertexArray.Add(wall.BottomRight);
+                        vertexArray.Add(wall.TopLeft);
+                        vertexArray.Add(wall.BottomLeft);
+                        vertexArray.Add(wall.TopRight);   
+                        
+                        vertexArray.Add(wall.TopRight);
+                        vertexArray.Add(wall.BottomLeft);
+                        vertexArray.Add(wall.BottomRight);
+                    }
                 }
             }
         }
@@ -167,12 +159,20 @@ namespace Helion.Render.OpenGL.Renderers.World
                 vertexArray = new DynamicArray<WorldVertex>();
                 textureIdToVertices[texHandle] = vertexArray;
             }
-
-            for (int i = 0; i < flat.Fan.Length - 1; i++)
+            
+            if (flat.IsSky)
             {
-                vertexArray.Add(flat.Root);
-                vertexArray.Add(flat.Fan[i]);
-                vertexArray.Add(flat.Fan[i + 1]);
+                for (int i = 0; i < flat.Fan.Length - 1; i++)
+                    skyRenderer.AddTriangle(flat.Root, flat.Fan[i], flat.Fan[i + 1]);
+            }
+            else
+            {
+                for (int i = 0; i < flat.Fan.Length - 1; i++)
+                {
+                    vertexArray.Add(flat.Root);
+                    vertexArray.Add(flat.Fan[i]);
+                    vertexArray.Add(flat.Fan[i + 1]);
+                }
             }
         }
 
@@ -219,12 +219,15 @@ namespace Helion.Render.OpenGL.Renderers.World
                 {
                     shaderProgram.BindAnd(() =>
                     {
-                        shaderProgram.SetInt("boundTexture", 0);
                         SetUniforms(renderInfo);
                         ExecuteGeometryDrawCalls();
                     });
                 });
             });
+
+            // TODO: This texture is temporary until we have MapInfo support.
+            GLTexture skyTexture = textureManager.Get("SKY1", ResourceNamespace.Textures);
+            skyRenderer.Render(skyTexture, renderInfo);
         }
 
         public void Render(WorldBase world, RenderInfo renderInfo)
@@ -238,8 +241,6 @@ namespace Helion.Render.OpenGL.Renderers.World
             ClearRenderingBuffers();
             PopulateRenderingBuffersFromBSP(world, renderInfo);
             RenderGeometry(renderInfo);
-
-            skyRenderer.Render();
         }
 
         public void Dispose()

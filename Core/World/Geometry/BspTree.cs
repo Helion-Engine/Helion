@@ -155,6 +155,7 @@ namespace Helion.World.Geometry
             {
                 Side? side = GetSideFromEdge(edge, map);
                 Segment segment = new Segment(Segments.Count, side, edge.Start.ToFixed(), edge.End.ToFixed());
+                
                 returnSegments.Add(segment);
                 Segments.Add(segment);
             }

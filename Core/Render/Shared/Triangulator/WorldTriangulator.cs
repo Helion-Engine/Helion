@@ -100,17 +100,6 @@ namespace Helion.Render.Shared.Triangulator
             return (upper, lower);
         }
 
-        private static Triangle FloorReversedTriangle(Triangle tri, float floorZ)
-        {
-            Vector3 revFirst = new Vector3(tri.First.X, tri.First.Y, floorZ);
-            Vector3 revSecond = new Vector3(tri.Second.X, tri.Second.Y, floorZ);
-            Vector3 revThird = new Vector3(tri.Third.X, tri.Third.Y, floorZ);
-
-            // Remember that the fan for the subsector is reversed not only in
-            // traversal but also in vertices, as vertices 0-1-2 becomes 0-2-1.
-            return new Triangle(revFirst, revThird, revSecond);
-        }
-
         /// <summary>
         /// Triangulates the subsector.
         /// </summary>
@@ -127,6 +116,16 @@ namespace Helion.Render.Shared.Triangulator
 
             List<Vector3> ceiling = segs.Select(seg => new Vector3(seg.Start.ToFloat(), ceilZ)).ToList();
             List<Vector3> floor = ceiling.Select(pos => new Vector3(pos.X, pos.Y, floorZ)).ToList();
+            
+            // We want to pass a simple list of vertices to the constructor for
+            // subsector triangles, and the vertices be in a forward iteration
+            // order. Because triangles have to be counter-clockwise, since we
+            // have clockwise vertices as defined by the BSP builder, we have
+            // to reverse the floor so the 'forward' iteration in the subsector
+            // triangles ends up creating them in a counter-clockwise order.
+            //
+            // This keeps the constructor agnostic of the ordering by having us
+            // do the reversal here instead.
             floor.Reverse();
 
             return new SubsectorTriangles(subsector, floor, ceiling);

@@ -86,7 +86,7 @@ namespace Helion.Graphics.Palette
         /// This is a safe function such that if the width and height are out
         /// of range. This will create a default filled function and not crash
         /// if the data is invalid. It is up to the caller to make sure that
-        /// the data is valid, but we take extra steps to prevent disasterous
+        /// the data is valid, but we take extra steps to prevent disastrous
         /// results from happening because this operates off of raw data.
         /// </remarks>
         /// <param name="width">The image width. Should be positive.</param>

@@ -53,10 +53,11 @@ namespace Helion.Render.OpenGL.Renderers.World
         private WorldVertexFlat MakeFlat(List<Vector3> vertices, Sector sector, SectorFlat flat)
         {
             GLTexture texture = textureManager.Get(flat.Texture, ResourceNamespace.Flats);
+            bool isSky = flat.Texture == Constants.SkyTexture;
 
             WorldVertex root = VertexToWorldVertex(vertices[0], sector, texture);
             WorldVertex[] fan = vertices.Skip(1).Select(v => VertexToWorldVertex(v, sector, texture)).ToArray();
-            return new WorldVertexFlat(texture.Handle, root, fan);
+            return new WorldVertexFlat(texture.Handle, isSky, root, fan);
         }
 
         private WorldVertexSubsector CreateWorldVertexSubsector(SubsectorTriangles triangles, Subsector subsector)
@@ -155,7 +156,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             WorldVertex topRightVertex = new WorldVertex(right.X, right.Y, top, uv.RightU, uv.TopV, 1.0f, lightLevel);
             WorldVertex bottomLeftVertex = new WorldVertex(left.X, left.Y, bottom, uv.LeftU, uv.BottomV, 1.0f, lightLevel);
             WorldVertex bottomRightVertex = new WorldVertex(right.X, right.Y, bottom, uv.RightU, uv.BottomV, 1.0f, lightLevel);
-            return new WorldVertexWall(hasNoTexture, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
+            return new WorldVertexWall(hasNoTexture, false, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
         }
 
         // TODO: Refactor the extremely similar function
@@ -171,7 +172,13 @@ namespace Helion.Render.OpenGL.Renderers.World
             Side side = walls.Side;
             float lightLevel = side.Sector.UnitLightLevel;
             WallQuad wallQuad = walls.Lower;
-            
+
+            Invariant(side.PartnerSide != null, "Passed a one-sided line for a two-sided lower side");
+
+            bool isSky = false;
+            if (side.PartnerSide != null)
+                isSky = (side.PartnerSide.Sector.Floor.Texture == Constants.SkyTexture);
+
             Vector3 topLeft = wallQuad.UpperTriangle.First;
             Vector3 bottomRight = wallQuad.LowerTriangle.Third;
 
@@ -193,7 +200,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             WorldVertex topRightVertex = new WorldVertex(right.X, right.Y, top, uv.RightU, uv.TopV, 1.0f, lightLevel);
             WorldVertex bottomLeftVertex = new WorldVertex(left.X, left.Y, bottom, uv.LeftU, uv.BottomV, 1.0f, lightLevel);
             WorldVertex bottomRightVertex = new WorldVertex(right.X, right.Y, bottom, uv.RightU, uv.BottomV, 1.0f, lightLevel);
-            return new WorldVertexWall(hasNoTexture, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
+            return new WorldVertexWall(hasNoTexture, isSky, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
         }
         
         private WorldVertexWall MakeEmptyTwoSidedMiddleWall(SegmentWalls walls)
@@ -207,7 +214,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             WorldVertex topRightVertex = new WorldVertex(topRight.X, topRight.Y, topRight.Z, 0, 0, 0, 0);
             WorldVertex bottomLeftVertex = new WorldVertex(bottomLeft.X, bottomLeft.Y, bottomLeft.Z, 0, 0, 0, 0);
             WorldVertex bottomRightVertex = new WorldVertex(bottomRight.X, bottomRight.Y, bottomRight.Z, 0, 0, 0, 0);
-            return new WorldVertexWall(true, 0, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
+            return new WorldVertexWall(true, false, 0, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
         }
         
         private WorldVertexWall MakeTwoSidedMiddleWall(SegmentWalls walls)
@@ -267,7 +274,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             WorldVertex topRightVertex = new WorldVertex(right.X, right.Y, top, uv.RightU, uv.TopV, 1.0f, lightLevel);
             WorldVertex bottomLeftVertex = new WorldVertex(left.X, left.Y, bottom, uv.LeftU, uv.BottomV, 1.0f, lightLevel);
             WorldVertex bottomRightVertex = new WorldVertex(right.X, right.Y, bottom, uv.RightU, uv.BottomV, 1.0f, lightLevel);
-            return new WorldVertexWall(false, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
+            return new WorldVertexWall(false, false, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
         }
 
         // TODO: Refactor the extremely similar function
@@ -284,6 +291,12 @@ namespace Helion.Render.OpenGL.Renderers.World
             float lightLevel = side.Sector.UnitLightLevel;
             WallQuad wallQuad = walls.Upper;
             
+            Invariant(side.PartnerSide != null, "Passed a one-sided line for a two-sided upper side");
+
+            bool isSky = false;
+            if (side.PartnerSide != null)
+                isSky = (side.PartnerSide.Sector.Ceiling.Texture == Constants.SkyTexture);
+
             Vector3 topLeft = wallQuad.UpperTriangle.First;
             Vector3 bottomRight = wallQuad.LowerTriangle.Third;
 
@@ -305,7 +318,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             WorldVertex topRightVertex = new WorldVertex(right.X, right.Y, top, uv.RightU, uv.TopV, 1.0f, lightLevel);
             WorldVertex bottomLeftVertex = new WorldVertex(left.X, left.Y, bottom, uv.LeftU, uv.BottomV, 1.0f, lightLevel);
             WorldVertex bottomRightVertex = new WorldVertex(right.X, right.Y, bottom, uv.RightU, uv.BottomV, 1.0f, lightLevel);
-            return new WorldVertexWall(hasNoTexture, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
+            return new WorldVertexWall(hasNoTexture, isSky, texture.Handle, topLeftVertex, topRightVertex, bottomLeftVertex, bottomRightVertex);
         }
 
         private WorldVertexSegment CreateWorldVertexSegment(SegmentWalls? segmentWalls, Segment segment)
@@ -339,6 +352,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             segments.ForEach(segment =>
             {
                 SegmentWalls? walls = WorldTriangulator.Triangulate(segment);
+
                 WorldVertexSegment vertices = CreateWorldVertexSegment(walls, segment);
                 Segments[segment.Id] = vertices;
             });

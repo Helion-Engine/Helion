@@ -4,7 +4,7 @@ using Helion.Graphics.Palette;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
+using MoreLinq;
 using NLog;
 using System;
 using System.Collections;
@@ -118,7 +118,7 @@ namespace Helion.Resources.Images
         {
             textureXList.SelectMany(textureX => textureX.Definitions)
                         .Select(textureXImage => ImageFromTextureX(pnames, textureXImage))
-                        .Each(imagePair => Add(imagePair.Image, imagePair.Name));
+                        .ForEach(imagePair => Add(imagePair.Image, imagePair.Name));
         }
 
         /// <summary>
