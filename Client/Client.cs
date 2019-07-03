@@ -1,4 +1,5 @@
-﻿using Helion.Input;
+﻿using Helion.Configuration;
+using Helion.Input;
 using Helion.Input.Adapter;
 using Helion.Maps;
 using Helion.Projects.Impl.Local;
@@ -7,6 +8,7 @@ using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
+using Helion.Window;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
 using OpenTK;
@@ -20,6 +22,7 @@ namespace Helion.Client
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs commandLineArgs;
+        private readonly Config config;
         private readonly Console console = new Console();
         private readonly InputManager inputManager = new InputManager();
         private readonly OpenTKInputAdapter inputAdapter = new OpenTKInputAdapter();
@@ -31,10 +34,12 @@ namespace Helion.Client
         private GLRenderer renderer;
         private SinglePlayerWorld? world;
 
-        public Client(CommandLineArgs args) : 
-            base(1024, 768, CreateGraphicsMode(), Constants.ApplicationName, GameWindowFlags.Default)
+        public Client(CommandLineArgs args, Config configuration) : 
+            base(configuration.Engine.Window.Width, configuration.Engine.Window.Height, 
+                 CreateGraphicsMode(), Constants.ApplicationName, GameWindowFlags.Default)
         {
             commandLineArgs = args;
+            config = configuration;
             frameCollection = inputManager.RegisterCollection();
             tickCollection = inputManager.RegisterCollection();
             inputAdapter.InputEventEmitter += inputManager.HandleInputEvent;
@@ -207,6 +212,22 @@ namespace Helion.Client
             base.OnUnload(e);
         }
 
+        private static VSyncMode FromVSyncEnum(VerticalSync vsync)
+        {
+            switch (vsync)
+            {
+            case VerticalSync.On:
+                return VSyncMode.On;
+            case VerticalSync.Off:
+                return VSyncMode.Off;
+            case VerticalSync.Adaptive:
+                return VSyncMode.Adaptive;
+            default:
+                log.Error("Missing vsync type, defaulting to adaptive");
+                goto case VerticalSync.Adaptive;
+            }
+        }
+
         public static void Main(string[] args)
         {
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
@@ -215,13 +236,15 @@ namespace Helion.Client
             log.Info("=========================================");
             log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
             log.Info("=========================================");
+            
+            Config config = new Config();
 
-            using (Client client = new Client(cmdArgs))
+            using (Client client = new Client(cmdArgs, config))
             {
-                // TODO: Should be configurable.
-                client.VSync = VSyncMode.Off;
-                client.CursorVisible = false;
-                client.WindowState = WindowState.Fullscreen;
+                client.VSync = FromVSyncEnum(config.Engine.Window.VSync);
+                client.CursorVisible = false; // TODO: Should be configurable.
+                client.WindowState = WindowState.Fullscreen; // TODO: Should be configurable.
+                
                 client.Run();
             }
 
