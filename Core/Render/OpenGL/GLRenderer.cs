@@ -37,6 +37,11 @@ namespace Helion.Render.OpenGL
             SetGLDebugger();
         }
 
+        public void ClearWorld()
+        {
+            worldRenderer.ClearWorld();
+        }
+
         ~GLRenderer() => Dispose(false);
 
         public static Matrix4 CreateMVP(RenderInfo renderInfo)

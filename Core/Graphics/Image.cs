@@ -14,6 +14,7 @@ namespace Helion.Graphics
     /// A 32-bit ARGB image that can be used with both any windowed forms and
     /// also compatible for being transferred to any GPU driver.
     /// </summary>
+    /// 
     public class Image
     {
         /// <summary>
@@ -153,7 +154,7 @@ namespace Helion.Graphics
             try
             {
                 using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(newBitmap))
-                    graphics.DrawImage(bitmap, new Point(0, 0));
+                    graphics.DrawImage(bitmap, 0, 0);
                 return newBitmap;
             }
             catch (Exception e)
@@ -169,11 +170,13 @@ namespace Helion.Graphics
         /// <param name="color">The color to fill.</param>
         public void Fill(Color color)
         {
-            // TODO: This should almost certainly be done natively or in some
-            // better way, this is probably slow.
-            for (int row = 0; row < Bitmap.Height; row++)
-                for (int col = 0; col < Bitmap.Width; col++)
-                    Bitmap.SetPixel(col, row, color);
+            using (SolidBrush b = new SolidBrush(color))
+            {
+                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(Bitmap))
+                {
+                    g.FillRectangle(b, 0, 0, Bitmap.Width, Bitmap.Height);
+                }
+            }
         }
 
         /// <summary>
@@ -186,8 +189,8 @@ namespace Helion.Graphics
         /// at.</param>
         public void DrawOnTopOf(Image image, Vec2I offset)
         {
-            System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap);
-            g.DrawImage(Bitmap, new Point(offset.X, offset.Y));
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap))
+                g.DrawImage(Bitmap, offset.X, offset.Y);
         }
     }
 }

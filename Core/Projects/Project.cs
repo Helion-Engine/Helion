@@ -38,7 +38,7 @@ namespace Helion.Projects
 
         protected EntryIdAllocator EntryIdAllocator;
         protected EntryClassifier Classifier;
-        protected List<ProjectComponent> Components = new List<ProjectComponent>();
+        public List<ProjectComponent> Components = new List<ProjectComponent>();
 
         protected Project(ProjectId id, ProjectInfo info, EntryIdAllocator entryIdAllocator,
             EntryClassifier entryClassifier)

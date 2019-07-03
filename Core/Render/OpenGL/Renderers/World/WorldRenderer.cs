@@ -41,6 +41,12 @@ namespace Helion.Render.OpenGL.Renderers.World
             skyRenderer = new WorldSkyRenderer();
         }
 
+        public void ClearWorld()
+        {
+            ClearRenderingBuffers();
+            textureIdToVertices.Clear();
+        }
+
         ~WorldRenderer() => Dispose(false);
 
         private bool ShouldUpdateToNewWorld(WorldBase world)
