@@ -32,7 +32,7 @@ namespace Helion.Client
         private SinglePlayerWorld? world;
 
         public Client(CommandLineArgs args) : 
-            base(1024, 768, GraphicsMode.Default, Constants.ApplicationName, GameWindowFlags.Default)
+            base(1024, 768, CreateGraphicsMode(), Constants.ApplicationName, GameWindowFlags.Default)
         {
             commandLineArgs = args;
             frameCollection = inputManager.RegisterCollection();
@@ -48,13 +48,36 @@ namespace Helion.Client
 
             // TODO: Temporary!
             // ================================================================
-            (Map? map, MapEntryCollection? MapEntryCollection) = project.GetMap("MAP01");
+            LoadMap("MAP01");
+            // ================================================================
+        }
+
+        private void LoadMap(string mapName)
+        {
+            (Map? map, MapEntryCollection? MapEntryCollection) = project.GetMap(mapName);
             if (map != null)
             {
+                log.Info($"LoadMap {mapName}");
+
+                System.DateTime dtStart = System.DateTime.Now;
+
+                renderer.ClearWorld();               
+                project.Resources.LoadMapResources(project, map);       
                 world = SinglePlayerWorld.Create(project, map, MapEntryCollection);
+
+                log.Info($"Load Time {System.DateTime.Now.Subtract(dtStart).TotalMilliseconds}");
+
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
+
                 ticker.Start();
             }
-            // ================================================================
+        }
+        
+        private static GraphicsMode CreateGraphicsMode()
+        {
+            // TODO: Should read value from config for samples
+            return new GraphicsMode(new ColorFormat(32), 24, 8, 4);
         }
 
         private void LoadProject()

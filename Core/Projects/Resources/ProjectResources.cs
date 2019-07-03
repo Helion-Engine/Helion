@@ -1,13 +1,16 @@
 ﻿using Helion.Entries;
 using Helion.Entries.Types;
 using Helion.Graphics.Palette;
+using Helion.Maps;
 using Helion.Resources;
 using Helion.Resources.Definitions;
+using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Resources.Sprites;
 using Helion.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Projects.Resources
 {
@@ -16,7 +19,7 @@ namespace Helion.Projects.Resources
     /// </summary>
     public class ProjectResources
     {
-        private readonly ResourceTracker<Entry> mostRecentEntries = new ResourceTracker<Entry>();
+        private readonly ResourceTracker<Entry> m_masterEntries = new ResourceTracker<Entry>();
 
         /// <summary>
         /// A manager of all the images loaded for this project.
@@ -33,7 +36,7 @@ namespace Helion.Projects.Resources
         {
             Palette palette = Palettes.GetDefaultPalette();
 
-            Entry? entryOpt = mostRecentEntries.GetWithAny(Defines.Playpal, ResourceNamespace.Global);
+            Entry? entryOpt = m_masterEntries.GetWithAny(Defines.Playpal, ResourceNamespace.Global);
             if (entryOpt != null && entryOpt is PaletteEntry paletteEntry)
                 palette = paletteEntry.Palette;
 
@@ -48,29 +51,88 @@ namespace Helion.Projects.Resources
             return palette;
         }
 
-        private void TrackEntry(Entry entry, Palette latestPalette)
+        private DefinitionEntries? GetLatestDefinitionEntries(List<ProjectComponent> components)
         {
-            mostRecentEntries.AddOrOverwrite(entry.Path.Name, entry.Namespace, entry);
+            DefinitionEntries? definitionEntries = null;
 
-            switch (entry)
+            foreach(ProjectComponent component in components)
             {
-            case ImageEntry imageEntry:
-                ImageManager.Add(imageEntry);
-                SpriteFrameManager.Track(entry.Path.Name, entry.Namespace);
-                break;
-            case PaletteImageEntry paletteImageEntry:
-                ImageManager.Add(paletteImageEntry, latestPalette);
-                SpriteFrameManager.Track(entry.Path.Name, entry.Namespace);
-                break;
+                if (definitionEntries == null)
+                {
+                    definitionEntries = component.ResourceCache.DefinitionEntries;
+                }
+                else
+                {
+                    if (component.ResourceCache.DefinitionEntries.Pnames != null)
+                        definitionEntries.Pnames = component.ResourceCache.DefinitionEntries.Pnames;
+                    if (component.ResourceCache.DefinitionEntries.TextureXList.Count > 0)
+                        definitionEntries.TextureXList = component.ResourceCache.DefinitionEntries.TextureXList;
+                }
+            }
+
+            return definitionEntries;
+        }
+
+        //Caches all image resources needed for the map and clears any previously cached image resources
+        public void LoadMapResources(Project project, Map map)
+        {
+            ImageManager.ClearImages();
+
+            DefinitionEntries? definitionEntries = GetLatestDefinitionEntries(project.Components);
+
+            if (definitionEntries != null && definitionEntries.Pnames != null && definitionEntries.TextureXList.Count > 0)
+            {
+                var latestPalette = FindLatestPalette(project.Components);
+                var textureNames = map.GetUniqueTextureNames();
+                textureNames.Add("SKY1"); //temporary hax
+
+                var flatNames = map.GetUniqueFlatNames();
+                var textureX = definitionEntries.TextureXList.SelectMany(textureX => textureX.Definitions).Where(x => textureNames.Contains(x.Name)).ToList();
+
+                //TODO sprites
+                CacheImageEntriesByNames(latestPalette, flatNames);
+                CacheImageEntriesByNames(latestPalette, GetPatchesForTextures(textureX, definitionEntries.Pnames));
+
+                ImageManager.AddTextureDefinitions(definitionEntries.Pnames, textureX);
             }
         }
 
-        private void TrackDefinitionEntries(ProjectComponent component)
+        private void CacheImageEntriesByNames(Palette palette, IEnumerable<UpperString> names)
         {
-            DefinitionEntries definitionEntries = component.ResourceCache.DefinitionEntries;
+            foreach (var name in names)
+            {
+                var entry = FindEntry(name);
+                if (entry != null && !entry.Corrupt)
+                {
+                    switch(entry)
+                    {
+                        case ImageEntry imageEntry:
+                            ImageManager.Add(imageEntry);
+                            break;
+                        case PaletteImageEntry paletteImageEntry:
+                            ImageManager.Add(paletteImageEntry, palette);
+                            break;
+                        default:
+                            break;
+                    }
+                }           
+            }
+        }
 
-            if (definitionEntries.Pnames != null && definitionEntries.TextureXList.Count > 0)
-                ImageManager.AddDefinitions(definitionEntries.Pnames, definitionEntries.TextureXList);
+        private HashSet<UpperString> GetPatchesForTextures(List<TextureXImage> textureX, Pnames pnames)
+        {
+            HashSet<UpperString> mapPatches = new HashSet<UpperString>();
+
+            foreach (var tex in textureX)
+            {
+                foreach (var patch in tex.Patches)
+                {
+                    if (patch.PnamesIndex > 0 && patch.PnamesIndex < pnames.Names.Count)
+                        mapPatches.Add(pnames.Names[patch.PnamesIndex]);
+                }
+            }
+
+            return mapPatches;
         }
 
         /// <summary>
@@ -84,7 +146,7 @@ namespace Helion.Projects.Resources
         /// that name.</returns>
         public Entry? FindEntry(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
-            return mostRecentEntries.GetWithAny(name, resourceNamespace);
+            return m_masterEntries.GetWithAny(name, resourceNamespace);
         }
 
         /// <summary>
@@ -100,7 +162,7 @@ namespace Helion.Projects.Resources
         /// value if both conditions are not met.</returns>
         public T? FindEntryAs<T>(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global) where T : Entry
         {
-            return mostRecentEntries.GetWithAny(name, resourceNamespace) as T;
+            return m_masterEntries.GetWithAny(name, resourceNamespace) as T;
         }
 
         /// <summary>
@@ -111,17 +173,12 @@ namespace Helion.Projects.Resources
         /// <param name="components">The components to track.</param>
         public void TrackNewComponents(List<ProjectComponent> components)
         {
-            Palette latestPalette = FindLatestPalette(components);
-
             foreach (ProjectComponent component in components)
             {
                 foreach (Entry entry in component.Archive)
                     if (!entry.Corrupt)
-                        TrackEntry(entry, latestPalette);
-
-                TrackDefinitionEntries(component);
+                        m_masterEntries.AddOrOverwrite(entry.Path.Name, entry.Namespace, entry);
             }
-
         }
     }
 }

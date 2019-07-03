@@ -4,10 +4,11 @@ using Helion.Graphics.Palette;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
+using MoreLinq;
 using NLog;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,19 +31,24 @@ namespace Helion.Resources.Images
         {
             add 
             {
-                NotifyAllImages(value);
-                imageEventEmitter += value;
+                NotifyAllImages(value, false);
+                m_imageEventEmitter += value;
             }
             remove 
             {
-                imageEventEmitter -= value;
+                m_imageEventEmitter -= value;
             }
         }
-        private EventHandler<ImageManagerEventArgs>? imageEventEmitter;
 
-        private readonly ResourceTracker<Image> images = new ResourceTracker<Image>();
+        private EventHandler<ImageManagerEventArgs>? m_imageEventEmitter;
+        private readonly ResourceTracker<Image> m_images = new ResourceTracker<Image>();
 
-        private void NotifyAllImages(EventHandler<ImageManagerEventArgs> eventHandler)
+        private void NotifyAllImagesDeleted()
+        {
+            NotifyAllImages(null, true);
+        }
+
+        private void NotifyAllImages(EventHandler<ImageManagerEventArgs>? eventHandler, bool delete)
         {
             foreach (HashTableEntry<ResourceNamespace, UpperString, Image> tableData in this)
             {
@@ -50,8 +56,18 @@ namespace Helion.Resources.Images
                 UpperString name = tableData.SecondKey;
                 Image image = tableData.Value;
 
-                var imageEvent = ImageManagerEventArgs.CreateUpdate(name, resourceNamespace, image);
-                eventHandler(this, imageEvent);
+                ImageManagerEventArgs imageEvent;
+
+                if (delete)
+                    imageEvent = ImageManagerEventArgs.Delete(name, resourceNamespace);
+                else
+                    imageEvent = ImageManagerEventArgs.CreateUpdate(name, resourceNamespace, image);
+
+
+                if (eventHandler == null)
+                    m_imageEventEmitter?.Invoke(this, imageEvent);
+                else
+                    eventHandler(this, imageEvent);
             }
         }
 
@@ -61,7 +77,7 @@ namespace Helion.Resources.Images
 
             // As a reminder, this can fire when we load a project before 
             // registering any listeners.
-            imageEventEmitter?.Invoke(this, imageEvent);
+            m_imageEventEmitter?.Invoke(this, imageEvent);
         }
 
         private (Image Image, UpperString Name) ImageFromTextureX(Pnames pnames, TextureXImage imageDefinition)
@@ -78,7 +94,7 @@ namespace Helion.Resources.Images
                 }
 
                 UpperString patchName = pnames.Names[patch.PnamesIndex];
-                Image? patchImage = images.GetWithGlobal(patchName, ResourceNamespace.Textures);
+                Image? patchImage = m_images.GetWithGlobal(patchName, ResourceNamespace.Textures);
                 if (patchImage == null)
                 {
                     log.Warn("Unable to find patch '{0}' for texture X definition '{1}'", patchName, imageDefinition.Name);
@@ -104,7 +120,7 @@ namespace Helion.Resources.Images
         /// <param name="name">The name of the image.</param>
         public void Add(Image image, UpperString name)
         {
-            images.AddOrOverwrite(name, image.Metadata.Namespace, image);
+            m_images.AddOrOverwrite(name, image.Metadata.Namespace, image);
             EmitCreateEvent(name, image.Metadata.Namespace, image);
         }
 
@@ -114,11 +130,10 @@ namespace Helion.Resources.Images
         /// </summary>
         /// <param name="pnames">The patch name to indices.</param>
         /// <param name="textureXList">The texture definitions.</param>
-        public void AddDefinitions(Pnames pnames, List<TextureX> textureXList)
+        public void AddTextureDefinitions(Pnames pnames, List<TextureXImage> textureXList)
         {
-            textureXList.SelectMany(textureX => textureX.Definitions)
-                        .Select(textureXImage => ImageFromTextureX(pnames, textureXImage))
-                        .Each(imagePair => Add(imagePair.Image, imagePair.Name));
+            textureXList.Select(textureXImage => ImageFromTextureX(pnames, textureXImage))
+                .ForEach(imagePair => Add(imagePair.Image, imagePair.Name));
         }
 
         /// <summary>
@@ -130,14 +145,22 @@ namespace Helion.Resources.Images
         public void Add(PaletteImageEntry entry, Palette palette)
         {
             Image image = entry.PaletteImage.ToImage(palette);
-            images.AddOrOverwrite(entry.Path.Name, entry.Namespace, image);
+            m_images.AddOrOverwrite(entry.Path.Name, entry.Namespace, image);
             EmitCreateEvent(entry.Path.Name, entry.Namespace, image);
         }
 
         public IEnumerator<HashTableEntry<ResourceNamespace, UpperString, Image>> GetEnumerator()
         {
-            foreach (var imageData in images)
+            foreach (var imageData in m_images)
                 yield return imageData;
+        }
+
+        public void ClearImages()
+        {
+            NotifyAllImagesDeleted();
+            foreach (var image in m_images)
+                image.Value.Bitmap.Dispose();
+            m_images.Clear();
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
