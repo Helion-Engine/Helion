@@ -11,6 +11,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using OpenTK;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
@@ -36,7 +37,32 @@ namespace Helion.Render.OpenGL
             SetGLDebugger();
         }
 
+        public void ClearWorld()
+        {
+            worldRenderer.ClearWorld();
+        }
+
         ~GLRenderer() => Dispose(false);
+
+        public static Matrix4 CreateMVP(RenderInfo renderInfo)
+        {
+            // TODO: Get config values for this.
+            float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
+            Matrix4.CreatePerspectiveFieldOfView(Util.MathHelper.QuarterPi, aspectRatio, 16.0f, 8192.0f, out Matrix4 projection);
+
+            // Note that we have no model matrix, everything is already in the
+            // world space.
+            //
+            // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
+            // of left multiplication. Instead of doing p * v * m, it has to
+            // be done in the opposite direction (m * v * p) due to a design
+            // decision according to a lead developer. This will seem wrong
+            // for anyone used to the C++/OpenGL way of multiplying.
+            Matrix4 view = Camera.ViewMatrix(renderInfo.CameraInfo);
+            Matrix4 mvp = view * projection;
+            
+            return mvp;
+        }
 
         private void SetGLStates()
         {

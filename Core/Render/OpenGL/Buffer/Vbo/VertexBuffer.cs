@@ -17,6 +17,7 @@ namespace Helion.Render.OpenGL.Buffer.Vbo
         private int typeByteSize;
         private DynamicArray<T> data = new DynamicArray<T>();
 
+        public int Count => data.Length;
         public bool Empty => data.Length == 0;
         public bool NotEmpty => !Empty;
 

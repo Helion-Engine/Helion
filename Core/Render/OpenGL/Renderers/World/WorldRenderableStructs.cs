@@ -5,14 +5,16 @@ namespace Helion.Render.OpenGL.Renderers.World
     public struct WorldVertexFlat
     {
         public int TextureHandle;
+        public bool IsSky;
         public WorldVertex Root;
         public WorldVertex[] Fan;
 
-        public WorldVertexFlat(int textureHandle, WorldVertex root, WorldVertex[] fan)
+        public WorldVertexFlat(int textureHandle, bool isSky, WorldVertex root, WorldVertex[] fan)
         {
             Precondition(fan.Length >= 2, "A fan must at least form a triangle");
 
             TextureHandle = textureHandle;
+            IsSky = isSky;
             Root = root;
             Fan = fan;
         }
@@ -33,16 +35,20 @@ namespace Helion.Render.OpenGL.Renderers.World
     public struct WorldVertexWall
     {
         public bool NoTexture;
+        public bool IsSky;
+        public bool FloorHigherThanCeiling;
         public int TextureHandle;
         public WorldVertex TopLeft;
         public WorldVertex TopRight;
         public WorldVertex BottomLeft;
         public WorldVertex BottomRight;
 
-        public WorldVertexWall(bool noTexture, int textureHandle, WorldVertex topLeft, WorldVertex topRight,
+        public WorldVertexWall(bool noTexture, bool isSky, int textureHandle, WorldVertex topLeft, WorldVertex topRight,
             WorldVertex bottomLeft, WorldVertex bottomRight)
         {
             NoTexture = noTexture;
+            IsSky = isSky;
+            FloorHigherThanCeiling = (bottomLeft.Z > topLeft.Z || bottomRight.Z > topRight.Z);
             TextureHandle = textureHandle;
             TopLeft = topLeft;
             TopRight = topRight;
@@ -52,7 +58,7 @@ namespace Helion.Render.OpenGL.Renderers.World
     }
 
     // TODO: Would it be better to have middle/upper/lower here instead of the
-    // array in case it means this is just a reference? (no locality?)
+    //       array in case it means this is just a reference? (no locality?)
     public struct WorldVertexSegment
     {
         public WorldVertexWall[] Walls;

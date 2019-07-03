@@ -154,6 +154,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 return new SubsectorEdge(segment.Start, segment.End);
 
             Line line = lines[segment.LineId];
+            
             bool isFront = segment.SameDirection(line.Segment);
             int sectorId = isFront ? segment.FrontSectorId : segment.BackSectorId;
 
