@@ -16,8 +16,8 @@ namespace Helion.Render.OpenGL.Texture
         private bool disposed;
         private readonly GLInfo info;
         private readonly float AnisotropyMax = GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
-        private readonly List<GLTexture> textures = new List<GLTexture>();
-        private readonly Dictionary<UpperString, GLTexture> nameToTexture = new Dictionary<UpperString, GLTexture>();
+        private readonly List<GLTexture> m_textures = new List<GLTexture>();
+        private readonly Dictionary<UpperString, GLTexture> m_nameToTexture = new Dictionary<UpperString, GLTexture>();
 
         public GLTextureManager(GLInfo glInfo, Project project)
         {
@@ -102,25 +102,25 @@ namespace Helion.Render.OpenGL.Texture
 
         private void TrackTexture(GLTexture texture, UpperString name, ResourceNamespace resourceNamespace)
         {
-            textures.Add(texture);
+            m_textures.Add(texture);
 
             // TODO: Support namespace handling as well.
-            nameToTexture[name] = texture;
+            m_nameToTexture[name] = texture;
         }
 
         private void DestroyTexture(GLTexture texture) => GL.DeleteTexture(texture.Handle);
 
         private void DestroyAllTextures()
         {
-            textures.ForEach(DestroyTexture);
-            textures.Clear();
-            nameToTexture.Clear();
+            m_textures.ForEach(DestroyTexture);
+            m_nameToTexture.Clear();
+            m_nameToTexture.Clear();
         }
 
         public void CreateOrUpdateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
         {
             // TODO: Lookup by namespace as well, need a ResourceNamespaceTracker.
-            if (nameToTexture.ContainsKey(name))
+            if (m_nameToTexture.ContainsKey(name))
             {
                 // TODO: Update if exists
             }
@@ -133,22 +133,28 @@ namespace Helion.Render.OpenGL.Texture
 
         public void DeleteTexture(UpperString name)
         {
-            // TODO
+            if (m_nameToTexture.ContainsKey(name))
+            {
+                var texture = m_nameToTexture[name];
+                DestroyTexture(texture);
+                m_textures.Remove(texture);
+                m_nameToTexture.Remove(name);
+            }
         }
 
         public GLTexture Get(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
             // TODO: Support namespaces as an optional parameter.
-            return nameToTexture.TryGetValue(name, out GLTexture texture) ? texture : NullTexture;
+            return m_nameToTexture.TryGetValue(name, out GLTexture texture) ? texture : NullTexture;
         }
 
         public GLTexture Get(int index)
         {
-            if (index >= 0 && index < textures.Count)
-                return textures[index];
+            if (index >= 0 && index < m_textures.Count)
+                return m_textures[index];
             else
             {
-                Fail($"Texture index out of range, {index} not in [0, {textures.Count})");
+                Fail($"Texture index out of range, {index} not in [0, {m_textures.Count})");
                 return NullTexture;
             }
         }

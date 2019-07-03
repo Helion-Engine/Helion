@@ -48,13 +48,30 @@ namespace Helion.Client
 
             // TODO: Temporary!
             // ================================================================
-            (Map? map, MapEntryCollection? MapEntryCollection) = project.GetMap("MAP01");
+            LoadMap("MAP01");
+            // ================================================================
+        }
+
+        private void LoadMap(string mapName)
+        {
+            (Map? map, MapEntryCollection? MapEntryCollection) = project.GetMap(mapName);
             if (map != null)
             {
+                log.Info($"LoadMap {mapName}");
+
+                System.DateTime dtStart = System.DateTime.Now;
+
+                renderer.ClearWorld();               
+                project.Resources.LoadMapResources(project, map);       
                 world = SinglePlayerWorld.Create(project, map, MapEntryCollection);
+
+                log.Info($"Load Time {System.DateTime.Now.Subtract(dtStart).TotalMilliseconds}");
+
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
+
                 ticker.Start();
             }
-            // ================================================================
         }
         
         private static GraphicsMode CreateGraphicsMode()
