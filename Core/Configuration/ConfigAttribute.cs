@@ -9,4 +9,8 @@ namespace Helion.Configuration
     public class ConfigComponent : Attribute
     {
     }
+    
+    public class ConfigValueComponent : Attribute
+    {
+    }
 }

@@ -36,7 +36,7 @@ namespace Helion.Client
 
         public Client(CommandLineArgs args, Config configuration) : 
             base(configuration.Engine.Window.Width, configuration.Engine.Window.Height, 
-                 CreateGraphicsMode(), Constants.ApplicationName, GameWindowFlags.Default)
+                 CreateGraphicsMode(configuration), Constants.ApplicationName, GameWindowFlags.Default)
         {
             commandLineArgs = args;
             config = configuration;
@@ -44,6 +44,7 @@ namespace Helion.Client
             tickCollection = inputManager.RegisterCollection();
             inputAdapter.InputEventEmitter += inputManager.HandleInputEvent;
 
+            SetWindowProperties();
             LoadProject();
 
             GLInfo glInfo = new GLInfo();
@@ -52,9 +53,17 @@ namespace Helion.Client
             project.Resources.ImageManager.ImageEventEmitter += renderer.HandleTextureEvent;
 
             // TODO: Temporary!
-            // ================================================================
             LoadMap("MAP01");
-            // ================================================================
+        }
+
+        private void SetWindowProperties()
+        {
+            // TODO: Should register for updates for these!
+            
+            VSync = config.Engine.Window.VSync.Get().ToOpenTKVSync();
+            WindowState = config.Engine.Window.State.Get().ToOpenTKWindowState();
+            CursorVisible = false; // TODO: Should be configurable.
+
         }
 
         private void LoadMap(string mapName)
@@ -79,10 +88,13 @@ namespace Helion.Client
             }
         }
         
-        private static GraphicsMode CreateGraphicsMode()
+        private static GraphicsMode CreateGraphicsMode(Config config)
         {
-            // TODO: Should read value from config for samples
-            return new GraphicsMode(new ColorFormat(32), 24, 8, 4);
+            ColorFormat colorFormat = new ColorFormat(32);
+            
+            if (config.Engine.Render.Multisample.Enable)
+                return new GraphicsMode(colorFormat, 24, 8, config.Engine.Render.Multisample.Value);
+            return new GraphicsMode(colorFormat, 24, 8, 0);
         }
 
         private void LoadProject()
@@ -229,22 +241,6 @@ namespace Helion.Client
             base.OnUnload(e);
         }
 
-        private static VSyncMode FromVSyncEnum(VerticalSync vsync)
-        {
-            switch (vsync)
-            {
-            case VerticalSync.On:
-                return VSyncMode.On;
-            case VerticalSync.Off:
-                return VSyncMode.Off;
-            case VerticalSync.Adaptive:
-                return VSyncMode.Adaptive;
-            default:
-                log.Error("Missing vsync type, defaulting to adaptive");
-                goto case VerticalSync.Adaptive;
-            }
-        }
-
         public static void Main(string[] args)
         {
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
@@ -254,14 +250,9 @@ namespace Helion.Client
             log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
             log.Info("=========================================");
             
-            Config config = new Config();
-
-            using (Client client = new Client(cmdArgs, config))
+            using (Config config = new Config())
             {
-                client.VSync = FromVSyncEnum(config.Engine.Window.VSync);
-                client.CursorVisible = false; // TODO: Should be configurable.
-                client.WindowState = WindowState.Fullscreen; // TODO: Should be configurable.
-                
+                using Client client = new Client(cmdArgs, config);
                 client.Run();
             }
 

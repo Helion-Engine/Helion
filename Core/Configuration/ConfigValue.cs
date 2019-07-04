@@ -11,6 +11,7 @@ namespace Helion.Configuration
         public ConfigValueEvent(T newValue) => NewValue = newValue;
     }
 
+    [ConfigValueComponent]
     public class ConfigValue<T> where T : IConvertible
     {
         public event EventHandler<ConfigValueEvent<T>> OnChanged;
@@ -61,6 +62,8 @@ namespace Helion.Configuration
                 return true;
             }
         }
+
+        public T Get() => value;
         
         public void Set(T newValue)
         {

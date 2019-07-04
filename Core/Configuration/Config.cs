@@ -1,5 +1,6 @@
 using Helion.Render.Shared;
 using Helion.Window;
+using System;
 
 namespace Helion.Configuration
 {
@@ -49,12 +50,12 @@ namespace Helion.Configuration
         public readonly ConfigValue<FilterType> Filter = new ConfigValue<FilterType>(FilterType.Trilinear);
         public readonly ConfigValue<double> FieldOfView = new ConfigValue<double>(45.0);
     }
-    
+
+    [ConfigComponent]
     public class EngineWindowConfig
     {
-        public readonly ConfigValue<bool> Fullscreen = new ConfigValue<bool>(true);
         public readonly ConfigValue<int> Height = new ConfigValue<int>(768);
-        public readonly ConfigValue<bool> NativeResolution = new ConfigValue<bool>(true);
+        public readonly ConfigValue<WindowSize> State = new ConfigValue<WindowSize>(WindowSize.Fullscreen);
         public readonly ConfigValue<VerticalSync> VSync = new ConfigValue<VerticalSync>(VerticalSync.Off);
         public readonly ConfigValue<int> Width = new ConfigValue<int>(1024);
     }
@@ -62,29 +63,32 @@ namespace Helion.Configuration
     [ConfigSection]
     public class EngineConfig
     {
-        public readonly EngineConsoleConfig Config = new EngineConsoleConfig();
+        public readonly EngineConsoleConfig Console = new EngineConsoleConfig();
         public readonly EngineDeveloperConfig Developer = new EngineDeveloperConfig();
         public readonly EngineMouseConfig Mouse = new EngineMouseConfig();
         public readonly EngineRenderConfig Render = new EngineRenderConfig();
         public readonly EngineWindowConfig Window = new EngineWindowConfig();
     }
     
-    public class Config
+    public class Config : IDisposable
     {
-        private readonly string configPath;
-        
         public readonly EngineConfig Engine = new EngineConfig();
+        private readonly string configPath;
+        private bool disposed;
 
         public Config(string path = "config.ini")
         {
             configPath = path;
-            ConfigReflectionHandler.ReadIntoFieldsRecursively(this, configPath);
+            ConfigReflectionReader.ReadIntoFieldsRecursively(this, configPath);
         }
-
-        ~Config()
+        
+        public void Dispose()
         {
-            // TODO: Only write to disk if something changed.
-            ConfigReflectionHandler.WriteFieldsRecursively(this, configPath);
+            if (disposed) 
+                return;
+            
+            ConfigReflectionWriter.WriteFieldsRecursively(this, configPath);
+            disposed = true;
         }
     }
 }
