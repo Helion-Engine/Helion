@@ -28,6 +28,9 @@ namespace Helion.Util
         [Option]
         public bool TimestampLogFile { get; set; } = false;
 
+        [Option("warp", Required = false, HelpText = "The level to warp to")]
+        public int Warp { get; set; } = 0;
+
         private static void HandleParsingError(CommandLineArgs result)
         {
             result.ErrorWhileParsing = true;

@@ -52,8 +52,9 @@ namespace Helion.Client
             PrintGLInfo(glInfo);
             project.Resources.ImageManager.ImageEventEmitter += renderer.HandleTextureEvent;
 
-            // TODO: Temporary!
-            LoadMap("MAP01");
+            // TODO: Very temporary!
+            int levelNumber = (commandLineArgs.Warp != 0 ? commandLineArgs.Warp : 1);
+            LoadMap("MAP" + levelNumber.ToString().PadLeft(2, '0'));
         }
 
         private void SetWindowProperties()
@@ -249,6 +250,9 @@ namespace Helion.Client
             log.Info("=========================================");
             log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
             log.Info("=========================================");
+            
+            if (cmdArgs.ErrorWhileParsing)
+                log.Error("Bad command line arguments, unexpected results may follow");
             
             using (Config config = new Config())
             {
