@@ -28,7 +28,6 @@ namespace Helion.Subsystems.OpenTK
         private readonly Action gameLoopFunc;
         private readonly OpenTKInputAdapter inputAdapter = new OpenTKInputAdapter();
         private bool disposed;
-        private InputEvent currentInput = new InputEvent();
         
         public OpenTKWindow(Config cfg, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
