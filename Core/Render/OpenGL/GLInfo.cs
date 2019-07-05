@@ -1,5 +1,6 @@
 ﻿using NLog;
 using OpenTK.Graphics.OpenGL;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Helion.Render.OpenGL
@@ -13,6 +14,7 @@ namespace Helion.Render.OpenGL
         public readonly GLVersion Version = GetGLVersion(GL.GetString(StringName.Version));
         public readonly string ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
         public readonly string Renderer = GL.GetString(StringName.Renderer);
+        public readonly Extensions Extensions = new Extensions();
 
         private static GLVersion GetGLVersion(string version)
         {
@@ -34,5 +36,22 @@ namespace Helion.Render.OpenGL
             log.Error("Unable to read OpenGL major version from: {0}", version);
             return new GLVersion(0, 0);
         }
+    }
+
+    public class Extensions
+    {
+        public readonly bool TextureFilterAnisotropic;
+        private HashSet<string> extensions = new HashSet<string>();
+
+        public Extensions()
+        {
+            int count = GL.GetInteger(GetPName.NumExtensions);
+            for (var i = 0; i < count; i++)
+                extensions.Add(GL.GetString(StringNameIndexed.Extensions, i));
+
+            TextureFilterAnisotropic = HasExtension("GL_EXT_texture_filter_anisotropic"); 
+        }
+
+        public bool HasExtension(string extensionName) => extensions.Contains(extensionName);
     }
 }

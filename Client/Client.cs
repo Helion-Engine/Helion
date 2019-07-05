@@ -48,7 +48,7 @@ namespace Helion.Client
             LoadProject();
 
             GLInfo glInfo = new GLInfo();
-            renderer = new GLRenderer(glInfo, project);
+            renderer = new GLRenderer(glInfo, config, project);
             PrintGLInfo(glInfo);
             project.Resources.ImageManager.ImageEventEmitter += renderer.HandleTextureEvent;
 

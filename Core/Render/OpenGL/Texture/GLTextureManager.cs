@@ -1,5 +1,7 @@
-﻿using Helion.Graphics;
+﻿using Helion.Configuration;
+using Helion.Graphics;
 using Helion.Projects;
+using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Geometry;
@@ -15,13 +17,15 @@ namespace Helion.Render.OpenGL.Texture
         public readonly GLTexture NullTexture;
         private bool disposed;
         private readonly GLInfo info;
+        private readonly Config config;
         private readonly float AnisotropyMax = GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
         private readonly List<GLTexture> m_textures = new List<GLTexture>();
         private readonly Dictionary<UpperString, GLTexture> m_nameToTexture = new Dictionary<UpperString, GLTexture>();
 
-        public GLTextureManager(GLInfo glInfo, Project project)
+        public GLTextureManager(GLInfo glInfo, Config cfg, Project project)
         {
             info = glInfo;
+            config = cfg;
             NullTexture = CreateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
         }
 
@@ -67,16 +71,28 @@ namespace Helion.Render.OpenGL.Texture
 
         private void SetTextureParameters()
         {
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLHelper.MinToMagFilter(TextureMinFilter.LinearMipmapLinear));
+            // TODO: This should be on some kind of callback from the config.
+            TextureMinFilter minFilter = config.Engine.Render.Filter.Get().ToOpenTKTextureMinFilter();
+            TextureMagFilter magFilter = GLHelper.MinToMagFilter(minFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
 
             // TODO: This should be 'clamp to edge' for sprites.
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            // TODO: We should check if this is supported first.
-            TextureParameterName anisotropyPname = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
-            GL.TexParameter(TextureTarget.Texture2D, anisotropyPname, AnisotropyMax);
+            // TODO: This should be on some kind of callback from the config.
+            if (info.Extensions.TextureFilterAnisotropic && config.Engine.Render.Anisotropy.Enable)
+            {
+                float anisostropy = (float)config.Engine.Render.Anisotropy.Value;
+                if (config.Engine.Render.Anisotropy.UseMaxSupported)
+                    anisostropy = AnisotropyMax;
+
+                anisostropy = Math.Max(1.0f, Math.Min(anisostropy, AnisotropyMax));
+
+                TextureParameterName anisotropyPname = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+                GL.TexParameter(TextureTarget.Texture2D, anisotropyPname, anisostropy);
+            }
         }
 
         private GLTexture CreateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)

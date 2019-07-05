@@ -1,4 +1,4 @@
-using System;
+using NLog;
 using OpenTK;
 
 namespace Helion.Window
@@ -12,6 +12,8 @@ namespace Helion.Window
 
     public static class VerticalSyncExtensions
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
         public static VSyncMode ToOpenTKVSync(this VerticalSync vsync)
         {
             switch (vsync)
@@ -23,7 +25,8 @@ namespace Helion.Window
             case VerticalSync.Adaptive:
                 return VSyncMode.Adaptive;
             default:
-                throw new ArgumentOutOfRangeException(nameof(vsync), vsync, "Unknown vsync enumeration");
+                log.Error("Unknown VSync type, defauling to Off");
+                goto case VerticalSync.Off;
             }
         }
     }

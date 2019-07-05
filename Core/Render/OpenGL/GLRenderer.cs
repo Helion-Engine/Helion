@@ -1,4 +1,5 @@
-﻿using Helion.Projects;
+﻿using Helion.Configuration;
+using Helion.Projects;
 using Helion.Render.OpenGL.Renderers.Console;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
@@ -26,10 +27,10 @@ namespace Helion.Render.OpenGL
         private WorldRenderer worldRenderer;
         private readonly GLInfo info;
 
-        public GLRenderer(GLInfo glInfo, Project project)
+        public GLRenderer(GLInfo glInfo, Config cfg, Project project)
         {
             info = glInfo;
-            textureManager = new GLTextureManager(glInfo, project);
+            textureManager = new GLTextureManager(glInfo, cfg, project);
             consoleRenderer = new ConsoleRenderer(textureManager);
             worldRenderer = new WorldRenderer(textureManager);
 
