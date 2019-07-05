@@ -14,8 +14,6 @@ namespace Helion.Util
         /// </summary>
         public bool ErrorWhileParsing = false;
 
-        // TODO: When we screw up the command line arguments, this gets set
-        // with some erroneous values, don't let that happen.
         [Option('f', "file", Required = false, HelpText = "A list of files to load")]
         public IList<string> Files { get; set; } = new List<string>();
 
@@ -29,7 +27,7 @@ namespace Helion.Util
         public bool TimestampLogFile { get; set; } = false;
 
         [Option("warp", Required = false, HelpText = "The level to warp to")]
-        public int Warp { get; set; } = 0;
+        public int? Warp { get; set; }
 
         private static void HandleParsingError(CommandLineArgs result)
         {

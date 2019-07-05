@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.Shared
@@ -6,6 +7,7 @@ namespace Helion.Render.Shared
     /// <summary>
     /// A simple container for render-related information.
     /// </summary>
+    //[Obsolete("Use WorldRenderInfo instead.")]
     public class RenderInfo
     {
         public readonly Camera Camera;

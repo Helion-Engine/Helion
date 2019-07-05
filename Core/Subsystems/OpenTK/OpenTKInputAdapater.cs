@@ -1,11 +1,15 @@
-﻿using Helion.Util.Geometry;
+﻿using Helion.Input;
+using Helion.Util.Geometry;
+using MoreLinq;
 using OpenTK;
 using OpenTK.Input;
 
-namespace Helion.Input.Adapter
+namespace Helion.Subsystems.OpenTK
 {
-    public class OpenTKInputAdapter : InputAdapter
+    public class OpenTKInputAdapter
     {
+        private InputEvent inputEvent = new InputEvent();
+        
         private static InputKey ToInputKey(Key key)
         {
             switch (key)
@@ -219,56 +223,45 @@ namespace Helion.Input.Adapter
             }
         }
 
-        public void HandleMouseMovement(Vec2I deltaPixels /* MouseMoveEventArgs e */)
+        public void HandleMouseMovement(Vec2I deltaPixels)
         {
-            InputEventArgs inputEvent = new InputEventArgs();
-            inputEvent.MouseInput.Delta = new Vec2I(-deltaPixels.X, -deltaPixels.Y);
-            EmitEvent(inputEvent);
+            inputEvent.MouseInput.Delta += new Vec2I(-deltaPixels.X, -deltaPixels.Y);
         }
 
         public void HandleMouseWheelInput(MouseWheelEventArgs e)
         {
             // Note: We can also access e.DeltaPrecise to support better
             // scrolling in high quality mice.
-
-            InputEventArgs inputEvent = new InputEventArgs();
-            inputEvent.MouseInput.ScrollDelta = e.Delta;
-            EmitEvent(inputEvent);
+            inputEvent.MouseInput.ScrollDelta += e.Delta;
         }
 
         public void HandleKeyPress(KeyPressEventArgs e)
         {
-            InputEventArgs inputEvent = new InputEventArgs();
             inputEvent.CharactersTyped.Add(e.KeyChar);
-            EmitEvent(inputEvent);
         }
 
         public void HandleKeyDown(KeyboardKeyEventArgs e)
         {
-            InputEventArgs inputEvent = new InputEventArgs();
-
             InputKey inputKey = ToInputKey(e.Key);
             if (inputKey != InputKey.Unknown)
                 inputEvent.InputDown.Add(inputKey);
-
-            EmitEvent(inputEvent);
         }
 
         public void HandleKeyUp(KeyboardKeyEventArgs e)
         {
-            InputEventArgs inputEvent = new InputEventArgs();
-
             InputKey inputKey = ToInputKey(e.Key);
             if (inputKey != InputKey.Unknown)
-                inputEvent.InputUp.Add(inputKey);
-
-            EmitEvent(inputEvent);
+                inputEvent.InputDown.Remove(inputKey);
         }
 
-        public override void PollInput()
+        public InputEvent PollInput()
         {
-            // Due to how the implementation is set up, we don't need to poll
-            // because the listeners on the GameWindow do all of that for us.
+            InputEvent eventToReturn = inputEvent;
+            
+            inputEvent = new InputEvent();
+            eventToReturn.InputDown.ForEach(keyDown => inputEvent.InputPrevDown.Add(keyDown));
+            
+            return eventToReturn;
         }
     }
 }

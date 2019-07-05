@@ -3,24 +3,24 @@ using OpenTK;
 
 namespace Helion.Window
 {
-    public enum WindowSize
+    public enum WindowStatus
     {
         Windowed,
         Fullscreen
     }
 
-    public static class WindowSizeExtensions
+    public static class WindowStatusExtensions
     {
-        public static WindowState ToOpenTKWindowState(this WindowSize windowSize)
+        public static WindowState ToOpenTKWindowState(this WindowStatus windowStatus)
         {
-            switch (windowSize)
+            switch (windowStatus)
             {
-            case WindowSize.Windowed:
+            case WindowStatus.Windowed:
                 return WindowState.Normal;
-            case WindowSize.Fullscreen:
+            case WindowStatus.Fullscreen:
                 return WindowState.Fullscreen;
             default:
-                throw new ArgumentOutOfRangeException(nameof(windowSize), windowSize, "Unknown WindowSize enumeration");
+                throw new ArgumentOutOfRangeException(nameof(windowStatus), windowStatus, "Unknown WindowSize enumeration");
             }
         }
     }

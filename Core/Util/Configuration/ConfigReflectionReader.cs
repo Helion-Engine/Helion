@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using static Helion.Util.Assert;
 
-namespace Helion.Configuration
+namespace Helion.Util.Configuration
 {
     public static class ConfigReflectionReader
     {

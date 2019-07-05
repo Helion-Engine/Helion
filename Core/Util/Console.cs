@@ -1,4 +1,5 @@
 ﻿using Helion.Graphics.String;
+using Helion.Util.Configuration;
 using Helion.Util.Extensions;
 using NLog;
 using NLog.Targets;
@@ -22,7 +23,7 @@ namespace Helion.Util
     public class Console : Target
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
-        private static readonly string TargetName = "HelionConsole";
+        private static readonly string targetName = "HelionConsole";
 
         /// <summary>
         /// How many console messages wil be logged. Any more than this will
@@ -61,34 +62,51 @@ namespace Helion.Util
         /// <summary>
         /// The event handler that emits console commands on user input.
         /// </summary>
-        public event EventHandler<ConsoleCommandEventArgs> ConsoleCommandEmitter;
+        public event EventHandler<ConsoleCommandEventArgs> OnConsoleCommandEvent;
 
+        private readonly Config config;
         private readonly StringBuilder input = new StringBuilder();
-        private bool disposed = false;
+        private bool disposed;
 
-        private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
-        private static bool IsBackspaceCharacter(char c) => c == 8;
-        private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
-
-        public Console()
+        public Console(Config cfg)
         {
-            Name = TargetName;
+            Name = targetName;
+            config = cfg;
+            
+            Capacity = config.Engine.Console.MaxMessages;
+            config.Engine.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
+
             AddToLogger();
         }
 
-        ~Console() => Dispose(false);
+        ~Console()
+        {
+            Dispose(false);
+        }
+        
+        private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
+        
+        private static bool IsBackspaceCharacter(char c) => c == 8;
+        
+        private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
 
+        private void OnMaxMessagesChanged(object sender, ConfigValueEvent<int> maxMsgEvent)
+        {
+            Capacity = Math.Max(1, maxMsgEvent.NewValue);
+            RemoveExcessMessagesIfAny();
+        }
+        
         private void AddToLogger()
         {
             var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
-            LogManager.Configuration.AddTarget(TargetName, this);
+            LogManager.Configuration.AddTarget(targetName, this);
             LogManager.Configuration.LoggingRules.Add(rule);
             LogManager.ReconfigExistingLoggers();
         }
 
         private void RemoveLogger()
         {
-            LogManager.Configuration.RemoveTarget(TargetName);
+            LogManager.Configuration.RemoveTarget(targetName);
         }
 
         private void RemoveExcessMessagesIfAny()
@@ -121,11 +139,11 @@ namespace Helion.Util
             string inputText = input.ToString();
             ClearInputText();
 
-            if (inputText.NotEmpty())
-            {
-                log.Info(inputText);
-                ConsoleCommandEmitter?.Invoke(this, new ConsoleCommandEventArgs(inputText));
-            }
+            if (inputText.Empty())
+                return;
+
+            log.Info(inputText);
+            OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(inputText));
         }
 
         /// <summary>
@@ -173,22 +191,6 @@ namespace Helion.Util
             Array.ForEach(text.ToCharArray(), AddInput);
         }
 
-        /// <summary>
-        /// Sets the capacity. If it is smaller than the number of existing
-        /// strings, it will prune the older ones.
-        /// </summary>
-        /// <remarks>
-        /// This will not let you enter a negative or zero
-        /// </remarks>
-        /// <param name="capacity"></param>
-        public void SetCapacity(int capacity)
-        {
-            Precondition(capacity > 0, "Should never be trying to set a non-positive capcity to the console");
-
-            Capacity = Math.Max(1, capacity);
-            RemoveExcessMessagesIfAny();
-        }
-
         protected override void Write(LogEventInfo logEvent)
         {
             // We can't switch on this because the values are not a constant.
@@ -218,6 +220,8 @@ namespace Helion.Util
 
             if (disposing)
             {
+                config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+                
                 // TODO: Investigate whether this is correct or not, the logger
                 // documentation isn't clear and stackoverflow has some unusual
                 // results for how to properly remove the logger.
@@ -248,10 +252,10 @@ namespace Helion.Util
         /// <summary>
         /// The arguments (if any) that came with the command.
         /// </summary>
-        public readonly List<string> Args = new List<string>();
+        public readonly IList<string> Args = new List<string>();
 
         /// <summary>
-        /// Parsest the text provided into a console command event.
+        /// Parses the text provided into a console command event.
         /// </summary>
         /// <param name="text">The input to parse. This should not be empty.
         /// </param>
@@ -268,6 +272,6 @@ namespace Helion.Util
                 Args.Add(tokens[i]);
         }
 
-        public override string ToString() => $"{Args} [{string.Join(", ", Args.ToArray())}]";
+        public override string ToString() => $"{Command} [{string.Join(", ", Args)}]";
     }
 }

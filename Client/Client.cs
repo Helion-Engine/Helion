@@ -1,245 +1,136 @@
-﻿using Helion.Configuration;
-using Helion.Input;
-using Helion.Input.Adapter;
-using Helion.Maps;
+﻿using Helion.Input;
+using Helion.Layer;
+using Helion.Layer.Impl;
+using Helion.Projects;
 using Helion.Projects.Impl.Local;
-using Helion.Render.OpenGL;
-using Helion.Render.Shared;
+using Helion.Render;
+using Helion.Render.Commands;
+using Helion.Subsystems.OpenTK;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Geometry;
-using Helion.Util.Time;
-using Helion.Window;
-using Helion.World.Impl.SinglePlayer;
 using NLog;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using System;
+using Console = Helion.Util.Console;
 
 namespace Helion.Client
 {
-    public class Client : GameWindow
+    public class Client : IDisposable
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs commandLineArgs;
+        private readonly Console console;
         private readonly Config config;
-        private readonly Console console = new Console();
-        private readonly InputManager inputManager = new InputManager();
-        private readonly OpenTKInputAdapter inputAdapter = new OpenTKInputAdapter();
-        private readonly InputCollection frameCollection;
-        private readonly InputCollection tickCollection;
-        private readonly LocalProject project = new LocalProject();
-        private readonly Ticker ticker = new Ticker(Constants.TicksPerSecond);
-        private bool shouldExit = false;
-        private GLRenderer renderer;
-        private SinglePlayerWorld? world;
+        private readonly OpenTKWindow window;
+        private bool disposed;
+        private Project project = new LocalProject();
+        private GameLayerManager layerManager = new GameLayerManager();
 
-        public Client(CommandLineArgs args, Config configuration) : 
-            base(configuration.Engine.Window.Width, configuration.Engine.Window.Height, 
-                 CreateGraphicsMode(configuration), Constants.ApplicationName, GameWindowFlags.Default)
+        public Client(CommandLineArgs cmdArgs, Config configuration)
         {
-            commandLineArgs = args;
+            commandLineArgs = cmdArgs;
             config = configuration;
-            frameCollection = inputManager.RegisterCollection();
-            tickCollection = inputManager.RegisterCollection();
-            inputAdapter.InputEventEmitter += inputManager.HandleInputEvent;
+            console = new Console(config);
+            window = new OpenTKWindow(config, RunGameLoop);
 
-            SetWindowProperties();
-            LoadProject();
-
-            GLInfo glInfo = new GLInfo();
-            renderer = new GLRenderer(glInfo, project);
-            PrintGLInfo(glInfo);
-            project.Resources.ImageManager.ImageEventEmitter += renderer.HandleTextureEvent;
-
-            // TODO: Very temporary!
-            int levelNumber = (commandLineArgs.Warp != 0 ? commandLineArgs.Warp : 1);
-            LoadMap("MAP" + levelNumber.ToString().PadLeft(2, '0'));
+            console.OnConsoleCommandEvent += OnConsoleCommand;
         }
 
-        private void SetWindowProperties()
+        private void OnConsoleCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
         {
-            // TODO: Should register for updates for these!
-            
-            VSync = config.Engine.Window.VSync.Get().ToOpenTKVSync();
-            WindowState = config.Engine.Window.State.Get().ToOpenTKWindowState();
-            CursorVisible = false; // TODO: Should be configurable.
-
-        }
-
-        private void LoadMap(string mapName)
-        {
-            (Map? map, MapEntryCollection? MapEntryCollection) = project.GetMap(mapName);
-            if (map != null)
+            // TODO: This function will get ugly and bloated *very* quickly...
+            switch (ccmdArgs.Command.ToString())
             {
-                log.Info($"LoadMap {mapName}");
-
-                System.DateTime dtStart = System.DateTime.Now;
-
-                renderer.ClearWorld();               
-                project.Resources.LoadMapResources(project, map);       
-                world = SinglePlayerWorld.Create(project, map, MapEntryCollection);
-
-                log.Info($"Load Time {System.DateTime.Now.Subtract(dtStart).TotalMilliseconds}");
-
-                System.GC.Collect();
-                System.GC.WaitForPendingFinalizers();
-
-                ticker.Start();
+            case "EXIT":
+                window.Close();
+                break;
+            
+            case "MAP":
+                if (ccmdArgs.Args.Count == 0)
+                {
+                    log.Info("Usage: map <mapName>");
+                    break;
+                }
+                UpperString mapName = ccmdArgs.Args[0];
+                SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(mapName, project);
+                if (layer != null)
+                    layerManager.Add(layer);
+                break;
             }
         }
         
-        private static GraphicsMode CreateGraphicsMode(Config config)
-        {
-            ColorFormat colorFormat = new ColorFormat(32);
-            
-            if (config.Engine.Render.Multisample.Enable)
-                return new GraphicsMode(colorFormat, 24, 8, config.Engine.Render.Multisample.Value);
-            return new GraphicsMode(colorFormat, 24, 8, 0);
-        }
-
-        private void LoadProject()
+        private void HandleCommandLineArgs()
         {
             if (!project.Load(commandLineArgs.Files))
-            {
-                log.Error("Unable to load files for the client");
-                shouldExit = true;
-            }
+                log.Error("Unable to load files at startup");
+
+            if (commandLineArgs.Warp != null)
+                console.AddInput($"map MAP{commandLineArgs.Warp.ToString().PadLeft(2, '0')}\n");
+        }
+        
+        private void HandleInput()
+        {
+            layerManager.HandleInput(new ConsumableInput(window.PollInput()));
         }
 
-        private void PrintGLInfo(GLInfo glInfo)
+        private void RunLogic()
         {
-            log.Info("Loaded OpenGL v{0}", glInfo.Version);
-            log.Info("OpenGL Shading Language: {0}", glInfo.ShadingVersion);
-            log.Info("Vendor: {0}", glInfo.Vendor);
-            log.Info("Hardware: {0}", glInfo.Renderer);
+            layerManager.RunLogic();
         }
 
-        private void CheckForExit()
+        private void Render()
         {
-            KeyboardState keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Key.AltLeft) && keyboardState.IsKeyDown(Key.F4))
-                shouldExit = true;
+            Dimension windowDimension = window.GetDimension();
+            IRenderer renderer = window.GetRenderer();
+            RenderCommands renderCommands = new RenderCommands(windowDimension);
 
-            // We may not be the only place who sets `shouldExit = true`, so we
-            // need to keep them separated.
-            if (shouldExit)
-                Exit();
+            renderCommands.Viewport(windowDimension);
+            renderCommands.Clear();
+            layerManager.Render(renderCommands);
+
+            renderer.Render(renderCommands);
+        }
+        
+        private void RunGameLoop()
+        {
+            HandleInput();
+            RunLogic();
+            Render();
+        }
+        
+        public void Start()
+        {
+            HandleCommandLineArgs();
+            
+            // Until we move to OpenTK 4.0, we're stuck with 3.0's infinite
+            // loop until exit here. How we get around this right now is giving
+            // a series of callbacks previously that will hook into this
+            // function and invoke stuff here.
+            //
+            // This may seem dumb (and it is), but when we end up supporting
+            // Vulkan (which may run on a different library than OpenTK) it
+            // will allow us to have multiple windows without doing the stuff
+            // below. Further OpenTK 4.0 will expose GLFW so hopefully the
+            // entire 'blocking' problem with this function goes away then.
+            // Their github says that multiple windows are supported now so
+            // we hopefully don't have to change away and do minimal changes
+            // for multi-window support.
+            window.Run();
         }
 
-        private void PollInput()
+        public void Dispose()
         {
-            MouseState state = Mouse.GetCursorState();
-            Vec2I center = new Vec2I(Width / 2, Height / 2);
-            Vec2I deltaPixels = new Vec2I(state.X, state.Y) - center;
-
-            inputAdapter.HandleMouseMovement(deltaPixels);
-        }
-
-        private void RunLogic(TickerInfo tickerInfo)
-        {
-            ConsumableInput consumableTickInput = new ConsumableInput(tickCollection);
-            tickCollection.Tick();
-
-            if (world != null)
-            {
-                int ticksToRun = tickerInfo.Ticks;
-                while (ticksToRun > 0)
-                {
-                    world.HandleTickInput(consumableTickInput);
-                    world.Tick();
-                    ticksToRun--;
-                }
-            }
-
-            CheckForExit();
-        }
-
-        private void Render(TickerInfo tickerInfo)
-        {
-            ConsumableInput consumableFrameInput = new ConsumableInput(frameCollection);
-            frameCollection.Tick();
-
-            renderer.RenderStart(ClientRectangle);
-            renderer.Clear(new System.Drawing.Size(Width, Height));
-
-            if (world != null)
-            {
-                RenderInfo renderInfo = new RenderInfo(world.Camera, tickerInfo.Fraction, ClientRectangle);
-                world.HandleFrameInput(consumableFrameInput);
-                renderer.RenderWorld(world, renderInfo);
-            }
-
-            SwapBuffers();
-        }
-
-        protected override void OnKeyDown(KeyboardKeyEventArgs e)
-        {
-            if (Focused)
-                inputAdapter.HandleKeyDown(e);
-
-            base.OnKeyDown(e);
-        }
-
-        protected override void OnKeyPress(KeyPressEventArgs e)
-        {
-            if (Focused)
-                inputAdapter.HandleKeyPress(e);
-
-            base.OnKeyPress(e);
-        }
-
-        protected override void OnKeyUp(KeyboardKeyEventArgs e)
-        {
-            if (Focused)
-                inputAdapter.HandleKeyUp(e);
-
-            base.OnKeyDown(e);
-        }
-
-        protected override void OnMouseMove(MouseMoveEventArgs e)
-        {
-            if (Focused)
-            {
-                PollInput();
-
-                // Reset the mouse to the center of the screen. Unfortunately
-                // we have to do this ourselves...
-                Vec2I center = new Vec2I(Width / 2, Height / 2);
-                Mouse.SetPosition(X + center.X, Y + center.Y);
-            }
-
-            base.OnMouseMove(e);
-        }
-
-        protected override void OnMouseWheel(MouseWheelEventArgs e)
-        {
-            if (Focused)
-                inputAdapter.HandleMouseWheelInput(e);
-
-            base.OnMouseWheel(e);
-        }
-
-        protected override void OnRenderFrame(FrameEventArgs e)
-        {
-            TickerInfo tickerInfo = ticker.GetTickerInfo();
-            RunLogic(tickerInfo);
-            Render(tickerInfo);
-
-            base.OnRenderFrame(e);
-        }
-
-        protected override void OnUnload(System.EventArgs e)
-        {
-            // Do this here instead of OnClosing() because this is handled
-            // before the OpenGL context is destroyed. This way we clean up
-            // our side of the renderer first.
-            inputAdapter.InputEventEmitter -= inputManager.HandleInputEvent;
-            project.Resources.ImageManager.ImageEventEmitter -= renderer.HandleTextureEvent;
-            renderer.Dispose();
-            console.Dispose();
-
-            base.OnUnload(e);
+            if (disposed)
+                return;
+            
+            console.OnConsoleCommandEvent -= OnConsoleCommand;
+            
+            layerManager.Dispose();
+            window.Dispose();
+            
+            disposed = true;
+            GC.SuppressFinalize(this);
         }
 
         public static void Main(string[] args)
@@ -257,7 +148,7 @@ namespace Helion.Client
             using (Config config = new Config())
             {
                 using Client client = new Client(cmdArgs, config);
-                client.Run();
+                client.Start();
             }
 
             LogManager.Shutdown();

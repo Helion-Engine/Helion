@@ -1,4 +1,3 @@
-using Helion.Util;
 using Helion.Util.Extensions;
 using IniParser;
 using IniParser.Model;
@@ -6,7 +5,7 @@ using NLog;
 using System;
 using System.Reflection;
 
-namespace Helion.Configuration
+namespace Helion.Util.Configuration
 {
     public static class ConfigReflectionWriter
     {

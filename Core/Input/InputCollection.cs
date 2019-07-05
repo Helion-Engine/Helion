@@ -29,7 +29,7 @@ namespace Helion.Input
     public class InputCollection
     {
         /// <summary>
-        /// All the input currentely down since ticking.
+        /// All the input currently down since ticking.
         /// </summary>
         public HashSet<InputKey> InputDown { get; private set; } = new HashSet<InputKey>();
 

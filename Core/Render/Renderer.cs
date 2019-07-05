@@ -1,7 +1,9 @@
+using Helion.Render.Commands;
+
 namespace Helion.Render
 {
-    public class Renderer
+    public interface IRenderer
     {
-        
+        void Render(RenderCommands renderCommands);
     }
 }

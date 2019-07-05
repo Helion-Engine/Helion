@@ -1,6 +1,6 @@
 using System;
 
-namespace Helion.Configuration
+namespace Helion.Util.Configuration
 {
     public class ConfigSection : Attribute
     {

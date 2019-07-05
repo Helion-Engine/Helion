@@ -1,8 +1,7 @@
 using System;
-using Helion.Util;
 using static Helion.Util.Assert;
 
-namespace Helion.Configuration
+namespace Helion.Util.Configuration
 {
     public class ConfigValueEvent<T> where T : IConvertible
     {

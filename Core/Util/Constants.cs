@@ -16,9 +16,9 @@ namespace Helion.Util
         public static readonly UpperString SkyTexture = "F_SKY1";
         public static readonly UpperString NullTextureName = "NULL";
         public static readonly UpperString PlayerClass = "PLAYER";
-        public static readonly ulong TicksPerNanos = 28L * 1000L * 1000L;
-        public static readonly double TicksPerSecond = 35.0;
+        public const ulong TicksPerNanos = 28L * 1000L * 1000L;
+        public const double TicksPerSecond = 35.0;
 
-        public static readonly float FontAlphaCutoff = 0.5f;
+        public const float FontAlphaCutoff = 0.5f;
     }
 }

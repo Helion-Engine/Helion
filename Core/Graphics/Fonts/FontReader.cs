@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using System;
+﻿using System;
 
 namespace Helion.Graphics.Fonts
 {
@@ -13,6 +12,8 @@ namespace Helion.Graphics.Fonts
         /// </summary>
         public static Font? Read(byte[] data, float alphaCutoff)
         {
+            // TODO: Is there a better way than this? I don't like using unsafe
+            //       unless I'm forced to...
             using (System.Drawing.Text.PrivateFontCollection fontCollection = new System.Drawing.Text.PrivateFontCollection())
             {
                 try
@@ -32,6 +33,7 @@ namespace Helion.Graphics.Fonts
                 }
                 catch
                 {
+                    
                 }
             }
 

@@ -33,20 +33,20 @@ namespace Helion.Input
         /// <summary>
         /// Creates a new consumable input from the provided input collection.
         /// </summary>
-        /// <param name="inputCollection">The collection to populate the object
-        /// data with.</param>
-        public ConsumableInput(InputCollection inputCollection)
+        /// <param name="inputEvent">The collection to populate the object data
+        /// with.</param>
+        public ConsumableInput(InputEvent inputEvent)
         {
-            foreach (InputKey inputKey in inputCollection.InputDown) {
+            foreach (InputKey inputKey in inputEvent.InputDown) {
                 keysDown.Add(inputKey);
 
-                if (!inputCollection.InputPrevDown.Contains(inputKey))
+                if (!inputEvent.InputPrevDown.Contains(inputKey))
                     keysPressed.Add(inputKey);
             }
 
-            inputCollection.CharactersTyped.ForEach(typedCharacters.Add);
-            mouseDelta = inputCollection.MouseInput.Delta;
-            mouseScroll = inputCollection.MouseInput.ScrollDelta;
+            inputEvent.CharactersTyped.ForEach(typedCharacters.Add);
+            mouseDelta = inputEvent.MouseInput.Delta;
+            mouseScroll = inputEvent.MouseInput.ScrollDelta;
         }
 
         /// <summary>

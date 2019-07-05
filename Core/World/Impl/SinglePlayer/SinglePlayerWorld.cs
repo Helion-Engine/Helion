@@ -11,7 +11,7 @@ namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
-        public Camera Camera { get; } = new Camera(new Vector3(-80, 748, 90), MathHelper.HalfPi);
+        public Camera Camera { get; } = new Camera();
 
         private SinglePlayerWorld(Project project, Map map, BspTree bspTree) : base(project, map, bspTree)
         {
