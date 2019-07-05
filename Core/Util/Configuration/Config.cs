@@ -55,7 +55,7 @@ namespace Helion.Configuration
     public class EngineWindowConfig
     {
         public readonly ConfigValue<int> Height = new ConfigValue<int>(768);
-        public readonly ConfigValue<WindowSize> State = new ConfigValue<WindowSize>(WindowSize.Fullscreen);
+        public readonly ConfigValue<WindowStatus> State = new ConfigValue<WindowStatus>(WindowStatus.Fullscreen);
         public readonly ConfigValue<VerticalSync> VSync = new ConfigValue<VerticalSync>(VerticalSync.Off);
         public readonly ConfigValue<int> Width = new ConfigValue<int>(1024);
     }
