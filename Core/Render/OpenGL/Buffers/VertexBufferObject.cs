@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL.Buffers
                         offset += attr.ByteLength();
                     }
 
-                    Postcondition(stride == Marshal.SizeOf(typeof(T)),
+                    Postcondition(stride == Marshal.SizeOf<T>(),
                         $"VAO attributes do not match struct '{typeof(T).Name}' size, attributes should map onto struct offsets");
                 });
             });

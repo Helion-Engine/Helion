@@ -10,12 +10,12 @@ namespace Helion.Render.OpenGL.Buffers
     public abstract class BufferObject<T> : IDisposable where T : struct
     {
         protected bool uploaded;
+        protected int bufferHandle;
         protected DynamicArray<T> data = new DynamicArray<T>();
         private readonly BufferTarget target;
         private readonly BufferUsageHint hint;
-        private readonly int typeByteSize = Marshal.SizeOf(new T());
+        private readonly int typeByteSize = Marshal.SizeOf<T>();
         private bool disposed;
-        private int bufferHandle;
         
         public int Count => data.Length;
 
@@ -34,7 +34,7 @@ namespace Helion.Render.OpenGL.Buffers
             ReleaseUnmanagedResources();
         }
         
-        private void ReleaseUnmanagedResources()
+        protected virtual void ReleaseUnmanagedResources()
         {
             Precondition(!disposed, "Attempting to dispose a GL buffer more than once");
             
