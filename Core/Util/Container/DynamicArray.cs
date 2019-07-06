@@ -97,6 +97,17 @@ namespace Helion.Util.Container
 
             Data[Length++] = element;
         }
+
+        /// <summary>
+        /// Adds a series of elements efficiently to the dynamic array.
+        /// </summary>
+        /// <param name="elements">The elements to add.</param>
+        public void Add(params T[] elements)
+        {
+            EnsureCapacity(Length + elements.Length);
+            Array.Copy(elements, 0, Data, Length, elements.Length);
+            Length += elements.Length;
+        }
         
         private void Resize(int newCapacity)
         {

@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Helion.Render.OpenGL.Renderers.World;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
@@ -18,10 +19,13 @@ namespace Helion.Render.OpenGL
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private static bool infoPrinted;
 
+        private readonly WorldRenderer worldRenderer;
         private bool disposed;
 
         public GLRenderer()
         {
+            worldRenderer = new WorldRenderer();
+            
             PrintGLInfo();
             SetGLStates();
             SetGLDebugger();
@@ -31,7 +35,15 @@ namespace Helion.Render.OpenGL
         {
             ReleaseUnmanagedResources();
         }
-        
+
+        private void ReleaseUnmanagedResources()
+        {
+            Precondition(!disposed, "Attempting to dispose world renderer more than once");
+
+            worldRenderer.Dispose();
+            disposed = true;
+        }
+
         private static void PrintGLInfo()
         {
             if (infoPrinted)
@@ -43,12 +55,6 @@ namespace Helion.Render.OpenGL
             log.Info("Hardware: {0}", GLInfo.Renderer);
 
             infoPrinted = true;
-        }
-        
-
-        private void ReleaseUnmanagedResources()
-        {
-            // TODO: Dispose
         }
 
         private void SetGLStates()
@@ -139,10 +145,6 @@ namespace Helion.Render.OpenGL
 
         public void Dispose()
         {
-            if (disposed)
-                return;
-            
-            disposed = true;
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }

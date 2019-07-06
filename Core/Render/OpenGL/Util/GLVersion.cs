@@ -20,7 +20,8 @@ namespace Helion.Render.OpenGL.Util
             new GLVersion(4, 1),
             new GLVersion(4, 0),
             new GLVersion(3, 3),
-            new GLVersion(3, 2)
+            new GLVersion(3, 2),
+            new GLVersion(3, 1)
         };
 
         /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
@@ -9,21 +10,21 @@ namespace Helion.Render.OpenGL.Buffers
 {
     public class StaticVertexBufferObject<T> : VertexBufferObject<T> where T : struct
     {
-        public StaticVertexBufferObject() : base(BufferUsageHint.StaticDraw)
+        public StaticVertexBufferObject(VertexArrayObject vao) : base(BufferUsageHint.StaticDraw, vao)
         {
         }
     }
     
     public class DynamicVertexBufferObject<T> : VertexBufferObject<T> where T : struct
     {
-        public DynamicVertexBufferObject() : base(BufferUsageHint.DynamicDraw)
+        public DynamicVertexBufferObject(VertexArrayObject vao) : base(BufferUsageHint.DynamicDraw, vao)
         {
         }
     }
 
     public class StreamVertexBufferObject<T> : VertexBufferObject<T> where T : struct
     {
-        public StreamVertexBufferObject() : base(BufferUsageHint.StreamDraw)
+        public StreamVertexBufferObject(VertexArrayObject vao) : base(BufferUsageHint.StreamDraw, vao)
         {
         }
     }
@@ -40,13 +41,34 @@ namespace Helion.Render.OpenGL.Buffers
         
         public int Count => data.Length;
         
-        protected VertexBufferObject(BufferUsageHint usageHint)
+        protected VertexBufferObject(BufferUsageHint usageHint, VertexArrayObject vao)
         {
             // TODO: Write something that asserts every field offset is packed.
             Invariant(typeof(T).StructLayoutAttribute.Pack == 1, $"Type {typeof(T)} does not pack its data tightly");
             
             vbo = GL.GenBuffer();
             hint = usageHint;
+
+            BindAttributes(vao);
+        }
+        
+        public void BindAttributes(VertexArrayObject vao)
+        {
+            vao.BindAnd(() =>
+            {
+                BindAnd(() =>
+                {
+                    int stride = vao.Attributes.Select(attr => attr.ByteLength()).Sum();
+                    int offset = 0;
+                    foreach (VertexArrayAttribute attr in vao.Attributes)
+                    {
+                        attr.Enable(stride, offset);
+                        offset += attr.ByteLength();
+                    }
+                    
+                    Postcondition(stride == Marshal.SizeOf(typeof(T)), $"VAO attributes do not match struct '{typeof(T).Name}' size, attributes should map onto struct offsets");
+                });
+            });
         }
         
         public void Add(T element)
@@ -57,17 +79,21 @@ namespace Helion.Render.OpenGL.Buffers
 
         public void Add(params T[] elements)
         {
-            if (elements.Length <= 0)
-                return;
-            
-            data.EnsureCapacity(data.Length + elements.Length);
-            Array.Copy(elements, 0, data.Data, data.Length, elements.Length);
-            MarkAsNeedingUpload();
+            if (elements.Length > 0)
+            {
+                data.Add(elements);
+                MarkAsNeedingUpload();
+            }            
         }
 
         public void Add(DynamicArray<T> elements)
         {
             Add(elements.Data);
+        }
+
+        public void Clear()
+        {
+            data.Clear();
         }
         
         public void Upload()
@@ -110,7 +136,6 @@ namespace Helion.Render.OpenGL.Buffers
             Precondition(!disposed, "Attempting to dispose a VBO more than once");
             
             GL.DeleteBuffer(vbo);
-            
             disposed = true;
         }
 
@@ -120,7 +145,7 @@ namespace Helion.Render.OpenGL.Buffers
             
             // Since VBOs can end up holding a lot of data, if we dispose of it
             // but take a while to lose the reference, we still want to leave
-            // the option open to the GC to retrieve memory.
+            // the option for the GC to retrieve memory.
 #nullable disable
             data = null;
 #nullable enable

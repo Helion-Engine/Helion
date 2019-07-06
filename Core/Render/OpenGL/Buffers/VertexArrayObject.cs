@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assert;
 
@@ -7,15 +6,13 @@ namespace Helion.Render.OpenGL.Buffers
 {
     public class VertexArrayObject : IDisposable
     {
-        public readonly List<VaoAttribute> Attributes = new List<VaoAttribute>();
+        public readonly VertexArrayAttributes Attributes;
         private readonly int vao;
         private bool disposed;
 
-        public VertexArrayObject(params VaoAttribute[] attributes)
+        public VertexArrayObject(VertexArrayAttributes vaoAttributes)
         {
-            Precondition(attributes.Length > 0, "Cannot have a VAO with no attributes");
-            
-            Attributes.AddRange(attributes);
+            Attributes = vaoAttributes;
             vao = GL.GenVertexArray();
         }
 
@@ -24,7 +21,6 @@ namespace Helion.Render.OpenGL.Buffers
             Precondition(!disposed, "Attempting to dispose a VAO more than once");
             
             GL.DeleteVertexArray(vao);
-            
             disposed = true;
         }
 
@@ -55,10 +51,5 @@ namespace Helion.Render.OpenGL.Buffers
         {
             ReleaseUnmanagedResources();
         }
-    }
-
-    public class VaoAttribute
-    {
-        // TODO
     }
 }
