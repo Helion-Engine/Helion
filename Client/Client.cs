@@ -97,6 +97,8 @@ namespace Helion.Client
             HandleInput();
             RunLogic();
             Render();
+            
+            window.SwapBuffers();
         }
         
         public void Start()

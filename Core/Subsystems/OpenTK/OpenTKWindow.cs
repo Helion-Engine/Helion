@@ -141,8 +141,10 @@ namespace Helion.Subsystems.OpenTK
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            // Since OpenTK calls either update or render at max speed because
+            // of our (lack of) arguments to Run(), we can do this either in
+            // the update or render function. We arbitrarily chose this one.
             gameLoopFunc();
-            SwapBuffers();
             
             base.OnRenderFrame(e);
         }
