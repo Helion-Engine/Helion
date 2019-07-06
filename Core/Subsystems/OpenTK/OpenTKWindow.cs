@@ -142,6 +142,7 @@ namespace Helion.Subsystems.OpenTK
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             gameLoopFunc();
+            SwapBuffers();
             
             base.OnRenderFrame(e);
         }

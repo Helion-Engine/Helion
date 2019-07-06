@@ -1,10 +1,14 @@
 using Helion.Render.Commands;
+using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Util;
+using Helion.Util.Geometry;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
+using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
 {
@@ -72,9 +76,49 @@ namespace Helion.Render.OpenGL
             }, IntPtr.Zero);
         }
 
+        private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
+        {
+            Color color = clearRenderCommand.ClearColor;
+            GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+            
+            ClearBufferMask clearMask = ClearBufferMask.None;
+            if (clearRenderCommand.Color)
+                clearMask |= ClearBufferMask.ColorBufferBit;
+            if (clearRenderCommand.Depth)
+                clearMask |= ClearBufferMask.DepthBufferBit;
+            if (clearRenderCommand.Stencil)
+                clearMask |= ClearBufferMask.StencilBufferBit;
+            
+            GL.Clear(clearMask);
+        }
+        
+        private void HandleViewportCommand(ViewportCommand viewportCommand)
+        {
+            Vec2I offset = viewportCommand.Offset;
+            Dimension dimension = viewportCommand.Dimension;
+            GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
+        }
+        
         public void Render(RenderCommands renderCommands)
         {
-            // TODO
+            foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
+            {
+                switch (renderCommand)
+                {
+                case ClearRenderCommand clearRenderCommand:
+                    HandleClearCommand(clearRenderCommand);
+                    break;
+                case DrawWorldCommand drawWorldCommand:
+                    // TODO
+                    break;
+                case ViewportCommand viewportCommand:
+                    HandleViewportCommand(viewportCommand);
+                    break;
+                default:
+                    Fail($"Unsupported render command type: {renderCommand}");
+                    break;
+                }
+            }
         }
 
         public void Dispose()

@@ -17,7 +17,7 @@ namespace Helion.Render.Commands.Types
             ClearColor = clearColor;
         }
 
-        public static ClearRenderCommand All() => All(System.Drawing.Color.FromArgb(0, 0, 0));
+        public static ClearRenderCommand All() => All(System.Drawing.Color.FromArgb(16, 16, 16));
 
         public static ClearRenderCommand All(Color clearColor)
         {
