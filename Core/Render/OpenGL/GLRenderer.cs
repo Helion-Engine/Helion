@@ -12,23 +12,39 @@ using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
 {
-    public class OpenGLRenderer : IRenderer, IDisposable
+    public class GLRenderer : IRenderer, IDisposable
     {
+        public static readonly GLInfo GLInfo = new GLInfo();
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static bool infoPrinted;
 
-        public readonly GLInfo GLInfo = new GLInfo();
         private bool disposed;
 
-        public OpenGLRenderer()
+        public GLRenderer()
         {
+            PrintGLInfo();
             SetGLStates();
             SetGLDebugger();
         }
         
-        ~OpenGLRenderer()
+        ~GLRenderer()
         {
             ReleaseUnmanagedResources();
         }
+        
+        private static void PrintGLInfo()
+        {
+            if (infoPrinted)
+                return;
+            
+            log.Info("Loaded OpenGL v{0}", GLInfo.Version);
+            log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
+            log.Info("Vendor: {0}", GLInfo.Vendor);
+            log.Info("Hardware: {0}", GLInfo.Renderer);
+
+            infoPrinted = true;
+        }
+        
 
         private void ReleaseUnmanagedResources()
         {

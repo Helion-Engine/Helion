@@ -18,13 +18,11 @@ namespace Helion.Subsystems.OpenTK
 {
     public class OpenTKWindow : GameWindow, IWindow
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private static int nextAvailableWindowId;
-        private static bool printedGLInfo;
 
         private readonly Config config;
         private readonly int windowId;
-        private readonly OpenGLRenderer renderer;
+        private readonly GLRenderer renderer;
         private readonly Action gameLoopFunc;
         private readonly OpenTKInputAdapter inputAdapter = new OpenTKInputAdapter();
         private bool disposed;
@@ -34,7 +32,7 @@ namespace Helion.Subsystems.OpenTK
         {
             config = cfg;
             windowId = nextAvailableWindowId++;
-            renderer = new OpenGLRenderer();
+            renderer = new GLRenderer();
             gameLoopFunc = gameLoopFunction;
 
             CursorVisible = !config.Engine.Developer.MouseFocus;
@@ -45,26 +43,11 @@ namespace Helion.Subsystems.OpenTK
 
             WindowState = config.Engine.Window.State.Get().ToOpenTKWindowState(); 
             config.Engine.Window.State.OnChanged += OnWindowStateChanged;
-
-            PrintGLInfo(renderer.GLInfo);
         }
 
         ~OpenTKWindow()
         {
             Dispose(false);
-        }
-
-        private static void PrintGLInfo(GLInfo glInfo)
-        {
-            if (printedGLInfo)
-                return;
-
-            log.Info("Loaded OpenGL v{0}", glInfo.Version);
-            log.Info("OpenGL Shading Language: {0}", glInfo.ShadingVersion);
-            log.Info("Vendor: {0}", glInfo.Vendor);
-            log.Info("Hardware: {0}", glInfo.Renderer);
-
-            printedGLInfo = true;
         }
 
         private static GraphicsMode MakeGraphicsMode(Config cfg)

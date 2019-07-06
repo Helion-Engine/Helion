@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using static Helion.Util.Assert;
 
@@ -41,20 +42,48 @@ namespace Helion.Util.Container
 
         public T this[int index] => Data[index];
 
-        private void Resize()
+        /// <summary>
+        /// Makes sure there is enough memory to hold the desired capacity.
+        /// </summary>
+        /// <remarks>
+        /// The implementation may allocate more space than what is required.
+        /// </remarks>
+        /// <param name="desiredCapacity">The total amount of elements desired
+        /// to hold. This should be usually equal to the current Count of this
+        /// object plus the number of elements to be added.</param>
+        public void EnsureCapacity(int desiredCapacity)
         {
-            T[] newData = new T[Capacity * 2];
-            for (int i = 0; i < Length; i++)
-                newData[i] = Data[i];
+            Precondition(desiredCapacity > 0, "Trying to ensure a zero or negative capacity");
+            
+            if (desiredCapacity <= Capacity)
+                return;
 
-            Data = newData;
+            // This is done this way to prevent the possibility of overflow. We
+            // likely have more problems than this if we ever trigger this case
+            // though.
+            int newCapacity = Length;
+            if (desiredCapacity >= int.MaxValue / 2)
+                newCapacity = int.MaxValue;
+            else
+                while (newCapacity < desiredCapacity)
+                    newCapacity *= 2;
+
+            Resize(newCapacity);
         }
 
         /// <summary>
-        /// Clears the data. The underlying data becomes eligible for garbage
-        /// collection, and a new array with the current capacity is created.
+        /// Clears the data.
         /// </summary>
-        public void Clear() => Length = 0;
+        /// <remarks>
+        /// For optimization reasons, this isn't cleared but rather has the
+        /// count set to zero. This means any previous data is still held in
+        /// the array. To fully clear it out (if this contains references) it
+        /// should be prefixed with a loop that sets each field to null.
+        /// </remarks>
+        public void Clear()
+        {
+            Length = 0;
+        }
 
         /// <summary>
         /// Adds a new element to the array, and resizes if full. Amortized
@@ -64,9 +93,16 @@ namespace Helion.Util.Container
         public void Add(T element)
         {
             if (Length == Capacity)
-                Resize();
+                Resize(Capacity * 2);
 
             Data[Length++] = element;
+        }
+        
+        private void Resize(int newCapacity)
+        {
+            T[] newData = new T[newCapacity];
+            Array.Copy(Data, newData, Data.Length);
+            Data = newData;
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -75,9 +111,6 @@ namespace Helion.Util.Container
                 yield return Data[i];
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
