@@ -7,11 +7,12 @@ namespace Helion.Maps.Geometry
     public class Sector
     {
         public readonly int Id;
-        public readonly SectorFlat Floor;
-        public readonly SectorFlat Ceiling;
         public readonly List<Side> Sides = new List<Side>();
+        public readonly List<SectorFlat> Flats = new List<SectorFlat>();
         public byte LightLevel;
 
+        public SectorFlat Floor => Flats[0];
+        public SectorFlat Ceiling => Flats[1];
         public float UnitLightLevel => LightLevel / 255.0f;
 
         public Sector(int id, byte lightLevel, SectorFlat floor, SectorFlat ceiling)
@@ -19,9 +20,10 @@ namespace Helion.Maps.Geometry
             Precondition(floor.Z <= ceiling.Z, "Sector floor is above the ceiling");
 
             Id = id;
-            Floor = floor;
-            Ceiling = ceiling;
             LightLevel = lightLevel;
+            
+            Flats.Add(floor);
+            Flats.Add(ceiling);
         }
 
         public void Add(Side side)

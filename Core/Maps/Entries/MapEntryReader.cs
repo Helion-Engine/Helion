@@ -62,6 +62,8 @@ namespace Helion.Maps.Entries
                 SectorFlat ceilingFlat = new SectorFlat(ceilingId, ceilingTexture, ceilingHeight, lightLevel);
 
                 map.Sectors.Add(new Sector(id, lightLevel, floorFlat, ceilingFlat));
+                map.SectorFlats.Add(floorFlat);
+                map.SectorFlats.Add(ceilingFlat);
             }
 
             return true;

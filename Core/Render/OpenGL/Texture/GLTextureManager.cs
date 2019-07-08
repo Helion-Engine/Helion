@@ -6,7 +6,9 @@ using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Atlas;
 using Helion.Util.Configuration;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Texture
@@ -22,17 +24,45 @@ namespace Helion.Render.OpenGL.Texture
     /// </remarks>
     public class GLTextureManager : IDisposable
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        
         /// <summary>
         /// A texture which represents a missing texture. It is the fallback
         /// when a texture cannot be found.
         /// </summary>
         public readonly GLTexture NullTextureHandle;
         
+        /// <summary>
+        /// The OpenGL texture 'name'.
+        /// </summary>
         private readonly int m_atlasTextureHandle;
+        
+        /// <summary>
+        /// The config
+        /// </summary>
         private readonly Config m_config;
+        
+        /// <summary>
+        /// A collection of GL capabilities.
+        /// </summary>
         private readonly GLInfo m_info;
+        
+        /// <summary>
+        /// The atlas that manages the space for where textures should go with
+        /// respect to some 2D area.
+        /// </summary>
         private readonly Atlas2D m_atlas;
+        
+        /// <summary>
+        /// A list of all the tracked resources.
+        /// </summary>
         private readonly ResourceTracker<GLTexture> m_textures = new ResourceTracker<GLTexture>();
+        
+        /// <summary>
+        /// Unique contiguous indices that can be used as texture lookup
+        /// indices.
+        /// </summary>
+        private readonly AvailableIndexTracker m_availableTextureIndex = new AvailableIndexTracker();
 
         /// <summary>
         /// Creates a texture manager using the config and GL info provided.
@@ -111,7 +141,12 @@ namespace Helion.Render.OpenGL.Texture
 
         private void SetTextureAtlasParameters(GLInfo info)
         {
+            BindTextureOnly();
+
             // TODO (need to merge with master for this)
+            Log.Error("TODO: SetTextureAtlasParameters() not implemented yet");
+
+            Unbind();
         }
 
         private GLTexture CreateNullTexture()
@@ -123,7 +158,7 @@ namespace Helion.Render.OpenGL.Texture
                 throw new HelionException("Unable to allocate space in atlas for the null texture");
 
             UploadPixelsToAtlasTexture(nullImage, atlasHandle.Location);
-            return new GLTexture(m_atlas.Dimension, atlasHandle);
+            return new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
         }
         
         private void BindTextureOnly()
@@ -156,7 +191,7 @@ namespace Helion.Render.OpenGL.Texture
 
             UploadPixelsToAtlasTexture(image, atlasHandle.Location);
             
-            GLTexture texture = new GLTexture(m_atlas.Dimension, atlasHandle);
+            GLTexture texture = new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
             m_textures.AddOrOverwrite(name, resourceNamespace, texture);
             
             return texture;
@@ -170,6 +205,7 @@ namespace Helion.Render.OpenGL.Texture
             
             m_atlas.Remove(handle.AtlasHandle);
             m_textures.Remove(name, resourceNamespace);
+            m_availableTextureIndex.MakeAvailable(handle.LookupIndex);
         }
 
         private void UploadPixelsToAtlasTexture(Image image, Box2I location)

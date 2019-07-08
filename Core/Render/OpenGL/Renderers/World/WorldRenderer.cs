@@ -1,17 +1,15 @@
 using System;
+using Helion.Render.OpenGL.Renderers.World.Geometry;
 
 namespace Helion.Render.OpenGL.Renderers.World
 {
     public class WorldRenderer : IDisposable
     {
-        public WorldRenderer()
+        private readonly WorldGeometryRenderer m_worldGeometryRenderer = new WorldGeometryRenderer();
+
+        ~WorldRenderer()
         {
-            // TODO
-        }
-        
-        private void ReleaseUnmanagedResources()
-        {
-            // TODO
+            ReleaseUnmanagedResources();
         }
 
         public void Dispose()
@@ -20,9 +18,9 @@ namespace Helion.Render.OpenGL.Renderers.World
             GC.SuppressFinalize(this);
         }
 
-        ~WorldRenderer()
+        private void ReleaseUnmanagedResources()
         {
-            ReleaseUnmanagedResources();
+            m_worldGeometryRenderer.Dispose();
         }
     }
 }

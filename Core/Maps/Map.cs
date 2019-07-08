@@ -16,6 +16,7 @@ namespace Helion.Maps
         public List<Line> Lines = new List<Line>();
         public List<Side> Sides = new List<Side>();
         public List<Sector> Sectors = new List<Sector>();
+        public List<SectorFlat> SectorFlats = new List<SectorFlat>();
         public List<Vertex> Vertices = new List<Vertex>();
 
         private Map(UpperString name) => Name = name;

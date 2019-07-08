@@ -29,7 +29,6 @@ namespace Helion.Test.Util.Atlas
             Assert.IsNotNull(second);
             Assert.IsNotNull(third);
             
-            
             // Expected layout of consumed areas:
             // . . . . . . . .
             // 3 . . . . . . .
@@ -96,9 +95,9 @@ namespace Helion.Test.Util.Atlas
             // 1 1 3
             // 1 1 3
             
-            AtlasHandle first = atlas.Add(new Dimension(2, 2));
-            AtlasHandle second = atlas.Add(new Dimension(2, 1));
-            AtlasHandle third = atlas.Add(new Dimension(1, 3));
+            AtlasHandle? first = atlas.Add(new Dimension(2, 2));
+            AtlasHandle? second = atlas.Add(new Dimension(2, 1));
+            AtlasHandle? third = atlas.Add(new Dimension(1, 3));
 
             Assert.IsNotNull(first);
             Assert.AreEqual(0, first.Location.BottomLeft.X);
