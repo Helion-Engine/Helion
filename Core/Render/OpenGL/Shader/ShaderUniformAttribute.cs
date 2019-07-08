@@ -1,4 +1,5 @@
 using System;
+using Helion.Util.Extensions;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assert;
@@ -42,7 +43,7 @@ namespace Helion.Render.OpenGL.Shader
             Precondition(Location != NoLocation, "Uniform int value did not have the location set");
             
             GL.ActiveTexture(unit);
-            base.Set((int)unit - (int)TextureUnit.Texture0);
+            base.Set(unit.ToIndex());
         }
     }
 

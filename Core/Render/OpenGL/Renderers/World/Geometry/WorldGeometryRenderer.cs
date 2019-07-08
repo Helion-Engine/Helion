@@ -12,12 +12,14 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         private readonly GLTextureManager m_textureManager;
         private readonly StaticGeometryRenderer m_staticGeometryRenderer;
         private readonly TextureBufferObject<WallData> m_wallDataBuffer;
+        private readonly TextureBufferObject<SectorFlatData> m_sectorFlatDataBuffer;
 
         public WorldGeometryRenderer(GLCapabilities capabilities, GLTextureManager textureManager)
         {
             m_textureManager = textureManager;
             m_staticGeometryRenderer = new StaticGeometryRenderer(capabilities, textureManager);
             m_wallDataBuffer = new TextureBufferObject<WallData>(capabilities, "WallData Texture Buffer");
+            m_sectorFlatDataBuffer = new TextureBufferObject<SectorFlatData>(capabilities, "SectorFlatData Texture Buffer");
         }
 
         ~WorldGeometryRenderer()
