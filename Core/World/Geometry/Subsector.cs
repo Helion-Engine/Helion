@@ -9,10 +9,10 @@ namespace Helion.World.Geometry
     {
         public readonly int Id;
         public Sector Sector;
-        public List<Segment> ClockwiseEdges;
-        public Box2Fixed BoundingBox;
+        public List<SubsectorEdge> ClockwiseEdges;
+        public Box2D BoundingBox;
 
-        public Subsector(int id, Sector sector, List<Segment> clockwiseEdges, Box2Fixed boundingBox)
+        public Subsector(int id, Sector sector, List<SubsectorEdge> clockwiseEdges, Box2D boundingBox)
         {
             Precondition(clockwiseEdges.Count >= 3, "Degenerate sector, must be at least a triangle");
 

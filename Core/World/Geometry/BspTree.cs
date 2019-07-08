@@ -1,6 +1,6 @@
-﻿using Helion.Bsp.Builder;
+﻿using System;
+using Helion.Bsp.Builder;
 using Helion.Bsp.Builder.GLBSP;
-using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Geometry;
@@ -25,7 +25,7 @@ namespace Helion.World.Geometry
         /// <summary>
         /// All the segments, which are the edges of the subsector.
         /// </summary>
-        public List<Segment> Segments = new List<Segment>();
+        public List<SubsectorEdge> Segments = new List<SubsectorEdge>();
 
         /// <summary>
         /// All the subsectors, the convex leaves at the bottom of the BSP 
@@ -63,7 +63,7 @@ namespace Helion.World.Geometry
         /// <summary>
         /// The index of the root node. This will always be a BSP node.
         /// </summary>
-        public ushort RootIndex => (ushort)(Nodes.Length - 1);
+        public uint RootIndex => (uint)(Nodes.Length - 1);
 
         private BspTree(BspNode root, Map map)
         {
@@ -117,7 +117,7 @@ namespace Helion.World.Geometry
             int subsectorNodeCount = parentNodeCount + 1;
             int segmentCountGuess = subsectorNodeCount * 4;
 
-            Segments = new List<Segment>(segmentCountGuess);
+            Segments = new List<SubsectorEdge>(segmentCountGuess);
             Subsectors = new Subsector[subsectorNodeCount];
             Nodes = new BspNodeCompact[parentNodeCount];
 
@@ -139,31 +139,35 @@ namespace Helion.World.Geometry
 
         private BspCreateResult CreateSubsector(BspNode node, Map map)
         {
-            List<Segment> clockwiseSegments = CreateClockwiseSegments(node, map);
-            Box2Fixed bbox = Box2Fixed.BoundSegments(clockwiseSegments);
+            List<SubsectorEdge> clockwiseSegments = CreateClockwiseSegments(node, map);
+
+            // Apparently contravariance doesn't work with lists...
+            List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Cast<Seg2D>().ToList();
+            Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
+            
             Sector sector = GetSectorFrom(node, map);
             Subsectors[nextSubsectorIndex] = new Subsector((int)nextSubsectorIndex, sector, clockwiseSegments, bbox);
 
             return BspCreateResult.Subsector(nextSubsectorIndex++);
         }
 
-        private List<Segment> CreateClockwiseSegments(BspNode node, Map map)
+        private List<SubsectorEdge> CreateClockwiseSegments(BspNode node, Map map)
         {
-            List<Segment> returnSegments = new List<Segment>();
+            List<SubsectorEdge> returnSegments = new List<SubsectorEdge>();
             
-            foreach (SubsectorEdge edge in node.ClockwiseEdges)
+            foreach (Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge, map);
-                Segment segment = new Segment(Segments.Count, side, edge.Start.ToFixed(), edge.End.ToFixed());
+                SubsectorEdge subsectorEdge = new SubsectorEdge(Segments.Count, side, edge.Start, edge.End);
                 
-                returnSegments.Add(segment);
-                Segments.Add(segment);
+                returnSegments.Add(subsectorEdge);
+                Segments.Add(subsectorEdge);
             }
 
             return returnSegments;
         }
 
-        private Side? GetSideFromEdge(SubsectorEdge edge, Map map)
+        private Side? GetSideFromEdge(Bsp.Node.SubsectorEdge edge, Map map)
         {
             if (edge.IsMiniseg)
                 return null;
@@ -190,29 +194,24 @@ namespace Helion.World.Geometry
 
         private BspCreateResult CreateNode(BspNode node, Map map)
         {
+            if (node.Splitter == null)
+                throw new NullReferenceException("Malformed BSP node, splitter should never be null");
+            
             BspCreateResult left = RecursivelyCreateComponents(node.Left, map);
             BspCreateResult right = RecursivelyCreateComponents(node.Right, map);
-            Seg2Fixed splitter = MakeSplitterFrom(node.Splitter);
-            Box2Fixed bbox = MakeBoundingBoxFrom(left, right);
+            Box2D bbox = MakeBoundingBoxFrom(left, right);
 
-            BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, splitter, bbox);
+            BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter, bbox);
             Nodes[nextNodeIndex] = compactNode;
 
             return BspCreateResult.Node(nextNodeIndex++);
         }
 
-        private Seg2Fixed MakeSplitterFrom(BspSegment? splitter)
+        private Box2D MakeBoundingBoxFrom(BspCreateResult left, BspCreateResult right)
         {
-            if (splitter == null)
-                throw new HelionException("Should never have a parent node with a null splitter");
-            return new Seg2Fixed(splitter.Start.ToFixed(), splitter.End.ToFixed());
-        }
-
-        private Box2Fixed MakeBoundingBoxFrom(BspCreateResult left, BspCreateResult right)
-        {
-            Box2Fixed leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
-            Box2Fixed rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
-            return Box2Fixed.Combine(leftBox, rightBox);
+            Box2D leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
+            Box2D rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
+            return Box2D.Combine(leftBox, rightBox);
         }
 
         /// <summary>
@@ -220,7 +219,7 @@ namespace Helion.World.Geometry
         /// </summary>
         /// <param name="point">The point to get the subsector for.</param>
         /// <returns>The subsector for the provided point.</returns>
-        public Subsector ToSubsector(Vec2Fixed point)
+        public Subsector ToSubsector(Vec2D point)
         {
             BspNodeCompact node = Root;
 
@@ -230,15 +229,13 @@ namespace Helion.World.Geometry
                 {
                     if (node.IsRightSubsector)
                         return Subsectors[node.RightChildAsSubsector];
-                    else
-                        node = Nodes[node.RightChild];
+                    node = Nodes[node.RightChild];
                 }
                 else
                 {
                     if (node.IsLeftSubsector)
                         return Subsectors[node.LeftChildAsSubsector];
-                    else
-                        node = Nodes[node.LeftChild];
+                    node = Nodes[node.LeftChild];
                 }
             }
         }
@@ -248,7 +245,7 @@ namespace Helion.World.Geometry
         /// </summary>
         /// <param name="point">The point to get the sector for.</param>
         /// <returns>The sector for the provided point.</returns>
-        public Sector ToSector(Vec2Fixed point) => ToSubsector(point).Sector;
+        public Sector ToSector(Vec2D point) => ToSubsector(point).Sector;
     }
 
     /// <summary>

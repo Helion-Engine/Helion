@@ -34,6 +34,11 @@ namespace Helion.Graphics
         /// The height of the image.
         /// </summary>
         public int Height => Bitmap.Height;
+        
+        /// <summary>
+        /// Calculates the dimension of the bitmap.
+        /// </summary>
+        public Dimension Dimension => new Dimension(Width, Height);
 
         /// <summary>
         /// The raw data for the image.

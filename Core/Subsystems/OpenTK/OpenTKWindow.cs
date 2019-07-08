@@ -32,7 +32,7 @@ namespace Helion.Subsystems.OpenTK
         {
             config = cfg;
             windowId = nextAvailableWindowId++;
-            renderer = new GLRenderer();
+            renderer = new GLRenderer(config);
             gameLoopFunc = gameLoopFunction;
 
             CursorVisible = !config.Engine.Developer.MouseFocus;

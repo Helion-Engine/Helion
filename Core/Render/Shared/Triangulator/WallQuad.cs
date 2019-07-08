@@ -22,7 +22,7 @@ namespace Helion.Render.Shared.Triangulator
         /// <summary>
         /// The segment that this component represents.
         /// </summary>
-        public readonly Segment Segment;
+        public readonly SubsectorEdge SubsectorEdge;
 
         /// <summary>
         /// The upper wall triangles, if any. Absence implies a one sided line.
@@ -39,12 +39,12 @@ namespace Helion.Render.Shared.Triangulator
         /// </summary>
         public WallQuad? Lower;
 
-        public SegmentWalls(Segment segment, Line line, Side side, WallQuad? upper, 
+        public SegmentWalls(SubsectorEdge subsectorEdge, Line line, Side side, WallQuad? upper, 
             WallQuad middle, WallQuad? lower)
         {
             Line = line;
             Side = side;
-            Segment = segment;
+            SubsectorEdge = subsectorEdge;
             Upper = upper;
             Middle = middle;
             Lower = lower;

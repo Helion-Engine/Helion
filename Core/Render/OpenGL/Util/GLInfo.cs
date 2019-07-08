@@ -13,7 +13,8 @@ namespace Helion.Render.OpenGL.Util
         public readonly GLVersion Version = GetGLVersion(GL.GetString(StringName.Version));
         public readonly string ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
         public readonly string Renderer = GL.GetString(StringName.Renderer);
-
+        public readonly GLLimits Limits = new GLLimits();
+        
         private static GLVersion GetGLVersion(string version)
         {
             Match match = versionRegex.Match(version);
@@ -34,5 +35,10 @@ namespace Helion.Render.OpenGL.Util
             log.Error("Unable to read OpenGL major version from: {0}", version);
             return new GLVersion(0, 0);
         }
+    }
+
+    public class GLLimits
+    {
+        public readonly int MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
     }
 }

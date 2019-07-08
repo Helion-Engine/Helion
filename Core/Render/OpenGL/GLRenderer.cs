@@ -9,22 +9,25 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Renderers.World;
+using Helion.Render.OpenGL.Texture;
+using Helion.Util.Configuration;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
 {
     public class GLRenderer : IRenderer, IDisposable
     {
-        public static readonly GLInfo GLInfo = new GLInfo();
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
-        private static bool infoPrinted;
+        private static readonly GLInfo GLInfo = new GLInfo();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static bool InfoPrinted;
 
-        private readonly WorldRenderer worldRenderer;
-        private bool disposed;
+        private readonly GLTextureManager m_textureManager;
+        private readonly WorldRenderer m_worldRenderer;
 
-        public GLRenderer()
+        public GLRenderer(Config config)
         {
-            worldRenderer = new WorldRenderer();
+            m_textureManager = new GLTextureManager(config, GLInfo);
+            m_worldRenderer = new WorldRenderer();
             
             PrintGLInfo();
             SetGLStates();
@@ -36,25 +39,51 @@ namespace Helion.Render.OpenGL
             ReleaseUnmanagedResources();
         }
 
+        public void Render(RenderCommands renderCommands)
+        {
+            foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
+            {
+                switch (renderCommand)
+                {
+                case ClearRenderCommand clearRenderCommand:
+                    HandleClearCommand(clearRenderCommand);
+                    break;
+                case DrawWorldCommand drawWorldCommand:
+                    // TODO
+                    break;
+                case ViewportCommand viewportCommand:
+                    HandleViewportCommand(viewportCommand);
+                    break;
+                default:
+                    Fail($"Unsupported render command type: {renderCommand}");
+                    break;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+        
         private void ReleaseUnmanagedResources()
         {
-            Precondition(!disposed, "Attempting to dispose world renderer more than once");
-
-            worldRenderer.Dispose();
-            disposed = true;
+            m_worldRenderer.Dispose();
+            m_textureManager.Dispose();
         }
 
         private static void PrintGLInfo()
         {
-            if (infoPrinted)
+            if (InfoPrinted)
                 return;
             
-            log.Info("Loaded OpenGL v{0}", GLInfo.Version);
-            log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
-            log.Info("Vendor: {0}", GLInfo.Vendor);
-            log.Info("Hardware: {0}", GLInfo.Renderer);
+            Log.Info("Loaded OpenGL v{0}", GLInfo.Version);
+            Log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
+            Log.Info("Vendor: {0}", GLInfo.Vendor);
+            Log.Info("Hardware: {0}", GLInfo.Renderer);
 
-            infoPrinted = true;
+            InfoPrinted = true;
         }
 
         private void SetGLStates()
@@ -89,10 +118,10 @@ namespace Helion.Render.OpenGL
                 {
                 case DebugSeverity.DebugSeverityHigh:
                 case DebugSeverity.DebugSeverityMedium:
-                    log.Error("[GLDebug type={0}] {1}", type, msg);
+                    Log.Error("[GLDebug type={0}] {1}", type, msg);
                     break;
                 case DebugSeverity.DebugSeverityLow:
-                    log.Warn("[GLDebug type={0}] {1}", type, msg);
+                    Log.Warn("[GLDebug type={0}] {1}", type, msg);
                     break;
                 }
             }, IntPtr.Zero);
@@ -119,34 +148,6 @@ namespace Helion.Render.OpenGL
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
             GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
-        }
-        
-        public void Render(RenderCommands renderCommands)
-        {
-            foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
-            {
-                switch (renderCommand)
-                {
-                case ClearRenderCommand clearRenderCommand:
-                    HandleClearCommand(clearRenderCommand);
-                    break;
-                case DrawWorldCommand drawWorldCommand:
-                    // TODO
-                    break;
-                case ViewportCommand viewportCommand:
-                    HandleViewportCommand(viewportCommand);
-                    break;
-                default:
-                    Fail($"Unsupported render command type: {renderCommand}");
-                    break;
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
         }
     }
 }

@@ -36,6 +36,13 @@ namespace Helion.Util.Geometry
         /// </summary>
         public float AspectRatio => ((float)Width) / Height;
 
+        /// <summary>
+        /// Gets the value as a vector.
+        /// </summary>
+        /// <returns></returns>
+        public Vec2I ToVector() => new Vec2I(Width, Height);
+        
+        /// <inheritdoc/>
         public override string ToString() => $"{Width}, {Height}";
     }
 }

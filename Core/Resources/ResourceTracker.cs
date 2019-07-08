@@ -27,6 +27,14 @@ namespace Helion.Resources
             table.Clear();
         }
 
+        /// <summary>
+        /// Checks if the resource exists for the provided name and namespace.
+        /// This only checks the namespace, not other ones.
+        /// </summary>
+        /// <param name="name">The resource name.</param>
+        /// <param name="resourceNamespace">The namespace for the resource.
+        /// </param>
+        /// <returns>True if it exists, false if not.</returns>
         public bool Contains(UpperString name, ResourceNamespace resourceNamespace)
         {
             return table.Get(resourceNamespace, name) != null;
@@ -117,15 +125,13 @@ namespace Helion.Resources
             return null;
         }
 
+        /// <inheritdoc/>
         public IEnumerator<HashTableEntry<ResourceNamespace, UpperString, T>> GetEnumerator()
         {
             foreach (var tableEntry in table)
                 yield return tableEntry;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

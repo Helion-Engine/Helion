@@ -17,64 +17,64 @@ namespace Helion.Render.Shared.Triangulator
         /// <summary>
         /// Triangulates all the components of some segment.
         /// </summary>
-        /// <param name="segment">The segment to triangulate. This should not
+        /// <param name="subsectorEdge">The segment to triangulate. This should not
         /// be a miniseg.</param>
         /// <returns>A series of triangulations, or null if this is called on a
         /// miniseg.</returns>
-        public static SegmentWalls? Triangulate(Segment segment)
+        public static SegmentWalls? Triangulate(SubsectorEdge subsectorEdge)
         {
-            if (segment.Side == null || segment.IsMiniseg)
+            if (subsectorEdge.Side == null || subsectorEdge.IsMiniseg)
                 return null;
 
-            WallQuad middle = TriangulateMiddle(segment, segment.Side.Sector);
+            WallQuad middle = TriangulateMiddle(subsectorEdge, subsectorEdge.Side.Sector);
             WallQuad? upper = null;
             WallQuad? lower = null;
 
-            if (segment.Line != null && segment.Line.TwoSided)
+            if (subsectorEdge.Line != null && subsectorEdge.Line.TwoSided)
             {
-                Sector? backSector = segment.Side.PartnerSide?.Sector;
+                Sector? backSector = subsectorEdge.Side.PartnerSide?.Sector;
                 if (backSector == null)
                     throw new HelionException("Should never fail to get a front or back side from a two sided line.");
 
-                upper = TriangulateUpper(segment, segment.Side.Sector, backSector);
-                lower = TriangulateLower(segment, segment.Side.Sector, backSector);
+                upper = TriangulateUpper(subsectorEdge, subsectorEdge.Side.Sector, backSector);
+                lower = TriangulateLower(subsectorEdge, subsectorEdge.Side.Sector, backSector);
             }
 
             // Needed for nullable types since it thinks we could mutate the
             // field and make it null.
-            if (segment.Line == null)
+            if (subsectorEdge.Line == null)
                 throw new HelionException("Should never have a null line with a non-miniseg");
 
-            return new SegmentWalls(segment, segment.Line, segment.Side, upper, middle, lower);
+            return new SegmentWalls(subsectorEdge, subsectorEdge.Line, subsectorEdge.Side, upper, middle, lower);
         }
 
-        private static WallQuad TriangulateMiddle(Segment segment, Sector sector)
+        private static WallQuad TriangulateMiddle(SubsectorEdge subsectorEdge, Sector sector)
         {
-            (Triangle upper, Triangle lower) = TriangulateWall(segment, sector.Floor, sector.Ceiling);
+            (Triangle upper, Triangle lower) = TriangulateWall(subsectorEdge, sector.Floor, sector.Ceiling);
             return new WallQuad(sector.Floor, sector.Ceiling, upper, lower);
         }
 
-        private static WallQuad TriangulateUpper(Segment segment, Sector frontSector, Sector backSector)
+        private static WallQuad TriangulateUpper(SubsectorEdge subsectorEdge, Sector frontSector, Sector backSector)
         {
-            Precondition(segment.Line?.TwoSided ?? false, "Should not be upper triangulating a segment for a one-sided line (or a miniseg)");
+            Precondition(subsectorEdge.Line?.TwoSided ?? false, "Should not be upper triangulating a segment for a one-sided line (or a miniseg)");
 
             SectorFlat floor = backSector.Ceiling;
             SectorFlat ceiling = frontSector.Ceiling;
-            (Triangle upper, Triangle lower) = TriangulateWall(segment, floor, ceiling);
+            (Triangle upper, Triangle lower) = TriangulateWall(subsectorEdge, floor, ceiling);
             return new WallQuad(floor, ceiling, upper, lower);
         }
 
-        private static WallQuad TriangulateLower(Segment segment, Sector frontSector, Sector backSector)
+        private static WallQuad TriangulateLower(SubsectorEdge subsectorEdge, Sector frontSector, Sector backSector)
         {
-            Precondition(segment.Line?.TwoSided ?? false, "Should not be lower triangulating a segment for a one sided (or miniseg) line");
+            Precondition(subsectorEdge.Line?.TwoSided ?? false, "Should not be lower triangulating a segment for a one sided (or miniseg) line");
 
             SectorFlat floor = frontSector.Floor;
             SectorFlat ceiling = backSector.Floor;
-            (Triangle upper, Triangle lower) = TriangulateWall(segment, floor, ceiling);
+            (Triangle upper, Triangle lower) = TriangulateWall(subsectorEdge, floor, ceiling);
             return new WallQuad(floor, ceiling, upper, lower);
         }
 
-        private static (Triangle, Triangle) TriangulateWall(Segment segment, SectorFlat floor, SectorFlat ceiling)
+        private static (Triangle, Triangle) TriangulateWall(SubsectorEdge subsectorEdge, SectorFlat floor, SectorFlat ceiling)
         {
             // The segment is triangulated as follows:
             //
@@ -86,8 +86,8 @@ namespace Helion.Render.Shared.Triangulator
             //   1   1---2         shares vertices w/ lower triangle edge 0-1.
             //       Lower
 
-            Vector2 start = segment.Start.ToFloat();
-            Vector2 end = segment.End.ToFloat();
+            Vector2 start = subsectorEdge.Start.ToFloat();
+            Vector2 end = subsectorEdge.End.ToFloat();
 
             // TODO: When we get planes, we need to calculate them for the Z.
             Vector3 topLeft = new Vector3(start.X, start.Y, ceiling.Z);
@@ -107,7 +107,7 @@ namespace Helion.Render.Shared.Triangulator
         /// <returns>A subsector triangulation.</returns>
         public static SubsectorTriangles Triangulate(Subsector subsector)
         {
-            List<Segment> segs = subsector.ClockwiseEdges;
+            List<SubsectorEdge> segs = subsector.ClockwiseEdges;
             Precondition(segs.Count >= 3, "Cannot triangulate a degenerate subsector");
 
             // TODO: Properly handle slopes when the time comes.

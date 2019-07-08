@@ -11,38 +11,38 @@ namespace Helion.World.Geometry
         /// The bit that is set in each child to indicate whether it is a node
         /// or a subsector.
         /// </summary>
-        public const ushort IsSubsectorBit = (ushort)0x8000U;
+        public const uint IsSubsectorBit = 0x80000000U;
 
         /// <summary>
         /// The mask that is used for grabbing the lower 15 bits.
         /// </summary>
-        public const ushort SubsectorMask = (ushort)0x7FFFU;
+        public const uint SubsectorMask = 0x7FFFFFFFU;
 
         /// <summary>
         /// A left child index, which is either an index to a subsector, or a 
         /// child node depending on whether <see cref="IsSubsectorBit"/> is 
         /// set.
         /// </summary>
-        public readonly ushort LeftChild;
+        public readonly uint LeftChild;
 
         /// <summary>
         /// A right child index, which is either an index to a subsector, or a
         /// child node depending on whether <see cref="IsSubsectorBit"/> is 
         /// set.
         /// </summary>
-        public readonly ushort RightChild;
+        public readonly uint RightChild;
 
         /// <summary>
         /// The splitter that made this line, which is also used for finding
         /// out which side of the line a point is on.
         /// </summary>
         // TODO: Do we want a customized BspSplitter type that is a struct as well?
-        public readonly Seg2Fixed Splitter;
+        public readonly Seg2D Splitter;
 
         /// <summary>
         /// The bounding box of this node.
         /// </summary>
-        public readonly Box2Fixed BoundingBox;
+        public readonly Box2D BoundingBox;
 
         /// <summary>
         /// True if the left child field is a subsector or not.
@@ -75,7 +75,7 @@ namespace Helion.World.Geometry
         /// the children.</param>
         /// <param name="boundingBox">The bounding box for this node, which is 
         /// the minimal size needed to contain every child under this.</param>
-        public BspNodeCompact(ushort leftChild, ushort rightChild, Seg2Fixed splitter, Box2Fixed boundingBox)
+        public BspNodeCompact(ushort leftChild, ushort rightChild, Seg2D splitter, Box2D boundingBox)
         {
             LeftChild = leftChild;
             RightChild = rightChild;
