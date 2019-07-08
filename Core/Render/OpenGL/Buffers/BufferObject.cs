@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Helion.Render.OpenGL.Util;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assert;
@@ -9,42 +10,36 @@ namespace Helion.Render.OpenGL.Buffers
 {
     public abstract class BufferObject<T> : IDisposable where T : struct
     {
-        protected bool uploaded;
-        protected int bufferHandle;
-        protected DynamicArray<T> data = new DynamicArray<T>();
+        protected bool Uploaded;
+        protected int BufferHandle;
+        protected DynamicArray<T> Data = new DynamicArray<T>();
         private readonly BufferTarget target;
         private readonly BufferUsageHint hint;
         private readonly int typeByteSize = Marshal.SizeOf<T>();
-        private bool disposed;
-        
-        public int Count => data.Length;
 
-        protected BufferObject(BufferTarget bufferTarget, BufferUsageHint usageHint, int glObjectId)
+        public int Count => Data.Length;
+
+        protected BufferObject(GLCapabilities capabilities, BufferTarget bufferTarget, BufferUsageHint usageHint, 
+            int glObjectId, string objectLabel = "")
         {
             // TODO: Write something that asserts every field offset is packed.
             Invariant(typeof(T).StructLayoutAttribute.Pack == 1, $"Type {typeof(T)} does not pack its data tightly");
 
             target = bufferTarget;
             hint = usageHint;
-            bufferHandle = glObjectId;
+            BufferHandle = glObjectId;
+            
+            GLHelper.SetBufferLabel(capabilities, BufferHandle, objectLabel);
         }
         
         ~BufferObject()
         {
             ReleaseUnmanagedResources();
         }
-        
-        protected virtual void ReleaseUnmanagedResources()
-        {
-            Precondition(!disposed, "Attempting to dispose a GL buffer more than once");
-            
-            GL.DeleteBuffer(bufferHandle);
-            disposed = true;
-        }
-        
+
         public void Add(T element)
         {
-            data.Add(element);
+            Data.Add(element);
             MarkAsNeedingUpload();
         }
 
@@ -52,7 +47,7 @@ namespace Helion.Render.OpenGL.Buffers
         {
             if (elements.Length > 0)
             {
-                data.Add(elements);
+                Data.Add(elements);
                 MarkAsNeedingUpload();
             }
         }
@@ -61,21 +56,21 @@ namespace Helion.Render.OpenGL.Buffers
         {
             Add(elements.Data);
         }
-        
+
         public void Upload()
         {
-            GL.BufferData(target, typeByteSize * data.Length, data.Data, hint);
-            uploaded = true;
+            GL.BufferData(target, typeByteSize * Data.Length, Data.Data, hint);
+            Uploaded = true;
         }
-        
+
         public void Clear()
         {
-            data.Clear();
+            Data.Clear();
         }
-        
+
         public void Bind()
         {
-            GL.BindBuffer(target, bufferHandle);
+            GL.BindBuffer(target, BufferHandle);
         }
 
         public void Unbind()
@@ -89,13 +84,7 @@ namespace Helion.Render.OpenGL.Buffers
             action.Invoke();
             Unbind();
         }
-        
-        [Conditional("DEBUG")]
-        protected void MarkAsNeedingUpload()
-        {
-            uploaded = false;
-        }
-        
+
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -104,10 +93,21 @@ namespace Helion.Render.OpenGL.Buffers
             // but take a while to lose the reference, we still want to leave
             // the option for the GC to retrieve memory.
 #nullable disable
-            data = null;
+            Data = null;
 #nullable enable
 
             GC.SuppressFinalize(this);
+        }
+
+        [Conditional("DEBUG")]
+        protected void MarkAsNeedingUpload()
+        {
+            Uploaded = false;
+        }
+
+        protected virtual void ReleaseUnmanagedResources()
+        {
+            GL.DeleteBuffer(BufferHandle);
         }
     }
 }

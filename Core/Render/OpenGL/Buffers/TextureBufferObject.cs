@@ -1,4 +1,5 @@
 using System;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Buffers
@@ -9,8 +10,8 @@ namespace Helion.Render.OpenGL.Buffers
     {
         private readonly int tbo;
         
-        public TextureBufferObject(BufferUsageHint usageHint = BufferUsageHint.DynamicDraw) : 
-            base(BufferTarget.TextureBuffer, usageHint, GL.GenBuffer())
+        public TextureBufferObject(GLCapabilities capabilities, string objectLabel = "", BufferUsageHint usageHint = BufferUsageHint.DynamicDraw) : 
+            base(capabilities, BufferTarget.TextureBuffer, usageHint, GL.GenBuffer(), objectLabel)
         {
             tbo = GL.GenTexture();
             BindTextureToBuffer();
@@ -30,7 +31,7 @@ namespace Helion.Render.OpenGL.Buffers
         private void BindTextureToBuffer()
         {
             GL.BindTexture(TextureTarget.TextureBuffer, tbo);
-            GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, bufferHandle);
+            GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, BufferHandle);
             GL.BindTexture(TextureTarget.TextureBuffer, 0);
         }
 

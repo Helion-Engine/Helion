@@ -61,7 +61,7 @@ namespace Helion.Render.OpenGL.Texture
 
             LookupIndex = lookupIndex;
             UVLocation = CalculateUVLocation(atlasDimension, atlasHandle);
-            UVInverse = Vector2.One / UVLocation.Sides();
+            UVInverse = UVLocation.Sides;
             Dimension = atlasHandle.Location.Dimension;
             AtlasHandle = atlasHandle;
         }

@@ -56,10 +56,10 @@ namespace Helion.Maps.Entries
                 ushort tag = reader.ReadUInt16();
 
                 int floorId = 2 * id;
-                SectorFlat floorFlat = new SectorFlat(floorId, floorTexture, floorHeight, lightLevel);
+                SectorFlat floorFlat = new SectorFlat(floorId, true, floorTexture, floorHeight, lightLevel);
 
                 int ceilingId = floorId + 1;
-                SectorFlat ceilingFlat = new SectorFlat(ceilingId, ceilingTexture, ceilingHeight, lightLevel);
+                SectorFlat ceilingFlat = new SectorFlat(ceilingId, false, ceilingTexture, ceilingHeight, lightLevel);
 
                 map.Sectors.Add(new Sector(id, lightLevel, floorFlat, ceilingFlat));
                 map.SectorFlats.Add(floorFlat);

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Runtime.InteropServices;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assert;
 
@@ -7,8 +8,9 @@ namespace Helion.Render.OpenGL.Buffers
 {
     public class VertexBufferObject<T> : BufferObject<T> where T : struct
     {
-        protected VertexBufferObject(BufferUsageHint hint, VertexArrayObject vao) : base(BufferTarget.ArrayBuffer, hint,
-            GL.GenBuffer())
+        protected VertexBufferObject(GLCapabilities capabilities, BufferUsageHint hint, VertexArrayObject vao,
+                string objectLabel = "") : 
+            base(capabilities, BufferTarget.ArrayBuffer, hint, GL.GenBuffer(), objectLabel)
         {
             BindAttributes(vao);
         }
@@ -35,28 +37,34 @@ namespace Helion.Render.OpenGL.Buffers
 
         public void DrawArrays()
         {
-            Precondition(uploaded, "Forgot to upload VBO data");
+            if (Count == 0)
+                return;
+            
+            Precondition(Uploaded, "Forgot to upload VBO data");
             GL.DrawArrays(PrimitiveType.Triangles, 0, Count);
         }
     }
     
     public class StaticVertexBufferObject<T> : VertexBufferObject<T> where T : struct
     {
-        public StaticVertexBufferObject(VertexArrayObject vao) : base(BufferUsageHint.StaticDraw, vao)
+        public StaticVertexBufferObject(GLCapabilities capabilities, VertexArrayObject vao, string objectLabel = "") : 
+            base(capabilities, BufferUsageHint.StaticDraw, vao, objectLabel)
         {
         }
     }
     
     public class DynamicVertexBufferObject<T> : VertexBufferObject<T> where T : struct
     {
-        public DynamicVertexBufferObject(VertexArrayObject vao) : base(BufferUsageHint.DynamicDraw, vao)
+        public DynamicVertexBufferObject(GLCapabilities capabilities, VertexArrayObject vao, string objectLabel = "") : 
+            base(capabilities, BufferUsageHint.DynamicDraw, vao, objectLabel)
         {
         }
     }
 
     public class StreamVertexBufferObject<T> : VertexBufferObject<T> where T : struct
     {
-        public StreamVertexBufferObject(VertexArrayObject vao) : base(BufferUsageHint.StreamDraw, vao)
+        public StreamVertexBufferObject(GLCapabilities capabilities, VertexArrayObject vao, string objectLabel = "") : 
+            base(capabilities, BufferUsageHint.StreamDraw, vao, objectLabel)
         {
         }
     }

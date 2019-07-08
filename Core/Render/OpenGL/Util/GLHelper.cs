@@ -1,6 +1,7 @@
 ﻿using Helion.Util;
 using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
+using Helion.Util.Extensions;
 
 namespace Helion.Render.OpenGL.Util
 {
@@ -95,13 +96,27 @@ namespace Helion.Render.OpenGL.Util
         /// <summary>
         /// Attaches an object label for the provided GL object.
         /// </summary>
+        /// <param name="capabilities">The GL capabilities.</param>
         /// <param name="id">The GL identifier.</param>
         /// <param name="glName">The integral GL object name.</param>
         /// <param name="name">The label to attach.</param>
         [Conditional("DEBUG")]
-        public static void ObjectLabel(ObjectLabelIdentifier id, int glName, string name)
+        private static void ObjectLabel(GLCapabilities capabilities, ObjectLabelIdentifier id, int glName, string name)
         {
-            GL.ObjectLabel(ObjectLabelIdentifier.Texture, glName, name.Length, name);
+            if (name.NotEmpty() && capabilities.Version.Supports(4, 3))
+                GL.ObjectLabel(id, glName, name.Length, name);
+        }
+
+        [Conditional("DEBUG")]
+        public static void SetTextureLabel(GLCapabilities capabilities, int glName, string name)
+        {
+            ObjectLabel(capabilities, ObjectLabelIdentifier.Texture, glName, name);
+        }
+        
+        [Conditional("DEBUG")]
+        public static void SetBufferLabel(GLCapabilities capabilities, int glName, string name)
+        {
+            ObjectLabel(capabilities, ObjectLabelIdentifier.Buffer, glName, name);
         }
     }
 }

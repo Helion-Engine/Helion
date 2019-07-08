@@ -31,6 +31,11 @@ namespace Helion.Render.OpenGL.Texture
         /// when a texture cannot be found.
         /// </summary>
         public readonly GLTexture NullTextureHandle;
+
+        /// <summary>
+        /// A manager of texture buffer information for allocated GL textures.
+        /// </summary>
+        public readonly GLTextureBuffers TextureBuffers;
         
         /// <summary>
         /// The OpenGL texture 'name'.
@@ -75,6 +80,7 @@ namespace Helion.Render.OpenGL.Texture
             m_capabilities = capabilities;
             m_atlasTextureHandle = GL.GenTexture();
             m_atlas = new Atlas2D(GetBestAtlasDimension());
+            TextureBuffers = new GLTextureBuffers(capabilities);
 
             AllocateTextureAtlasOnGPU();
             SetTextureAtlasParameters();
@@ -129,6 +135,8 @@ namespace Helion.Render.OpenGL.Texture
         {
             BindTextureOnly();
 
+            GLHelper.SetTextureLabel(m_capabilities, m_atlasTextureHandle, "Texture Atlas");
+            
             // Because the C# image format is 'ARGB', we can get it into the 
             // RGBA format by doing a BGRA format and then reversing it.
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 
@@ -158,7 +166,11 @@ namespace Helion.Render.OpenGL.Texture
                 throw new HelionException("Unable to allocate space in atlas for the null texture");
 
             UploadPixelsToAtlasTexture(nullImage, atlasHandle.Location);
-            return new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
+            
+            GLTexture texture = new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
+            TextureBuffers.Track(texture);
+            
+            return texture;
         }
         
         private void BindTextureOnly()
@@ -193,6 +205,8 @@ namespace Helion.Render.OpenGL.Texture
             
             GLTexture texture = new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
             m_textures.AddOrOverwrite(name, resourceNamespace, texture);
+            
+            TextureBuffers.Track(texture);
             
             return texture;
         }

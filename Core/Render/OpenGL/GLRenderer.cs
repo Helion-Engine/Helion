@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL
         public GLRenderer(Config config)
         {
             m_textureManager = new GLTextureManager(config, Capabilities);
-            m_worldRenderer = new WorldRenderer();
+            m_worldRenderer = new WorldRenderer(Capabilities, m_textureManager);
             
             PrintGLInfo();
             SetGLStates();
@@ -49,7 +49,7 @@ namespace Helion.Render.OpenGL
                     HandleClearCommand(clearRenderCommand);
                     break;
                 case DrawWorldCommand drawWorldCommand:
-                    // TODO
+                    m_worldRenderer.Render(drawWorldCommand.World);
                     break;
                 case ViewportCommand viewportCommand:
                     HandleViewportCommand(viewportCommand);
@@ -65,12 +65,6 @@ namespace Helion.Render.OpenGL
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
-        }
-        
-        private void ReleaseUnmanagedResources()
-        {
-            m_worldRenderer.Dispose();
-            m_textureManager.Dispose();
         }
 
         private static void PrintGLInfo()
@@ -142,12 +136,18 @@ namespace Helion.Render.OpenGL
             
             GL.Clear(clearMask);
         }
-        
+
         private void HandleViewportCommand(ViewportCommand viewportCommand)
         {
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
             GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
+        }
+
+        private void ReleaseUnmanagedResources()
+        {
+            m_worldRenderer.Dispose();
+            m_textureManager.Dispose();
         }
     }
 }

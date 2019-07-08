@@ -76,7 +76,7 @@ namespace Helion.Render.OpenGL.Buffers
     {
         public readonly VertexAttribIntegerType Type;
 
-        public VertexIntAttribute(string name, int index, int size, VertexAttribIntegerType type) :
+        public VertexIntAttribute(string name, int index, int size, VertexAttribIntegerType type = VertexAttribIntegerType.Int) :
             base(name, index, size)
         {
             Type = type;

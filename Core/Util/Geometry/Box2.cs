@@ -248,7 +248,7 @@ namespace Helion.Util.Geometry
         /// Calculates the sides of this bounding box.
         /// </summary>
         /// <returns>The sides of the bounding box.</returns>
-        public Vector2 Sides() => Max - Min;
+        public Vector2 Sides => Max - Min;
 
         public override string ToString() => $"({Min}), ({Max})";
     }
