@@ -43,9 +43,9 @@ namespace Helion.Render.OpenGL.Texture
         private readonly Config m_config;
         
         /// <summary>
-        /// A collection of GL capabilities.
+        /// A collection of OpenGL capabilities.
         /// </summary>
-        private readonly GLInfo m_info;
+        private readonly GLCapabilities m_capabilities;
         
         /// <summary>
         /// The atlas that manages the space for where textures should go with
@@ -68,16 +68,16 @@ namespace Helion.Render.OpenGL.Texture
         /// Creates a texture manager using the config and GL info provided.
         /// </summary>
         /// <param name="config">The config for texture parameters.</param>
-        /// <param name="info">The OpenGL capabilities.</param>
-        public GLTextureManager(Config config, GLInfo info)
+        /// <param name="capabilities">The OpenGL capabilities.</param>
+        public GLTextureManager(Config config, GLCapabilities capabilities)
         {
             m_config = config;
-            m_info = info;
+            m_capabilities = capabilities;
             m_atlasTextureHandle = GL.GenTexture();
             m_atlas = new Atlas2D(GetBestAtlasDimension());
 
             AllocateTextureAtlasOnGPU();
-            SetTextureAtlasParameters(info);
+            SetTextureAtlasParameters();
             
             NullTextureHandle = CreateNullTexture();
         }
@@ -139,7 +139,7 @@ namespace Helion.Render.OpenGL.Texture
             Unbind();
         }
 
-        private void SetTextureAtlasParameters(GLInfo info)
+        private void SetTextureAtlasParameters()
         {
             BindTextureOnly();
 
@@ -173,7 +173,7 @@ namespace Helion.Render.OpenGL.Texture
             // memory which likely has to be backed by the OS. We'd rather only
             // resize if we absolutely need to. We'll go with 4096 for now as
             // this is big enough to avoid lots of resizing.
-            int atlasSize = Math.Min(m_info.Limits.MaxTextureSize, 4096);
+            int atlasSize = Math.Min(m_capabilities.Limits.MaxTextureSize, 4096);
             return new Dimension(atlasSize, atlasSize);
         }
 

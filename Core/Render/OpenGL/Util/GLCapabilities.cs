@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Helion.Render.OpenGL.Util
 {
-    public class GLInfo
+    public class GLCapabilities
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private static readonly Regex versionRegex = new Regex(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);

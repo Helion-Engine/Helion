@@ -17,7 +17,7 @@ namespace Helion.Render.OpenGL
 {
     public class GLRenderer : IRenderer, IDisposable
     {
-        private static readonly GLInfo GLInfo = new GLInfo();
+        private static readonly GLCapabilities Capabilities = new GLCapabilities();
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool InfoPrinted;
 
@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL
 
         public GLRenderer(Config config)
         {
-            m_textureManager = new GLTextureManager(config, GLInfo);
+            m_textureManager = new GLTextureManager(config, Capabilities);
             m_worldRenderer = new WorldRenderer();
             
             PrintGLInfo();
@@ -78,10 +78,10 @@ namespace Helion.Render.OpenGL
             if (InfoPrinted)
                 return;
             
-            Log.Info("Loaded OpenGL v{0}", GLInfo.Version);
-            Log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
-            Log.Info("Vendor: {0}", GLInfo.Vendor);
-            Log.Info("Hardware: {0}", GLInfo.Renderer);
+            Log.Info("Loaded OpenGL v{0}", Capabilities.Version);
+            Log.Info("OpenGL Shading Language: {0}", Capabilities.ShadingVersion);
+            Log.Info("Vendor: {0}", Capabilities.Vendor);
+            Log.Info("Hardware: {0}", Capabilities.Renderer);
 
             InfoPrinted = true;
         }
@@ -91,7 +91,7 @@ namespace Helion.Render.OpenGL
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Multisample);
 
-            if (GLInfo.Version.Supports(3, 2))
+            if (Capabilities.Version.Supports(3, 2))
                 GL.Enable(EnableCap.TextureCubeMapSeamless);
 
             GL.Enable(EnableCap.Blend);
@@ -106,7 +106,7 @@ namespace Helion.Render.OpenGL
         [Conditional("DEBUG")]
         private void SetGLDebugger()
         {
-            if (!GLInfo.Version.Supports(4, 3)) 
+            if (!Capabilities.Version.Supports(4, 3)) 
                 return;
             
             GL.Enable(EnableCap.DebugOutput);
