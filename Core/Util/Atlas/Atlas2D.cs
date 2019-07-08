@@ -4,13 +4,13 @@ using Helion.Util.Geometry;
 
 namespace Helion.Util.Atlas
 {
-    public class Atlas
+    public class Atlas2D
     {
         public Dimension Dimension;
         private readonly AtlasNode m_root;
         private readonly HashSet<AtlasHandle> m_handles = new HashSet<AtlasHandle>();
 
-        public Atlas(Dimension dimension)
+        public Atlas2D(Dimension dimension)
         {
             Dimension = dimension;
             m_root = new AtlasNode(dimension);

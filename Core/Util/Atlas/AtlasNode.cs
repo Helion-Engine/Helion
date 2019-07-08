@@ -56,6 +56,11 @@ namespace Helion.Util.Atlas
         /// A convenience property for iteration over both children.
         /// </summary>
         private AtlasNode?[] Children => new[] { m_left, m_right };
+
+        /// <summary>
+        /// Checks if this node has any children.
+        /// </summary>
+        private bool HasChildren => m_left != null || m_right != null;
         
         /// <summary>
         /// Creates a root node from the dimension of the atlas.
@@ -84,7 +89,7 @@ namespace Helion.Util.Atlas
         /// there is no space in any child of this.</returns>
         internal AtlasNode? RecursivelyAdd(Dimension dimension)
         {
-            if (m_occupied)
+            if (m_occupied || dimension.Width > Location.Width || dimension.Height > Location.Height)
                 return null;
 
             // This is a heuristic to quickly determine if we can place it. It
@@ -92,14 +97,22 @@ namespace Helion.Util.Atlas
             // practice this does a pretty nice job thus far. I am not opposed
             // to a better implementation getting in, however due to the simple
             // nature of this, it'd only be worth upgrading if truly needed.
-            foreach (AtlasNode? child in Children)
+            if (HasChildren)
             {
-                if (child == null || !child.CanPossiblyAdd(dimension)) 
-                    continue;
-                
-                AtlasNode? node = child.RecursivelyAdd(dimension);
-                if (node != null)
-                    return node;
+                foreach (AtlasNode? child in Children)
+                {
+                    if (child == null || !child.CanPossiblyAdd(dimension)) 
+                        continue;
+                    
+                    AtlasNode? node = child.RecursivelyAdd(dimension);
+                    if (node != null)
+                        return node;
+                }
+
+                // If we have children but cannot add them, that means there is
+                // likely not enough space for them, so we exit early as part 
+                // of the heuristic.
+                return null;
             }
 
             bool fitsWidthExactly = (dimension.Width == Location.Width);

@@ -31,7 +31,7 @@ namespace Helion.Render.OpenGL.Texture
         private readonly int m_atlasTextureHandle;
         private readonly Config m_config;
         private readonly GLInfo m_info;
-        private readonly Atlas m_atlas;
+        private readonly Atlas2D m_atlas;
         private readonly ResourceTracker<GLTexture> m_textures = new ResourceTracker<GLTexture>();
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Helion.Render.OpenGL.Texture
             m_config = config;
             m_info = info;
             m_atlasTextureHandle = GL.GenTexture();
-            m_atlas = new Atlas(GetBestAtlasDimension());
+            m_atlas = new Atlas2D(GetBestAtlasDimension());
 
             AllocateTextureAtlasOnGPU();
             SetTextureAtlasParameters(info);
