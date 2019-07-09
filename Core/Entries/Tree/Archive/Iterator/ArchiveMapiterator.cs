@@ -1,8 +1,10 @@
 ﻿using Helion.Maps;
 using Helion.Util;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using static Helion.Util.Assert;
 
 namespace Helion.Entries.Tree.Archive.Iterator
@@ -12,32 +14,58 @@ namespace Helion.Entries.Tree.Archive.Iterator
     /// </summary>
     public class ArchiveMapIterator : IEnumerable<MapEntryCollection>
     {
-        private static readonly HashSet<UpperString> MapEntryNames = new HashSet<UpperString>()
+        private static readonly HashSet<CiString> MapEntryNames = new HashSet<CiString>()
         {
             "THINGS", "LINEDEFS", "SIDEDEFS", "VERTEXES", "SEGS", "SSECTORS",
             "NODES", "SECTORS", "REJECT", "BLOCKMAP", "BEHAVIOR", "SCRIPTS",
-            "TEXTMAP", "ZNODES", "DIALOGUE", "ENDMAP", "GL_LEVEL", "GL_VERT", 
+            "TEXTMAP", "ZNODES", "DIALOGUE", "ENDMAP", "GL_LEVEL", "GL_VERT",
             "GL_SEGS", "GL_SSECT", "GL_NODES", "GL_PVS"
         };
 
-        private readonly LinkedList<DirectoryEntry> directoriesToVisit = new LinkedList<DirectoryEntry>();
+        private static Dictionary<CiString, PropertyInfo> MapEntryLookup = new Dictionary<CiString, PropertyInfo>
+        {
+            { "BEHAVIOR",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Behavior)) },
+            { "BLOCKMAP",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Blockmap)) },
+            { "DIALOGUE",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Dialogue)) },
+            { "ENDMAP",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Endmap)) },
+            { "GL_LEVEL",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLMap)) },
+            { "GL_NODES",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLNodes)) },
+            { "GL_PVS",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLPVS)) },
+            { "GL_SEGS",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLSegments)) },
+            { "GL_SSECT",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLSubsectors)) },
+            { "GL_VERT",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLVertices)) },
+            { "LINEDEFS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Linedefs)) },
+            { "NODES",      typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Nodes)) },
+            { "REJECT",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Reject)) },
+            { "SCRIPTS",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Scripts)) },
+            { "SECTORS",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Sectors)) },
+            { "SEGS",       typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Segments)) },
+            { "SSECTORS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Subsectors)) },
+            { "SIDEDEFS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Sidedefs)) },
+            { "THINGS",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Things)) },
+            { "TEXTMAP",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Textmap)) },
+            { "VERTEXES",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Vertices)) },
+            { "ZNODES",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Znodes)) },
+        };
+
+        private Archive m_archive;
         private MapEntryCollection currentMap = new MapEntryCollection();
         private bool makingMap = false;
-        private UpperString lastEntryName = "";
+        private CiString lastEntryName = "";
 
         public ArchiveMapIterator(Archive archive)
         {
-            AddAllDirectoriesRecursive(archive);
+            m_archive = archive;
         }
 
-        private bool IsGLBSPMapHeader(UpperString entryName)
+        private bool IsGLBSPMapHeader(CiString entryName)
         {
             // Unfortunately GLBSP decided it'd allow things like GL_XXXXX
             // where the X's are the map name if it's less/equal to 5 letters.
             return currentMap.Name.Length <= 5 && (entryName == "GL_" + currentMap.Name);
         }
 
-        private bool IsMapEntry(UpperString entryName)
+        private bool IsMapEntry(CiString entryName)
         {
             return IsGLBSPMapHeader(entryName) || MapEntryNames.Contains(entryName);
         }
@@ -49,149 +77,47 @@ namespace Helion.Entries.Tree.Archive.Iterator
             lastEntryName = "";
         }
 
-        private void TrackMapEntry(UpperString entryName, Entry entry)
+        private void TrackMapEntry(CiString entryName, Entry entry)
         {
             if (IsGLBSPMapHeader(entryName))
             {
-                currentMap.GLMap = entry.Data;
+                currentMap.GLMap = entry.ReadData();
                 return;
             }
-            
-            switch (entryName.ToString())
-            {
-            case "BEHAVIOR":
-                currentMap.Behavior = entry.Data;
-                break;
-            case "BLOCKMAP":
-                currentMap.Blockmap = entry.Data;
-                break;
-            case "DIALOGUE":
-                currentMap.Dialogue = entry.Data;
-                break;
-            case "ENDMAP":
-                currentMap.Endmap = entry.Data;
-                break;
-            case "GL_LEVEL":
-                currentMap.GLMap = entry.Data;
-                break;
-            case "GL_NODES":
-                currentMap.GLNodes = entry.Data;
-                break;
-            case "GL_PVS":
-                currentMap.GLPVS = entry.Data;
-                break;
-            case "GL_SEGS":
-                currentMap.GLSegments = entry.Data;
-                break;
-            case "GL_SSECT":
-                currentMap.GLSubsectors = entry.Data;
-                break;
-            case "GL_VERT":
-                currentMap.GLVertices = entry.Data;
-                break;
-            case "LINEDEFS":
-                currentMap.Linedefs = entry.Data;
-                break;
-            case "NODES":
-                currentMap.Nodes = entry.Data;
-                break;
-            case "REJECT":
-                currentMap.Reject = entry.Data;
-                break;
-            case "SCRIPTS":
-                currentMap.Scripts = entry.Data;
-                break;
-            case "SECTORS":
-                currentMap.Sectors = entry.Data;
-                break;
-            case "SEGS":
-                currentMap.Segments = entry.Data;
-                break;
-            case "SSECTORS":
-                currentMap.Subsectors = entry.Data;
-                break;
-            case "SIDEDEFS":
-                currentMap.Sidedefs = entry.Data;
-                break;
-            case "THINGS":
-                currentMap.Things = entry.Data;
-                break;
-            case "TEXTMAP":
-                currentMap.Textmap = entry.Data;
-                break;
-            case "VERTEXES":
-                currentMap.Vertices = entry.Data;
-                break;
-            case "ZNODES":
-                currentMap.Znodes = entry.Data;
-                break;
-            default:
-                Fail($"Unexpected map entry name: {entry.Path.Name}");
-                break;
-            }
-        }
 
-        private void AddAllDirectoriesRecursive(DirectoryEntry directoryEntry)
-        {
-            directoriesToVisit.AddLast(directoryEntry);
-            foreach (DirectoryEntry childDirectory in directoryEntry.Folders)
-                AddAllDirectoriesRecursive(childDirectory);
+            if (MapEntryLookup.ContainsKey(entryName))
+                MapEntryLookup[entryName].SetValue(currentMap, entry.ReadData());
+            else
+                Fail($"Unexpected map entry name: {entry.Path.Name}");         
         }
 
         public IEnumerator<MapEntryCollection> GetEnumerator()
         {
-            // TODO: Need to get the map name from the directory entry above.
-            // The solution to this is to examine the path for maps/ from the
-            // top level, and if so then remember that name and apply it to
-            // the map collection.
-            
-            // TODO: This should be cleaned up. Sadly the iterator is a bit
-            // buried in everything and it's not trivial to refactor. However
-            // an attempt should still be made to try to make this cleaner.
-
-            while (directoriesToVisit.Any())
+            foreach (Entry entry in m_archive.Entries)
             {
-                DirectoryEntry directoryEntry = directoriesToVisit.First.Value;
-                directoriesToVisit.RemoveFirst();
+                CiString entryName = entry.Path.Name;
 
-                // Starting a new directory or archive means we are done any
-                // existing map (if one is being made).
-                if (currentMap.IsValid())
-                    yield return currentMap;
-                ResetMapTrackingData();
-
-                foreach (Entry entry in directoryEntry.Entries)
+                if (makingMap)
                 {
-                    if (entry is Archive archive)
-                    {
-                        directoriesToVisit.AddFirst(archive);
-                        continue;
-                    }
-
-                    UpperString entryName = entry.Path.Name;
-
-                    if (makingMap)
-                    {
-                        if (IsMapEntry(entryName))
-                        {
-                            TrackMapEntry(entryName, entry);
-                        }
-                        else
-                        {
-                            if (currentMap.IsValid())
-                                yield return currentMap;
-                            ResetMapTrackingData();
-                        }
-                    }
-                    else if (IsMapEntry(entryName))
+                    if (IsMapEntry(entryName))
                     {
                         TrackMapEntry(entryName, entry);
-                        currentMap.Name = lastEntryName;
-                        makingMap = true;
                     }
-
-                    lastEntryName = entryName;
+                    else
+                    {
+                        if (currentMap.IsValid())
+                            yield return currentMap;
+                        ResetMapTrackingData();
+                    }
                 }
+                else if (IsMapEntry(entryName))
+                {
+                    TrackMapEntry(entryName, entry);
+                    currentMap.Name = lastEntryName;
+                    makingMap = true;
+                }
+
+                lastEntryName = entryName;
             }
 
             // After finishing a directory, we may have a residual map that was

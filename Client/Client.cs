@@ -14,6 +14,7 @@ using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using System.Linq;
 
 namespace Helion.Client
 {
@@ -48,9 +49,8 @@ namespace Helion.Client
             LoadProject();
 
             GLInfo glInfo = new GLInfo();
-            renderer = new GLRenderer(glInfo, config, project);
+            renderer = new GLRenderer(glInfo, config, project.Resources);
             PrintGLInfo(glInfo);
-            project.Resources.ImageManager.ImageEventEmitter += renderer.HandleTextureEvent;
 
             // TODO: Very temporary!
             int levelNumber = (commandLineArgs.Warp != 0 ? commandLineArgs.Warp : 1);
@@ -64,7 +64,6 @@ namespace Helion.Client
             VSync = config.Engine.Window.VSync.Get().ToOpenTKVSync();
             WindowState = config.Engine.Window.State.Get().ToOpenTKWindowState();
             CursorVisible = false; // TODO: Should be configurable.
-
         }
 
         private void LoadMap(string mapName)
@@ -76,11 +75,10 @@ namespace Helion.Client
 
                 System.DateTime dtStart = System.DateTime.Now;
 
-                renderer.ClearWorld();               
-                project.Resources.LoadMapResources(project, map);       
+                renderer.ClearWorld();
                 world = SinglePlayerWorld.Create(project, map, MapEntryCollection);
 
-                log.Info($"Load Time {System.DateTime.Now.Subtract(dtStart).TotalMilliseconds}");
+                log.Info($"Map Load Time: {System.DateTime.Now.Subtract(dtStart).TotalMilliseconds}");
 
                 System.GC.Collect();
                 System.GC.WaitForPendingFinalizers();
@@ -100,11 +98,13 @@ namespace Helion.Client
 
         private void LoadProject()
         {
+            System.DateTime dtStart = System.DateTime.Now;
             if (!project.Load(commandLineArgs.Files))
             {
                 log.Error("Unable to load files for the client");
                 shouldExit = true;
             }
+            log.Info($"Project Load Time: {System.DateTime.Now.Subtract(dtStart).TotalMilliseconds}");
         }
 
         private void PrintGLInfo(GLInfo glInfo)
@@ -235,7 +235,6 @@ namespace Helion.Client
             // before the OpenGL context is destroyed. This way we clean up
             // our side of the renderer first.
             inputAdapter.InputEventEmitter -= inputManager.HandleInputEvent;
-            project.Resources.ImageManager.ImageEventEmitter -= renderer.HandleTextureEvent;
             renderer.Dispose();
             console.Dispose();
 

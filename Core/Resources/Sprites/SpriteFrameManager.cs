@@ -16,7 +16,7 @@ namespace Helion.Resources.Sprites
     /// </remarks>
     public class SpriteFrameManager
     {
-        private Dictionary<UpperString, SpriteRotations> frameToSprites = new Dictionary<UpperString, SpriteRotations>();
+        private Dictionary<CiString, SpriteRotations> frameToSprites = new Dictionary<CiString, SpriteRotations>();
         private List<ISpriteFrameManagerListener> listeners = new List<ISpriteFrameManagerListener>();
 
         private static bool SupportedSpriteNamespace(ResourceNamespace resourceNamespace)
@@ -42,24 +42,24 @@ namespace Helion.Resources.Sprites
             }
         }
 
-        private static bool IsSixLetterFrame(UpperString frame)
+        private static bool IsSixLetterFrame(CiString frame)
         {
             return frame.Length == 6 && IsValidRotationIndex(frame[5]);
         }
 
-        private static bool IsEightLetterFrame(UpperString frame)
+        private static bool IsEightLetterFrame(CiString frame)
         {
             return frame.Length == 8 &&
                    IsValidRotationIndex(frame[5]) &&
                    AreRotationReflections(frame[5], frame[7]);
         }
 
-        private static bool IsSixOrEightLetterFrame(UpperString frame)
+        private static bool IsSixOrEightLetterFrame(CiString frame)
         {
             return IsSixLetterFrame(frame) || IsEightLetterFrame(frame);
         }
 
-        private void NotifyListeners(UpperString frame, SpriteRotations rotations)
+        private void NotifyListeners(CiString frame, SpriteRotations rotations)
         {
             SpriteFrameManagerEvent spriteEvent = SpriteFrameManagerEvent.Create(frame, rotations);
             listeners.ForEach(l => l.HandleSpriteEvent(spriteEvent));
@@ -83,7 +83,7 @@ namespace Helion.Resources.Sprites
             if (!SupportedSpriteNamespace(resourceNamespace) || !IsSixOrEightLetterFrame(name))
                 return;
 
-            UpperString frameBase = name.Substring(0, 5);
+            CiString frameBase = name.Substring(0, 5);
 
             if (frameToSprites.TryGetValue(frameBase, out SpriteRotations rotations))
             {

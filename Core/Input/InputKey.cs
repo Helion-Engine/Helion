@@ -131,7 +131,7 @@ namespace Helion.Input
 
     public static class InputKeyHelper
     {
-        private static Dictionary<UpperString, InputKey> nameToKey = new Dictionary<UpperString, InputKey>()
+        private static Dictionary<CiString, InputKey> nameToKey = new Dictionary<CiString, InputKey>()
         {
             ["0"] = InputKey.Zero,
             ["1"] = InputKey.One,
@@ -275,7 +275,7 @@ namespace Helion.Input
             ["mouse-custom2"] = InputKey.MouseCustom2,
         };
 
-        public static InputKey ToKey(UpperString str)
+        public static InputKey ToKey(CiString str)
         {
             return nameToKey.TryGetValue(str, out InputKey value) ? value : InputKey.Unknown;
         }

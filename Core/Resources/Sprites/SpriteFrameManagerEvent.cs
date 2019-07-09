@@ -26,14 +26,14 @@ namespace Helion.Resources.Sprites
         /// The base 5 letters of the frame. This means if your sprite is 
         /// POSSA2A8 then the frame base is "POSSA".
         /// </summary>
-        public UpperString FrameBase { get; }
+        public CiString FrameBase { get; }
 
         /// <summary>
         /// The rotations for the frame.
         /// </summary>
         public SpriteRotations Rotations { get; }
 
-        public SpriteFrameManagerEvent(SpriteFrameManagerEventType type, UpperString frameBase,
+        public SpriteFrameManagerEvent(SpriteFrameManagerEventType type, CiString frameBase,
             SpriteRotations rotations)
         {
             Type = type;
@@ -47,7 +47,7 @@ namespace Helion.Resources.Sprites
         /// <param name="frameBase">The first 5 letters of the frame.</param>
         /// <param name="rotations">The rotations for this frame.</param>
         /// <returns>The event for this data.</returns>
-        public static SpriteFrameManagerEvent Create(UpperString frameBase, SpriteRotations rotations)
+        public static SpriteFrameManagerEvent Create(CiString frameBase, SpriteRotations rotations)
         {
             return new SpriteFrameManagerEvent(SpriteFrameManagerEventType.CreateOrUpdate, frameBase, rotations);
         }

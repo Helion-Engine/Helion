@@ -232,7 +232,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             });
 
             // TODO: This texture is temporary until we have MapInfo support.
-            GLTexture skyTexture = textureManager.Get("SKY1", ResourceNamespace.Textures);
+            GLTexture skyTexture = textureManager.Get("SKY1");
             skyRenderer.Render(skyTexture, renderInfo);
         }
 

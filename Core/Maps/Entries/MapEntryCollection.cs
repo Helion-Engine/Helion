@@ -14,31 +14,31 @@ namespace Helion.Maps
         /// <summary>
         /// The name of the map.
         /// </summary>
-        public UpperString Name = "";
+        public CiString Name = string.Empty;
 
         // The following are a list of all the components that may be present.
-        public byte[]? Vertices = null;
-        public byte[]? Sectors = null;
-        public byte[]? Sidedefs = null;
-        public byte[]? Linedefs = null;
-        public byte[]? Segments = null;
-        public byte[]? Subsectors = null;
-        public byte[]? Nodes = null;
-        public byte[]? Things = null;
-        public byte[]? Blockmap = null;
-        public byte[]? Reject = null;
-        public byte[]? Scripts = null;
-        public byte[]? Behavior = null;
-        public byte[]? Dialogue = null;
-        public byte[]? Textmap = null;
-        public byte[]? Znodes = null;
-        public byte[]? Endmap = null;
-        public byte[]? GLMap = null;
-        public byte[]? GLVertices = null;
-        public byte[]? GLSegments = null;
-        public byte[]? GLSubsectors = null;
-        public byte[]? GLNodes = null;
-        public byte[]? GLPVS = null;
+        public byte[]? Vertices { get; set; }
+        public byte[]? Sectors { get; set; }
+        public byte[]? Sidedefs { get; set; }
+        public byte[]? Linedefs { get; set; }
+        public byte[]? Segments { get; set; }
+        public byte[]? Subsectors { get; set; }
+        public byte[]? Nodes { get; set; }
+        public byte[]? Things { get; set; }
+        public byte[]? Blockmap { get; set; }
+        public byte[]? Reject { get; set; }
+        public byte[]? Scripts { get; set; }
+        public byte[]? Behavior { get; set; }
+        public byte[]? Dialogue { get; set; }
+        public byte[]? Textmap { get; set; }
+        public byte[]? Znodes { get; set; }
+        public byte[]? Endmap { get; set; }
+        public byte[]? GLMap { get; set; }
+        public byte[]? GLVertices { get; set; }
+        public byte[]? GLSegments { get; set; }
+        public byte[]? GLSubsectors { get; set; }
+        public byte[]? GLNodes { get; set; }
+        public byte[]? GLPVS { get; set; }
 
         /// <summary>
         /// Gets the map type for this collection. The value it returns may be 

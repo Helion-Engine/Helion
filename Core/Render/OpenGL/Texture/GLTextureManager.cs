@@ -1,6 +1,7 @@
 ﻿using Helion.Configuration;
 using Helion.Graphics;
 using Helion.Projects;
+using Helion.Projects.Resources;
 using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Util;
@@ -20,16 +21,23 @@ namespace Helion.Render.OpenGL.Texture
         private readonly Config config;
         private readonly float AnisotropyMax = GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
         private readonly List<GLTexture> m_textures = new List<GLTexture>();
-        private readonly Dictionary<UpperString, GLTexture> m_nameToTexture = new Dictionary<UpperString, GLTexture>();
+        private readonly Dictionary<CiString, GLTexture> m_nameToTexture = new Dictionary<CiString, GLTexture>();
+        private readonly ProjectResources m_projectResources;
 
-        public GLTextureManager(GLInfo glInfo, Config cfg, Project project)
+        public GLTextureManager(GLInfo glInfo, Config cfg, ProjectResources projectResources)
         {
             info = glInfo;
             config = cfg;
-            NullTexture = CreateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
+            m_projectResources = projectResources;
+            NullTexture = CreateTexture(ImageHelper.CreateNullImage(), "NULL");
         }
 
         ~GLTextureManager() => Dispose(false);
+
+        public void ClearCache()
+        {
+            DestroyAllTextures();
+        }
 
         /// <summary>
         /// Calculates the proper max mipmap levels for the image.
@@ -95,13 +103,13 @@ namespace Helion.Render.OpenGL.Texture
             }
         }
 
-        private GLTexture CreateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
+        private GLTexture CreateTexture(Image image, CiString name)
         {
             GLTexture texture = new GLTexture(GL.GenTexture(), new Dimension(image.Width, image.Height));
 
             texture.BindAnd(() =>
             {
-                SetObjectLabel(texture.Handle, $"Texture [{resourceNamespace}]: {name}");
+                SetObjectLabel(texture.Handle, $"Texture {name}");
                 UploadTexturePixels(image);
                 SetTextureParameters();
                 GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
@@ -116,11 +124,9 @@ namespace Helion.Render.OpenGL.Texture
                 GL.ObjectLabel(ObjectLabelIdentifier.Texture, textureHandle, labelName.Length, labelName);
         }
 
-        private void TrackTexture(GLTexture texture, UpperString name, ResourceNamespace resourceNamespace)
+        private void TrackTexture(GLTexture texture, CiString name)
         {
             m_textures.Add(texture);
-
-            // TODO: Support namespace handling as well.
             m_nameToTexture[name] = texture;
         }
 
@@ -130,24 +136,12 @@ namespace Helion.Render.OpenGL.Texture
         {
             m_textures.ForEach(DestroyTexture);
             m_nameToTexture.Clear();
-            m_nameToTexture.Clear();
+            m_textures.Clear();
+
+            m_nameToTexture["-"] = NullTexture;
         }
 
-        public void CreateOrUpdateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
-        {
-            // TODO: Lookup by namespace as well, need a ResourceNamespaceTracker.
-            if (m_nameToTexture.ContainsKey(name))
-            {
-                // TODO: Update if exists
-            }
-            else
-            {
-                GLTexture texture = CreateTexture(image, name, resourceNamespace);
-                TrackTexture(texture, name, resourceNamespace);
-            }
-        }
-
-        public void DeleteTexture(UpperString name)
+        public void DeleteTexture(CiString name)
         {
             if (m_nameToTexture.ContainsKey(name))
             {
@@ -158,10 +152,24 @@ namespace Helion.Render.OpenGL.Texture
             }
         }
 
-        public GLTexture Get(UpperString name, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public GLTexture Get(CiString name)
         {
-            // TODO: Support namespaces as an optional parameter.
-            return m_nameToTexture.TryGetValue(name, out GLTexture texture) ? texture : NullTexture;
+            if (m_nameToTexture.ContainsKey(name))
+            {
+                return m_nameToTexture[name];
+            }
+            else
+            {
+                var image = m_projectResources.GetImage(name);
+                if (image != null)
+                {
+                    GLTexture texture = CreateTexture(image, name);
+                    TrackTexture(texture, name);
+                    return texture;
+                }
+            }
+
+            return NullTexture;
         }
 
         public GLTexture Get(int index)

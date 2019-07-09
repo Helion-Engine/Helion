@@ -1,4 +1,6 @@
 ﻿using Helion.Util;
+using System;
+using System.IO;
 
 namespace Helion.Entries.Tree.Archive.Locator
 {
@@ -8,25 +10,24 @@ namespace Helion.Entries.Tree.Archive.Locator
     /// </summary>
     public class FilesystemArchiveLocator : IArchiveLocator
     {
-        public Expected<Archive> Locate(string uri, EntryClassifier classifier,
-            EntryIdAllocator idAllocator)
+        public Expected<Archive> Locate(string uri)
         {
-            UpperString upperUri = uri;
+            string extension = Path.GetExtension(uri);
 
-            if (upperUri.EndsWith("WAD"))
+            try
             {
-                Expected<Wad> wad = Wad.FromFile(uri, idAllocator, classifier);
-                if (wad.Value != null)
-                    return wad.Value;
-                return wad.Error;
+                if (extension.Equals(".wad", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Wad(new EntryPath(uri));
+                }
+                else if (extension.Equals(".pk3", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Pk3(new EntryPath(uri));
+                }
             }
-
-            if (upperUri.EndsWith("PK3"))
+            catch(Exception e)
             {
-                Expected<Pk3> pk3 = Pk3.FromFile(uri, idAllocator, classifier);
-                if (pk3.Value != null)
-                    return pk3.Value;
-                return pk3.Error;
+                return e.Message;
             }
 
             return $"Archive file extension is not supported: {uri}";

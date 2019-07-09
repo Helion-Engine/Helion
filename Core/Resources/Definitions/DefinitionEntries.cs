@@ -1,5 +1,7 @@
 ﻿using Helion.Resources.Definitions.Texture;
+using Helion.Util;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Resources.Definitions
 {
@@ -9,6 +11,16 @@ namespace Helion.Resources.Definitions
     public class DefinitionEntries
     {
         public Pnames? Pnames;
-        public List<TextureX> TextureXList = new List<TextureX>();
+        private List<TextureXImage> TextureXList = new List<TextureXImage>();
+
+        public void AddTextureX(TextureX textureX)
+        {
+            TextureXList.AddRange(textureX.Definitions);
+        }
+
+        public TextureXImage? GetTextureXImage(CiString name)
+        {
+            return TextureXList.FirstOrDefault(x => x.Name == name);
+        }
     }
 }

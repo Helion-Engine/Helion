@@ -1,8 +1,6 @@
 ﻿using Helion.Resources;
 using Helion.Util;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -13,56 +11,23 @@ namespace Helion.Entries.Tree.Archive
     /// </summary>
     public class Wad : Archive
     {
-        private const int LUMP_TABLE_ENTRY_BYTES = 16;
+        private const int LumpTableEntryBytes = 16;
+        private ByteReader m_byteReader;
 
-        private static readonly Dictionary<string, ResourceNamespace> ENTRY_TO_MARKER = new Dictionary<string, ResourceNamespace>()
+        public WadType WadType { get; private set; }
+
+        public Wad(IEntryPath path) :
+            base(path)
         {
-            ["F_START"] = ResourceNamespace.Flats,
-            ["P_START"] = ResourceNamespace.Textures,
-            ["S_START"] = ResourceNamespace.Sprites,
-            ["T_START"] = ResourceNamespace.Textures,
-            ["TX_START"] = ResourceNamespace.Textures,
-            ["F_END"] = ResourceNamespace.Global,
-            ["P_END"] = ResourceNamespace.Global,
-            ["S_END"] = ResourceNamespace.Global,
-            ["T_END"] = ResourceNamespace.Global,
-            ["TX_END"] = ResourceNamespace.Global,
-        };
-
-        /// <summary>
-        /// A file path that it may have been read from. If this has a value,
-        /// then it will contain the location on the hard disk from where it
-        /// was read from.
-        /// </summary>
-        public string? FilePath { get; }
-
-        /// <summary>
-        /// True if this is an iwad, false if it's a pwad.
-        /// </summary>
-        public bool IsIwad { get; }
-
-        /// <summary>
-        /// Is true if this was from a file path, false if it's from a memory
-        /// stream or byte array.
-        /// </summary>
-        public bool IsFile => FilePath != null;
-
-        private Wad(EntryId id, List<Entry> entries, string filePath, bool isIwad, EntryIdAllocator idAllocator) :
-            base(id, new EntryPath(System.IO.Path.GetFileName(filePath)))
-        {
-            FilePath = filePath;
-            IsIwad = isIwad;
-            entries.ForEach(entry => AddEntry(entry, idAllocator));
+            m_byteReader = new ByteReader(new BinaryReader(File.Open(Path.FullPath, FileMode.Open)));
+            LoadWadEntries();
         }
 
-        private Wad(EntryId id, List<Entry> entries, EntryPath path, bool isIwad, EntryIdAllocator idAllocator) :
-            base(id, path)
+        public void Dispose()
         {
-            IsIwad = isIwad;
-            entries.ForEach(entry => AddEntry(entry, idAllocator));
+            m_byteReader.Close();
+            m_byteReader.Dispose();
         }
-
-        private static bool CheckIfIwad(byte[] data) => (data.Length > 0 && data[0] == 'I');
 
         private static WadType WadTypeFrom(string header)
         {
@@ -77,124 +42,58 @@ namespace Helion.Entries.Tree.Archive
             }
         }
 
-        private static Tuple<WadType, int, int> ReadHeader(ByteReader reader)
+        private Tuple<WadType, int, int> ReadHeader()
         {
-            WadType wadType = WadTypeFrom(Encoding.UTF8.GetString(reader.ReadBytes(4)));
-            int numEntries = reader.ReadInt32();
-            int entryTableOffset = reader.ReadInt32();
+            m_byteReader.Offset(0);
+            WadType wadType = WadTypeFrom(Encoding.UTF8.GetString(m_byteReader.ReadBytes(4)));
+            int numEntries = m_byteReader.ReadInt32();
+            int entryTableOffset = m_byteReader.ReadInt32();
             return Tuple.Create(wadType, numEntries, entryTableOffset);
         }
 
-        private static Tuple<int, int, string> ReadDirectoryEntry(ByteReader reader)
+        private Tuple<int, int, string> ReadDirectoryEntry()
         {
-            int offset = reader.ReadInt32();
-            int size = reader.ReadInt32();
-            string name = reader.ReadEightByteString().ToUpper();
+            int offset = m_byteReader.ReadInt32();
+            int size = m_byteReader.ReadInt32();
+            string name = m_byteReader.ReadEightByteString().ToUpper();
             return Tuple.Create(offset, size, name);
         }
 
-        private static void UpdateNamespace(EntryPath path, ref ResourceNamespace currentNamespace)
+        private void LoadWadEntries()
         {
-            // NOTE: This sets the *_START marker to be in the namespace it 
-            // defines. It isn't ideal but we don't use these markers at all 
-            // so it's not a major priority to fix this currently.
-            if (ENTRY_TO_MARKER.TryGetValue(path.Name, out ResourceNamespace newNamespace))
-                currentNamespace = newNamespace;
-        }
+            (WadType wadType, int numEntries, int entryTableOffset) = ReadHeader();
+            WadType = wadType;
 
-        private static Expected<List<Entry>> WadEntriesFromData(byte[] data, EntryClassifier classifier)
-        {
-            try
+            if (wadType == WadType.Unknown)
+                throw new Exception("Wad header is corrupt");
+            if (entryTableOffset + (numEntries * LumpTableEntryBytes) > m_byteReader.Length)
+                throw new Exception("Lump entry table runs out of data");
+
+            for (int i = 0; i < numEntries; i++)
             {
-                ByteReader reader = new ByteReader(data);
-                (WadType wadType, int numEntries, int entryTableOffset) = ReadHeader(reader);
+                m_byteReader.Offset(entryTableOffset);
+                entryTableOffset += LumpTableEntryBytes;
+                (int offset, int size, string upperName) = ReadDirectoryEntry();
 
-                if (wadType == WadType.Unknown)
-                    return "Wad header is corrupt";
-                if (entryTableOffset + (numEntries * LUMP_TABLE_ENTRY_BYTES) > data.Length)
-                    return "Lump entry table runs out of data";
+                // It appears that some markers have an offset of zero, so
+                // it is an acceptable offset (we can't check < 12).
+                if (offset < 0)
+                    throw new Exception("Lump entry data location underflows");
+                if (offset + size > m_byteReader.Length)
+                    throw new Exception("Lump entry data location overflows");
 
-                List<Entry> entries = new List<Entry>();
-                ResourceNamespace currentNamespace = ResourceNamespace.Global;
-
-                for (int i = 0; i < numEntries; i++)
-                {
-                    reader.Offset(entryTableOffset);
-                    entryTableOffset += LUMP_TABLE_ENTRY_BYTES;
-                    (int offset, int size, string upperName) = ReadDirectoryEntry(reader);
-
-                    // It appears that some markers have an offset of zero, so
-                    // it is an acceptable offset (we can't check < 12).
-                    if (offset < 0)
-                        return "Lump entry data location underflows";
-                    if (offset + size > data.Length)
-                        return "Lump entry data location overflows";
-
-                    reader.Offset(offset);
-                    byte[] lumpData = reader.ReadBytes(size);
-
-                    EntryPath path = new EntryPath(upperName);
-                    UpdateNamespace(path, ref currentNamespace);
-
-                    Entry entry = classifier.ToEntry(path, lumpData, currentNamespace);
-                    entries.Add(entry);
-                }
-
-                return entries;
-            }
-            catch (Exception e)
-            {
-                return $"Wad data corruption: {e.Message}";
+                WadEntryPath entryPath = new WadEntryPath(upperName);
+                Entries.Add(new WadEntry(this, offset, size, entryPath, ResourceNamespace.Global));
             }
         }
 
-        /// <summary>
-        /// Reads a wad from the data source provided.
-        /// </summary>
-        /// <param name="data">The wad data.</param>
-        /// <param name="wadPath">The path to this entry.</param>
-        /// <param name="idAllocator">The entry ID allocator.</param>
-        /// <param name="classifier">The entry classifier.</param>
-        /// <returns>The processed wad if it exists and was able to be
-        /// catalogued, otherwise an error reason.</returns>
-        public static Expected<Wad> FromData(byte[] data, EntryPath wadPath,
-            EntryIdAllocator idAllocator, EntryClassifier classifier)
+        public byte[] ReadData(WadEntry entry)
         {
-            Expected<List<Entry>> entries = WadEntriesFromData(data, classifier);
-            if (entries.Value != null)
-                return new Wad(idAllocator.AllocateId(), entries.Value, wadPath, CheckIfIwad(data), idAllocator);
-            
-            return $"Unable to read wad data: {entries.Error}";
+            Assert.Precondition(entry.Parent == this, "Bad entry parent");
+            m_byteReader.Offset(entry.Offset);
+            return m_byteReader.ReadBytes(entry.Size);
         }
 
-        /// <summary>
-        /// Reads a wad from the file path provided.
-        /// </summary>
-        /// <param name="filePath">The path to the wad file.</param>
-        /// <param name="idAllocator">The entry ID allocator.</param>
-        /// <param name="classifier">The entry classifier.</param>
-        /// <returns>The processed wad file if it exists and was able to be
-        /// catalogued, otherwise an error reason.</returns>
-        public static Expected<Wad> FromFile(string filePath, EntryIdAllocator idAllocator,
-            EntryClassifier classifier)
-        {
-            try
-            {
-                byte[] data = File.ReadAllBytes(filePath);
-                Expected<List<Entry>> entries = WadEntriesFromData(data, classifier);
-                
-                if (entries.Value != null)
-                    return new Wad(idAllocator.AllocateId(), entries.Value, filePath, CheckIfIwad(data), idAllocator);
-                
-                return $"Unable to read wad file: {entries.Error}";
-            }
-            catch (Exception e)
-            {
-                return $"Unable to read wad file: {e.Message}";
-            }
-        }
-
-        public override ResourceType GetResourceType() => ResourceType.Wad;
         public override ArchiveType GetArchiveType() => ArchiveType.Wad;
     }
 }

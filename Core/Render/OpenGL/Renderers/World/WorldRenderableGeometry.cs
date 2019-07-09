@@ -52,7 +52,7 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         private WorldVertexFlat MakeFlat(List<Vector3> vertices, Sector sector, SectorFlat flat)
         {
-            GLTexture texture = textureManager.Get(flat.Texture, ResourceNamespace.Flats);
+            GLTexture texture = textureManager.Get(flat.Texture);
             bool isSky = flat.Texture == Constants.SkyTexture;
 
             WorldVertex root = VertexToWorldVertex(vertices[0], sector, texture);
@@ -138,8 +138,8 @@ namespace Helion.Render.OpenGL.Renderers.World
             Vector3 topLeft = wallQuad.UpperTriangle.First;
             Vector3 bottomRight = wallQuad.LowerTriangle.Third;
 
-            UpperString textureName = side.MiddleTexture;
-            GLTexture texture = textureManager.Get(textureName, ResourceNamespace.Textures);
+            CiString textureName = side.MiddleTexture;
+            GLTexture texture = textureManager.Get(textureName);
             bool hasNoTexture = (textureName == Constants.NoTexture);
 
             // Middle is default pegged to the top.
@@ -182,8 +182,8 @@ namespace Helion.Render.OpenGL.Renderers.World
             Vector3 topLeft = wallQuad.UpperTriangle.First;
             Vector3 bottomRight = wallQuad.LowerTriangle.Third;
 
-            UpperString textureName = side.LowerTexture;
-            GLTexture texture = textureManager.Get(textureName, ResourceNamespace.Textures);
+            CiString textureName = side.LowerTexture;
+            GLTexture texture = textureManager.Get(textureName);
             bool hasNoTexture = (textureName == Constants.NoTexture);
 
             // Lower is default pegged to the top.
@@ -232,14 +232,14 @@ namespace Helion.Render.OpenGL.Renderers.World
             Sector otherSector = otherSide.Sector;
             float lightLevel = facingSector.UnitLightLevel;
 
-            UpperString textureName = facingSide.MiddleTexture;
+            CiString textureName = facingSide.MiddleTexture;
             if (textureName == Constants.NoTexture)
                 return MakeEmptyTwoSidedMiddleWall(walls);
             
             // The triangulation for middle two sided lines are usually wrong
             // because the location of the vertices change based on the area to
             // be rendered in. We have to calculate it ourselves.
-            GLTexture texture = textureManager.Get(textureName, ResourceNamespace.Textures);
+            GLTexture texture = textureManager.Get(textureName);
             float highestFloorZ = Math.Max(facingSector.Floor.Z, otherSector.Floor.Z);
             float lowestCeilZ = Math.Min(facingSector.Ceiling.Z, otherSector.Ceiling.Z);
             
@@ -300,8 +300,8 @@ namespace Helion.Render.OpenGL.Renderers.World
             Vector3 topLeft = wallQuad.UpperTriangle.First;
             Vector3 bottomRight = wallQuad.LowerTriangle.Third;
 
-            UpperString textureName = side.UpperTexture;
-            GLTexture texture = textureManager.Get(textureName, ResourceNamespace.Textures);
+            CiString textureName = side.UpperTexture;
+            GLTexture texture = textureManager.Get(textureName);
             bool hasNoTexture = (textureName == Constants.NoTexture);
 
             // Upper is default pegged to the bottom.

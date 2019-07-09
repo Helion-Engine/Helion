@@ -121,7 +121,7 @@ namespace Helion.Util
             string inputText = input.ToString();
             ClearInputText();
 
-            if (inputText.NotEmpty())
+            if (!string.IsNullOrEmpty(inputText))
             {
                 log.Info(inputText);
                 ConsoleCommandEmitter?.Invoke(this, new ConsoleCommandEventArgs(inputText));
@@ -243,7 +243,7 @@ namespace Helion.Util
         /// This is always the first string in the command. For example, if the
         /// console was firing out "map map01" then the command would be "MAP".
         /// </remarks>
-        public readonly UpperString Command = "";
+        public readonly CiString Command = "";
 
         /// <summary>
         /// The arguments (if any) that came with the command.
@@ -257,7 +257,7 @@ namespace Helion.Util
         /// </param>
         public ConsoleCommandEventArgs(string text)
         {
-            Precondition(text.NotEmpty(), "Should not be getting an empty console command");
+            Precondition(!string.IsNullOrEmpty(text), "Should not be getting an empty console command");
 
             string[] tokens = text.Split(' ');
             if (tokens.Length == 0)

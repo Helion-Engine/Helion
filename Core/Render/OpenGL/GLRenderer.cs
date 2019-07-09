@@ -4,7 +4,6 @@ using Helion.Render.OpenGL.Renderers.Console;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
-using Helion.Resources.Images;
 using Helion.World;
 using NLog;
 using OpenTK.Graphics.OpenGL4;
@@ -14,6 +13,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using OpenTK;
 using static Helion.Util.Assert;
+using Helion.Projects.Resources;
 
 namespace Helion.Render.OpenGL
 {
@@ -27,10 +27,10 @@ namespace Helion.Render.OpenGL
         private WorldRenderer worldRenderer;
         private readonly GLInfo info;
 
-        public GLRenderer(GLInfo glInfo, Config cfg, Project project)
+        public GLRenderer(GLInfo glInfo, Config cfg, ProjectResources projectResources)
         {
             info = glInfo;
-            textureManager = new GLTextureManager(glInfo, cfg, project);
+            textureManager = new GLTextureManager(glInfo, cfg, projectResources);
             consoleRenderer = new ConsoleRenderer(textureManager);
             worldRenderer = new WorldRenderer(textureManager);
 
@@ -41,6 +41,7 @@ namespace Helion.Render.OpenGL
         public void ClearWorld()
         {
             worldRenderer.ClearWorld();
+            textureManager.ClearCache();
         }
 
         ~GLRenderer() => Dispose(false);
@@ -129,27 +130,6 @@ namespace Helion.Render.OpenGL
         public void RenderWorld(WorldBase world, RenderInfo renderInfo)
         {
             worldRenderer.Render(world, renderInfo);
-        }
-
-        public void HandleTextureEvent(object sender, ImageManagerEventArgs imageEvent)
-        {
-            switch (imageEvent.Type)
-            {
-            case ImageManagerEventType.CreateOrUpdate:
-                if (imageEvent.Image != null)
-                    textureManager.CreateOrUpdateTexture(imageEvent.Image, imageEvent.Name, imageEvent.Namespace);
-                else
-                    Fail("Image create/update event cannot have a null image");
-                break;
-
-            case ImageManagerEventType.Delete:
-                textureManager.DeleteTexture(imageEvent.Name);
-                break;
-
-            default:
-                Fail("Unexpected image event enumeration");
-                break;
-            }
         }
 
         protected virtual void Dispose(bool disposing)

@@ -12,14 +12,18 @@ namespace Helion.Util
     public class ByteReader : BinaryReader
     {
         public readonly int Length; 
-        private readonly byte[] bytes;
         
         // The docs explicitly say that memory streams do not need to have any
         // .dispose() call invoked because there are no resources to dispose.
-        public ByteReader(byte[] data) : base(new MemoryStream(data))
+        public ByteReader(byte[] bytes) : base (new MemoryStream(bytes))
         {
-            bytes = data;
-            Length = data.Length;
+            Length = bytes.Length;
+            Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
+        }
+
+        public ByteReader(BinaryReader stream) : base(stream.BaseStream)
+        {
+            Length = (int)stream.BaseStream.Length;
             Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
         }
 
@@ -84,7 +88,7 @@ namespace Helion.Util
 
         public bool HasBytesRemaining(int amount)
         {
-            return BaseStream.Position + amount <= bytes.Length;
+            return BaseStream.Position + amount <= BaseStream.Length;
         }
 
         /// <summary>

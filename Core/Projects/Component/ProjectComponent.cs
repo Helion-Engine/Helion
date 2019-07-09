@@ -27,20 +27,11 @@ namespace Helion.Projects
         /// </summary>
         public Archive Archive { get; }
 
-        /// <summary>
-        /// A cache of the archive entry resources that make data access easier
-        /// and cleaner.
-        /// </summary>
-        public ProjectComponentResourceCache ResourceCache { get; } = new ProjectComponentResourceCache();
-
         public ProjectComponent(ProjectComponentId id, ProjectComponentInfo info, Archive archive)
         {
             Id = id;
             Info = info;
             Archive = archive;
-
-            foreach (Entry entry in archive)
-                ResourceCache.TrackEntry(entry);
         }
     }
 }

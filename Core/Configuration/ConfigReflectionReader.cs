@@ -79,7 +79,7 @@ namespace Helion.Configuration
 
             for (int i = 0; i < enumNames.Length; i++)
             {
-                if (!string.Equals(enumNames[i], value, StringComparison.CurrentCultureIgnoreCase)) 
+                if (!string.Equals(enumNames[i], value, StringComparison.OrdinalIgnoreCase)) 
                     continue;
 
                 foreach (MethodInfo methodInfo in configValueNode.GetType().GetMethods())
@@ -123,7 +123,7 @@ namespace Helion.Configuration
                 break;
 
             case ConfigValue<string> stringNode:
-                if (!value.Empty())
+                if (!string.IsNullOrEmpty(value))
                     stringNode.Set(value);
                 else
                     log.Warn("Unable to set {0} with an empty string value, resorting to defaults", lowerKeyName);
@@ -137,7 +137,7 @@ namespace Helion.Configuration
 
         private static void ReadKeyValueIntoConfigNode(object element, string lowerKeyName, string value)
         {
-            if (lowerKeyName.Empty())
+            if (string.IsNullOrEmpty(lowerKeyName))
             {
                 log.Warn("Malformed config key/value pair detected (empty key)");
                 return;
