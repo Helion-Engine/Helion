@@ -65,10 +65,10 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
                     float widthU = rightU - leftU;
                     float heightV = topV - bottomV;
 
-                    float offsetU = widthU * localUVFrag.x;
-                    float offsetV = heightV * localUVFrag.y;
+                    float u = mod((localUVFrag.x * widthU), widthU) + leftU;
+                    float v = mod((localUVFrag.y * heightV), heightV) + bottomV;
 
-                    return vec2(leftU + offsetU, bottomV + offsetV);
+                    return vec2(u, v);
                 }
 
                 void main() {
