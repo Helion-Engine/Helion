@@ -24,11 +24,12 @@ namespace Helion.Maps.Geometry
             
             Flats.Add(floor);
             Flats.Add(ceiling);
+            Flats.ForEach(flat => flat.SetSector(this));
         }
 
         public void Add(Side side)
         {
-            Precondition(!Sides.Any(s => s.Id == side.Id), "Trying to add the same side twice");
+            Precondition(Sides.All(s => s.Id != side.Id), "Trying to add the same side twice");
 
             Sides.Add(side);
         }

@@ -40,6 +40,12 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
         {
             triangles.SideTriangles.SelectMany(side => side.Walls).ForEach(AddToVbo);
         }
+        
+        public void AddSubsector(SubsectorTriangles triangles)
+        {
+            AddToVbo(triangles.Floor);
+            AddToVbo(triangles.Ceiling);
+        }
 
         public void Render(Matrix4 mvp)
         {
@@ -82,7 +88,23 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             m_vbo.Add(topLeft, bottomLeft, topRight);
             m_vbo.Add(topRight, bottomLeft, bottomRight);
         }
-        
+
+        private void AddToVbo(SubsectorFlatFan flatFan)
+        {
+            float unitLightLevel = flatFan.Sector.UnitLightLevel;
+            StaticWorldVertex root = new StaticWorldVertex(flatFan.Root.Position, flatFan.Root.UV, unitLightLevel);
+                
+            flatFan.Fan.Window(2).ForEach(edge =>
+            {
+                Vertex second = edge.ElementAt(0);
+                Vertex third = edge.ElementAt(1);
+                StaticWorldVertex secondVertex = new StaticWorldVertex(second.Position, second.UV, unitLightLevel);
+                StaticWorldVertex thirdVertex = new StaticWorldVertex(third.Position, third.UV, unitLightLevel);
+                
+                m_vbo.Add(root, secondVertex, thirdVertex);
+            });
+        }
+
         private void ReleaseUnmanagedResources()
         {
             m_vbo.Dispose();

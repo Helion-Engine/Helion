@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Util;
 
 namespace Helion.Render.Shared.World
 {
@@ -34,6 +35,55 @@ namespace Helion.Render.Shared.World
             TopRight = topRight;
             BottomLeft = bottomLeft;
             BottomRight = bottomRight;
+        }
+    }
+    
+        
+    /// <summary>
+    /// A quadrilateral that makes up some wall component, which is the
+    /// indivisible unit of a side.
+    /// </summary>
+    /// <remarks>
+    /// The hierarchy is: Lines have two sides, sides have 1-3 or more walls or
+    /// more if there's 3D floors involved.
+    /// </remarks>
+    public class WallQuad
+    {
+        public readonly Vertex TopLeft;
+        public readonly Vertex TopRight;
+        public readonly Vertex BottomLeft;
+        public readonly Vertex BottomRight;
+        public readonly UpperString Texture;
+        public readonly Side Side;
+        public readonly SectorFlat Floor;
+        public readonly SectorFlat Ceiling;
+
+        public WallQuad(Vertex topLeft, Vertex topRight, Vertex bottomLeft, Vertex bottomRight, 
+            UpperString texture, Side side, SectorFlat floor, SectorFlat ceiling)
+        {
+            TopLeft = topLeft;
+            TopRight = topRight;
+            BottomLeft = bottomLeft;
+            BottomRight = bottomRight;
+            Texture = texture;
+            Side = side;
+            Floor = floor;
+            Ceiling = ceiling;
+        }
+
+        /// <summary>
+        /// Creates a degenerate quad, so nothing will be rendered by the
+        /// renderer. This ends up being a point at the origin.
+        /// </summary>
+        /// <param name="side">The side for the quad.</param>
+        /// <param name="floor">The floor for this quad.</param>
+        /// <param name="ceiling">The ceiling for this quad.</param>
+        /// <returns>A degenerate quad, which is a point.</returns>
+        public static WallQuad Degenerate(Side side, SectorFlat floor, SectorFlat ceiling)
+        {
+            Vertex origin = new Vertex(Vector3.Zero, Vector2.Zero);
+            return new WallQuad(origin, origin,origin,origin, 
+                                Constants.NoTexture, side, floor, ceiling);
         }
     }
 

@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.World.Geometry;
 
 namespace Helion.Render.Shared.World
 {
@@ -12,6 +15,19 @@ namespace Helion.Render.Shared.World
     {
         private readonly Func<UpperString, Dimension> m_textureDimensionFinder;
         
+        public static LineTriangles Triangulate(Line line, Func<UpperString, Dimension> textureDimensionFinder)
+        {
+            WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
+            return line.OneSided ? triangulator.TriangulateOneSided(line) : 
+                triangulator.TriangulateTwoSided(line);
+        }
+        
+        public static SubsectorTriangles Triangulate(Subsector subsector, Func<UpperString, Dimension> textureDimensionFinder)
+        {
+            WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
+            return triangulator.TriangulateSubsector(subsector);
+        }
+
         private WorldTriangulator(Func<UpperString, Dimension> textureDimensionFinder)
         {
             m_textureDimensionFinder = textureDimensionFinder;
@@ -64,26 +80,49 @@ namespace Helion.Render.Shared.World
             return new LineTriangles(line, sideTriangles);
         }
 
-        private WallQuad TriangulateTwoSidedUpper(Side front)
+        private WallQuad TriangulateTwoSidedUpper(Line line, Side facingSide)
         {
-            throw new NotImplementedException("TODO: TriangulateTwoSidedUpper()");
+            if (facingSide.PartnerSide == null)
+                throw new NullReferenceException("Should never have a null back side for an upper two sided line");
+            Side backSide = facingSide.PartnerSide;
+
+            UpperString texture = facingSide.UpperTexture;
+            SectorFlat floor = backSide.Sector.Ceiling;
+            SectorFlat ceiling = facingSide.Sector.Ceiling;
+            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
+
+            return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, SideSection.Upper);
         }
 
-        private WallQuad TriangulateTwoSidedMiddle(Side front)
+        private WallQuad TriangulateTwoSidedMiddle(Line line, Side facingSide)
         {
-            throw new NotImplementedException("TODO: TriangulateTwoSidedMiddle()");
+            UpperString texture = facingSide.MiddleTexture;
+            if (texture == Constants.NoTexture)
+                return WallQuad.Degenerate(facingSide, facingSide.Sector.Floor, facingSide.Sector.Ceiling);
+
+            // TODO: It has a middle texture so create it properly.
+            return WallQuad.Degenerate(facingSide, facingSide.Sector.Floor, facingSide.Sector.Ceiling);
         }
 
-        private WallQuad TriangulateTwoSidedLower(Side front)
+        private WallQuad TriangulateTwoSidedLower(Line line, Side facingSide)
         {
-            throw new NotImplementedException("TODO: TriangulateTwoSidedLower()");
+            if (facingSide.PartnerSide == null)
+                throw new NullReferenceException("Should never have a null back side for a lower two sided line");
+            Side backSide = facingSide.PartnerSide;
+
+            UpperString texture = facingSide.LowerTexture;
+            SectorFlat floor = facingSide.Sector.Floor;
+            SectorFlat ceiling = backSide.Sector.Floor;
+            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
+
+            return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, SideSection.Lower);
         }
 
-        private SideTriangles TriangulateTwoSidedSide(Side side)
+        private SideTriangles TriangulateTwoSidedSide(Line line, Side side)
         {
-            WallQuad upper = TriangulateTwoSidedUpper(side);
-            WallQuad middle = TriangulateTwoSidedMiddle(side);
-            WallQuad lower = TriangulateTwoSidedLower(side);
+            WallQuad upper = TriangulateTwoSidedUpper(line, side);
+            WallQuad middle = TriangulateTwoSidedMiddle(line, side);
+            WallQuad lower = TriangulateTwoSidedLower(line, side);
             
             return new SideTriangles(side, middle, upper, lower);
         }
@@ -93,16 +132,46 @@ namespace Helion.Render.Shared.World
             if (line.Back == null)
                 throw new NullReferenceException("Should not have a null back side when triangulating a two-sided line");
 
-            SideTriangles frontTriangles = TriangulateTwoSidedSide(line.Front);
-            SideTriangles backTriangles = TriangulateTwoSidedSide(line.Back);
+            SideTriangles frontTriangles = TriangulateTwoSidedSide(line, line.Front);
+            SideTriangles backTriangles = TriangulateTwoSidedSide(line, line.Back);
             return new LineTriangles(line, frontTriangles, backTriangles);
         }
 
-        public static LineTriangles Triangulate(Line line, Func<UpperString, Dimension> textureDimensionFinder)
+        private static Vertex CalculateFlatVertex(Vec2D position, PlaneD plane, Dimension textureDimension)
         {
-            WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
-            return line.OneSided ? triangulator.TriangulateOneSided(line) : 
-                                   triangulator.TriangulateTwoSided(line);
+            Vec3D pos = new Vec3D(position.X, position.Y, plane.ToZ(position));
+            Vec2D uv = position / textureDimension.ToVector().ToDouble();
+            
+            return new Vertex(pos.ToFloat(), uv.ToFloat());
+        }
+        
+        private SubsectorFlatFan TriangulateFlat(Subsector subsector, SectorFlat flat, Sector sector)
+        {
+            Dimension textureDimension = m_textureDimensionFinder(flat.Texture);
+            
+            var edges = subsector.ClockwiseEdges;
+            Vertex root = CalculateFlatVertex(edges.First().Start, flat.Plane, textureDimension);
+            List<Vertex> fan = edges.Skip(1)
+                                    .Select(edge => edge.Start)
+                                    .Select(pos => CalculateFlatVertex(pos, flat.Plane, textureDimension))
+                                    .ToList();
+
+            // When looking down at the ground, we'd get clockwise vertices,
+            // which get culled by virtue of being CW instead of CCW. Doing a
+            // reverse is a trivial fix.
+            if (flat.Facing == SectorFlatFace.Floor)
+                fan.Reverse();
+            
+            return new SubsectorFlatFan(root, fan, sector);
+    }
+
+        private SubsectorTriangles TriangulateSubsector(Subsector subsector)
+        {
+            Sector sector = subsector.Sector;
+            SubsectorFlatFan floorFan = TriangulateFlat(subsector, sector.Floor, sector);
+            SubsectorFlatFan ceilingFan = TriangulateFlat(subsector, sector.Ceiling, sector);
+            
+            return new SubsectorTriangles(floorFan, ceilingFan);
         }
     }
 }

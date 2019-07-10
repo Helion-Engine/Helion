@@ -9,6 +9,8 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World;
+using Helion.World.Geometry;
+using MoreLinq;
 using OpenTK;
 
 namespace Helion.Render.OpenGL.Renderers.World.Geometry
@@ -47,16 +49,20 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         internal void UpdateToWorld(WorldBase world)
         {
             world.Map.Lines.ForEach(Triangulate);
+            world.BspTree.Subsectors.ForEach(Triangulate);
         }
 
         private void Triangulate(Line line)
         {
-            // TODO: Temporary!
-            if (line.TwoSided)
-                return;
-            
             m_staticGeometryRenderer.AddLine(WorldTriangulator.Triangulate(line, TextureFinder));
-            
+
+            Dimension TextureFinder(UpperString name) => m_textureManager.GetWallTexture(name).Dimension;
+        }
+        
+        private void Triangulate(Subsector subsector)
+        {
+            m_staticGeometryRenderer.AddSubsector(WorldTriangulator.Triangulate(subsector, TextureFinder));
+
             Dimension TextureFinder(UpperString name) => m_textureManager.GetWallTexture(name).Dimension;
         }
 
