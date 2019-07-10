@@ -35,7 +35,8 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         
         public void Render(RenderInfo renderInfo)
         {
-            Matrix4 mvp = GLRenderer.CreateMVP(renderInfo, (float)m_config.Engine.Render.FieldOfView);
+            float fovX = OpenTK.MathHelper.DegreesToRadians((float) m_config.Engine.Render.FieldOfView);
+            Matrix4 mvp = GLRenderer.CreateMVP(renderInfo, fovX);
             
             m_staticGeometryRenderer.Render(mvp);
         }

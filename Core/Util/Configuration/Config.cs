@@ -49,7 +49,7 @@ namespace Helion.Util.Configuration
         public readonly EngineRenderAnisotropyConfig Anisotropy = new EngineRenderAnisotropyConfig();
         public readonly EngineRenderMultisampleConfig Multisample = new EngineRenderMultisampleConfig();
         public readonly ConfigValue<FilterType> Filter = new ConfigValue<FilterType>(FilterType.Trilinear);
-        public readonly ConfigValue<double> FieldOfView = new ConfigValue<double>(45.0);
+        public readonly ConfigValue<double> FieldOfView = new ConfigValue<double>(80.0);
     }
 
     [ConfigComponent]

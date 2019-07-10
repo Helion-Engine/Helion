@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.Shared;
-using Helion.Util;
 using Helion.Util.Configuration;
 using OpenTK;
 using static Helion.Util.Assert;
@@ -46,6 +45,8 @@ namespace Helion.Render.OpenGL
 
         public static Matrix4 CreateMVP(RenderInfo renderInfo, float fovX)
         {
+            Precondition(fovX > 0 && fovX <= MathHelper.PiOver2, "Field of view X radians are out of range");
+            
             float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
             float fovY = Camera.FieldOfViewXToY(fovX, aspectRatio);
 

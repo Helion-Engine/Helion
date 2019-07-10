@@ -5,7 +5,6 @@ using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Util.Configuration;
 using Helion.World;
-using OpenTK;
 
 namespace Helion.Render.OpenGL.Renderers.World
 {
@@ -24,11 +23,6 @@ namespace Helion.Render.OpenGL.Renderers.World
         ~WorldRenderer()
         {
             ReleaseUnmanagedResources();
-        }
-
-        public static Matrix4 CalculateMVP()
-        {
-            return Matrix4.Identity;
         }
 
         public void Render(WorldBase world, RenderInfo renderInfo)
