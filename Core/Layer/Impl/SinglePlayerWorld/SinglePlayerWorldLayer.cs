@@ -29,7 +29,7 @@ namespace Helion.Layer.Impl
         
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            // TODO
+            world.HandleFrameInput(consumableInput);
         }
 
         public override void RunLogic()

@@ -55,6 +55,11 @@ namespace Helion.Maps.Entries
                 ushort special = reader.ReadUInt16();
                 ushort tag = reader.ReadUInt16();
 
+                // Is there a reason some mods do this? Is it an oversight? I
+                // don't know if there's a reason for this.
+                if (floorHeight > ceilHeight)
+                    ceilHeight = floorHeight;
+
                 int floorId = 2 * id;
                 SectorFlat floorFlat = new SectorFlat(floorId, floorTexture, floorHeight, lightLevel, SectorFlatFace.Floor);
 

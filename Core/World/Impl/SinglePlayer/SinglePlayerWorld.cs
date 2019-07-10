@@ -55,10 +55,5 @@ namespace Helion.World.Impl.SinglePlayer
             Camera.AddToYaw(moveDelta.X);
             Camera.AddToPitch(moveDelta.Y);
         }
-
-        public override void Tick()
-        {
-            base.Tick();
-        }
     }
 }
