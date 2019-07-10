@@ -6,7 +6,6 @@ using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Atlas;
 using Helion.Util.Configuration;
-using Helion.Util.Container;
 using Helion.Util.Geometry;
 using OpenTK.Graphics.OpenGL;
 

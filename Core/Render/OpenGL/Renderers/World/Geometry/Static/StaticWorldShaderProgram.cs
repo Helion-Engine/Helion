@@ -58,6 +58,8 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
                 vec2 CalculateUV() {
                     int index = textureInfoIndexFrag * TEXEL_OFFSET_FACTOR;
 
+                    // TODO: Would it be better to sample this as a vec4?
+                    // TODO: Probably better in the vertex shader, rather than evaluate at each fragment!
                     float leftU = texelFetch(textureInfoBuffer, index).r;
                     float bottomV = texelFetch(textureInfoBuffer, index + 1).r;
                     float rightU = texelFetch(textureInfoBuffer, index + 2).r;
