@@ -1,5 +1,4 @@
 ﻿using Helion.Resources;
-using Helion.Util;
 using Helion.Util.Geometry;
 using System.Drawing;
 using System.IO;
@@ -12,21 +11,27 @@ namespace Helion.Graphics
     /// </summary>
     public class ImageReader
     {
-        public static bool CanRead(byte[] data, UpperString extension)
+        public static bool CanRead(byte[] data)
         {
-            // TODO: Check if PNG header by looking at the bytes in case the
-            // extension is insufficient.
-            // TODO: Add other types if this subsystem supports it.
-            switch (extension.ToString())
-            {
-            case "PNG":
-                return true;
-            }
-
-            return false;
+            return IsPng(data) || IsJpg(data) || IsBmp(data);
         }
 
-        public static Image? Read(byte[] data, ResourceNamespace resourceNamespace)
+        public static bool IsPng(byte[] data)
+        {
+            return data.Length > 8 && data[0] == 137 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G';
+        }
+
+        public static bool IsJpg(byte[] data)
+        {
+            return data.Length > 10 && data[0] == 0xFF && data[1] == 0xD8;
+        }
+
+        public static bool IsBmp(byte[] data)
+        {
+            return data.Length > 14 && data[0] == 'B' && data[1] == 'M';
+        }
+
+        public static Image? Read(byte[] data)
         {
             try
             {
@@ -34,7 +39,7 @@ namespace Helion.Graphics
                 {
                     // TODO: Read PNG offsets if header is PNG.
                     Vec2I offset = new Vec2I(0, 0);
-                    ImageMetadata metadata = new ImageMetadata(offset, resourceNamespace);
+                    ImageMetadata metadata = new ImageMetadata(offset, ResourceNamespace.Global);
                     return new Image(new Bitmap(stream, true), metadata);
                 }
             }

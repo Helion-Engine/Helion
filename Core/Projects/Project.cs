@@ -1,10 +1,10 @@
-﻿using Helion.Entries;
-using Helion.Entries.Tree.Archive.Iterator;
+﻿using Helion.Entries.Archive.Iterator;
 using Helion.Maps;
 using Helion.Projects.Resources;
 using Helion.Util;
 using NLog;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Projects
 {
@@ -34,19 +34,18 @@ namespace Helion.Projects
         /// <summary>
         /// All the cached resources that make up a project.
         /// </summary>
-        public ProjectResources Resources { get; } = new ProjectResources();
+        public ProjectResources Resources { get; }
 
-        protected EntryIdAllocator EntryIdAllocator;
-        protected EntryClassifier Classifier;
+        /// <summary>
+        /// The loaded components for the project in reverse order
+        /// </summary>
         public List<ProjectComponent> Components = new List<ProjectComponent>();
 
-        protected Project(ProjectId id, ProjectInfo info, EntryIdAllocator entryIdAllocator,
-            EntryClassifier entryClassifier)
+        protected Project(ProjectId id, ProjectInfo info)
         {
             Id = id;
             Info = info;
-            EntryIdAllocator = entryIdAllocator;
-            Classifier = entryClassifier;
+            Resources = new ProjectResources(this);
         }
 
         private bool AlreadyLoadedOrDuplicate(IList<string> uris)
@@ -92,29 +91,27 @@ namespace Helion.Projects
                 return false;
             }
 
-            Components.AddRange(loadedComponents.Value);
+            var componentsToInsert = new List<ProjectComponent>(loadedComponents.Value);
+            componentsToInsert.Reverse();
+            Components.InsertRange(0, componentsToInsert);
+
             Resources.TrackNewComponents(loadedComponents.Value);
 
             return true;
         }
         
-        public (Map?, MapEntryCollection?) GetMap(UpperString mapName)
+        public (Map?, MapEntryCollection?) GetMap(CiString mapName)
         {
-            // TODO: Can we make some cleaner 'reverse iterator' extension?
-            // Like an IList<>.ForEachReverse(...)?
-            for (int i = Components.Count - 1; i >= 0; i--)
+            foreach(var component in Components)
             {
-                ProjectComponent component = Components[i];
-
                 ArchiveMapIterator mapIterator = new ArchiveMapIterator(component.Archive);
-                foreach (MapEntryCollection mapEntryCollection in mapIterator)
+                var mapEntryCollection = mapIterator.FirstOrDefault(x => x.Name == mapName);
+ 
+                if (mapEntryCollection != null)
                 {
-                    if (mapEntryCollection.Name == mapName)
-                    {
-                        Map? map = Map.From(mapEntryCollection);
-                        if (map != null)
-                            return (map, mapEntryCollection);
-                    }
+                    Map? map = Map.From(mapEntryCollection);
+                    if (map != null)
+                        return (map, mapEntryCollection);
                 }
             }
 

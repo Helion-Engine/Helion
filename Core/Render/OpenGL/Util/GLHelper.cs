@@ -119,7 +119,7 @@ namespace Helion.Render.OpenGL.Util
         [Conditional("DEBUG")]
         private static void ObjectLabel(GLCapabilities capabilities, ObjectLabelIdentifier id, int glName, string name)
         {
-            if (name.NotEmpty() && capabilities.Version.Supports(4, 3))
+            if (!name.Empty() && capabilities.Version.Supports(4, 3))
             {
                 if (name.Length > capabilities.Limits.MaxLabelLength)
                     name = name.Substring(0, capabilities.Limits.MaxLabelLength);

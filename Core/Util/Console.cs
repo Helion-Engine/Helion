@@ -241,13 +241,13 @@ namespace Helion.Util
     public class ConsoleCommandEventArgs : EventArgs
     {
         /// <summary>
-        /// The case insensitive command this event is.
+        /// The upper case command this event is.
         /// </summary>
         /// <remarks>
         /// This is always the first string in the command. For example, if the
         /// console was firing out "map map01" then the command would be "MAP".
         /// </remarks>
-        public readonly UpperString Command = "";
+        public readonly string Command = "";
 
         /// <summary>
         /// The arguments (if any) that came with the command.
@@ -261,13 +261,13 @@ namespace Helion.Util
         /// </param>
         public ConsoleCommandEventArgs(string text)
         {
-            Precondition(text.NotEmpty(), "Should not be getting an empty console command");
+            Precondition(!text.Empty(), "Should not be getting an empty console command");
 
             string[] tokens = text.Split(' ');
             if (tokens.Length == 0)
                 return;
 
-            Command = tokens[0];
+            Command = tokens[0].ToUpper();
             for (int i = 1; i < tokens.Length; i++)
                 Args.Add(tokens[i]);
         }

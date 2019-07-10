@@ -1,6 +1,5 @@
-﻿using Helion.Entries;
-using Helion.Entries.Tree.Archive;
-using Helion.Entries.Tree.Archive.Locator;
+﻿using Helion.Entries.Archive;
+using Helion.Entries.Archive.Locator;
 using Helion.Projects.Component;
 using Helion.Util;
 using NLog;
@@ -28,12 +27,12 @@ namespace Helion.Projects.Impl.Local
         private uint nextComponentId = 0;
 
         public LocalProject() :
-            this(new ProjectId(0), new ProjectInfo("", new Version(0, 0)), new EntryIdAllocator())
+            this(new ProjectId(0), new ProjectInfo(string.Empty, new Version(0, 0)))
         {
         }
 
-        public LocalProject(ProjectId id, ProjectInfo info, EntryIdAllocator idAllocator) :
-            base(id, info, idAllocator, new EntryClassifier(idAllocator))
+        public LocalProject(ProjectId id, ProjectInfo info) :
+            base(id, info)
         {
         }
 
@@ -52,7 +51,7 @@ namespace Helion.Projects.Impl.Local
             foreach (string uri in uris)
             {
                 log.Info("Loading {0}", uri);
-                Expected<Archive> archive = archiveLocator.Locate(uri, Classifier, EntryIdAllocator);
+                Expected<Archive> archive = archiveLocator.Locate(uri);
 
                 if (archive.Value != null)
                 {

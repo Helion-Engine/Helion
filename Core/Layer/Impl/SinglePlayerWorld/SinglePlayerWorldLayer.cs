@@ -56,7 +56,7 @@ namespace Helion.Layer.Impl
         }
 
         // TODO: Want to do Expected<...> so we can report an error reason?
-        public static SinglePlayerWorldLayer? Create(UpperString mapName, Project project)
+        public static SinglePlayerWorldLayer? Create(CiString mapName, Project project)
         {
             (Map? map, MapEntryCollection? collection) = project.GetMap(mapName);
             if (map == null || collection == null)

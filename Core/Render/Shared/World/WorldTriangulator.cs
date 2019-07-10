@@ -13,22 +13,22 @@ namespace Helion.Render.Shared.World
 {
     public class WorldTriangulator
     {
-        private readonly Func<UpperString, Dimension> m_textureDimensionFinder;
+        private readonly Func<CiString, Dimension> m_textureDimensionFinder;
         
-        public static LineTriangles Triangulate(Line line, Func<UpperString, Dimension> textureDimensionFinder)
+        public static LineTriangles Triangulate(Line line, Func<CiString, Dimension> textureDimensionFinder)
         {
             WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
             return line.OneSided ? triangulator.TriangulateOneSided(line) : 
                 triangulator.TriangulateTwoSided(line);
         }
         
-        public static SubsectorTriangles Triangulate(Subsector subsector, Func<UpperString, Dimension> textureDimensionFinder)
+        public static SubsectorTriangles Triangulate(Subsector subsector, Func<CiString, Dimension> textureDimensionFinder)
         {
             WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
             return triangulator.TriangulateSubsector(subsector);
         }
 
-        private WorldTriangulator(Func<UpperString, Dimension> textureDimensionFinder)
+        private WorldTriangulator(Func<CiString, Dimension> textureDimensionFinder)
         {
             m_textureDimensionFinder = textureDimensionFinder;
         }
@@ -55,7 +55,7 @@ namespace Helion.Render.Shared.World
         }
 
         private WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
-            UpperString texture, Dimension textureDimension, SideSection section)
+            CiString texture, Dimension textureDimension, SideSection section)
         {
             PositionQuad quad = CalculatePosition(floor.Plane, ceiling.Plane, line.StartVertex.Position, line.EndVertex.Position);
             UVQuad uv = CalculateUV(line, side, quad, textureDimension);
@@ -70,7 +70,7 @@ namespace Helion.Render.Shared.World
 
         private LineTriangles TriangulateOneSided(Line line)
         {
-            UpperString texture = line.Front.MiddleTexture;
+            CiString texture = line.Front.MiddleTexture;
             SectorFlat floor = line.Front.Sector.Floor;
             SectorFlat ceiling = line.Front.Sector.Ceiling;
             Dimension dimension = m_textureDimensionFinder.Invoke(texture);
@@ -86,7 +86,7 @@ namespace Helion.Render.Shared.World
                 throw new NullReferenceException("Should never have a null back side for an upper two sided line");
             Side backSide = facingSide.PartnerSide;
 
-            UpperString texture = facingSide.UpperTexture;
+            CiString texture = facingSide.UpperTexture;
             SectorFlat floor = backSide.Sector.Ceiling;
             SectorFlat ceiling = facingSide.Sector.Ceiling;
             Dimension dimension = m_textureDimensionFinder.Invoke(texture);
@@ -96,7 +96,7 @@ namespace Helion.Render.Shared.World
 
         private WallQuad TriangulateTwoSidedMiddle(Line line, Side facingSide)
         {
-            UpperString texture = facingSide.MiddleTexture;
+            CiString texture = facingSide.MiddleTexture;
             if (texture == Constants.NoTexture)
                 return WallQuad.Degenerate(facingSide, facingSide.Sector.Floor, facingSide.Sector.Ceiling);
 
@@ -110,7 +110,7 @@ namespace Helion.Render.Shared.World
                 throw new NullReferenceException("Should never have a null back side for a lower two sided line");
             Side backSide = facingSide.PartnerSide;
 
-            UpperString texture = facingSide.LowerTexture;
+            CiString texture = facingSide.LowerTexture;
             SectorFlat floor = facingSide.Sector.Floor;
             SectorFlat ceiling = backSide.Sector.Floor;
             Dimension dimension = m_textureDimensionFinder.Invoke(texture);

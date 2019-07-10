@@ -12,7 +12,7 @@ namespace Helion.Resources.Sprites
         /// <summary>
         /// The full name of the frame (ex: "POSSA2A8").
         /// </summary>
-        public UpperString FullFrame { get; }
+        public CiString FullFrame { get; }
 
         /// <summary>
         /// True if this is backed by an image somewhere, false if this is set
@@ -20,7 +20,7 @@ namespace Helion.Resources.Sprites
         /// </summary>
         public bool Exists { get; }
 
-        public SpriteRotation(UpperString fullFrame, bool exists = true)
+        public SpriteRotation(CiString fullFrame, bool exists = true)
         {
             FullFrame = fullFrame;
             Exists = exists;
@@ -45,21 +45,21 @@ namespace Helion.Resources.Sprites
 
         private int totalFrames;
 
-        public SpriteRotations(UpperString rotation)
+        public SpriteRotations(CiString rotation)
         {
             AddRotation(rotation, true);
 
             Postcondition(totalFrames == 1, $"Passed in a frame that couldn't be indexed: {rotation}");
         }
 
-        private void FillAllRotations(UpperString rotation, bool existStatus)
+        private void FillAllRotations(CiString rotation, bool existStatus)
         {
             for (int i = 0; i < Rotations.Length; i++)
                 if (!Rotations[i].Exists)
                     Rotations[i] = new SpriteRotation(rotation, existStatus);
         }
 
-        private void AddRotationWithPossibleMirror(UpperString frame, int targetRotation, int mirrorRotation)
+        private void AddRotationWithPossibleMirror(CiString frame, int targetRotation, int mirrorRotation)
         {
             if (!Rotations[targetRotation].Exists)
                 Rotations[targetRotation] = new SpriteRotation(frame);
@@ -78,7 +78,7 @@ namespace Helion.Resources.Sprites
         /// <param name="fullFrame">The frame to track. This should be the full
         /// frame (ex: "PLAYA3A7", or "PLAYA5").</param>
         /// <param name="fillAllRotations"></param>
-        public void AddRotation(UpperString fullFrame, bool fillAllRotations = false)
+        public void AddRotation(CiString fullFrame, bool fillAllRotations = false)
         {
             if (fullFrame.Length < 6)
                 return;

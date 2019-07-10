@@ -36,7 +36,7 @@ namespace Helion.Util
 
         private static void SetupFileLogger(LoggingConfiguration config, CommandLineArgs commandLineArgs)
         {
-            if (commandLineArgs.LogPath.Empty())
+            if (string.IsNullOrEmpty(commandLineArgs.LogPath))
                 return;
 
             string logFile = commandLineArgs.LogPath;

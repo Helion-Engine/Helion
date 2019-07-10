@@ -1,5 +1,6 @@
 ﻿using NLog;
 using OpenTK.Graphics.OpenGL;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Helion.Render.OpenGL.Util
@@ -13,8 +14,9 @@ namespace Helion.Render.OpenGL.Util
         public readonly GLVersion Version = GetGLVersion(GL.GetString(StringName.Version));
         public readonly string ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
         public readonly string Renderer = GL.GetString(StringName.Renderer);
+        public readonly Extensions Extensions = new Extensions();
         public readonly GLLimits Limits;
-
+        
         public GLCapabilities()
         {
             Limits = new GLLimits(this);
@@ -41,7 +43,7 @@ namespace Helion.Render.OpenGL.Util
             return new GLVersion(0, 0);
         }
     }
-
+    
     public class GLLimits
     {
         public readonly int MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
@@ -52,5 +54,22 @@ namespace Helion.Render.OpenGL.Util
             if (capabilities.Version.Supports(4, 3))
                 MaxLabelLength = GL.GetInteger((GetPName)All.MaxLabelLength);
         }
+    }
+    
+    public class Extensions
+    {
+        public readonly bool TextureFilterAnisotropic;
+        private HashSet<string> extensions = new HashSet<string>();
+
+        public Extensions()
+        {
+            int count = GL.GetInteger(GetPName.NumExtensions);
+            for (var i = 0; i < count; i++)
+                extensions.Add(GL.GetString(StringNameIndexed.Extensions, i));
+
+            TextureFilterAnisotropic = HasExtension("GL_EXT_texture_filter_anisotropic"); 
+        }
+
+        public bool HasExtension(string extensionName) => extensions.Contains(extensionName);
     }
 }

@@ -39,8 +39,8 @@ namespace Helion.Util.Configuration
     [ConfigComponent]
     public class EngineRenderMultisampleConfig
     {
-        public readonly ConfigValue<bool> Enable = new ConfigValue<bool>(true);
-        public readonly ConfigValue<int> Value = new ConfigValue<int>(8);
+        public readonly ConfigValue<bool> Enable = new ConfigValue<bool>(false);
+        public readonly ConfigValue<int> Value = new ConfigValue<int>(4);
     }
 
     [ConfigComponent]

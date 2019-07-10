@@ -101,7 +101,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture Get(UpperString name, ResourceNamespace priorityNamespace)
+        public GLTexture Get(CiString name, ResourceNamespace priorityNamespace)
         {
             return m_textures.GetWithAny(name, priorityNamespace) ?? NullTextureHandle;
         }
@@ -115,7 +115,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture GetWallTexture(UpperString name) => Get(name, ResourceNamespace.Textures);
+        public GLTexture GetWallTexture(CiString name) => Get(name, ResourceNamespace.Textures);
         
         /// <summary>
         /// Gets the texture, with priority given to the flat namespace. If it
@@ -126,7 +126,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture GetFlatTexture(UpperString name) => Get(name, ResourceNamespace.Flats);
+        public GLTexture GetFlatTexture(CiString name) => Get(name, ResourceNamespace.Flats);
 
         /// <summary>
         /// Binds both the texture unit and the texture for rendering.
@@ -226,7 +226,7 @@ namespace Helion.Render.OpenGL.Texture
             return new Dimension(atlasSize, atlasSize);
         }
 
-        private GLTexture? CreateTexture(Image image, UpperString name, ResourceNamespace resourceNamespace)
+        private GLTexture? CreateTexture(Image image, CiString name, ResourceNamespace resourceNamespace)
         {
             // We only want one image with this name/namespace in the texture
             // at a time. However we have some extra cleaning up to do if that
@@ -248,7 +248,7 @@ namespace Helion.Render.OpenGL.Texture
             return texture;
         }
 
-        private void DeleteTexture(UpperString name, ResourceNamespace resourceNamespace)
+        private void DeleteTexture(CiString name, ResourceNamespace resourceNamespace)
         {
             GLTexture? handle = m_textures.GetOnly(name, resourceNamespace);
             if (handle == null)

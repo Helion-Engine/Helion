@@ -32,7 +32,7 @@ namespace Helion.Util.Configuration
             foreach (FieldInfo field in configNode.GetType().GetFields())
             {
                 string lowerName = field.Name.ToLower();
-                string newKeyName = (keySoFar.Empty() ? lowerName : $"{keySoFar}.{lowerName}");
+                string newKeyName = (string.IsNullOrEmpty(keySoFar) ? lowerName : $"{keySoFar}.{lowerName}");
 
                 if (ConfigReflectionReader.HasConfigValueAttribute(field))
                 {

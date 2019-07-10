@@ -38,7 +38,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// The name of the texture.
         /// </summary>
-        public UpperString Name { get; }
+        public CiString Name { get; }
 
         /// <summary>
         /// The width of the texture.
@@ -55,7 +55,7 @@ namespace Helion.Resources.Definitions.Texture
         /// </summary>
         public List<TextureXPatch> Patches { get; }
 
-        public TextureXImage(UpperString name, int width, int height, List<TextureXPatch> patches)
+        public TextureXImage(CiString name, int width, int height, List<TextureXPatch> patches)
         {
             Precondition(width >= 0, "Texture X image width must not be negative");
             Precondition(height >= 0, "Texture X image height must not be negative");
@@ -89,7 +89,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <param name="data">The data to read.</param>
         /// <returns>The Texture1/2/3 data, or an empty value if the data is
         /// corrupt.</returns>
-        public TextureX? From(byte[] data)
+        public static TextureX? From(byte[] data)
         {
             List<TextureXImage> definitions = new List<TextureXImage>();
 

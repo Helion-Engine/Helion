@@ -15,9 +15,9 @@ namespace Helion.Resources
     /// that problem.
     /// </remarks>
     /// <typeparam name="T">The resource type to track.</typeparam>
-    public class ResourceTracker<T> : IEnumerable<HashTableEntry<ResourceNamespace, UpperString, T>> where T : class
+    public class ResourceTracker<T> : IEnumerable<HashTableEntry<ResourceNamespace, CiString, T>> where T : class
     {
-        private readonly HashTable<ResourceNamespace, UpperString, T> table = new HashTable<ResourceNamespace, UpperString, T>();
+        private readonly HashTable<ResourceNamespace, CiString, T> table = new HashTable<ResourceNamespace, CiString, T>();
 
         /// <summary>
         /// Clears all the tracked resources.
@@ -35,7 +35,7 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The namespace for the resource.
         /// </param>
         /// <returns>True if it exists, false if not.</returns>
-        public bool Contains(UpperString name, ResourceNamespace resourceNamespace)
+        public bool Contains(CiString name, ResourceNamespace resourceNamespace)
         {
             return table.Get(resourceNamespace, name) != null;
         }
@@ -48,7 +48,7 @@ namespace Helion.Resources
         /// to contain extensions, but rather just the name.</param>
         /// <param name="resourceNamespace">The namespace of the resource.</param>
         /// <param name="value"></param>
-        public void AddOrOverwrite(UpperString name, ResourceNamespace resourceNamespace, T value)
+        public void AddOrOverwrite(CiString name, ResourceNamespace resourceNamespace, T value)
         {
             table.AddOrOverwrite(resourceNamespace, name, value);
         }
@@ -59,7 +59,7 @@ namespace Helion.Resources
         /// <param name="name">The name of the resource. This is not intended
         /// to contain extensions, but rather just the name.</param>
         /// <param name="resourceNamespace">The namespace of the resource.</param>
-        public void Remove(UpperString name, ResourceNamespace resourceNamespace)
+        public void Remove(CiString name, ResourceNamespace resourceNamespace)
         {
             table.Remove(resourceNamespace, name);
         }
@@ -72,7 +72,7 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The namespace of the resource to
         /// only look at.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
-        public T? GetOnly(UpperString name, ResourceNamespace resourceNamespace)
+        public T? GetOnly(CiString name, ResourceNamespace resourceNamespace)
         {
             return table.Get(resourceNamespace, name);
         }
@@ -86,7 +86,7 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The namespace of the resource to
         /// look at first. This should not be the global namespace.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
-        public T? GetWithGlobal(UpperString name, ResourceNamespace resourceNamespace)
+        public T? GetWithGlobal(CiString name, ResourceNamespace resourceNamespace)
         {
             Precondition(resourceNamespace != ResourceNamespace.Global, $"Doing redundant 'get with global' check for: {name}");
 
@@ -106,7 +106,7 @@ namespace Helion.Resources
         /// <param name="priorityNamespace">The namespace of the resource to
         /// look at nefpre cjeclomg ptjers.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
-        public T? GetWithAny(UpperString name, ResourceNamespace priorityNamespace)
+        public T? GetWithAny(CiString name, ResourceNamespace priorityNamespace)
         {
             T? desiredNamespaceElement = table.Get(priorityNamespace, name);
             if (desiredNamespaceElement != null)
@@ -126,7 +126,7 @@ namespace Helion.Resources
         }
 
         /// <inheritdoc/>
-        public IEnumerator<HashTableEntry<ResourceNamespace, UpperString, T>> GetEnumerator()
+        public IEnumerator<HashTableEntry<ResourceNamespace, CiString, T>> GetEnumerator()
         {
             foreach (var tableEntry in table)
                 yield return tableEntry;

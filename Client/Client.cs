@@ -41,7 +41,7 @@ namespace Helion.Client
         private void OnConsoleCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
         {
             // TODO: This function will get ugly and bloated *very* quickly...
-            switch (ccmdArgs.Command.ToString())
+            switch (ccmdArgs.Command)
             {
             case "EXIT":
                 window.Close();
@@ -53,7 +53,7 @@ namespace Helion.Client
                     log.Info("Usage: map <mapName>");
                     break;
                 }
-                UpperString mapName = ccmdArgs.Args[0];
+                CiString mapName = ccmdArgs.Args[0];
                 SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(mapName, project);
                 if (layer != null)
                     layerManager.Add(layer);
