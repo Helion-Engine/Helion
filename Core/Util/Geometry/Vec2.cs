@@ -161,6 +161,8 @@ namespace Helion.Util.Geometry
 
     public static class Vector2Extensions
     {
+        public static float U(this Vector2 vec) => vec.X;
+        public static float V(this Vector2 vec) => vec.Y;
         public static Vector2 Abs(this Vector2 vec) => new Vector2(Math.Abs(vec.X), Math.Abs(vec.Y));
         public static float Dot(this Vector2 vec, Vector2 other) => (vec.X * other.X) + (vec.Y * other.Y);
         public static Vector2 Unit(this Vector2 vec) => vec / vec.Length();

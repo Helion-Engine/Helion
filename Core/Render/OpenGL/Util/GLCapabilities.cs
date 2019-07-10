@@ -13,7 +13,12 @@ namespace Helion.Render.OpenGL.Util
         public readonly GLVersion Version = GetGLVersion(GL.GetString(StringName.Version));
         public readonly string ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
         public readonly string Renderer = GL.GetString(StringName.Renderer);
-        public readonly GLLimits Limits = new GLLimits();
+        public readonly GLLimits Limits;
+
+        public GLCapabilities()
+        {
+            Limits = new GLLimits(this);
+        }
         
         private static GLVersion GetGLVersion(string version)
         {
@@ -40,5 +45,12 @@ namespace Helion.Render.OpenGL.Util
     public class GLLimits
     {
         public readonly int MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
+        public readonly int MaxLabelLength;
+
+        public GLLimits(GLCapabilities capabilities)
+        {
+            if (capabilities.Version.Supports(4, 3))
+                MaxLabelLength = GL.GetInteger((GetPName)All.MaxLabelLength);
+        }
     }
 }

@@ -29,23 +29,6 @@ namespace Helion.Render.OpenGL.Shader
             GL.Uniform1(Location, value);
         }
     }
-    
-    public class UniformTexture : UniformInt
-    {
-        public override void Set(int value)
-        {
-            Fail("A uniform texture should be calling BindAndSet(), not Set()");
-        }
-        
-        public void BindAndSet(TextureUnit unit)
-        {
-            // TODO: Should assert the implementation has enough texture units.
-            Precondition(Location != NoLocation, "Uniform int value did not have the location set");
-            
-            GL.ActiveTexture(unit);
-            base.Set(unit.ToIndex());
-        }
-    }
 
     public class UniformFloat : UniformElement<float>
     {

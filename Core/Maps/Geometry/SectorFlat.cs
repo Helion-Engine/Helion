@@ -1,4 +1,5 @@
 ﻿using Helion.Util;
+using Helion.Util.Geometry;
 using static Helion.Util.Assert;
 
 namespace Helion.Maps.Geometry
@@ -7,18 +8,16 @@ namespace Helion.Maps.Geometry
     {
         public readonly int Id;
         public readonly bool FacingUp;
+        public readonly PlaneD Plane;
         public UpperString Texture;
-        public int Z;
         public byte LightLevel;
 
-        public SectorFlat(int id, bool facingUp, UpperString texture, int zHeight, byte lightLevel)
+        public SectorFlat(int id, bool facingUp, UpperString texture, double z, byte lightLevel)
         {
-            Precondition(zHeight >= short.MinValue && zHeight <= short.MaxValue, $"Floor height out of range: {zHeight}");
-
             Id = id;
             FacingUp = facingUp;
             Texture = texture;
-            Z = zHeight;
+            Plane = new PlaneD(z);
             LightLevel = lightLevel;
         }
     }

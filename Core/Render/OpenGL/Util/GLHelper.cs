@@ -94,6 +94,22 @@ namespace Helion.Render.OpenGL.Util
         }
 
         /// <summary>
+        /// Throws an exception of glGetError() returns an error value.
+        /// </summary>
+        /// <remarks>
+        /// Intended for debug builds only to assert nothing is wrong.
+        /// </remarks>
+        /// <exception cref="HelionException">The exception thrown if an error
+        /// is found.</exception>
+        [Conditional("DEBUG")]
+        public static void ThrowIfErrorDetected()
+        {
+            ErrorCode errorCode = GL.GetError();
+            if (errorCode != ErrorCode.NoError)
+                throw new HelionException($"OpenGL error detected: {errorCode}");
+        }
+
+        /// <summary>
         /// Attaches an object label for the provided GL object.
         /// </summary>
         /// <param name="capabilities">The GL capabilities.</param>
@@ -104,7 +120,12 @@ namespace Helion.Render.OpenGL.Util
         private static void ObjectLabel(GLCapabilities capabilities, ObjectLabelIdentifier id, int glName, string name)
         {
             if (name.NotEmpty() && capabilities.Version.Supports(4, 3))
+            {
+                if (name.Length > capabilities.Limits.MaxLabelLength)
+                    name = name.Substring(0, capabilities.Limits.MaxLabelLength);
+                
                 GL.ObjectLabel(id, glName, name.Length, name);
+            }
         }
 
         [Conditional("DEBUG")]
@@ -117,6 +138,12 @@ namespace Helion.Render.OpenGL.Util
         public static void SetBufferLabel(GLCapabilities capabilities, int glName, string name)
         {
             ObjectLabel(capabilities, ObjectLabelIdentifier.Buffer, glName, name);
+        }
+        
+        [Conditional("DEBUG")]
+        public static void SetArrayObjectLabel(GLCapabilities capabilities, int glName, string name)
+        {
+            ObjectLabel(capabilities, ObjectLabelIdentifier.VertexArray, glName, name);
         }
     }
 }

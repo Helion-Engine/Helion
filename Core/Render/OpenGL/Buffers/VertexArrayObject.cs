@@ -1,4 +1,5 @@
 using System;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assert;
 
@@ -10,10 +11,14 @@ namespace Helion.Render.OpenGL.Buffers
         private readonly int vao;
         private bool disposed;
 
-        public VertexArrayObject(VertexArrayAttributes vaoAttributes)
+        public VertexArrayObject(GLCapabilities capabilities, VertexArrayAttributes vaoAttributes, string objectLabel = "")
         {
             Attributes = vaoAttributes;
             vao = GL.GenVertexArray();
+            
+            // We need to at least bind it first to allocate it, otherwise it's
+            // undefined behavior to apply a label.
+            BindAnd(() => { GLHelper.SetArrayObjectLabel(capabilities, vao, objectLabel); });
         }
 
         private void ReleaseUnmanagedResources()

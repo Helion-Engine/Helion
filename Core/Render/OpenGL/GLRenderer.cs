@@ -10,7 +10,10 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
+using Helion.Render.Shared;
+using Helion.Util;
 using Helion.Util.Configuration;
+using OpenTK;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
@@ -21,14 +24,16 @@ namespace Helion.Render.OpenGL
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool InfoPrinted;
 
+        private readonly Config m_config;
         private readonly GLTextureManager m_textureManager;
         private readonly WorldRenderer m_worldRenderer;
 
         public GLRenderer(Config config)
         {
+            m_config = config;
             m_textureManager = new GLTextureManager(config, Capabilities);
-            m_worldRenderer = new WorldRenderer(Capabilities, m_textureManager);
-            
+            m_worldRenderer = new WorldRenderer(config, Capabilities, m_textureManager);
+
             PrintGLInfo();
             SetGLStates();
             SetGLDebugger();
@@ -39,26 +44,52 @@ namespace Helion.Render.OpenGL
             ReleaseUnmanagedResources();
         }
 
+        public static Matrix4 CreateMVP(RenderInfo renderInfo, float fovX)
+        {
+            float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
+            float fovY = Camera.FieldOfViewXToY(fovX, aspectRatio);
+
+            // Note that we have no model matrix, everything is already in the
+            // world space.
+            Matrix4 model = Matrix4.Identity;
+            Matrix4 view = Camera.ViewMatrix(renderInfo.CameraInfo);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fovY, aspectRatio, 16.0f, 8192.0f);
+
+            // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
+            // of left multiplication. Instead of doing p * v * m, it has to
+            // be done in the opposite direction (m * v * p) due to a design
+            // decision according to a lead developer. This will seem wrong
+            // for anyone used to the C++/OpenGL way of multiplying.
+            return model * view * projection;
+        }
+        
         public void Render(RenderCommands renderCommands)
         {
+            Rectangle currentViewport = new Rectangle(0, 0, 1024, 768);
+            
             foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
             {
                 switch (renderCommand)
                 {
-                case ClearRenderCommand clearRenderCommand:
-                    HandleClearCommand(clearRenderCommand);
+                case ClearRenderCommand cmd:
+                    HandleClearCommand(cmd);
                     break;
-                case DrawWorldCommand drawWorldCommand:
-                    m_worldRenderer.Render(drawWorldCommand.World);
+                case DrawWorldCommand cmd:
+                    RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport);
+                    m_worldRenderer.Render(cmd.World, renderInfo);
                     break;
-                case ViewportCommand viewportCommand:
-                    HandleViewportCommand(viewportCommand);
+                case ViewportCommand cmd:
+                    currentViewport = new Rectangle(cmd.Offset.X, cmd.Offset.Y, cmd.Dimension.Width, cmd.Dimension.Height);
+                    HandleViewportCommand(cmd);
                     break;
                 default:
                     Fail($"Unsupported render command type: {renderCommand}");
                     break;
                 }
             }
+            
+            if (m_config.Engine.Developer.RenderDebug)
+                GLHelper.ThrowIfErrorDetected();
         }
 
         public void Dispose()
@@ -100,10 +131,20 @@ namespace Helion.Render.OpenGL
         [Conditional("DEBUG")]
         private void SetGLDebugger()
         {
-            if (!Capabilities.Version.Supports(4, 3)) 
+            // Note: This means it's not set if `RenderDebug` changes. As far
+            // as I can tell, we can't unhook actions, but maybe we could do
+            // some glDebugControl... setting that changes them all to don't
+            // cares if we have already registered a function? See:
+            // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
+            if (!Capabilities.Version.Supports(4, 3) || !m_config.Engine.Developer.RenderDebug) 
                 return;
             
             GL.Enable(EnableCap.DebugOutput);
+            GL.Enable(EnableCap.DebugOutputSynchronous);
+            
+            // TODO: We should filter messages we want to get since this could
+            //       pollute us with lots of messages and we wouldn't know it.
+            //       https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
             GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
                 string msg = Marshal.PtrToStringAnsi(message, length);

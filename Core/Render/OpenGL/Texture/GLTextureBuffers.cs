@@ -23,7 +23,7 @@ namespace Helion.Render.OpenGL.Texture
         /// <param name="capabilities">The GL capabilities.</param>
         public GLTextureBuffers(GLCapabilities capabilities)
         {
-            TextureInfoBuffer = new TextureBufferObject<TextureInfo>(capabilities, "TextureInfo Texture Buffer");
+            TextureInfoBuffer = new TextureBufferObject<TextureInfo>(capabilities);
         }
 
         /// <summary>

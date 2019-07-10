@@ -11,6 +11,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using NLog;
 using System;
+using NLog.Fluent;
 using Console = Helion.Util.Console;
 
 namespace Helion.Client
@@ -150,7 +151,19 @@ namespace Helion.Client
             using (Config config = new Config())
             {
                 using Client client = new Client(cmdArgs, config);
-                client.Start();
+
+                try
+                {
+                    client.Start();
+                }
+                catch (Exception e)
+                {
+                    log.Error("Unexpected exception: {0}", e.Message);
+#if DEBUG
+                    log.Error("Stack trace:");
+                    log.Error("{0}", e.StackTrace);
+#endif
+                }
             }
 
             LogManager.Shutdown();

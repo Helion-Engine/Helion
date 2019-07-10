@@ -5,6 +5,9 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
 {
     public class StaticWorldShaderProgram : ShaderProgram
     {
+        public readonly UniformMatrix4 Mvp = new UniformMatrix4();
+        public readonly UniformInt TextureAtlas = new UniformInt();
+
         public StaticWorldShaderProgram(ShaderBuilder builder, VertexArrayAttributes attributes) : 
             base(builder, attributes)
         {
@@ -17,20 +20,20 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             shaderBuilder.VertexShaderText = @"
                 #version 140
 
-                in vec2 pos;
-                in float u;
-                in int floorPlaneIndex;
-                in int ceilingPlaneIndex;
-                in int wallIndex;
-                in int flags;
+                in vec3 pos;
+                in vec2 uv;
+                in float lightLevel;
 
                 out vec2 uvFrag;
+                out float lightLevelFrag;
+
+                uniform mat4 mvp;
 
                 void main() {
-                    int z = floorPlaneIndex + ceilingPlaneIndex + wallIndex + flags;
+                    uvFrag = uv;
+                    lightLevelFrag = lightLevel;
 
-                    uvFrag = vec2(u, z);
-                    gl_Position = vec4(pos, z, 1.0);
+                    gl_Position = mvp * vec4(pos, 1.0);
                 }
             ";
             
@@ -38,11 +41,20 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
                 #version 140
 
                 in vec2 uvFrag;
+                in float lightLevelFrag;
 
                 out vec4 fragColor;
 
+                uniform sampler2D textureAtlas;
+
                 void main() {
-                    fragColor = vec4(uvFrag.x, uvFrag.y, 0.0, 1.0);
+                    // TODO: Clamp uvFrag to [0.0, 1.0]
+
+                    fragColor = texture(textureAtlas, uvFrag);
+                    fragColor.xyz = fragColor.xyz * lightLevelFrag;
+
+                    if (fragColor.w <= 0.0)
+                        discard;
                 }
             ";
             

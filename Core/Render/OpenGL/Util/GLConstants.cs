@@ -10,5 +10,6 @@ namespace Helion.Render.OpenGL.Util
         public static TextureUnit WallDataUnit = TextureUnit.Texture3;
         public static TextureUnit SectorDataUnit = TextureUnit.Texture4;
         public static TextureUnit SectorPlaneDataUnit = TextureUnit.Texture5;
+        public static TextureUnit ActorDefinitionDataUnit = TextureUnit.Texture6;
     }
 }

@@ -18,9 +18,10 @@ namespace Helion.Render.OpenGL.Buffers
         private readonly int typeByteSize = Marshal.SizeOf<T>();
 
         public int Count => Data.Length;
+        public bool NeedsUpload => !Uploaded;
 
-        protected BufferObject(GLCapabilities capabilities, BufferTarget bufferTarget, BufferUsageHint usageHint, 
-            int glObjectId, string objectLabel = "")
+        protected BufferObject(GLCapabilities capabilities, BufferTarget bufferTarget, 
+            BufferUsageHint usageHint, int glObjectId)
         {
             // TODO: Write something that asserts every field offset is packed.
             Invariant(typeof(T).StructLayoutAttribute.Pack == 1, $"Type {typeof(T)} does not pack its data tightly");
@@ -28,8 +29,6 @@ namespace Helion.Render.OpenGL.Buffers
             target = bufferTarget;
             hint = usageHint;
             BufferHandle = glObjectId;
-            
-            GLHelper.SetBufferLabel(capabilities, BufferHandle, objectLabel);
         }
         
         ~BufferObject()
@@ -40,7 +39,7 @@ namespace Helion.Render.OpenGL.Buffers
         public void Add(T element)
         {
             Data.Add(element);
-            MarkAsNeedingUpload();
+            Uploaded = false;
         }
 
         public void Add(params T[] elements)
@@ -48,7 +47,7 @@ namespace Helion.Render.OpenGL.Buffers
             if (elements.Length > 0)
             {
                 Data.Add(elements);
-                MarkAsNeedingUpload();
+                Uploaded = false;
             }
         }
 
@@ -66,16 +65,6 @@ namespace Helion.Render.OpenGL.Buffers
         public void Clear()
         {
             Data.Clear();
-        }
-
-        public void Bind()
-        {
-            GL.BindBuffer(target, BufferHandle);
-        }
-
-        public void Unbind()
-        {
-            GL.BindBuffer(target, 0);   
         }
 
         public void BindAnd(Action action)
@@ -99,15 +88,19 @@ namespace Helion.Render.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        [Conditional("DEBUG")]
-        protected void MarkAsNeedingUpload()
-        {
-            Uploaded = false;
-        }
-
         protected virtual void ReleaseUnmanagedResources()
         {
             GL.DeleteBuffer(BufferHandle);
+        }
+        
+        protected void Bind()
+        {
+            GL.BindBuffer(target, BufferHandle);
+        }
+
+        protected void Unbind()
+        {
+            GL.BindBuffer(target, 0);   
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
+using Buffer = System.Buffer;
 
 namespace Helion.Render.OpenGL.Buffers
 {
@@ -10,11 +11,10 @@ namespace Helion.Render.OpenGL.Buffers
     {
         private readonly int tbo;
         
-        public TextureBufferObject(GLCapabilities capabilities, string objectLabel = "", BufferUsageHint usageHint = BufferUsageHint.DynamicDraw) : 
-            base(capabilities, BufferTarget.TextureBuffer, usageHint, GL.GenBuffer(), objectLabel)
+        public TextureBufferObject(GLCapabilities capabilities, BufferUsageHint usageHint = BufferUsageHint.DynamicDraw) : 
+            base(capabilities, BufferTarget.TextureBuffer, usageHint, GL.GenBuffer())
         {
             tbo = GL.GenTexture();
-            BindTextureToBuffer();
         }
 
         protected override void ReleaseUnmanagedResources()
@@ -27,27 +27,28 @@ namespace Helion.Render.OpenGL.Buffers
         // TODO: Want to support updating a range and pushing that through to
         //       the texture buffer. Can we do that with this[] indexing and
         //       not kill performance? Use glMapBuffer of glSubBufferData...?
-
-        private void BindTextureToBuffer()
-        {
-            GL.BindTexture(TextureTarget.TextureBuffer, tbo);
-            GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, BufferHandle);
-            GL.BindTexture(TextureTarget.TextureBuffer, 0);
-        }
-
-        public void BindTexture()
-        {
-            GL.BindTexture(TextureTarget.TextureBuffer, tbo);
-        }
         
-        public void UnbindTexture()
+        // TODO: Should we also use PBOs? Can we even? Is that safe to update
+        //       the buffer or do we need a fence?
+
+        private void BindTexture(TextureUnit textureUnit)
         {
-            GL.BindTexture(TextureTarget.TextureBuffer, 0);
+            GL.ActiveTexture(textureUnit);
+            GL.BindTexture(TextureTarget.TextureBuffer, tbo);
+            
+            Bind();
+            GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, BufferHandle);
         }
 
-        public void BindTextureAnd(Action func)
+        private void UnbindTexture()
         {
-            BindTexture();
+            GL.BindTexture(TextureTarget.TextureBuffer, 0);
+            Unbind();
+        }
+
+        public void BindTextureAnd(TextureUnit textureUnit, Action func)
+        {
+            BindTexture(textureUnit);
             func.Invoke();
             UnbindTexture();
         }

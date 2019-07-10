@@ -10,8 +10,7 @@ namespace Helion.Render.OpenGL.Shader
 {
     public class ShaderProgram : IDisposable
     {
-        private readonly int program;
-        private bool disposed;
+        private readonly int m_programId;
         
         protected ShaderProgram(ShaderBuilder builder, VertexArrayAttributes attributes)
         {
@@ -26,20 +25,48 @@ namespace Helion.Render.OpenGL.Shader
             int vertexShader = CreateAndCompileShaderOrThrow(ShaderType.VertexShader, builder.VertexShaderText);
             int fragmentShader = CreateAndCompileShaderOrThrow(ShaderType.FragmentShader, builder.FragmentShaderText);
 
-            program = GL.CreateProgram();
-            GL.AttachShader(program, vertexShader);
-            GL.AttachShader(program, fragmentShader);
+            m_programId = GL.CreateProgram();
+            GL.AttachShader(m_programId, vertexShader);
+            GL.AttachShader(m_programId, fragmentShader);
 
-            attributes.ForEach(attr => GL.BindAttribLocation(program, attr.Index, attr.Name));
+            attributes.ForEach(attr => GL.BindAttribLocation(m_programId, attr.Index, attr.Name));
             LinkProgramOrThrow();
             AssertAttributesMatch(attributes);
 
-            GL.DetachShader(program, vertexShader);
-            GL.DetachShader(program, fragmentShader);
+            GL.DetachShader(m_programId, vertexShader);
+            GL.DetachShader(m_programId, fragmentShader);
             GL.DeleteShader(fragmentShader);
             GL.DeleteShader(vertexShader);
 
             IndexUniformsOrThrow();
+        }
+        
+        ~ShaderProgram()
+        {
+            ReleaseUnmanagedResources();
+        }
+        
+        public void Bind()
+        {
+            GL.UseProgram(m_programId);            
+        }
+
+        public void Unbind()
+        {
+            GL.UseProgram(0);
+        }
+
+        public void BindAnd(Action action)
+        {
+            Bind();
+            action.Invoke();
+            Unbind();
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
         }
         
         private int CreateAndCompileShaderOrThrow(ShaderType shaderType, string vertexShaderText)
@@ -60,12 +87,12 @@ namespace Helion.Render.OpenGL.Shader
         
         private void LinkProgramOrThrow()
         {
-            GL.LinkProgram(program);
+            GL.LinkProgram(m_programId);
 
-            GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var status);
+            GL.GetProgram(m_programId, GetProgramParameterName.LinkStatus, out var status);
             if (status != (int)All.True)
             {
-                string errorMsg = GL.GetProgramInfoLog(program);
+                string errorMsg = GL.GetProgramInfoLog(m_programId);
                 throw new ShaderException($"Error linking shader: {errorMsg}");
             }
         }
@@ -73,7 +100,7 @@ namespace Helion.Render.OpenGL.Shader
         [Conditional("DEBUG")]
         private void AssertAttributesMatch(VertexArrayAttributes attributes)
         {
-            GL.GetProgram(program, GetProgramParameterName.ActiveAttributes, out int numAttributes);
+            GL.GetProgram(m_programId, GetProgramParameterName.ActiveAttributes, out int numAttributes);
             Invariant(numAttributes == attributes.Count, "Attribute mismatch, shader attributes do not match VAO attribute size (did you forget some? or not remove some?)");
         }
         
@@ -84,12 +111,12 @@ namespace Helion.Render.OpenGL.Shader
 
         private void IndexUniformsOrThrow()
         {
-            GL.GetProgram(program, GetProgramParameterName.ActiveUniforms, out int numUniforms);
+            GL.GetProgram(m_programId, GetProgramParameterName.ActiveUniforms, out int numUniforms);
 
             for (int uniformIndex = 0; uniformIndex < numUniforms; uniformIndex++)
             {
-                string name = GL.GetActiveUniform(program, uniformIndex, out _, out _);
-                int location = GL.GetUniformLocation(program, name);
+                string name = GL.GetActiveUniform(m_programId, uniformIndex, out _, out _);
+                int location = GL.GetUniformLocation(m_programId, name);
                 Invariant(location != -1, $"Unable to index shader uniform {name}");
 
                 FindAndSetUniformFieldIndexOrThrow(name, location);
@@ -130,40 +157,9 @@ namespace Helion.Render.OpenGL.Shader
             throw new ShaderException($"Encountered uniform '{name}' which has no backing field in the class: {GetType().Name}");
         }
 
-        public void Bind()
-        {
-            GL.UseProgram(program);            
-        }
-
-        public void Unbind()
-        {
-            GL.UseProgram(0);
-        }
-
-        public void BindAnd(Action action)
-        {
-            Bind();
-            action.Invoke();
-            Unbind();
-        }
-
         private void ReleaseUnmanagedResources()
         {
-            Precondition(!disposed, "Attempting to dispose a Shader Program more than once");
-            
-            GL.DeleteProgram(program);
-            disposed = true;
-        }
-
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
-
-        ~ShaderProgram()
-        {
-            ReleaseUnmanagedResources();
+            GL.DeleteProgram(m_programId);
         }
     }
 }

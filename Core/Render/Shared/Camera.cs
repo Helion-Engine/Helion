@@ -203,6 +203,22 @@ namespace Helion.Render.Shared
         }
 
         /// <summary>
+        /// Takes a desired X field of view in radians and converts it to the Y
+        /// field of view with the provided aspect ratio.
+        /// </summary>
+        /// <remarks>
+        /// Intended primarily for libraries that take a Y field of view when
+        /// creating a perspective matrix.
+        /// </remarks>
+        /// <param name="fovX">The field of view in radians.</param>
+        /// <param name="aspectRatio"></param>
+        /// <returns></returns>
+        public static float FieldOfViewXToY(float fovX, float aspectRatio)
+        {
+            return 2 * (float)Math.Atan((float)Math.Tan(fovX / 2) / aspectRatio);
+        }
+
+        /// <summary>
         /// Calculates the direction from the yaw/pitch.
         /// </summary>
         /// <param name="yawRadians">The yaw in radians.</param>

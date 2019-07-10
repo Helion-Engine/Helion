@@ -8,7 +8,6 @@ using Helion.Util.Atlas;
 using Helion.Util.Configuration;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
-using NLog;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Texture
@@ -24,8 +23,6 @@ namespace Helion.Render.OpenGL.Texture
     /// </remarks>
     public class GLTextureManager : IDisposable
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
         /// <summary>
         /// A texture which represents a missing texture. It is the fallback
         /// when a texture cannot be found.
@@ -43,7 +40,7 @@ namespace Helion.Render.OpenGL.Texture
         private readonly int m_atlasTextureHandle;
         
         /// <summary>
-        /// The config
+        /// The config with settings to apply to textures.
         /// </summary>
         private readonly Config m_config;
         
@@ -79,7 +76,7 @@ namespace Helion.Render.OpenGL.Texture
             m_config = config;
             m_capabilities = capabilities;
             m_atlasTextureHandle = GL.GenTexture();
-            m_atlas = new Atlas2D(GetBestAtlasDimension());
+            m_atlas = new Atlas2D(new Dimension(8, 8) /*GetBestAtlasDimension()*/);
             TextureBuffers = new GLTextureBuffers(capabilities);
 
             AllocateTextureAtlasOnGPU();
@@ -94,12 +91,49 @@ namespace Helion.Render.OpenGL.Texture
         }
 
         /// <summary>
+        /// Gets the texture, with priority given to the namespace provided. If
+        /// it cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <param name="priorityNamespace">The namespace to search first.
+        /// </param>
+        /// <returns>The handle for the texture in the provided namespace, or
+        /// the texture in another namespace if the texture was not found in
+        /// the desired namespace, or the null texture if no such texture was
+        /// found with the name provided.</returns>
+        public GLTexture Get(UpperString name, ResourceNamespace priorityNamespace)
+        {
+            return m_textures.GetWithAny(name, priorityNamespace) ?? NullTextureHandle;
+        }
+
+        /// <summary>
+        /// Gets the texture, with priority given to the texture namespace. If
+        /// it cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <returns>The handle for the texture in the provided namespace, or
+        /// the texture in another namespace if the texture was not found in
+        /// the desired namespace, or the null texture if no such texture was
+        /// found with the name provided.</returns>
+        public GLTexture GetWallTexture(UpperString name) => Get(name, ResourceNamespace.Textures);
+        
+        /// <summary>
+        /// Gets the texture, with priority given to the flat namespace. If it
+        /// cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The flat texture name.</param>
+        /// <returns>The handle for the texture in the provided namespace, or
+        /// the texture in another namespace if the texture was not found in
+        /// the desired namespace, or the null texture if no such texture was
+        /// found with the name provided.</returns>
+        public GLTexture GetFlatTexture(UpperString name) => Get(name, ResourceNamespace.Flats);
+
+        /// <summary>
         /// Binds both the texture unit and the texture for rendering.
         /// </summary>
-        /// <param name="textureUnit">The texture unit to activate.</param>
-        public void Bind(TextureUnit textureUnit)
+        public void Bind()
         {
-            GL.ActiveTexture(textureUnit);
+            GL.ActiveTexture(GLConstants.TextureAtlasUnit);
             BindTextureOnly();
         }
 
@@ -108,18 +142,17 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         public void Unbind()
         {
-            GL.BindTexture(TextureTarget.Texture2D, m_atlasTextureHandle);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
         /// <summary>
         /// Binds the texture to the provided texture unit, and carries out the
         /// function provided, and then unbinds.
         /// </summary>
-        /// <param name="textureUnit">The texture unit to activate.</param>
         /// <param name="func">The function to call while bound.</param>
-        public void BindAnd(TextureUnit textureUnit, Action func)
+        public void BindAnd(Action func)
         {
-            Bind(textureUnit);
+            Bind();
             func.Invoke();
             Unbind();
         }
@@ -150,10 +183,14 @@ namespace Helion.Render.OpenGL.Texture
         private void SetTextureAtlasParameters()
         {
             BindTextureOnly();
-
-            // TODO (need to merge with master for this)
-            Log.Error("TODO: SetTextureAtlasParameters() not implemented yet");
-
+            
+            // TODO: Needs to be updated with master, see the old GLTexManager
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            
             Unbind();
         }
 
@@ -199,7 +236,7 @@ namespace Helion.Render.OpenGL.Texture
 
             AtlasHandle? atlasHandle = m_atlas.Add(image.Dimension);
             if (atlasHandle == null)
-                return null;
+                throw new HelionException("Ran out of texture atlas space");
 
             UploadPixelsToAtlasTexture(image, atlasHandle.Location);
             

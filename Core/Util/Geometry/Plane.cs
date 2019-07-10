@@ -5,13 +5,13 @@ namespace Helion.Util.Geometry
 {
     public class PlaneD
     {
-        public readonly double A;
-        public readonly double B;
-        public readonly double C;
-        public readonly double D;
-        public readonly bool IsFlat;
-        public readonly double FlatHeight;
-        private readonly double inverseC;
+        public double A;
+        public double B;
+        public double C;
+        public double D;
+        public bool IsFlat;
+        public double FlatHeight;
+        private readonly double m_inverseC;
 
         public PlaneD(double height) : this(0, 0, 1, -height)
         {
@@ -34,29 +34,34 @@ namespace Helion.Util.Geometry
                 FlatHeight = -d;
             }
             else
-                inverseC = 1.0 / c;
+                m_inverseC = 1.0 / c;
         }
 
+        public void MoveZ(double amount)
+        {
+            D -= amount * C;
+        }
+        
         public double ToZ(Vec2D point)
         {
-            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
+            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
 
         public double ToZ(Vec3D point)
         {
-            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
+            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
     }
 
     public class PlaneF
     {
-        public readonly float A;
-        public readonly float B;
-        public readonly float C;
-        public readonly float D;
-        public readonly bool IsFlat;
-        public readonly float FlatHeight;
-        private readonly float inverseC;
+        public float A;
+        public float B;
+        public float C;
+        public float D;
+        public bool IsFlat;
+        public float FlatHeight;
+        private readonly float m_inverseC;
 
         public PlaneF(float height) : this(0, 0, 1, -height)
         {
@@ -79,29 +84,34 @@ namespace Helion.Util.Geometry
                 FlatHeight = -d;
             }
             else
-                inverseC = 1.0f / c;
+                m_inverseC = 1.0f / c;
         }
 
+        public void MoveZ(float amount)
+        {
+            D -= amount * C;
+        }
+        
         public double ToZ(Vector2 point)
         {
-            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
+            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
 
         public double ToZ(Vector3 point)
         {
-            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
+            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
     }
 
     public class PlaneFixed
     {
-        public readonly Fixed A;
-        public readonly Fixed B;
-        public readonly Fixed C;
-        public readonly Fixed D;
-        public readonly bool IsFlat;
-        public readonly Fixed FlatHeight;
-        private readonly Fixed inverseC;
+        public Fixed A;
+        public Fixed B;
+        public Fixed C;
+        public Fixed D;
+        public bool IsFlat;
+        public Fixed FlatHeight;
+        private readonly Fixed m_inverseC;
 
         public PlaneFixed(Fixed height) : this(Fixed.Zero(), Fixed.Zero(), Fixed.One(), -height)
         {
@@ -124,17 +134,22 @@ namespace Helion.Util.Geometry
                 FlatHeight = -d;
             }
             else
-                inverseC = Fixed.One() / c;
+                m_inverseC = Fixed.One() / c;
+        }
+        
+        public void MoveZ(Fixed amount)
+        {
+            D -= amount * C;
         }
 
         public Fixed ToZ(Vec2Fixed point)
         {
-            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
+            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
 
         public Fixed ToZ(Vec3Fixed point)
         {
-            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * inverseC;
+            return IsFlat ? -D : -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Helion.Util.Configuration
     public class EngineDeveloperConfig
     {
         public readonly ConfigValue<bool> MouseFocus = new ConfigValue<bool>(true);
+        public readonly ConfigValue<bool> RenderDebug = new ConfigValue<bool>(false);
     }
     
     [ConfigComponent]

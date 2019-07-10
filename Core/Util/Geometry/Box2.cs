@@ -44,6 +44,26 @@ namespace Helion.Util.Geometry
         public Vec2I TopRight => Max;
 
         /// <summary>
+        /// The top value of the box.
+        /// </summary>
+        public int Top => Max.Y;
+        
+        /// <summary>
+        /// The bottom value of the box.
+        /// </summary>
+        public int Bottom => Min.Y;
+        
+        /// <summary>
+        /// The left value of the box.
+        /// </summary>
+        public int Left => Min.X;
+        
+        /// <summary>
+        /// The right value of the box.
+        /// </summary>
+        public int Right => Max.X;
+        
+        /// <summary>
         /// A property that calculates the width of the box.
         /// </summary>
         public int Width => Max.X - Min.X;
@@ -151,6 +171,36 @@ namespace Helion.Util.Geometry
         /// The top right corner of the box.
         /// </summary>
         public Vector2 TopRight => Max;
+
+        /// <summary>
+        /// The top value of the box.
+        /// </summary>
+        public float Top => Max.Y;
+        
+        /// <summary>
+        /// The bottom value of the box.
+        /// </summary>
+        public float Bottom => Min.Y;
+        
+        /// <summary>
+        /// The left value of the box.
+        /// </summary>
+        public float Left => Min.X;
+        
+        /// <summary>
+        /// The right value of the box.
+        /// </summary>
+        public float Right => Max.X;
+                
+        /// <summary>
+        /// A property that calculates the width of the box.
+        /// </summary>
+        public float Width => Max.X - Min.X;
+        
+        /// <summary>
+        /// A property that calculates the height of the box.
+        /// </summary>
+        public float Height => Max.Y - Min.Y;
 
         /// <summary>
         /// Creates a box from a bottom left and top right point. It is an 
@@ -289,6 +339,36 @@ namespace Helion.Util.Geometry
         /// The top right corner of the box.
         /// </summary>
         public Vec2D TopRight => Max;
+        
+        /// <summary>
+        /// The top value of the box.
+        /// </summary>
+        public double Top => Max.Y;
+        
+        /// <summary>
+        /// The bottom value of the box.
+        /// </summary>
+        public double Bottom => Min.Y;
+        
+        /// <summary>
+        /// The left value of the box.
+        /// </summary>
+        public double Left => Min.X;
+        
+        /// <summary>
+        /// The right value of the box.
+        /// </summary>
+        public double Right => Max.X;
+                
+        /// <summary>
+        /// A property that calculates the width of the box.
+        /// </summary>
+        public double Width => Max.X - Min.X;
+        
+        /// <summary>
+        /// A property that calculates the height of the box.
+        /// </summary>
+        public double Height => Max.Y - Min.Y;
 
         /// <summary>
         /// Creates a box from a bottom left and top right point. It is an 
@@ -427,6 +507,36 @@ namespace Helion.Util.Geometry
         /// The top right corner of the box.
         /// </summary>
         public Vec2Fixed TopRight => Max;
+        
+        /// <summary>
+        /// The top value of the box.
+        /// </summary>
+        public Fixed Top => Max.Y;
+        
+        /// <summary>
+        /// The bottom value of the box.
+        /// </summary>
+        public Fixed Bottom => Min.Y;
+        
+        /// <summary>
+        /// The left value of the box.
+        /// </summary>
+        public Fixed Left => Min.X;
+        
+        /// <summary>
+        /// The right value of the box.
+        /// </summary>
+        public Fixed Right => Max.X;
+                
+        /// <summary>
+        /// A property that calculates the width of the box.
+        /// </summary>
+        public Fixed Width => Max.X - Min.X;
+        
+        /// <summary>
+        /// A property that calculates the height of the box.
+        /// </summary>
+        public Fixed Height => Max.Y - Min.Y;
 
         /// <summary>
         /// Creates a box from a bottom left and top right point. It is an 

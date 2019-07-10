@@ -10,12 +10,16 @@ namespace Helion.Render.OpenGL.Buffers
     {
         protected VertexBufferObject(GLCapabilities capabilities, BufferUsageHint hint, VertexArrayObject vao,
                 string objectLabel = "") : 
-            base(capabilities, BufferTarget.ArrayBuffer, hint, GL.GenBuffer(), objectLabel)
+            base(capabilities, BufferTarget.ArrayBuffer, hint, GL.GenBuffer())
         {
             BindAttributes(vao);
+
+            // We need to at least bind it first to allocate it, otherwise it's
+            // undefined behavior to apply a label.
+            BindAnd(() => { GLHelper.SetBufferLabel(capabilities, BufferHandle, objectLabel); });
         }
 
-        public void BindAttributes(VertexArrayObject vao)
+        private void BindAttributes(VertexArrayObject vao)
         {
             vao.BindAnd(() =>
             {
@@ -29,8 +33,7 @@ namespace Helion.Render.OpenGL.Buffers
                         offset += attr.ByteLength();
                     }
 
-                    Postcondition(stride == Marshal.SizeOf<T>(),
-                        $"VAO attributes do not match struct '{typeof(T).Name}' size, attributes should map onto struct offsets");
+                    Postcondition(stride == Marshal.SizeOf<T>(), $"VAO attributes do not match struct '{typeof(T).Name}' size, attributes should map onto struct offsets");
                 });
             });
         }
