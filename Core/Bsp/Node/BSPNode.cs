@@ -1,7 +1,15 @@
-﻿using Helion.Bsp.Geometry;
+﻿// <copyright file="BSPNode.cs" company="Helion">
+// Copyright (c) Helion. All rights reserved.
+// Licensed under the Helion license. See LICENSE.txt file in the project root
+// for full license information.
+// </copyright>
+// <summary>
+// A node in a binary space partition tree.
+// </summary>
+
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Util.Geometry;
+using Helion.Bsp.Geometry;
 using static Helion.Util.Assert;
 
 namespace Helion.Bsp.Node
@@ -12,26 +20,60 @@ namespace Helion.Bsp.Node
     public class BspNode
     {
         /// <summary>
+        /// Creates a degenerate (or rather, empty) BSP node.
+        /// </summary>
+        public BspNode()
+        {
+        }
+
+        /// <summary>
+        /// Creates a parent node from some split.
+        /// </summary>
+        /// <param name="left">The left child.</param>
+        /// <param name="right">The right child.</param>
+        /// <param name="splitter">The splitter that divided the children.
+        /// </param>
+        public BspNode(BspNode left, BspNode right, BspSegment splitter)
+        {
+            Left = left;
+            Right = right;
+            Splitter = splitter;
+        }
+
+        /// <summary>
+        /// Creates a leaf node (subsector) from a closed convex polygon of
+        /// clockwise edges.
+        /// </summary>
+        /// <param name="edges">The clockwise edges for this subsector.</param>
+        public BspNode(IList<SubsectorEdge> edges)
+        {
+            Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
+            Precondition(EdgesAreHeadToTail(edges), "BSP node subsector edges are not closed");
+
+            ClockwiseEdges = edges;
+        }
+
+        /// <summary>
         /// The left node. This is null if its a degenerate or leaf node.
         /// </summary>
-        public BspNode? Left;
+        public BspNode? Left { get; private set; }
 
         /// <summary>
         /// The right node. This is null if its a degenerate or leaf node.
         /// </summary>
-        public BspNode? Right;
+        public BspNode? Right { get; private set; }
 
         /// <summary>
         /// The splitter that made up this node. This is only present if it
         /// is a parent node.
         /// </summary>
-        public BspSegment? Splitter;
+        public BspSegment? Splitter { get; internal set; }
 
         /// <summary>
         /// A list of all the clockwise edges. This is populated if and only if
         /// this is a subsector.
         /// </summary>
-        public IList<SubsectorEdge> ClockwiseEdges = new List<SubsectorEdge>();
+        public IList<SubsectorEdge> ClockwiseEdges { get; internal set; } = new List<SubsectorEdge>();
 
         /// <summary>
         /// True if it's a parent (has children), false otherwise.
@@ -47,54 +89,6 @@ namespace Helion.Bsp.Node
         /// True if it's a degenerate node due to a bad BSP map, false if not.
         /// </summary>
         public bool IsDegenerate => !IsParent && !IsSubsector;
-
-        public BspNode()
-        {
-        }
-
-        public BspNode(BspNode left, BspNode right, BspSegment splitter)
-        {
-            Left = left;
-            Right = right;
-            Splitter = splitter;
-        }
-
-        public BspNode(IList<SubsectorEdge> edges)
-        {
-            Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
-            Precondition(EdgesAreHeadToTail(edges), "BSP node subsector edges are not closed");
-
-            ClockwiseEdges = edges;
-        }
-
-        private static bool EdgesAreHeadToTail(IList<SubsectorEdge> edges)
-        {
-            for (int i = 1; i < edges.Count; i++)
-                if (edges[i - 1].End != edges[i].Start)
-                    return false;
-            
-            return edges[0].Start == edges.Last().End;
-        }
-
-        private void ClearChildren()
-        {
-            Left = null;
-            Right = null;
-        }
-
-        private void HandleLeftDegenerateCase()
-        {
-            if (Right != null)
-                ClockwiseEdges = Right.ClockwiseEdges;
-            ClearChildren();
-        }
-
-        private void HandleRightDegenerateCase()
-        {
-            if (Left != null)
-                ClockwiseEdges = Left.ClockwiseEdges;
-            ClearChildren();
-        }
 
         /// <summary>
         /// Recursively compresses all the degenerate nodes so that no nodes
@@ -162,6 +156,35 @@ namespace Helion.Bsp.Node
             int left = Left?.CalculateTotalNodeCount() ?? 0;
             int right = Right?.CalculateTotalNodeCount() ?? 0;
             return 1 + left + right;
+        }
+
+        private static bool EdgesAreHeadToTail(IList<SubsectorEdge> edges)
+        {
+            for (int i = 1; i < edges.Count; i++)
+                if (edges[i - 1].End != edges[i].Start)
+                    return false;
+
+            return edges[0].Start == edges.Last().End;
+        }
+
+        private void ClearChildren()
+        {
+            Left = null;
+            Right = null;
+        }
+
+        private void HandleLeftDegenerateCase()
+        {
+            if (Right != null)
+                ClockwiseEdges = Right.ClockwiseEdges;
+            ClearChildren();
+        }
+
+        private void HandleRightDegenerateCase()
+        {
+            if (Left != null)
+                ClockwiseEdges = Left.ClockwiseEdges;
+            ClearChildren();
         }
     }
 }
