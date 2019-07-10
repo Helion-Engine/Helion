@@ -14,8 +14,9 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
     {
         private static VertexArrayAttributes Attributes = new VertexArrayAttributes(
             new VertexFloatAttribute("pos", 0, 3),
-            new VertexFloatAttribute("uv", 1, 2),
-            new VertexFloatAttribute("lightLevel", 2, 1)
+            new VertexFloatAttribute("localUV", 1, 2),
+            new VertexFloatAttribute("lightLevel", 2, 1),
+            new VertexIntAttribute("textureInfoIndex", 3, 1)
         );
         
         private readonly GLTextureManager m_textureManager;
@@ -53,17 +54,21 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             {
                 m_shaderProgram.Mvp.Set(mvp);
                 m_shaderProgram.TextureAtlas.Set(GLConstants.TextureAtlasUnit.ToIndex());
+                m_shaderProgram.TextureInfoBuffer.Set(GLConstants.TextureInfoUnit.ToIndex());
 
                 m_textureManager.BindAnd(() =>
                 {
-                    m_vao.BindAnd(() =>
+                    m_textureManager.TextureDataBuffer.BindAnd(() =>
                     {
-                        m_vbo.BindAnd(() =>
+                        m_vao.BindAnd(() =>
                         {
-                            if (m_vbo.NeedsUpload)
-                                m_vbo.Upload();
-                            
-                            m_vbo.DrawArrays();
+                            m_vbo.BindAnd(() =>
+                            {
+                                if (m_vbo.NeedsUpload)
+                                    m_vbo.Upload();
+                                
+                                m_vbo.DrawArrays();
+                            });
                         });
                     });
                 });
@@ -79,11 +84,13 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
         private void AddToVbo(WallQuad quad)
         {
             float unitLightLevel = quad.Side.Sector.UnitLightLevel;
+            GLTexture texture = m_textureManager.GetWallTexture(quad.Texture);
+            int textureInfoIndex = texture.TextureInfoIndex;
             
-            StaticWorldVertex topLeft = new StaticWorldVertex(quad.TopLeft.Position, quad.TopLeft.UV, unitLightLevel);
-            StaticWorldVertex topRight = new StaticWorldVertex(quad.TopRight.Position, quad.TopRight.UV, unitLightLevel);
-            StaticWorldVertex bottomLeft = new StaticWorldVertex(quad.BottomLeft.Position, quad.BottomLeft.UV, unitLightLevel);
-            StaticWorldVertex bottomRight = new StaticWorldVertex(quad.BottomRight.Position, quad.BottomRight.UV, unitLightLevel);
+            StaticWorldVertex topLeft = new StaticWorldVertex(quad.TopLeft.Position, quad.TopLeft.UV, unitLightLevel, textureInfoIndex);
+            StaticWorldVertex topRight = new StaticWorldVertex(quad.TopRight.Position, quad.TopRight.UV, unitLightLevel, textureInfoIndex);
+            StaticWorldVertex bottomLeft = new StaticWorldVertex(quad.BottomLeft.Position, quad.BottomLeft.UV, unitLightLevel, textureInfoIndex);
+            StaticWorldVertex bottomRight = new StaticWorldVertex(quad.BottomRight.Position, quad.BottomRight.UV, unitLightLevel, textureInfoIndex);
 
             m_vbo.Add(topLeft, bottomLeft, topRight);
             m_vbo.Add(topRight, bottomLeft, bottomRight);
@@ -92,14 +99,17 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
         private void AddToVbo(SubsectorFlatFan flatFan)
         {
             float unitLightLevel = flatFan.Sector.UnitLightLevel;
-            StaticWorldVertex root = new StaticWorldVertex(flatFan.Root.Position, flatFan.Root.UV, unitLightLevel);
+            GLTexture texture = m_textureManager.GetFlatTexture(flatFan.Texture);
+            int textureInfoIndex = texture.TextureInfoIndex;
+            
+            StaticWorldVertex root = new StaticWorldVertex(flatFan.Root.Position, flatFan.Root.UV, unitLightLevel, textureInfoIndex);
                 
             flatFan.Fan.Window(2).ForEach(edge =>
             {
                 Vertex second = edge.ElementAt(0);
                 Vertex third = edge.ElementAt(1);
-                StaticWorldVertex secondVertex = new StaticWorldVertex(second.Position, second.UV, unitLightLevel);
-                StaticWorldVertex thirdVertex = new StaticWorldVertex(third.Position, third.UV, unitLightLevel);
+                StaticWorldVertex secondVertex = new StaticWorldVertex(second.Position, second.UV, unitLightLevel, textureInfoIndex);
+                StaticWorldVertex thirdVertex = new StaticWorldVertex(third.Position, third.UV, unitLightLevel, textureInfoIndex);
                 
                 m_vbo.Add(root, secondVertex, thirdVertex);
             });

@@ -87,9 +87,9 @@ namespace Helion.Render.OpenGL.Buffers
         public override void Enable(int stride, int offset)
         {
             Precondition(stride >= ByteLength(), "Stride is smalle than the length of the VAO element");
-            Precondition(offset >= 0 && offset < stride, $"Offset relative to stride is wrong: offset={offset}, stride={stride}");
+            Precondition(offset >= 0 && offset < stride, $"Offset relative to stride is wrong: offset = {offset}, stride = {stride}");
 
-            GL.VertexAttribIPointer(Index, Size, Type, stride, IntPtr.Zero);
+            GL.VertexAttribIPointer(Index, Size, Type, stride, new IntPtr(offset));
             GL.EnableVertexAttribArray(Index);
         }
     }

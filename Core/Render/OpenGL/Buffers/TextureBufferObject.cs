@@ -9,17 +9,24 @@ namespace Helion.Render.OpenGL.Buffers
     
     public class TextureBufferObject<T> : BufferObject<T> where T : struct
     {
-        private readonly int tbo;
+        private readonly int textureId;
         
-        public TextureBufferObject(GLCapabilities capabilities, BufferUsageHint usageHint = BufferUsageHint.DynamicDraw) : 
-            base(capabilities, BufferTarget.TextureBuffer, usageHint, GL.GenBuffer())
+        public TextureBufferObject(GLCapabilities capabilities, string objectLabel = "",
+                BufferUsageHint usageHint = BufferUsageHint.DynamicDraw) : 
+            base(capabilities, BufferTarget.TextureBuffer, usageHint, GL.GenBuffer(), 
+                objectLabel + " [Buffer]")
         {
-            tbo = GL.GenTexture();
+            textureId = GL.GenTexture();
+            
+            // TODO: Make a 'bindTextureOnlyAnd(...)'?
+            GL.BindTexture(TextureTarget.TextureBuffer, textureId);
+            GLHelper.SetTextureLabel(capabilities, textureId, objectLabel + " [Texture]");
+            GL.BindTexture(TextureTarget.TextureBuffer, 0);
         }
 
         protected override void ReleaseUnmanagedResources()
         {
-            GL.DeleteTexture(tbo);
+            GL.DeleteTexture(textureId);
             
             base.ReleaseUnmanagedResources();
         }
@@ -34,9 +41,15 @@ namespace Helion.Render.OpenGL.Buffers
         private void BindTexture(TextureUnit textureUnit)
         {
             GL.ActiveTexture(textureUnit);
-            GL.BindTexture(TextureTarget.TextureBuffer, tbo);
+            GL.BindTexture(TextureTarget.TextureBuffer, textureId);
             
+            // TODO: Do we need to bind the VBO? Won't this clash with the
+            //       any currently bound VBO?
             Bind();
+            
+            if (NeedsUpload)
+                Upload();
+            
             GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, BufferHandle);
         }
 

@@ -32,7 +32,7 @@ namespace Helion.Render.OpenGL.Texture
         /// <summary>
         /// A manager of texture buffer information for allocated GL textures.
         /// </summary>
-        public readonly GLTextureBuffers TextureBuffers;
+        public readonly GLTextureDataBuffer TextureDataBuffer;
         
         /// <summary>
         /// The OpenGL texture 'name'.
@@ -59,12 +59,6 @@ namespace Helion.Render.OpenGL.Texture
         /// A list of all the tracked resources.
         /// </summary>
         private readonly ResourceTracker<GLTexture> m_textures = new ResourceTracker<GLTexture>();
-        
-        /// <summary>
-        /// Unique contiguous indices that can be used as texture lookup
-        /// indices.
-        /// </summary>
-        private readonly AvailableIndexTracker m_availableTextureIndex = new AvailableIndexTracker();
 
         /// <summary>
         /// Creates a texture manager using the config and GL info provided.
@@ -76,8 +70,8 @@ namespace Helion.Render.OpenGL.Texture
             m_config = config;
             m_capabilities = capabilities;
             m_atlasTextureHandle = GL.GenTexture();
-            m_atlas = new Atlas2D(new Dimension(8, 8) /*GetBestAtlasDimension()*/);
-            TextureBuffers = new GLTextureBuffers(capabilities);
+            m_atlas = new Atlas2D(GetBestAtlasDimension());
+            TextureDataBuffer = new GLTextureDataBuffer(capabilities);
 
             AllocateTextureAtlasOnGPU();
             SetTextureAtlasParameters();
@@ -170,11 +164,11 @@ namespace Helion.Render.OpenGL.Texture
 
             GLHelper.SetTextureLabel(m_capabilities, m_atlasTextureHandle, "Texture Atlas");
             
-            // Because the C# image format is 'ARGB', we can get it into the 
+            // Because the C# image format is 'ARGB', we can get it into the
             // RGBA format by doing a BGRA format and then reversing it.
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
                           m_atlas.Dimension.Width, m_atlas.Dimension.Height,
-                          0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, 
+                          0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
                           PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
             
             Unbind();
@@ -203,9 +197,10 @@ namespace Helion.Render.OpenGL.Texture
                 throw new HelionException("Unable to allocate space in atlas for the null texture");
 
             UploadPixelsToAtlasTexture(nullImage, atlasHandle.Location);
-            
-            GLTexture texture = new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
-            TextureBuffers.Track(texture);
+
+            int textureDataHandle = TextureDataBuffer.AllocateTextureDataIndex();
+            GLTexture texture = new GLTexture(textureDataHandle, m_atlas.Dimension, atlasHandle);
+            TextureDataBuffer.Track(texture);
             
             return texture;
         }
@@ -222,7 +217,7 @@ namespace Helion.Render.OpenGL.Texture
             // memory which likely has to be backed by the OS. We'd rather only
             // resize if we absolutely need to. We'll go with 4096 for now as
             // this is big enough to avoid lots of resizing.
-            int atlasSize = Math.Min(m_capabilities.Limits.MaxTextureSize, 4096);
+            int atlasSize = Math.Min(m_capabilities.Limits.MaxTextureSize, 1024);
             return new Dimension(atlasSize, atlasSize);
         }
 
@@ -240,11 +235,12 @@ namespace Helion.Render.OpenGL.Texture
 
             UploadPixelsToAtlasTexture(image, atlasHandle.Location);
             
-            GLTexture texture = new GLTexture(m_availableTextureIndex.Next(), m_atlas.Dimension, atlasHandle);
+            int textureDataHandle = TextureDataBuffer.AllocateTextureDataIndex();
+            GLTexture texture = new GLTexture(textureDataHandle, m_atlas.Dimension, atlasHandle);
+            TextureDataBuffer.Track(texture);
+            
             m_textures.AddOrOverwrite(name, resourceNamespace, texture);
-            
-            TextureBuffers.Track(texture);
-            
+
             return texture;
         }
 
@@ -256,7 +252,7 @@ namespace Helion.Render.OpenGL.Texture
             
             m_atlas.Remove(handle.AtlasHandle);
             m_textures.Remove(name, resourceNamespace);
-            m_availableTextureIndex.MakeAvailable(handle.LookupIndex);
+            TextureDataBuffer.Remove(handle.TextureInfoIndex);
         }
 
         private void UploadPixelsToAtlasTexture(Image image, Box2I location)
@@ -284,6 +280,7 @@ namespace Helion.Render.OpenGL.Texture
 
         private void ReleaseUnmanagedResources()
         {
+            TextureDataBuffer.Dispose();
             GL.DeleteTexture(m_atlasTextureHandle);
         }
     }

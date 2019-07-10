@@ -74,5 +74,19 @@ namespace Helion.Util.Container
             else
                 m_availableIndices.Add(index);
         }
+
+        /// <summary>
+        /// Checks if the provided index has been allocated by this index
+        /// tracker.
+        /// </summary>
+        /// <remarks>
+        /// This always returns false for negative numbers.
+        /// </remarks>
+        /// <param name="index">The index to check.</param>
+        /// <returns>True if it is being tracked, false if not.</returns>
+        public bool IsTracked(int index)
+        {
+            return index >= 0 && !m_availableIndices.Contains(index) && index < m_nextAvailableIndex;
+        }
     }
 }

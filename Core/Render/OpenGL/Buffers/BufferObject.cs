@@ -13,22 +13,24 @@ namespace Helion.Render.OpenGL.Buffers
         protected bool Uploaded;
         protected int BufferHandle;
         protected DynamicArray<T> Data = new DynamicArray<T>();
-        private readonly BufferTarget target;
-        private readonly BufferUsageHint hint;
+        private readonly BufferTarget m_target;
+        private readonly BufferUsageHint m_hint;
         private readonly int typeByteSize = Marshal.SizeOf<T>();
 
         public int Count => Data.Length;
         public bool NeedsUpload => !Uploaded;
 
-        protected BufferObject(GLCapabilities capabilities, BufferTarget bufferTarget, 
-            BufferUsageHint usageHint, int glObjectId)
+        protected BufferObject(GLCapabilities capabilities, BufferTarget target, BufferUsageHint hint, 
+            int glObjectId, string objectLabel = "")
         {
             // TODO: Write something that asserts every field offset is packed.
             Invariant(typeof(T).StructLayoutAttribute.Pack == 1, $"Type {typeof(T)} does not pack its data tightly");
 
-            target = bufferTarget;
-            hint = usageHint;
+            m_target = target;
+            m_hint = hint;
             BufferHandle = glObjectId;
+            
+            BindAnd(() => { GLHelper.SetBufferLabel(capabilities, BufferHandle, objectLabel); });
         }
         
         ~BufferObject()
@@ -58,7 +60,7 @@ namespace Helion.Render.OpenGL.Buffers
 
         public void Upload()
         {
-            GL.BufferData(target, typeByteSize * Data.Length, Data.Data, hint);
+            GL.BufferData(m_target, typeByteSize * Data.Length, Data.Data, m_hint);
             Uploaded = true;
         }
 
@@ -95,12 +97,12 @@ namespace Helion.Render.OpenGL.Buffers
         
         protected void Bind()
         {
-            GL.BindBuffer(target, BufferHandle);
+            GL.BindBuffer(m_target, BufferHandle);
         }
 
         protected void Unbind()
         {
-            GL.BindBuffer(target, 0);   
+            GL.BindBuffer(m_target, 0);   
         }
     }
 }

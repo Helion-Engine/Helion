@@ -13,13 +13,14 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
         public readonly float U;
         public readonly float V;
         public readonly float LightLevel;
+        public readonly int TextureInfoIndex;
 
-        public StaticWorldVertex(Vector3 position, Vector2 uv, float lightLevel) :
-            this(position.X, position.Y, position.Z, uv.U(), uv.V(), lightLevel)
+        public StaticWorldVertex(Vector3 position, Vector2 uv, float lightLevel, int textureInfoIndex) :
+            this(position.X, position.Y, position.Z, uv.U(), uv.V(), lightLevel, textureInfoIndex)
         {
         }
         
-        public StaticWorldVertex(float x, float y, float z, float u, float v, float lightLevel)
+        public StaticWorldVertex(float x, float y, float z, float u, float v, float lightLevel, int textureInfoIndex)
         {
             X = x;
             Y = y;
@@ -27,6 +28,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             U = u;
             V = v;
             LightLevel = lightLevel;
+            TextureInfoIndex = textureInfoIndex;
         }
     }
 }

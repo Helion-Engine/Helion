@@ -11,8 +11,8 @@ namespace Helion.Render.OpenGL.Texture
         public readonly float TopV;
         public readonly float InverseU;
         public readonly float InverseV;
-        public readonly int Width;
-        public readonly int Height;
+        public readonly float Width;
+        public readonly float Height;
 
         public TextureInfo(GLTexture texture)
         {

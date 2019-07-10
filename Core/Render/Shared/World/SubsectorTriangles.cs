@@ -7,12 +7,14 @@ namespace Helion.Render.Shared.World
     {
         public readonly Vertex Root;
         public readonly List<Vertex> Fan;
+        public readonly string Texture;
         public readonly Sector Sector;
 
-        public SubsectorFlatFan(Vertex root, List<Vertex> fan, Sector sector)
+        public SubsectorFlatFan(Vertex root, List<Vertex> fan, string texture, Sector sector)
         {
             Root = root;
             Fan = fan;
+            Texture = texture;
             Sector = sector;
         }
     }

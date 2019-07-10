@@ -20,7 +20,7 @@ namespace Helion.Render.OpenGL.Texture
         /// An index used for lookup. This is intended to be the offset into
         /// some buffer in a shader.
         /// </summary>
-        public readonly int LookupIndex;
+        public readonly int TextureInfoIndex;
         
         /// <summary>
         /// The locations of the texture in UV coordinates on the atlas.
@@ -50,16 +50,18 @@ namespace Helion.Render.OpenGL.Texture
         /// a texture on the GPU, but rather encapsulates the location info for
         /// drawing.
         /// </summary>
-        /// <param name="lookupIndex">A number used to look up the handle. See
-        /// <see cref="LookupIndex"/>.</param>
+        /// <param name="textureInfoIndex">A number used to look up the handle
+        /// information in the shader. See <see cref="TextureInfoIndex"/>.
+        /// </param>
         /// <param name="atlasDimension">The full atlas dimension.</param>
         /// <param name="atlasHandle">The handle this was allocated with.
         /// </param>
-        public GLTexture(int lookupIndex, Dimension atlasDimension, AtlasHandle atlasHandle)
+        public GLTexture(int textureInfoIndex, Dimension atlasDimension, AtlasHandle atlasHandle)
         {
-            Precondition(atlasDimension.Width > 0 && atlasDimension.Height > 0,  "Bad atlas dimensions (cannot divide by zero)");
+            Precondition(atlasDimension.Width > 0 && atlasDimension.Height > 0, "Bad atlas dimensions (cannot divide by zero)");
+            Precondition(textureInfoIndex >= 0, "Negative texture info indices not allowed (it's an array offset in the shader)");
 
-            LookupIndex = lookupIndex;
+            TextureInfoIndex = textureInfoIndex;
             UVLocation = CalculateUVLocation(atlasDimension, atlasHandle);
             UVInverse = UVLocation.Sides;
             Dimension = atlasHandle.Location.Dimension;

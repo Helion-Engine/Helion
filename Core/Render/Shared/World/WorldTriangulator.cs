@@ -162,7 +162,7 @@ namespace Helion.Render.Shared.World
             if (flat.Facing == SectorFlatFace.Floor)
                 fan.Reverse();
             
-            return new SubsectorFlatFan(root, fan, sector);
+            return new SubsectorFlatFan(root, fan, flat.Texture.ToString(), sector);
     }
 
         private SubsectorTriangles TriangulateSubsector(Subsector subsector)
