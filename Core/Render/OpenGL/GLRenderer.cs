@@ -1,18 +1,18 @@
-using Helion.Render.Commands;
-using Helion.Render.Commands.Types;
-using Helion.Render.OpenGL.Util;
-using Helion.Util.Geometry;
-using NLog;
-using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Helion.Render.Commands;
+using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
+using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Util.Configuration;
+using Helion.Util.Geometry;
+using NLog;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assert;
 
 namespace Helion.Render.OpenGL
