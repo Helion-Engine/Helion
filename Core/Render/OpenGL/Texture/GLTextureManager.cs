@@ -8,7 +8,6 @@ using Helion.Util;
 using Helion.Util.Atlas;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
-using NLog;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Texture

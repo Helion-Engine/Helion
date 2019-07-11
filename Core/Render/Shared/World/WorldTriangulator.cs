@@ -43,22 +43,32 @@ namespace Helion.Render.Shared.World
             return new PositionQuad(topLeft, topRight, bottomLeft, bottomRight);
         }
         
-        private UVQuad CalculateUV(Line line, Side front, PositionQuad quad, Dimension textureDimension)
+        private UVQuad CalculateUV(Line line, Side side, PositionQuad quad, Dimension textureDimension, SideSection section)
         {
-            // TODO
-            return new UVQuad(
-                new Vector2(0, 0),
-                new Vector2(1, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 1)
-            );
+            Vector2 invDimension = Vector2.One / textureDimension.ToVector().ToFloat();
+            Vector2 offset = side.Offset.ToFloat() * invDimension;
+            float wallSpanU = (float)line.Segment.Length() * invDimension.U();
+            
+            // Note: This will get weird with slopes since we need a reference
+            // point.
+            float leftSpanV = (quad.TopLeft.Z - quad.BottomLeft.Z) * invDimension.V();
+            float rightSpanV = (quad.TopRight.Z - quad.BottomRight.Z) * invDimension.V();
+            
+            Vector2 topLeft = new Vector2(offset.X, offset.Y);
+            Vector2 topRight = new Vector2(offset.X + wallSpanU, offset.Y);
+            Vector2 bottomLeft = new Vector2(offset.X, offset.Y + leftSpanV);
+            Vector2 bottomRight = new Vector2(offset.X + wallSpanU, offset.Y + rightSpanV);
+            
+            // TODO: Handle unpegged
+
+            return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
         }
 
         private WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
             CiString texture, Dimension textureDimension, SideSection section)
         {
             PositionQuad quad = CalculatePosition(floor.Plane, ceiling.Plane, line.StartVertex.Position, line.EndVertex.Position);
-            UVQuad uv = CalculateUV(line, side, quad, textureDimension);
+            UVQuad uv = CalculateUV(line, side, quad, textureDimension, section);
 
             Vertex topLeft = new Vertex(quad.TopLeft, uv.TopLeft);
             Vertex topRight = new Vertex(quad.TopRight, uv.TopRight);

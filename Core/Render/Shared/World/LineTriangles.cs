@@ -37,7 +37,6 @@ namespace Helion.Render.Shared.World
             BottomRight = bottomRight;
         }
     }
-    
         
     /// <summary>
     /// A quadrilateral that makes up some wall component, which is the
