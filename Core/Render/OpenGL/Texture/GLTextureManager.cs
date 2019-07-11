@@ -1,12 +1,14 @@
 using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
+using Helion.Projects;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Atlas;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Texture
@@ -47,6 +49,11 @@ namespace Helion.Render.OpenGL.Texture
         /// A collection of OpenGL capabilities.
         /// </summary>
         private readonly GLCapabilities m_capabilities;
+
+        /// <summary>
+        /// The project for getting resources from.
+        /// </summary>
+        private readonly Project m_project;
         
         /// <summary>
         /// The atlas that manages the space for where textures should go with
@@ -64,10 +71,12 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         /// <param name="config">The config for texture parameters.</param>
         /// <param name="capabilities">The OpenGL capabilities.</param>
-        public GLTextureManager(Config config, GLCapabilities capabilities)
+        /// <param name="project">The project to get resources from.</param>
+        public GLTextureManager(Config config, GLCapabilities capabilities, Project project)
         {
             m_config = config;
             m_capabilities = capabilities;
+            m_project = project;
             m_atlasTextureHandle = GL.GenTexture();
             m_atlas = new Atlas2D(GetBestAtlasDimension());
             TextureDataBuffer = new GLTextureDataBuffer(capabilities);
@@ -96,7 +105,18 @@ namespace Helion.Render.OpenGL.Texture
         /// found with the name provided.</returns>
         public GLTexture Get(CiString name, ResourceNamespace priorityNamespace)
         {
-            return m_textures.GetWithAny(name, priorityNamespace) ?? NullTextureHandle;
+            if (name == Constants.NoTexture)
+                return NullTextureHandle;
+
+            GLTexture? texture = m_textures.GetWithAny(name, priorityNamespace);
+            if (texture != null) 
+                return texture;
+            
+            Image? image = m_project.Resources.GetImage(name);
+            if (image == null)
+                return NullTextureHandle;
+
+            return CreateTexture(image, name, priorityNamespace);
         }
 
         /// <summary>
@@ -220,7 +240,7 @@ namespace Helion.Render.OpenGL.Texture
             return new Dimension(atlasSize, atlasSize);
         }
 
-        private GLTexture? CreateTexture(Image image, CiString name, ResourceNamespace resourceNamespace)
+        private GLTexture CreateTexture(Image image, CiString name, ResourceNamespace resourceNamespace)
         {
             // We only want one image with this name/namespace in the texture
             // at a time. However we have some extra cleaning up to do if that
@@ -238,6 +258,7 @@ namespace Helion.Render.OpenGL.Texture
             GLTexture texture = new GLTexture(textureDataHandle, m_atlas.Dimension, atlasHandle);
             TextureDataBuffer.Track(texture);
             
+            // TODO: We should never be overwriting...
             m_textures.AddOrOverwrite(name, resourceNamespace, texture);
 
             return texture;

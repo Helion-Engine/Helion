@@ -38,13 +38,13 @@ namespace Helion.Util.Atlas
         private AtlasNode? m_right;
         
         /// <summary>
-        /// A cached value which knows the minimum dimensions from either child
-        /// for this node. This only contains the min values, so if the left is
-        /// (5, 8) and the right is (6, 2) then this contains (5, 2). If this
+        /// A cached value which knows the maximum dimensions from either child
+        /// for this node. This only contains the max values, so if the left is
+        /// (5, 8) and the right is (6, 2) then this contains (6, 8). If this
         /// is a leaf node that is not occupied, it equals the dimension. If
         /// this is an occupied leaf node, it is (0, 0).
         /// </summary>
-        private Dimension m_minAvailableDimensions;
+        private Dimension m_maxAvailableDimensions;
         
         /// <summary>
         /// True if this node is a leaf node that represents an allocated space
@@ -70,14 +70,14 @@ namespace Helion.Util.Atlas
         public AtlasNode(Dimension atlasDimension)
         {
             Location = new Box2I(new Vec2I(0, 0), atlasDimension.ToVector());
-            m_minAvailableDimensions = atlasDimension;
+            m_maxAvailableDimensions = atlasDimension;
         }
 
         private AtlasNode(Box2I location, AtlasNode parent)
         {
             Location = location;
             m_parent = parent;
-            m_minAvailableDimensions = location.Dimension;
+            m_maxAvailableDimensions = location.Dimension;
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Helion.Util.Atlas
             if (fitsWidthExactly && fitsHeightExactly)
             {
                 m_occupied = true;
-                m_minAvailableDimensions = new Dimension(0, 0);
+                m_maxAvailableDimensions = new Dimension(0, 0);
                 m_parent?.RecursivelyNotifySomeChildWasAdded();
                 return this;
             }
@@ -153,19 +153,19 @@ namespace Helion.Util.Atlas
             if (m_left.m_occupied && m_right.m_occupied)
             {
                 m_occupied = true;
-                m_minAvailableDimensions = new Dimension(0, 0);
+                m_maxAvailableDimensions = new Dimension(0, 0);
             }
 
             if (!m_left.m_occupied)
             {
-                m_minAvailableDimensions.Width = Math.Min(m_minAvailableDimensions.Width, m_left.m_minAvailableDimensions.Width);
-                m_minAvailableDimensions.Height = Math.Min(m_minAvailableDimensions.Height, m_left.m_minAvailableDimensions.Height);
+                m_maxAvailableDimensions.Width = Math.Max(m_maxAvailableDimensions.Width, m_left.m_maxAvailableDimensions.Width);
+                m_maxAvailableDimensions.Height = Math.Max(m_maxAvailableDimensions.Height, m_left.m_maxAvailableDimensions.Height);
             }
             
             if (!m_right.m_occupied)
             {
-                m_minAvailableDimensions.Width = Math.Min(m_minAvailableDimensions.Width, m_right.m_minAvailableDimensions.Width);
-                m_minAvailableDimensions.Height = Math.Min(m_minAvailableDimensions.Height, m_right.m_minAvailableDimensions.Height);
+                m_maxAvailableDimensions.Width = Math.Max(m_maxAvailableDimensions.Width, m_right.m_maxAvailableDimensions.Width);
+                m_maxAvailableDimensions.Height = Math.Max(m_maxAvailableDimensions.Height, m_right.m_maxAvailableDimensions.Height);
             }
             
             m_parent?.RecursivelyNotifySomeChildWasAdded();
@@ -182,8 +182,8 @@ namespace Helion.Util.Atlas
         private bool CanPossiblyAdd(Dimension dimension)
         {
             return !m_occupied &&
-                   dimension.Width <= m_minAvailableDimensions.Width &&
-                   dimension.Height <= m_minAvailableDimensions.Height;
+                   dimension.Width <= m_maxAvailableDimensions.Width &&
+                   dimension.Height <= m_maxAvailableDimensions.Height;
         }
 
         private AtlasNode? AddAsWidthFit(Dimension dimension)

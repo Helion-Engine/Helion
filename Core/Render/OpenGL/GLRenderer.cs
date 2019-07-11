@@ -2,12 +2,14 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Helion.Projects;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
+using Helion.Resources;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using NLog;
@@ -26,11 +28,13 @@ namespace Helion.Render.OpenGL
         private readonly Config m_config;
         private readonly GLTextureManager m_textureManager;
         private readonly WorldRenderer m_worldRenderer;
+        private readonly Project m_project;
 
-        public GLRenderer(Config config)
+        public GLRenderer(Config config, Project project)
         {
             m_config = config;
-            m_textureManager = new GLTextureManager(config, Capabilities);
+            m_project = project;
+            m_textureManager = new GLTextureManager(config, Capabilities, project);
             m_worldRenderer = new WorldRenderer(config, Capabilities, m_textureManager);
 
             PrintGLInfo();
@@ -63,7 +67,7 @@ namespace Helion.Render.OpenGL
             // for anyone used to the C++/OpenGL way of multiplying.
             return model * view * projection;
         }
-        
+
         public void Render(RenderCommands renderCommands)
         {
             Rectangle currentViewport = new Rectangle(0, 0, 1024, 768);

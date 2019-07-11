@@ -1,4 +1,7 @@
-﻿using Helion.Entries;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Helion.Entries;
 using Helion.Graphics;
 using Helion.Graphics.Palette;
 using Helion.Resources;
@@ -7,9 +10,6 @@ using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Sprites;
 using Helion.Util;
 using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.Projects.Resources
 {
@@ -71,7 +71,7 @@ namespace Helion.Projects.Resources
 
         public Image? GetImage(CiString name)
         {
-            if (DefinitionEntries != null && DefinitionEntries.Pnames != null)
+            if (DefinitionEntries?.Pnames != null)
             {
                 var textureX = DefinitionEntries.GetTextureXImage(name);
                 if (textureX != null)

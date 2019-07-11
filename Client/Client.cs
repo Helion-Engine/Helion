@@ -33,7 +33,7 @@ namespace Helion.Client
             commandLineArgs = cmdArgs;
             config = configuration;
             console = new Console(config);
-            window = new OpenTKWindow(config, RunGameLoop);
+            window = new OpenTKWindow(config, project, RunGameLoop);
 
             console.OnConsoleCommandEvent += OnConsoleCommand;
         }

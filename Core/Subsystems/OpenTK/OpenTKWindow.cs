@@ -11,6 +11,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using System;
+using Helion.Projects;
 
 // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
 
@@ -20,29 +21,31 @@ namespace Helion.Subsystems.OpenTK
     {
         private static int nextAvailableWindowId;
 
-        private readonly Config config;
-        private readonly int windowId;
-        private readonly GLRenderer renderer;
-        private readonly Action gameLoopFunc;
-        private readonly OpenTKInputAdapter inputAdapter = new OpenTKInputAdapter();
-        private bool disposed;
+        private readonly Project m_project;
+        private readonly Config m_config;
+        private readonly int m_windowId;
+        private readonly GLRenderer m_renderer;
+        private readonly Action m_gameLoopFunc;
+        private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
+        private bool m_disposed;
         
-        public OpenTKWindow(Config cfg, Action gameLoopFunction) :
+        public OpenTKWindow(Config cfg, Project project, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
-            config = cfg;
-            windowId = nextAvailableWindowId++;
-            renderer = new GLRenderer(config);
-            gameLoopFunc = gameLoopFunction;
+            m_config = cfg;
+            m_project = project;
+            m_windowId = nextAvailableWindowId++;
+            m_renderer = new GLRenderer(cfg, project);
+            m_gameLoopFunc = gameLoopFunction;
 
-            CursorVisible = !config.Engine.Developer.MouseFocus;
-            config.Engine.Developer.MouseFocus.OnChanged += OnMouseFocusChanged;
+            CursorVisible = !m_config.Engine.Developer.MouseFocus;
+            m_config.Engine.Developer.MouseFocus.OnChanged += OnMouseFocusChanged;
                 
-            VSync = config.Engine.Window.VSync.Get().ToOpenTKVSync(); 
-            config.Engine.Window.VSync.OnChanged += OnVSyncChanged;
+            VSync = m_config.Engine.Window.VSync.Get().ToOpenTKVSync(); 
+            m_config.Engine.Window.VSync.OnChanged += OnVSyncChanged;
 
-            WindowState = config.Engine.Window.State.Get().ToOpenTKWindowState(); 
-            config.Engine.Window.State.OnChanged += OnWindowStateChanged;
+            WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState(); 
+            m_config.Engine.Window.State.OnChanged += OnWindowStateChanged;
         }
 
         ~OpenTKWindow()
@@ -62,7 +65,7 @@ namespace Helion.Subsystems.OpenTK
             {
                 if (e.Alt && e.Key == Key.F4)
                     Close();
-                inputAdapter.HandleKeyDown(e);
+                m_inputAdapter.HandleKeyDown(e);
             }
 
             base.OnKeyDown(e);
@@ -71,7 +74,7 @@ namespace Helion.Subsystems.OpenTK
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             if (Focused)
-                inputAdapter.HandleKeyPress(e);
+                m_inputAdapter.HandleKeyPress(e);
 
             base.OnKeyPress(e);
         }
@@ -79,7 +82,7 @@ namespace Helion.Subsystems.OpenTK
         protected override void OnKeyUp(KeyboardKeyEventArgs e)
         {
             if (Focused)
-                inputAdapter.HandleKeyUp(e);
+                m_inputAdapter.HandleKeyUp(e);
 
             base.OnKeyUp(e);
         }
@@ -90,12 +93,12 @@ namespace Helion.Subsystems.OpenTK
             {
                 // Reset the mouse to the center of the screen. Unfortunately
                 // we have to do this ourselves...
-                if (config.Engine.Developer.MouseFocus) 
+                if (m_config.Engine.Developer.MouseFocus) 
                 {
                     MouseState state = Mouse.GetCursorState();
                     Vec2I center = new Vec2I(Width / 2, Height / 2);
                     Vec2I deltaFromCenter = new Vec2I(state.X, state.Y) - center;
-                    inputAdapter.HandleMouseMovement(deltaFromCenter);
+                    m_inputAdapter.HandleMouseMovement(deltaFromCenter);
                     
                     // When we set this new position, we're going to cause a
                     // new mouse movement event to be fired. We have to take
@@ -107,7 +110,7 @@ namespace Helion.Subsystems.OpenTK
                 }
                 else
                 {
-                    inputAdapter.HandleMouseMovement(new Vec2I(e.XDelta, e.YDelta));
+                    m_inputAdapter.HandleMouseMovement(new Vec2I(e.XDelta, e.YDelta));
                 }
             }
 
@@ -117,7 +120,7 @@ namespace Helion.Subsystems.OpenTK
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             if (Focused)
-                inputAdapter.HandleMouseWheelInput(e);
+                m_inputAdapter.HandleMouseWheelInput(e);
 
             base.OnMouseWheel(e);
         }
@@ -127,7 +130,7 @@ namespace Helion.Subsystems.OpenTK
             // Since OpenTK calls either update or render at max speed because
             // of our (lack of) arguments to Run(), we can do this either in
             // the update or render function. We arbitrarily chose this one.
-            gameLoopFunc();
+            m_gameLoopFunc();
             
             base.OnRenderFrame(e);
         }
@@ -147,28 +150,28 @@ namespace Helion.Subsystems.OpenTK
             WindowState = stateEvent.NewValue.ToOpenTKWindowState();
         }
 
-        public int GetId() => windowId;
+        public int GetId() => m_windowId;
 
-        public InputEvent PollInput() => inputAdapter.PollInput();
+        public InputEvent PollInput() => m_inputAdapter.PollInput();
 
-        public IRenderer GetRenderer() => renderer;
+        public IRenderer GetRenderer() => m_renderer;
 
         public Dimension GetDimension() => new Dimension(Width, Height);
 
         protected override void Dispose(bool disposing)
         {
-            if (disposed)
+            if (m_disposed)
                 return;
             
             if (disposing)
             {
-                config.Engine.Developer.MouseFocus.OnChanged -= OnMouseFocusChanged;
-                config.Engine.Window.VSync.OnChanged -= OnVSyncChanged;
-                config.Engine.Window.State.OnChanged -= OnWindowStateChanged;
+                m_config.Engine.Developer.MouseFocus.OnChanged -= OnMouseFocusChanged;
+                m_config.Engine.Window.VSync.OnChanged -= OnVSyncChanged;
+                m_config.Engine.Window.State.OnChanged -= OnWindowStateChanged;
                 
-                renderer.Dispose();
+                m_renderer.Dispose();
                 
-                disposed = true;
+                m_disposed = true;
             }
 
             base.Dispose(disposing);
