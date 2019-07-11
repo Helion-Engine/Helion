@@ -19,7 +19,7 @@ namespace Helion.Render.OpenGL.Util
         
         public GLCapabilities()
         {
-            Limits = new GLLimits(this);
+            Limits = new GLLimits(this, Extensions);
         }
         
         private static GLVersion GetGLVersion(string version)
@@ -43,19 +43,7 @@ namespace Helion.Render.OpenGL.Util
             return new GLVersion(0, 0);
         }
     }
-    
-    public class GLLimits
-    {
-        public readonly int MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
-        public readonly int MaxLabelLength;
 
-        public GLLimits(GLCapabilities capabilities)
-        {
-            if (capabilities.Version.Supports(4, 3))
-                MaxLabelLength = GL.GetInteger((GetPName)All.MaxLabelLength);
-        }
-    }
-    
     public class Extensions
     {
         public readonly bool TextureFilterAnisotropic;
@@ -71,5 +59,20 @@ namespace Helion.Render.OpenGL.Util
         }
 
         public bool HasExtension(string extensionName) => extensions.Contains(extensionName);
+    }
+
+    public class GLLimits
+    {
+        public readonly float AnisotropyMax = 1.0f;
+        public readonly int MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
+        public readonly int MaxLabelLength;
+
+        public GLLimits(GLCapabilities capabilities, Extensions extensions)
+        {
+            if (extensions.TextureFilterAnisotropic)
+                AnisotropyMax = GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
+            if (capabilities.Version.Supports(4, 3))
+                MaxLabelLength = GL.GetInteger((GetPName)All.MaxLabelLength);
+        }
     }
 }

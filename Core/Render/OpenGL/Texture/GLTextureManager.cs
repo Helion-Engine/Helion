@@ -202,7 +202,7 @@ namespace Helion.Render.OpenGL.Texture
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-            
+
             Unbind();
         }
 
@@ -221,6 +221,23 @@ namespace Helion.Render.OpenGL.Texture
             TextureDataBuffer.Track(texture);
             
             return texture;
+        }
+
+        // We do not use this currently because it does not play nicely at
+        // all with texture atlases.
+        private void SetAnisotrophicFiltering()
+        {
+            if (!m_capabilities.Extensions.TextureFilterAnisotropic || !m_config.Engine.Render.Anisotropy.Enable) 
+                return;
+            
+            float anisostropy = (float)m_config.Engine.Render.Anisotropy.Value;
+            if (m_config.Engine.Render.Anisotropy.UseMaxSupported)
+                anisostropy = m_capabilities.Limits.AnisotropyMax;
+
+            anisostropy = Math.Max(1.0f, Math.Min(anisostropy, m_capabilities.Limits.AnisotropyMax));
+
+            TextureParameterName anisotropyPname = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+            GL.TexParameter(TextureTarget.Texture2D, anisotropyPname, anisostropy);
         }
         
         private void BindTextureOnly()
