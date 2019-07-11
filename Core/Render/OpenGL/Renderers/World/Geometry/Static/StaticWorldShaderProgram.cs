@@ -21,21 +21,41 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             shaderBuilder.VertexShaderText = @"
                 #version 140
 
+                const int TEXEL_OFFSET_FACTOR = 8;
+
                 in vec3 pos;
                 in vec2 localUV;
                 in float lightLevel;
                 in int textureInfoIndex;
 
-                out vec2 localUVFrag;
+                out vec2 uvFrag;
                 out float lightLevelFrag;
-                flat out int textureInfoIndexFrag;
+                flat out vec2 uvDimension;
+                flat out vec2 uvOffset;
 
                 uniform mat4 mvp;
+                uniform samplerBuffer textureInfoBuffer;
+
+                void CalculateUV() {
+                    int index = textureInfoIndex * TEXEL_OFFSET_FACTOR;
+
+                    // TODO: Would it be better to sample this as a vec4?
+                    float leftU = texelFetch(textureInfoBuffer, index).r;
+                    float bottomV = texelFetch(textureInfoBuffer, index + 1).r;
+                    float rightU = texelFetch(textureInfoBuffer, index + 2).r;
+                    float topV = texelFetch(textureInfoBuffer, index + 3).r;
+                    float widthU = rightU - leftU;
+                    float heightV = topV - bottomV;
+
+                    uvDimension = vec2(widthU, heightV);
+                    uvOffset = vec2(leftU, bottomV);
+                }
 
                 void main() {
-                    localUVFrag = localUV;
+                    CalculateUV();
+
+                    uvFrag = localUV;
                     lightLevelFrag = lightLevel;
-                    textureInfoIndexFrag = textureInfoIndex;
 
                     gl_Position = mvp * vec4(pos, 1.0);
                 }
@@ -44,42 +64,21 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             shaderBuilder.FragmentShaderText = @"
                 #version 140
 
-                const int TEXEL_OFFSET_FACTOR = 8;
-
-                in vec2 localUVFrag;
+                in vec2 uvFrag;
                 in float lightLevelFrag;
-                flat in int textureInfoIndexFrag;
+                flat in vec2 uvDimension;
+                flat in vec2 uvOffset;
 
                 out vec4 fragColor;
 
                 uniform sampler2D textureAtlas;
-                uniform samplerBuffer textureInfoBuffer;
-
-                vec2 CalculateUV() {
-                    int index = textureInfoIndexFrag * TEXEL_OFFSET_FACTOR;
-
-                    // TODO: Would it be better to sample this as a vec4?
-                    // TODO: Probably better in the vertex shader, rather than evaluate at each fragment!
-                    float leftU = texelFetch(textureInfoBuffer, index).r;
-                    float bottomV = texelFetch(textureInfoBuffer, index + 1).r;
-                    float rightU = texelFetch(textureInfoBuffer, index + 2).r;
-                    float topV = texelFetch(textureInfoBuffer, index + 3).r;
-                    float widthU = rightU - leftU;
-                    float heightV = topV - bottomV;
-
-                    float u = mod((localUVFrag.x * widthU), widthU) + leftU;
-                    float v = mod((localUVFrag.y * heightV), heightV) + bottomV;
-
-                    return vec2(u, v);
-                }
 
                 void main() {
-                    vec2 uv = CalculateUV();
+                    float u = mod((uvFrag.x * uvDimension.x), uvDimension.x) + uvOffset.x;
+                    float v = mod((uvFrag.y * uvDimension.y), uvDimension.y) + uvOffset.y;
 
-                    fragColor = texture(textureAtlas, uv);
+                    fragColor = texture(textureAtlas, vec2(u, v));
                     fragColor.xyz = fragColor.xyz * lightLevelFrag;
-
-                    float tempValueProofOfConcept = texelFetch(textureInfoBuffer, 0).r;
 
                     if (fragColor.w <= 0.0)
                         discard;
