@@ -1,13 +1,4 @@
-﻿// <copyright file="BSPNode.cs" company="Helion">
-// Copyright (c) Helion. All rights reserved.
-// Licensed under the Helion license. See LICENSE.txt file in the project root
-// for full license information.
-// </copyright>
-// <summary>
-// A node in a binary space partition tree.
-// </summary>
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
 using static Helion.Util.Assert;

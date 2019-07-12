@@ -11,20 +11,36 @@ namespace Helion.Util
     /// </summary>
     public class ByteReader : BinaryReader
     {
-        public readonly int Length; 
-        
-        // The docs explicitly say that memory streams do not need to have any
-        // .dispose() call invoked because there are no resources to dispose.
-        public ByteReader(byte[] bytes) : base (new MemoryStream(bytes))
+        /// <summary>
+        /// How many bytes are in the underlying wrapped byte buffer/stream.
+        /// </summary>
+        public readonly int Length;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ByteReader"/> class.
+        /// </summary>
+        /// <remarks>
+        /// This allocates a new memory stream and does not dispose it, because
+        /// the docs say memory streams do not need to be disposed.
+        /// </remarks>
+        /// <param name="bytes">The bytes to wrap the reader around and read
+        /// from.</param>
+        public ByteReader(byte[] bytes) :
+            base(new MemoryStream(bytes))
         {
-            Length = bytes.Length;
             Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
+            Length = bytes.Length;
         }
 
-        public ByteReader(BinaryReader stream) : base(stream.BaseStream)
+        /// <summary>
+        /// Creates a byte reader around an existing binary reader stream.
+        /// </summary>
+        /// <param name="stream">The stream to wrap around.</param>
+        public ByteReader(BinaryReader stream) : 
+            base(stream.BaseStream)
         {
-            Length = (int)stream.BaseStream.Length;
             Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
+            Length = (int)stream.BaseStream.Length;
         }
 
         /// <summary>
@@ -35,7 +51,7 @@ namespace Helion.Util
         /// <remarks>
         /// This will throw an exception like any other reading.
         /// </remarks>
-        /// <returns>The string</returns>
+        /// <returns>The string.</returns>
         public string ReadEightByteString()
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -86,6 +102,16 @@ namespace Helion.Util
             return BitConverter.ToInt32(data, 0);
         }
 
+        /// <summary>
+        /// Checks if there are `amount` bytes remaining to be read.
+        /// </summary>
+        /// <remarks>
+        /// Not intended for negative offsets. Zero can return false if the
+        /// stream position is past the end of the array.
+        /// </remarks>
+        /// <param name="amount">How many bytes to read.</param>
+        /// <returns>True if there are at least the provided bytes left to be
+        /// safely read, false if not.</returns>
         public bool HasBytesRemaining(int amount)
         {
             return BaseStream.Position + amount <= BaseStream.Length;
