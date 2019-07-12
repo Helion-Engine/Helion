@@ -1,7 +1,7 @@
-﻿using Helion.Util;
-using Helion.Util.Container;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using Helion.Util;
+using Helion.Util.Container;
 using static Helion.Util.Assert;
 
 namespace Helion.Resources
@@ -17,14 +17,14 @@ namespace Helion.Resources
     /// <typeparam name="T">The resource type to track.</typeparam>
     public class ResourceTracker<T> : IEnumerable<HashTableEntry<ResourceNamespace, CiString, T>> where T : class
     {
-        private readonly HashTable<ResourceNamespace, CiString, T> table = new HashTable<ResourceNamespace, CiString, T>();
+        private readonly HashTable<ResourceNamespace, CiString, T> m_table = new HashTable<ResourceNamespace, CiString, T>();
 
         /// <summary>
         /// Clears all the tracked resources.
         /// </summary>
         public void Clear()
         {
-            table.Clear();
+            m_table.Clear();
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Helion.Resources
         /// <returns>True if it exists, false if not.</returns>
         public bool Contains(CiString name, ResourceNamespace resourceNamespace)
         {
-            return table.Get(resourceNamespace, name) != null;
+            return m_table.Get(resourceNamespace, name) != null;
         }
 
         /// <summary>
@@ -47,10 +47,10 @@ namespace Helion.Resources
         /// <param name="name">The name of the resource. This is not intended
         /// to contain extensions, but rather just the name.</param>
         /// <param name="resourceNamespace">The namespace of the resource.</param>
-        /// <param name="value"></param>
+        /// <param name="value">The value to add or overwrite.</param>
         public void AddOrOverwrite(CiString name, ResourceNamespace resourceNamespace, T value)
         {
-            table.AddOrOverwrite(resourceNamespace, name, value);
+            m_table.AddOrOverwrite(resourceNamespace, name, value);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The namespace of the resource.</param>
         public void Remove(CiString name, ResourceNamespace resourceNamespace)
         {
-            table.Remove(resourceNamespace, name);
+            m_table.Remove(resourceNamespace, name);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Helion.Resources
         /// <returns>The value if it exists, empty otherwise.</returns>
         public T? GetOnly(CiString name, ResourceNamespace resourceNamespace)
         {
-            return table.Get(resourceNamespace, name);
+            return m_table.Get(resourceNamespace, name);
         }
 
         /// <summary>
@@ -90,10 +90,10 @@ namespace Helion.Resources
         {
             Precondition(resourceNamespace != ResourceNamespace.Global, $"Doing redundant 'get with global' check for: {name}");
 
-            T? desiredNamespaceElement = table.Get(resourceNamespace, name);
+            T? desiredNamespaceElement = m_table.Get(resourceNamespace, name);
             if (desiredNamespaceElement != null)
                 return desiredNamespaceElement;
-            return table.Get(ResourceNamespace.Global, name);
+            return m_table.Get(ResourceNamespace.Global, name);
         }
 
         /// <summary>
@@ -104,20 +104,20 @@ namespace Helion.Resources
         /// <param name="name">The name of the resource. This is not intended
         /// to contain extensions, but rather just the name.</param>
         /// <param name="priorityNamespace">The namespace of the resource to
-        /// look at nefpre cjeclomg ptjers.</param>
+        /// look at before checking others.</param>
         /// <returns>The value if it exists, empty otherwise.</returns>
         public T? GetWithAny(CiString name, ResourceNamespace priorityNamespace)
         {
-            T? desiredNamespaceElement = table.Get(priorityNamespace, name);
+            T? desiredNamespaceElement = m_table.Get(priorityNamespace, name);
             if (desiredNamespaceElement != null)
                 return desiredNamespaceElement;
 
-            foreach (ResourceNamespace resourceNamespace in table.GetFirstKeys())
+            foreach (ResourceNamespace resourceNamespace in m_table.GetFirstKeys())
             {
                 if (resourceNamespace != priorityNamespace)
                 {
                     T? resource = null;
-                    if (table.TryGet(resourceNamespace, name, ref resource))
+                    if (m_table.TryGet(resourceNamespace, name, ref resource))
                         return resource;
                 }
             }
@@ -128,10 +128,11 @@ namespace Helion.Resources
         /// <inheritdoc/>
         public IEnumerator<HashTableEntry<ResourceNamespace, CiString, T>> GetEnumerator()
         {
-            foreach (var tableEntry in table)
+            foreach (var tableEntry in m_table)
                 yield return tableEntry;
         }
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

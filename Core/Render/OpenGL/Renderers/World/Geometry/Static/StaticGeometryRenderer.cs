@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
+using Helion.Maps;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared.World;
+using Helion.Util;
 using Helion.Util.Extensions;
 using MoreLinq;
 using OpenTK;
@@ -81,16 +83,39 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Checks if the quad should be a sky because it backs onto a floor or
+        /// ceiling that has a sky texture for its flat.
+        /// </summary>
+        /// <param name="quad">The quad to check.</param>
+        /// <returns>True if it should be a sky, false if not.</returns>
+        private bool ShouldBeSky(WallQuad quad)
+        {
+            if (quad.Side.Line.OneSided)
+                return false;
+
+            if (quad.Side.PartnerSide == null)
+                throw new NullReferenceException("Should not have a null partner side with a two sided line");
+
+            Maps.Geometry.Sector otherSector = quad.Side.PartnerSide.Sector;
+            if (quad.SideSection == SideSection.Upper)
+                return otherSector.Ceiling.Texture == Constants.SkyTexture;
+            if (quad.SideSection == SideSection.Lower)
+                return otherSector.Floor.Texture == Constants.SkyTexture;
+
+            return false;
+        }
+
         private void AddToVbo(WallQuad quad)
         {
-            float unitLightLevel = quad.Side.Sector.UnitLightLevel;
             GLTexture texture = m_textureManager.GetWallTexture(quad.Texture);
-            int textureInfoIndex = texture.TextureInfoIndex;
-            
-            // TODO: Temporary ignoring null textures!
-            if (textureInfoIndex == 0)
+            if (ShouldBeSky(quad))
+                texture = m_textureManager.GetFlatTexture(Constants.SkyTexture);
+            else if (quad.Texture == Constants.NoTexture)
                 return;
-            
+
+            int textureInfoIndex = texture.TextureInfoIndex;
+            float unitLightLevel = quad.Side.Sector.UnitLightLevel;
             StaticWorldVertex topLeft = new StaticWorldVertex(quad.TopLeft.Position, quad.TopLeft.UV, unitLightLevel, textureInfoIndex);
             StaticWorldVertex topRight = new StaticWorldVertex(quad.TopRight.Position, quad.TopRight.UV, unitLightLevel, textureInfoIndex);
             StaticWorldVertex bottomLeft = new StaticWorldVertex(quad.BottomLeft.Position, quad.BottomLeft.UV, unitLightLevel, textureInfoIndex);

@@ -161,7 +161,7 @@ namespace Helion.Render.Shared.World
             Vertex bottomLeft = new Vertex(quad.BottomLeft, uv.BottomLeft);
             Vertex bottomRight = new Vertex(quad.BottomRight, uv.BottomRight);
             
-            return new WallQuad(topLeft, topRight, bottomLeft, bottomRight, texture, side, floor, ceiling);
+            return new WallQuad(topLeft, topRight, bottomLeft, bottomRight, texture, side, section, floor, ceiling);
         }
 
         private LineTriangles TriangulateOneSided(Line line)
@@ -197,7 +197,7 @@ namespace Helion.Render.Shared.World
             CiString texture = facingSide.MiddleTexture;
             
             if (texture == Constants.NoTexture)
-                return WallQuad.Degenerate(facingSide, floor, ceiling);
+                return WallQuad.Degenerate(facingSide, SideSection.Middle, floor, ceiling);
             
             Dimension dimension = m_textureDimensionFinder.Invoke(texture);
             return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, sideFace, SideSection.Middle);

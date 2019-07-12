@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util;
@@ -54,11 +55,12 @@ namespace Helion.Render.Shared.World
         public readonly Vertex BottomRight;
         public readonly CiString Texture;
         public readonly Side Side;
+        public readonly SideSection SideSection;
         public readonly SectorFlat Floor;
         public readonly SectorFlat Ceiling;
 
         public WallQuad(Vertex topLeft, Vertex topRight, Vertex bottomLeft, Vertex bottomRight, 
-            CiString texture, Side side, SectorFlat floor, SectorFlat ceiling)
+            CiString texture, Side side, SideSection sideSection, SectorFlat floor, SectorFlat ceiling)
         {
             TopLeft = topLeft;
             TopRight = topRight;
@@ -66,6 +68,7 @@ namespace Helion.Render.Shared.World
             BottomRight = bottomRight;
             Texture = texture;
             Side = side;
+            SideSection = sideSection;
             Floor = floor;
             Ceiling = ceiling;
         }
@@ -75,14 +78,15 @@ namespace Helion.Render.Shared.World
         /// renderer. This ends up being a point at the origin.
         /// </summary>
         /// <param name="side">The side for the quad.</param>
+        /// <param name="sideSection">The section of the side.</param>
         /// <param name="floor">The floor for this quad.</param>
         /// <param name="ceiling">The ceiling for this quad.</param>
         /// <returns>A degenerate quad, which is a point.</returns>
-        public static WallQuad Degenerate(Side side, SectorFlat floor, SectorFlat ceiling)
+        public static WallQuad Degenerate(Side side, SideSection sideSection, SectorFlat floor, SectorFlat ceiling)
         {
             Vertex origin = new Vertex(Vector3.Zero, Vector2.Zero);
             return new WallQuad(origin, origin, origin, origin, 
-                                Constants.NoTexture, side, floor, ceiling);
+                                Constants.NoTexture, side, sideSection, floor, ceiling);
         }
     }
 
