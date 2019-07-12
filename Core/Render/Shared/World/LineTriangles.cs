@@ -81,7 +81,7 @@ namespace Helion.Render.Shared.World
         public static WallQuad Degenerate(Side side, SectorFlat floor, SectorFlat ceiling)
         {
             Vertex origin = new Vertex(Vector3.Zero, Vector2.Zero);
-            return new WallQuad(origin, origin,origin,origin, 
+            return new WallQuad(origin, origin, origin, origin, 
                                 Constants.NoTexture, side, floor, ceiling);
         }
     }
@@ -103,7 +103,7 @@ namespace Helion.Render.Shared.World
         
         public SideTriangles(Side side, WallQuad middle, WallQuad upper, WallQuad lower)
         {
-            Walls = new List<WallQuad>(){middle, upper, lower};
+            Walls = new List<WallQuad> { middle, upper, lower };
             m_side = side;
         }
     }

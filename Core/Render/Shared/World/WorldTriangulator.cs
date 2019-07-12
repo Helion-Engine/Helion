@@ -34,13 +34,56 @@ namespace Helion.Render.Shared.World
             m_textureDimensionFinder = textureDimensionFinder;
         }
 
-        private static PositionQuad CalculatePosition(PlaneD floor, PlaneD ceiling, Vec2D start, Vec2D end)
+        private static void CalculateTwoSidedMiddlePosition(ref Vector3 top, ref Vector3 bottom, 
+            Dimension textureDimension, Line line)
+        {
+            float spanZ = top.Z - bottom.Z;
+
+            // TODO: This does not handle offsets, which can shift the texture
+            //       and further change how it's clipped. We will deal with the
+            //       offset case at a later date.
+            
+            // If the texture already fits in the tight gap, then we're done as
+            // the UV calculator will do the rest of the work for us. We only
+            // need to continue on if the texture won't fit into
+            if (spanZ < textureDimension.Height)
+                return;
+
+            if (line.Flags.Unpegged.Lower)
+                top.Z = bottom.Z + textureDimension.Height;
+            else
+                bottom.Z = top.Z - textureDimension.Height;
+        }
+
+        private static PositionQuad CalculatePosition(Line line, Side side, PlaneD floor, PlaneD ceiling, 
+            Vec2D start, Vec2D end, SideSection sideSection, Dimension textureDimension)
         {
             Vector3 topLeft = new Vec3D(start.X, start.Y, ceiling.ToZ(start)).ToFloat();
             Vector3 topRight = new Vec3D(end.X, end.Y, ceiling.ToZ(end)).ToFloat();
             Vector3 bottomLeft = new Vec3D(start.X, start.Y, floor.ToZ(start)).ToFloat();
             Vector3 bottomRight = new Vec3D(end.X, end.Y, floor.ToZ(end)).ToFloat();
             
+            // Middle textures on two sided lines are special since they have
+            // their geometry clipped based on whether the space for the wall
+            // or the texture itself is smaller. It is also unique because the
+            // ceiling and floor determination of where to start is different.
+            if (line.TwoSided && sideSection == SideSection.Middle)
+            {
+                if (side.PartnerSide == null)
+                    throw new NullReferenceException("Should not have a null opposite side for a two sided middle");
+                Side otherSide = side.PartnerSide;
+                Sector facingSector = side.Sector;
+                Sector otherSector = otherSide.Sector;
+
+                topLeft.Z = (float)Math.Min(facingSector.Ceiling.Plane.ToZ(start), otherSector.Ceiling.Plane.ToZ(start));
+                topRight.Z = (float)Math.Min(facingSector.Ceiling.Plane.ToZ(end), otherSector.Ceiling.Plane.ToZ(end));
+                bottomLeft.Z = (float)Math.Max(facingSector.Floor.Plane.ToZ(start), otherSector.Floor.Plane.ToZ(start));
+                bottomRight.Z = (float)Math.Max(facingSector.Floor.Plane.ToZ(end), otherSector.Floor.Plane.ToZ(end));
+                
+                CalculateTwoSidedMiddlePosition(ref topLeft, ref bottomLeft, textureDimension, line);
+                CalculateTwoSidedMiddlePosition(ref topRight, ref bottomRight, textureDimension, line);
+            }
+
             return new PositionQuad(topLeft, topRight, bottomLeft, bottomRight);
         }
 
@@ -104,10 +147,13 @@ namespace Helion.Render.Shared.World
         private WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
             CiString texture, Dimension textureDimension, SideFace sideFace, SideSection section)
         {
-            Vec2D firstVertex = sideFace == SideFace.Front ? line.StartVertex.Position : line.EndVertex.Position;
-            Vec2D secondVertex = sideFace == SideFace.Front ? line.EndVertex.Position : line.StartVertex.Position;
+            // If looking at the front side we want to go from Start -> End,
+            // otherwise the back side needs End -> Start to keep everything
+            // counterclockwise.
+            Vec2D leftVertex = sideFace == SideFace.Front ? line.StartVertex.Position : line.EndVertex.Position;
+            Vec2D rightVertex = sideFace == SideFace.Front ? line.EndVertex.Position : line.StartVertex.Position;
             
-            PositionQuad quad = CalculatePosition(floor.Plane, ceiling.Plane, firstVertex, secondVertex);
+            PositionQuad quad = CalculatePosition(line, side, floor.Plane, ceiling.Plane, leftVertex, rightVertex, section, textureDimension);
             UVQuad uv = CalculateUV(line, side, quad, textureDimension, section);
 
             Vertex topLeft = new Vertex(quad.TopLeft, uv.TopLeft);
@@ -146,12 +192,15 @@ namespace Helion.Render.Shared.World
 
         private WallQuad TriangulateTwoSidedMiddle(Line line, Side facingSide, SideFace sideFace)
         {
+            SectorFlat floor = facingSide.Sector.Floor;
+            SectorFlat ceiling = facingSide.Sector.Ceiling;
             CiString texture = facingSide.MiddleTexture;
+            
             if (texture == Constants.NoTexture)
-                return WallQuad.Degenerate(facingSide, facingSide.Sector.Floor, facingSide.Sector.Ceiling);
-
-            // TODO: It has a middle texture so create it properly.
-            return WallQuad.Degenerate(facingSide, facingSide.Sector.Floor, facingSide.Sector.Ceiling);
+                return WallQuad.Degenerate(facingSide, floor, ceiling);
+            
+            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
+            return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, sideFace, SideSection.Middle);
         }
 
         private WallQuad TriangulateTwoSidedLower(Line line, Side facingSide, SideFace sideFace)
