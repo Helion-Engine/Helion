@@ -8,7 +8,7 @@ using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World.Geometry;
-using Console = System.Console;
+using static Helion.Util.Assert;
 
 namespace Helion.Render.Shared.World
 {
@@ -43,26 +43,62 @@ namespace Helion.Render.Shared.World
             
             return new PositionQuad(topLeft, topRight, bottomLeft, bottomRight);
         }
+
+        private static bool CheckIfPegToTop(Line line, SideSection section)
+        {
+            switch (section)
+            {
+            case SideSection.Upper:
+                // Pegs to the bottom by default, only `upper` overrides it.
+                return line.Flags.Unpegged.Upper;
+            case SideSection.Middle:
+                goto case SideSection.Lower;
+            case SideSection.Lower:
+                // Middle and lower are pegged to the top by default.
+                return !line.Flags.Unpegged.Lower;
+            default:
+                Fail("Unexpected section type when setting UV coordinates");
+                break;
+            }
+
+            return true;
+        }
+
+        private UVQuad CalculateUpperUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
+        {
+            Vector2 topLeft = new Vector2(offset.X, offset.Y);
+            Vector2 topRight = new Vector2(offset.X + wallSpanU, offset.Y);
+            Vector2 bottomLeft = new Vector2(offset.X, offset.Y + leftSpanV);
+            Vector2 bottomRight = new Vector2(offset.X + wallSpanU, offset.Y + rightSpanV);
+            
+            return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
+        }
         
-        private UVQuad CalculateUV(Line line, Side side, PositionQuad quad, Dimension textureDimension, SideSection section)
+        private UVQuad CalculateLowerUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
+        {
+            Vector2 topLeft = new Vector2(offset.X, 1.0f + offset.Y - leftSpanV);
+            Vector2 topRight = new Vector2(offset.X + wallSpanU, 1.0f + offset.Y - rightSpanV);
+            Vector2 bottomLeft = new Vector2(offset.X, 1.0f + offset.Y);
+            Vector2 bottomRight = new Vector2(offset.X + wallSpanU, 1.0f + offset.Y);
+
+            return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
+        }
+
+        private UVQuad CalculateUV(Line line, Side side, PositionQuad quad, Dimension textureDimension, 
+            SideSection section)
         {
             Vector2 invDimension = Vector2.One / textureDimension.ToVector().ToFloat();
             Vector2 offset = side.Offset.ToFloat() * invDimension;
             float wallSpanU = (float)line.Segment.Length() * invDimension.U();
             
             // Note: This will get weird with slopes since we need a reference
-            // point.
+            // point. Will need to rethink this later.
             float leftSpanV = (quad.TopLeft.Z - quad.BottomLeft.Z) * invDimension.V();
             float rightSpanV = (quad.TopRight.Z - quad.BottomRight.Z) * invDimension.V();
-            
-            Vector2 topLeft = new Vector2(offset.X, offset.Y);
-            Vector2 topRight = new Vector2(offset.X + wallSpanU, offset.Y);
-            Vector2 bottomLeft = new Vector2(offset.X, offset.Y + leftSpanV);
-            Vector2 bottomRight = new Vector2(offset.X + wallSpanU, offset.Y + rightSpanV);
-            
-            // TODO: Handle unpegged
 
-            return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
+            return CheckIfPegToTop(line, section) ? 
+                CalculateUpperUV(offset, wallSpanU, leftSpanV, rightSpanV) : 
+                CalculateLowerUV(offset, wallSpanU, leftSpanV, rightSpanV);
         }
 
         private WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
