@@ -39,7 +39,7 @@ namespace Helion.Resources.Definitions.Texture
                     return null;
 
                 for (int i = 0; i < count; i++)
-                    names.Add(reader.ReadEightByteString());
+                    names.Add(reader.ReadEightByteString().ToUpper());
             }
             catch
             {

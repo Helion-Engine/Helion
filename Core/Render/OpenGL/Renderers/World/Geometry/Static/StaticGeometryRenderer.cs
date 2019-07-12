@@ -87,6 +87,10 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
             GLTexture texture = m_textureManager.GetWallTexture(quad.Texture);
             int textureInfoIndex = texture.TextureInfoIndex;
             
+            // TODO: Temporary ignoring null textures!
+            if (textureInfoIndex == 0)
+                return;
+            
             StaticWorldVertex topLeft = new StaticWorldVertex(quad.TopLeft.Position, quad.TopLeft.UV, unitLightLevel, textureInfoIndex);
             StaticWorldVertex topRight = new StaticWorldVertex(quad.TopRight.Position, quad.TopRight.UV, unitLightLevel, textureInfoIndex);
             StaticWorldVertex bottomLeft = new StaticWorldVertex(quad.BottomLeft.Position, quad.BottomLeft.UV, unitLightLevel, textureInfoIndex);

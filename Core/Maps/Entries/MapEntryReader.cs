@@ -49,8 +49,8 @@ namespace Helion.Maps.Entries
             {
                 short floorHeight = reader.ReadInt16();
                 short ceilHeight = reader.ReadInt16();
-                string floorTexture = reader.ReadEightByteString();
-                string ceilTexture = reader.ReadEightByteString();
+                string floorTexture = reader.ReadEightByteString().ToUpper();
+                string ceilTexture = reader.ReadEightByteString().ToUpper();
                 byte lightLevel = (byte)reader.ReadInt16();
                 ushort special = reader.ReadUInt16();
                 ushort tag = reader.ReadUInt16();
@@ -88,9 +88,9 @@ namespace Helion.Maps.Entries
             {
                 short offsetX = reader.ReadInt16();
                 short offsetY = reader.ReadInt16();
-                string upperTexture = reader.ReadEightByteString();
-                string lowerTexture = reader.ReadEightByteString();
-                string middleTexture = reader.ReadEightByteString();
+                string upperTexture = reader.ReadEightByteString().ToUpper();
+                string lowerTexture = reader.ReadEightByteString().ToUpper();
+                string middleTexture = reader.ReadEightByteString().ToUpper();
                 ushort sectorIndex = reader.ReadUInt16();
 
                 if (sectorIndex >= map.Sectors.Count)

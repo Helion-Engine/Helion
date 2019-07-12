@@ -4,6 +4,7 @@ using Helion.Projects;
 using Helion.Render.Commands;
 using Helion.Util;
 using Helion.Util.Time;
+using Helion.World.Entity.Player;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
 
@@ -12,56 +13,61 @@ namespace Helion.Layer.Impl
     public class SinglePlayerWorldLayer : GameLayer
     {
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly SinglePlayerWorld world;
-        private readonly Ticker ticker = new Ticker(Constants.TicksPerSecond);
-        private TickerInfo lastTickInfo = new TickerInfo(0, 0);
+        private readonly SinglePlayerWorld m_world;
+        private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
+        private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
+        private TickCommand m_tickCommand = new TickCommand();
 
         private SinglePlayerWorldLayer(SinglePlayerWorld singlePlayerWorld)
         {
-            world = singlePlayerWorld;
+            m_world = singlePlayerWorld;
             
-            ticker.Start();
+            m_ticker.Start();
         }
-
-        protected override double GetPriority() => 0.25;
         
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            world.HandleFrameInput(consumableInput);
+            HandleMovementInput(consumableInput);
+            m_world.HandleFrameInput(consumableInput);
         }
 
         public override void RunLogic()
         {
-            lastTickInfo = ticker.GetTickerInfo();
-            int ticksToRun = lastTickInfo.Ticks;
+            m_lastTickInfo = m_ticker.GetTickerInfo();
+            int ticksToRun = m_lastTickInfo.Ticks;
 
+            if (ticksToRun <= 0)
+                return;
+
+            m_world.HandleTickCommand(m_tickCommand);
+            m_tickCommand = new TickCommand();
+            
             if (ticksToRun > TickOverflowThreshold)
             {
-                log.Warn("Large tick overflow detected (likely due to delays/lag), reducing ticking amount");
+                Log.Warn("Large tick overflow detected (likely due to delays/lag), reducing ticking amount");
                 ticksToRun = 1;
             }
 
             while (ticksToRun >= 0)
             {
-                world.Tick();
+                m_world.Tick();
                 ticksToRun--;
             }
         }
 
         public override void Render(RenderCommands renderCommands)
         {
-            renderCommands.DrawWorld(world, world.Camera, lastTickInfo.Ticks, lastTickInfo.Fraction);
+            renderCommands.DrawWorld(m_world, m_world.Camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction);
         }
 
-        // TODO: Want to do Expected<...> so we can report an error reason?
         public static SinglePlayerWorldLayer? Create(CiString mapName, Project project)
         {
             (Map? map, MapEntryCollection? collection) = project.GetMap(mapName);
             if (map == null || collection == null)
             {
-                log.Warn("Unable to find map {0}", mapName);
+                Log.Warn("Unable to find map {0}", mapName);
                 return null;
             }
             
@@ -69,8 +75,28 @@ namespace Helion.Layer.Impl
             if (world != null)
                 return new SinglePlayerWorldLayer(world);
             
-            log.Warn("Map is corrupt, unable to create map {0}", mapName);
+            Log.Warn("Map is corrupt, unable to create map {0}", mapName);
             return null;
+        }
+
+        protected override double GetPriority() => 0.25;
+
+        private void HandleMovementInput(ConsumableInput consumableInput)
+        {
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.W))
+                m_tickCommand.Add(TickCommands.Forward);
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.A))
+                m_tickCommand.Add(TickCommands.Left);
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.S))
+                m_tickCommand.Add(TickCommands.Backward);
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.D))
+                m_tickCommand.Add(TickCommands.Right);
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.Space))
+                m_tickCommand.Add(TickCommands.Jump);
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.C))
+                m_tickCommand.Add(TickCommands.Crouch);
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.E))
+                m_tickCommand.Add(TickCommands.Use);
         }
     }
 }

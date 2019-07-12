@@ -37,7 +37,8 @@ namespace Helion.Input
         /// with.</param>
         public ConsumableInput(InputEvent inputEvent)
         {
-            foreach (InputKey inputKey in inputEvent.InputDown) {
+            foreach (InputKey inputKey in inputEvent.InputDown) 
+            {
                 keysDown.Add(inputKey);
 
                 if (!inputEvent.InputPrevDown.Contains(inputKey))

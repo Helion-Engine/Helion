@@ -1,19 +1,15 @@
+using System;
 using Helion.Input;
+using Helion.Projects;
 using Helion.Render;
 using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Util;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Window;
-using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using System;
-using Helion.Projects;
-
-// TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
 
 namespace Helion.Subsystems.OpenTK
 {
@@ -21,7 +17,6 @@ namespace Helion.Subsystems.OpenTK
     {
         private static int nextAvailableWindowId;
 
-        private readonly Project m_project;
         private readonly Config m_config;
         private readonly int m_windowId;
         private readonly GLRenderer m_renderer;
@@ -33,7 +28,6 @@ namespace Helion.Subsystems.OpenTK
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
             m_config = cfg;
-            m_project = project;
             m_windowId = nextAvailableWindowId++;
             m_renderer = new GLRenderer(cfg, project);
             m_gameLoopFunc = gameLoopFunction;
@@ -46,6 +40,8 @@ namespace Helion.Subsystems.OpenTK
 
             WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState(); 
             m_config.Engine.Window.State.OnChanged += OnWindowStateChanged;
+            
+            // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
         }
 
         ~OpenTKWindow()

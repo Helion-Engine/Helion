@@ -259,8 +259,12 @@ namespace Helion.Subsystems.OpenTK
             InputEvent eventToReturn = inputEvent;
             
             inputEvent = new InputEvent();
-            eventToReturn.InputDown.ForEach(keyDown => inputEvent.InputPrevDown.Add(keyDown));
-            
+            foreach (InputKey key in eventToReturn.InputDown)
+            {
+                inputEvent.InputDown.Add(key);
+                inputEvent.InputPrevDown.Add(key);
+            }
+
             return eventToReturn;
         }
     }

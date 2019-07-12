@@ -1,7 +1,7 @@
-﻿using Helion.Resources.Definitions.Texture;
-using Helion.Util;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Resources.Definitions.Texture;
+using Helion.Util;
 
 namespace Helion.Resources.Definitions
 {

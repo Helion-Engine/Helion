@@ -1,7 +1,7 @@
-﻿using Helion.Util;
-using Helion.Util.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Helion.Util;
+using Helion.Util.Geometry;
 using static Helion.Util.Assert;
 
 namespace Helion.Resources.Definitions.Texture
@@ -107,7 +107,7 @@ namespace Helion.Resources.Definitions.Texture
                 {
                     reader.Offset(dataOffset);
 
-                    string name = reader.ReadEightByteString();
+                    string name = reader.ReadEightByteString().ToUpper();
                     reader.Advance(4); // Skip flags/scalex/scaley.
                     int width = reader.ReadInt16();
                     int height = reader.ReadInt16();
