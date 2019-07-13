@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
-using Helion.Resources;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using NLog;
@@ -19,6 +18,9 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
 {
+    /// <summary>
+    /// An OpenGL based renderer.
+    /// </summary>
     public class GLRenderer : IRenderer, IDisposable
     {
         private static readonly GLCapabilities Capabilities = new GLCapabilities();
@@ -28,12 +30,16 @@ namespace Helion.Render.OpenGL
         private readonly Config m_config;
         private readonly GLTextureManager m_textureManager;
         private readonly WorldRenderer m_worldRenderer;
-        private readonly Project m_project;
 
+        /// <summary>
+        /// Creates an OpenGL-driven renderer.
+        /// </summary>
+        /// <param name="config">The configuration settings.</param>
+        /// <param name="project">The project which has texture information.
+        /// </param>
         public GLRenderer(Config config, Project project)
         {
             m_config = config;
-            m_project = project;
             m_textureManager = new GLTextureManager(config, Capabilities, project);
             m_worldRenderer = new WorldRenderer(config, Capabilities, m_textureManager);
 
@@ -41,15 +47,22 @@ namespace Helion.Render.OpenGL
             SetGLStates();
             SetGLDebugger();
         }
-        
+
         ~GLRenderer()
         {
             ReleaseUnmanagedResources();
         }
 
+        /// <summary>
+        /// Creates a model view projection matrix from the provided data.
+        /// </summary>
+        /// <param name="renderInfo">The rendering information.</param>
+        /// <param name="fovX">The field of view along the X axis in radians.
+        /// </param>
+        /// <returns>A projection perspective matrix.</returns>
         public static Matrix4 CreateMVP(RenderInfo renderInfo, float fovX)
         {
-            Precondition(fovX > 0 && fovX <= MathHelper.PiOver2, "Field of view X radians are out of range");
+            Precondition(fovX > 0 && fovX <= MathHelper.Pi, "Field of view X radians are out of range");
             
             float aspectRatio = (float)renderInfo.Viewport.Width / renderInfo.Viewport.Height;
             float fovY = Camera.FieldOfViewXToY(fovX, aspectRatio);
@@ -68,6 +81,10 @@ namespace Helion.Render.OpenGL
             return model * view * projection;
         }
 
+        /// <summary>
+        /// Renders all of the render commands.
+        /// </summary>
+        /// <param name="renderCommands">The rendering commands.</param>
         public void Render(RenderCommands renderCommands)
         {
             Rectangle currentViewport = new Rectangle(0, 0, 1024, 768);
@@ -97,6 +114,7 @@ namespace Helion.Render.OpenGL
                 GLHelper.ThrowIfErrorDetected();
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -116,7 +134,7 @@ namespace Helion.Render.OpenGL
             InfoPrinted = true;
         }
 
-        private void SetGLStates()
+        private static void SetGLStates()
         {
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Multisample);
@@ -131,6 +149,29 @@ namespace Helion.Render.OpenGL
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+        }
+
+        private static void HandleClearCommand(ClearRenderCommand clearRenderCommand)
+        {
+            Color color = clearRenderCommand.ClearColor;
+            GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+            
+            ClearBufferMask clearMask = ClearBufferMask.None;
+            if (clearRenderCommand.Color)
+                clearMask |= ClearBufferMask.ColorBufferBit;
+            if (clearRenderCommand.Depth)
+                clearMask |= ClearBufferMask.DepthBufferBit;
+            if (clearRenderCommand.Stencil)
+                clearMask |= ClearBufferMask.StencilBufferBit;
+            
+            GL.Clear(clearMask);
+        }
+
+        private static void HandleViewportCommand(ViewportCommand viewportCommand)
+        {
+            Vec2I offset = viewportCommand.Offset;
+            Dimension dimension = viewportCommand.Dimension;
+            GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }
 
         [Conditional("DEBUG")]
@@ -165,29 +206,6 @@ namespace Helion.Render.OpenGL
                     break;
                 }
             }, IntPtr.Zero);
-        }
-
-        private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
-        {
-            Color color = clearRenderCommand.ClearColor;
-            GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-            
-            ClearBufferMask clearMask = ClearBufferMask.None;
-            if (clearRenderCommand.Color)
-                clearMask |= ClearBufferMask.ColorBufferBit;
-            if (clearRenderCommand.Depth)
-                clearMask |= ClearBufferMask.DepthBufferBit;
-            if (clearRenderCommand.Stencil)
-                clearMask |= ClearBufferMask.StencilBufferBit;
-            
-            GL.Clear(clearMask);
-        }
-
-        private void HandleViewportCommand(ViewportCommand viewportCommand)
-        {
-            Vec2I offset = viewportCommand.Offset;
-            Dimension dimension = viewportCommand.Dimension;
-            GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }
 
         private void ReleaseUnmanagedResources()

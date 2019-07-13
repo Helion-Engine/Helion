@@ -1,6 +1,6 @@
-﻿using Helion.Util.Geometry;
+﻿using System.Collections.Generic;
 using Helion.Util.Extensions;
-using System.Collections.Generic;
+using Helion.Util.Geometry;
 
 namespace Helion.Input
 {
@@ -24,11 +24,11 @@ namespace Helion.Input
     /// </remarks>
     public class ConsumableInput
     {
-        private readonly HashSet<InputKey> keysDown = new HashSet<InputKey>();
-        private readonly HashSet<InputKey> keysPressed = new HashSet<InputKey>();
-        private readonly IList<char> typedCharacters = new List<char>();
-        private Vec2I mouseDelta;
-        private int mouseScroll;
+        private readonly HashSet<InputKey> m_keysDown = new HashSet<InputKey>();
+        private readonly HashSet<InputKey> m_keysPressed = new HashSet<InputKey>();
+        private readonly IList<char> m_typedCharacters = new List<char>();
+        private Vec2I m_mouseDelta;
+        private int m_mouseScroll;
 
         /// <summary>
         /// Creates a new consumable input from the provided input collection.
@@ -39,15 +39,15 @@ namespace Helion.Input
         {
             foreach (InputKey inputKey in inputEvent.InputDown) 
             {
-                keysDown.Add(inputKey);
+                m_keysDown.Add(inputKey);
 
                 if (!inputEvent.InputPrevDown.Contains(inputKey))
-                    keysPressed.Add(inputKey);
+                    m_keysPressed.Add(inputKey);
             }
 
-            inputEvent.CharactersTyped.ForEach(typedCharacters.Add);
-            mouseDelta = inputEvent.MouseInput.Delta;
-            mouseScroll = inputEvent.MouseInput.ScrollDelta;
+            inputEvent.CharactersTyped.ForEach(m_typedCharacters.Add);
+            m_mouseDelta = inputEvent.MouseInput.Delta;
+            m_mouseScroll = inputEvent.MouseInput.ScrollDelta;
         }
 
         /// <summary>
@@ -55,11 +55,11 @@ namespace Helion.Input
         /// </summary>
         public void ConsumeAll()
         {
-            keysDown.Clear();
-            keysPressed.Clear();
-            typedCharacters.Clear();
-            mouseDelta = new Vec2I(0, 0);
-            mouseScroll = 0;
+            m_keysDown.Clear();
+            m_keysPressed.Clear();
+            m_typedCharacters.Clear();
+            m_mouseDelta = new Vec2I(0, 0);
+            m_mouseScroll = 0;
         }
 
         /// <summary>
@@ -83,9 +83,9 @@ namespace Helion.Input
         /// it was consumed before this invocation.</returns>
         public bool ConsumeKeyPressedOrDown(InputKey inputKey)
         {
-            bool contains = keysPressed.Contains(inputKey) || keysDown.Contains(inputKey);
-            keysPressed.Remove(inputKey);
-            keysDown.Remove(inputKey);
+            bool contains = m_keysPressed.Contains(inputKey) || m_keysDown.Contains(inputKey);
+            m_keysPressed.Remove(inputKey);
+            m_keysDown.Remove(inputKey);
             return contains;
         }
 
@@ -110,8 +110,8 @@ namespace Helion.Input
         /// consumed before this invocation.</returns>
         public bool ConsumeKeyPressed(InputKey inputKey)
         {
-            bool contains = keysPressed.Contains(inputKey);
-            keysPressed.Remove(inputKey);
+            bool contains = m_keysPressed.Contains(inputKey);
+            m_keysPressed.Remove(inputKey);
             return contains;
         }
 
@@ -122,8 +122,8 @@ namespace Helion.Input
         /// already consumed.</returns>
         public Vec2I ConsumeMouseDelta()
         {
-            Vec2I delta = mouseDelta;
-            mouseDelta = new Vec2I(0, 0);
+            Vec2I delta = m_mouseDelta;
+            m_mouseDelta = new Vec2I(0, 0);
             return delta;
         }
 
@@ -134,8 +134,8 @@ namespace Helion.Input
         /// was already consumed.</returns>
         public int ConsumeMouseScroll()
         {
-            int scroll = mouseScroll;
-            mouseScroll = 0;
+            int scroll = m_mouseScroll;
+            m_mouseScroll = 0;
             return scroll;
         }
 
@@ -146,8 +146,8 @@ namespace Helion.Input
         /// consumed.</returns>
         public IList<char> ConsumeTypedCharacters()
         {
-            IList<char> typedChars = typedCharacters.Copy();
-            typedCharacters.Clear();
+            IList<char> typedChars = m_typedCharacters.Copy();
+            m_typedCharacters.Clear();
             return typedChars;
         }
     }

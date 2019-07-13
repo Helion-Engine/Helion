@@ -2,6 +2,10 @@ using System.Collections.Generic;
 
 namespace Helion.Input
 {
+    /// <summary>
+    /// A simple wrapper around a collection of input data from some input
+    /// source.
+    /// </summary>
     public class InputEvent
     {
         /// <summary>
