@@ -1,74 +1,42 @@
-﻿using NLog;
-using System;
+﻿using System;
 using System.Diagnostics;
-using static Helion.Util.Assertion.Assert;
+using NLog;
 
 namespace Helion.Util.Time
 {
-    /// <summary>
-    /// A wrapper around tick results from the <see cref="Ticker"/>.
-    /// </summary>
-    public readonly struct TickerInfo
-    {
-        /// <summary>
-        /// How many ticks have elapsed since the last polling.
-        /// </summary>
-        public readonly int Ticks;
-
-        /// <summary>
-        /// The fraction along the way to the next tick. This will be in the
-        /// range of [0.0, 1.0).
-        /// </summary>
-        public readonly float Fraction;
-
-        public TickerInfo(int ticks, float fraction)
-        {
-            Ticks = ticks;
-            Fraction = fraction;
-        }
-    }
-
     /// <summary>
     /// Responsible for tracking tick pulses based on time elapsed.
     /// </summary>
     public class Ticker
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private long stopwatchTicksPerGametick;
-        private long lastTickSeen;
-        private long tickAccumulation = 0;
-        private readonly Stopwatch stopwatch = new Stopwatch();
+        private readonly long m_stopwatchTicksPerGametick;
+        private readonly Stopwatch m_stopwatch = new Stopwatch();
+        private long m_lastTickSeen;
+        private long m_tickAccumulation = 0;
 
+        /// <summary>
+        /// Creates a new ticker that creates the following ticks per second.
+        /// </summary>
+        /// <param name="ticksPerSecond">How many ticks should be made per
+        /// second.</param>
         public Ticker(double ticksPerSecond)
         {
             if (!Stopwatch.IsHighResolution)
-                log.Error("Stopwatch timer is not high resolution, erroneous timings will likely result");
+                Log.Error("Stopwatch timer is not high resolution, erroneous timings will likely result");
 
-            stopwatchTicksPerGametick = (long)(Stopwatch.Frequency / ticksPerSecond);
-            lastTickSeen = stopwatch.ElapsedTicks;
-        }
-
-        private void RemoveExcessTicks(int ticks)
-        {
-            while (ticks > 0)
-            {
-                tickAccumulation -= stopwatchTicksPerGametick;
-                ticks--;
-            }
-
-            Postcondition(tickAccumulation >= 0, "Should never end up going negative when removing ticks");
+            m_stopwatchTicksPerGametick = (long)(Stopwatch.Frequency / ticksPerSecond);
+            m_lastTickSeen = m_stopwatch.ElapsedTicks;
         }
 
         /// <summary>
         /// Starts the ticker for recording elapsed time.
         /// </summary>
-        public void Start() =>stopwatch.Start();
-
-        /// <summary>
-        /// Stops the ticker so it no longer records time.
-        /// </summary>
-        public void Stop() => stopwatch.Stop();
+        public void Start()
+        {
+            m_stopwatch.Start();   
+        }
 
         /// <summary>
         /// Gets the ticking info since the last invocation of this function.
@@ -82,16 +50,25 @@ namespace Helion.Util.Time
         /// <returns>The results since the last invocation.</returns>
         public TickerInfo GetTickerInfo()
         {
-            tickAccumulation += stopwatch.ElapsedTicks - lastTickSeen;
-            lastTickSeen = stopwatch.ElapsedTicks;
+            m_tickAccumulation += m_stopwatch.ElapsedTicks - m_lastTickSeen;
+            m_lastTickSeen = m_stopwatch.ElapsedTicks;
 
-            double tickFractionUnit = (double)tickAccumulation / stopwatchTicksPerGametick;
+            double tickFractionUnit = (double)m_tickAccumulation / m_stopwatchTicksPerGametick;
             int ticks = (int)Math.Floor(tickFractionUnit);
             float fraction = (float)(tickFractionUnit - ticks);
 
             RemoveExcessTicks(ticks);
 
             return new TickerInfo(ticks, fraction);
+        }
+        
+        private void RemoveExcessTicks(int ticks)
+        {
+            while (ticks > 0)
+            {
+                m_tickAccumulation -= m_stopwatchTicksPerGametick;
+                ticks--;
+            }
         }
     }
 }
