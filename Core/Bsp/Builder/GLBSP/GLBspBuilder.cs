@@ -1,13 +1,14 @@
 using System;
+using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Geometry;
 using NLog;
-using System.Collections.Generic;
-using Helion.Maps.Geometry.Lines;
 
 // TODO: We can refactor the read[Geometry]V[N] functions into a unified one.
 //       There's very little differences between ReadAbcV1 and ReadAbcV2.
@@ -20,8 +21,6 @@ namespace Helion.Bsp.Builder.GLBSP
     /// </summary>
     public class GLBspBuilder : IBspBuilder
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
-
         private const int GLSegmentV1Bytes = 10;
         private const int GLSegmentV5Bytes = 16;
         private const int GLSubsectorV1Bytes = 4;
@@ -32,6 +31,8 @@ namespace Helion.Bsp.Builder.GLBSP
         private const uint GLSegmentV5VertexIsGL = 0x80000000U;
         private const ushort GLSegmentIsMiniseg = (ushort) 0xFFFFU;
         private const uint GLNodeIsSubsectorV1Mask = 1 << 15;
+        
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private BspNode? root;
         private readonly List<GLVertex> glVertices = new List<GLVertex>();

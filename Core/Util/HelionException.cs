@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Helion.Util
 {
@@ -10,19 +9,11 @@ namespace Helion.Util
     [Serializable]
     public class HelionException : Exception
     {
-        public HelionException()
-        {
-        }
-
+        /// <summary>
+        /// Creates an exception that is unique to the Helion project.
+        /// </summary>
+        /// <param name="message">The exception message.</param>
         public HelionException(string message) : base(message)
-        {
-        }
-
-        public HelionException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        protected HelionException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

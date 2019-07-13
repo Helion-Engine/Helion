@@ -15,7 +15,7 @@ using Helion.Util.Geometry;
 using NLog;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
 {

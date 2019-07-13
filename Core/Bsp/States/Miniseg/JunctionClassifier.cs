@@ -2,7 +2,7 @@
 using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 using NLog;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Miniseg
 {

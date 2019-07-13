@@ -4,7 +4,7 @@ using System.Reflection;
 using Helion.Render.OpenGL.Buffers;
 using MoreLinq;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shader
 {

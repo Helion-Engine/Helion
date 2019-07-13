@@ -2,7 +2,7 @@ using Helion.Util.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenTK.Graphics.OpenGL;
 
-namespace Tests.Util.Extensions
+namespace Helion.Test.Util.Extensions
 {
     [TestClass]
     public class TextureUnitExtensionsTest

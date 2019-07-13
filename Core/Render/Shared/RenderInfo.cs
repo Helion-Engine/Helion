@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared
 {

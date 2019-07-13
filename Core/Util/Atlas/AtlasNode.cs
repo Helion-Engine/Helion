@@ -1,6 +1,6 @@
 using System;
 using Helion.Util.Geometry;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Atlas
 {

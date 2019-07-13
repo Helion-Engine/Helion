@@ -2,7 +2,7 @@ using System;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Util;
 using Helion.Util.Container;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture
 {

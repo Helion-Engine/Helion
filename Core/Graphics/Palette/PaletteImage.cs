@@ -1,7 +1,7 @@
 ﻿using Helion.Util;
 using Helion.Util.Extensions;
 using System;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Palette
 {

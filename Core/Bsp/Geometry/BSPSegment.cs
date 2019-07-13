@@ -1,5 +1,5 @@
 ﻿using Helion.Util.Geometry;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry
 {

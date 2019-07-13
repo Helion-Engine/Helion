@@ -2,7 +2,7 @@
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Maps.Geometry
 {

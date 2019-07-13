@@ -1,7 +1,7 @@
 using System.Numerics;
 using Helion.Util.Atlas;
 using Helion.Util.Geometry;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture
 {

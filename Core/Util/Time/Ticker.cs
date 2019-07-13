@@ -1,7 +1,7 @@
 ﻿using NLog;
 using System;
 using System.Diagnostics;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Time
 {

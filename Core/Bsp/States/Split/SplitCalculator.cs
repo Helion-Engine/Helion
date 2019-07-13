@@ -3,7 +3,7 @@ using Helion.Util;
 using Helion.Util.Geometry;
 using System;
 using System.Collections.Generic;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Split
 {

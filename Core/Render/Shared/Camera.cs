@@ -142,8 +142,8 @@ namespace Helion.Render.Shared
         public CameraInfo InterpolateWith(CameraInfo next, float t, bool useLatestAngles)
         {
             Vector3 pos = Position.Interpolate(next.Position, t);
-            float yaw = (useLatestAngles ? next.Yaw : MathHelper.Interpolate(Yaw, next.Yaw, t));
-            float pitch = (useLatestAngles ? next.Pitch : MathHelper.Interpolate(Pitch, next.Pitch, t));
+            float yaw = (useLatestAngles ? next.Yaw : Yaw.Interpolate(next.Yaw, t));
+            float pitch = (useLatestAngles ? next.Pitch : Pitch.Interpolate(next.Pitch, t));
             return new CameraInfo(pos, yaw, pitch);
         }
 

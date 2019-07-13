@@ -7,17 +7,29 @@ namespace Helion.Util
     /// </summary>
     public static class Constants
     {
-        public static readonly string ApplicationName = "Helion";
+        /// <summary>
+        /// The name of the application.
+        /// </summary>
+        public const string ApplicationName = "Helion";
+
+        /// <summary>
+        /// How many gameticks occur per second.
+        /// </summary>
+        public const double TicksPerSecond = 35.0;
+
+        /// <summary>
+        /// The public release version.
+        /// </summary>
         public static readonly Version ApplicationVersion = new Version(0, 1, 0, 0);
 
-        public static readonly string ConfigDefaultPath = "config.cfg";
-
+        /// <summary>
+        /// The name of a 'missing' texture in a map.
+        /// </summary>
         public static readonly CiString NoTexture = "-";
+        
+        /// <summary>
+        /// The sky flat texture name.
+        /// </summary>
         public static readonly CiString SkyTexture = "F_SKY1";
-        public static readonly CiString NullTextureName = "NULL";
-        public static readonly CiString PlayerClass = "PLAYER";
-        public const ulong TicksPerNanos = 28L * 1000L * 1000L;
-        public const double TicksPerSecond = 35.0;
-        public const float FontAlphaCutoff = 0.5f;
     }
 }

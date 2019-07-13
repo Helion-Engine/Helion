@@ -2,7 +2,7 @@ using System;
 using Helion.Util.Extensions;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shader
 {

@@ -1,8 +1,9 @@
-﻿using Helion.Resources;
-using Helion.Util;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using Helion.Resources;
+using Helion.Util;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Entries.Archive
 {
@@ -89,7 +90,7 @@ namespace Helion.Entries.Archive
 
         public byte[] ReadData(WadEntry entry)
         {
-            Assert.Precondition(entry.Parent == this, "Bad entry parent");
+            Precondition(entry.Parent == this, "Bad entry parent");
             m_byteReader.Offset(entry.Offset);
             return m_byteReader.ReadBytes(entry.Size);
         }

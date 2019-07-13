@@ -7,7 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Configuration
 {

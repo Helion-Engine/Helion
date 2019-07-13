@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Container;
-using static Helion.Util.Assert;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources
 {

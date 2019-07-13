@@ -1,9 +1,10 @@
-﻿using Helion.Resources;
-using Helion.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Helion.Resources;
+using Helion.Util;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Entries.Archive
 {
@@ -39,7 +40,7 @@ namespace Helion.Entries.Archive
 
         public byte[] ReadData(Pk3Entry entry)
         {
-            Assert.Postcondition(entry.Parent == this, "Bad entry parent");
+            Postcondition(entry.Parent == this, "Bad entry parent");
             using (var stream = entry.ZipeEntry.Open())
             {
                 byte[] data = new byte[entry.ZipeEntry.Length];
