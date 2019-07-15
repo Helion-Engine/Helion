@@ -56,7 +56,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="row">The row, should in [0, Width).</param>
         /// <param name="col">The column, should in [0, Height).</param>
-        /// <returns></returns>
+        /// <returns>The value at the coordinates.</returns>
         /// <exception cref="System.IndexOutOfRangeException">if the indices 
         /// are out of range.</exception>
         public T this[int row, int col] => blocks[(row * Width) + col];
