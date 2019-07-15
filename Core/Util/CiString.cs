@@ -30,7 +30,7 @@ namespace Helion.Util
 
         public bool Empty() => string.IsNullOrEmpty(str);
         public override bool Equals(object obj) => obj is CiString s && str.Equals(s.str, StringComparison.OrdinalIgnoreCase);
-        public override int GetHashCode() => str.GetHashCode();
+        public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(str);
         public override string ToString() => str;
 
         public IEnumerator<char> GetEnumerator() => str.GetEnumerator();
