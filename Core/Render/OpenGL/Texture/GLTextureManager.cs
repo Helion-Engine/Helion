@@ -268,7 +268,6 @@ namespace Helion.Render.OpenGL.Texture
             GLTexture texture = new GLTexture(textureDataHandle, m_atlas.Dimension, atlasHandle);
             TextureDataBuffer.Track(texture);
             
-            // TODO: We should never be overwriting...
             m_textures.Insert(name, resourceNamespace, texture);
 
             return texture;
