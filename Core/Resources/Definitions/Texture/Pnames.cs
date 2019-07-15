@@ -11,10 +11,10 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// All the names that make up their respective indices.
         /// </summary>
-        public List<CiString> Names { get; }
+        public List<CIString> Names { get; }
 
-        public Pnames() => Names = new List<CiString>();
-        private Pnames(List<CiString> names) => Names = names;
+        public Pnames() => Names = new List<CIString>();
+        private Pnames(List<CIString> names) => Names = names;
 
         /// <summary>
         /// Tries to read the Pnames data into a Pnames object.
@@ -27,7 +27,7 @@ namespace Helion.Resources.Definitions.Texture
             if ((data.Length - 4) % 8 != 0)
                 return null;
 
-            List<CiString> names = new List<CiString>();
+            List<CIString> names = new List<CIString>();
 
             try
             {

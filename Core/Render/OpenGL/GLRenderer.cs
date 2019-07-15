@@ -2,13 +2,13 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using Helion.Projects;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using NLog;
@@ -35,12 +35,12 @@ namespace Helion.Render.OpenGL
         /// Creates an OpenGL-driven renderer.
         /// </summary>
         /// <param name="config">The configuration settings.</param>
-        /// <param name="project">The project which has texture information.
-        /// </param>
-        public GLRenderer(Config config, Project project)
+        /// <param name="archiveCollection">The collection which has texture
+        /// data that we will hook into.</param>
+        public GLRenderer(Config config, ArchiveCollection archiveCollection)
         {
             m_config = config;
-            m_textureManager = new GLTextureManager(config, Capabilities, project);
+            m_textureManager = new GLTextureManager(config, Capabilities, archiveCollection);
             m_worldRenderer = new WorldRenderer(config, Capabilities, m_textureManager);
 
             PrintGLInfo();

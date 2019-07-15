@@ -12,14 +12,14 @@ namespace Helion.Maps
     /// </summary>
     public class Map
     {
-        public CiString Name;
+        public CIString Name;
         public List<Line> Lines = new List<Line>();
         public List<Side> Sides = new List<Side>();
         public List<Sector> Sectors = new List<Sector>();
         public List<SectorFlat> SectorFlats = new List<SectorFlat>();
         public List<Vertex> Vertices = new List<Vertex>();
 
-        private Map(CiString name) => Name = name;
+        private Map(CIString name) => Name = name;
 
         public static Map? From(MapEntryCollection mapEntryCollection)
         {

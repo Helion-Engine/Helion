@@ -57,14 +57,14 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         {
             m_staticGeometryRenderer.AddLine(WorldTriangulator.Triangulate(line, TextureFinder));
 
-            Dimension TextureFinder(CiString name) => m_textureManager.GetWallTexture(name).Dimension;
+            Dimension TextureFinder(CIString name) => m_textureManager.GetWallTexture(name).Dimension;
         }
         
         private void Triangulate(Subsector subsector)
         {
             m_staticGeometryRenderer.AddSubsector(WorldTriangulator.Triangulate(subsector, TextureFinder));
 
-            Dimension TextureFinder(CiString name) => m_textureManager.GetFlatTexture(name).Dimension;
+            Dimension TextureFinder(CIString name) => m_textureManager.GetFlatTexture(name).Dimension;
         }
 
         private void ReleaseUnmanagedResources()

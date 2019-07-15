@@ -164,12 +164,12 @@ namespace Helion.Graphics.Palette
         /// <param name="resourceNamespace">The resource namespace for this
         /// palette image to be created.</param>
         /// <returns>A palette image, or an empty optional if the data is not a
-        /// column palette image</returns>
+        /// column palette image.</returns>
         public static PaletteImage? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
         {
             // TODO: This could be improved probably dramatically if we:
             //       1) Read it into a column-major image and then rotated
-            //       2) Use natively/unsafe code 
+            //       2) Use native/unsafe code 
             try
             {
                 ByteReader reader = new ByteReader(data);

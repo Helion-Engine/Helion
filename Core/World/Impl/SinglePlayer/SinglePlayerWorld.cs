@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Projects;
 using Helion.Render.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World.Entity.Player;
@@ -14,17 +14,19 @@ namespace Helion.World.Impl.SinglePlayer
     {
         public Camera Camera { get; } = new Camera(new Vector3(-80, 748, 90), MathHelper.HalfPi);
 
-        private SinglePlayerWorld(Project project, Map map, BspTree bspTree) : base(project, map, bspTree)
+        private SinglePlayerWorld(ArchiveCollection archiveCollection, Map map, BspTree bspTree) : 
+            base(archiveCollection, map, bspTree)
         {
         }
 
-        public static SinglePlayerWorld? Create(Project project, Map map, MapEntryCollection? mapEntryCollection)
+        public static SinglePlayerWorld? Create(ArchiveCollection archiveCollection, Map map, 
+            MapEntryCollection? mapEntryCollection)
         {
             BspTree? bspTree = BspTree.Create(map, mapEntryCollection);
             if (bspTree == null)
                 return null;
 
-            return new SinglePlayerWorld(project, map, bspTree);
+            return new SinglePlayerWorld(archiveCollection, map, bspTree);
         }
 
         public void HandleTickCommand(TickCommand tickCommand)

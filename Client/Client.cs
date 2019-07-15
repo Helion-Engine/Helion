@@ -1,41 +1,41 @@
-﻿using Helion.Input;
+﻿using System;
+using System.Diagnostics;
+using Helion.Input;
 using Helion.Layer;
 using Helion.Layer.Impl;
-using Helion.Projects;
-using Helion.Projects.Impl.Local;
 using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Subsystems.OpenTK;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
+using Helion.Entries.Archives.Locator;
+using Helion.Resources.Archives.Collection;
 using NLog;
-using System;
-using NLog.Fluent;
 using Console = Helion.Util.Console;
 
 namespace Helion.Client
 {
     public class Client : IDisposable
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly CommandLineArgs commandLineArgs;
-        private readonly Console console;
-        private readonly Config config;
-        private readonly OpenTKWindow window;
-        private bool disposed;
-        private Project project = new LocalProject();
-        private GameLayerManager layerManager = new GameLayerManager();
+        private readonly CommandLineArgs m_commandLineArgs;
+        private readonly Console m_console;
+        private readonly Config m_config;
+        private readonly OpenTKWindow m_window;
+        private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
+        private readonly GameLayerManager m_layerManager = new GameLayerManager();
+        private bool m_disposed;
 
-        public Client(CommandLineArgs cmdArgs, Config configuration)
+        private Client(CommandLineArgs cmdArgs, Config configuration)
         {
-            commandLineArgs = cmdArgs;
-            config = configuration;
-            console = new Console(config);
-            window = new OpenTKWindow(config, project, RunGameLoop);
+            m_commandLineArgs = cmdArgs;
+            m_config = configuration;
+            m_console = new Console(m_config);
+            m_window = new OpenTKWindow(m_config, m_archiveCollection, RunGameLoop);
 
-            console.OnConsoleCommandEvent += OnConsoleCommand;
+            m_console.OnConsoleCommandEvent += OnConsoleCommand;
         }
 
         private void OnConsoleCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
@@ -44,51 +44,50 @@ namespace Helion.Client
             switch (ccmdArgs.Command)
             {
             case "EXIT":
-                window.Close();
+                m_window.Close();
                 break;
             
             case "MAP":
                 if (ccmdArgs.Args.Count == 0)
                 {
-                    log.Info("Usage: map <mapName>");
+                    Log.Info("Usage: map <mapName>");
                     break;
                 }
-                CiString mapName = ccmdArgs.Args[0];
-                SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(mapName, project);
+                SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(ccmdArgs.Args[0], m_archiveCollection);
                 if (layer != null)
-                    layerManager.Add(layer);
+                    m_layerManager.Add(layer);
                 break;
             }
         }
         
         private void HandleCommandLineArgs()
         {
-            if (!project.Load(commandLineArgs.Files))
-                log.Error("Unable to load files at startup");
+            if (!m_archiveCollection.Load(m_commandLineArgs.Files))
+                Log.Error("Unable to load files at startup");
 
-            if (commandLineArgs.Warp != null)
-                console.AddInput($"map MAP{commandLineArgs.Warp.ToString().PadLeft(2, '0')}\n");
+            if (m_commandLineArgs.Warp != null)
+                m_console.AddInput($"map MAP{m_commandLineArgs.Warp.ToString().PadLeft(2, '0')}\n");
         }
         
         private void HandleInput()
         {
-            layerManager.HandleInput(new ConsumableInput(window.PollInput()));
+            m_layerManager.HandleInput(new ConsumableInput(m_window.PollInput()));
         }
 
         private void RunLogic()
         {
-            layerManager.RunLogic();
+            m_layerManager.RunLogic();
         }
 
         private void Render()
         {
-            Dimension windowDimension = window.GetDimension();
-            IRenderer renderer = window.GetRenderer();
+            Dimension windowDimension = m_window.GetDimension();
+            IRenderer renderer = m_window.GetRenderer();
             RenderCommands renderCommands = new RenderCommands(windowDimension);
 
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();
-            layerManager.Render(renderCommands);
+            m_layerManager.Render(renderCommands);
 
             renderer.Render(renderCommands);
         }
@@ -99,10 +98,10 @@ namespace Helion.Client
             RunLogic();
             Render();
             
-            window.SwapBuffers();
+            m_window.SwapBuffers();
         }
-        
-        public void Start()
+
+        private void Start()
         {
             HandleCommandLineArgs();
             
@@ -119,20 +118,20 @@ namespace Helion.Client
             // Their github says that multiple windows are supported now so
             // we hopefully don't have to change away and do minimal changes
             // for multi-window support.
-            window.Run();
+            m_window.Run();
         }
 
         public void Dispose()
         {
-            if (disposed)
+            if (m_disposed)
                 return;
             
-            console.OnConsoleCommandEvent -= OnConsoleCommand;
+            m_console.OnConsoleCommandEvent -= OnConsoleCommand;
             
-            layerManager.Dispose();
-            window.Dispose();
+            m_layerManager.Dispose();
+            m_window.Dispose();
             
-            disposed = true;
+            m_disposed = true;
             GC.SuppressFinalize(this);
         }
 
@@ -141,12 +140,12 @@ namespace Helion.Client
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
 
             Logging.Initialize(cmdArgs);
-            log.Info("=========================================");
-            log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
-            log.Info("=========================================");
+            Log.Info("=========================================");
+            Log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
+            Log.Info("=========================================");
             
             if (cmdArgs.ErrorWhileParsing)
-                log.Error("Bad command line arguments, unexpected results may follow");
+                Log.Error("Bad command line arguments, unexpected results may follow");
             
             using (Config config = new Config())
             {
@@ -158,15 +157,40 @@ namespace Helion.Client
                 }
                 catch (Exception e)
                 {
-                    log.Error("Unexpected exception: {0}", e.Message);
+                    Log.Error("Unexpected exception: {0}", e.Message);
 #if DEBUG
-                    log.Error("Stack trace:");
-                    log.Error("{0}", e.StackTrace);
+                    Log.Error("Stack trace:");
+                    Log.Error("{0}", e.StackTrace);
 #endif
                 }
             }
 
             LogManager.Shutdown();
+
+            ForceFinalizersIfDebugMode();
+        }
+
+        [Conditional("DEBUG")]
+        private static void ForceFinalizersIfDebugMode()
+        {
+            // Apparently garbage collection only happens if we call it twice,
+            // since they are not truly garbage collected until the second pass
+            // over the objects.
+            //
+            // We also do this because we want to have assertion failures occur
+            // if we accidentally forget to dispose of anything. At termination
+            // of the program, the finalizers might not be called and we'd not
+            // know if we failed to Dispose() something. At least in the debug
+            // mode we will get assertions that trigger if we force all of the
+            // finalizers to run.
+            //
+            // This should mean that in debug mode, the following invocations
+            // of the GC will cause us to be alerted if we ever fail to dispose
+            // of anything.
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
     }
 }

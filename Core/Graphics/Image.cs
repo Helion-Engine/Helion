@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using NLog.Targets;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics
@@ -17,13 +18,7 @@ namespace Helion.Graphics
     /// 
     public class Image
     {
-        /// <summary>
-        /// The background transparent color. Since this class name clashes 
-        /// with the System.Drawing namespace, this helps remedy this issue.
-        /// </summary>
-        public static readonly Color Transparent = Color.Transparent;
-
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// The width of the image.
@@ -164,7 +159,7 @@ namespace Helion.Graphics
             }
             catch (Exception e)
             {
-                log.Warn($"Unable to convert bitmap from {bitmap.PixelFormat} to a 32-bit ARGB raster: {e.Message}");
+                Log.Warn($"Unable to convert bitmap from {bitmap.PixelFormat} to a 32-bit ARGB raster: {e.Message}");
                 return MakeDefaultBitmap();
             }
         }
@@ -196,6 +191,25 @@ namespace Helion.Graphics
         {
             using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap))
                 g.DrawImage(Bitmap, offset.X, offset.Y);
+        }
+
+        /// <summary>
+        /// Saves this image to the hard drive at the path provided.
+        /// </summary>
+        /// <param name="path">The path to save it at.</param>
+        /// <returns>True on success, false on failure.</returns>
+        public bool WriteToDisk(string path)
+        {
+            try
+            {
+                Bitmap.Save(path, ImageFormat.Png);
+                return true;
+            }
+            catch
+            {
+                Log.Error($"Unable to save image to {path}");
+                return false;
+            }
         }
     }
 }

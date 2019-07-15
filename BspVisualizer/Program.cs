@@ -1,10 +1,11 @@
 ﻿using Helion.Bsp.Builder;
 using Helion.Maps;
-using Helion.Projects.Impl.Local;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using Helion.Entries.Archives.Locator;
+using Helion.Resources.Archives.Collection;
 
 namespace BspVisualizer
 {
@@ -12,35 +13,29 @@ namespace BspVisualizer
     {
         private static bool NotEnoughArguments(string[] args)
         {
-            if (args.Length < 2)
-            {
-                MessageBox.Show("Two arguments required: <file> <mapname>", "BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                return true;
-            }
-
-            return false;
+            if (args.Length >= 2) 
+                return false;
+            
+            MessageBox.Show(@"Two arguments required: <file> <mapname>", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            return true;
         }
 
         private static bool FileDoesNotExist(string path)
         {
-            if (!File.Exists(path))
-            {
-                MessageBox.Show($"Cannot find file at {path}", "BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                return true;
-            }
-
-            return false;
+            if (File.Exists(path)) 
+                return false;
+            
+            MessageBox.Show($@"Cannot find file at {path}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            return true;
         }
 
         private static bool BadMapName(string mapName)
         {
-            if (mapName.Length == 0)
-            {
-                MessageBox.Show($"Need to provide a valid map name", "BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                return true;
-            }
-
-            return false;
+            if (mapName.Length != 0) 
+                return false;
+            
+            MessageBox.Show($@"Need to provide a valid map name", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            return true;
         }
 
         private static bool HandledInvalidArguments(string[] args)
@@ -57,14 +52,14 @@ namespace BspVisualizer
             if (HandledInvalidArguments(args))
                 return;
 
-            LocalProject project = new LocalProject();
-            if (!project.Load(new List<string> { args[0] }))
+            ArchiveCollection archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
+            if (!archiveCollection.Load(new List<string> { args[0] }))
             {
-                MessageBox.Show($"Error loading file at {args[0]}", "BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                MessageBox.Show($@"Error loading file at {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return;
             }
 
-            (Map? map, MapEntryCollection? _)  = project.GetMap(args[1]);
+            (Map? map, MapEntryCollection? _) = archiveCollection.FindMap(args[1]);
             if (map != null)
             {
                 StepwiseBspBuilderBase bspBuilderBase = new StepwiseBspBuilderBase(map);
@@ -77,7 +72,7 @@ namespace BspVisualizer
                 Application.Run(new Form1(bspBuilderBase));
             }
             else
-                MessageBox.Show($"Map '{args[1]}' does not exist or is corrupt", "BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                MessageBox.Show($@"Map '{args[1]}' does not exist or is corrupt", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
     }
 }

@@ -25,11 +25,11 @@ namespace Helion.Util
         /// <summary>
         /// The name of a 'missing' texture in a map.
         /// </summary>
-        public static readonly CiString NoTexture = "-";
+        public static readonly CIString NoTexture = "-";
         
         /// <summary>
         /// The sky flat texture name.
         /// </summary>
-        public static readonly CiString SkyTexture = "F_SKY1";
+        public static readonly CIString SkyTexture = "F_SKY1";
     }
 }

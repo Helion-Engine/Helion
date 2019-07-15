@@ -8,9 +8,9 @@ namespace Helion.Maps.Geometry
     {
         public readonly int Id;
         public Vec2I Offset;
-        public CiString LowerTexture;
-        public CiString MiddleTexture;
-        public CiString UpperTexture;
+        public CIString LowerTexture;
+        public CIString MiddleTexture;
+        public CIString UpperTexture;
         public readonly Sector Sector;
 
         public Line Line {
@@ -27,7 +27,7 @@ namespace Helion.Maps.Geometry
         public bool IsBack => !IsFront;
         public Side? PartnerSide => Line.TwoSided ? (ReferenceEquals(this, Line.Front) ? Line.Back : Line.Front) : null;
 
-        public Side(int id, Vec2I offset, CiString lowerTexture, CiString middleTexture, CiString upperTexture, 
+        public Side(int id, Vec2I offset, CIString lowerTexture, CIString middleTexture, CIString upperTexture, 
             Sector sector)
         {
             Id = id;

@@ -14,7 +14,7 @@ namespace Helion.Maps
         /// <summary>
         /// The name of the map.
         /// </summary>
-        public CiString Name = string.Empty;
+        public CIString Name = string.Empty;
 
         // The following are a list of all the components that may be present.
         public byte[]? Vertices { get; set; }
