@@ -107,15 +107,20 @@ namespace Helion.Render.OpenGL.Texture
             if (name == Constants.NoTexture)
                 return NullTextureHandle;
 
-            GLTexture? texture = m_textures.GetWithAny(name, priorityNamespace);
-            if (texture != null) 
+            // Try Global first, then try with the specific in case of a name collision between the Flat/Texture namespaces
+            GLTexture? texture = m_textures.GetOnly(name, ResourceNamespace.Global);
+            if (texture != null)
                 return texture;
-            
-            Image? image = m_project.Resources.GetImage(name);
+
+            texture = m_textures.GetOnly(name, priorityNamespace);
+            if (texture != null)
+                return texture;
+
+            (Image? image, ResourceNamespace resourceNamespace) = m_project.Resources.GetImage(name, priorityNamespace);
             if (image == null)
                 return NullTextureHandle;
 
-            return CreateTexture(image, name, priorityNamespace);
+            return CreateTexture(image, name, resourceNamespace);
         }
 
         /// <summary>

@@ -62,14 +62,57 @@ namespace Helion.Projects.Resources
         /// <param name="components">The components to track.</param>
         public void TrackNewComponents(List<ProjectComponent> components)
         {
-            foreach(ProjectComponent component in components)
+            foreach (ProjectComponent component in components)
                 component.Archive.Entries.ForEach(x => m_masterEntries[x.Path.Name] = x);
 
             Palette = ReadPalette();
             DefinitionEntries = ReadDefinitionEntries();
         }
 
-        public Image? GetImage(CiString name)
+        public (Image?, ResourceNamespace) GetImage(CiString name, ResourceNamespace priorityNamespace)
+        {
+            // Images that can be used as either a texture or a flag will be returned with ResourceNamespace.Global
+            Image? image;
+            ResourceNamespace resourceNamespace = ResourceNamespace.Global;
+
+            // When searching for a flat check entries first
+            // Then make sure the entry doesn't exist as a texture definition
+            // Alternatively, searching for a texture check textures first
+            // Then make sure the texture doesn't exist as an entry
+            if (priorityNamespace == ResourceNamespace.Flats)
+            {
+                image = LoadImageFromEntryName(name);
+                if (image == null)
+                    image = LoadTextureImage(name);
+                else if (ExistsAsTexture(name))
+                    resourceNamespace = ResourceNamespace.Flats;
+            }
+            else
+            {
+                image = LoadTextureImage(name);
+                if (image == null)
+                    image = LoadImageFromEntryName(name);
+                else if (ExistsAsEntry(name))
+                    resourceNamespace = ResourceNamespace.Textures;
+            }
+
+            return (image, resourceNamespace);
+        }
+
+        private bool ExistsAsTexture(CiString name)
+        {
+            if (DefinitionEntries?.Pnames != null)
+                return DefinitionEntries.GetTextureXImage(name) != null;
+
+            return false;
+        }
+
+        private bool ExistsAsEntry(CiString name)
+        {
+            return m_project.Resources.FindEntry(name) != null;
+        }
+
+        private Image? LoadTextureImage(CiString name)
         {
             if (DefinitionEntries?.Pnames != null)
             {
@@ -78,9 +121,9 @@ namespace Helion.Projects.Resources
                     return ImageFromTextureX(DefinitionEntries.Pnames, textureX);
             }
 
-            //If it's not a texture try to load the data as an image
-            return LoadImageFromEntryName(name);
+            return null;
         }
+
 
         private Image ImageFromTextureX(Pnames pnames, TextureXImage imageDefinition)
         {
