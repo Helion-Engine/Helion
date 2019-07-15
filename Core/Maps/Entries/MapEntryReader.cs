@@ -1,6 +1,7 @@
 ﻿using Helion.Maps.Actions;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Things;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
@@ -202,6 +203,63 @@ namespace Helion.Maps.Entries
         {
             return mapEntries.IsHexenMap ? ReadHexenLines(map, mapEntries) : ReadDoomLines(map, mapEntries);
         }
+        
+        private static bool ReadDoomThings(Map map, MapEntryCollection mapEntries)
+        {
+            if (mapEntries.Things == null)
+                return false;
+            if (mapEntries.Things.Length % MapStructures.ThingDoom.Bytes != 0)
+                return false;
+
+            int numThings = mapEntries.Things.Length / MapStructures.ThingDoom.Bytes;
+            ByteReader reader = new ByteReader(mapEntries.Things);
+
+            for (int id = 0; id < numThings; id++)
+            {
+                Vec2D position = new Vec2D(reader.ReadInt16(), reader.ReadInt16());
+                byte angle = (byte)reader.ReadUInt16();
+                ushort editorNumber = reader.ReadUInt16();
+                ushort flags = reader.ReadUInt16();
+                
+                Thing thing = new Thing(id, position, angle, editorNumber, flags);
+                map.Things.Add(thing);
+            }
+
+            return true;
+        }
+        
+        private static bool ReadHexenThings(Map map, MapEntryCollection mapEntries)
+        {
+            if (mapEntries.Things == null)
+                return false;
+            if (mapEntries.Things.Length % MapStructures.ThingHexen.Bytes != 0)
+                return false;
+
+            int numThings = mapEntries.Things.Length / MapStructures.ThingHexen.Bytes;
+            ByteReader reader = new ByteReader(mapEntries.Things);
+
+            for (int id = 0; id < numThings; id++)
+            {
+                ushort tid = reader.ReadUInt16();
+                Vec3D position = new Vec3D(reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16());
+                byte angle = (byte)reader.ReadUInt16();
+                ushort editorNumber = reader.ReadUInt16();
+                ushort flags = reader.ReadUInt16();
+                ActionSpecialID specialType = (ActionSpecialID)reader.ReadByte();
+                byte[] args = { reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte() };
+                ActionSpecial actionSpecial = new ActionSpecial(specialType, args[0], args[1], args[2], args[3], args[4]);
+                
+                Thing thing = new Thing(id, position, tid, angle, editorNumber, flags, actionSpecial);
+                map.Things.Add(thing);
+            }
+
+            return true;
+        }
+        
+        private static bool ReadThings(Map map, MapEntryCollection mapEntries)
+        {
+            return mapEntries.IsHexenMap ? ReadHexenThings(map, mapEntries) : ReadDoomThings(map, mapEntries);
+        }
 
         private static bool HasGeometry(Map map)
         {
@@ -227,7 +285,8 @@ namespace Helion.Maps.Entries
             if (!ReadVertices(map, mapEntries) ||
                 !ReadSectors(map, mapEntries) ||
                 !ReadSides(map, mapEntries) ||
-                !ReadLines(map, mapEntries))
+                !ReadLines(map, mapEntries) ||
+                !ReadThings(map, mapEntries))
             {
                 log.Error("Unable to read map collection named '{0}', data is corrupt", mapEntries.Name);
                 return false;

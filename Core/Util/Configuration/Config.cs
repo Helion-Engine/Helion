@@ -23,7 +23,7 @@ namespace Helion.Util.Configuration
     public class EngineMouseConfig
     {
         public readonly ConfigValue<double> Pitch = new ConfigValue<double>(1.0);
-        public readonly ConfigValue<double> PixelDivisor = new ConfigValue<double>(2048.0);
+        public readonly ConfigValue<double> PixelDivisor = new ConfigValue<double>(1024.0);
         public readonly ConfigValue<double> Sensitivity = new ConfigValue<double>(1.0);
         public readonly ConfigValue<double> Yaw = new ConfigValue<double>(1.0);
     }

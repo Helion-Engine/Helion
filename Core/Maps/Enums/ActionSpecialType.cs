@@ -263,6 +263,6 @@
         SectorSetFloorGlow = 277,
         SectorSetCeilingGlow = 278,
         FloorMoveToValueAndCrush = 279,
-        CeilingMoveToValueAndCrush = 280
+        CeilingMoveToValueAndCrush = 280,
     }
 }

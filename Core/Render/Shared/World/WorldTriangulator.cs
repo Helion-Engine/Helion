@@ -98,7 +98,7 @@ namespace Helion.Render.Shared.World
                 goto case SideSection.Lower;
             case SideSection.Lower:
                 // Middle and lower are pegged to the top by default.
-                return !line.Flags.Unpegged.Lower;
+                return !line.Flags.Unpegged.Lower || line.Flags.Unpegged.Upper;
             default:
                 Fail("Unexpected section type when setting UV coordinates");
                 break;

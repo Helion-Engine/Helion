@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Bsp.Builder;
 using Helion.Bsp.Builder.GLBSP;
 using Helion.Bsp.Node;
@@ -8,8 +10,6 @@ using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
-using System.Collections.Generic;
-using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry
@@ -20,7 +20,7 @@ namespace Helion.World.Geometry
     /// </summary>
     public class BspTree
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// All the segments, which are the edges of the subsector.
@@ -43,13 +43,13 @@ namespace Helion.World.Geometry
         /// The next available subsector index. This is used only for building 
         /// the <see cref="Subsectors"/> list.
         /// </summary>
-        private uint nextSubsectorIndex;
+        private uint m_nextSubsectorIndex;
 
         /// <summary>
         /// The next available node index. This is used only for building the 
         /// <see cref="Nodes"/> list.
         /// </summary>
-        private uint nextNodeIndex;
+        private uint m_nextNodeIndex;
 
         /// <summary>
         /// The root node of the tree.
@@ -65,6 +65,40 @@ namespace Helion.World.Geometry
         /// </summary>
         public uint RootIndex => (uint)(Nodes.Length - 1);
 
+        /// <summary>
+        /// Gets the subsector that maps onto the point provided.
+        /// </summary>
+        /// <param name="point">The point to get the subsector for.</param>
+        /// <returns>The subsector for the provided point.</returns>
+        public Subsector ToSubsector(Vec2D point)
+        {
+            BspNodeCompact node = Root;
+
+            // TODO: Would doing the `side ^ 1` optimization get us any perf?
+            while (true)
+            {
+                if (node.Splitter.OnRight(point))
+                {
+                    if (node.IsRightSubsector)
+                        return Subsectors[node.RightChildAsSubsector];
+                    node = Nodes[node.RightChild];
+                }
+                else
+                {
+                    if (node.IsLeftSubsector)
+                        return Subsectors[node.LeftChildAsSubsector];
+                    node = Nodes[node.LeftChild];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the sector that maps onto the point provided.
+        /// </summary>
+        /// <param name="point">The point to get the sector for.</param>
+        /// <returns>The sector for the provided point.</returns>
+        public Sector ToSector(Vec2D point) => ToSubsector(point).Sector;
+        
         private BspTree(BspNode root, Map map)
         {
             Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
@@ -79,7 +113,7 @@ namespace Helion.World.Geometry
             if (root != null) 
                 return new BspTree(root, map);
             
-            log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
+            Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
             return null;
         }
         
@@ -98,16 +132,25 @@ namespace Helion.World.Geometry
             // them. When we don't need this anymore, we will remove it.
             if (mapEntryCollection != null)
             {
-                IBspBuilder glBspBuilder = new GLBspBuilder(map, mapEntryCollection);
-                BspNode? rootNode = glBspBuilder.Build();
+                IBspBuilder bspBuilder = new GLBspBuilder(map, mapEntryCollection);
+                BspNode? rootNode = bspBuilder.Build();
                 if (rootNode != null)
                     return new BspTree(rootNode, map);
 
-                log.Warn("Unable to build BSP tree from GLBSP nodes for map '{0}', attempting with internal node builder...", map.Name);
+                Log.Warn("Unable to build BSP tree from GLBSP nodes for map '{0}', attempting with internal node builder...", map.Name);
             }
 
-            log.Error("Internal BSP builder disabled currently, cannot build BSP tree");
+            Log.Error("Internal BSP builder disabled currently, cannot build BSP tree");
             return null;
+        }
+        
+        private static Side? GetSideFromEdge(Bsp.Node.SubsectorEdge edge, Map map)
+        {
+            if (edge.IsMiniseg)
+                return null;
+
+            Line line = map.Lines[edge.LineId];
+            return edge.IsFront ? line.Front : line.Back;
         }
 
         private void CreateComponents(BspNode root, Map map)
@@ -123,8 +166,8 @@ namespace Helion.World.Geometry
 
             RecursivelyCreateComponents(root, map);
 
-            Postcondition(nextSubsectorIndex <= ushort.MaxValue, "Subsector index overflow (need a 4-byte BSP tree for this map)");
-            Postcondition(nextNodeIndex <= ushort.MaxValue, "Node index overflow (need a 4-byte BSP tree for this map)");
+            Postcondition(m_nextSubsectorIndex <= ushort.MaxValue, "Subsector index overflow (need a 4-byte BSP tree for this map)");
+            Postcondition(m_nextNodeIndex <= ushort.MaxValue, "Node index overflow (need a 4-byte BSP tree for this map)");
         }
 
         private BspCreateResult RecursivelyCreateComponents(BspNode? node, Map map)
@@ -132,9 +175,7 @@ namespace Helion.World.Geometry
             if (node == null || node.IsDegenerate)
                 throw new HelionException("Should never recurse onto a null/degenerate node when composing a world BSP tree");
 
-            if (node.IsSubsector)
-                return CreateSubsector(node, map);
-            return CreateNode(node, map);
+            return node.IsSubsector ? CreateSubsector(node, map) : CreateNode(node, map);
         }
 
         private BspCreateResult CreateSubsector(BspNode node, Map map)
@@ -146,9 +187,9 @@ namespace Helion.World.Geometry
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
             
             Sector sector = GetSectorFrom(node, map);
-            Subsectors[nextSubsectorIndex] = new Subsector((int)nextSubsectorIndex, sector, clockwiseSegments, bbox);
+            Subsectors[m_nextSubsectorIndex] = new Subsector((int)m_nextSubsectorIndex, sector, clockwiseSegments, bbox);
 
-            return BspCreateResult.Subsector(nextSubsectorIndex++);
+            return BspCreateResult.Subsector(m_nextSubsectorIndex++);
         }
 
         private List<SubsectorEdge> CreateClockwiseSegments(BspNode node, Map map)
@@ -166,16 +207,7 @@ namespace Helion.World.Geometry
 
             return returnSegments;
         }
-
-        private Side? GetSideFromEdge(Bsp.Node.SubsectorEdge edge, Map map)
-        {
-            if (edge.IsMiniseg)
-                return null;
-
-            Line line = map.Lines[edge.LineId];
-            return edge.IsFront ? line.Front : line.Back;
-        }
-
+        
         private Sector GetSectorFrom(BspNode node, Map map)
         {
             // Even though the Where() clause guarantees us non-null values,
@@ -202,9 +234,9 @@ namespace Helion.World.Geometry
             Box2D bbox = MakeBoundingBoxFrom(left, right);
 
             BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter, bbox);
-            Nodes[nextNodeIndex] = compactNode;
+            Nodes[m_nextNodeIndex] = compactNode;
 
-            return BspCreateResult.Node(nextNodeIndex++);
+            return BspCreateResult.Node(m_nextNodeIndex++);
         }
 
         private Box2D MakeBoundingBoxFrom(BspCreateResult left, BspCreateResult right)
@@ -213,81 +245,5 @@ namespace Helion.World.Geometry
             Box2D rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
             return Box2D.Combine(leftBox, rightBox);
         }
-
-        /// <summary>
-        /// Gets the subsector that maps onto the point provided.
-        /// </summary>
-        /// <param name="point">The point to get the subsector for.</param>
-        /// <returns>The subsector for the provided point.</returns>
-        public Subsector ToSubsector(Vec2D point)
-        {
-            BspNodeCompact node = Root;
-
-            while (true)
-            {
-                if (node.Splitter.OnRight(point))
-                {
-                    if (node.IsRightSubsector)
-                        return Subsectors[node.RightChildAsSubsector];
-                    node = Nodes[node.RightChild];
-                }
-                else
-                {
-                    if (node.IsLeftSubsector)
-                        return Subsectors[node.LeftChildAsSubsector];
-                    node = Nodes[node.LeftChild];
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the sector that maps onto the point provided.
-        /// </summary>
-        /// <param name="point">The point to get the sector for.</param>
-        /// <returns>The sector for the provided point.</returns>
-        public Sector ToSector(Vec2D point) => ToSubsector(point).Sector;
-    }
-
-    /// <summary>
-    /// A helper class for propagating recursive information when building.
-    /// </summary>
-    readonly struct BspCreateResult
-    {
-        /// <summary>
-        /// If this result is for a subsector (if true), or a node (if false).
-        /// </summary>
-        public readonly bool IsSubsector;
-
-        /// <summary>
-        /// The index into either <see cref="BspTree.Segments"/> or
-        /// <see cref="BspTree.Nodes"/> for the component.
-        /// </summary>
-        public readonly uint Index;
-
-        /// <summary>
-        /// Gets the index with the appropriate bit set if needed. This works 
-        /// for either the node or the subsector.
-        /// </summary>
-        public ushort IndexWithBit => (ushort)(IsSubsector ? (Index | BspNodeCompact.IsSubsectorBit) : Index);
-
-        private BspCreateResult(bool isSubsector, uint index)
-        {
-            IsSubsector = isSubsector;
-            Index = index;
-        }
-
-        /// <summary>
-        /// Creates a result from a subsector index.
-        /// </summary>
-        /// <param name="index">The subsector index.</param>
-        /// <returns>A result with the subsector index.</returns>
-        public static BspCreateResult Subsector(uint index) => new BspCreateResult(true, index);
-
-        /// <summary>
-        /// Creates a result from a node index.
-        /// </summary>
-        /// <param name="index">The node index.</param>
-        /// <returns>A result with the node index.</returns>
-        public static BspCreateResult Node(uint index) => new BspCreateResult(false, index);
     }
 }

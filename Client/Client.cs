@@ -53,7 +53,7 @@ namespace Helion.Client
                     Log.Info("Usage: map <mapName>");
                     break;
                 }
-                SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(ccmdArgs.Args[0], m_archiveCollection);
+                SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(ccmdArgs.Args[0], m_config, m_archiveCollection);
                 if (layer != null)
                     m_layerManager.Add(layer);
                 break;

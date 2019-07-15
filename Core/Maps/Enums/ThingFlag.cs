@@ -26,7 +26,6 @@ namespace Helion.Maps
         NotSinglePlayer = 0x0010,
         NotDeathmatch = 0x0020,
         NotCooperative = 0x0040,
-        // Ignoring the deprecated second 'Friend' field for MBF (not supporting it).
-        BadEditorCheck = 0x0100
+        BadEditorCheck = 0x0100,
     }
 }

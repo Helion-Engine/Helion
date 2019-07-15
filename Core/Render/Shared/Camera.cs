@@ -250,13 +250,17 @@ namespace Helion.Render.Shared
         /// Ticks the camera, which will advance it from the previous position
         /// to the current.
         /// </summary>
-        public void Tick()
+        public void StartNewTick()
         {
             Previous = Current;
             Current = new CameraInfo(Current);
         }
 
-        public void AddToYaw(float delta) => Current.Yaw += delta;
+        public void AddToYaw(float delta)
+        {
+            Current.Yaw += delta;
+            Current.Yaw %= MathHelper.TwoPi;
+        }
 
         public void AddToPitch(float delta) => Current.Pitch += delta;
 

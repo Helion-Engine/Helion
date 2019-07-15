@@ -3,6 +3,7 @@ using Helion.Maps;
 using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Time;
 using Helion.World.Entity.Player;
 using Helion.World.Impl.SinglePlayer;
@@ -62,7 +63,7 @@ namespace Helion.Layer.Impl
             renderCommands.DrawWorld(m_world, m_world.Camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction);
         }
 
-        public static SinglePlayerWorldLayer? Create(string mapName, ArchiveCollection archiveCollection)
+        public static SinglePlayerWorldLayer? Create(string mapName, Config config, ArchiveCollection archiveCollection)
         {
             (Map? map, MapEntryCollection? collection) = archiveCollection.FindMap(mapName);
             if (map == null || collection == null)
@@ -71,7 +72,7 @@ namespace Helion.Layer.Impl
                 return null;
             }
             
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(archiveCollection, map, collection);
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, map, collection);
             if (world != null)
                 return new SinglePlayerWorldLayer(world);
             
