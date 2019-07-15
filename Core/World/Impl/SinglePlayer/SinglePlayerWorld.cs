@@ -1,35 +1,41 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Projects;
+using Helion.Maps.Geometry;
+using Helion.Maps.Things;
 using Helion.Render.Shared;
-using Helion.Util;
+using Helion.Resources.Archives.Collection;
+using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World.Entity.Player;
 using Helion.World.Geometry;
+using NLog;
 
 namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
-        public Camera Camera { get; } = new Camera(new Vector3(-80, 748, 90), MathHelper.HalfPi);
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private SinglePlayerWorld(Project project, Map map, BspTree bspTree) : base(project, map, bspTree)
+        public Camera Camera { get; private set; } = new Camera();
+
+        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, Map map, BspTree bspTree) : 
+            base(config, archiveCollection, map, bspTree)
         {
+            SetCameraToSpawn(map);
         }
 
-        public static SinglePlayerWorld? Create(Project project, Map map, MapEntryCollection? mapEntryCollection)
+        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, Map map, 
+            MapEntryCollection? mapEntryCollection)
         {
             BspTree? bspTree = BspTree.Create(map, mapEntryCollection);
-            if (bspTree == null)
-                return null;
-
-            return new SinglePlayerWorld(project, map, bspTree);
+            return bspTree != null ? new SinglePlayerWorld(config, archiveCollection, map, bspTree) : null;
         }
 
         public void HandleTickCommand(TickCommand tickCommand)
         {
-            Camera.Tick();
+            Camera.StartNewTick();
 
             if (tickCommand.Has(TickCommands.Forward))
                 Camera.MoveForward(12);
@@ -44,14 +50,38 @@ namespace Helion.World.Impl.SinglePlayer
             if (tickCommand.Has(TickCommands.Crouch))
                 Camera.MoveDown(10);
         }
-        
+
         public void HandleFrameInput(ConsumableInput frameInput)
         {
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
-            Vector2 moveDelta = pixelsMoved.ToFloat() / 800.0f;
+            Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
+            moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
+            moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
 
             Camera.AddToYaw(moveDelta.X);
             Camera.AddToPitch(moveDelta.Y);
+        }
+
+        private void SetCameraToSpawn(Map map)
+        {
+            // This is a hack; we're doing temporarily until we properly make
+            // entities in a level. Because we will remove this, there won't be
+            // any slope support for this.
+            foreach (Thing thing in map.Things)
+            {
+                if (thing.EditorNumber != 1) 
+                    continue;
+
+                Vector3 position = thing.Position.ToFloat();
+                Sector sector = BspTree.ToSector(thing.Position.To2D());
+                position.Z = Math.Max(position.Z, (float)sector.Floor.Plane.FlatHeight + 50.0f);
+                position.Z = Math.Min(position.Z, (float)sector.Ceiling.Plane.FlatHeight);
+
+                Camera = new Camera(position, thing.angleRadians);
+                return;
+            }
+            
+            Log.Warn("No player 1 spawns detected in map, camera set to origin");
         }
     }
 }

@@ -53,14 +53,14 @@ namespace Helion.Render.Shared.World
         public readonly Vertex TopRight;
         public readonly Vertex BottomLeft;
         public readonly Vertex BottomRight;
-        public readonly CiString Texture;
+        public readonly CIString Texture;
         public readonly Side Side;
         public readonly SideSection SideSection;
         public readonly SectorFlat Floor;
         public readonly SectorFlat Ceiling;
 
         public WallQuad(Vertex topLeft, Vertex topRight, Vertex bottomLeft, Vertex bottomRight, 
-            CiString texture, Side side, SideSection sideSection, SectorFlat floor, SectorFlat ceiling)
+            CIString texture, Side side, SideSection sideSection, SectorFlat floor, SectorFlat ceiling)
         {
             TopLeft = topLeft;
             TopRight = topRight;

@@ -1,9 +1,9 @@
 using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
-using Helion.Projects;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Atlas;
 using Helion.Util.Configuration;
@@ -34,35 +34,11 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         public readonly GLTextureDataBuffer TextureDataBuffer;
         
-        /// <summary>
-        /// The OpenGL texture 'name'.
-        /// </summary>
         private readonly int m_atlasTextureHandle;
-        
-        /// <summary>
-        /// The config with settings to apply to textures.
-        /// </summary>
         private readonly Config m_config;
-        
-        /// <summary>
-        /// A collection of OpenGL capabilities.
-        /// </summary>
         private readonly GLCapabilities m_capabilities;
-
-        /// <summary>
-        /// The project for getting resources from.
-        /// </summary>
-        private readonly Project m_project;
-        
-        /// <summary>
-        /// The atlas that manages the space for where textures should go with
-        /// respect to some 2D area.
-        /// </summary>
+        private readonly ArchiveCollection m_archiveCollection;
         private readonly Atlas2D m_atlas;
-        
-        /// <summary>
-        /// A list of all the tracked resources.
-        /// </summary>
         private readonly ResourceTracker<GLTexture> m_textures = new ResourceTracker<GLTexture>();
 
         /// <summary>
@@ -70,12 +46,13 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         /// <param name="config">The config for texture parameters.</param>
         /// <param name="capabilities">The OpenGL capabilities.</param>
-        /// <param name="project">The project to get resources from.</param>
-        public GLTextureManager(Config config, GLCapabilities capabilities, Project project)
+        /// <param name="archiveCollection">The archive collection manager to
+        /// get resources from.</param>
+        public GLTextureManager(Config config, GLCapabilities capabilities, ArchiveCollection archiveCollection)
         {
             m_config = config;
             m_capabilities = capabilities;
-            m_project = project;
+            m_archiveCollection = archiveCollection;
             m_atlasTextureHandle = GL.GenTexture();
             m_atlas = new Atlas2D(GetBestAtlasDimension());
             TextureDataBuffer = new GLTextureDataBuffer(capabilities);
@@ -102,25 +79,37 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture Get(CiString name, ResourceNamespace priorityNamespace)
+        public GLTexture Get(CIString name, ResourceNamespace priorityNamespace)
         {
             if (name == Constants.NoTexture)
                 return NullTextureHandle;
 
-            // Try Global first, then try with the specific in case of a name collision between the Flat/Texture namespaces
-            GLTexture? texture = m_textures.GetOnly(name, ResourceNamespace.Global);
-            if (texture != null)
-                return texture;
+            GLTexture? textureForNamespace = m_textures.GetOnly(name, priorityNamespace);
+            if (textureForNamespace != null) 
+                return textureForNamespace;
+            
+            // The reason we do this check before checking other namespaces is
+            // that we can end up missing the texture for the namespace in some
+            // pathological scenarios. Suppose we draw some texture that shares
+            // a name with some flat. Then suppose we try to draw the flat. If
+            // we check the GL texture cache first, we will find the texture
+            // and miss the flat and then never know that there is a specific
+            // flat that should have been used.
+            Image? imageForNamespace = m_archiveCollection.Images.GetOnly(name, priorityNamespace);
+            if (imageForNamespace != null) 
+                return CreateTexture(imageForNamespace, name, priorityNamespace);
 
-            texture = m_textures.GetOnly(name, priorityNamespace);
-            if (texture != null)
-                return texture;
-
-            (Image? image, ResourceNamespace resourceNamespace) = m_project.Resources.GetImage(name, priorityNamespace);
-            if (image == null)
-                return NullTextureHandle;
-
-            return CreateTexture(image, name, resourceNamespace);
+            // Now that nothing in the desired namespace was found, we will
+            // accept anything.
+            GLTexture? anyTexture = m_textures.Get(name, priorityNamespace);
+            if (anyTexture != null) 
+                return anyTexture;
+            
+            // Note that because we are getting any texture, we don't want to
+            // use the provided namespace since if we ask for a flat, but get a
+            // texture, and then index it as a flat... things probably go bad.
+            Image? image = m_archiveCollection.Images.Get(name, priorityNamespace);
+            return image != null ? CreateTexture(image, name, image.Metadata.Namespace) : NullTextureHandle;
         }
 
         /// <summary>
@@ -132,7 +121,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture GetWallTexture(CiString name) => Get(name, ResourceNamespace.Textures);
+        public GLTexture GetWallTexture(CIString name) => Get(name, ResourceNamespace.Textures);
         
         /// <summary>
         /// Gets the texture, with priority given to the flat namespace. If it
@@ -143,7 +132,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture GetFlatTexture(CiString name) => Get(name, ResourceNamespace.Flats);
+        public GLTexture GetFlatTexture(CIString name) => Get(name, ResourceNamespace.Flats);
 
         /// <summary>
         /// Binds both the texture unit and the texture for rendering.
@@ -241,7 +230,7 @@ namespace Helion.Render.OpenGL.Texture
 
             anisostropy = Math.Max(1.0f, Math.Min(anisostropy, m_capabilities.Limits.AnisotropyMax));
 
-            TextureParameterName anisotropyPname = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+            const TextureParameterName anisotropyPname = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
             GL.TexParameter(TextureTarget.Texture2D, anisotropyPname, anisostropy);
         }
         
@@ -261,7 +250,7 @@ namespace Helion.Render.OpenGL.Texture
             return new Dimension(atlasSize, atlasSize);
         }
 
-        private GLTexture CreateTexture(Image image, CiString name, ResourceNamespace resourceNamespace)
+        private GLTexture CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
         {
             // We only want one image with this name/namespace in the texture
             // at a time. However we have some extra cleaning up to do if that
@@ -279,13 +268,12 @@ namespace Helion.Render.OpenGL.Texture
             GLTexture texture = new GLTexture(textureDataHandle, m_atlas.Dimension, atlasHandle);
             TextureDataBuffer.Track(texture);
             
-            // TODO: We should never be overwriting...
-            m_textures.AddOrOverwrite(name, resourceNamespace, texture);
+            m_textures.Insert(name, resourceNamespace, texture);
 
             return texture;
         }
 
-        private void DeleteTexture(CiString name, ResourceNamespace resourceNamespace)
+        private void DeleteTexture(CIString name, ResourceNamespace resourceNamespace)
         {
             GLTexture? handle = m_textures.GetOnly(name, resourceNamespace);
             if (handle == null)

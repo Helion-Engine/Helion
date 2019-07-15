@@ -56,7 +56,7 @@ namespace Helion.Util.Container
         /// <summary>
         /// Adds a key, if it exists then overwrites it.
         /// </summary>
-        public void AddOrOverwrite(K1 firstKey, K2 secondKey, V value)
+        public void Insert(K1 firstKey, K2 secondKey, V value)
         {
             if (table.TryGetValue(firstKey, out Dictionary<K2, V> map))
                 map[secondKey] = value;
@@ -125,9 +125,6 @@ namespace Helion.Util.Container
                     yield return new HashTableEntry<K1, K2, V>(firstKeyMap.Key, secondKeyValue.Key, secondKeyValue.Value);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

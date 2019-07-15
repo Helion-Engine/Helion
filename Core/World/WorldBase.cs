@@ -1,19 +1,22 @@
 ﻿using Helion.Maps;
-using Helion.Projects;
+using Helion.Resources.Archives.Collection;
+using Helion.Util.Configuration;
 using Helion.World.Geometry;
 
 namespace Helion.World
 {
     public abstract class WorldBase
     {
-        public int Gametick { get; private set; } = 0;
-        public Map Map;
-        public BspTree BspTree;
-        protected Project Project;
+        public int Gametick { get; private set; }
+        public readonly Map Map;
+        public readonly BspTree BspTree;
+        protected readonly ArchiveCollection ArchiveCollection;
+        protected readonly Config Config;
 
-        protected WorldBase(Project project, Map map, BspTree bspTree)
+        protected WorldBase(Config config, ArchiveCollection archiveCollection, Map map, BspTree bspTree)
         {
-            Project = project;
+            ArchiveCollection = archiveCollection;
+            Config = config;
             Map = map;
             BspTree = bspTree;
         }

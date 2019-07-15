@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Geometry;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Texture
@@ -38,27 +39,40 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// The name of the texture.
         /// </summary>
-        public CiString Name { get; }
+        public readonly CIString Name;
 
         /// <summary>
         /// The width of the texture.
         /// </summary>
-        public int Width { get; }
+        public readonly int Width;
 
         /// <summary>
         /// The height of the texture.
         /// </summary>
-        public int Height { get; }
+        public readonly int Height;
 
         /// <summary>
         /// All the patches that make up the texture.
         /// </summary>
-        public List<TextureXPatch> Patches { get; }
+        public readonly List<TextureXPatch> Patches;
+        
+        /// <summary>
+        /// Gets the dimension for this image.
+        /// </summary>
+        public Dimension Dimension => new Dimension(Width, Height);
 
-        public TextureXImage(CiString name, int width, int height, List<TextureXPatch> patches)
+        /// <summary>
+        /// Creates a new texture1/2/3 image.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="width">The image width.</param>
+        /// <param name="height">The image height.</param>
+        /// <param name="patches">All the patches that make up the texture.
+        /// </param>
+        public TextureXImage(CIString name, int width, int height, List<TextureXPatch> patches)
         {
-            Precondition(width >= 0, "Texture X image width must not be negative");
-            Precondition(height >= 0, "Texture X image height must not be negative");
+            Precondition(width >= 0, "TextureX image width must not be negative");
+            Precondition(height >= 0, "TextureX image height must not be negative");
 
             Name = name;
             Patches = patches;
@@ -72,16 +86,17 @@ namespace Helion.Resources.Definitions.Texture
     /// </summary>
     public class TextureX
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         /// <summary>
-        /// All the different textures.
+        /// All the different textures that make up this data structure.
         /// </summary>
-        public List<TextureXImage> Definitions;
+        public readonly List<TextureXImage> Definitions;
 
-        public TextureX() : this(new List<TextureXImage>())
+        private TextureX(List<TextureXImage> definitions)
         {
+            Definitions = definitions;            
         }
-
-        private TextureX(List<TextureXImage> definitions) => Definitions = definitions;
 
         /// <summary>
         /// Attempts to read the Texture1/2/3 data.
@@ -132,8 +147,48 @@ namespace Helion.Resources.Definitions.Texture
             }
             catch
             {
+                Log.Warn("Corrupt TextureX entry, textures will likely be missing");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Creates a series of texture definitions from the pnames provided.
+        /// </summary>
+        /// <param name="pnames">The pnames to make the texture definitions
+        /// with.</param>
+        /// <returns>A list of all the texture definitions.</returns>
+        public List<TextureDefinition> ToTextureDefinitions(Pnames pnames)
+        {
+            List<TextureDefinition> definitions = new List<TextureDefinition>();
+
+            foreach (TextureXImage image in Definitions)
+            {
+                List<TextureDefinitionComponent> components = CreateComponents(image, pnames);
+                definitions.Add(new TextureDefinition(image.Name, image.Dimension, ResourceNamespace.Textures, components));
+            }
+
+            return definitions;
+        }
+
+        private List<TextureDefinitionComponent> CreateComponents(TextureXImage image, Pnames pnames)
+        {
+            List<TextureDefinitionComponent> components = new List<TextureDefinitionComponent>();
+            
+            foreach (TextureXPatch patch in image.Patches)
+            {
+                if (patch.PnamesIndex < 0 || patch.PnamesIndex >= pnames.Names.Count)
+                {
+                    Log.Warn("Corrupt pnames index in texture {0}, texture will be corrupt", image.Name);
+                    continue;
+                }
+
+                CIString name = pnames.Names[patch.PnamesIndex];
+                TextureDefinitionComponent component = new TextureDefinitionComponent(name, patch.Offset);
+                components.Add(component);
+            }
+
+            return components;
         }
     }
 }

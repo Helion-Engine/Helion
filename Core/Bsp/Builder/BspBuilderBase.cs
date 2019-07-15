@@ -1,4 +1,6 @@
-﻿using Helion.Bsp.Geometry;
+﻿using System;
+using System.Collections.Generic;
+using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
@@ -7,8 +9,6 @@ using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
 using Helion.Util.Geometry;
-using System;
-using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Builder

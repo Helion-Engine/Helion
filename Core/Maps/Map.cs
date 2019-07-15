@@ -1,8 +1,9 @@
-﻿using Helion.Maps.Entries;
+﻿using System.Collections.Generic;
+using Helion.Maps.Entries;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Things;
 using Helion.Util;
-using System.Collections.Generic;
 
 namespace Helion.Maps
 {
@@ -12,18 +13,24 @@ namespace Helion.Maps
     /// </summary>
     public class Map
     {
-        public CiString Name;
-        public List<Line> Lines = new List<Line>();
-        public List<Side> Sides = new List<Side>();
-        public List<Sector> Sectors = new List<Sector>();
-        public List<SectorFlat> SectorFlats = new List<SectorFlat>();
-        public List<Vertex> Vertices = new List<Vertex>();
+        public readonly CIString Name;
+        public readonly MapType MapType;
+        public readonly List<Line> Lines = new List<Line>();
+        public readonly List<Thing> Things = new List<Thing>();
+        public readonly List<Side> Sides = new List<Side>();
+        public readonly List<Sector> Sectors = new List<Sector>();
+        public readonly List<SectorFlat> SectorFlats = new List<SectorFlat>();
+        public readonly List<Vertex> Vertices = new List<Vertex>();
 
-        private Map(CiString name) => Name = name;
+        private Map(CIString name, MapType type)
+        {
+            Name = name;
+            MapType = type;
+        }
 
         public static Map? From(MapEntryCollection mapEntryCollection)
         {
-            Map map = new Map(mapEntryCollection.Name);
+            Map map = new Map(mapEntryCollection.Name, mapEntryCollection.MapType);
 
             if (!MapEntryReader.ReadInto(mapEntryCollection, map))
                 return null;

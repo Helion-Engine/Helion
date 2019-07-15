@@ -18,12 +18,14 @@
         /// <summary>
         /// The arguments for the action special.
         /// </summary>
-        public byte[] Args { get; } = new byte[] { 0, 0, 0, 0, 0 };
+        public byte[] Args { get; } = { 0, 0, 0, 0, 0 };
 
         /// <summary>
         /// Creates a default action special, which has no action special type.
         /// </summary>
-        public ActionSpecial() { }
+        public ActionSpecial()
+        {
+        }
 
         /// <summary>
         /// Creates an action special with the provided arguments.
@@ -37,7 +39,7 @@
         public ActionSpecial(ActionSpecialID type, byte arg0, byte arg1, byte arg2, byte arg3, byte arg4)
         {
             Special = type;
-            Args = new byte[] { arg0, arg1, arg2, arg3, arg4 };
+            Args = new[] { arg0, arg1, arg2, arg3, arg4 };
         }
-    };
+    }
 }

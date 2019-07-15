@@ -58,13 +58,13 @@ namespace Helion.World.Geometry
         /// Gets the left childs index as if it were a subsector (without the
         /// subsector bit set).
         /// </summary>
-        public ushort LeftChildAsSubsector => (ushort)(LeftChild & SubsectorMask);
+        public uint LeftChildAsSubsector => LeftChild & SubsectorMask;
 
         /// <summary>
         /// Gets the right childs index as if it were a subsector (without the
         /// subsector bit set).
         /// </summary>
-        public ushort RightChildAsSubsector => (ushort)(RightChild & SubsectorMask);
+        public uint RightChildAsSubsector => RightChild & SubsectorMask;
 
         /// <summary>
         /// Creates a compact node from a left and right index.
@@ -75,7 +75,7 @@ namespace Helion.World.Geometry
         /// the children.</param>
         /// <param name="boundingBox">The bounding box for this node, which is 
         /// the minimal size needed to contain every child under this.</param>
-        public BspNodeCompact(ushort leftChild, ushort rightChild, Seg2D splitter, Box2D boundingBox)
+        public BspNodeCompact(uint leftChild, uint rightChild, Seg2D splitter, Box2D boundingBox)
         {
             LeftChild = leftChild;
             RightChild = rightChild;

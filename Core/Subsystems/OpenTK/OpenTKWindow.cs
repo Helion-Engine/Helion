@@ -1,8 +1,8 @@
 using System;
 using Helion.Input;
-using Helion.Projects;
 using Helion.Render;
 using Helion.Render.OpenGL;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -24,24 +24,15 @@ namespace Helion.Subsystems.OpenTK
         private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
         private bool m_disposed;
         
-        public OpenTKWindow(Config cfg, Project project, Action gameLoopFunction) :
+        public OpenTKWindow(Config cfg, ArchiveCollection archiveCollection, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
             m_config = cfg;
             m_windowId = nextAvailableWindowId++;
-            m_renderer = new GLRenderer(cfg, project);
+            m_renderer = new GLRenderer(cfg, archiveCollection);
             m_gameLoopFunc = gameLoopFunction;
 
-            CursorVisible = !m_config.Engine.Developer.MouseFocus;
-            m_config.Engine.Developer.MouseFocus.OnChanged += OnMouseFocusChanged;
-                
-            VSync = m_config.Engine.Window.VSync.Get().ToOpenTKVSync(); 
-            m_config.Engine.Window.VSync.OnChanged += OnVSyncChanged;
-
-            WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState(); 
-            m_config.Engine.Window.State.OnChanged += OnWindowStateChanged;
-            
-            // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
+            RegisterConfigListeners();
         }
 
         ~OpenTKWindow()
@@ -49,12 +40,21 @@ namespace Helion.Subsystems.OpenTK
             Dispose(false);
         }
 
-        private static GraphicsMode MakeGraphicsMode(Config cfg)
+        public int GetId() => m_windowId;
+
+        public InputEvent PollInput() => m_inputAdapter.PollInput();
+
+        public IRenderer GetRenderer() => m_renderer;
+
+        public Dimension GetDimension() => new Dimension(Width, Height);
+
+        public override void Dispose()
         {
-            int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
-            return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
+        
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             if (Focused)
@@ -130,30 +130,7 @@ namespace Helion.Subsystems.OpenTK
             
             base.OnRenderFrame(e);
         }
-
-        private void OnMouseFocusChanged(object sender,  ConfigValueEvent<bool> mouseFocusEvent)
-        {
-            CursorVisible = !mouseFocusEvent.NewValue;
-        }
         
-        private void OnVSyncChanged(object sender, ConfigValueEvent<VerticalSync> vsyncEvent)
-        {
-            VSync = vsyncEvent.NewValue.ToOpenTKVSync();
-        }
-        
-        private void OnWindowStateChanged(object sender, ConfigValueEvent<WindowStatus> stateEvent)
-        {
-            WindowState = stateEvent.NewValue.ToOpenTKWindowState();
-        }
-
-        public int GetId() => m_windowId;
-
-        public InputEvent PollInput() => m_inputAdapter.PollInput();
-
-        public IRenderer GetRenderer() => m_renderer;
-
-        public Dimension GetDimension() => new Dimension(Width, Height);
-
         protected override void Dispose(bool disposing)
         {
             if (m_disposed)
@@ -172,11 +149,40 @@ namespace Helion.Subsystems.OpenTK
 
             base.Dispose(disposing);
         }
-        
-        public override void Dispose()
+
+        private static GraphicsMode MakeGraphicsMode(Config cfg)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
+            return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
+        }
+        
+        private void RegisterConfigListeners()
+        {
+            CursorVisible = !m_config.Engine.Developer.MouseFocus;
+            m_config.Engine.Developer.MouseFocus.OnChanged += OnMouseFocusChanged;
+                
+            VSync = m_config.Engine.Window.VSync.Get().ToOpenTKVSync(); 
+            m_config.Engine.Window.VSync.OnChanged += OnVSyncChanged;
+
+            WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState(); 
+            m_config.Engine.Window.State.OnChanged += OnWindowStateChanged;
+            
+            // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
+        }
+        
+        private void OnMouseFocusChanged(object sender,  ConfigValueEvent<bool> mouseFocusEvent)
+        {
+            CursorVisible = !mouseFocusEvent.NewValue;
+        }
+        
+        private void OnVSyncChanged(object sender, ConfigValueEvent<VerticalSync> vsyncEvent)
+        {
+            VSync = vsyncEvent.NewValue.ToOpenTKVSync();
+        }
+        
+        private void OnWindowStateChanged(object sender, ConfigValueEvent<WindowStatus> stateEvent)
+        {
+            WindowState = stateEvent.NewValue.ToOpenTKWindowState();
         }
     }
 }
