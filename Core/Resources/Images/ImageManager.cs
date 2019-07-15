@@ -10,6 +10,11 @@ using Image = Helion.Graphics.Image;
 
 namespace Helion.Resources.Images
 {
+    /// <summary>
+    /// Responsible for retrieving/compiling images from an archive collection
+    /// and cleaning up resources so that only the images needed are available
+    /// in memory.
+    /// </summary>
     public class ImageManager
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -17,11 +22,26 @@ namespace Helion.Resources.Images
         private readonly ArchiveCollection m_archiveCollection;
         private readonly ResourceTracker<Image> m_compiledImages = new ResourceTracker<Image>();
 
+        /// <summary>
+        /// Creates an image manager that uses the archive collection for its
+        /// image data retrieval.
+        /// </summary>
+        /// <param name="archiveCollection">The collection to utilize.</param>
         public ImageManager(ArchiveCollection archiveCollection)
         {
             m_archiveCollection = archiveCollection;
         }
 
+        /// <summary>
+        /// Gets an image with the name provided, with priority given to the
+        /// namespace.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="priorityNamespace">The namespace to search first.
+        /// </param>
+        /// <returns>The image if one was found or compiled, or null if none
+        /// exists. This can return a non-null value if an image exists in some
+        /// other namespace.</returns>
         public Image? Get(CIString name, ResourceNamespace priorityNamespace)
         {
             Image? compiledImage = m_compiledImages.Get(name, priorityNamespace);
@@ -36,6 +56,14 @@ namespace Helion.Resources.Images
             return entry != null ? ImageFromEntry(entry) : null;
         }
         
+        /// <summary>
+        /// Similar to <see cref="Get"/> except it will only check for the
+        /// namespace provided.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="targetNamespace">The namespace to check.</param>
+        /// <returns>An object that is part of the namespace provided, or null
+        /// if it does not exist or cannot be compiled.</returns>
         public Image? GetOnly(CIString name, ResourceNamespace targetNamespace)
         {
             Image? compiledImage = m_compiledImages.GetOnly(name, targetNamespace);

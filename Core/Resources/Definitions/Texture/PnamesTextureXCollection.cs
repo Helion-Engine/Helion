@@ -6,7 +6,9 @@ namespace Helion.Resources.Definitions.Texture
     /// Holds references to pnames and texture1/2/3 definition entries.
     /// </summary>
     /// <remarks>
-    /// Designed as a wrapper around both types since the 
+    /// Designed as a wrapper around both types since we want to make sure when
+    /// we operate on a collection of pnames/textureX that we have both entries
+    /// and they are not corrupt in some way.
     /// </remarks>
     public class PnamesTextureXCollection
     {

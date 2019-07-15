@@ -1,5 +1,5 @@
-﻿using Helion.Util;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Helion.Util;
 
 namespace Helion.Resources.Definitions.Texture
 {
@@ -11,10 +11,12 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// All the names that make up their respective indices.
         /// </summary>
-        public List<CIString> Names { get; }
-
-        public Pnames() => Names = new List<CIString>();
-        private Pnames(List<CIString> names) => Names = names;
+        public readonly List<CIString> Names;
+        
+        private Pnames(List<CIString> names)
+        {
+            Names = names;
+        }
 
         /// <summary>
         /// Tries to read the Pnames data into a Pnames object.

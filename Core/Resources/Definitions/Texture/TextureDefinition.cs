@@ -5,7 +5,8 @@ using Helion.Util.Geometry;
 namespace Helion.Resources.Definitions.Texture
 {
     /// <summary>
-    /// A definition for a custom image.
+    /// A universal and shared definition for an image that is to be compiled
+    /// out of one or more images.
     /// </summary>
     public class TextureDefinition
     {

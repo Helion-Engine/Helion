@@ -16,10 +16,18 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
+        /// <summary>
+        /// All of the texture definitions from the parsed files.
+        /// </summary>
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
+        
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
+        /// <summary>
+        /// Creates a definition entries data structure which has no tracked
+        /// data.
+        /// </summary>
         public DefinitionEntries()
         {
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));
@@ -28,6 +36,11 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
         }
         
+        /// <summary>
+        /// Tracks all the resources from an archive.
+        /// </summary>
+        /// <param name="archive">The archive to examine for any texture
+        /// definitions.</param>
         public void Track(Archive archive)
         {
             m_pnamesTextureXCollection = new PnamesTextureXCollection();

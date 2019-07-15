@@ -4,7 +4,8 @@ using Helion.Util.Geometry;
 namespace Helion.Resources.Definitions.Texture
 {
     /// <summary>
-    /// A component of a texture definition, which is a sub-image in the image.
+    /// A component of a texture definition, which is a sub-image in the image
+    /// to be compiled.
     /// </summary>
     public class TextureDefinitionComponent
     {
