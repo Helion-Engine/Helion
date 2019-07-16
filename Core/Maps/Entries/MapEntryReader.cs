@@ -89,9 +89,9 @@ namespace Helion.Maps.Entries
             {
                 short offsetX = reader.ReadInt16();
                 short offsetY = reader.ReadInt16();
-                string upperTexture = reader.ReadEightByteString();
-                string lowerTexture = reader.ReadEightByteString();
-                string middleTexture = reader.ReadEightByteString();
+                string upperTexture = reader.ReadEightByteString().ToUpper();
+                string lowerTexture = reader.ReadEightByteString().ToUpper();
+                string middleTexture = reader.ReadEightByteString().ToUpper();
                 ushort sectorIndex = reader.ReadUInt16();
 
                 if (sectorIndex >= map.Sectors.Count)

@@ -37,7 +37,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void EmptyString()
         {
-            AssertMatches("", new Tuple<string, Color>[]
+            AssertMatches("", new[]
                 {
                     Tuple.Create("", ColoredString.DefaultColor),
                 }
@@ -47,7 +47,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void NoColorDecoding()
         {
-            AssertMatches("some str", new Tuple<string, Color>[]
+            AssertMatches("some str", new[]
                 {
                     Tuple.Create("some str", ColoredString.DefaultColor),
                 }
@@ -57,7 +57,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void SingleColor()
         {
-            AssertMatches(@"a\c[123,45,6]color", new Tuple<string, Color>[]
+            AssertMatches(@"a\c[123,45,6]color", new[]
                 {
                     Tuple.Create("a", Color.White),
                     Tuple.Create("color", Color.FromArgb(123, 45, 6)),
@@ -68,7 +68,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void ColorAtEndOfStringDoesNothing()
         {
-            AssertMatches(@"some str\c[1,2,3]", new Tuple<string, Color>[]
+            AssertMatches(@"some str\c[1,2,3]", new[]
                 {
                     Tuple.Create("some str", ColoredString.DefaultColor),
                 }
@@ -78,7 +78,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void MultipleColors()
         {
-            AssertMatches(@"\c[123,45,6] \c[0,0,0]some c\c[255,0,255]olor\c[1,2,1]s", new Tuple<string, Color>[]
+            AssertMatches(@"\c[123,45,6] \c[0,0,0]some c\c[255,0,255]olor\c[1,2,1]s", new[]
                 {
                     Tuple.Create(" ", Color.FromArgb(123, 45, 6)),
                     Tuple.Create("some c", Color.FromArgb(0, 0, 0)),
@@ -91,7 +91,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void MalformedColorCodeIsIgnored()
         {
-            AssertMatches(@"\c[0,0,0hi", new Tuple<string, Color>[]
+            AssertMatches(@"\c[0,0,0hi", new[]
                 {
                     Tuple.Create(@"\c[0,0,0hi", ColoredString.DefaultColor),
                 }
@@ -101,7 +101,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void HigherThan255IsClamped()
         {
-            AssertMatches(@"\c[0,5,982]hi", new Tuple<string, Color>[]
+            AssertMatches(@"\c[0,5,982]hi", new[]
                 {
                     Tuple.Create("hi", Color.FromArgb(0, 5, 255)),
                 }
@@ -111,7 +111,7 @@ namespace Helion.Test.Graphics.String
         [TestMethod]
         public void CannotUseNegatives()
         {
-            AssertMatches(@"\c[0,-5,1]hi", new Tuple<string, Color>[]
+            AssertMatches(@"\c[0,-5,1]hi", new[]
                 {
                     Tuple.Create(@"\c[0,-5,1]hi", ColoredString.DefaultColor),
                 }

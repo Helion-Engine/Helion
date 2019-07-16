@@ -12,7 +12,7 @@
         PartitioningSegments,
         GeneratingMinisegs,
         FinishingSplit,
-        Complete
+        Complete,
     }
 
     /// <summary>

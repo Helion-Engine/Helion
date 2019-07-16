@@ -78,30 +78,34 @@ namespace Helion.Resources.Images
             return entry != null ? ImageFromEntry(entry) : null;
         }
 
-        private Image? ImageFromDefinition(TextureDefinition definition)
+        private Image ImageFromDefinition(TextureDefinition definition)
         {
             ImageMetadata imageMetadata = new ImageMetadata(definition.Namespace);
             Image image = new Image(definition.Width, definition.Height, Color.Transparent, imageMetadata);
             
             foreach (TextureDefinitionComponent component in definition.Components)
             {
-                Image? subImage = null;
-                
-                // TODO: Avoid infinite recursion for cyclic definitions!
-                
-                // If we have an identical name to the child patch, we have to
-                // look in our entry list only because it can lead to infinite
-                // recursion and a stack overflow. Lots of vanilla wads do this
-                // unfortunately...
-                if (component.Name == definition.Name)
+                Image? subImage = m_compiledImages.Get(component.Name, definition.Namespace);
+
+                if (subImage == null)
                 {
-                    Entry? entry = m_archiveCollection.GetEntry(component.Name, definition.Namespace);
-                    if (entry != null)
-                        subImage = ImageFromEntry(entry);
+                    // If we have an identical name to the child patch, we have
+                    // to look in our entry list only because it can lead to
+                    // infinite recursion and a stack overflow. Lots of vanilla
+                    // wads do this unfortunately...
+                    // TODO: We could consider returning that and not making a
+                    //       second exact texture if the definition ends up
+                    //       making the same thing (ex: see BFALL1).
+                    if (component.Name == definition.Name)
+                    {
+                        Entry? entry = m_archiveCollection.GetEntry(component.Name, definition.Namespace);
+                        if (entry != null)
+                            subImage = ImageFromEntry(entry);
+                    }
+                    else
+                        subImage = Get(component.Name, definition.Namespace);
                 }
-                else
-                    subImage = Get(component.Name, definition.Namespace);
-                
+
                 if (subImage == null)
                 {
                     Log.Warn("Cannot find sub-image {0} when making image {1}, resulting will be corrupt", component.Name, definition.Name);
@@ -111,6 +115,7 @@ namespace Helion.Resources.Images
                 subImage.DrawOnTopOf(image, component.Offset);
             }
 
+            m_compiledImages.Insert(definition.Name, definition.Namespace, image);
             return image;
         }
 
