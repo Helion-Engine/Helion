@@ -4,6 +4,7 @@ using Helion.Graphics;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Atlas;
 using Helion.Util.Configuration;
@@ -75,11 +76,14 @@ namespace Helion.Render.OpenGL.Texture
         /// <param name="name">The texture name.</param>
         /// <param name="priorityNamespace">The namespace to search first.
         /// </param>
+        /// <param name="imageRetriever">The image retriever. This may be null
+        /// if you don't expect to do multiple image compilations in one go,
+        /// as it will instantiate a default one for you.</param>
         /// <returns>The handle for the texture in the provided namespace, or
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture Get(CIString name, ResourceNamespace priorityNamespace)
+        public GLTexture Get(CIString name, ResourceNamespace priorityNamespace, IImageRetriever? imageRetriever = null)
         {
             if (name == Constants.NoTexture)
                 return NullTextureHandle;
@@ -88,6 +92,9 @@ namespace Helion.Render.OpenGL.Texture
             if (textureForNamespace != null) 
                 return textureForNamespace;
             
+            if (imageRetriever == null)
+                imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
+            
             // The reason we do this check before checking other namespaces is
             // that we can end up missing the texture for the namespace in some
             // pathological scenarios. Suppose we draw some texture that shares
@@ -95,7 +102,7 @@ namespace Helion.Render.OpenGL.Texture
             // we check the GL texture cache first, we will find the texture
             // and miss the flat and then never know that there is a specific
             // flat that should have been used.
-            Image? imageForNamespace = m_archiveCollection.Images.GetOnly(name, priorityNamespace);
+            Image? imageForNamespace = imageRetriever.GetOnly(name, priorityNamespace);
             if (imageForNamespace != null) 
                 return CreateTexture(imageForNamespace, name, priorityNamespace);
 
@@ -108,7 +115,7 @@ namespace Helion.Render.OpenGL.Texture
             // Note that because we are getting any texture, we don't want to
             // use the provided namespace since if we ask for a flat, but get a
             // texture, and then index it as a flat... things probably go bad.
-            Image? image = m_archiveCollection.Images.Get(name, priorityNamespace);
+            Image? image = imageRetriever.Get(name, priorityNamespace);
             return image != null ? CreateTexture(image, name, image.Metadata.Namespace) : NullTextureHandle;
         }
 
@@ -117,22 +124,34 @@ namespace Helion.Render.OpenGL.Texture
         /// it cannot be found, the null texture handle is returned.
         /// </summary>
         /// <param name="name">The texture name.</param>
+        /// <param name="imageRetriever">The image retriever. This may be null
+        /// if you don't expect to do multiple image compilations in one go,
+        /// as it will instantiate a default one for you.</param>
         /// <returns>The handle for the texture in the provided namespace, or
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture GetWallTexture(CIString name) => Get(name, ResourceNamespace.Textures);
-        
+        public GLTexture GetWallTexture(CIString name, IImageRetriever? imageRetriever = null)
+        {
+            return Get(name, ResourceNamespace.Textures, imageRetriever);
+        }
+
         /// <summary>
         /// Gets the texture, with priority given to the flat namespace. If it
         /// cannot be found, the null texture handle is returned.
         /// </summary>
         /// <param name="name">The flat texture name.</param>
+        /// <param name="imageRetriever">The image retriever. This may be null
+        /// if you don't expect to do multiple image compilations in one go,
+        /// as it will instantiate a default one for you.</param>
         /// <returns>The handle for the texture in the provided namespace, or
         /// the texture in another namespace if the texture was not found in
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
-        public GLTexture GetFlatTexture(CIString name) => Get(name, ResourceNamespace.Flats);
+        public GLTexture GetFlatTexture(CIString name, IImageRetriever? imageRetriever = null)
+        {
+            return Get(name, ResourceNamespace.Flats, imageRetriever);
+        }
 
         /// <summary>
         /// Binds both the texture unit and the texture for rendering.

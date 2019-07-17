@@ -5,7 +5,6 @@ using Helion.Resources.Archives.Iterator;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Data;
 using Helion.Resources.Definitions;
-using Helion.Resources.Images;
 using Helion.Util;
 using NLog;
 
@@ -21,7 +20,6 @@ namespace Helion.Resources.Archives.Collection
 
         public readonly DefinitionEntries Definitions = new DefinitionEntries();
         public readonly DataEntries Data = new DataEntries();
-        public readonly ImageManager Images;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new List<Archive>();
         private readonly ArchiveCollectionEntries m_entries = new ArchiveCollectionEntries();
@@ -29,7 +27,6 @@ namespace Helion.Resources.Archives.Collection
         public ArchiveCollection(IArchiveLocator archiveLocator)
         {
             m_archiveLocator = archiveLocator;
-            Images = new ImageManager(this);
         }
 
         public bool Load(IEnumerable<string> files)

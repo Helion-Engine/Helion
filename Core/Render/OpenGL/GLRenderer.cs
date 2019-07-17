@@ -41,7 +41,7 @@ namespace Helion.Render.OpenGL
         {
             m_config = config;
             m_textureManager = new GLTextureManager(config, Capabilities, archiveCollection);
-            m_worldRenderer = new WorldRenderer(config, Capabilities, m_textureManager);
+            m_worldRenderer = new WorldRenderer(config, Capabilities, archiveCollection, m_textureManager);
 
             PrintGLInfo();
             SetGLStates();

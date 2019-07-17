@@ -5,6 +5,7 @@ using System.Numerics;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World.Geometry;
@@ -15,23 +16,23 @@ namespace Helion.Render.Shared.World
     public class WorldTriangulator
     {
         private readonly Func<CIString, Dimension> m_textureDimensionFinder;
-        
+
+        private WorldTriangulator(Func<CIString, Dimension> textureDimensionFinder)
+        {
+            m_textureDimensionFinder = textureDimensionFinder;
+        }
+
         public static LineTriangles Triangulate(Line line, Func<CIString, Dimension> textureDimensionFinder)
         {
             WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
             return line.OneSided ? triangulator.TriangulateOneSided(line) : 
                                    triangulator.TriangulateTwoSided(line);
         }
-        
+
         public static SubsectorTriangles Triangulate(Subsector subsector, Func<CIString, Dimension> textureDimensionFinder)
         {
             WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
             return triangulator.TriangulateSubsector(subsector);
-        }
-
-        private WorldTriangulator(Func<CIString, Dimension> textureDimensionFinder)
-        {
-            m_textureDimensionFinder = textureDimensionFinder;
         }
 
         private static void CalculateTwoSidedMiddlePosition(ref Vector3 top, ref Vector3 bottom, 

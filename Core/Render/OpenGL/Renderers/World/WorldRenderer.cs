@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Renderers.World.Geometry;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.World;
 
@@ -14,10 +15,11 @@ namespace Helion.Render.OpenGL.Renderers.World
         private readonly WorldGeometryRenderer m_worldGeometryRenderer;
         private WeakReference<WorldBase?> m_lastRenderedWorld = new WeakReference<WorldBase?>(null);
 
-        public WorldRenderer(Config config, GLCapabilities capabilities, GLTextureManager textureManager)
+        public WorldRenderer(Config config, GLCapabilities capabilities, ArchiveCollection archiveCollection,
+            GLTextureManager textureManager)
         {
             m_textureManager = textureManager;
-            m_worldGeometryRenderer = new WorldGeometryRenderer(config, capabilities, textureManager);
+            m_worldGeometryRenderer = new WorldGeometryRenderer(config, capabilities, archiveCollection, textureManager);
         }
 
         ~WorldRenderer()
