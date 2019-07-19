@@ -5,10 +5,9 @@ using System.Numerics;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
-using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Geometry;
-using Helion.World.Geometry;
+using Helion.World.Bsp;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World

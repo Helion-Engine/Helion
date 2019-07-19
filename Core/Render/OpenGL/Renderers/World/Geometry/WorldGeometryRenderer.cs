@@ -11,7 +11,7 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World;
-using Helion.World.Geometry;
+using Helion.World.Bsp;
 using MoreLinq;
 using OpenTK;
 

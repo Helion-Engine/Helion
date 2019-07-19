@@ -64,6 +64,8 @@ namespace Helion.Util.Geometry
 
     public struct Vec3D
     {
+        public static readonly Vec3D Zero = new Vec3D(0, 0, 0);
+        
         public double X;
         public double Y;
         public double Z;

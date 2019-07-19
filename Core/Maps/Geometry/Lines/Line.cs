@@ -1,31 +1,27 @@
-﻿using Helion.Util.Container;
+﻿using System.Collections.Generic;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
-using System.Collections.Generic;
 
 namespace Helion.Maps.Geometry.Lines
 {
     public class Line
     {
         public readonly int Id;
+        
         public readonly Vertex StartVertex;
+        
         public readonly Vertex EndVertex;
+        
         public Side Front;
+        
         public Side? Back;
+        
         public LineFlags Flags;
-        private Seg2D segment;
-        public Seg2Fixed SegmentFixed { get; private set; }
-
-        public Seg2D Segment 
-        {
-            get => segment;
-            set 
-            {
-                segment = value;
-                SegmentFixed = new Seg2Fixed(StartVertex.FixedPosition, EndVertex.FixedPosition);
-            }
-        }
+        
+        public Seg2D Segment;
 
         public bool OneSided => Back == null;
+        
         public bool TwoSided => !OneSided;
 
         public IList<Side> Sides { get { return Containers.WithoutNulls(Front, Back); } }
@@ -38,8 +34,7 @@ namespace Helion.Maps.Geometry.Lines
             Front = front;
             Back = back;
             Flags = lineFlags;
-            segment = new Seg2D(StartVertex.Position, EndVertex.Position);
-            SegmentFixed = new Seg2Fixed(StartVertex.FixedPosition, EndVertex.FixedPosition);
+            Segment = new Seg2D(StartVertex.Position, EndVertex.Position);
 
             startVertex.Add(this);
             endVertex.Add(this);

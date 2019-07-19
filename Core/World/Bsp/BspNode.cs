@@ -1,6 +1,6 @@
 ﻿using Helion.Util.Geometry;
 
-namespace Helion.World.Geometry
+namespace Helion.World.Bsp
 {
     /// <summary>
     /// A cache aware BSP node that uses as little space as possible.

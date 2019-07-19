@@ -12,7 +12,7 @@ using Helion.Util.Geometry;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Geometry
+namespace Helion.World.Bsp
 {
     /// <summary>
     /// The compiled BSP tree that condenses the builder data into a cache
@@ -99,6 +99,13 @@ namespace Helion.World.Geometry
         /// <returns>The sector for the provided point.</returns>
         public Sector ToSector(Vec2D point) => ToSubsector(point).Sector;
         
+        /// <summary>
+        /// Gets the sector that maps onto the point provided.
+        /// </summary>
+        /// <param name="point">The point to get the sector for.</param>
+        /// <returns>The sector for the provided point.</returns>
+        public Sector ToSector(Vec3D point) => ToSubsector(point.To2D()).Sector;
+        
         private BspTree(BspNode root, Map map)
         {
             Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
@@ -144,7 +151,7 @@ namespace Helion.World.Geometry
             return null;
         }
         
-        private static Side? GetSideFromEdge(Bsp.Node.SubsectorEdge edge, Map map)
+        private static Side? GetSideFromEdge(Helion.Bsp.Node.SubsectorEdge edge, Map map)
         {
             if (edge.IsMiniseg)
                 return null;
@@ -196,7 +203,7 @@ namespace Helion.World.Geometry
         {
             List<SubsectorEdge> returnSegments = new List<SubsectorEdge>();
             
-            foreach (Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
+            foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge, map);
                 SubsectorEdge subsectorEdge = new SubsectorEdge(Segments.Count, side, edge.Start, edge.End);

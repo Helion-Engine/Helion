@@ -8,7 +8,7 @@ namespace Helion.Maps.Things
     {
         public readonly int Id;
         public Vec3D Position;
-        public float angleRadians;
+        public double AngleRadians;
         public ushort EditorNumber;
         public ushort Tid;
         public ThingFlags Flags;
@@ -18,7 +18,7 @@ namespace Helion.Maps.Things
         {
             Id = id;
             Position = new Vec3D(position.X, position.Y, 0.0);
-            angleRadians = ByteAngleToRadians(byteAngle);
+            AngleRadians = ByteAngleToRadians(byteAngle);
             EditorNumber = editorNumber;
             Flags = new ThingFlags(flags);
             Special = new ActionSpecial();
@@ -29,13 +29,13 @@ namespace Helion.Maps.Things
         {
             Id = id;
             Position = new Vec3D(position.X, position.Y, 0.0);
-            angleRadians = ByteAngleToRadians(byteAngle);
+            AngleRadians = ByteAngleToRadians(byteAngle);
             EditorNumber = editorNumber;
             Tid = tid;
             Flags = new ThingFlags(flags);
             Special = actionSpecial;
         }
 
-        private static float ByteAngleToRadians(byte angle) => (float)(angle / 255.0 * MathHelper.TwoPi);
+        private static double ByteAngleToRadians(byte angle) => angle / 255.0 * MathHelper.TwoPi;
     }
 }

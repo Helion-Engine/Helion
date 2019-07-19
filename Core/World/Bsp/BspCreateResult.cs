@@ -1,4 +1,4 @@
-namespace Helion.World.Geometry
+namespace Helion.World.Bsp
 {
     /// <summary>
     /// A helper class for propagating recursive information when building.

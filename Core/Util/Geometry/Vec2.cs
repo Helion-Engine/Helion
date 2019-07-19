@@ -77,6 +77,8 @@ namespace Helion.Util.Geometry
         public static bool operator !=(Vec2D self, Vec2D other) => !(self == other);
         public double this[int index] => index == 0 ? X : Y;
 
+        public Vec2D Floor() => new Vec2D(Math.Floor(X), Math.Floor(Y));
+        public Vec2D Ceil() => new Vec2D(Math.Ceiling(X), Math.Ceiling(Y));
         public Vec2D Abs() => new Vec2D(Math.Abs(X), Math.Abs(Y));
         public Vec2D Unit() => this / Length();
         public void Normalize() => this /= Length();

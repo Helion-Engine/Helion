@@ -1,11 +1,12 @@
 using Helion.Input;
 using Helion.Maps;
 using Helion.Render.Commands;
+using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Time;
-using Helion.World.Entity.Player;
+using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
 
@@ -27,7 +28,24 @@ namespace Helion.Layer.Impl
             
             m_ticker.Start();
         }
-        
+
+        public static SinglePlayerWorldLayer? Create(string mapName, Config config, ArchiveCollection archiveCollection)
+        {
+            (Map? map, MapEntryCollection? collection) = archiveCollection.FindMap(mapName);
+            if (map == null || collection == null)
+            {
+                Log.Warn("Unable to find map {0}", mapName);
+                return null;
+            }
+            
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, map, collection);
+            if (world != null)
+                return new SinglePlayerWorldLayer(world);
+            
+            Log.Warn("Map is corrupt, unable to create map {0}", mapName);
+            return null;
+        }
+
         public override void HandleInput(ConsumableInput consumableInput)
         {
             HandleMovementInput(consumableInput);
@@ -60,30 +78,15 @@ namespace Helion.Layer.Impl
 
         public override void Render(RenderCommands renderCommands)
         {
-            renderCommands.DrawWorld(m_world, m_world.Camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction);
-        }
-
-        public static SinglePlayerWorldLayer? Create(string mapName, Config config, ArchiveCollection archiveCollection)
-        {
-            (Map? map, MapEntryCollection? collection) = archiveCollection.FindMap(mapName);
-            if (map == null || collection == null)
-            {
-                Log.Warn("Unable to find map {0}", mapName);
-                return null;
-            }
-            
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, map, collection);
-            if (world != null)
-                return new SinglePlayerWorldLayer(world);
-            
-            Log.Warn("Map is corrupt, unable to create map {0}", mapName);
-            return null;
+            Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
+            renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction);
         }
 
         protected override double GetPriority() => 0.25;
 
         private void HandleMovementInput(ConsumableInput consumableInput)
         {
+            // TODO: Should pull from the config values.
             if (consumableInput.ConsumeKeyPressedOrDown(InputKey.W))
                 m_tickCommand.Add(TickCommands.Forward);
             if (consumableInput.ConsumeKeyPressedOrDown(InputKey.A))

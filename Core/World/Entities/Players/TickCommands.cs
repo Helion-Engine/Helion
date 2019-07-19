@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Helion.World.Entity.Player
+namespace Helion.World.Entities.Players
 {
     public enum TickCommands
     {

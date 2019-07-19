@@ -11,17 +11,17 @@ namespace Helion.Util
         /// <summary>
         /// A constant value for pi / 4.
         /// </summary>
-        public const float QuarterPi = (float)(Math.PI / 4);
+        public const double QuarterPi = Math.PI / 4;
         
         /// <summary>
         /// A constant value for pi / 2.
         /// </summary>
-        public const float HalfPi = (float)(Math.PI / 2);
+        public const double HalfPi = Math.PI / 2;
         
         /// <summary>
         /// A constant value for 2 * pi.
         /// </summary>
-        public const float TwoPi = (float)(2 * Math.PI);
+        public const double TwoPi = 2 * Math.PI;
         
         /// <summary>
         /// Checks if the value is equal to zero.

@@ -31,5 +31,10 @@ namespace Helion.Util
         /// The sky flat texture name.
         /// </summary>
         public static readonly CIString SkyTexture = "F_SKY1";
+        
+        /// <summary>
+        /// The name of the decorate player class.
+        /// </summary>
+        public static readonly CIString PlayerClass = "PLAYER";
     }
 }

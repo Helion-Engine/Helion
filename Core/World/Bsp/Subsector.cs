@@ -3,7 +3,7 @@ using Helion.Util.Geometry;
 using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Geometry
+namespace Helion.World.Bsp
 {
     public class Subsector
     {

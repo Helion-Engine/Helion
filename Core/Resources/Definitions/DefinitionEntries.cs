@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using MoreLinq;
@@ -20,6 +21,11 @@ namespace Helion.Resources.Definitions
         /// All of the texture definitions from the parsed files.
         /// </summary>
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
+
+        /// <summary>
+        /// All the parsed decorate definitions.
+        /// </summary>
+        public readonly DecorateDefinitions Decorate = new DecorateDefinitions();
         
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();

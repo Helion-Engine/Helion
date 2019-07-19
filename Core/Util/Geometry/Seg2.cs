@@ -16,7 +16,7 @@ namespace Helion.Util.Geometry
         Vertical,
         Horizontal,
         PositiveSlope,
-        NegativeSlope
+        NegativeSlope,
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ namespace Helion.Util.Geometry
     {
         Left,
         On,
-        Right
+        Right,
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ namespace Helion.Util.Geometry
     public enum Endpoint
     {
         Start,
-        End
+        End,
     }
 
     /// <summary>
@@ -246,7 +246,7 @@ namespace Helion.Util.Geometry
 
             if (t <= 0)
                 return point.Distance(Start);
-            else if (t >= 1)
+            if (t >= 1)
                 return point.Distance(End);
             return point.Distance(FromTime(t));
         }
@@ -362,6 +362,9 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <returns>The 90 degree right angle rotation of the delta.</returns>
         public Vector2 RightNormal() => Delta.OriginRightRotate90();
+        
+        /// <inheritdoc/>
+        public override string ToString() => $"({Start}), ({End})";
     }
 
     /// <summary>
@@ -726,7 +729,7 @@ namespace Helion.Util.Geometry
 
             if (t <= 0)
                 return point.Distance(Start);
-            else if (t >= 1)
+            if (t >= 1)
                 return point.Distance(End);
             return point.Distance(FromTime(t));
         }
@@ -842,6 +845,9 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <returns>The 90 degree right angle rotation of the delta.</returns>
         public Vec2D RightNormal() => Delta.OriginRightRotate90();
+
+        /// <inheritdoc/>
+        public override string ToString() => $"({Start}), ({End})";
     }
 
     /// <summary>
@@ -1480,5 +1486,8 @@ namespace Helion.Util.Geometry
             Vec2Fixed expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint);
         }
+        
+        /// <inheritdoc/>
+        public override string ToString() => $"({Start}), ({End})";
     }
 }
