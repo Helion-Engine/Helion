@@ -72,7 +72,7 @@ namespace Helion.Render.OpenGL
             // TODO: Find a better way of doing hardcoded near/farZ values.
             Matrix4 model = Matrix4.Identity;
             Matrix4 view = renderInfo.Camera.CalculateViewMatrix();
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fovY, aspectRatio, 16.0f, 8192.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fovY, aspectRatio, 7.9f, 8192.0f);
 
             // Unfortunately, C#/OpenTK do not follow C++/glm/glsl conventions
             // of left multiplication. Instead of doing p * v * m, it has to

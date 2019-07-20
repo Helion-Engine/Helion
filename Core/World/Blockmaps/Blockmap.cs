@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Helion.Maps;
 using Helion.Util.Container.Linkable;
@@ -27,6 +28,16 @@ namespace Helion.World.Blockmaps
             AddLinesToBlocks(map);
         }
 
+        public void Iterate(Entity entity, Func<Block, GridIterationStatus> func)
+        {
+            Iterate(entity.Box.To2D(), func);
+        }
+
+        public void Iterate(Box2D box, Func<Block, GridIterationStatus> func)
+        {
+            blocks.Iterate(box, func);
+        }
+        
         /// <summary>
         /// Links an entity to the grid.
         /// </summary>

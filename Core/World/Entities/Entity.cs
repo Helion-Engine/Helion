@@ -124,6 +124,19 @@ namespace Helion.World.Entities
         }
 
         /// <summary>
+        /// Resets any interpolation tracking variables.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used when we have some kind of movement which we do
+        /// not want any interpolation with the previous spot being done in the
+        /// renderer. An example of this would be going through a teleporter.
+        /// </remarks>
+        public void ResetInterpolation()
+        {
+            PrevPosition = Position;
+        }
+
+        /// <summary>
         /// Unlinks this entity from the world it is in, but not the entity
         /// list it belongs to.
         /// </summary>

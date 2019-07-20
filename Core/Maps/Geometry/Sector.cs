@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.Container.Linkable;
+using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Maps.Geometry
@@ -9,6 +11,7 @@ namespace Helion.Maps.Geometry
         public readonly int Id;
         public readonly List<Side> Sides = new List<Side>();
         public readonly List<SectorFlat> Flats = new List<SectorFlat>();
+        public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public byte LightLevel;
 
         public SectorFlat Floor => Flats[0];
@@ -33,5 +36,16 @@ namespace Helion.Maps.Geometry
 
             Sides.Add(side);
         }
+
+        public LinkableNode<Entity> Link(Entity entity)
+        {
+            // TODO: Precondition to assert the entity is in only once.
+            
+            return Entities.Add(entity);            
+        }
+
+        public override bool Equals(object obj) => obj is Sector sector && Id == sector.Id;
+
+        public override int GetHashCode() => Id.GetHashCode();
     }
 }

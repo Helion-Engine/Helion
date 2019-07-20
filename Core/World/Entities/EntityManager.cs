@@ -13,7 +13,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;
-using Console = System.Console;
 
 namespace Helion.World.Entities
 {
@@ -49,7 +48,9 @@ namespace Helion.World.Entities
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
             
-            LinkToWorld(entity);
+            m_physicsManager.LinkToWorld(entity);
+
+            entity.ResetInterpolation();
             
             return entity;
         }
@@ -64,12 +65,7 @@ namespace Helion.World.Entities
             return player;
         }
         
-        public void LinkToWorld(Entity entity)
-        {
-            m_blockmap.Link(entity);
-            m_physicsManager.Link(entity);
-        }
-        
+        // TODO: Change this method name, it clashes with another...
         public Player? CreatePlayer(int playerStartLocation)
         {
             if (Players.TryGetValue(playerStartLocation, out Player existingPlayer))
@@ -88,7 +84,6 @@ namespace Helion.World.Entities
                 if (thing.EditorNumber != 1)
                     continue;
 
-                Console.WriteLine($"Spawn 1 angle: {thing.AngleRadians} (is {thing.AngleRadians / MathHelper.TwoPi * 360} degrees)");
                 return CreatePlayer(1, playerDefinition, thing.Position, thing.AngleRadians);
             }
             

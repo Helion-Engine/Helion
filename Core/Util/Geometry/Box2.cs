@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using static Helion.Util.Assertion.Assert;
@@ -427,6 +428,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="point">The point to check.</param>
         /// <returns>True if it is inside, false if not.</returns>
+        [Pure]
         public bool Contains(Vec2D point)
         {
             return point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
@@ -438,6 +440,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="point">The point to check.</param>
         /// <returns>True if it is inside, false if not.</returns>
+        [Pure]
         public bool Contains(Vector3 point) 
         {
             return point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
@@ -449,6 +452,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="box">The other box to check against.</param>
         /// <returns>True if they overlap, false if not.</returns>
+        [Pure]
         public bool Overlaps(Box2D box)
         {
             return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
@@ -460,6 +464,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="seg">The seg to check against.</param>
         /// <returns>True if it intersects, false if not.</returns>
+        [Pure]
         public bool Intersects(Seg2D seg) => seg.Intersects(this);
 
         /// <summary>

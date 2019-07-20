@@ -218,7 +218,7 @@ namespace Helion.Util.Geometry
             
             // See the Iterate() function for why we don't need to floor here.
             Vec2I blockUnitStart = ((box.Min - Origin) / Dimension).ToInt();
-            Vec2I blockUnitEnd = ((box.Min - Origin) / Dimension).Ceil().ToInt();
+            Vec2I blockUnitEnd = ((box.Max - Origin) / Dimension).Ceil().ToInt();
 
             // It's less computationally expensive to do row-major iterations
             // than to calculate each cell with `index = y*w + x`, since that

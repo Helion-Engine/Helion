@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
+using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
+using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
 {
@@ -26,9 +31,10 @@ namespace Helion.World.Physics
             m_blockmap = blockmap;
         }
 
-        public void Link(Entity entity)
+        public void LinkToWorld(Entity entity)
         {
-            // TODO: Add to sector list.
+            m_blockmap.Link(entity);
+            LinkToSectors(entity);
             ClampBetweenFloorAndCeiling(entity);
         }
 
@@ -36,16 +42,88 @@ namespace Helion.World.Physics
         {
             entity.UnlinkFromWorld();
 
-            if (HasHorizontalVelocity(entity))
-                AttemptMoveXY(entity);
-            AttemptMoveZ(entity);
+            MoveXY(entity);
+            MoveZ(entity);
 
-            Link(entity);
+            LinkToWorld(entity);
         }
 
-        private void AttemptMoveXY(Entity entity)
+        private void LinkToSectors(Entity entity)
         {
+            Precondition(entity.SectorNodes.Count == 0, "Forgot to unlink entity from blockmap");
+            
+            // TODO: We (very likely) do a fair amount of object creation here.
+            //       Let's use `stackalloc` for an array in the future and do
+            //       direct comparison via iteration. It's probably the very
+            //       few examples where O(n) beats O(1) due to how small n is.
+            //       Plus we also do a foreach over the hash set, which has
+            //       performance issues we can resolve as well by fixing this.
+            Sector centerSector = m_bspTree.ToSector(entity.Position);
+            HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
+            
+            Box2D box = entity.Box.To2D(); 
+            m_blockmap.Iterate(box, EntitySectorOverlapFinder);
+            
+            PerformSectorLinkingAndBoundDiscovery(entity, sectors, centerSector);
+
+            GridIterationStatus EntitySectorOverlapFinder(Block block)
+            {
+                // Doing iteration over enumeration for performance reasons.
+                for (int i = 0; i < block.Lines.Count; i++)
+                {
+                    Line line = block.Lines[i];
+                    if (line.Segment.Intersects(box))
+                    {
+                        sectors.Add(line.Front.Sector);
+                        if (line.Back != null)
+                            sectors.Add(line.Back.Sector);
+                    } 
+                }
+                
+                return GridIterationStatus.Continue;
+            }
+        }
+
+        private void PerformSectorLinkingAndBoundDiscovery(Entity entity, HashSet<Sector> sectors, Sector centerSector)
+        {
+            double highestFloorZ = double.MinValue;
+            double lowestCeilZ = double.MaxValue;
+            Sector highestFloor = centerSector;
+            Sector lowestCeiling = centerSector;
+            
+            foreach (Sector sector in sectors)
+            {
+                LinkableNode<Entity> node = sector.Link(entity);
+                entity.SectorNodes.Add(node);
+                
+                double floorZ = sector.Floor.Plane.ToZ(entity.Position);
+                if (floorZ > highestFloorZ)
+                {
+                    highestFloor = sector;
+                    highestFloorZ = floorZ;
+                }
+                
+                double ceilZ = sector.Ceiling.Plane.ToZ(entity.Position);
+                if (ceilZ < lowestCeilZ)
+                {
+                    lowestCeiling = sector;
+                    lowestCeilZ = ceilZ;
+                }
+            }
+
+            entity.HighestFloorSector = highestFloor;
+            entity.LowestCeilingSector = lowestCeiling;
+            
+            Console.WriteLine($"Sectors: {sectors.Count}, floor = {entity.HighestFloorSector.Floor.Plane.FlatHeight} {entity.HighestFloorSector.Floor.Texture}");
+        }
+
+        private void MoveXY(Entity entity)
+        {
+            if (entity.Velocity.To2D() == Vec2D.Zero)
+                return;
+
             Vec2D nextPos = entity.Position.To2D() + entity.Velocity.To2D();
+            // TODO: Try to move to nextPos.
             entity.SetXY(nextPos);
 
             entity.Velocity.X *= Friction;
@@ -78,14 +156,12 @@ namespace Helion.World.Physics
                 entity.OnGround = false;
         }
 
-        private void AttemptMoveZ(Entity entity)
+        private void MoveZ(Entity entity)
         {
             if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
             
             entity.SetZ(entity.Position.Z + entity.Velocity.Z);
         }
-
-        private static bool HasHorizontalVelocity(Entity entity) => entity.Velocity.To2D() != Vec2D.Zero;
     }
 }
