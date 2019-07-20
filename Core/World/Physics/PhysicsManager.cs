@@ -120,17 +120,65 @@ namespace Helion.World.Physics
             if (entity.Velocity.To2D() == Vec2D.Zero)
                 return;
 
-            Vec2D nextPos = entity.Position.To2D() + entity.Velocity.To2D();
-            // TODO: Try to move to nextPos.
-            entity.SetXY(nextPos);
+            if (TryMoveXY(entity, out Vec2D newPosition))
+                entity.SetXY(newPosition);
 
-            entity.Velocity.X *= Friction;
-            entity.Velocity.Y *= Friction;
+            ApplyFriction(entity);
+            StopXYMovementIfVerySmall(entity);
+        }
 
+        private bool TryMoveXY(Entity entity, out Vec2D newPosition)
+        {
+            Vec2D movement = entity.Velocity.To2D();
+            Box2D desiredBoxPosition = entity.Box.To2D().CopyToOffset(movement);
+            
+            bool isBlocked = m_blockmap.Iterate(desiredBoxPosition, HandleLineCrossing);
+
+            if (isBlocked)
+            {
+                // TODO: Temporary until we handle sliding.
+                entity.Velocity.X = 0;
+                entity.Velocity.Y = 0;
+                
+                newPosition = default;
+                return false;
+            }
+            
+            newPosition = entity.Position.To2D() + movement;
+            return true;
+            
+            GridIterationStatus HandleLineCrossing(Block block)
+            {
+                // Loop iteration over foreach done for performance reasons.
+                for (int i = 0; i < block.Lines.Count; i++)
+                {
+                    Line line = block.Lines[i];
+                    if (line.Segment.Intersects(desiredBoxPosition))
+                    {
+                        if (line.OneSided)
+                            return GridIterationStatus.Stop;
+                        
+                        // TODO: If two sided line is too high, also block
+                        // TODO: If we can step up, do that.
+                    }
+                }
+                
+                return GridIterationStatus.Continue;
+            }
+        }
+
+        private void StopXYMovementIfVerySmall(Entity entity)
+        {
             if (Math.Abs(entity.Velocity.X) < MinMovementThreshold)
                 entity.Velocity.X = 0;
             if (Math.Abs(entity.Velocity.Y) < MinMovementThreshold)
                 entity.Velocity.Y = 0;
+        }
+
+        private void ApplyFriction(Entity entity)
+        {
+            entity.Velocity.X *= Friction;
+            entity.Velocity.Y *= Friction;
         }
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
@@ -158,6 +206,8 @@ namespace Helion.World.Physics
         {
             if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
+            
+            // TODO: Check if any entities are in the way of our movement.
             
             entity.SetZ(entity.Position.Z + entity.Velocity.Z);
         }

@@ -28,14 +28,32 @@ namespace Helion.World.Blockmaps
             AddLinesToBlocks(map);
         }
 
-        public void Iterate(Entity entity, Func<Block, GridIterationStatus> func)
+        /// <summary>
+        /// Performs iteration over the blocks at the entity position.
+        /// </summary>
+        /// <param name="entity">The entity to iterate from.</param>
+        /// <param name="func">The callback for whether iteration should be
+        /// continued or not.</param>
+        /// <returns>True if iteration was halted due to the return value of
+        /// the provided function, false if not.</returns>
+        public bool Iterate(Entity entity, Func<Block, GridIterationStatus> func)
         {
-            Iterate(entity.Box.To2D(), func);
+            // TODO: Why not store the blocks with the entity in the internal
+            //       list and just iterate over that? May be faster...
+            return Iterate(entity.Box.To2D(), func);
         }
-
-        public void Iterate(Box2D box, Func<Block, GridIterationStatus> func)
+        
+        /// <summary>
+        /// Performs iteration over the blocks at the box position.
+        /// </summary>
+        /// <param name="box">The box area to iterate with.</param>
+        /// <param name="func">The callback for whether iteration should be
+        /// continued or not.</param>
+        /// <returns>True if iteration was halted due to the return value of
+        /// the provided function, false if not.</returns>
+        public bool Iterate(Box2D box, Func<Block, GridIterationStatus> func)
         {
-            blocks.Iterate(box, func);
+            return blocks.Iterate(box, func);
         }
         
         /// <summary>

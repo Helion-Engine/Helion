@@ -468,6 +468,14 @@ namespace Helion.Util.Geometry
         public bool Intersects(Seg2D seg) => seg.Intersects(this);
 
         /// <summary>
+        /// Takes some offset delta and creates a copy of the box at the offset
+        /// provided.
+        /// </summary>
+        /// <param name="offset">The delta to add to the box positions.</param>
+        /// <returns>The box at the position.</returns>
+        public Box2D CopyToOffset(Vec2D offset) => new Box2D(Min + offset, Max + offset);
+
+        /// <summary>
         /// Calculates the sides of this bounding box.
         /// </summary>
         /// <returns>The sides of the bounding box.</returns>
