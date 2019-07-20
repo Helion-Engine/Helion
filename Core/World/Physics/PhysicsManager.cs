@@ -113,8 +113,6 @@ namespace Helion.World.Physics
 
             entity.HighestFloorSector = highestFloor;
             entity.LowestCeilingSector = lowestCeiling;
-            
-            Console.WriteLine($"Sectors: {sectors.Count}, floor = {entity.HighestFloorSector.Floor.Plane.FlatHeight} {entity.HighestFloorSector.Floor.Texture}");
         }
 
         private void MoveXY(Entity entity)
