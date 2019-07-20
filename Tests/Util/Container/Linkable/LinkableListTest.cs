@@ -104,7 +104,7 @@ namespace Helion.Test.Util.Container.Linkable
         [TestMethod]
         public void CanLinkAndUnlink()
         {
-            // [1] +> [2, 1] +> [3, 2, 1] -> [3, 1] +> [4, 3, 1] -> [3, 1] -> [3] +> [5, 3] --> [] -> [6] -> []
+            // [1] +> [2, 1] +> [3, 2, 1] -> [3, 1] +> [4, 3, 1] -> [3, 1] -> [3] +> [5, 3] --> [] +> [6] -> []
             LinkableList<int> list = new LinkableList<int>();
             LinkableNode<int> one = list.Add(1);
             LinkableNode<int> two = list.Add(2);

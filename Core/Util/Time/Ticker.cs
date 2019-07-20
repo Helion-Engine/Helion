@@ -29,6 +29,19 @@ namespace Helion.Util.Time
             m_stopwatchTicksPerGametick = (long)(Stopwatch.Frequency / ticksPerSecond);
             m_lastTickSeen = m_stopwatch.ElapsedTicks;
         }
+        
+        /// <summary>
+        /// Gets the nanoseconds for the current time.
+        /// </summary>
+        /// <returns>The current time in nanoseconds.</returns>
+        public static long NanoTime()
+        {
+            // From: https://stackoverflow.com/questions/1551742/what-is-the-equivalent-to-system-nanotime-in-net
+            long nano = 10000L * Stopwatch.GetTimestamp();
+            nano /= TimeSpan.TicksPerMillisecond;
+            nano *= 100L;
+            return nano;
+        }
 
         /// <summary>
         /// Starts the ticker for recording elapsed time.

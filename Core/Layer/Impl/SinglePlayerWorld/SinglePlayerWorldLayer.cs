@@ -59,7 +59,7 @@ namespace Helion.Layer.Impl
 
             if (ticksToRun <= 0)
                 return;
-
+            
             m_world.HandleTickCommand(m_tickCommand);
             m_tickCommand = new TickCommand();
             
@@ -69,7 +69,7 @@ namespace Helion.Layer.Impl
                 ticksToRun = 1;
             }
 
-            while (ticksToRun >= 0)
+            while (ticksToRun > 0)
             {
                 m_world.Tick();
                 ticksToRun--;

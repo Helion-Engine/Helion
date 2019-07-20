@@ -41,11 +41,26 @@ namespace Helion.World.Entities
         /// The movement of the entity.
         /// </summary>
         public Vec3D Velocity = Vec3D.Zero;
+        
+        /// <summary>
+        /// A cached value to tell whether we are on the ground or not.
+        /// </summary>
+        public bool OnGround { get; internal set; }
 
         /// <summary>
         /// The sector that is at the center of the entity.
         /// </summary>
         public Sector Sector;
+        
+        /// <summary>
+        /// The sector that is at the center of the entity.
+        /// </summary>
+        public Sector LowestCeilingSector;
+        
+        /// <summary>
+        /// The sector that is at the center of the entity.
+        /// </summary>
+        public Sector HighestFloorSector;
 
         /// <summary>
         /// The node in the linked list of entities.
@@ -82,10 +97,13 @@ namespace Helion.World.Entities
             Box = new EntityBox(position, definition.Properties.Radius, definition.Properties.Height);
             PrevPosition = Box.Position;
             Sector = sector;
-            
-            // TODO: Link to sector!
-        }
+            LowestCeilingSector = sector;
+            HighestFloorSector = sector;
+            OnGround = CheckIfOnGround();
 
+            // TODO: Link to sector
+        }
+        
         /// <summary>
         /// Sets the bottom of the entity's center to be at the Z coordinate
         /// provided.
@@ -139,5 +157,7 @@ namespace Helion.World.Entities
             UnlinkFromWorld();
             EntityListNode.Unlink();
         }
+        
+        private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
     }
 }

@@ -21,7 +21,7 @@ namespace Helion.World.Entities
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-        public readonly Dictionary<int, Player> Players = new Dictionary<int,Player>();
+        public readonly Dictionary<int, Player> Players = new Dictionary<int, Player>();
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Blockmap m_blockmap;
         private readonly BspTree m_bspTree;

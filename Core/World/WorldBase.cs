@@ -38,8 +38,10 @@ namespace Helion.World
             EntityManager = new EntityManager(this, archiveCollection, bspTree, Blockmap, PhysicsManager, map);
         }
 
-        public virtual void Tick()
+        public void Tick()
         {
+            EntityManager.Players.Values.ForEach(player => player.Tick());
+            
             EntityManager.Entities.ForEach(entity =>
             {
                 entity.Tick();
