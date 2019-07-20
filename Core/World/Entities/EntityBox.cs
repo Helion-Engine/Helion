@@ -80,6 +80,21 @@ namespace Helion.World.Entities
         }
 
         /// <summary>
+        /// Sets the position to the new location provided.
+        /// </summary>
+        /// <param name="position">The position to set to.</param>
+        public void SetXY(Vec2D position)
+        {
+            m_centerBottom.X = position.X;
+            m_centerBottom.Y = position.Y;
+            
+            m_box.Min.X = position.X - m_radius;
+            m_box.Max.X = position.X + m_radius;
+            m_box.Min.Y = position.Y - m_radius;
+            m_box.Max.Y = position.Y + m_radius;
+        }
+
+        /// <summary>
         /// Gets the 2D version of the box.
         /// </summary>
         /// <returns>A 2D version of the box.</returns>
@@ -87,7 +102,7 @@ namespace Helion.World.Entities
 
         /// <inheritdoc/>
         public override string ToString() => $"{m_box}";
-        
+
         private static Box3D CreateBoxAtCenterBottom(Vec3D centerBottom, double radius, double height)
         {
             Vec3D min = new Vec3D(centerBottom.X - radius, centerBottom.Y - radius, centerBottom.Z);

@@ -115,6 +115,15 @@ namespace Helion.World.Entities
         }
 
         /// <summary>
+        /// Sets the entity to the new X/Y coordinates.
+        /// </summary>
+        /// <param name="position">The new position.</param>
+        public void SetXY(Vec2D position)
+        {
+            Box.SetXY(position);
+        }
+
+        /// <summary>
         /// Unlinks this entity from the world it is in, but not the entity
         /// list it belongs to.
         /// </summary>
@@ -157,7 +166,7 @@ namespace Helion.World.Entities
             UnlinkFromWorld();
             EntityListNode.Unlink();
         }
-        
+
         private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
     }
 }

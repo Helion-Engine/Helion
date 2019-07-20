@@ -149,6 +149,13 @@ namespace Helion.Input
             ["mouse-right"] = InputKey.MouseRight,
             ["mouse-custom1"] = InputKey.MouseCustom1,
             ["mouse-custom2"] = InputKey.MouseCustom2,
+            ["mouse-custom3"] = InputKey.MouseCustom3,
+            ["mouse-custom4"] = InputKey.MouseCustom4,
+            ["mouse-custom5"] = InputKey.MouseCustom5,
+            ["mouse-custom6"] = InputKey.MouseCustom6,
+            ["mouse-custom7"] = InputKey.MouseCustom7,
+            ["mouse-custom8"] = InputKey.MouseCustom8,
+            ["mouse-custom9"] = InputKey.MouseCustom9,
         };
 
         /// <summary>

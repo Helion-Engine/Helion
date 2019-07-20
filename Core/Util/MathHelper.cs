@@ -22,6 +22,11 @@ namespace Helion.Util
         /// A constant value for 2 * pi.
         /// </summary>
         public const double TwoPi = 2 * Math.PI;
+
+        /// <summary>
+        /// The value that can be multiplied with to change degrees to radians.
+        /// </summary>
+        public const double DegreesToRadiansFactor = TwoPi / 360.0;
         
         /// <summary>
         /// Checks if the value is equal to zero.
@@ -156,5 +161,12 @@ namespace Helion.Util
         /// <param name="second">The second number.</param>
         /// <returns>The maximum value of both.</returns>
         public static Fixed Max(Fixed first, Fixed second) => first.Bits < second.Bits ? second : first;
+
+        /// <summary>
+        /// Converts the degrees into radians.
+        /// </summary>
+        /// <param name="degree">The degree.</param>
+        /// <returns>The radian value.</returns>
+        public static double ToRadians(double degree) => degree * DegreesToRadiansFactor;
     }
 }

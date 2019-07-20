@@ -13,6 +13,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using Console = System.Console;
 
 namespace Helion.World.Entities
 {
@@ -87,6 +88,7 @@ namespace Helion.World.Entities
                 if (thing.EditorNumber != 1)
                     continue;
 
+                Console.WriteLine($"Spawn 1 angle: {thing.AngleRadians} (is {thing.AngleRadians / MathHelper.TwoPi * 360} degrees)");
                 return CreatePlayer(1, playerDefinition, thing.Position, thing.AngleRadians);
             }
             

@@ -14,28 +14,26 @@ namespace Helion.Maps.Things
         public ThingFlags Flags;
         public ActionSpecial Special;
 
-        public Thing(int id, Vec2D position, byte byteAngle, ushort editorNumber, ushort flags)
+        public Thing(int id, Vec2D position, double angleRadians, ushort editorNumber, ushort flags)
         {
             Id = id;
             Position = new Vec3D(position.X, position.Y, 0.0);
-            AngleRadians = ByteAngleToRadians(byteAngle);
+            AngleRadians = angleRadians;
             EditorNumber = editorNumber;
             Flags = new ThingFlags(flags);
             Special = new ActionSpecial();
         }
         
-        public Thing(int id, Vec3D position, ushort tid, byte byteAngle, ushort editorNumber, ushort flags,
+        public Thing(int id, Vec3D position, ushort tid, double angleRadians, ushort editorNumber, ushort flags,
             ActionSpecial actionSpecial)
         {
             Id = id;
             Position = new Vec3D(position.X, position.Y, 0.0);
-            AngleRadians = ByteAngleToRadians(byteAngle);
+            AngleRadians = angleRadians;
             EditorNumber = editorNumber;
             Tid = tid;
             Flags = new ThingFlags(flags);
             Special = actionSpecial;
         }
-
-        private static double ByteAngleToRadians(byte angle) => angle / 255.0 * MathHelper.TwoPi;
     }
 }

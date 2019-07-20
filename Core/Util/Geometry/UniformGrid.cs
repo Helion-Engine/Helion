@@ -264,7 +264,7 @@ namespace Helion.Util.Geometry
             // a great trade-off. If we can get the best of both worlds though
             // one day, we should do that.
             int alignedLeftBlock = (int)Math.Floor(bounds.Min.X / Dimension) - 1;
-            int alignedBottomBlock = (int)Math.Floor(bounds.Min.Y / Dimension);
+            int alignedBottomBlock = (int)Math.Floor(bounds.Min.Y / Dimension) - 1;
             int alignedRightBlock = (int)Math.Ceiling(bounds.Max.X / Dimension) + 1;
             int alignedTopBlock = (int)Math.Ceiling(bounds.Max.Y / Dimension) + 1;
 

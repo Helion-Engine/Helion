@@ -53,7 +53,6 @@ namespace Helion.Subsystems.OpenTK
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
         
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
@@ -83,6 +82,20 @@ namespace Helion.Subsystems.OpenTK
             base.OnKeyUp(e);
         }
 
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            m_inputAdapter.HandleMouseDown(e);
+            
+            base.OnMouseDown(e);            
+        }
+        
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            m_inputAdapter.HandleMouseUp(e);
+            
+            base.OnMouseDown(e);            
+        }
+        
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             if (Focused)

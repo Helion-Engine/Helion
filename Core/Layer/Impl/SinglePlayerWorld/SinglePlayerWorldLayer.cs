@@ -21,6 +21,7 @@ namespace Helion.Layer.Impl
         private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
         private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
         private TickCommand m_tickCommand = new TickCommand();
+        private bool m_firstInputHandling = true;
 
         private SinglePlayerWorldLayer(SinglePlayerWorld singlePlayerWorld)
         {
@@ -48,6 +49,15 @@ namespace Helion.Layer.Impl
 
         public override void HandleInput(ConsumableInput consumableInput)
         {
+            // TODO: We ignore the first command for now because it is an
+            //       accumulation of the mouse movement at the beginning of
+            //       the window loading. We should fix this there later on.
+            if (m_firstInputHandling)
+            {
+                m_firstInputHandling = false;
+                return;
+            }
+            
             HandleMovementInput(consumableInput);
             m_world.HandleFrameInput(consumableInput);
         }
@@ -87,7 +97,7 @@ namespace Helion.Layer.Impl
         private void HandleMovementInput(ConsumableInput consumableInput)
         {
             // TODO: Should pull from the config values.
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.W))
+            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.MouseRight))
                 m_tickCommand.Add(TickCommands.Forward);
             if (consumableInput.ConsumeKeyPressedOrDown(InputKey.A))
                 m_tickCommand.Add(TickCommands.Left);

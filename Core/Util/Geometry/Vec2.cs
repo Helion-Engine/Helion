@@ -50,6 +50,8 @@ namespace Helion.Util.Geometry
 
     public struct Vec2D
     {
+        public static readonly Vec2D Zero = new Vec2D(0, 0);
+        
         public double X;
         public double Y;
 

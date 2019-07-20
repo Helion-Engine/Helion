@@ -217,7 +217,7 @@ namespace Helion.Maps.Entries
             for (int id = 0; id < numThings; id++)
             {
                 Vec2D position = new Vec2D(reader.ReadInt16(), reader.ReadInt16());
-                byte angle = (byte)reader.ReadUInt16();
+                double angle = MathHelper.ToRadians(reader.ReadUInt16());
                 ushort editorNumber = reader.ReadUInt16();
                 ushort flags = reader.ReadUInt16();
                 
@@ -242,7 +242,7 @@ namespace Helion.Maps.Entries
             {
                 ushort tid = reader.ReadUInt16();
                 Vec3D position = new Vec3D(reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16());
-                byte angle = (byte)reader.ReadUInt16();
+                double angle = MathHelper.ToRadians(reader.ReadUInt16());
                 ushort editorNumber = reader.ReadUInt16();
                 ushort flags = reader.ReadUInt16();
                 ActionSpecialID specialType = (ActionSpecialID)reader.ReadByte();

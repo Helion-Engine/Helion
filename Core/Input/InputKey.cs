@@ -120,5 +120,12 @@
         MouseRight,
         MouseCustom1,
         MouseCustom2,
+        MouseCustom3,
+        MouseCustom4,
+        MouseCustom5,
+        MouseCustom6,
+        MouseCustom7,
+        MouseCustom8,
+        MouseCustom9,
     }
 }

@@ -10,7 +10,7 @@ namespace Helion.World.Entities.Players
     {
         public const double ForwardMovementSpeed = 1.56;
         public const double SideMovementSpeed = 1.25;
-        public const double MaxMovementSpeed = 30.0;
+        public const double MaxMovement = 30.0;
         public const double JumpZ = 8.0;
         
         public readonly int PlayerNumber;

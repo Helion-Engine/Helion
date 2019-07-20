@@ -1,4 +1,5 @@
-﻿using Helion.Input;
+﻿using System;
+using Helion.Input;
 using Helion.Util.Geometry;
 using MoreLinq;
 using OpenTK;
@@ -252,6 +253,96 @@ namespace Helion.Subsystems.OpenTK
             InputKey inputKey = ToInputKey(e.Key);
             if (inputKey != InputKey.Unknown)
                 inputEvent.InputDown.Remove(inputKey);
+        }
+        
+        public void HandleMouseDown(MouseButtonEventArgs e)
+        {
+            switch (e.Button)
+            {
+            case MouseButton.Left:
+                inputEvent.InputDown.Add(InputKey.MouseLeft);
+                break;
+            case MouseButton.Middle:
+                inputEvent.InputDown.Add(InputKey.MouseMiddle);
+                break;
+            case MouseButton.Right:
+                inputEvent.InputDown.Add(InputKey.MouseRight);
+                break;
+            case MouseButton.Button1:
+                inputEvent.InputDown.Add(InputKey.MouseCustom1);
+                break;
+            case MouseButton.Button2:
+                inputEvent.InputDown.Add(InputKey.MouseCustom2);
+                break;
+            case MouseButton.Button3:
+                inputEvent.InputDown.Add(InputKey.MouseCustom3);
+                break;
+            case MouseButton.Button4:
+                inputEvent.InputDown.Add(InputKey.MouseCustom4);
+                break;
+            case MouseButton.Button5:
+                inputEvent.InputDown.Add(InputKey.MouseCustom5);
+                break;
+            case MouseButton.Button6:
+                inputEvent.InputDown.Add(InputKey.MouseCustom6);
+                break;
+            case MouseButton.Button7:
+                inputEvent.InputDown.Add(InputKey.MouseCustom7);
+                break;
+            case MouseButton.Button8:
+                inputEvent.InputDown.Add(InputKey.MouseCustom8);
+                break;
+            case MouseButton.Button9:
+                inputEvent.InputDown.Add(InputKey.MouseCustom9);
+                break;
+            default:
+                break;
+            }
+        }
+        
+        public void HandleMouseUp(MouseButtonEventArgs e)
+        {
+            switch (e.Button)
+            {
+            case MouseButton.Left:
+                inputEvent.InputDown.Remove(InputKey.MouseLeft);
+                break;
+            case MouseButton.Middle:
+                inputEvent.InputDown.Remove(InputKey.MouseMiddle);
+                break;
+            case MouseButton.Right:
+                inputEvent.InputDown.Remove(InputKey.MouseRight);
+                break;
+            case MouseButton.Button1:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom1);
+                break;
+            case MouseButton.Button2:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom2);
+                break;
+            case MouseButton.Button3:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom3);
+                break;
+            case MouseButton.Button4:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom4);
+                break;
+            case MouseButton.Button5:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom5);
+                break;
+            case MouseButton.Button6:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom6);
+                break;
+            case MouseButton.Button7:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom7);
+                break;
+            case MouseButton.Button8:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom8);
+                break;
+            case MouseButton.Button9:
+                inputEvent.InputDown.Remove(InputKey.MouseCustom9);
+                break;
+            default:
+                break;
+            }
         }
 
         public InputEvent PollInput()
