@@ -1,3 +1,4 @@
+using Helion.Util.Configuration;
 using System;
 using System.Linq;
 
@@ -15,6 +16,12 @@ namespace Helion.Layer
     /// </remarks>
     public class GameLayerManager : GameLayer
     {
+        public GameLayerManager(Config config)
+            : base(config)
+        {
+
+        }
+
         protected override double GetPriority() => 0.5;
     }
 }

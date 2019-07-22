@@ -9,6 +9,7 @@ using Helion.Util.Time;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
+using System;
 
 namespace Helion.Layer.Impl
 {
@@ -23,10 +24,24 @@ namespace Helion.Layer.Impl
         private TickCommand m_tickCommand = new TickCommand();
         private bool m_firstInputHandling = true;
 
-        private SinglePlayerWorldLayer(SinglePlayerWorld singlePlayerWorld)
+        private (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
+
+        private SinglePlayerWorldLayer(SinglePlayerWorld singlePlayerWorld, Config config)
+            : base(config)
         {
             m_world = singlePlayerWorld;
-            
+
+            m_consumeKeys = new (ConfigValue<InputKey>, TickCommands)[]
+            {
+                (Config.Engine.Controls.MoveForward,    TickCommands.Forward),
+                (Config.Engine.Controls.MoveLeft,       TickCommands.Left),
+                (Config.Engine.Controls.MoveBackward,   TickCommands.Backward),
+                (Config.Engine.Controls.MoveRight,      TickCommands.Right),
+                (Config.Engine.Controls.Jump,           TickCommands.Jump),
+                (Config.Engine.Controls.Crouch,         TickCommands.Crouch),
+                (Config.Engine.Controls.Use,            TickCommands.Use),
+            };
+
             m_ticker.Start();
         }
 
@@ -41,7 +56,7 @@ namespace Helion.Layer.Impl
             
             SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, map, collection);
             if (world != null)
-                return new SinglePlayerWorldLayer(world);
+                return new SinglePlayerWorldLayer(world, config);
             
             Log.Warn("Map is corrupt, unable to create map {0}", mapName);
             return null;
@@ -96,21 +111,11 @@ namespace Helion.Layer.Impl
 
         private void HandleMovementInput(ConsumableInput consumableInput)
         {
-            // TODO: Should pull from the config values.
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.MouseRight))
-                m_tickCommand.Add(TickCommands.Forward);
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.A))
-                m_tickCommand.Add(TickCommands.Left);
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.S))
-                m_tickCommand.Add(TickCommands.Backward);
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.D))
-                m_tickCommand.Add(TickCommands.Right);
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.Space))
-                m_tickCommand.Add(TickCommands.Jump);
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.C))
-                m_tickCommand.Add(TickCommands.Crouch);
-            if (consumableInput.ConsumeKeyPressedOrDown(InputKey.E))
-                m_tickCommand.Add(TickCommands.Use);
+            foreach (var consumeKey in m_consumeKeys)
+            {
+                if (consumableInput.ConsumeKeyPressedOrDown(consumeKey.Item1))
+                    m_tickCommand.Add(consumeKey.Item2);
+            }
         }
     }
 }

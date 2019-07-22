@@ -37,7 +37,9 @@ namespace Helion.World.Impl.SinglePlayer
             moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
 
             Player.AddToYaw(moveDelta.X);
-            Player.AddToPitch(moveDelta.Y);
+
+            if (Config.Engine.Mouse.MouseLook)
+                Player.AddToPitch(moveDelta.Y);
         }
 
         public void HandleTickCommand(TickCommand tickCommand)

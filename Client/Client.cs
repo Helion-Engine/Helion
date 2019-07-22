@@ -25,7 +25,7 @@ namespace Helion.Client
         private readonly Config m_config;
         private readonly OpenTKWindow m_window;
         private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
-        private readonly GameLayerManager m_layerManager = new GameLayerManager();
+        private readonly GameLayerManager m_layerManager;
         private bool m_disposed;
 
         private Client(CommandLineArgs cmdArgs, Config configuration)
@@ -34,6 +34,7 @@ namespace Helion.Client
             m_config = configuration;
             m_console = new Console(m_config);
             m_window = new OpenTKWindow(m_config, m_archiveCollection, RunGameLoop);
+            m_layerManager = new GameLayerManager(m_config);
 
             m_console.OnConsoleCommandEvent += OnConsoleCommand;
         }

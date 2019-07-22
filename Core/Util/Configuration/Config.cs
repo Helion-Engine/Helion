@@ -1,3 +1,4 @@
+using Helion.Input;
 using Helion.Render.Shared;
 using Helion.Window;
 using System;
@@ -26,6 +27,19 @@ namespace Helion.Util.Configuration
         public readonly ConfigValue<double> PixelDivisor = new ConfigValue<double>(1024.0);
         public readonly ConfigValue<double> Sensitivity = new ConfigValue<double>(1.0);
         public readonly ConfigValue<double> Yaw = new ConfigValue<double>(1.0);
+        public readonly ConfigValue<bool> MouseLook = new ConfigValue<bool>(true);
+    }
+
+    [ConfigComponent]
+    public class EngineControlConfig
+    {
+        public readonly ConfigValue<InputKey> MoveForward = new ConfigValue<InputKey>(InputKey.W);
+        public readonly ConfigValue<InputKey> MoveLeft = new ConfigValue<InputKey>(InputKey.A);
+        public readonly ConfigValue<InputKey> MoveBackward = new ConfigValue<InputKey>(InputKey.S);
+        public readonly ConfigValue<InputKey> MoveRight = new ConfigValue<InputKey>(InputKey.D);
+        public readonly ConfigValue<InputKey> Use = new ConfigValue<InputKey>(InputKey.E);
+        public readonly ConfigValue<InputKey> Jump = new ConfigValue<InputKey>(InputKey.Space);
+        public readonly ConfigValue<InputKey> Crouch = new ConfigValue<InputKey>(InputKey.C);
     }
 
     [ConfigComponent]
@@ -67,6 +81,7 @@ namespace Helion.Util.Configuration
         public readonly EngineConsoleConfig Console = new EngineConsoleConfig();
         public readonly EngineDeveloperConfig Developer = new EngineDeveloperConfig();
         public readonly EngineMouseConfig Mouse = new EngineMouseConfig();
+        public readonly EngineControlConfig Controls = new EngineControlConfig();
         public readonly EngineRenderConfig Render = new EngineRenderConfig();
         public readonly EngineWindowConfig Window = new EngineWindowConfig();
     }
