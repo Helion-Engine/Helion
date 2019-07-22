@@ -94,45 +94,50 @@ namespace Helion.Util.Configuration
                 Fail("Unable to find .Set() method on ConfigValue<Enum>");
             }
             
-            log.Error("Unable to find enumeration type for field {0}, using defaults", lowerKeyName);
+            log.Error($"Unable to find enumeration '{value}' type for field {lowerKeyName}, setting to default value '{configValueNode}'");
         }
         
         private static void SetConfigFieldWithValue(object configValueNode, string lowerKeyName, string value)
         {
+            bool fail = false;
+
             switch (configValueNode)
             {
             case ConfigValue<bool> boolNode:
                 if (bool.TryParse(value, out bool boolValue))
                     boolNode.Set(boolValue);
                 else
-                    log.Warn("Unable to set {0} with boolean value, resorting to defaults", lowerKeyName);
+                    fail = true;
                 break;
 
             case ConfigValue<double> doubleNode:
                 if (double.TryParse(value, out double doubleValue))
                     doubleNode.Set(doubleValue);
                 else
-                    log.Warn("Unable to set {0} with floating point value, resorting to defaults", lowerKeyName);
+                    fail = true;
                 break;
 
             case ConfigValue<int> intNode:
                 if (int.TryParse(value, out int intValue))
                     intNode.Set(intValue);
                 else
-                    log.Warn("Unable to set {0} with int value, resorting to defaults", lowerKeyName);
+                    fail = true;
                 break;
 
             case ConfigValue<string> stringNode:
                 if (!string.IsNullOrEmpty(value))
                     stringNode.Set(value);
                 else
-                    log.Warn("Unable to set {0} with an empty string value, resorting to defaults", lowerKeyName);
+                    fail = true;
                 break;
 
             default:
                 log.Warn("Unknown config field type: '{0}'", lowerKeyName);
                 break;
             }
+
+            if (fail)
+                log.Warn($"Unable to set {lowerKeyName} to value '{value}', setting to default value '{configValueNode}'");
         }
 
         private static void ReadKeyValueIntoConfigNode(object element, string lowerKeyName, string value)
