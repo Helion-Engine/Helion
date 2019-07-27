@@ -480,10 +480,6 @@ namespace Helion.World.Physics
             if (stepDelta.Dot(lineDirection) < 0)
                 unitDirection = -unitDirection;
             
-            // We find out how much velocity is projected onto the wall, and
-            // then make a vector out of it.
-            Vec2D scalarProjectionStep = unitDirection * stepDelta.ScalarProjection(unitDirection);
-            
             // Because we moved up to the wall, it's almost always the case
             // that we didn't make 100% of a step. For example if we have some
             // movement of 5 map units towards a wall and run into the wall at
@@ -498,13 +494,13 @@ namespace Helion.World.Physics
             // radius of the entity and cause it to skip lines in pathological
             // situations. I haven't encountered such a case yet but it is at
             // least theoretically possible this can happen.
-            double totalRemainingDistance = ((scalarProjectionStep * movesLeft) + residualStep).Length();
+            Vec2D stepProjection = stepDelta.Projection(unitDirection);
+            double totalRemainingDistance = ((stepProjection * movesLeft) + residualStep).Length();
             movesLeft += 2;
-            stepDelta = scalarProjectionStep * totalRemainingDistance / movesLeft;
+            stepDelta = unitDirection * totalRemainingDistance / movesLeft;
             
-            // Lastly, we need to reorient the velocity.
-            double velocityScalar = entity.Velocity.To2D().Length();
-            Vec2D newVelocityDirection = unitDirection * velocityScalar;
+            // Finally we need to reorient the velocity as well.
+            Vec2D newVelocityDirection = entity.Velocity.To2D().Projection(unitDirection);
             entity.Velocity.X = newVelocityDirection.X;
             entity.Velocity.Y = newVelocityDirection.Y;
         }
