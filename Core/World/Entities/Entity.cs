@@ -51,6 +51,13 @@ namespace Helion.World.Entities
         /// A cached value to tell whether we are on the ground or not.
         /// </summary>
         public bool OnGround { get; internal set; }
+        
+        /// <summary>
+        /// After we land, we don't want to immediately be able to jump. This
+        /// is a counter of how many ticks remaining until we can jump again.
+        /// </summary>
+        // TODO: This should be part of the player, not the entity. 
+        public int JumpDelayTicks { get; internal set; }
 
         /// <summary>
         /// The sector that is at the center of the entity.

@@ -66,6 +66,6 @@ namespace Helion.World.Entities.Players
             m_prevPitch = Pitch;
         }
         
-        public bool AbleToJump() => Entity.OnGround && Entity.Velocity.Z == 0;
+        public bool AbleToJump() => Entity.OnGround && Entity.Velocity.Z == 0 && Entity.JumpDelayTicks == 0;
     }
 }

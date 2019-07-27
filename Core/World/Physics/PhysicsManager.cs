@@ -18,11 +18,12 @@ namespace Helion.World.Physics
     public class PhysicsManager
     {
         private const int MaxSlides = 3;
+        private const int JumpDelayTicks = 7;
         private const double Gravity = 1.0;
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
-        
+
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
 
@@ -105,6 +106,11 @@ namespace Helion.World.Physics
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
+            // If we're airborne and just landed on the ground, we need a delay
+            // for jumping.
+            if (!entity.OnGround)
+                entity.JumpDelayTicks = JumpDelayTicks;
+            
             entity.SetZ(floorZ);
             entity.OnGround = true;
             
@@ -555,7 +561,12 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            if (!entity.OnGround)
+            if (entity.OnGround)
+            {
+                if (entity.JumpDelayTicks > 0)
+                    entity.JumpDelayTicks--;
+            }
+            else
                 entity.Velocity.Z -= Gravity;
             
             // TODO: Check if any entities are in the way of our movement.
