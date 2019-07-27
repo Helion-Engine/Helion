@@ -1,5 +1,6 @@
 using Helion.Input;
 using Helion.Render.Commands;
+using Helion.Util.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,13 @@ namespace Helion.Layer
         private List<GameLayer> layers = new List<GameLayer>();
 
         protected abstract double GetPriority();
+
+        protected readonly Config Config;
+
+        public GameLayer(Config config)
+        {
+            Config = config;
+        }
         
         public bool RemoveAllTypes(Type type)
         {
