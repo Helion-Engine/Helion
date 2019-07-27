@@ -16,7 +16,7 @@ namespace Helion.World.Entities
         /// A unique identifier for this entity.
         /// </summary>
         public readonly int Id;
-        
+
         /// <summary>
         /// The definition that makes up this entity.
         /// </summary>
@@ -31,37 +31,37 @@ namespace Helion.World.Entities
         /// The last position of this entity, used for interpolation.
         /// </summary>
         public Vec3D PrevPosition;
-        
+
         /// <summary>
         /// The center bottom position (the center of the body at the feet).
         /// </summary>
         public Vec3D Position => Box.Position;
-        
+
         /// <summary>
         /// The angle in radians the entity is facing.
         /// </summary>
         public double Angle { get; internal set; }
-        
+
         /// <summary>
         /// The movement of the entity.
         /// </summary>
         public Vec3D Velocity = Vec3D.Zero;
-        
+
         /// <summary>
         /// A cached value to tell whether we are on the ground or not.
         /// </summary>
         public bool OnGround { get; internal set; }
-        
+
         /// <summary>
         /// The sector that is at the center of the entity.
         /// </summary>
         public Sector Sector;
-        
+
         /// <summary>
         /// The sector that is at the center of the entity.
         /// </summary>
         public Sector LowestCeilingSector;
-        
+
         /// <summary>
         /// The sector that is at the center of the entity.
         /// </summary>
@@ -81,7 +81,7 @@ namespace Helion.World.Entities
         /// All the linked list nodes for sectors that this entity belongs to.
         /// </summary>
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
-        
+
         /// <summary>
         /// A (shorter to type) reference to the definition's height value.
         /// </summary>
@@ -96,7 +96,7 @@ namespace Helion.World.Entities
         /// A (shorter to type) reference to the definition's flags.
         /// </summary>
         public ActorFlags Flags => Definition.Flags;
-        
+
         /// <summary>
         /// Creates an entity with the following information.
         /// </summary>
@@ -120,7 +120,7 @@ namespace Helion.World.Entities
 
             // TODO: Link to sector
         }
-        
+
         /// <summary>
         /// Sets the bottom of the entity's center to be at the Z coordinate
         /// provided.

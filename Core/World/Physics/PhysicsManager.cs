@@ -96,6 +96,13 @@ namespace Helion.World.Physics
             return !opening.CanPassOrStepThrough(entity);
         }
 
+        private static bool EntityBlocksEntity(Entity entity, Entity other)
+        {
+            // Note: This is simple for right now, everything blocks everything
+            // else except running into itself.
+            return !ReferenceEquals(entity, other);
+        }
+
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
             entity.SetZ(floorZ);
@@ -249,7 +256,7 @@ namespace Helion.World.Physics
                 while (entityNode != null)
                 {
                     Entity nextEntity = entityNode.Value;
-                    if (!ReferenceEquals(entity, nextEntity))
+                    if (EntityBlocksEntity(entity, nextEntity))
                         if (nextEntity.Box.To2D().Overlaps(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                             return GridIterationStatus.Stop;
 
@@ -482,7 +489,8 @@ namespace Helion.World.Physics
             // movement of 5 map units towards a wall and run into the wall at
             // 3 (leaving 2 map units unhandled), we want to work that residual
             // map unit movement into the existing step length. The following
-            // does that by finding the total movement scalar
+            // does that by finding the total movement scalar and applying it
+            // to the direction we need to slide.
             //
             // We also must take into account that we're adding some scalar to
             // another scalar, which means we'll end up with usually a larger
