@@ -53,6 +53,16 @@ namespace Helion.World.Entities
         public bool OnGround { get; internal set; }
         
         /// <summary>
+        /// Checks whether the player is currently jumping or not.
+        /// </summary>
+        /// <remarks>
+        /// This is set when a player jumps, which is primarily used to seeing
+        /// whether a jump should be allowed upon hitting the ground next or if
+        /// a jump delay should be applied after landing on the ground.
+        /// </remarks>
+        public bool IsJumping { get; internal set; }
+        
+        /// <summary>
         /// After we land, we don't want to immediately be able to jump. This
         /// is a counter of how many ticks remaining until we can jump again.
         /// </summary>

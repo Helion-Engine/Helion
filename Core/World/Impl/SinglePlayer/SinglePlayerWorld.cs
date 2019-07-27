@@ -68,7 +68,10 @@ namespace Helion.World.Impl.SinglePlayer
             }
 
             if (tickCommand.Has(TickCommands.Jump) && Player.AbleToJump())
+            {
+                entity.IsJumping = true;
                 entity.Velocity.Z += Player.JumpZ;
+            }
         }
 
         private static Vec2D CalculateForwardMovement(Entity entity)

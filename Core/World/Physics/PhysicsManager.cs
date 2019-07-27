@@ -110,9 +110,13 @@ namespace Helion.World.Physics
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
             // If we're airborne and just landed on the ground, we need a delay
-            // for jumping.
-            if (!entity.OnGround)
+            // for jumping. This should only happen if we've coming down from a
+            // manual jump.
+            if (!entity.OnGround && entity.IsJumping)
+            {
+                entity.IsJumping = false;
                 entity.JumpDelayTicks = JumpDelayTicks;
+            }
             
             entity.SetZ(floorZ);
             entity.OnGround = true;
@@ -363,8 +367,7 @@ namespace Helion.World.Physics
 
             // If we cannot find the line or thing that is blocking us, then we
             // are fully done moving horizontally.
-            entity.Velocity.X = 0;
-            entity.Velocity.Y = 0;
+            ClearVelocityXY(entity);
             stepDelta.X = 0;
             stepDelta.Y = 0;
             movesLeft = 0;
