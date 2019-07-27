@@ -33,8 +33,10 @@ namespace Helion.Resources.Definitions.Decorate
             // map until we can parse decorate files.
             ActorDefinition player = new ActorDefinition(Constants.PlayerClass);
             player.Flags.Solid = true;
+            player.Flags.SlidesOnWalls = true;
             player.Properties.Height = 56.0;
             player.Properties.Radius = 16.0;
+            player.Properties.StepHeight = 24.0;
 
             AddDefinition(player);
         }

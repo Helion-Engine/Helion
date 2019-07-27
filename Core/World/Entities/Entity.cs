@@ -13,6 +13,11 @@ namespace Helion.World.Entities
     public class Entity : IDisposable
     {
         /// <summary>
+        /// A unique identifier for this entity.
+        /// </summary>
+        public readonly int Id;
+        
+        /// <summary>
         /// The definition that makes up this entity.
         /// </summary>
         public readonly ActorDefinition Definition;
@@ -46,7 +51,7 @@ namespace Helion.World.Entities
         /// A cached value to tell whether we are on the ground or not.
         /// </summary>
         public bool OnGround { get; internal set; }
-
+        
         /// <summary>
         /// The sector that is at the center of the entity.
         /// </summary>
@@ -76,22 +81,34 @@ namespace Helion.World.Entities
         /// All the linked list nodes for sectors that this entity belongs to.
         /// </summary>
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
-
+        
         /// <summary>
         /// A (shorter to type) reference to the definition's height value.
         /// </summary>
         public double Height => Definition.Properties.Height;
+
+        /// <summary>
+        /// A (shorter to type) reference to the definition's radius value.
+        /// </summary>
+        public double Radius => Definition.Properties.Radius;
+
+        /// <summary>
+        /// A (shorter to type) reference to the definition's flags.
+        /// </summary>
+        public ActorFlags Flags => Definition.Flags;
         
         /// <summary>
         /// Creates an entity with the following information.
         /// </summary>
+        /// <param name="id">A unique ID for this entity.</param>
         /// <param name="definition">The definitions for the entity.</param>
         /// <param name="position">The location in the world.</param>
         /// <param name="angleRadians">The angle in radians.</param>
         /// <param name="sector">The sector that the center of the entity is on.
         /// </param>
-        public Entity(ActorDefinition definition, Vec3D position, double angleRadians, Sector sector)
+        public Entity(int id, ActorDefinition definition, Vec3D position, double angleRadians, Sector sector)
         {
+            Id = id;
             Definition = definition;
             Angle = angleRadians;
             Box = new EntityBox(position, definition.Properties.Radius, definition.Properties.Height);

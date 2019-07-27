@@ -471,9 +471,15 @@ namespace Helion.Util.Geometry
         /// Takes some offset delta and creates a copy of the box at the offset
         /// provided.
         /// </summary>
-        /// <param name="offset">The delta to add to the box positions.</param>
+        /// <param name="offset">The absolute center coordinate.</param>
+        /// <param name="radius">The radius of the box.</param>
         /// <returns>The box at the position.</returns>
-        public Box2D CopyToOffset(Vec2D offset) => new Box2D(Min + offset, Max + offset);
+        public Box2D CopyToOffset(Vec2D offset, double radius)
+        {
+            Vec2D newMin = new Vec2D(offset.X - radius, offset.Y - radius);
+            Vec2D newMax = new Vec2D(offset.X + radius, offset.Y + radius);
+            return new Box2D(newMin, newMax);
+        } 
 
         /// <summary>
         /// Calculates the sides of this bounding box.

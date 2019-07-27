@@ -15,7 +15,7 @@ namespace Helion.World.Blockmaps
     /// </summary>
     public class Blockmap
     {
-        private readonly UniformGrid<Block> blocks;
+        private readonly UniformGrid<Block> m_blocks;
         
         /// <summary>
         /// Creates a blockmap grid for the map provided.
@@ -24,8 +24,22 @@ namespace Helion.World.Blockmaps
         public Blockmap(Map map)
         {
             Box2D mapBounds = FindMapBoundingBox(map);
-            blocks = new UniformGrid<Block>(mapBounds);
+            m_blocks = new UniformGrid<Block>(mapBounds);
+            SetBlockCoordinates();
             AddLinesToBlocks(map);
+        }
+        
+        /// <summary>
+        /// Performs iteration over the blocks for some line.
+        /// </summary>
+        /// <param name="seg">The line segment to check.</param>
+        /// <param name="func">The callback for whether iteration should be
+        /// continued or not.</param>
+        /// <returns>True if iteration was halted due to the return value of
+        /// the provided function, false if not.</returns>
+        public bool Iterate(Seg2DBase seg, Func<Block, GridIterationStatus> func) 
+        {
+            return m_blocks.Iterate(seg, func);
         }
 
         /// <summary>
@@ -42,7 +56,7 @@ namespace Helion.World.Blockmaps
             //       list and just iterate over that? May be faster...
             return Iterate(entity.Box.To2D(), func);
         }
-        
+
         /// <summary>
         /// Performs iteration over the blocks at the box position.
         /// </summary>
@@ -53,9 +67,9 @@ namespace Helion.World.Blockmaps
         /// the provided function, false if not.</returns>
         public bool Iterate(Box2D box, Func<Block, GridIterationStatus> func)
         {
-            return blocks.Iterate(box, func);
+            return m_blocks.Iterate(box, func);
         }
-        
+
         /// <summary>
         /// Links an entity to the grid.
         /// </summary>
@@ -65,7 +79,7 @@ namespace Helion.World.Blockmaps
         {
             Precondition(entity.BlockmapNodes.Count == 0, "Forgot to unlink entity from blockmap");
 
-            blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+            m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
             
             GridIterationStatus BlockLinkFunc(Block block)
             {
@@ -82,11 +96,22 @@ namespace Helion.World.Blockmaps
                             .Aggregate(startBox, (accumBox, lineBox) => Box2D.Combine(accumBox, lineBox));
         }
 
+        private void SetBlockCoordinates()
+        {
+            // Unfortunately we have to do it this way because we can't get
+            // constraining for generic parameters, so the UniformGrid will
+            // not be able to do this for us via it's constructor. 
+            int index = 0;
+            for (int y = 0; y < m_blocks.Height; y++)
+                for (int x = 0; x < m_blocks.Width; x++)
+                    m_blocks[index++].SetCoordinate(x, y);
+        }
+
         private void AddLinesToBlocks(Map map)
         {
             map.Lines.ForEach(line =>
             {
-                blocks.Iterate(line.Segment, block =>
+                m_blocks.Iterate(line.Segment, block =>
                 {
                     block.Lines.Add(line);
                     return GridIterationStatus.Continue;

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry
@@ -19,7 +21,7 @@ namespace Helion.Util.Geometry
     /// </summary>
     /// <typeparam name="T">The block component for each grid element.
     /// </typeparam>
-    public class UniformGrid<T> where T : new()
+    public class UniformGrid<T> : IEnumerable<T> where T : new()
     {
         // TODO: This should not be hardcoded.
         private const int Dimension = 128;
@@ -65,6 +67,16 @@ namespace Helion.Util.Geometry
             for (int i = 0; i < TotalBlocks; i++)
                 blocks[i] = new T();
         }
+        
+        /// <summary>
+        /// Gets the block at the index provided. Intended primarily for any
+        /// iteration where we don't care about the X or Y coordinates and need
+        /// something faster.
+        /// </summary>
+        /// <param name="index">The index of the block.</param>
+        /// <exception cref="System.IndexOutOfRangeException">if the index is
+        /// out of range.</exception>
+        public T this[int index] => blocks[index];
 
         /// <summary>
         /// Gets the block at the coordinates provided.
@@ -244,6 +256,12 @@ namespace Helion.Util.Geometry
             return false;
         }
 
+        /// <inheritdoc/>
+        public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)blocks).GetEnumerator();
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        
         private static Box2D ToBounds(Box2D bounds)
         {
             // Note that we are subtracting 1 from the bottom left even after

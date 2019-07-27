@@ -12,19 +12,12 @@ namespace Helion.World
     public abstract class WorldBase
     {
         public int Gametick { get; private set; }
-        
         public readonly Map Map;
-        
         public readonly BspTree BspTree;
-        
         protected readonly Blockmap Blockmap;
-        
         protected readonly ArchiveCollection ArchiveCollection;
-        
         protected readonly Config Config;
-        
         protected readonly EntityManager EntityManager;
-        
         protected readonly PhysicsManager PhysicsManager;
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, Map map, BspTree bspTree)
@@ -34,7 +27,7 @@ namespace Helion.World
             Map = map;
             BspTree = bspTree;
             Blockmap = new Blockmap(map);
-            PhysicsManager = new PhysicsManager(this, bspTree, Blockmap); 
+            PhysicsManager = new PhysicsManager(bspTree, Blockmap); 
             EntityManager = new EntityManager(this, archiveCollection, bspTree, Blockmap, PhysicsManager, map);
         }
 

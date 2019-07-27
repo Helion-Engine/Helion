@@ -20,7 +20,7 @@ namespace Helion.Maps.Geometry
 
         public Sector(int id, byte lightLevel, SectorFlat floor, SectorFlat ceiling)
         {
-            Precondition(floor.Plane.FlatHeight <= ceiling.Plane.FlatHeight, "Sector floor is above the ceiling");
+            Precondition(floor.Z <= ceiling.Z, "Sector floor is above the ceiling");
 
             Id = id;
             LightLevel = lightLevel;

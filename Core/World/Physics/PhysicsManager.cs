@@ -11,26 +11,37 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
 {
+    /// <summary>
+    /// Responsible for handling all the physics and collision detection in a
+    /// world.
+    /// </summary>
     public class PhysicsManager
     {
         private const int MaxSlides = 3;
         private const double Gravity = 1.0;
         private const double Friction = 0.90625;
-        private const double StepHeight = 24.0;
-        private const double SlideStepBack = 1.0 / 32.0;
+        private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
         
-        private readonly WorldBase m_world;
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
 
-        public PhysicsManager(WorldBase world, BspTree bspTree, Blockmap blockmap)
+        /// <summary>
+        /// Creates a new physics manager which utilizes the arguments for any
+        /// collision detection or linking to the world.
+        /// </summary>
+        /// <param name="bspTree">The BSP tree for the world.</param>
+        /// <param name="blockmap">The blockmap for the world.</param>
+        public PhysicsManager(BspTree bspTree, Blockmap blockmap)
         {
-            m_world = world;
             m_bspTree = bspTree;
             m_blockmap = blockmap;
         }
 
+        /// <summary>
+        /// Links an entity to the world.
+        /// </summary>
+        /// <param name="entity">The entity to link.</param>
         public void LinkToWorld(Entity entity)
         {
             m_blockmap.Link(entity);
@@ -38,14 +49,75 @@ namespace Helion.World.Physics
             ClampBetweenFloorAndCeiling(entity);
         }
 
+        /// <summary>
+        /// Performs all the movement logic on the entity.
+        /// </summary>
+        /// <param name="entity">The entity to move.</param>
         public void Move(Entity entity)
         {
-            entity.UnlinkFromWorld();
-
             MoveXY(entity);
             MoveZ(entity);
+        }
 
-            LinkToWorld(entity);
+        private static int CalculateSteps(Vec2D velocity, double radius)
+        {
+            Invariant(radius > 0.5, $"Actor radius too small for safe XY physics movement");
+
+            // We want to pick some atomic distance to keep moving our bounding
+            // box. It can't be bigger than the radius because we could end up
+            // skipping over a line.
+            double moveDistance = radius - 0.5;
+            double biggerAxis = Math.Max(Math.Abs(velocity.X), Math.Abs(velocity.Y));
+            return (int)(biggerAxis / moveDistance) + 1;
+        }
+
+        private static void ApplyFriction(Entity entity)
+        {
+            entity.Velocity.X *= Friction;
+            entity.Velocity.Y *= Friction;
+        }
+        
+        private static void StopXYMovementIfSmall(Entity entity)
+        {
+            if (Math.Abs(entity.Velocity.X) < MinMovementThreshold)
+                entity.Velocity.X = 0;
+            if (Math.Abs(entity.Velocity.Y) < MinMovementThreshold)
+                entity.Velocity.Y = 0;
+        }
+        
+        private static bool LineBlocksEntity(Entity entity, Line line)
+        {
+            if (line.Back == null)
+                return true;
+
+            // TODO: Check blocking flags on the line.
+
+            LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
+            return !opening.CanPassOrStepThrough(entity);
+        }
+
+        private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
+        {
+            entity.SetZ(floorZ);
+            entity.Velocity.Z = 0;
+            entity.OnGround = true;
+        }
+
+        private void ClampBetweenFloorAndCeiling(Entity entity)
+        {
+            double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
+            double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
+
+            if (entity.Box.Top + entity.Height > lowestCeil)
+            {
+                entity.SetZ(lowestCeil - entity.Height);
+                entity.Velocity.Z = 0;
+            }
+
+            if (entity.Box.Bottom <= highestFloor)
+                SetEntityOnFloorOrEntity(entity, highestFloor);
+            else
+                entity.OnGround = false;
         }
 
         private void LinkToSectors(Entity entity)
@@ -114,52 +186,220 @@ namespace Helion.World.Physics
             entity.HighestFloorSector = highestFloor;
             entity.LowestCeilingSector = lowestCeiling;
         }
-
-        private void MoveXY(Entity entity)
+        
+        private void ClearVelocityXY(Entity entity)
         {
-            if (entity.Velocity.To2D() == Vec2D.Zero)
-                return;
-
-            if (TryMoveXY(entity, out Vec2D newPosition))
-                entity.SetXY(newPosition);
-
-            ApplyFriction(entity);
-            StopXYMovementIfVerySmall(entity);
+            entity.Velocity.X = 0;
+            entity.Velocity.Y = 0;
         }
 
-        private bool TryMoveXY(Entity entity, out Vec2D newPosition)
+        private void PerformMoveXY(Entity entity)
         {
-            Vec2D movement = entity.Velocity.To2D();
-            Box2D desiredBoxPosition = entity.Box.To2D().CopyToOffset(movement);
+            Precondition(entity.Velocity.To2D() != Vec2D.Zero, "Cannot move with zero horizontal velocity");
             
-            bool isBlocked = m_blockmap.Iterate(desiredBoxPosition, HandleLineCrossing);
+            int slidesLeft = MaxSlides;
+            Vec2D velocity = entity.Velocity.To2D();
 
-            if (isBlocked)
+            // We advance in small steps that are smaller than the radius of
+            // the actor so we don't skip over any lines or things due to fast
+            // entity speed.
+            int numMoves = CalculateSteps(velocity, entity.Radius);
+            Vec2D stepDelta = velocity / numMoves;
+            
+            for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
             {
-                // TODO: Temporary until we handle sliding.
-                entity.Velocity.X = 0;
-                entity.Velocity.Y = 0;
+                if (stepDelta == Vec2D.Zero)
+                    break;
                 
-                newPosition = default;
-                return false;
+                Vec2D nextPosition = entity.Position.To2D() + stepDelta;
+
+                if (CanMoveTo(entity, nextPosition))
+                {
+                    MoveTo(entity, nextPosition);
+                    continue;
+                }
+
+                if (entity.Definition.Flags.SlidesOnWalls && slidesLeft > 0)
+                {
+                    HandleSlide(entity, ref stepDelta, ref movesLeft);
+                    slidesLeft--;
+                    continue;
+                }
+                
+                ClearVelocityXY(entity);
+                break;
             }
-            
-            newPosition = entity.Position.To2D() + movement;
-            return true;
-            
-            GridIterationStatus HandleLineCrossing(Block block)
+        }
+
+        private bool CanMoveTo(Entity entity, Vec2D nextPosition)
+        {
+            Box2D nextBox = entity.Box.To2D().CopyToOffset(nextPosition, entity.Radius);
+            return !m_blockmap.Iterate(nextBox, CheckForBlockers);
+
+            GridIterationStatus CheckForBlockers(Block block)
             {
-                // Loop iteration over foreach done for performance reasons.
                 for (int i = 0; i < block.Lines.Count; i++)
                 {
                     Line line = block.Lines[i];
-                    if (line.Segment.Intersects(desiredBoxPosition))
-                    {
-                        if (line.OneSided)
+                    if (line.Segment.Intersects(nextBox) && LineBlocksEntity(entity, line))
+                        return GridIterationStatus.Stop;
+                }
+
+                LinkableNode<Entity>? entityNode = block.Entities.Head;
+                while (entityNode != null)
+                {
+                    Entity nextEntity = entityNode.Value;
+                    if (!ReferenceEquals(entity, nextEntity))
+                        if (nextEntity.Box.To2D().Overlaps(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                             return GridIterationStatus.Stop;
-                        
-                        // TODO: If two sided line is too high, also block
-                        // TODO: If we can step up, do that.
+
+                    entityNode = entityNode.Next;
+                }
+                
+                return GridIterationStatus.Continue;
+            }
+        }
+        
+        private void HandleStepIfNeeded(Entity entity, Line line)
+        {
+            if (line.Back == null)
+                throw new NullReferenceException("Should never be trying to step up on a one-sided line");
+
+            Sector frontSector = line.Front.Sector;
+            Sector backSector = line.Back.Sector;
+            if (ReferenceEquals(frontSector, backSector))
+                return;
+
+            if (frontSector.Floor.Z > backSector.Floor.Z)
+            {
+                if (entity.Box.Bottom < frontSector.Floor.Z)
+                    SetEntityOnFloorOrEntity(entity, frontSector.Floor.Z);
+            }
+            else if (entity.Box.Bottom < backSector.Floor.Z)
+                SetEntityOnFloorOrEntity(entity, backSector.Floor.Z);
+        }
+        
+        private void HandleStepIfNeeded(Entity entity, Entity other)
+        {
+            if (!entity.Box.Overlaps(other.Box)) 
+                return;
+            
+            Precondition(entity.Box.Bottom >= other.Box.Top - entity.Definition.Properties.StepHeight, "Entity too high to step up onto");
+            SetEntityOnFloorOrEntity(entity, other.Box.Top);
+        }
+
+        private void MoveTo(Entity entity, Vec2D nextPosition)
+        {
+            entity.UnlinkFromWorld();
+
+            entity.SetXY(nextPosition);
+            Box2D entityBox = entity.Box.To2D();
+            m_blockmap.Iterate(entityBox, HandleSteppingFunc);
+
+            LinkToWorld(entity);
+
+            // TODO: I wonder if we can somehow carry this information with us
+            //       from CanMoveTo() so we don't have to iterate through the
+            //       blockmap twice?
+            GridIterationStatus HandleSteppingFunc(Block block)
+            {
+                for (int i = 0; i < block.Lines.Count; i++)
+                {
+                    Line line = block.Lines[i];
+                    if (line.Segment.Intersects(entityBox))
+                        HandleStepIfNeeded(entity, line);
+                }
+                
+                LinkableNode<Entity>? entityNode = block.Entities.Head;
+                while (entityNode != null)
+                {
+                    Entity nextEntity = entityNode.Value;
+                    if (!ReferenceEquals(entity, nextEntity))
+                        HandleStepIfNeeded(entity, nextEntity);
+
+                    entityNode = entityNode.Next;
+                }
+                
+                return GridIterationStatus.Continue;
+            }
+        }
+
+        private void HandleSlide(Entity entity, ref Vec2D stepDelta, ref int movesLeft)
+        {
+            if (FindClosestBlockingLine(entity, stepDelta, out MoveInfo moveInfo))
+            {
+                if (MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep))
+                {
+                    ReorientToSlideAlong(entity, moveInfo.BlockingLine, residualStep, ref stepDelta, ref movesLeft);
+                    return;
+                }
+            }
+
+            if (AttemptAxisMove(entity, stepDelta, Axis2D.X))
+                return;
+            if (AttemptAxisMove(entity, stepDelta, Axis2D.Y))
+                return;
+
+            // If we cannot find the line or thing that is blocking us, then we
+            // are fully done moving horizontally.
+            entity.Velocity.X = 0;
+            entity.Velocity.Y = 0;
+            stepDelta.X = 0;
+            stepDelta.Y = 0;
+            movesLeft = 0;
+        }
+        
+        private BoxCornerTracers CalculateCornerTracers(Box2D currentBox, Vec2D stepDelta)
+        {
+            Vec2D[] corners;
+            
+            if (stepDelta.X >= 0)
+            {
+                corners = stepDelta.Y >= 0 ? 
+                    new[] { currentBox.TopLeft, currentBox.TopRight, currentBox.BottomRight } : 
+                    new[] { currentBox.TopRight, currentBox.BottomRight, currentBox.BottomLeft };
+            }
+            else
+            {
+                corners = stepDelta.Y >= 0 ? 
+                    new[] { currentBox.TopRight, currentBox.TopLeft, currentBox.BottomLeft } : 
+                    new[] { currentBox.TopLeft, currentBox.BottomLeft, currentBox.BottomRight };
+            }
+
+            Seg2DBase first = new Seg2DBase(corners[0], corners[0] + stepDelta);
+            Seg2DBase second = new Seg2DBase(corners[1], corners[1] + stepDelta);
+            Seg2DBase third = new Seg2DBase(corners[2], corners[2] + stepDelta);
+            return new BoxCornerTracers(first, second, third);
+        }
+
+        private void CheckCornerTracerIntersection(Seg2DBase cornerTracer, Entity entity, ref MoveInfo moveInfo)
+        {
+            bool hit = false;
+            double hitTime = double.MaxValue;
+            Line? blockingLine = null;
+            
+            m_blockmap.Iterate(cornerTracer, CheckForTracerHit);
+            
+            if (hit && hitTime < moveInfo.LineIntersectionTime)
+            {
+                moveInfo.IntersectionFound = true;
+                moveInfo.LineIntersectionTime = hitTime;
+                moveInfo.BlockingLine = blockingLine;
+            }
+
+            GridIterationStatus CheckForTracerHit(Block block)
+            {
+                for (int i = 0; i < block.Lines.Count; i++)
+                {
+                    Line line = block.Lines[i];
+                    
+                    if (cornerTracer.Intersection(line.Segment, out double time) && 
+                        LineBlocksEntity(entity, line) &&
+                        time < hitTime)
+                    {
+                        hit = true;
+                        hitTime = time;
+                        blockingLine = line;  
                     }
                 }
                 
@@ -167,39 +407,136 @@ namespace Helion.World.Physics
             }
         }
 
-        private void StopXYMovementIfVerySmall(Entity entity)
+        private bool FindClosestBlockingLine(Entity entity, Vec2D stepDelta, out MoveInfo moveInfo)
         {
-            if (Math.Abs(entity.Velocity.X) < MinMovementThreshold)
-                entity.Velocity.X = 0;
-            if (Math.Abs(entity.Velocity.Y) < MinMovementThreshold)
-                entity.Velocity.Y = 0;
+            moveInfo = MoveInfo.Empty();
+
+            // We shoot out 3 tracers from the corners in the direction we're
+            // travelling to see if there's a blocking line as follows:
+            //    _  _
+            //    /| /|   If we're travelling northeast, then from the
+            //   /  /_    top right corners of the bounding box we will
+            //  o--o /|   shoot out tracers in the direction we are going
+            //  |  |/     to step to see if we hit anything
+            //  o--o
+            //
+            // This obviously can miss things, but this is how vanilla does it
+            // and we want to have compatibility with the mods that use.
+            Box2D currentBox = entity.Box.To2D();
+            BoxCornerTracers tracers = CalculateCornerTracers(currentBox, stepDelta);
+            CheckCornerTracerIntersection(tracers.First, entity, ref moveInfo);
+            CheckCornerTracerIntersection(tracers.Second, entity, ref moveInfo);
+            CheckCornerTracerIntersection(tracers.Third, entity, ref moveInfo);
+            
+            return moveInfo.IntersectionFound;
         }
 
-        private void ApplyFriction(Entity entity)
+        private bool MoveCloseToBlockingLine(Entity entity, Vec2D stepDelta, MoveInfo moveInfo, out Vec2D residualStep)
         {
-            entity.Velocity.X *= Friction;
-            entity.Velocity.Y *= Friction;
-        }
-
-        private void ClampBetweenFloorAndCeiling(Entity entity)
-        {
-            double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
-            double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
-
-            if (entity.Box.Top + entity.Height > lowestCeil)
+            Precondition(moveInfo.LineIntersectionTime >= 0, "Blocking line intersection time should never be negative");
+            Precondition(moveInfo.IntersectionFound, "Should not be moving close to a line if we didn't hit one");
+            
+            // If it's close enough that stepping back would move us further
+            // back than we currently are (or move us nowhere), we don't need
+            // to do anything. This also means the residual step is equal to
+            // the entire step since we're not stepping anywhere.
+            if (moveInfo.LineIntersectionTime <= SlideStepBackTime)
             {
-                entity.SetZ(lowestCeil - entity.Height);
-                entity.Velocity.Z = 0;
+                residualStep = stepDelta;
+                return true;
             }
 
-            if (entity.Box.Bottom <= highestFloor)
+            double t = moveInfo.LineIntersectionTime - SlideStepBackTime;
+            Vec2D usedStepDelta = stepDelta * t;
+            residualStep = stepDelta - usedStepDelta;
+
+            Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
+            if (CanMoveTo(entity, closeToLinePosition))
             {
-                entity.SetZ(highestFloor);
-                entity.Velocity.Z = 0;
-                entity.OnGround = true;
+                MoveTo(entity, closeToLinePosition);
+                return true;
+            }
+            
+            return false;
+        }
+
+        private void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta, 
+            ref int movesLeft)
+        {
+            // Our slide direction depends on if we're going along with the
+            // line or against the line. If the dot product is negative, it
+            // means we are facing away from the line and should slide in
+            // the opposite direction from the way the line is pointing.
+            // TODO: We can cache the Unit() for the line for perf reasons.
+            Vec2D lineDirection = blockingLine.Segment.Delta;
+            Vec2D unitDirection = lineDirection.Unit();
+            if (stepDelta.Dot(lineDirection) < 0)
+                unitDirection = -unitDirection;
+            
+            // We find out how much velocity is projected onto the wall, and
+            // then make a vector out of it.
+            Vec2D scalarProjectionStep = unitDirection * stepDelta.ScalarProjection(unitDirection);
+            
+            // Because we moved up to the wall, it's almost always the case
+            // that we didn't make 100% of a step. For example if we have some
+            // movement of 5 map units towards a wall and run into the wall at
+            // 3 (leaving 2 map units unhandled), we want to work that residual
+            // map unit movement into the existing step length. The following
+            // does that by finding the total movement scalar
+            //
+            // We also must take into account that we're adding some scalar to
+            // another scalar, which means we'll end up with usually a larger
+            // one. This means our step delta could grow beyond the size of the
+            // radius of the entity and cause it to skip lines in pathological
+            // situations. I haven't encountered such a case yet but it is at
+            // least theoretically possible this can happen.
+            double totalRemainingDistance = ((scalarProjectionStep * movesLeft) + residualStep).Length();
+            movesLeft += 2;
+            stepDelta = scalarProjectionStep * totalRemainingDistance / movesLeft;
+            
+            // Lastly, we need to reorient the velocity.
+            double velocityScalar = entity.Velocity.To2D().Length();
+            Vec2D newVelocityDirection = unitDirection * velocityScalar;
+            entity.Velocity.X = newVelocityDirection.X;
+            entity.Velocity.Y = newVelocityDirection.Y;
+        }
+
+        private bool AttemptAxisMove(Entity entity, Vec2D stepDelta, Axis2D axis)
+        {
+            if (axis == Axis2D.X)
+            {
+                Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
+                if (CanMoveTo(entity, nextPosition))
+                {
+                    MoveTo(entity, nextPosition);
+                    entity.Velocity.Y = 0;
+                    stepDelta.Y = 0;
+                    return true;
+                }                
             }
             else
-                entity.OnGround = false;
+            {
+                Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
+                if (CanMoveTo(entity, nextPosition))
+                {
+                    MoveTo(entity, nextPosition);
+                    entity.Velocity.X = 0;
+                    stepDelta.X = 0;
+                    return true;
+                }    
+            }
+
+            return false;
+        }
+
+        private void MoveXY(Entity entity)
+        {
+            if (entity.Velocity.To2D() == Vec2D.Zero)
+                return;
+
+            PerformMoveXY(entity);
+            ApplyFriction(entity);
+            StopXYMovementIfSmall(entity);
         }
 
         private void MoveZ(Entity entity)
@@ -208,8 +545,9 @@ namespace Helion.World.Physics
                 entity.Velocity.Z -= Gravity;
             
             // TODO: Check if any entities are in the way of our movement.
-            
+
             entity.SetZ(entity.Position.Z + entity.Velocity.Z);
+            ClampBetweenFloorAndCeiling(entity);
         }
     }
 }

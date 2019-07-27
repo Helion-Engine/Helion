@@ -9,6 +9,7 @@ namespace Helion.Maps.Geometry
         public readonly int Id;
         public readonly PlaneD Plane;
         public readonly SectorFlatFace Facing;
+        public double Z;
         public CIString Texture;
         public byte LightLevel;
         private Sector? m_sector;
@@ -20,6 +21,7 @@ namespace Helion.Maps.Geometry
             Id = id;
             Facing = facing;
             Texture = texture;
+            Z = z;
             Plane = new PlaneD(z);
             LightLevel = lightLevel;
         }

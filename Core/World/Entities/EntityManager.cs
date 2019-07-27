@@ -5,6 +5,7 @@ using Helion.Maps.Things;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
@@ -28,6 +29,7 @@ namespace Helion.World.Entities
         private readonly Map m_map;
         private readonly PhysicsManager m_physicsManager;
         private readonly WorldBase m_world;
+        private AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, BspTree bspTree,
             Blockmap blockmap, PhysicsManager physicsManager, Map map)
@@ -42,8 +44,9 @@ namespace Helion.World.Entities
 
         public Entity Create(ActorDefinition definition, Vec3D position, double angle)
         {
+            int id = m_entityIdTracker.Next();
             Sector sector = m_bspTree.ToSector(position);
-            Entity entity = new Entity(definition, position, angle, sector);
+            Entity entity = new Entity(id, definition, position, angle, sector);
             
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;

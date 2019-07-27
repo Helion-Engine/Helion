@@ -100,6 +100,22 @@ namespace Helion.World.Entities
         /// <returns>A 2D version of the box.</returns>
         public Box2D To2D() => m_box.To2D();
 
+        /// <summary>
+        /// Checks if the boxes overlap. Touching is not considered to be
+        /// overlapping.
+        /// </summary>
+        /// <param name="other">The other entity to check against.</param>
+        /// <returns>True if they overlap, false if not.</returns>
+        public bool Overlaps(EntityBox other) => m_box.Overlaps(other.m_box);
+        
+        /// <summary>
+        /// Checks to see if the two boxes have overlapping Z values. It does
+        /// not include touching, it has to be strictly overlapping.
+        /// </summary>
+        /// <param name="box">The other box to check.</param>
+        /// <returns>True if there is some overlap, false if not.</returns>
+        public bool OverlapsZ(EntityBox box) => Top > box.Bottom && Bottom < box.Top;
+
         /// <inheritdoc/>
         public override string ToString() => $"{m_box}";
 

@@ -5,6 +5,8 @@ namespace Helion.Util.Geometry
 {
     public struct Vec2I
     {
+        public static readonly Vec2I Zero = new Vec2I(0, 0);
+        
         public int X;
         public int Y;
 
@@ -20,6 +22,7 @@ namespace Helion.Util.Geometry
             Y = vec.Y;
         }
 
+        public static Vec2I operator -(Vec2I self) => new Vec2I(-self.X, -self.Y);
         public static Vec2I operator +(Vec2I self, Vec2I other) => new Vec2I(self.X + other.X, self.Y + other.Y);
         public static Vec2I operator -(Vec2I self, Vec2I other) => new Vec2I(self.X - other.X, self.Y - other.Y);
         public static Vec2I operator *(Vec2I self, Vec2I other) => new Vec2I(self.X * other.X, self.Y * other.Y);
@@ -67,6 +70,7 @@ namespace Helion.Util.Geometry
             Y = vec.Y;
         }
 
+        public static Vec2D operator -(Vec2D self) => new Vec2D(-self.X, -self.Y);
         public static Vec2D operator +(Vec2D self, Vec2D other) => new Vec2D(self.X + other.X, self.Y + other.Y);
         public static Vec2D operator -(Vec2D self, Vec2D other) => new Vec2D(self.X - other.X, self.Y - other.Y);
         public static Vec2D operator *(Vec2D self, Vec2D other) => new Vec2D(self.X * other.X, self.Y * other.Y);
@@ -87,6 +91,7 @@ namespace Helion.Util.Geometry
         public double Dot(Vec2D other) => (X * other.X) + (Y * other.Y);
         public double LengthSquared() => (X * X) + (Y * Y);
         public double Length() => Math.Sqrt((X * X) + (Y * Y));
+        public double ScalarProjection(Vec2D other) => Dot(other) / Length();
         public double DistanceSquared(Vec2D other) => (this - other).LengthSquared();
         public double Distance(Vec2D other) => (this - other).Length();
         public Vec2D Interpolate(Vec2D end, double t) => this + (t * (end - this));
@@ -124,6 +129,7 @@ namespace Helion.Util.Geometry
             Y = vec.Y;
         }
 
+        public static Vec2Fixed operator -(Vec2Fixed self) => new Vec2Fixed(-self.X, -self.Y);
         public static Vec2Fixed operator +(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X + other.X, self.Y + other.Y);
         public static Vec2Fixed operator -(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X - other.X, self.Y - other.Y);
         public static Vec2Fixed operator *(Vec2Fixed self, Vec2Fixed other) => new Vec2Fixed(self.X * other.X, self.Y * other.Y);
@@ -149,6 +155,7 @@ namespace Helion.Util.Geometry
         public Fixed Length() => new Fixed(Math.Sqrt(((X * X) + (Y * Y)).ToDouble()));
         public Fixed DistanceSquared(Vec2Fixed other) => (this - other).LengthSquared();
         public Fixed Distance(Vec2Fixed other) => (this - other).Length();
+        public Fixed ScalarProjection(Vec2Fixed other) => Dot(other) / Length();
         public Vec2Fixed Interpolate(Vec2Fixed end, float t) => ToDouble().Interpolate(end.ToDouble(), t).ToFixed();
         public Vec2Fixed OriginRightRotate90() => new Vec2Fixed(Y, -X);
         public Vec2Fixed OriginLeftRotate90() => new Vec2Fixed(-Y, X);
@@ -174,6 +181,7 @@ namespace Helion.Util.Geometry
         public static float Length(this Vector2 vec) => (float)Math.Sqrt((vec.X * vec.X) + (vec.Y * vec.Y));
         public static float DistanceSquared(this Vector2 vec, Vector2 other) => (vec - other).LengthSquared();
         public static float Distance(this Vector2 vec, Vector2 other) => (vec - other).Length();
+        public static float ScalarProjection(this Vector2 vec, Vector2 other) => vec.Dot(other) / vec.Length();
         public static Vector2 Interpolate(this Vector2 start, Vector2 end, float t) => start + (t * (end - start));
         public static Vec2I ToInt(this Vector2 vec) => new Vec2I((int)vec.X, (int)vec.Y);
         public static Vec2Fixed ToFixed(this Vector2 vec) => new Vec2Fixed(new Fixed(vec.X), new Fixed(vec.Y));

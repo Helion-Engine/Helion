@@ -753,7 +753,8 @@ namespace Helion.Util.Geometry
         /// </remarks>
         /// <param name="seg">The segment to check.</param>
         /// <param name="t">The output intersection time. If this function
-        /// returns false then it will have a default value.</param>
+        /// returns true, it is between [0.0, 1.0]. Otherwise it is a default
+        /// value.</param>
         /// <returns>True if they intersect, false if not.</returns>
         public bool Intersection(Seg2DBase seg, out double t)
         {
@@ -768,7 +769,7 @@ namespace Helion.Util.Geometry
                 if (MathHelper.DifferentSign(areaStart, areaEnd))
                 {
                     t = areaThisStart / (areaThisStart - areaThisEnd);
-                    return true;
+                    return t >= 0.0 && t <= 1.0;
                 }
             }
 
@@ -830,13 +831,13 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// Gets the length of the segment.
         /// </summary>
-        /// <returns>The length of the segment</returns>
+        /// <returns>The length of the segment.</returns>
         public double Length() => Delta.Length();
 
         /// <summary>
         /// Gets the squared length of the segment.
         /// </summary>
-        /// <returns>The squared length of the segment</returns>
+        /// <returns>The squared length of the segment.</returns>
         public double LengthSquared() => Delta.LengthSquared();
         
         /// <summary>
