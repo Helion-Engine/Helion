@@ -106,7 +106,7 @@ namespace Helion.World.Physics
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
             entity.SetZ(floorZ);
-            entity.Velocity.Z = 0;
+            entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
             entity.OnGround = true;
         }
 
