@@ -493,17 +493,20 @@ namespace Helion.World.Physics
             // radius of the entity and cause it to skip lines in pathological
             // situations. I haven't encountered such a case yet but it is at
             // least theoretically possible this can happen. Because of this,
-            // the movesLeft is incremented by 2 to make sure the stepDelta
-            // stays smaller than the radius.
+            // the movesLeft is incremented by 1 to make sure the stepDelta
+            // at the end of this function stays smaller than the radius.
+            // TODO: If we have the unit vector, is projection overkill? Can we
+            //       just multiply by the component instead?
             Vec2D stepProjection = stepDelta.Projection(unitDirection);
+            Vec2D residualProjection = residualStep.Projection(unitDirection);
 
             // TODO: This is almost surely not how it's done, but it feels okay
             //       enough right now to leave as is.
             entity.Velocity.X = stepProjection.X * Friction;
             entity.Velocity.Y = stepProjection.Y * Friction;
             
-            double totalRemainingDistance = ((stepProjection * movesLeft) + residualStep).Length();
-            movesLeft += 2;
+            double totalRemainingDistance = ((stepProjection * movesLeft) + residualProjection).Length();
+            movesLeft += 1;
             stepDelta = unitDirection * totalRemainingDistance / movesLeft;
         }
 
