@@ -106,8 +106,13 @@ namespace Helion.World.Physics
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
             entity.SetZ(floorZ);
-            entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
             entity.OnGround = true;
+            
+            // For now we remove any negative velocity. If upward velocity is
+            // reset to zero then the jump we apply to players is lost and they
+            // can never jump. Maybe we want to fix this in the future by doing
+            // application of jumping after the XY movement instead of before?
+            entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
