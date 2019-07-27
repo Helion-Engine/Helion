@@ -475,9 +475,8 @@ namespace Helion.World.Physics
             // means we are facing away from the line and should slide in
             // the opposite direction from the way the line is pointing.
             // TODO: We can cache the Unit() for the line for perf reasons.
-            Vec2D lineDirection = blockingLine.Segment.Delta;
-            Vec2D unitDirection = lineDirection.Unit();
-            if (stepDelta.Dot(lineDirection) < 0)
+            Vec2D unitDirection = blockingLine.Segment.Delta.Unit();
+            if (stepDelta.Dot(unitDirection) < 0)
                 unitDirection = -unitDirection;
             
             // Because we moved up to the wall, it's almost always the case
@@ -493,16 +492,19 @@ namespace Helion.World.Physics
             // one. This means our step delta could grow beyond the size of the
             // radius of the entity and cause it to skip lines in pathological
             // situations. I haven't encountered such a case yet but it is at
-            // least theoretically possible this can happen.
+            // least theoretically possible this can happen. Because of this,
+            // the movesLeft is incremented by 2 to make sure the stepDelta
+            // stays smaller than the radius.
             Vec2D stepProjection = stepDelta.Projection(unitDirection);
+
+            // TODO: This is almost surely not how it's done, but it feels okay
+            //       enough right now to leave as is.
+            entity.Velocity.X = stepProjection.X * Friction;
+            entity.Velocity.Y = stepProjection.Y * Friction;
+            
             double totalRemainingDistance = ((stepProjection * movesLeft) + residualStep).Length();
             movesLeft += 2;
             stepDelta = unitDirection * totalRemainingDistance / movesLeft;
-            
-            // Finally we need to reorient the velocity as well.
-            Vec2D newVelocityDirection = entity.Velocity.To2D().Projection(unitDirection);
-            entity.Velocity.X = newVelocityDirection.X;
-            entity.Velocity.Y = newVelocityDirection.Y;
         }
 
         private bool AttemptAxisMove(Entity entity, Vec2D stepDelta, Axis2D axis)
