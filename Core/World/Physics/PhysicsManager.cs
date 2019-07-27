@@ -360,9 +360,9 @@ namespace Helion.World.Physics
                 }
             }
 
-            if (AttemptAxisMove(entity, stepDelta, Axis2D.X))
-                return;
             if (AttemptAxisMove(entity, stepDelta, Axis2D.Y))
+                return;
+            if (AttemptAxisMove(entity, stepDelta, Axis2D.X))
                 return;
 
             // If we cannot find the line or thing that is blocking us, then we
