@@ -14,6 +14,8 @@ namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
+        private const double AirControl = 0.00390625;
+
         public readonly Player Player;
         
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, Map map, BspTree bspTree) : 
@@ -58,6 +60,9 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (movement != Vec2D.Zero)
             {
+                if (!entity.OnGround)
+                    movement *= AirControl;
+                
                 entity.Velocity.X += Math.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
                 entity.Velocity.Y += Math.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
             }

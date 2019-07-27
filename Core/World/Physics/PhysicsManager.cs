@@ -74,6 +74,9 @@ namespace Helion.World.Physics
 
         private static void ApplyFriction(Entity entity)
         {
+            if (!entity.OnGround)
+                return;
+            
             entity.Velocity.X *= Friction;
             entity.Velocity.Y *= Friction;
         }
