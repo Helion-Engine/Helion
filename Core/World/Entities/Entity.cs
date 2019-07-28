@@ -4,6 +4,7 @@ using Helion.Maps.Geometry;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
+using Helion.World.Entities.Players;
 
 namespace Helion.World.Entities
 {
@@ -12,6 +13,8 @@ namespace Helion.World.Entities
     /// </summary>
     public class Entity : IDisposable
     {
+        public Player? Player;
+
         /// <summary>
         /// A unique identifier for this entity.
         /// </summary>

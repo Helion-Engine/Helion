@@ -12,6 +12,8 @@ namespace Helion.Cheats
         {
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
             new ChangeLevelCheat(),
+
+            new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
         };
 
         private readonly Dictionary<CheatType, ICheat> m_cheatLookup = new Dictionary<CheatType, ICheat>();
@@ -45,7 +47,7 @@ namespace Helion.Cheats
 
             foreach (var key in keys)
             {
-                m_currentCheat += key.ToString().ToLower();
+                m_currentCheat += key.ToString();
 
                 if (m_cheats.Any(x => x.PartialMatch(m_currentCheat)))
                 {

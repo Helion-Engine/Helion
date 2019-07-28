@@ -11,7 +11,10 @@
         GiveAllNoKeys,
         GiveAll,
         ChangeMusic,
-        ShowPosition
+        ShowPosition,
+
+        // Start non-vanilla doom cheats
+        Fly,
     }
 
     public interface ICheat

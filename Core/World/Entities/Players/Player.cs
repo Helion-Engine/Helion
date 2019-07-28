@@ -25,6 +25,7 @@ namespace Helion.World.Entities.Players
             
             PlayerNumber = playerNumber;
             Entity = entity;
+            Entity.Player = this;
             m_prevAngle = entity.Angle;
         }
         

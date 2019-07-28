@@ -1,4 +1,5 @@
 ﻿using System;
+using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
@@ -46,7 +47,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
             Entity entity = Player.Entity;
 
-            Vec2D movement = Vec2D.Zero;
+            Vec3D movement = Vec3D.Zero;
             if (tickCommand.Has(TickCommands.Forward))
                 movement += CalculateForwardMovement(entity);
             if (tickCommand.Has(TickCommands.Backward))
@@ -56,29 +57,47 @@ namespace Helion.World.Impl.SinglePlayer
             if (tickCommand.Has(TickCommands.Left))
                 movement -= CalculateStrafeRightMovement(entity);
 
-            if (movement != Vec2D.Zero)
+            if (tickCommand.Has(TickCommands.Jump))
+            {
+                if (CheatManager.Instance.IsCheatActive(CheatType.Fly))
+                {
+                    // This z velocity overrides z movement velocity
+                    movement.Z = 0;
+                    entity.Velocity.Z = Player.ForwardMovementSpeed * 2;
+                }
+                else if (Player.AbleToJump())
+                {
+                    entity.Velocity.Z += Player.JumpZ;
+                }
+            }
+
+            if (movement != Vec3D.Zero)
             {
                 entity.Velocity.X += Math.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
                 entity.Velocity.Y += Math.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
+                entity.Velocity.Z += Math.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
             }
-
-            if (tickCommand.Has(TickCommands.Jump) && Player.AbleToJump())
-                entity.Velocity.Z += Player.JumpZ;
         }
 
-        private static Vec2D CalculateForwardMovement(Entity entity)
+        private static Vec3D CalculateForwardMovement(Entity entity)
         {
             double x = Math.Cos(entity.Angle) * Player.ForwardMovementSpeed;
             double y = Math.Sin(entity.Angle) * Player.ForwardMovementSpeed;
-            return new Vec2D(x, y);
+            double z = 0;
+
+            if (entity.Player != null && CheatManager.Instance.IsCheatActive(CheatType.Fly))
+               z = Player.ForwardMovementSpeed * entity.Player.Pitch;
+
+            return new Vec3D(x, y, z);
         }
         
-        private static Vec2D CalculateStrafeRightMovement(Entity entity)
+        private static Vec3D CalculateStrafeRightMovement(Entity entity)
         {
             double rightRotateAngle = entity.Angle - MathHelper.PiOver2;
             double x = Math.Cos(rightRotateAngle) * Player.SideMovementSpeed;
             double y = Math.Sin(rightRotateAngle) * Player.SideMovementSpeed;
-            return new Vec2D(x, y);
+
+            return new Vec3D(x, y, 0);
         }
     }
 }

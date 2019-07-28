@@ -107,7 +107,7 @@ namespace Helion.World.Physics
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
             entity.SetZ(floorZ);
-            entity.Velocity.Z = 0;
+            entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
             entity.OnGround = true;
         }
 
@@ -564,7 +564,9 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            if (!entity.OnGround)
+            if (entity.Player != null && CheatManager.Instance.IsCheatActive(CheatType.Fly))
+                entity.Velocity.Z *= Friction;
+            else if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
             
             // TODO: Check if any entities are in the way of our movement.
