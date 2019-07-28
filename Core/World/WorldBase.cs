@@ -1,4 +1,5 @@
-﻿using Helion.Maps;
+﻿using Helion.Cheats;
+using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.World.Blockmaps;

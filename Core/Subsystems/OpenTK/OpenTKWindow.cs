@@ -40,6 +40,11 @@ namespace Helion.Subsystems.OpenTK
             Dispose(false);
         }
 
+        public void ClearMapResources()
+        {
+            m_renderer.ClearResources();
+        }
+
         public int GetId() => m_windowId;
 
         public InputEvent PollInput() => m_inputAdapter.PollInput();

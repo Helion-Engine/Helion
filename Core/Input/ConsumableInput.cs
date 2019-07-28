@@ -150,5 +150,10 @@ namespace Helion.Input
             m_typedCharacters.Clear();
             return typedChars;
         }
+
+        public IList<char> GetTypedCharacters()
+        {
+            return m_typedCharacters;
+        }
     }
 }

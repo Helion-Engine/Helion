@@ -52,6 +52,14 @@ namespace Helion.Util.Time
         }
 
         /// <summary>
+        /// Stops the ticker for recording elapsed time.
+        /// </summary>
+        public void Stop()
+        {
+            m_stopwatch.Stop();
+        }
+
+        /// <summary>
         /// Gets the ticking info since the last invocation of this function.
         /// </summary>
         /// <remarks>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Cheats;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
@@ -207,6 +208,12 @@ namespace Helion.World.Physics
             int slidesLeft = MaxSlides;
             Vec2D velocity = entity.Velocity.To2D();
 
+            if (CheatManager.Instance.IsCheatActive(CheatType.NoClip))
+            {
+                HandleNoClip(entity, velocity);
+                return;
+            }
+
             // We advance in small steps that are smaller than the radius of
             // the actor so we don't skip over any lines or things due to fast
             // entity speed.
@@ -236,6 +243,14 @@ namespace Helion.World.Physics
                 ClearVelocityXY(entity);
                 break;
             }
+        }
+
+        private void HandleNoClip(Entity entity, Vec2D velocity)
+        {
+            entity.UnlinkFromWorld();
+            var pos = entity.Position.To2D() + velocity;
+            entity.SetXY(pos);
+            LinkToWorld(entity);
         }
 
         private bool CanMoveTo(Entity entity, Vec2D nextPosition)

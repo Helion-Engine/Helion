@@ -28,8 +28,9 @@ namespace Helion.Render.OpenGL
         private static bool InfoPrinted;
 
         private readonly Config m_config;
-        private readonly GLTextureManager m_textureManager;
-        private readonly WorldRenderer m_worldRenderer;
+        private GLTextureManager m_textureManager;
+        private WorldRenderer m_worldRenderer;
+        private readonly ArchiveCollection m_archiveCollection;
 
         /// <summary>
         /// Creates an OpenGL-driven renderer.
@@ -40,6 +41,7 @@ namespace Helion.Render.OpenGL
         public GLRenderer(Config config, ArchiveCollection archiveCollection)
         {
             m_config = config;
+            m_archiveCollection = archiveCollection;
             m_textureManager = new GLTextureManager(config, Capabilities, archiveCollection);
             m_worldRenderer = new WorldRenderer(config, Capabilities, archiveCollection, m_textureManager);
 
@@ -51,6 +53,15 @@ namespace Helion.Render.OpenGL
         ~GLRenderer()
         {
             ReleaseUnmanagedResources();
+        }
+
+        public void ClearResources()
+        {
+            m_worldRenderer.Dispose();
+
+            m_textureManager.Dispose();
+            m_textureManager = new GLTextureManager(m_config, Capabilities, m_archiveCollection);
+            m_worldRenderer = new WorldRenderer(m_config, Capabilities, m_archiveCollection, m_textureManager);
         }
 
         /// <summary>

@@ -13,6 +13,7 @@ using Helion.Entries.Archives.Locator;
 using Helion.Resources.Archives.Collection;
 using NLog;
 using Console = Helion.Util.Console;
+using Helion.Cheats;
 
 namespace Helion.Client
 {
@@ -37,6 +38,7 @@ namespace Helion.Client
             m_layerManager = new GameLayerManager(m_config);
 
             m_console.OnConsoleCommandEvent += OnConsoleCommand;
+            CheatManager.Instance.CheatActivationChanged += CheatManager_CheatActivationChanged;
         }
 
         private void OnConsoleCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
@@ -54,13 +56,25 @@ namespace Helion.Client
                     Log.Info("Usage: map <mapName>");
                     break;
                 }
-                SinglePlayerWorldLayer? layer = SinglePlayerWorldLayer.Create(ccmdArgs.Args[0], m_config, m_archiveCollection);
-                if (layer != null)
+
+                SinglePlayerWorldLayer layer = new SinglePlayerWorldLayer(m_config);
+                if (layer.LoadMap(ccmdArgs.Args[0], m_archiveCollection))
                     m_layerManager.Add(layer);
                 break;
             }
         }
-        
+
+        private void CheatManager_CheatActivationChanged(object sender, ICheat e)
+        {
+            if (e.CheatType == CheatType.ChangeLevel)
+            {
+                string level = string.Concat("MAP", ((ChangeLevelCheat)e).LevelDigits);
+                var spWorld = m_layerManager.GetGameLayer(typeof(SinglePlayerWorldLayer));
+                if (spWorld != null && spWorld is SinglePlayerWorldLayer && ((SinglePlayerWorldLayer)spWorld).LoadMap(level, m_archiveCollection))
+                    m_window.ClearMapResources();
+            }
+        }
+
         private void HandleCommandLineArgs()
         {
             if (!m_archiveCollection.Load(m_commandLineArgs.Files))

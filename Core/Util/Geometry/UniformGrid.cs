@@ -224,10 +224,7 @@ namespace Helion.Util.Geometry
         /// `Stop`, or false if it iterated over all the blocks and each return
         /// value from the provided function was `Continue`.</returns>
         public bool Iterate(Box2D box, Func<T, GridIterationStatus> func)
-        {
-            Precondition(Bounds.Contains(box.Min), "Box min point outside of grid");
-            Precondition(Bounds.Contains(box.Max), "Box max point outside of grid");
-            
+        {           
             // See the Iterate() function for why we don't need to floor here.
             Vec2I blockUnitStart = ((box.Min - Origin) / Dimension).ToInt();
             Vec2I blockUnitEnd = ((box.Max - Origin) / Dimension).Ceil().ToInt();
@@ -239,18 +236,23 @@ namespace Helion.Util.Geometry
             // to the next row, we just add the `Width` to the base index and
             // we're on the next row. We avoid O(n) muliplication for this very
             // hot loop.
-            int baseIndex = (blockUnitStart.Y * Width) + blockUnitStart.X; 
-            for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
-            {
-                int currentIndex = baseIndex;
-                for (int x = blockUnitStart.X; x < blockUnitEnd.X; x++)
-                {
-                    if (func(blocks[currentIndex]) == GridIterationStatus.Stop)
-                        return true;
-                    currentIndex++;
-                }
+            int baseIndex = (blockUnitStart.Y * Width) + blockUnitStart.X;
 
-                baseIndex += Width;
+            // baseIndex can be negative with no clip
+            if (baseIndex > 0)
+            {
+                for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
+                {
+                    int currentIndex = baseIndex;
+                    for (int x = blockUnitStart.X; x < blockUnitEnd.X && currentIndex < blocks.Length; x++)
+                    {
+                        if (func(blocks[currentIndex]) == GridIterationStatus.Stop)
+                            return true;
+                        currentIndex++;
+                    }
+
+                    baseIndex += Width;
+                }
             }
 
             return false;

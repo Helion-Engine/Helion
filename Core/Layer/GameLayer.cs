@@ -20,6 +20,11 @@ namespace Helion.Layer
         {
             Config = config;
         }
+
+        public GameLayer? GetGameLayer(Type type)
+        {
+            return layers.FirstOrDefault(x => x.GetType() == type);
+        }
         
         public bool RemoveAllTypes(Type type)
         {

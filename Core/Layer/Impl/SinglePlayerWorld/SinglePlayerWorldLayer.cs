@@ -1,3 +1,4 @@
+using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Render.Commands;
@@ -9,7 +10,6 @@ using Helion.Util.Time;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
-using System;
 
 namespace Helion.Layer.Impl
 {
@@ -18,19 +18,19 @@ namespace Helion.Layer.Impl
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly SinglePlayerWorld m_world;
         private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
+        private readonly Config m_config;
+        private SinglePlayerWorld m_world;
         private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
         private TickCommand m_tickCommand = new TickCommand();
         private bool m_firstInputHandling = true;
 
         private (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
 
-        private SinglePlayerWorldLayer(SinglePlayerWorld singlePlayerWorld, Config config)
+        public SinglePlayerWorldLayer(Config config)
             : base(config)
         {
-            m_world = singlePlayerWorld;
-
+            m_config = config;
             m_consumeKeys = new (ConfigValue<InputKey>, TickCommands)[]
             {
                 (Config.Engine.Controls.MoveForward,    TickCommands.Forward),
@@ -40,26 +40,30 @@ namespace Helion.Layer.Impl
                 (Config.Engine.Controls.Jump,           TickCommands.Jump),
                 (Config.Engine.Controls.Crouch,         TickCommands.Crouch),
                 (Config.Engine.Controls.Use,            TickCommands.Use),
-            };
-
-            m_ticker.Start();
+            };         
         }
 
-        public static SinglePlayerWorldLayer? Create(string mapName, Config config, ArchiveCollection archiveCollection)
+        public bool LoadMap(string mapName, ArchiveCollection archiveCollection)
         {
+            m_ticker.Stop();
+
             (Map? map, MapEntryCollection? collection) = archiveCollection.FindMap(mapName);
             if (map == null || collection == null)
             {
                 Log.Warn("Unable to find map {0}", mapName);
-                return null;
+                return false;
             }
-            
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, map, collection);
+
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(m_config, archiveCollection, map, collection);
             if (world != null)
-                return new SinglePlayerWorldLayer(world, config);
-            
+            {
+                m_world = world;
+                m_ticker.Start();
+                return true;
+            }
+
             Log.Warn("Map is corrupt, unable to create map {0}", mapName);
-            return null;
+            return false;
         }
 
         public override void HandleInput(ConsumableInput consumableInput)
@@ -72,7 +76,8 @@ namespace Helion.Layer.Impl
                 m_firstInputHandling = false;
                 return;
             }
-            
+
+            CheatManager.Instance.HandleInput(consumableInput);
             HandleMovementInput(consumableInput);
             m_world.HandleFrameInput(consumableInput);
         }
