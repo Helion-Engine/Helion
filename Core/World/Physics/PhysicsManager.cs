@@ -19,11 +19,12 @@ namespace Helion.World.Physics
     public class PhysicsManager
     {
         private const int MaxSlides = 3;
+        private const int JumpDelayTicks = 7;
         private const double Gravity = 1.0;
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
-        
+
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
 
@@ -74,6 +75,9 @@ namespace Helion.World.Physics
 
         private static void ApplyFriction(Entity entity)
         {
+            if (!entity.OnGround)
+                return;
+            
             entity.Velocity.X *= Friction;
             entity.Velocity.Y *= Friction;
         }
@@ -106,9 +110,23 @@ namespace Helion.World.Physics
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
         {
+            // If we're airborne and just landed on the ground, we need a delay
+            // for jumping. This should only happen if we've coming down from a
+            // manual jump.
+            if (!entity.OnGround && entity.IsJumping)
+            {
+                entity.IsJumping = false;
+                entity.JumpDelayTicks = JumpDelayTicks;
+            }
+            
             entity.SetZ(floorZ);
-            entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
             entity.OnGround = true;
+            
+            // For now we remove any negative velocity. If upward velocity is
+            // reset to zero then the jump we apply to players is lost and they
+            // can never jump. Maybe we want to fix this in the future by doing
+            // application of jumping after the XY movement instead of before?
+            entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
@@ -357,15 +375,14 @@ namespace Helion.World.Physics
                 }
             }
 
-            if (AttemptAxisMove(entity, stepDelta, Axis2D.X))
-                return;
             if (AttemptAxisMove(entity, stepDelta, Axis2D.Y))
+                return;
+            if (AttemptAxisMove(entity, stepDelta, Axis2D.X))
                 return;
 
             // If we cannot find the line or thing that is blocking us, then we
             // are fully done moving horizontally.
-            entity.Velocity.X = 0;
-            entity.Velocity.Y = 0;
+            ClearVelocityXY(entity);
             stepDelta.X = 0;
             stepDelta.Y = 0;
             movesLeft = 0;
@@ -490,14 +507,9 @@ namespace Helion.World.Physics
             // means we are facing away from the line and should slide in
             // the opposite direction from the way the line is pointing.
             // TODO: We can cache the Unit() for the line for perf reasons.
-            Vec2D lineDirection = blockingLine.Segment.Delta;
-            Vec2D unitDirection = lineDirection.Unit();
-            if (stepDelta.Dot(lineDirection) < 0)
+            Vec2D unitDirection = blockingLine.Segment.Delta.Unit();
+            if (stepDelta.Dot(unitDirection) < 0)
                 unitDirection = -unitDirection;
-            
-            // We find out how much velocity is projected onto the wall, and
-            // then make a vector out of it.
-            Vec2D scalarProjectionStep = unitDirection * stepDelta.ScalarProjection(unitDirection);
             
             // Because we moved up to the wall, it's almost always the case
             // that we didn't make 100% of a step. For example if we have some
@@ -512,16 +524,22 @@ namespace Helion.World.Physics
             // one. This means our step delta could grow beyond the size of the
             // radius of the entity and cause it to skip lines in pathological
             // situations. I haven't encountered such a case yet but it is at
-            // least theoretically possible this can happen.
-            double totalRemainingDistance = ((scalarProjectionStep * movesLeft) + residualStep).Length();
-            movesLeft += 2;
-            stepDelta = scalarProjectionStep * totalRemainingDistance / movesLeft;
+            // least theoretically possible this can happen. Because of this,
+            // the movesLeft is incremented by 1 to make sure the stepDelta
+            // at the end of this function stays smaller than the radius.
+            // TODO: If we have the unit vector, is projection overkill? Can we
+            //       just multiply by the component instead?
+            Vec2D stepProjection = stepDelta.Projection(unitDirection);
+            Vec2D residualProjection = residualStep.Projection(unitDirection);
+
+            // TODO: This is almost surely not how it's done, but it feels okay
+            //       enough right now to leave as is.
+            entity.Velocity.X = stepProjection.X * Friction;
+            entity.Velocity.Y = stepProjection.Y * Friction;
             
-            // Lastly, we need to reorient the velocity.
-            double velocityScalar = entity.Velocity.To2D().Length();
-            Vec2D newVelocityDirection = unitDirection * velocityScalar;
-            entity.Velocity.X = newVelocityDirection.X;
-            entity.Velocity.Y = newVelocityDirection.Y;
+            double totalRemainingDistance = ((stepProjection * movesLeft) + residualProjection).Length();
+            movesLeft += 1;
+            stepDelta = unitDirection * totalRemainingDistance / movesLeft;
         }
 
         private bool AttemptAxisMove(Entity entity, Vec2D stepDelta, Axis2D axis)
@@ -565,9 +583,18 @@ namespace Helion.World.Physics
         private void MoveZ(Entity entity)
         {
             if (entity.Player != null && CheatManager.Instance.IsCheatActive(CheatType.Fly))
+            {
                 entity.Velocity.Z *= Friction;
-            else if (!entity.OnGround)
+            }
+            else if (entity.OnGround)
+            {
+                if (entity.JumpDelayTicks > 0)
+                    entity.JumpDelayTicks--;
+            }
+            else
+            {
                 entity.Velocity.Z -= Gravity;
+            }
             
             // TODO: Check if any entities are in the way of our movement.
 

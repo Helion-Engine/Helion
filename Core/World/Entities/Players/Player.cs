@@ -8,7 +8,7 @@ namespace Helion.World.Entities.Players
 {
     public class Player
     {
-        public const double ForwardMovementSpeed = 1.56;
+        public const double ForwardMovementSpeed = 1.5625;
         public const double SideMovementSpeed = 1.25;
         public const double MaxMovement = 30.0;
         public const double JumpZ = 8.0;
@@ -67,6 +67,6 @@ namespace Helion.World.Entities.Players
             m_prevPitch = Pitch;
         }
         
-        public bool AbleToJump() => Entity.OnGround && Entity.Velocity.Z == 0;
+        public bool AbleToJump() => Entity.OnGround && Entity.Velocity.Z == 0 && Entity.JumpDelayTicks == 0;
     }
 }

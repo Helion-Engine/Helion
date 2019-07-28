@@ -91,7 +91,8 @@ namespace Helion.Util.Geometry
         public double Dot(Vec2D other) => (X * other.X) + (Y * other.Y);
         public double LengthSquared() => (X * X) + (Y * Y);
         public double Length() => Math.Sqrt((X * X) + (Y * Y));
-        public double ScalarProjection(Vec2D other) => Dot(other) / Length();
+        public double Component(Vec2D onto) => Dot(onto) / onto.Length();
+        public Vec2D Projection(Vec2D onto) => Dot(onto) / onto.LengthSquared() * onto;
         public double DistanceSquared(Vec2D other) => (this - other).LengthSquared();
         public double Distance(Vec2D other) => (this - other).Length();
         public Vec2D Interpolate(Vec2D end, double t) => this + (t * (end - this));
@@ -155,7 +156,8 @@ namespace Helion.Util.Geometry
         public Fixed Length() => new Fixed(Math.Sqrt(((X * X) + (Y * Y)).ToDouble()));
         public Fixed DistanceSquared(Vec2Fixed other) => (this - other).LengthSquared();
         public Fixed Distance(Vec2Fixed other) => (this - other).Length();
-        public Fixed ScalarProjection(Vec2Fixed other) => Dot(other) / Length();
+        public Fixed Component(Vec2Fixed onto) => Dot(onto) / onto.Length();
+        public Vec2Fixed Projection(Vec2Fixed onto) => Dot(onto) / onto.LengthSquared() * onto;
         public Vec2Fixed Interpolate(Vec2Fixed end, float t) => ToDouble().Interpolate(end.ToDouble(), t).ToFixed();
         public Vec2Fixed OriginRightRotate90() => new Vec2Fixed(Y, -X);
         public Vec2Fixed OriginLeftRotate90() => new Vec2Fixed(-Y, X);
@@ -181,7 +183,8 @@ namespace Helion.Util.Geometry
         public static float Length(this Vector2 vec) => (float)Math.Sqrt((vec.X * vec.X) + (vec.Y * vec.Y));
         public static float DistanceSquared(this Vector2 vec, Vector2 other) => (vec - other).LengthSquared();
         public static float Distance(this Vector2 vec, Vector2 other) => (vec - other).Length();
-        public static float ScalarProjection(this Vector2 vec, Vector2 other) => vec.Dot(other) / vec.Length();
+        public static float Component(this Vector2 vec, Vector2 onto) => vec.Dot(onto) / onto.Length();
+        public static Vector2 Projection(this Vector2 vec, Vector2 onto) => vec.Dot(onto) / onto.LengthSquared() * onto;
         public static Vector2 Interpolate(this Vector2 start, Vector2 end, float t) => start + (t * (end - start));
         public static Vec2I ToInt(this Vector2 vec) => new Vec2I((int)vec.X, (int)vec.Y);
         public static Vec2Fixed ToFixed(this Vector2 vec) => new Vec2Fixed(new Fixed(vec.X), new Fixed(vec.Y));
