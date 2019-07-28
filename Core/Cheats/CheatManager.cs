@@ -65,11 +65,10 @@ namespace Helion.Cheats
             }
         }
 
-        public bool IsCheatActive(CheatType cheat)
+        public void ActivateToggleCheats()
         {
-            if (m_cheatLookup.ContainsKey(cheat))
-                return m_cheatLookup[cheat].Activated;
-            return false;
+            foreach (var cheat in m_cheats.Where(x => x.IsToggleCheat))
+                CheatActivationChanged?.Invoke(this, cheat);
         }
     }
 }

@@ -23,6 +23,16 @@ namespace Helion.World.Impl.SinglePlayer
             base(config, archiveCollection, map, bspTree)
         {
             Player = EntityManager.CreatePlayer(1);
+            CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
+            CheatManager.Instance.ActivateToggleCheats();
+        }
+
+        private void Instance_CheatActivationChanged(object sender, ICheat e)
+        {
+            if (e.CheatType == CheatType.NoClip)
+                Player.Entity.NoClip = e.Activated;
+            else if (e.CheatType == CheatType.Fly)
+                Player.Entity.IsFlying = e.Activated;
         }
 
         public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, Map map, 
@@ -61,7 +71,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (tickCommand.Has(TickCommands.Jump))
             {
-                if (CheatManager.Instance.IsCheatActive(CheatType.Fly))
+                if (Player.Entity.IsFlying)
                 {
                     // This z velocity overrides z movement velocity
                     movement.Z = 0;
@@ -76,7 +86,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (movement != Vec3D.Zero)
             {
-                if (!entity.OnGround)
+                if (!entity.OnGround && !Player.Entity.IsFlying)
                     movement *= AirControl;
                 
                 entity.Velocity.X += Math.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
@@ -91,7 +101,7 @@ namespace Helion.World.Impl.SinglePlayer
             double y = Math.Sin(entity.Angle) * Player.ForwardMovementSpeed;
             double z = 0;
 
-            if (entity.Player != null && CheatManager.Instance.IsCheatActive(CheatType.Fly))
+            if (entity.Player != null && entity.IsFlying)
                z = Player.ForwardMovementSpeed * entity.Player.Pitch;
 
             return new Vec3D(x, y, z);

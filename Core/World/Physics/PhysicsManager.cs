@@ -75,7 +75,7 @@ namespace Helion.World.Physics
 
         private static void ApplyFriction(Entity entity)
         {
-            if (!entity.OnGround)
+            if (!entity.OnGround && !entity.IsFlying)
                 return;
             
             entity.Velocity.X *= Friction;
@@ -226,7 +226,7 @@ namespace Helion.World.Physics
             int slidesLeft = MaxSlides;
             Vec2D velocity = entity.Velocity.To2D();
 
-            if (CheatManager.Instance.IsCheatActive(CheatType.NoClip))
+            if (entity.NoClip)
             {
                 HandleNoClip(entity, velocity);
                 return;
@@ -582,7 +582,7 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            if (entity.Player != null && CheatManager.Instance.IsCheatActive(CheatType.Fly))
+            if (entity.Player != null && entity.IsFlying)
             {
                 entity.Velocity.Z *= Friction;
             }
