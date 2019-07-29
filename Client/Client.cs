@@ -14,6 +14,7 @@ using Helion.Resources.Archives.Collection;
 using NLog;
 using Console = Helion.Util.Console;
 using Helion.Cheats;
+using Helion.Util.Extensions;
 
 namespace Helion.Client
 {
@@ -51,7 +52,7 @@ namespace Helion.Client
                 break;
             
             case "MAP":
-                if (ccmdArgs.Args.Count == 0)
+                if (ccmdArgs.Args.Empty())
                 {
                     Log.Info("Usage: map <mapName>");
                     break;

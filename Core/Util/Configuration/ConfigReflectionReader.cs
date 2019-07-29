@@ -157,7 +157,7 @@ namespace Helion.Util.Configuration
             // will look for a `render` object, then inside that object an
             // `anisotropy` object, and then it reaches `value` that should be
             // a ConfigNode<>.
-            object? configValueNode = RecursivelyFindField(element, lowerKeyName.Split("."));
+            object? configValueNode = RecursivelyFindField(element, lowerKeyName.Split('.'));
             if (configValueNode == null)
             {
                 log.Warn("Unable to find config entry '{0}', value will be ignored", lowerKeyName);

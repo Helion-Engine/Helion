@@ -14,6 +14,8 @@ namespace Helion.Resources.Archives
     /// </summary>
     public class PK3 : Archive, IDisposable
     {
+        private static readonly string DirectorySeparatorChar = System.IO.Path.DirectorySeparatorChar.ToString();
+        private static readonly string AltDirectorySeparatorChar = System.IO.Path.AltDirectorySeparatorChar.ToString();
         private static readonly Dictionary<CIString, ResourceNamespace> FolderToNamespace = new Dictionary<CIString, ResourceNamespace>()
         {
             ["ACS"] = ResourceNamespace.ACS,
@@ -25,7 +27,7 @@ namespace Helion.Resources.Archives
             ["TEXTURES"] = ResourceNamespace.Textures,
         };
 
-        private ZipArchive m_zipArchive;
+        private readonly ZipArchive m_zipArchive;
 
         public PK3(IEntryPath path) : base(path)
         {
@@ -52,7 +54,9 @@ namespace Helion.Resources.Archives
 
         private static bool ZipEntryDirectory(ZipArchiveEntry entry)
         {
-            return entry.Length == 0 && (entry.FullName.EndsWith(System.IO.Path.DirectorySeparatorChar) || entry.FullName.EndsWith(System.IO.Path.AltDirectorySeparatorChar));
+            bool isSeparator = entry.FullName.EndsWith(DirectorySeparatorChar) || 
+                               entry.FullName.EndsWith(AltDirectorySeparatorChar);
+            return entry.Length == 0 && isSeparator;
         }
 
         private void ZipDataToEntry(ZipArchiveEntry zipEntry)

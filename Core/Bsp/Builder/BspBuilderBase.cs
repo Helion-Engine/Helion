@@ -8,6 +8,7 @@ using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
@@ -221,7 +222,7 @@ namespace Helion.Bsp.Builder
             WorkItems.Pop();
             NodeStack.Pop();
 
-            if (WorkItems.Count == 0)
+            if (WorkItems.Empty())
             {
                 Root.StripDegenerateNodes();
                 States.SetState(BuilderState.Complete);

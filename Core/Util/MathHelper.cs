@@ -168,5 +168,115 @@ namespace Helion.Util
         /// <param name="degree">The degree.</param>
         /// <returns>The radian value.</returns>
         public static double ToRadians(double degree) => degree * DegreesToRadiansFactor;
+
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static byte Clamp(byte value, byte low, byte high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static short Clamp(short value, short low, short high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static ushort Clamp(ushort value, ushort low, ushort high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static int Clamp(int value, int low, int high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static uint Clamp(uint value, uint low, uint high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static long Clamp(long value, long low, long high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static ulong Clamp(ulong value, ulong low, ulong high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively. This does not have
+        /// defined behavior for infinities or NaN's.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static float Clamp(float value, float low, float high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
+        
+        /// <summary>
+        /// Clamps the value between two ranges inclusively. This does not have
+        /// defined behavior for infinities or NaN's.
+        /// </summary>
+        /// <param name="value">The value to clamp.</param>
+        /// <param name="low">The lower bound (inclusive).</param>
+        /// <param name="high">The upper bound (inclusive).</param>
+        /// <returns>The clamped value.</returns>
+        public static double Clamp(double value, double low, double high)
+        {
+            return value < low ? low : (value > high ? high : value);
+        }
     }
 }

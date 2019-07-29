@@ -118,5 +118,45 @@ namespace Helion.Test.Util
             Assert.AreEqual(new Fixed(1), MathHelper.Min(new Fixed(1), new Fixed(3)));
             Assert.AreEqual(new Fixed(3), MathHelper.Max(new Fixed(1), new Fixed(3)));
         }
+
+        [TestMethod]
+        public void CheckClampValues()
+        {
+            Assert.AreEqual((byte)3, MathHelper.Clamp((byte)0, (byte)3, (byte)5));
+            Assert.AreEqual((byte)4, MathHelper.Clamp((byte)4, (byte)3, (byte)5));
+            Assert.AreEqual((byte)5, MathHelper.Clamp((byte)6, (byte)3, (byte)5));
+            
+            Assert.AreEqual((short)3, MathHelper.Clamp((short)0, (short)3, (short)5));
+            Assert.AreEqual((short)4, MathHelper.Clamp((short)4, (short)3, (short)5));
+            Assert.AreEqual((short)5, MathHelper.Clamp((short)6, (short)3, (short)5));
+            
+            Assert.AreEqual((ushort)3, MathHelper.Clamp((ushort)0, (ushort)3, (ushort)5));
+            Assert.AreEqual((ushort)4, MathHelper.Clamp((ushort)4, (ushort)3, (ushort)5));
+            Assert.AreEqual((ushort)5, MathHelper.Clamp((ushort)6, (ushort)3, (ushort)5));
+            
+            Assert.AreEqual(3, MathHelper.Clamp(0, 3, 5));
+            Assert.AreEqual(4, MathHelper.Clamp(4, 3, 5));
+            Assert.AreEqual(5, MathHelper.Clamp(6, 3, 5));
+            
+            Assert.AreEqual(3U, MathHelper.Clamp(0U, 3U, 5U));
+            Assert.AreEqual(4U, MathHelper.Clamp(4U, 3U, 5U));
+            Assert.AreEqual(5U, MathHelper.Clamp(6U, 3U, 5U));
+            
+            Assert.AreEqual(3L, MathHelper.Clamp(0L, 3L, 5L));
+            Assert.AreEqual(4L, MathHelper.Clamp(4L, 3L, 5L));
+            Assert.AreEqual(5L, MathHelper.Clamp(6L, 3L, 5L));
+            
+            Assert.AreEqual(3LU, MathHelper.Clamp(0LU, 3LU, 5LU));
+            Assert.AreEqual(4LU, MathHelper.Clamp(4LU, 3LU, 5LU));
+            Assert.AreEqual(5LU, MathHelper.Clamp(6LU, 3LU, 5LU));
+            
+            Assert.AreEqual(3.0f, MathHelper.Clamp(0.0f, 3.0f, 5.0f));
+            Assert.AreEqual(4.0f, MathHelper.Clamp(4.0f, 3.0f, 5.0f));
+            Assert.AreEqual(5.0f, MathHelper.Clamp(6.0f, 3.0f, 5.0f));
+            
+            Assert.AreEqual(3.0, MathHelper.Clamp(0.0, 3.0, 5.0));  
+            Assert.AreEqual(4.0, MathHelper.Clamp(4.0, 3.0, 5.0));  
+            Assert.AreEqual(5.0, MathHelper.Clamp(6.0, 3.0, 5.0));  
+        }
     }
 }

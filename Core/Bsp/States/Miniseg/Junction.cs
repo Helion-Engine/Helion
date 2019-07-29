@@ -2,6 +2,7 @@
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Miniseg
@@ -76,10 +77,10 @@ namespace Helion.Bsp.States.Miniseg
         // a class to make it work. Why not generate it lazily as we need it?
         public void GenerateWedges()
         {
-            Precondition(Wedges.Count == 0, "Trying to create BSP junction wedges when they already were made");
+            Precondition(Wedges.Empty(), "Trying to create BSP junction wedges when they already were made");
 
             // This is a guard against malformed/dangling one-sided lines.
-            if (OutboundSegments.Count == 0)
+            if (OutboundSegments.Empty())
                 return;
 
             // TODO: Since we know we have one or more outbound segs, we can

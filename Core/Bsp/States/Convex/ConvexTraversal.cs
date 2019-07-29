@@ -2,6 +2,7 @@
 using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Convex
@@ -61,7 +62,7 @@ namespace Helion.Bsp.States.Convex
 
         private bool IsProperlyConnectedEndpoint(BspSegment segment, Endpoint endpoint)
         {
-            if (Traversal.Count == 0)
+            if (Traversal.Empty())
                 return true;
 
             ConvexTraversalPoint lastPoint = Traversal.Last();

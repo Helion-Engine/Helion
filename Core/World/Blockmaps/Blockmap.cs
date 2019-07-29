@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Helion.Maps;
 using Helion.Util.Container.Linkable;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
@@ -77,7 +78,7 @@ namespace Helion.World.Blockmaps
         /// </param>
         public void Link(Entity entity)
         {
-            Precondition(entity.BlockmapNodes.Count == 0, "Forgot to unlink entity from blockmap");
+            Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
             m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
             

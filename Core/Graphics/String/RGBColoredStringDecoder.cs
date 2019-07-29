@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Helion.Util;
 
 namespace Helion.Graphics.String
 {
@@ -101,9 +102,9 @@ namespace Helion.Graphics.String
                 b = ColoredString.DefaultColor.B;
 
             return Color.FromArgb(
-                (byte)Math.Clamp(r, 0, 255),
-                (byte)Math.Clamp(g, 0, 255),
-                (byte)Math.Clamp(b, 0, 255)
+                (byte)MathHelper.Clamp(r, 0, 255),
+                (byte)MathHelper.Clamp(g, 0, 255),
+                (byte)MathHelper.Clamp(b, 0, 255)
             );
         }
 
@@ -115,8 +116,9 @@ namespace Helion.Graphics.String
         /// <returns>A list of all the color ranges.</returns>
         private static List<ColorRange> GetColorRanges(string str)
         {
-            List<ColorRange> colorRanges = new List<ColorRange>() {
-                new ColorRange(0, ColoredString.DefaultColor)
+            List<ColorRange> colorRanges = new List<ColorRange>
+            {
+                new ColorRange(0, ColoredString.DefaultColor),
             };
 
             MatchCollection matches = COLOR_REGEX.Matches(str);

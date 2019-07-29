@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <StartupObject>Helion.Client.Client</StartupObject>
     <ApplicationIcon />
     <LangVersion>preview</LangVersion>

@@ -39,7 +39,7 @@ namespace Helion.World.Entities.Players
         public void AddToPitch(double delta)
         {
             const double notQuiteVertical = MathHelper.HalfPi - 0.001;
-            Pitch = Math.Clamp(Pitch + delta, -notQuiteVertical, notQuiteVertical);
+            Pitch = MathHelper.Clamp(Pitch + delta, -notQuiteVertical, notQuiteVertical);
         }
 
         public Camera GetCamera(double t)

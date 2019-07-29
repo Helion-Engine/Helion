@@ -4,6 +4,7 @@ using Helion.Cheats;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
@@ -148,7 +149,7 @@ namespace Helion.World.Physics
 
         private void LinkToSectors(Entity entity)
         {
-            Precondition(entity.SectorNodes.Count == 0, "Forgot to unlink entity from blockmap");
+            Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
             
             // TODO: We (very likely) do a fair amount of object creation here.
             //       Let's use `stackalloc` for an array in the future and do

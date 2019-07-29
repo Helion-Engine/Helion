@@ -73,7 +73,9 @@ namespace Helion.Bsp.States.Miniseg
 
             foreach (var vertexJunctionPair in vertexToJunction)
             {
-                (VertexIndex index, Junction junction) = vertexJunctionPair;
+                VertexIndex index = vertexJunctionPair.Key;
+                Junction junction = vertexJunctionPair.Value;
+                
                 if (junction.HasUnexpectedSegCount())
                     log.Warn("BSP junction at index {0} has wrong amount of one-sided lines, BSP tree likely to be malformed", index);
 

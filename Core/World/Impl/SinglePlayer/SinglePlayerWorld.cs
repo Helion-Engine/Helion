@@ -89,9 +89,9 @@ namespace Helion.World.Impl.SinglePlayer
                 if (!entity.OnGround && !Player.Entity.IsFlying)
                     movement *= AirControl;
                 
-                entity.Velocity.X += Math.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
-                entity.Velocity.Y += Math.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
-                entity.Velocity.Z += Math.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
+                entity.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
+                entity.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
+                entity.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
             }
         }
 

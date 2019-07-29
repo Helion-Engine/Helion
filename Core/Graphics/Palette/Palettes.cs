@@ -17,10 +17,10 @@ namespace Helion.Graphics.Palette
         {
             if (defaultPalette == null)
             {
-                byte[] data = new byte[Palette.NUM_COLORS * Palette.COLOR_COMPONENTS];
+                byte[] data = new byte[Palette.NumColors * Palette.ColorComponents];
 
                 int offset = 0;
-                for (int i = 0; i < Palette.NUM_COLORS; i++)
+                for (int i = 0; i < Palette.NumColors; i++)
                 {
                     data[i] = (byte)i;
                     data[i + 1] = (byte)i;

@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
@@ -11,9 +10,11 @@ namespace Helion.Graphics.Palette
     /// </summary>
     public struct PaletteColor
     {
-        public byte R { get; }
-        public byte G { get; }
-        public byte B { get; }
+        public readonly byte R;
+        
+        public readonly byte G;
+        
+        public readonly byte B;
 
         public PaletteColor(byte r, byte g, byte b)
         {
@@ -34,14 +35,14 @@ namespace Helion.Graphics.Palette
         /// <summary>
         /// How many colors are in each palette layer.
         /// </summary>
-        public static readonly int NUM_COLORS = 256;
+        public static readonly int NumColors = 256;
 
         /// <summary>
         /// How many components are for each color (in this case, 3 for RGB).
         /// </summary>
-        public static readonly int COLOR_COMPONENTS = 3;
+        public static readonly int ColorComponents = 3;
 
-        private static readonly int BYTES_PER_LAYER = NUM_COLORS * COLOR_COMPONENTS;
+        private static readonly int BytesPerLayer = NumColors * ColorComponents;
 
         /// <summary>
         /// Gets how many layers there are.
@@ -54,12 +55,12 @@ namespace Helion.Graphics.Palette
 
         private static PaletteColor[] PaletteLayerFrom(Span<byte> data)
         {
-            Precondition(data.Length == BYTES_PER_LAYER, $"Palette byte span range incorrect: {data.Length}");
+            Precondition(data.Length == BytesPerLayer, $"Palette byte span range incorrect: {data.Length}");
 
-            PaletteColor[] paletteColors = new PaletteColor[NUM_COLORS];
+            PaletteColor[] paletteColors = new PaletteColor[NumColors];
 
             int offset = 0;
-            for (int i = 0; i < BYTES_PER_LAYER; i += COLOR_COMPONENTS)
+            for (int i = 0; i < BytesPerLayer; i += ColorComponents)
                 paletteColors[offset++] = new PaletteColor(data[i], data[i + 1], data[i + 2]);
 
             return paletteColors;
@@ -76,14 +77,14 @@ namespace Helion.Graphics.Palette
         /// </returns>
         public static Palette? From(byte[] data)
         {
-            if (data.Length != 0 && data.Length % BYTES_PER_LAYER != 0)
+            if (data.Length != 0 && data.Length % BytesPerLayer != 0)
                 return null;
 
             List<PaletteColor[]> paletteLayers = new List<PaletteColor[]>();
-            for (int layer = 0; layer < data.Length / BYTES_PER_LAYER; layer++)
+            for (int layer = 0; layer < data.Length / BytesPerLayer; layer++)
             {
-                int offset = layer * BYTES_PER_LAYER;
-                Span<byte> layerSpan = new Span<byte>(data, offset, BYTES_PER_LAYER);
+                int offset = layer * BytesPerLayer;
+                Span<byte> layerSpan = new Span<byte>(data, offset, BytesPerLayer);
                 paletteLayers.Add(PaletteLayerFrom(layerSpan));
             }
 
