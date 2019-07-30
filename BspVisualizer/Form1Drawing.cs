@@ -1,9 +1,9 @@
-﻿using Helion.Bsp.Geometry;
-using Helion.Bsp.States;
-using Helion.Bsp.States.Convex;
-using Helion.Bsp.States.Miniseg;
-using Helion.Bsp.States.Partition;
-using Helion.Bsp.States.Split;
+﻿using Helion.BspOld.Geometry;
+using Helion.BspOld.States;
+using Helion.BspOld.States.Convex;
+using Helion.BspOld.States.Miniseg;
+using Helion.BspOld.States.Partition;
+using Helion.BspOld.States.Split;
 using Helion.Util.Geometry;
 using System.Drawing;
 

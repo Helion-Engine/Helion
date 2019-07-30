@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Bsp.Builder;
-using Helion.Bsp.Builder.GLBSP;
-using Helion.Bsp.Node;
+using Helion.BspOld.Builder;
+using Helion.BspOld.Builder.GLBSP;
+using Helion.BspOld.Node;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
@@ -151,7 +151,7 @@ namespace Helion.World.Bsp
             return null;
         }
         
-        private static Side? GetSideFromEdge(Helion.Bsp.Node.SubsectorEdge edge, Map map)
+        private static Side? GetSideFromEdge(Helion.BspOld.Node.SubsectorEdge edge, Map map)
         {
             if (edge.IsMiniseg)
                 return null;
@@ -203,7 +203,7 @@ namespace Helion.World.Bsp
         {
             List<SubsectorEdge> returnSegments = new List<SubsectorEdge>();
             
-            foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
+            foreach (Helion.BspOld.Node.SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge, map);
                 SubsectorEdge subsectorEdge = new SubsectorEdge(Segments.Count, side, edge.Start, edge.End);
