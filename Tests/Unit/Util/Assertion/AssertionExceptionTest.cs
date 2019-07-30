@@ -2,7 +2,7 @@ using Helion.Util.Assertion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-namespace Helion.Test.Util.Assertion
+namespace Helion.Test.Unit.Util.Assertion
 {
     [TestClass]
     public class AssertionExceptionTest

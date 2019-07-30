@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using ByteReader = Helion.Util.ByteReader;
 
-namespace Helion.Test.Util.Container
+namespace Helion.Test.Unit.Util.Container
 {
     [TestClass]
     public class ByteReaderTest

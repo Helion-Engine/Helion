@@ -59,7 +59,7 @@ namespace BspVisualizer
                 return;
             }
 
-            (Map? map, MapEntryCollection? _) = archiveCollection.FindMap(args[1]);
+            (IMap? map, MapEntryCollection? _) = archiveCollection.FindMap(args[1]);
             if (map != null)
             {
                 StepwiseBspBuilderBase bspBuilderBase = new StepwiseBspBuilderBase(map);

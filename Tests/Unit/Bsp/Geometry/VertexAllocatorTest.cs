@@ -2,7 +2,7 @@ using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Bsp.Geometry
+namespace Helion.Test.Unit.Bsp.Geometry
 {
     [TestClass]
     public class VertexAllocatorTest

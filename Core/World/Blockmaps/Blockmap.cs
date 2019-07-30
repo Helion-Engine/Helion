@@ -5,6 +5,7 @@ using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
+using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Blockmaps
@@ -22,7 +23,7 @@ namespace Helion.World.Blockmaps
         /// Creates a blockmap grid for the map provided.
         /// </summary>
         /// <param name="map">The map to make the grid for.</param>
-        public Blockmap(Map map)
+        public Blockmap(IMap map)
         {
             Box2D mapBounds = FindMapBoundingBox(map);
             m_blocks = new UniformGrid<Block>(mapBounds);
@@ -90,7 +91,7 @@ namespace Helion.World.Blockmaps
             }
         }
 
-        private static Box2D FindMapBoundingBox(Map map)
+        private static Box2D FindMapBoundingBox(IMap map)
         {
             Box2D startBox = map.Lines.First().Segment.Box;
             return map.Lines.Select(line => line.Segment.Box)
@@ -108,7 +109,7 @@ namespace Helion.World.Blockmaps
                     m_blocks[index++].SetCoordinate(x, y);
         }
 
-        private void AddLinesToBlocks(Map map)
+        private void AddLinesToBlocks(IMap map)
         {
             map.Lines.ForEach(line =>
             {

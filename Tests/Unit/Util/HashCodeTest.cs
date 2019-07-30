@@ -1,7 +1,7 @@
 using Helion.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Util
+namespace Helion.Test.Unit.Util
 {
     // Note: These are testing that we don't get a different hash value when
     // invoking it twice.

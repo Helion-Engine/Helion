@@ -1,7 +1,7 @@
 using Helion.Util.Container.Linkable;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Util.Container.Linkable
+namespace Helion.Test.Unit.Util.Container.Linkable
 {
     [TestClass]
     public class LinkableListTest

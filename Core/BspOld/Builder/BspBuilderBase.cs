@@ -10,6 +10,7 @@ using Helion.BspOld.States.Split;
 using Helion.Maps;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.BspOld.Builder
@@ -104,7 +105,7 @@ namespace Helion.BspOld.Builder
         {
         }
 
-        protected BspBuilderBase(Map map, BspConfig config)
+        protected BspBuilderBase(IMap map, BspConfig config)
         {
             Config = config;
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
@@ -123,7 +124,7 @@ namespace Helion.BspOld.Builder
         /// populates the vertex/segment allocators with the appropriate data.
         /// </summary>
         /// <param name="map">The map to get the components from.</param>
-        protected void PopulateAllocatorsFrom(Map map)
+        protected void PopulateAllocatorsFrom(IMap map)
         {
             map.Lines.ForEach(line =>
             {

@@ -2,7 +2,7 @@ using Helion.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-namespace Helion.Test.Util
+namespace Helion.Test.Unit.Util
 {
     [TestClass]
     public class ExceptionTest

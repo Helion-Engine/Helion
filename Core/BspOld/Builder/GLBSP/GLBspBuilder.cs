@@ -39,11 +39,11 @@ namespace Helion.BspOld.Builder.GLBSP
         private readonly List<BspSegment> segments = new List<BspSegment>();
         private readonly List<BspNode> subsectorNodes = new List<BspNode>();
         
-        public GLBspBuilder(Map map, MapEntryCollection mapEntryCollection) : this(map, mapEntryCollection, new BspConfig())
+        public GLBspBuilder(IMap map, MapEntryCollection mapEntryCollection) : this(map, mapEntryCollection, new BspConfig())
         {
         }
 
-        public GLBspBuilder(Map map, MapEntryCollection mapEntryCollection, BspConfig config)
+        public GLBspBuilder(IMap map, MapEntryCollection mapEntryCollection, BspConfig config)
         {
             if (mapEntryCollection.GLVertices == null ||  mapEntryCollection.GLSegments == null ||
                 mapEntryCollection.GLSubsectors == null || mapEntryCollection.GLNodes == null)
@@ -123,7 +123,7 @@ namespace Helion.BspOld.Builder.GLBSP
             return new Box2D(new Vec2D(left, bottom), new Vec2D(right, top));
         }
 
-        private Vec2D GetVertex(uint index, List<Vertex> vertices, uint vertexMask)
+        private Vec2D GetVertex(uint index, IList<Vertex> vertices, uint vertexMask)
         {
             if ((index & vertexMask) == 0) 
                 return vertices[(int)index].Position;
@@ -132,7 +132,7 @@ namespace Helion.BspOld.Builder.GLBSP
             return glVertices[glVertexIndex].ToDouble();
         }
 
-        private BspSegment MakeBspSegment(Vec2D start, Vec2D end, ushort lineId, List<Line> lines)
+        private BspSegment MakeBspSegment(Vec2D start, Vec2D end, ushort lineId, IList<Line> lines)
         {
             VertexIndex dummyIndex = new VertexIndex(0);
             SegmentIndex dummySegIndex = new SegmentIndex(0);
@@ -147,7 +147,7 @@ namespace Helion.BspOld.Builder.GLBSP
             return new BspSegment(start, end, dummyIndex, dummyIndex, dummySegIndex, frontSectorId, bacKSectorId, lineId);
         }
 
-        private SubsectorEdge MakeSubsectorEdge(int segIndex, List<Line> lines)
+        private SubsectorEdge MakeSubsectorEdge(int segIndex, IList<Line> lines)
         {
             BspSegment segment = segments[segIndex];
 
@@ -202,7 +202,7 @@ namespace Helion.BspOld.Builder.GLBSP
         // Only difference is the header being "gNd5", but we don't care.
         private void ReadVerticesV5(byte[] data) => ReadVerticesV2(data);
         
-        private void ReadSegmentsV1(byte[] data, List<Vertex> vertices, List<Line> lines)
+        private void ReadSegmentsV1(byte[] data, IList<Vertex> vertices, IList<Line> lines)
         {
             if (data.Length % GLSegmentV1Bytes != 0)
             {
@@ -225,7 +225,7 @@ namespace Helion.BspOld.Builder.GLBSP
             }
         }
 
-        private void ReadSegmentsV5(byte[] data, List<Vertex> vertices, List<Line> lines)
+        private void ReadSegmentsV5(byte[] data, IList<Vertex> vertices, IList<Line> lines)
         {
             if (data.Length % GLSegmentV5Bytes != 0)
             {
@@ -248,7 +248,7 @@ namespace Helion.BspOld.Builder.GLBSP
             }
         }
         
-        private void ReadSubsectorsV1(byte[] data, List<Line> lines)
+        private void ReadSubsectorsV1(byte[] data, IList<Line> lines)
         {
             if (data.Length % GLSubsectorV1Bytes != 0)
             {
@@ -275,7 +275,7 @@ namespace Helion.BspOld.Builder.GLBSP
             }
         }
         
-        private void ReadSubsectorsV3(byte[] data, List<Line> lines)
+        private void ReadSubsectorsV3(byte[] data, IList<Line> lines)
         {
             if (data.Length % GLSubsectorV3Bytes != 0)
             {

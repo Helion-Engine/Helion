@@ -3,7 +3,7 @@ using System.Linq;
 using Helion.Util.Container;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Util.Container
+namespace Helion.Test.Unit.Util.Container
 {
     [TestClass]
     public class HashTableTest

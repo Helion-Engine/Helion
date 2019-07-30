@@ -19,7 +19,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         public readonly Player Player;
         
-        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, Map map, BspTree bspTree) : 
+        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree) : 
             base(config, archiveCollection, map, bspTree)
         {
             Player = EntityManager.CreatePlayer(1);
@@ -35,7 +35,7 @@ namespace Helion.World.Impl.SinglePlayer
                 Player.Entity.IsFlying = e.Activated;
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, Map map, 
+        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map, 
             MapEntryCollection? mapEntryCollection)
         {
             BspTree? bspTree = BspTree.Create(map, mapEntryCollection);

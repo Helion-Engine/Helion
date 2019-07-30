@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Helion.Util.Atlas;
 using Helion.Util.Geometry;
 
-namespace Helion.Test.Util.Atlas
+namespace Helion.Test.Unit.Util.Atlas
 {
     [TestClass]
     public class Atlas2DTest

@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Util.Assertion
+namespace Helion.Test.Unit.Util.Assertion
 {
     [TestClass]
     public class AssertTest

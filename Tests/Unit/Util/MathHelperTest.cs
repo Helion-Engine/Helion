@@ -2,7 +2,7 @@ using Helion.Util;
 using Helion.Util.Geometry;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Util
+namespace Helion.Test.Unit.Util
 {
     [TestClass]
     public class MathHelperTest

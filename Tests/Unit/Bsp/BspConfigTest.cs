@@ -2,7 +2,7 @@ using Helion.Bsp;
 using Helion.Bsp.States.Split;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Bsp
+namespace Helion.Test.Unit.Bsp
 {
     [TestClass]
     public class BspConfigTest

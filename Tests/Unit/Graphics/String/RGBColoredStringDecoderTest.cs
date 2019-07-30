@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Drawing;
 
-namespace Helion.Test.Graphics.String
+namespace Helion.Test.Unit.Graphics.String
 {
     [TestClass]
     public class RGBColoredStringDecoderTest

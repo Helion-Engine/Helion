@@ -2,7 +2,7 @@ using System;
 using Helion.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Util
+namespace Helion.Test.Unit.Util
 {
     [TestClass]
     public class ExpectedTest
