@@ -134,7 +134,7 @@ namespace Helion.World.Physics
             double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
             double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
 
-            if (entity.Box.Top + entity.Height > lowestCeil)
+            if (entity.Box.Top > lowestCeil)
             {
                 entity.SetZ(lowestCeil - entity.Height);
                 entity.Velocity.Z = 0;
