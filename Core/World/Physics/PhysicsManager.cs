@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Cheats;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;

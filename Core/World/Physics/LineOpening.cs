@@ -1,5 +1,6 @@
 using System;
 using Helion.Maps.Geometry;
+using Helion.Util.Geometry;
 using Helion.World.Entities;
 
 namespace Helion.World.Physics
