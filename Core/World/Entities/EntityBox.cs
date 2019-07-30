@@ -23,17 +23,17 @@ namespace Helion.World.Entities
         /// The maximum point in the box. This is equal to the top right 
         /// corner.
         /// </summary>
-        public Vec3D Max => m_box.Min;
+        public Vec3D Max => m_box.Max;
         
         /// <summary>
         /// The top value of the box.
         /// </summary>
-        public double Top => Max.Z;
+        public double Top => m_box.Max.Z;
         
         /// <summary>
         /// The bottom value of the box.
         /// </summary>
-        public double Bottom => Min.Z;
+        public double Bottom => m_box.Min.Z;
 
         /// <summary>
         /// Gets the position of the actor in the world, which is equal to the

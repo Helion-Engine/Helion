@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Cheats;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
@@ -138,7 +137,7 @@ namespace Helion.World.Physics
             double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
             double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
 
-            if (entity.Box.Top + entity.Height > lowestCeil)
+            if (entity.Box.Top > lowestCeil)
             {
                 entity.SetZ(lowestCeil - entity.Height);
                 entity.Velocity.Z = 0;
