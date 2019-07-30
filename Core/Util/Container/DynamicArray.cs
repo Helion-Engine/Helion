@@ -33,13 +33,27 @@ namespace Helion.Util.Container
         /// </summary>
         public int Capacity => Data.Length;
 
+        /// <summary>
+        /// Creates a new dynamic array.
+        /// </summary>
+        /// <param name="capacity">How large the array should initially be. If
+        /// no value is provided it defaults to 8. This value should not be
+        /// negative.</param>
+        /// <exception cref="OverflowException">If the capacity is negative.
+        /// </exception>
         public DynamicArray(int capacity = 8)
         {
-            Precondition(capacity > 0, "Must have a positive capacity");
+            Precondition(capacity >= 0, "Must have a positive capacity");
 
             Data = new T[capacity];
         }
 
+        /// <summary>
+        /// Accesses the element at the provided index.
+        /// </summary>
+        /// <param name="index">The index to get.</param>
+        /// <exception cref="IndexOutOfRangeException">If the index is out of
+        /// range.</exception>
         public T this[int index] => Data[index];
 
         /// <summary>
@@ -105,9 +119,20 @@ namespace Helion.Util.Container
         public void Add(params T[] elements)
         {
             EnsureCapacity(Length + elements.Length);
+            
             Array.Copy(elements, 0, Data, Length, elements.Length);
             Length += elements.Length;
         }
+        
+        /// <inheritdoc/>
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Length; i++)
+                yield return Data[i];
+        }
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         
         private void Resize(int newCapacity)
         {
@@ -115,13 +140,5 @@ namespace Helion.Util.Container
             Array.Copy(Data, newData, Data.Length);
             Data = newData;
         }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            for (int i = 0; i < Length; i++)
-                yield return Data[i];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
