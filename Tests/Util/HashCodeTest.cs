@@ -1,8 +1,11 @@
 using Helion.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Util
+namespace Helion.Test.Util
 {
+    // Note: These are testing that we don't get a different hash value when
+    // invoking it twice.
+    
     [TestClass]
     public class HashCodeTest
     {

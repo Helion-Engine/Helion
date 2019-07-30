@@ -24,7 +24,7 @@ namespace Helion.Maps.Geometry.Lines
         
         public bool TwoSided => !OneSided;
 
-        public IList<Side> Sides { get { return Containers.WithoutNulls(Front, Back); } }
+        public IList<Side> Sides => Containers.WithoutNulls(Front, Back);
 
         public Line(int id, Vertex startVertex, Vertex endVertex, LineFlags lineFlags, Side front, Side? back = null)
         {
