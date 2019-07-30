@@ -9,7 +9,7 @@ namespace Helion.Util.Container
     /// A dynamically resizing array.
     /// </summary>
     /// <remarks>
-    /// This was made because we can't access the backing list of List<>, which
+    /// This was made because we can't access the backing list of List, which
     /// means we have to copy the values every time we wanted to use it for any
     /// low level array pinning (or use reflection but that's not worth it).
     /// </remarks>
@@ -19,7 +19,7 @@ namespace Helion.Util.Container
         /// <summary>
         /// How many elements are in the array.
         /// </summary>
-        public int Length { get; private set; } = 0;
+        public int Length { get; private set; }
 
         /// <summary>
         /// The exposed underlying array of data. This list may be longer than
@@ -38,14 +38,13 @@ namespace Helion.Util.Container
         /// </summary>
         /// <param name="capacity">How large the array should initially be. If
         /// no value is provided it defaults to 8. This value should not be
-        /// negative.</param>
-        /// <exception cref="OverflowException">If the capacity is negative.
-        /// </exception>
+        /// negative or zero. It will be clamped to being at least a value of
+        /// 1 to avoid certain resizing issues.</param>
         public DynamicArray(int capacity = 8)
         {
-            Precondition(capacity >= 0, "Must have a positive capacity");
+            Precondition(capacity > 0, "Must have a positive capacity");
 
-            Data = new T[capacity];
+            Data = new T[Math.Max(1, capacity)];
         }
 
         /// <summary>
@@ -55,35 +54,6 @@ namespace Helion.Util.Container
         /// <exception cref="IndexOutOfRangeException">If the index is out of
         /// range.</exception>
         public T this[int index] => Data[index];
-
-        /// <summary>
-        /// Makes sure there is enough memory to hold the desired capacity.
-        /// </summary>
-        /// <remarks>
-        /// The implementation may allocate more space than what is required.
-        /// </remarks>
-        /// <param name="desiredCapacity">The total amount of elements desired
-        /// to hold. This should be usually equal to the current Count of this
-        /// object plus the number of elements to be added.</param>
-        public void EnsureCapacity(int desiredCapacity)
-        {
-            Precondition(desiredCapacity > 0, "Trying to ensure a zero or negative capacity");
-            
-            if (desiredCapacity <= Capacity)
-                return;
-
-            // This is done this way to prevent the possibility of overflow. We
-            // likely have more problems than this if we ever trigger this case
-            // though.
-            int newCapacity = Length;
-            if (desiredCapacity >= int.MaxValue / 2)
-                newCapacity = int.MaxValue;
-            else
-                while (newCapacity < desiredCapacity)
-                    newCapacity *= 2;
-
-            Resize(newCapacity);
-        }
 
         /// <summary>
         /// Clears the data.
@@ -133,6 +103,27 @@ namespace Helion.Util.Container
 
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        
+        private void EnsureCapacity(int desiredCapacity)
+        {
+            Precondition(desiredCapacity > 0, "Trying to ensure a zero or negative capacity");
+            Precondition(Capacity > 0, "Should never have a zero capacity");
+            
+            if (desiredCapacity <= Capacity)
+                return;
+
+            // This is done this way to prevent the possibility of overflow. We
+            // likely have more problems than this if we ever trigger this case
+            // though.
+            int newCapacity = Capacity;
+            if (desiredCapacity >= int.MaxValue / 2)
+                newCapacity = int.MaxValue;
+            else
+                while (newCapacity < desiredCapacity)
+                    newCapacity *= 2;
+
+            Resize(newCapacity);
+        }
         
         private void Resize(int newCapacity)
         {
