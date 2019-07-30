@@ -132,6 +132,9 @@ namespace Helion.World.Physics
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
         {
+            if (entity.NoClip && entity.IsFlying)
+                return;
+
             double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
             double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
 
