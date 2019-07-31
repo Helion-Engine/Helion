@@ -25,10 +25,11 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddLine(0, 1, start, end)
                 .ToMap();
             
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, map.Lines[0]);
+            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 42, map.Lines[0]);
             
             Assert.AreEqual(startIndex, segment.StartIndex);
             Assert.AreEqual(endIndex, segment.EndIndex);
+            Assert.AreEqual(42, segment.CollinearIndex);
             Assert.AreEqual(Endpoint.Start, segment.EndpointFrom(startIndex));
             Assert.AreEqual(Endpoint.End, segment.EndpointFrom(endIndex));
             Assert.AreEqual(Endpoint.End, segment.OppositeEndpoint(startIndex));
@@ -50,7 +51,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddLine(0, start, end)
                 .ToMap();
             
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, map.Lines[0]);
+            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 1, map.Lines[0]);
 
             Assert.IsFalse(segment.TwoSided);
             Assert.IsTrue(segment.OneSided);
@@ -60,7 +61,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
         [TestMethod]
         public void CanCreateMiniseg()
         {
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex);
+            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 0);
 
             Assert.IsFalse(segment.TwoSided);
             Assert.IsFalse(segment.OneSided);

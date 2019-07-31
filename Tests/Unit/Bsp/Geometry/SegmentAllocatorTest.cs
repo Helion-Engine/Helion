@@ -14,7 +14,8 @@ namespace Helion.Test.Unit.Bsp.Geometry
         public void CreateEmptyAllocator()
         {
             VertexAllocator vertexAllocator = new VertexAllocator(0.005);
-            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator);
+            CollinearTracker collinearTracker = new CollinearTracker(0.005);
+            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
             
             Assert.AreEqual(0, segmentAllocator.Count);
             Assert.IsTrue(segmentAllocator.ToList().Empty());
@@ -24,7 +25,8 @@ namespace Helion.Test.Unit.Bsp.Geometry
         public void CanAllocateSegment()
         {
             VertexAllocator vertexAllocator = new VertexAllocator(0.005);
-            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator);
+            CollinearTracker collinearTracker = new CollinearTracker(0.005);
+            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
             
             Vec2D start = new Vec2D(1, 2);
             Vec2D end = new Vec2D(3, 4);
@@ -45,7 +47,8 @@ namespace Helion.Test.Unit.Bsp.Geometry
         public void AllocatingSegmentBothDirectionsYieldsSame()
         {
             VertexAllocator vertexAllocator = new VertexAllocator(0.005);
-            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator);
+            CollinearTracker collinearTracker = new CollinearTracker(0.005);
+            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
             
             Vec2D start = new Vec2D(1, 2);
             Vec2D end = new Vec2D(3, 4);
@@ -63,7 +66,8 @@ namespace Helion.Test.Unit.Bsp.Geometry
         public void AllocateMultipleSegmentsAndCheckForExistence()
         {
             VertexAllocator vertexAllocator = new VertexAllocator(0.005);
-            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator);
+            CollinearTracker collinearTracker = new CollinearTracker(0.005);
+            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
             
             BspSegment first = segmentAllocator.GetOrCreate(vertexAllocator[new Vec2D(1, 1)], vertexAllocator[new Vec2D(2, 2)]);
             BspSegment second = segmentAllocator.GetOrCreate(vertexAllocator[new Vec2D(1, 1)], vertexAllocator[new Vec2D(-3, -5)]);
@@ -81,13 +85,37 @@ namespace Helion.Test.Unit.Bsp.Geometry
             Assert.IsTrue(segmentAllocator.ContainsSegment(third.StartIndex, third.EndIndex));
             Assert.IsTrue(segmentAllocator.ContainsSegment(third.EndIndex, third.StartIndex));
             Assert.IsFalse(segmentAllocator.ContainsSegment(first.StartIndex, first.StartIndex));
+            
+            Assert.AreNotEqual(first.CollinearIndex, second.CollinearIndex);
+            Assert.AreNotEqual(first.CollinearIndex, third.CollinearIndex);
+            Assert.AreNotEqual(second.CollinearIndex, third.CollinearIndex);
         }
+
+        [TestMethod]
+        public void CollinearSegmentsAreAllocatedAsSuch()
+        {
+            VertexAllocator vertexAllocator = new VertexAllocator(0.005);
+            CollinearTracker collinearTracker = new CollinearTracker(0.005);
+            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
+
+            Vec2D firstStart = new Vec2D(1, 1);
+            Vec2D firstEnd = new Vec2D(3, 3);
+            Vec2D secondStart = new Vec2D(5, 5);
+            Vec2D secondEnd = new Vec2D(6, 6);
+            
+            BspSegment first = segmentAllocator.GetOrCreate(vertexAllocator[firstStart], vertexAllocator[firstEnd]);
+            BspSegment second = segmentAllocator.GetOrCreate(vertexAllocator[secondStart], vertexAllocator[secondEnd]);
+
+            Assert.AreEqual(first.CollinearIndex, second.CollinearIndex);
+        }
+        
 
         [TestMethod]
         public void CanSplitSegment()
         {
             VertexAllocator vertexAllocator = new VertexAllocator(0.005);
-            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator);
+            CollinearTracker collinearTracker = new CollinearTracker(0.005);
+            SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
                     
             Vec2D start = new Vec2D(1, 1);
             Vec2D end = new Vec2D(5, 1);
@@ -116,6 +144,8 @@ namespace Helion.Test.Unit.Bsp.Geometry
             Assert.AreSame(line, segment.Line);
             Assert.AreSame(line, first.Line);
             Assert.AreSame(line, second.Line);
+            Assert.AreEqual(segment.CollinearIndex, first.CollinearIndex);
+            Assert.AreEqual(segment.CollinearIndex, second.CollinearIndex);
             Assert.IsTrue(start == first.Start);
             Assert.IsTrue(middle == first.End);
             Assert.AreEqual(startIndex, first.StartIndex);

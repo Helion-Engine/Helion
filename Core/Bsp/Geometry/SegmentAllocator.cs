@@ -25,6 +25,7 @@ namespace Helion.Bsp.Geometry
     public class SegmentAllocator
     {
         private readonly VertexAllocator m_vertexAllocator;
+        private readonly CollinearTracker m_collinearTracker;
         private readonly IList<BspSegment> m_segments = new List<BspSegment>();
         private readonly SegmentTable m_segmentTable = new SegmentTable();
 
@@ -38,9 +39,11 @@ namespace Helion.Bsp.Geometry
         /// creating new segment endpoints from.
         /// </summary>
         /// <param name="vertexAllocator">The vertex allocator.</param>
-        public SegmentAllocator(VertexAllocator vertexAllocator)
+        /// <param name="collinearTracker">The collinear index tracker.</param>
+        public SegmentAllocator(VertexAllocator vertexAllocator, CollinearTracker collinearTracker)
         {
             m_vertexAllocator = vertexAllocator;
+            m_collinearTracker = collinearTracker;
         }
 
         /// <summary>
@@ -76,12 +79,14 @@ namespace Helion.Bsp.Geometry
                     return m_segments[segIndex];
                 
                 largerValues[largerIndex] = m_segments.Count;
-                return CreateNewSegment(startIndex, endIndex, line);
+                int newCollinearIndex = GetCollinearIndex(startIndex, endIndex);
+                return CreateNewSegment(startIndex, endIndex, newCollinearIndex, line);
             }
 
             var largerIndexDict = new Dictionary<int, int> { [largerIndex] = m_segments.Count };
+            int collinearIndex = GetCollinearIndex(startIndex, endIndex);
             m_segmentTable[smallerIndex] = largerIndexDict;
-            return CreateNewSegment(startIndex, endIndex, line);
+            return CreateNewSegment(startIndex, endIndex, collinearIndex, line);
         }
 
         /// <summary>
@@ -119,8 +124,8 @@ namespace Helion.Bsp.Geometry
             Vec2D middle = seg.FromTime(t);
             int middleIndex = m_vertexAllocator[middle];
 
-            BspSegment firstSeg = GetOrCreate(seg.StartIndex, middleIndex, seg.Line);
-            BspSegment secondSeg = GetOrCreate(middleIndex, seg.EndIndex, seg.Line);
+            BspSegment firstSeg = CreateNewSegment(seg.StartIndex, middleIndex, seg.CollinearIndex, seg.Line);
+            BspSegment secondSeg = CreateNewSegment(middleIndex, seg.EndIndex, seg.CollinearIndex, seg.Line);
             return (firstSeg, secondSeg);
         }
 
@@ -135,14 +140,21 @@ namespace Helion.Bsp.Geometry
         /// <returns>A list of all the existing segments.</returns>
         public IList<BspSegment> ToList() => new List<BspSegment>(m_segments);
         
-        private BspSegment CreateNewSegment(int startIndex, int endIndex, Line? line = null)
+        private BspSegment CreateNewSegment(int startIndex, int endIndex, int collinearIndex, Line? line = null)
         {
             Vec2D start = m_vertexAllocator[startIndex];
             Vec2D end = m_vertexAllocator[endIndex];
 
-            BspSegment seg = new BspSegment(start, end, startIndex, endIndex, line);
+            BspSegment seg = new BspSegment(start, end, startIndex, endIndex, collinearIndex, line);
             m_segments.Add(seg);
             return seg;
+        }
+
+        private int GetCollinearIndex(int startVertexIndex, int endVertexIndex)
+        {
+            Vec2D start = m_vertexAllocator[startVertexIndex];
+            Vec2D end = m_vertexAllocator[endVertexIndex];
+            return m_collinearTracker.GetOrCreateIndex(start, end);
         }
     }
 }

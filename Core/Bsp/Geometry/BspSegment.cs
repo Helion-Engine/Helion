@@ -20,6 +20,13 @@ namespace Helion.Bsp.Geometry
         /// The vertex index ending index in the vertex allocator.
         /// </summary>
         public readonly int EndIndex;
+        
+        /// <summary>
+        /// An index which indicates collinearity with any other segment that
+        /// has the same value. See <see cref="CollinearTracker"/> for more
+        /// information.
+        /// </summary>
+        public readonly int CollinearIndex;
 
         /// <summary>
         /// The ID of the line this is or is a subset of.
@@ -62,13 +69,16 @@ namespace Helion.Bsp.Geometry
         /// <param name="end">The end vertex.</param>
         /// <param name="startIndex">The index of the start vertex.</param>
         /// <param name="endIndex">The index of the end vertex.</param>
+        /// <param name="collinearIndex">The index for collinearity. See
+        /// <see cref="CollinearTracker"/> for more info.</param>
         /// <param name="line">The line (if any, this being null implies it is
         /// a miniseg).</param>
-        public BspSegment(Vec2D start, Vec2D end, int startIndex, int endIndex, Line? line = null) : 
+        public BspSegment(Vec2D start, Vec2D end, int startIndex, int endIndex, int collinearIndex, Line? line = null) : 
             base(start, end)
         {
             StartIndex = startIndex;
             EndIndex = endIndex;
+            CollinearIndex = collinearIndex;
             Line = line;
 
             Postcondition(Length() >= 0.00001, "Extremely small split detected");
