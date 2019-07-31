@@ -26,6 +26,9 @@ namespace Helion.Maps.Geometry.Lines
 
         public IList<Side> Sides => Containers.WithoutNulls(Front, Back);
 
+        // TODO set this flag when specials are read from a line
+        public bool HasSpecial;
+
         public Line(int id, Vertex startVertex, Vertex endVertex, LineFlags lineFlags, Side front, Side? back = null)
         {
             Id = id;

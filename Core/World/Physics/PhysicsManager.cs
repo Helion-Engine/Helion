@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
@@ -175,6 +176,9 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
+                        if (!entity.NoClip && line.HasSpecial && !entity.IntersectSpecialLines.Any(x => x.Id == line.Id))
+                            entity.IntersectSpecialLines.Add(line);
+
                         sectors.Add(line.Front.Sector);
                         if (line.Back != null)
                             sectors.Add(line.Back.Sector);
@@ -293,33 +297,17 @@ namespace Helion.World.Physics
                 {
                     Entity nextEntity = entityNode.Value;
                     if (EntityBlocksEntity(entity, nextEntity))
+                    {
+                        entity.IntersectEntities.Add(nextEntity);
                         if (nextEntity.Box.To2D().Overlaps(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                             return GridIterationStatus.Stop;
+                    }
 
                     entityNode = entityNode.Next;
                 }
                 
                 return GridIterationStatus.Continue;
             }
-        }
-        
-        private void HandleStepIfNeeded(Entity entity, Line line)
-        {
-            if (line.Back == null)
-                throw new NullReferenceException("Should never be trying to step up on a one-sided line");
-
-            Sector frontSector = line.Front.Sector;
-            Sector backSector = line.Back.Sector;
-            if (ReferenceEquals(frontSector, backSector))
-                return;
-
-            if (frontSector.Floor.Z > backSector.Floor.Z)
-            {
-                if (entity.Box.Bottom < frontSector.Floor.Z)
-                    SetEntityOnFloorOrEntity(entity, frontSector.Floor.Z);
-            }
-            else if (entity.Box.Bottom < backSector.Floor.Z)
-                SetEntityOnFloorOrEntity(entity, backSector.Floor.Z);
         }
         
         private void HandleStepIfNeeded(Entity entity, Entity other)
@@ -335,35 +323,27 @@ namespace Helion.World.Physics
         {
             entity.UnlinkFromWorld();
 
+            Vec2D previousPosition = entity.Position.To2D();
             entity.SetXY(nextPosition);
-            Box2D entityBox = entity.Box.To2D();
-            m_blockmap.Iterate(entityBox, HandleSteppingFunc);
 
             LinkToWorld(entity);
 
-            // TODO: I wonder if we can somehow carry this information with us
-            //       from CanMoveTo() so we don't have to iterate through the
-            //       blockmap twice?
-            GridIterationStatus HandleSteppingFunc(Block block)
-            {
-                for (int i = 0; i < block.Lines.Count; i++)
-                {
-                    Line line = block.Lines[i];
-                    if (line.Segment.Intersects(entityBox))
-                        HandleStepIfNeeded(entity, line);
-                }
-                
-                LinkableNode<Entity>? entityNode = block.Entities.Head;
-                while (entityNode != null)
-                {
-                    Entity nextEntity = entityNode.Value;
-                    if (!ReferenceEquals(entity, nextEntity))
-                        HandleStepIfNeeded(entity, nextEntity);
+            foreach (Line hitLine in entity.IntersectSpecialLines)
+                CheckLineSpecialActivation(entity, hitLine, previousPosition);
 
-                    entityNode = entityNode.Next;
-                }
-                
-                return GridIterationStatus.Continue;
+            foreach (Entity hitEntity in entity.IntersectEntities)
+                HandleStepIfNeeded(entity, hitEntity);
+
+            entity.IntersectSpecialLines.Clear();
+            entity.IntersectEntities.Clear();
+        }
+
+        private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
+        {
+            bool fromFront = line.Segment.OnRight(previousPosition);
+            if (fromFront && fromFront != line.Segment.OnRight(entity.Position.To2D()))
+            {
+                //TODO actually activate the special
             }
         }
 
