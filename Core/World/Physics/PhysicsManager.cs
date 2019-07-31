@@ -96,6 +96,8 @@ namespace Helion.World.Physics
                 return true;
 
             // TODO: Check blocking flags on the line.
+            if (line.Flags.Blocking.Players && entity.Player != null)
+                return true;
 
             LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
             return !opening.CanPassOrStepThrough(entity);
