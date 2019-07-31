@@ -159,7 +159,7 @@ namespace Helion.Subsystems.OpenTK
                     // event to process or else it'll be the same as moving
                     // nowhere when we process +X, +Y and then get -X, -Y
                     // immediately after.
-                    Mouse.SetPosition(X + centerX, Y + centerY);
+                    Mouse.SetPosition(centerX, centerY);
                 }
                 else
                 {
