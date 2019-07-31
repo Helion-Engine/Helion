@@ -132,11 +132,6 @@ namespace Helion.Bsp.Geometry
         /// <summary>
         /// Allocates a new list with all the segment references.
         /// </summary>
-        /// <remarks>
-        /// Intended primarily for the visual debuggers. We don't want to 
-        /// expose the underlying list reference, so a whole new one is 
-        /// allocated.
-        /// </remarks>
         /// <returns>A list of all the existing segments.</returns>
         public IList<BspSegment> ToList() => new List<BspSegment>(m_segments);
         

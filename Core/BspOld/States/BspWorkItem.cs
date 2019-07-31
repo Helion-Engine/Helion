@@ -1,5 +1,5 @@
-﻿using Helion.BspOld.Geometry;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Helion.BspOld.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.BspOld.States
