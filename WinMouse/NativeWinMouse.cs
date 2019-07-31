@@ -1,0 +1,45 @@
+﻿using System.Windows.Forms;
+using System;
+using WinMouse.Native;
+
+namespace WinMouse
+{
+    public delegate void WinMouseMove(int deltaX, int deltaY);
+
+    public partial class NativeWinMouse : Form
+    {
+        private readonly WinMouseMove m_callback;
+
+        /// <summary>
+        /// Registers to receive windows raw input mouse events.
+        /// </summary>
+        /// <remarks>
+        /// Creates a form that just exists for the sole purpose of receing the WM_INPUT message.
+        /// In the future if we get access to the GameWindow Handle we can use that.
+        /// Uses HID_USAGE_GENERIC_MOUSE so mouse movement from any mouse device will trigger the callback.
+        /// https://docs.microsoft.com/en-us/windows/win32/dxtecharts/taking-advantage-of-high-dpi-mouse-movement
+        /// </remarks>
+        /// <param name="callback">Callback function for when the mouse moves.</param>
+        public NativeWinMouse(WinMouseMove callback)
+        {
+            m_callback = callback;
+
+            if (!NativeMethods.RegisterRawMouseInput(Handle))
+                throw new Exception();
+        }
+
+        protected override void WndProc(ref Message message)
+        {
+            switch (message.Msg)
+            {
+                case Constants.WM_INPUT:
+                    int x, y;
+                    NativeMethods.GetRawInput(ref message, out x, out y);
+                    m_callback(x, y);
+                    break;
+            }
+
+            base.WndProc(ref message);
+        }
+    }
+}

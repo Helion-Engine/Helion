@@ -224,9 +224,9 @@ namespace Helion.Subsystems.OpenTK
             }
         }
 
-        public void HandleMouseMovement(Vec2I deltaPixels)
+        public void HandleMouseMovement(int deltaX, int deltaY)
         {
-            inputEvent.MouseInput.Delta += new Vec2I(-deltaPixels.X, -deltaPixels.Y);
+            inputEvent.MouseInput.Delta.Add(-deltaX, -deltaY);
         }
 
         public void HandleMouseWheelInput(MouseWheelEventArgs e)

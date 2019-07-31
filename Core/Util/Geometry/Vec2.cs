@@ -22,6 +22,12 @@ namespace Helion.Util.Geometry
             Y = vec.Y;
         }
 
+        public void Add(int x, int y)
+        {
+            X += x;
+            Y += y;
+        }
+
         public static Vec2I operator -(Vec2I self) => new Vec2I(-self.X, -self.Y);
         public static Vec2I operator +(Vec2I self, Vec2I other) => new Vec2I(self.X + other.X, self.Y + other.Y);
         public static Vec2I operator -(Vec2I self, Vec2I other) => new Vec2I(self.X - other.X, self.Y - other.Y);

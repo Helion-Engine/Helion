@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;
@@ -7,6 +9,7 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Window;
+using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
@@ -15,6 +18,7 @@ namespace Helion.Subsystems.OpenTK
 {
     public class OpenTKWindow : GameWindow, IWindow
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static int nextAvailableWindowId;
 
         private readonly Config m_config;
@@ -23,6 +27,7 @@ namespace Helion.Subsystems.OpenTK
         private readonly Action m_gameLoopFunc;
         private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
         private bool m_disposed;
+        private bool m_useMouseOpenTK;
         
         public OpenTKWindow(Config cfg, ArchiveCollection archiveCollection, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
@@ -33,6 +38,34 @@ namespace Helion.Subsystems.OpenTK
             m_gameLoopFunc = gameLoopFunction;
 
             RegisterConfigListeners();
+            SetupMouse();
+        }
+
+        private void SetupMouse()
+        {
+            m_useMouseOpenTK = true;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // OpenTK currently does not support Windows raw input so use our own implmentation
+                if (SetupNativeWinMouse())
+                    m_useMouseOpenTK = false;
+            }
+        }
+
+        private bool SetupNativeWinMouse()
+        {
+            try
+            {
+                WinMouse.NativeWinMouse nativeWinMouse = new WinMouse.NativeWinMouse(HandleWinMouseMove);
+                return true;
+            }
+            catch
+            {
+                Log.Error("Failed to initialize Windows mouse raw input - Defaulting to OpenTK");
+            }
+
+            return false;
         }
 
         ~OpenTKWindow()
@@ -58,7 +91,7 @@ namespace Helion.Subsystems.OpenTK
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        
+
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             if (Focused)
@@ -100,31 +133,37 @@ namespace Helion.Subsystems.OpenTK
             
             base.OnMouseDown(e);            
         }
-        
-        protected override void OnMouseMove(MouseMoveEventArgs e)
+
+        private void HandleWinMouseMove(int deltaX, int deltaY)
         {
             if (Focused)
+                m_inputAdapter.HandleMouseMovement(deltaX, deltaY);
+        }
+
+        protected override void OnMouseMove(MouseMoveEventArgs e)
+        {
+            if (m_useMouseOpenTK && Focused)
             {
                 // Reset the mouse to the center of the screen. Unfortunately
                 // we have to do this ourselves...
-                if (m_config.Engine.Developer.MouseFocus) 
+                if (m_config.Engine.Developer.MouseFocus)
                 {
                     MouseState state = Mouse.GetCursorState();
-                    Vec2I center = new Vec2I(Width / 2, Height / 2);
-                    Vec2I deltaFromCenter = new Vec2I(state.X, state.Y) - center;
-                    m_inputAdapter.HandleMouseMovement(deltaFromCenter);
-                    
+                    int centerX = Width / 2;
+                    int centerY = Height / 2;
+                    m_inputAdapter.HandleMouseMovement(state.X - centerX, state.Y - centerY);
+
                     // When we set this new position, we're going to cause a
                     // new mouse movement event to be fired. We have to take
                     // care not to read that 'snap back to center' as some
                     // event to process or else it'll be the same as moving
                     // nowhere when we process +X, +Y and then get -X, -Y
                     // immediately after.
-                    Mouse.SetPosition(X + center.X, Y + center.Y);
+                    Mouse.SetPosition(X + centerX, Y + centerY);
                 }
                 else
                 {
-                    m_inputAdapter.HandleMouseMovement(new Vec2I(e.XDelta, e.YDelta));
+                    m_inputAdapter.HandleMouseMovement(e.XDelta, e.YDelta);
                 }
             }
 
