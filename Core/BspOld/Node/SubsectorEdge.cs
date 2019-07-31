@@ -75,7 +75,7 @@ namespace Helion.BspOld.Node
         /// <param name="segment">The segment that was formed.</param>
         /// <param name="originatingEndpoint">The endpoint we are starting to
         /// traverse along.</param>
-        /// <param name="sectorLine">The line with sector info,</param>
+        /// <param name="sectorLine">The line with sector info.</param>
         /// <param name="rotation">The rotation of the segment traversal.
         /// </param>
         /// <returns>A pair of a sector ID and a boolean status for whether we
