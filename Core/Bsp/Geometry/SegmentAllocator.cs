@@ -133,7 +133,7 @@ namespace Helion.Bsp.Geometry
         /// Allocates a new list with all the segment references.
         /// </summary>
         /// <returns>A list of all the existing segments.</returns>
-        public IList<BspSegment> ToList() => new List<BspSegment>(m_segments);
+        public List<BspSegment> ToList() => new List<BspSegment>(m_segments);
         
         private BspSegment CreateNewSegment(int startIndex, int endIndex, int collinearIndex, Line? line = null)
         {

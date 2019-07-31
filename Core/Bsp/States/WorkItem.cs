@@ -32,11 +32,13 @@ namespace Helion.Bsp.States
         /// <param name="node">The node to be operated on.</param>
         /// <param name="segments">The list of segments for this work item.
         /// </param>
-        /// <param name="branchPath">The path taken to get here.</param>
+        /// <param name="branchPath">The path taken to get here. This should be
+        /// upper case.</param>
         public WorkItem(BspNode node, List<BspSegment> segments, string branchPath = "")
         {
             Precondition(segments.Count > 0, "Should never have zero segments for a work item");
-
+            Precondition(branchPath == branchPath.ToUpper(), "Should be using upper case BSP branch paths");
+            
             Node = node;
             Segments = segments;
             BranchPath = branchPath;
