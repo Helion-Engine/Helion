@@ -107,9 +107,27 @@ namespace Helion.Maps.Entries
 
         private static LineFlags MakeLineFlags(ushort flags)
         {
-            LineFlags lineFlags = new LineFlags();
+            LineFlags lineFlags = default;
 
             // TODO: Record the remaining flags!
+            if ((flags & (ushort)LineFlag.PhysicsBlockPlayersAndMonsters) != 0)
+            {
+                lineFlags.Blocking.Players = true;
+                lineFlags.Blocking.Monsters = true;
+            }
+
+            if ((flags & (ushort)LineFlag.PhysicsBlockEverything) != 0)
+            {
+                lineFlags.Blocking.Hitscan = true;
+                lineFlags.Blocking.Players = true;
+                lineFlags.Blocking.Monsters = true;
+                lineFlags.Blocking.Projectiles = true;
+            }
+
+            if ((flags & (ushort)LineFlag.PhysicsBlockMonsters) != 0)
+                lineFlags.Blocking.Monsters = true;
+            if ((flags & (ushort)LineFlag.PhysicsBlockPlayer) != 0)
+                lineFlags.Blocking.Players = true;
 
             if ((flags & (ushort)LineFlag.UpperUnpegged) != 0)
                 lineFlags.Unpegged.Upper = true;
