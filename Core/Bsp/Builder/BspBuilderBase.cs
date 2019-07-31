@@ -4,6 +4,7 @@ using Helion.Bsp.Node;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
+using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
 using Helion.Maps.Geometry.Lines;
@@ -24,6 +25,12 @@ namespace Helion.Bsp.Builder
         /// The object responsible for calculating the best splits.
         /// </summary>
         public readonly ISplitCalculator SplitCalculator;
+
+        /// <summary>
+        /// The object responsible for partitioning the lines after we have
+        /// found the best splitter.
+        /// </summary>
+        public readonly IPartitioner Partitioner;
         
         /// <summary>
         /// Classifies junctions, which tell us whether we are inside the map
@@ -85,6 +92,7 @@ namespace Helion.Bsp.Builder
             SegmentAllocator = new SegmentAllocator(VertexAllocator, CollinearTracker);
             ConvexChecker = CreateConvexChecker();
             SplitCalculator = CreateSplitCalculator();
+            Partitioner = CreatePartitioner();
             
             PopulateAllocatorsFrom(map);
             
@@ -107,6 +115,13 @@ namespace Helion.Bsp.Builder
         /// </summary>
         /// <returns>A split calculator object.</returns>
         protected abstract ISplitCalculator CreateSplitCalculator();
+        
+        /// <summary>
+        /// Forces the parent implementing classes to provide some instance of
+        /// this interface.
+        /// </summary>
+        /// <returns>A partitioning object.</returns>
+        protected abstract IPartitioner CreatePartitioner();
 
         /// <summary>
         /// Loads the next work item for processing.

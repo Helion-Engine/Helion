@@ -17,5 +17,10 @@ namespace Helion.Bsp.States.Miniseg
         {
             // TODO
         }
+
+        public void AddSplitJunction(BspSegment inboundSegment, BspSegment outboundSegment)
+        {
+            // TODO
+        }
     }
 }
