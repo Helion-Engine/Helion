@@ -1,6 +1,6 @@
-﻿using Helion.Util.Geometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.BspOld.Geometry

@@ -278,5 +278,16 @@ namespace Helion.Util
         {
             return value < low ? low : (value > high ? high : value);
         }
+
+        /// <summary>
+        /// Takes two inputs and returns the pair in the min and max form.
+        /// </summary>
+        /// <param name="first">The first value.</param>
+        /// <param name="second">The second value.</param>
+        /// <returns>A pair that is ordered.</returns>
+        public static (int min, int max) MinMax(int first, int second)
+        {
+            return first < second ? (first, second) : (second, first);
+        }
     }
 }

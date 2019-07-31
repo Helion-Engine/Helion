@@ -158,5 +158,19 @@ namespace Helion.Test.Unit.Util
             Assert.AreEqual(4.0, MathHelper.Clamp(4.0, 3.0, 5.0));  
             Assert.AreEqual(5.0, MathHelper.Clamp(6.0, 3.0, 5.0));  
         }
+
+        [TestMethod]
+        public void MinMaxCalculatedCorrectly()
+        {
+            int first = 6;
+            int second = 8;
+            (int lower, int higher) = MathHelper.MinMax(first, second);
+            Assert.AreEqual(first, lower);
+            Assert.AreEqual(second, higher);
+            
+            (lower, higher) = MathHelper.MinMax(second, first);
+            Assert.AreEqual(first, lower);
+            Assert.AreEqual(second, higher);
+        }
     }
 }
