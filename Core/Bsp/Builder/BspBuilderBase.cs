@@ -8,6 +8,9 @@ using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
 using Helion.Maps.Geometry.Lines;
+using Helion.Util.Extensions;
+using Helion.Util.Geometry;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Builder
 {
@@ -108,6 +111,21 @@ namespace Helion.Bsp.Builder
 
         /// <inheritdoc/>
         public abstract BspNode? Build();
+        
+        /// <summary>
+        /// Takes the convex traversal that was done and adds it to the top BSP 
+        /// node on the stack. This effectively creates the subsector.
+        /// </summary>
+        protected void AddConvexTraversalToTopNode()
+        {
+            Invariant(!WorkItems.Empty(), "Cannot add convex traversal to an empty work item stack");
+
+            ConvexTraversal traversal = ConvexChecker.States.ConvexTraversal;
+            Rotation rotation = ConvexChecker.States.Rotation;
+            List<SubsectorEdge> edges = SubsectorEdge.FromClockwiseTraversal(traversal, rotation);
+            
+            WorkItems.Peek().Node.ClockwiseEdges = edges;
+        }
 
         /// <summary>
         /// Forces the parent implementing classes to provide some instance of

@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+using Helion.Bsp.States.Convex;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
@@ -55,6 +57,12 @@ namespace Helion.Bsp.Node
             End = end;
             IsFront = front;
             Line = line;
+        }
+
+        public static List<SubsectorEdge> FromClockwiseTraversal(ConvexTraversal traversal, Rotation rotation)
+        {
+            // TODO
+            return new List<SubsectorEdge>();
         }
     }
 }

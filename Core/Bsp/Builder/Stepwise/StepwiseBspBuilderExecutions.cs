@@ -1,6 +1,16 @@
+using System;
+using System.Collections.Generic;
+using Helion.Bsp.Geometry;
+using Helion.Bsp.Node;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
+using Helion.Bsp.States.Miniseg;
+using Helion.Bsp.States.Partition;
+using Helion.Bsp.States.Split;
+using Helion.BspOld.States;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
+using BuilderState = Helion.Bsp.States.BuilderState;
 
 namespace Helion.Bsp.Builder.Stepwise
 {
@@ -85,31 +95,98 @@ namespace Helion.Bsp.Builder.Stepwise
         /// <inheritdoc/>
         protected override void ExecuteLeafNodeCreation()
         {
-            // TODO
+            ConvexState convexState = ConvexChecker.States.State;
+            Invariant(convexState == ConvexState.FinishedIsDegenerate || convexState == ConvexState.FinishedIsConvex, "Unexpected BSP leaf building state");
+
+            if (convexState == ConvexState.FinishedIsConvex)
+                AddConvexTraversalToTopNode();
+
+            WorkItems.Pop();
+
+            if (WorkItems.Empty())
+            {
+                Root.StripDegenerateNodes();
+                State = BuilderState.Complete;
+            }
+            else
+                LoadNextWorkItem();
         }
 
         /// <inheritdoc/>
         protected override void ExecuteSplitterFinding()
         {
-            // TODO
+            switch (SplitCalculator.States.State)
+            {
+            case SplitterState.Loaded:
+            case SplitterState.Working:
+                SplitCalculator.Execute();
+                break;
+
+            case SplitterState.Finished:
+                Partitioner.Load(SplitCalculator.States.BestSplitter, WorkItems.Peek().Segments);
+                State = BuilderState.PartitioningSegments;
+                break;
+            }
         }
 
         /// <inheritdoc/>
         protected override void ExecuteSegmentPartitioning()
         {
-            // TODO
+            switch (Partitioner.States.State)
+            {
+            case PartitionState.Loaded:
+            case PartitionState.Working:
+                Partitioner.Execute();
+                break;
+
+            case PartitionState.Finished:
+                if (Partitioner.States.Splitter == null)
+                    throw new NullReferenceException("Unexpected null partition splitter");
+                BspSegment? splitter = Partitioner.States.Splitter;
+                MinisegCreator.Load(splitter, Partitioner.States.CollinearVertices);
+                State = BuilderState.GeneratingMinisegs;
+                break;
+            }
         }
 
         /// <inheritdoc/>
         protected override void ExecuteMinisegGeneration()
         {
-            // TODO
+            switch (MinisegCreator.States.State)
+            {
+            case MinisegState.Loaded:
+            case MinisegState.Working:
+                MinisegCreator.Execute();
+                break;
+
+            case MinisegState.Finished:
+                State = BuilderState.FinishingSplit;
+                break;
+            }
         }
 
         /// <inheritdoc/>
         protected override void ExecuteSplitFinalization()
         {
-            // TODO
+            WorkItem currentWorkItem = WorkItems.Pop();
+
+            BspNode parentNode = currentWorkItem.Node;
+            BspNode leftChild = new BspNode();
+            BspNode rightChild = new BspNode();
+            parentNode.SetChildren(leftChild, rightChild);
+            parentNode.Splitter = SplitCalculator.States.BestSplitter;
+
+            // We arbitrarily decide to build left first, so left is stacked after.
+            List<BspSegment> rightSegs = Partitioner.States.RightSegments;
+            List<BspSegment> leftSegs = Partitioner.States.LeftSegments;
+            rightSegs.AddRange(MinisegCreator.States.Minisegs);
+            leftSegs.AddRange(MinisegCreator.States.Minisegs);
+
+            string path = currentWorkItem.BranchPath;
+            WorkItems.Push(new WorkItem(rightChild, rightSegs, path + "R"));
+            WorkItems.Push(new WorkItem(leftChild, leftSegs, path + "L"));
+
+            LoadNextWorkItem();
         }
     }
 }
