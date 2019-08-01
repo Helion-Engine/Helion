@@ -7,10 +7,8 @@ using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
-using Helion.BspOld.States;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
-using BuilderState = Helion.Bsp.States.BuilderState;
 
 namespace Helion.Bsp.Builder.Stepwise
 {

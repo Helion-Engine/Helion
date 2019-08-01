@@ -30,7 +30,7 @@ namespace Helion.Bsp.Node
         /// A list of all the clockwise edges. This is populated if and only if
         /// this is a subsector.
         /// </summary>
-        public IList<SubsectorEdge> ClockwiseEdges { get; internal set; } = new List<SubsectorEdge>();
+        public List<SubsectorEdge> ClockwiseEdges { get; internal set; } = new List<SubsectorEdge>();
 
         /// <summary>
         /// True if it's a parent (has children), false otherwise.
@@ -73,7 +73,7 @@ namespace Helion.Bsp.Node
         /// clockwise edges.
         /// </summary>
         /// <param name="edges">The clockwise edges for this subsector.</param>
-        public BspNode(IList<SubsectorEdge> edges)
+        public BspNode(List<SubsectorEdge> edges)
         {
             Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
             Precondition(EdgesAreHeadToTail(edges), "BSP node subsector edges are not closed");
