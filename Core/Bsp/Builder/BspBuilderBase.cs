@@ -33,6 +33,12 @@ namespace Helion.Bsp.Builder
         public readonly IPartitioner Partitioner;
         
         /// <summary>
+        /// The object responsible for partitioning the lines after we have
+        /// found the best splitter.
+        /// </summary>
+        public readonly IMinisegCreator MinisegCreator;
+        
+        /// <summary>
         /// Classifies junctions, which tell us whether we are inside the map
         /// or outside of it relative to some point (when making minisegs).
         /// </summary>
@@ -93,6 +99,7 @@ namespace Helion.Bsp.Builder
             ConvexChecker = CreateConvexChecker();
             SplitCalculator = CreateSplitCalculator();
             Partitioner = CreatePartitioner();
+            MinisegCreator = CreateMinisegCreator();
             
             PopulateAllocatorsFrom(map);
             
@@ -122,6 +129,13 @@ namespace Helion.Bsp.Builder
         /// </summary>
         /// <returns>A partitioning object.</returns>
         protected abstract IPartitioner CreatePartitioner();
+        
+        /// <summary>
+        /// Forces the parent implementing classes to provide some instance of
+        /// this interface.
+        /// </summary>
+        /// <returns>A partitioning object.</returns>
+        protected abstract IMinisegCreator CreateMinisegCreator();
 
         /// <summary>
         /// Loads the next work item for processing.

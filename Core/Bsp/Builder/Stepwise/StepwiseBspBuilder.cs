@@ -1,6 +1,7 @@
 using Helion.Bsp.Node;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
+using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
@@ -121,5 +122,8 @@ namespace Helion.Bsp.Builder.Stepwise
 
         /// <inheritdoc/>
         protected override IPartitioner CreatePartitioner() => new StepwisePartitioner(BspConfig, SegmentAllocator, JunctionClassifier);
+
+        /// <inheritdoc/>
+        protected override IMinisegCreator CreateMinisegCreator() => new SteppableMinisegCreator(VertexAllocator, SegmentAllocator, JunctionClassifier);
     }
 }
