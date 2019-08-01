@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
@@ -9,7 +10,7 @@ namespace Helion.Bsp.Geometry
     /// An allocator of vertices. Also responsible for welding vertices to each
     /// other if one tries to be made close to another.
     /// </summary>
-    public class VertexAllocator
+    public class VertexAllocator : IEnumerable<Vec2D>
     {
         private readonly List<Vec2D> vertices = new List<Vec2D>();
         private readonly QuantizedGrid<int> grid;
@@ -119,5 +120,11 @@ namespace Helion.Bsp.Geometry
 
             return new Box2D(min, max);
         }
+
+        /// <inheritdoc/>
+        public IEnumerator<Vec2D> GetEnumerator() => vertices.GetEnumerator();
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

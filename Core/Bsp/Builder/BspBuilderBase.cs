@@ -20,6 +20,16 @@ namespace Helion.Bsp.Builder
     public abstract class BspBuilderBase : IBspBuilder
     {
         /// <summary>
+        /// The allocator for all vertices in the map.
+        /// </summary>
+        public readonly VertexAllocator VertexAllocator;
+        
+        /// <summary>
+        /// The segment allocator for all segments and splits in the map.
+        /// </summary>
+        public readonly SegmentAllocator SegmentAllocator;
+        
+        /// <summary>
         /// The object responsible for doing convexity checks.
         /// </summary>
         public readonly IConvexChecker ConvexChecker;
@@ -52,22 +62,12 @@ namespace Helion.Bsp.Builder
         /// to get better performance or results.
         /// </summary>
         protected readonly BspConfig BspConfig;
-        
-        /// <summary>
-        /// The allocator for all vertices in the map.
-        /// </summary>
-        protected readonly VertexAllocator VertexAllocator;
-        
+
         /// <summary>
         /// A tracker of all collinear lines to reduce the number of checks we
         /// do when calculating the best splitter.
         /// </summary>
         protected readonly CollinearTracker CollinearTracker;
-        
-        /// <summary>
-        /// The segment allocator for all segments and splits in the map.
-        /// </summary>
-        protected readonly SegmentAllocator SegmentAllocator;
 
         /// <summary>
         /// The root of the tree.
