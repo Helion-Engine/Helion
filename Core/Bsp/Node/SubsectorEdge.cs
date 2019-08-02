@@ -141,8 +141,6 @@ namespace Helion.Bsp.Node
             Vec2D temp = Start;
             Start = End;
             End = temp;
-            
-            IsFront = !IsFront;
         }
     }
 }
