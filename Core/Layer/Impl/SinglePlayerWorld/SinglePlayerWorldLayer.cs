@@ -26,6 +26,7 @@ namespace Helion.Layer.Impl
         private bool m_firstInputHandling = true;
 
         private (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
+        private (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
 
         public SinglePlayerWorldLayer(Config config)
             : base(config)
@@ -39,8 +40,12 @@ namespace Helion.Layer.Impl
                 (Config.Engine.Controls.MoveRight,      TickCommands.Right),
                 (Config.Engine.Controls.Jump,           TickCommands.Jump),
                 (Config.Engine.Controls.Crouch,         TickCommands.Crouch),
+            };
+
+            m_consumeDownKeys = new (ConfigValue<InputKey>, TickCommands)[]
+            {
                 (Config.Engine.Controls.Use,            TickCommands.Use),
-            };         
+            };
         }
 
         public bool LoadMap(string mapName, ArchiveCollection archiveCollection)
@@ -119,6 +124,12 @@ namespace Helion.Layer.Impl
             foreach (var consumeKey in m_consumeKeys)
             {
                 if (consumableInput.ConsumeKeyPressedOrDown(consumeKey.Item1))
+                    m_tickCommand.Add(consumeKey.Item2);
+            }
+
+            foreach (var consumeKey in m_consumeDownKeys)
+            {
+                if (consumableInput.ConsumeKeyPressed(consumeKey.Item1))
                     m_tickCommand.Add(consumeKey.Item2);
             }
         }
