@@ -139,7 +139,7 @@ namespace Helion.Bsp.States.Split
                 Invariant(intersects, "Non-parallel lines for split calculations must intersect");
 
                 double nearestDistance = CalculateDistanceToNearestEndpoint(segment, tSegment);
-                if (MathHelper.InNormalRange(nearestDistance))
+                if (MathHelper.InNormalRange(tSegment))
                 {
                     if (SplitOccursAtEndpoint(nearestDistance))
                     {
