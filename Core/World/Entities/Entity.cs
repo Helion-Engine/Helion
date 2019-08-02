@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
@@ -106,6 +107,9 @@ namespace Helion.World.Entities
         /// </summary>
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
 
+        public List<Line> IntersectSpecialLines = new List<Line>();
+        public List<Entity> IntersectEntities = new List<Entity>();
+
         /// <summary>
         /// A (shorter to type) reference to the definition's height value.
         /// </summary>
@@ -203,7 +207,10 @@ namespace Helion.World.Entities
             
             for (int i = 0; i < BlockmapNodes.Count; i++)
                 BlockmapNodes[i].Unlink();
+            
             BlockmapNodes.Clear();
+            IntersectSpecialLines.Clear();
+            IntersectEntities.Clear();
         }
 
         /// <summary>

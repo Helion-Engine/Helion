@@ -2,12 +2,14 @@
 using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
+using Helion.Maps.Geometry.Lines;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
+using Helion.World.Physics;
 using OpenTK;
 using Vector2 = System.Numerics.Vector2;
 
@@ -25,14 +27,9 @@ namespace Helion.World.Impl.SinglePlayer
             Player = EntityManager.CreatePlayer(1);
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             CheatManager.Instance.ActivateToggleCheats();
-        }
 
-        private void Instance_CheatActivationChanged(object sender, ICheat e)
-        {
-            if (e.CheatType == CheatType.NoClip)
-                Player.Entity.NoClip = e.Activated;
-            else if (e.CheatType == CheatType.Fly)
-                Player.Entity.IsFlying = e.Activated;
+            PhysicsManager.EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+            PhysicsManager.PlayerUseFail += PhysicsManager_PlayerUseFail;
         }
 
         public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map, 
@@ -93,6 +90,9 @@ namespace Helion.World.Impl.SinglePlayer
                 entity.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
                 entity.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
             }
+
+            if (tickCommand.Has(TickCommands.Use))
+                PhysicsManager.EntityUse(Player.Entity);             
         }
 
         private static Vec3D CalculateForwardMovement(Entity entity)
@@ -114,6 +114,25 @@ namespace Helion.World.Impl.SinglePlayer
             double y = Math.Sin(rightRotateAngle) * Player.SideMovementSpeed;
 
             return new Vec3D(x, y, 0);
+        }
+
+        private void PhysicsManager_EntityActivatedSpecial(object sender, EntityActivateSpecialEventArgs e)
+        {
+            if (e.ActivateLineSpecial != null)
+                Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] type[{e.SpecialActivationType}]");
+        }
+
+        private void PhysicsManager_PlayerUseFail(object sender, Entity e)
+        {
+            Console.WriteLine("Player - 'oof'");
+        }
+
+        private void Instance_CheatActivationChanged(object sender, ICheat e)
+        {
+            if (e.CheatType == CheatType.NoClip)
+                Player.Entity.NoClip = e.Activated;
+            else if (e.CheatType == CheatType.Fly)
+                Player.Entity.IsFlying = e.Activated;
         }
     }
 }
