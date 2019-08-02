@@ -1,4 +1,3 @@
-﻿using Helion.Bsp.Geometry;
 using System;
 
 namespace Helion.Bsp.States.Miniseg
@@ -11,19 +10,26 @@ namespace Helion.Bsp.States.Miniseg
         /// <summary>
         /// The index of the vertex.
         /// </summary>
-        public VertexIndex Index;
+        public readonly int Index;
 
         /// <summary>
         /// The time along the splitter segment that this vertex was made.
         /// </summary>
-        public double tSplitter;
+        public readonly double SplitterTime;
 
-        public VertexSplitterTime(VertexIndex index, double splitterTime)
+        /// <summary>
+        /// Creates an index/time pair.
+        /// </summary>
+        /// <param name="index">The index of the vertex.</param>
+        /// <param name="splitterTime">The time this is relative to the
+        /// splitter.</param>
+        public VertexSplitterTime(int index, double splitterTime)
         {
             Index = index;
-            tSplitter = splitterTime;
+            SplitterTime = splitterTime;
         }
 
-        public int CompareTo(VertexSplitterTime other) => tSplitter.CompareTo(other.tSplitter);
+        /// <inheritdoc/>
+        public int CompareTo(VertexSplitterTime other) => SplitterTime.CompareTo(other.SplitterTime);
     }
 }

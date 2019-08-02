@@ -1,9 +1,10 @@
-﻿using Helion.Bsp.Geometry;
-using Helion.Bsp.States.Convex;
-using Helion.Util.Geometry;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Bsp.Geometry;
+using Helion.Bsp.States.Convex;
+using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
+using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Node
@@ -12,138 +13,111 @@ namespace Helion.Bsp.Node
     /// An edge of a subsector, or better put: a segment on the edge of a 
     /// convex polygon that is the leaf of a BSP tree.
     /// </summary>
-    public class SubsectorEdge : Seg2DBase
+    public class SubsectorEdge
     {
         /// <summary>
-        /// The unique identifier for no subsector.
+        /// The line this is a part of.
         /// </summary>
-        /// <remarks>
-        /// By definition of a subsector, it must have at least one edge that
-        /// is not a miniseg. A mathematical proof demonstrates that it's not
-        /// possible to have a sector composed entirely of minisegs. A 
-        /// corollary of this is that SectorId should never be equal to the
-        /// value of this in the final BSP tree.
-        /// </remarks>
-        public const int NoSectorId = -1;
+        public readonly Line? Line;
 
         /// <summary>
-        /// The line that this edge is part of. This is a miniseg if it equals
-        /// <see cref="BspSegment.MinisegLineId"/>.
+        /// The starting vertex.
         /// </summary>
-        public readonly int LineId;
+        public Vec2D Start;
 
         /// <summary>
-        /// The sector ID for this subsector. It can be missing and be equal to
-        /// <see cref="NoSectorId"/> if it is a miniseg.
+        /// The ending vertex.
         /// </summary>
-        public readonly int? SectorId;
+        public Vec2D End;
 
         /// <summary>
         /// If this segment is on the front of the line or not. This is not
         /// meaningful if it is a miniseg, and can be either true or false.
         /// </summary>
-        public readonly bool IsFront;
+        public bool IsFront;
 
         /// <summary>
         /// True if it's a miniseg, false if not.
         /// </summary>
-        public bool IsMiniseg => LineId == BspSegment.MinisegLineId;
+        public bool IsMiniseg => Line == null;
+        
+        /// <summary>
+        /// Gets the sector (if any) for this.
+        /// </summary>
+        public Sector? Sector
+        {
+            get
+            {
+                if (Line == null)
+                    return null;
+                if (Line.Back == null)
+                    return Line.Front.Sector; 
+                return IsFront ? Line.Front.Sector : Line.Back.Sector;
+            }
+        }
 
         /// <summary>
-        /// Creates a subsector edge from a miniseg start/end point.
+        /// Creates a subsector edge from some geometric data and for some
+        /// side.
         /// </summary>
         /// <param name="start">The starting point.</param>
         /// <param name="end">The ending point.</param>
-        public SubsectorEdge(Vec2D start, Vec2D end) : 
-            this(start, end, true, BspSegment.MinisegLineId, NoSectorId)
+        /// <param name="line">The line this is on top of, or null if this is
+        /// a miniseg.</param>
+        /// <param name="front">True if this is on the front side, false if it
+        /// is the back. This value is not used if this is a miniseg. This
+        /// must never be false for a one sided line.</param>
+        public SubsectorEdge(Vec2D start, Vec2D end, Line? line = null, bool front = true)
         {
-        }
-
-        public SubsectorEdge(Vec2D start, Vec2D end, bool front, int lineId, int sectorId) : 
-            base(start, end)
-        {
+            Precondition(line == null || front || line.TwoSided, "Provided a one sided segment and said it uses the back side");
+            
+            Start = start;
+            End = end;
             IsFront = front;
-            LineId = lineId;
-            if (sectorId != NoSectorId)
-                SectorId = sectorId;
+            Line = line;
         }
 
         /// <summary>
-        /// Gets the sector ID, and whether this is running along the front
-        /// side of the line (true) or the back side (false).
+        /// Using the convex traversal and the rotation of the traversal, this
+        /// will create a clockwise traversal to form the final subsector for
+        /// a BSP node.
         /// </summary>
-        /// <param name="segment">The segment that was formed.</param>
-        /// <param name="originatingEndpoint">The endpoint we are starting to
-        /// traverse along.</param>
-        /// <param name="sectorLine">The line with sector info,</param>
-        /// <param name="rotation">The rotation of the segment traversal.
-        /// </param>
-        /// <returns>A pair of a sector ID and a boolean status for whether we
-        /// are on the front (true) or back side (false) of the line.</returns>
-        private static (int, bool) GetSectorAndSideFrom(BspSegment segment, Endpoint originatingEndpoint,
-            SectorLine sectorLine, Rotation rotation)
+        /// <param name="convexTraversal">The traversal we did earlier that
+        /// resulted in a convex subsector.</param>
+        /// <param name="rotation">What direction that traversal went.</param>
+        /// <returns>A convex series of sequential subsector edges that make up
+        /// the closed subsector.</returns>
+        public static List<SubsectorEdge> FromClockwiseTraversal(ConvexTraversal convexTraversal, Rotation rotation)
         {
-            // Note that for this method, it is possible for a traversal to go
-            // in a direction that would traverse the back side of a one-sided
-            // line segment and still be a proper traversal.
-            //
-            // This occurs because the random segment chooser may pick a two
-            // sided line segment at the start, and if so then it has to 
-            // arbitrarily pick a direction to go.
-            //
-            // This direction cannot be known whether it is the correct 
-            // direction or not (ex: if it picks a vertical line, do we know
-            // if we're on the left side of a convex polygon or the right side?
-            // We don't without analyzing lines around it).
-            //
-            // Because of this (and to keep the code simple), it will go in an
-            // arbitrary direction and reverse the segments later on if needed.
-            // Therefore we can assume that if we hit a one sided segment then
-            // it's okay to assume we're grabbing the correct side since the
-            // user should not be providing a malformed map.
-            if (segment.OneSided)
-                return (sectorLine.FrontSectorId, true);
-
-            // If we're moving along with the line...
-            if (originatingEndpoint == Endpoint.Start)
+            List<SubsectorEdge> edges = CreateSubsectorEdges(convexTraversal, rotation);
+            if (rotation == Rotation.Left)
             {
-                if (rotation == Rotation.Right)
-                    return (sectorLine.FrontSectorId, true);
-                return (sectorLine.BackSectorId, false);
+                edges.ForEach(edge => edge.Reverse());
+                edges.Reverse();
             }
             
-            if (rotation == Rotation.Right)
-                return (sectorLine.BackSectorId, false);
-            return (sectorLine.FrontSectorId, true);
+            // TODO: Assert valid subsector edges!
+            return edges;
         }
 
-        private static List<SubsectorEdge> CreateSubsectorEdges(ConvexTraversal convexTraversal, 
-            IList<SectorLine> lineToSectors, Rotation rotation)
+        private static List<SubsectorEdge> CreateSubsectorEdges(ConvexTraversal convexTraversal, Rotation rotation)
         {
             List<ConvexTraversalPoint> traversal = convexTraversal.Traversal;
             Precondition(traversal.Count >= 3, "Traversal must yield at least a triangle in size");
-
+            
             List<SubsectorEdge> subsectorEdges = new List<SubsectorEdge>();
 
             ConvexTraversalPoint firstTraversal = traversal.First();
-            Vec2D startPoint = firstTraversal.ToPoint();
+            Vec2D startPoint = firstTraversal.Vertex;
             foreach (ConvexTraversalPoint traversalPoint in traversal)
             {
                 BspSegment segment = traversalPoint.Segment;
-                Endpoint originatingEndpoint = traversalPoint.Endpoint;
                 Vec2D endingPoint = segment.Opposite(traversalPoint.Endpoint);
+                bool traversedFrontSide = CheckIfTraversedFrontSide(traversalPoint, rotation);
+                
+                subsectorEdges.Add(new SubsectorEdge(startPoint, endingPoint, segment.Line, traversedFrontSide));
 
-                if (segment.IsMiniseg)
-                    subsectorEdges.Add(new SubsectorEdge(startPoint, endingPoint));
-                else
-                {
-                    Precondition(segment.LineId < lineToSectors.Count, "Segment has bad line ID or line to sectors list is invalid");
-
-                    SectorLine sectorLine = lineToSectors[segment.LineId];
-                    (int sectorId, bool isFront) = GetSectorAndSideFrom(segment, originatingEndpoint, sectorLine, rotation);
-                    subsectorEdges.Add(new SubsectorEdge(startPoint, endingPoint, isFront, segment.LineId, sectorId));
-                }
-
+                Invariant(startPoint != endingPoint, "Traversal produced the wrong endpoint indices");
                 startPoint = endingPoint;
             }
 
@@ -151,66 +125,25 @@ namespace Helion.Bsp.Node
             return subsectorEdges;
         }
 
-        /// <summary>
-        /// Reverses the edges of the list provided. This will also mutate the
-        /// list so it will have all new reversed edges.
-        /// </summary>
-        /// <param name="edges">The edges to reverse.</param>
-        private static void ReverseEdgesMutate(List<SubsectorEdge> edges)
+        private static bool CheckIfTraversedFrontSide(ConvexTraversalPoint traversalPoint, Rotation rotation)
         {
-            List<SubsectorEdge> reversedEdges = new List<SubsectorEdge>();
-
-            edges.Reverse();
-            edges.ForEach(edge =>
+            switch (rotation)
             {
-                int sectorId = edge.SectorId ?? NoSectorId;
-                reversedEdges.Add(new SubsectorEdge(edge.End, edge.Start, edge.IsFront, edge.LineId, sectorId));
-            });
-
-            edges.Clear();
-            edges.AddRange(reversedEdges);
-        }
-
-        [Conditional("DEBUG")]
-        private static void AssertValidSubsectorEdges(List<SubsectorEdge> edges)
-        {
-            Precondition(edges.Count >= 3, "Not enough edges");
-
-            int lastCorrectSector = NoSectorId;
-
-            // According to https://stackoverflow.com/questions/204505/preserving-order-with-linq
-            // the order is preserved for a Where() invocation, so we do not 
-            // need to worry about order being scrambled.
-            foreach (SubsectorEdge edge in edges.Where(e => e.SectorId.HasValue))
-            {
-                if (lastCorrectSector == NoSectorId)
-                    lastCorrectSector = edge.SectorId ?? NoSectorId;
-                else
-                    Precondition(edge.SectorId == lastCorrectSector, "Subsector references multiple sectors");
+            case Rotation.Left:
+                return traversalPoint.Endpoint == Endpoint.End;
+            case Rotation.Right:
+                return traversalPoint.Endpoint == Endpoint.Start;
+            default:
+                Fail("Should never be handling a non-rotational traversal");
+                return true;
             }
-
-            Precondition(lastCorrectSector != NoSectorId, "Unable to find a sector for the subsector (entire sector is minisegs?)");
         }
-
-        /// <summary>
-        /// Creates a list of subsector edges from a convex traversal. This
-        /// must only be called on what would be a valid convex subsector.
-        /// </summary>
-        /// <param name="convexTraversal">The traversal we did for a convex
-        /// subsector.</param>
-        /// <param name="lineToSectors">The mapping of line IDs as an index to
-        /// the sector information.</param>
-        /// <param name="rotation">The convex traversal rotation.</param>
-        /// <returns>A list of subsector edges.</returns>
-        public static IList<SubsectorEdge> FromClockwiseTraversal(ConvexTraversal convexTraversal, 
-            IList<SectorLine> lineToSectors, Rotation rotation)
+        
+        private void Reverse()
         {
-            List<SubsectorEdge> edges = CreateSubsectorEdges(convexTraversal, lineToSectors, rotation);
-            if (rotation != Rotation.Left)
-                ReverseEdgesMutate(edges);
-
-            AssertValidSubsectorEdges(edges);
-            return edges;
+            Vec2D temp = Start;
+            Start = End;
+            End = temp;
         }
     }
 }

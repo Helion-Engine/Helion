@@ -13,7 +13,7 @@ namespace Helion.World
     public abstract class WorldBase
     {
         public int Gametick { get; private set; }
-        public readonly Map Map;
+        public readonly IMap Map;
         public readonly BspTree BspTree;
         protected readonly Blockmap Blockmap;
         protected readonly ArchiveCollection ArchiveCollection;
@@ -21,7 +21,7 @@ namespace Helion.World
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
 
-        protected WorldBase(Config config, ArchiveCollection archiveCollection, Map map, BspTree bspTree)
+        protected WorldBase(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree)
         {
             ArchiveCollection = archiveCollection;
             Config = config;

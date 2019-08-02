@@ -1,10 +1,10 @@
-﻿using Helion.Bsp.Builder;
-using Helion.Maps;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using Helion.Bsp.Builder.Stepwise;
 using Helion.Entries.Archives.Locator;
+using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 
 namespace BspVisualizer
@@ -25,7 +25,7 @@ namespace BspVisualizer
             if (File.Exists(path)) 
                 return false;
             
-            MessageBox.Show($@"Cannot find file at {path}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            MessageBox.Show($@"Cannot find file at path (or permissions are wrong): {path}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             return true;
         }
 
@@ -55,14 +55,14 @@ namespace BspVisualizer
             ArchiveCollection archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
             if (!archiveCollection.Load(new List<string> { args[0] }))
             {
-                MessageBox.Show($@"Error loading file at {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                MessageBox.Show($@"Error loading file at path: {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return;
             }
 
-            (Map? map, MapEntryCollection? _) = archiveCollection.FindMap(args[1]);
+            (IMap? map, MapEntryCollection? _) = archiveCollection.FindMap(args[1]);
             if (map != null)
             {
-                StepwiseBspBuilderBase bspBuilderBase = new StepwiseBspBuilderBase(map);
+                StepwiseBspBuilder bspBuilderBase = new StepwiseBspBuilder(map);
 
                 if (args.Length >= 3)
                     bspBuilderBase.ExecuteUntilBranch(args[2]);

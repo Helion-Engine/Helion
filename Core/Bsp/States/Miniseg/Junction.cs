@@ -1,8 +1,8 @@
-﻿using Helion.Bsp.Geometry;
-using Helion.Util.Geometry;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Bsp.Geometry;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Miniseg
@@ -38,54 +38,23 @@ namespace Helion.Bsp.States.Miniseg
         public readonly List<JunctionWedge> Wedges = new List<JunctionWedge>();
 
         /// <summary>
-        /// Calculates a 'score', which is an arbitrary number that tells us
-        /// how close the angle is for the wedge provided.
-        /// </summary>
-        /// <remarks>
-        /// For example, if there were 3 segs A, B, and C, where we were 
-        /// trying to see whether AB has a smaller wedge than AC, if the 
-        /// score of AB is less than that of AC, it has a smaller angle.
-        /// </remarks>
-        /// <param name="inbound">The inbound segment.</param>
-        /// <param name="outbound">The outbound segment.</param>
-        /// <returns>A score that is to be used only for ordering reasons 
-        /// (where a lower score means it's a tighter angle than a larger 
-        /// score).</returns>
-        private static double CalculateAngleScore(BspSegment inbound, BspSegment outbound)
-        {
-            Vec2D endToOriginPoint = inbound.Start - inbound.End;
-            Vec2D startToOriginPoint = outbound.End - outbound.Start;
-
-            double dot = startToOriginPoint.Dot(endToOriginPoint);
-            double length = startToOriginPoint.Length() * endToOriginPoint.Length();
-            double cosTheta = dot / length;
-
-            double score = cosTheta;
-            if (inbound.OnRight(outbound.End))
-                score = -score;
-            else
-                score += 2.0;
-
-            return score;
-        }
-
-        /// <summary>
         /// Generates all the wedges from the tracked in/outbound segments.
         /// </summary>
-        // TODO: Is there a way we can get rid of having to explicitly call
-        // this functIon? I don't like 'having to know to call functions' on
-        // a class to make it work. Why not generate it lazily as we need it?
         public void GenerateWedges()
         {
+            // TODO: Is there a way we can get rid of having to explicitly call
+            // this function? I don't like 'having to know to call functions'
+            // on a class to make it work. Why not generate it lazily as we need
+            // it?
             Precondition(Wedges.Empty(), "Trying to create BSP junction wedges when they already were made");
 
             // This is a guard against malformed/dangling one-sided lines.
             if (OutboundSegments.Empty())
                 return;
 
-            // TODO: Since we know we have one or more outbound segs, we can
-            // ignore the check at the start. Any way LINQ can help us write
-            // this in a lot less lines of code?
+            // TODO: Since we know we have one or more outbound segments, we
+            //       can ignore the check at the start. Any way LINQ can help
+            //       us write this in a lot less lines of code?
             foreach (BspSegment inbound in InboundSegments) 
             {
                 BspSegment closestOutbound = OutboundSegments[0];
@@ -128,7 +97,7 @@ namespace Helion.Bsp.States.Miniseg
         /// <returns>True if it's between the wedge, false if not.</returns>
         public bool BetweenWedge(Vec2D point)
         {
-            return Wedges.Where(w => w.Between(point)).Any();
+            return Wedges.Any(w => w.Between(point));
         }
 
         /// <summary>
@@ -137,5 +106,37 @@ namespace Helion.Bsp.States.Miniseg
         /// </summary>
         /// <returns>True if there is a bad count, false if not.</returns>
         public bool HasUnexpectedSegCount() => InboundSegments.Count != OutboundSegments.Count;
+
+        /// <summary>
+        /// Calculates a 'score', which is an arbitrary number that tells us
+        /// how close the angle is for the wedge provided.
+        /// </summary>
+        /// <remarks>
+        /// For example, if there were 3 segs A, B, and C, where we were 
+        /// trying to see whether AB has a smaller wedge than AC, if the 
+        /// score of AB is less than that of AC, it has a smaller angle.
+        /// </remarks>
+        /// <param name="inbound">The inbound segment.</param>
+        /// <param name="outbound">The outbound segment.</param>
+        /// <returns>A score that is to be used only for ordering reasons 
+        /// (where a lower score means it's a tighter angle than a larger 
+        /// score).</returns>
+        private static double CalculateAngleScore(BspSegment inbound, BspSegment outbound)
+        {
+            Vec2D endToOriginPoint = inbound.Start - inbound.End;
+            Vec2D startToOriginPoint = outbound.End - outbound.Start;
+
+            double dot = startToOriginPoint.Dot(endToOriginPoint);
+            double length = startToOriginPoint.Length() * endToOriginPoint.Length();
+            double cosTheta = dot / length;
+
+            double score = cosTheta;
+            if (inbound.OnRight(outbound.End))
+                score = -score;
+            else
+                score += 2.0;
+
+            return score;
+        }
     }
 }

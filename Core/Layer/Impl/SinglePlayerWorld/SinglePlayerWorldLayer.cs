@@ -24,7 +24,6 @@ namespace Helion.Layer.Impl
         private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
         private TickCommand m_tickCommand = new TickCommand();
         private bool m_firstInputHandling = true;
-
         private (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
 
         public SinglePlayerWorldLayer(Config config)
@@ -47,7 +46,7 @@ namespace Helion.Layer.Impl
         {
             m_ticker.Stop();
 
-            (Map? map, MapEntryCollection? collection) = archiveCollection.FindMap(mapName);
+            (IMap? map, MapEntryCollection? collection) = archiveCollection.FindMap(mapName);
             if (map == null || collection == null)
             {
                 Log.Warn("Unable to find map {0}", mapName);

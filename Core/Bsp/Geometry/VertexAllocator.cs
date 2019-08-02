@@ -1,7 +1,7 @@
-﻿using Helion.Util.Geometry;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry
@@ -36,10 +36,10 @@ namespace Helion.Bsp.Geometry
         /// <summary>
         /// Gets the actual vertex data from the index provided.
         /// </summary>
-        /// <param name="index">The vertex index. This should have been made by
-        /// this instance.</param>
+        /// <param name="index">The vertex index.</param>
         /// <returns>The vertex for the index provided.</returns>
-        public Vec2D this[VertexIndex index] { get { return vertices[index.Index]; } }
+        /// 
+        public Vec2D this[int index] => vertices[index];
 
         /// <summary>
         /// Either gets the existing index for this vertex, or allocates a new
@@ -53,16 +53,27 @@ namespace Helion.Bsp.Geometry
         /// with.</param>
         /// <returns>The index for the existing vertex, or the newly allocated
         /// index.</returns>
-        public VertexIndex this[Vec2D vertex] 
+        public int this[Vec2D vertex] => Insert(vertex);
+        
+        /// <summary>
+        /// Either gets the existing index for this vertex, or allocates a new
+        /// index and tracks the vertex provided.
+        /// </summary>
+        /// <remarks>
+        /// This is similar to how std::[unordered_]map work in C++ with the []
+        /// operator.
+        /// </remarks>
+        /// <param name="vertex">The vertex to get the index for or allocate
+        /// with.</param>
+        /// <returns>The index for the existing vertex, or the newly allocated
+        /// index.</returns>
+        public int Insert(Vec2D vertex)
         {
-            get 
-            {
-                int index = grid.GetExistingOrAdd(vertex.X, vertex.Y, vertices.Count);
-                if (index == vertices.Count)
-                    vertices.Add(vertex);
+            int index = grid.GetExistingOrAdd(vertex.X, vertex.Y, vertices.Count);
+            if (index == vertices.Count)
+                vertices.Add(vertex);
 
-                return new VertexIndex(index);
-            }
+            return index;
         }
 
         /// <summary>
@@ -73,12 +84,12 @@ namespace Helion.Bsp.Geometry
         /// <param name="index">The index that is set if it exists.</param>
         /// <returns>True if it exists and it is safe to use the index out
         /// value, otherwise false.</returns>
-        public bool TryGetValue(Vec2D vertex, out VertexIndex index)
+        public bool TryGetValue(Vec2D vertex, out int index)
         {
             int indexValue = 0;
             if (grid.TryGetValue(vertex.X, vertex.Y, ref indexValue))
             {
-                index = new VertexIndex(indexValue);
+                index = indexValue;
                 return true;
             }
 
@@ -110,7 +121,10 @@ namespace Helion.Bsp.Geometry
             return new Box2D(min, max);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<Vec2D> GetEnumerator() => vertices.GetEnumerator();
+
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

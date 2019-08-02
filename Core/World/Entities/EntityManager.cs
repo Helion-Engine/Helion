@@ -26,13 +26,13 @@ namespace Helion.World.Entities
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Blockmap m_blockmap;
         private readonly BspTree m_bspTree;
-        private readonly Map m_map;
+        private readonly IMap m_map;
         private readonly PhysicsManager m_physicsManager;
         private readonly WorldBase m_world;
         private AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, BspTree bspTree,
-            Blockmap blockmap, PhysicsManager physicsManager, Map map)
+            Blockmap blockmap, PhysicsManager physicsManager, IMap map)
         {
             m_archiveCollection = archiveCollection;
             m_blockmap = blockmap;

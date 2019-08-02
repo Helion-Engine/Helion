@@ -1,11 +1,11 @@
-﻿using Helion.Bsp.Geometry;
+﻿using Helion.Util.Geometry;
+using System.Drawing;
+using Helion.Bsp.Geometry;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
-using Helion.Util.Geometry;
-using System.Drawing;
 
 namespace BspVisualizer
 {
@@ -43,7 +43,7 @@ namespace BspVisualizer
         {
             bottomLeftCornerDrawer.Add(
                 Color.White, "State: ", 
-                Color.Cyan, bspBuilderBase.States.Current.ToString()
+                Color.Cyan, bspBuilderBase.State.ToString()
             );
         }
 
@@ -59,7 +59,7 @@ namespace BspVisualizer
 
         private void PaintCurrentWorkItem(Graphics g)
         {
-            BspWorkItem? workItem = bspBuilderBase.GetCurrentWorkItem();
+            WorkItem? workItem = bspBuilderBase.CurrentWorkItem;
             if (workItem == null)
                 return;
 
@@ -82,7 +82,7 @@ namespace BspVisualizer
 
         private void PaintCurrentState(Graphics g, Rectangle windowBounds)
         {
-            switch (bspBuilderBase.States.Current)
+            switch (bspBuilderBase.State)
             {
             case BuilderState.CheckingConvexity:
                 DrawCheckingConvexity(g);
@@ -209,14 +209,14 @@ namespace BspVisualizer
                     Color.White, "Second vertex: ",
                     Color.LightGreen, secondVertex.ToString(),
                     Color.White, "at t = ",
-                    Color.Cyan, secondVertexTime.tSplitter.ToString()
+                    Color.Cyan, secondVertexTime.SplitterTime.ToString()
                 );
 
                 bottomLeftCornerDrawer.Add(
                     Color.White, "First vertex: ",
                     Color.LightGreen, firstVertex.ToString(),
                     Color.White, "at t = ",
-                    Color.Cyan, firstVertexTime.tSplitter.ToString()
+                    Color.Cyan, firstVertexTime.SplitterTime.ToString()
                 );
             }
         }

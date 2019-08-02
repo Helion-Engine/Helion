@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
@@ -8,6 +7,7 @@ using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
@@ -15,355 +15,196 @@ using static Helion.Util.Assertion.Assert;
 namespace Helion.Bsp.Builder
 {
     /// <summary>
-    /// The BSP tree builder that manages building the entire tree from some
-    /// level.
+    /// The base class for all BSP builders.
     /// </summary>
     public abstract class BspBuilderBase : IBspBuilder
     {
         /// <summary>
-        /// A counter which is used to make sure that we don't enter some 
-        /// infinite loop due to any bugs. In a properly implemented builder
-        /// this will never be reached.
-        /// </summary>
-        protected const int RecursiveOverflowAmount = 10000;
-
-        /// <summary>
-        /// The config file with BSP building information.
-        /// </summary>
-        protected BspConfig Config;
-
-        /// <summary>
-        /// A list of all the lines that map onto sectors.
-        /// </summary>
-        protected IList<SectorLine> lineIdToSector = new List<SectorLine>();
-
-        /// <summary>
-        /// All the work items when building a tree.
-        /// </summary>
-        protected Stack<BspWorkItem> WorkItems = new Stack<BspWorkItem>();
-
-        /// <summary>
-        /// A stack of nodes that parallels the work items stack.
-        /// </summary>
-        protected Stack<BspNode> NodeStack = new Stack<BspNode>();
-
-        /// <summary>
-        /// The root of the tree.
-        /// </summary>
-        protected BspNode Root = new BspNode();
-
-        /// <summary>
-        /// The current state of the builder.
-        /// </summary>
-        public BuilderStates States = new BuilderStates();
-
-        /// <summary>
         /// The allocator for all vertices in the map.
         /// </summary>
-        public VertexAllocator VertexAllocator;
-
+        public readonly VertexAllocator VertexAllocator;
+        
         /// <summary>
         /// The segment allocator for all segments and splits in the map.
         /// </summary>
-        public SegmentAllocator SegmentAllocator;
+        public readonly SegmentAllocator SegmentAllocator;
+        
+        /// <summary>
+        /// The object responsible for doing convexity checks.
+        /// </summary>
+        public readonly IConvexChecker ConvexChecker;
 
         /// <summary>
-        /// Manages the convexity checking states of BSP building.
+        /// The object responsible for calculating the best splits.
         /// </summary>
-        public ConvexChecker ConvexChecker = new ConvexChecker();
+        public readonly ISplitCalculator SplitCalculator;
 
         /// <summary>
-        /// The calculator for split scores for a set of segments.
+        /// The object responsible for partitioning the lines after we have
+        /// found the best splitter.
         /// </summary>
-        public SplitCalculator SplitCalculator;
-
+        public readonly IPartitioner Partitioner;
+        
         /// <summary>
-        /// A line partitioning helper after a splitter is chosen.
+        /// The object responsible for partitioning the lines after we have
+        /// found the best splitter.
         /// </summary>
-        public Partitioner Partitioner;
-
+        public readonly IMinisegCreator MinisegCreator;
+        
         /// <summary>
         /// Classifies junctions, which tell us whether we are inside the map
         /// or outside of it relative to some point (when making minisegs).
         /// </summary>
-        public JunctionClassifier JunctionClassifier = new JunctionClassifier();
+        public readonly JunctionClassifier JunctionClassifier = new JunctionClassifier();
+        
+        /// <summary>
+        /// The config to control various operations that we may want to vary
+        /// to get better performance or results.
+        /// </summary>
+        protected readonly BspConfig BspConfig;
 
         /// <summary>
-        /// The creator of minisegs, which are segments along a splitter that
-        /// are not segments originally part of the level.
+        /// A tracker of all collinear lines to reduce the number of checks we
+        /// do when calculating the best splitter.
         /// </summary>
-        public MinisegCreator MinisegCreator;
+        protected readonly CollinearTracker CollinearTracker;
 
         /// <summary>
-        /// True if building is done and the tree can be extracted/read, false
-        /// if building still needs to be done.
+        /// The root of the tree.
         /// </summary>
-        public bool Done => States.Current == BuilderState.Complete;
+        protected readonly BspNode Root = new BspNode();
 
-        protected BspBuilderBase(Map map) : this(map, new BspConfig())
+        /// <summary>
+        /// All the work items when building a tree.
+        /// </summary>
+        protected readonly Stack<WorkItem> WorkItems = new Stack<WorkItem>();
+
+        /// <summary>
+        /// Populates the BSP builder internals with a default config.
+        /// </summary>
+        /// <param name="map">The map to use the geometry from.</param>
+        protected BspBuilderBase(IMap map) : this(map, new BspConfig())
         {
         }
-
-        protected BspBuilderBase(Map map, BspConfig config)
+        
+        /// <summary>
+        /// Populates the BSP builder internals.
+        /// </summary>
+        /// <param name="map">The map to use the geometry from.</param>
+        /// <param name="config">The configuration settings for various BSP
+        /// activities.</param>
+        protected BspBuilderBase(IMap map, BspConfig config)
         {
-            Config = config;
+            BspConfig = config;
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
-            SegmentAllocator = new SegmentAllocator(VertexAllocator);
-            SplitCalculator = new SplitCalculator(config);
-            Partitioner = new Partitioner(config, SegmentAllocator, JunctionClassifier);
-            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, JunctionClassifier);
-
+            CollinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
+            SegmentAllocator = new SegmentAllocator(VertexAllocator, CollinearTracker);
+            ConvexChecker = CreateConvexChecker();
+            SplitCalculator = CreateSplitCalculator();
+            Partitioner = CreatePartitioner();
+            MinisegCreator = CreateMinisegCreator();
+            
             PopulateAllocatorsFrom(map);
-            WorkItems.Push(new BspWorkItem(SegmentAllocator.ToList()));
-            NodeStack.Push(Root);
+            
+            WorkItems.Push(new WorkItem(Root, SegmentAllocator.ToList()));
         }
 
-        /// <summary>
-        /// Goes through all the vertices/line segments in the map provided and
-        /// populates the vertex/segment allocators with the appropriate data.
-        /// </summary>
-        /// <param name="map">The map to get the components from.</param>
-        protected void PopulateAllocatorsFrom(Map map)
-        {
-            map.Lines.ForEach(line =>
-            {
-                VertexIndex start = VertexAllocator[line.StartVertex.Position];
-                VertexIndex end = VertexAllocator[line.EndVertex.Position];
-                int frontSectorIndex = line.Front.Sector.Id;
-                int backSectorIndex = line.Back?.Sector.Id ?? SectorLine.NoLineToSectorId;
-                BspSegment bspSegment = SegmentAllocator.GetOrCreate(start, end, frontSectorIndex, backSectorIndex, line.Id);
-
-                if (line.OneSided)
-                    JunctionClassifier.AddOneSidedSegment(bspSegment);
-                lineIdToSector.Add(new SectorLine(line.Segment.Delta, frontSectorIndex, backSectorIndex));
-            });
-
-            // We wait until we added every seg so that junction creation can
-            // be done with knowledge of all the lines that exist. The junction
-            // is defined to be the closest angle between two one-sided lines.
-            // If we add all the lines one by one, we have no idea if we should
-            // make a junction or not because a line we add later could be a
-            // closer angle (since three or more lines can come out of a single
-            // vertex).
-            //
-            // This forces our hand to wait until the end so we have all of the
-            // information. Otherwise if we implement it such that it will auto
-            // update for every new segment we add, we'll take a performance
-            // hit and add a lot more code because we will need to re-evaluate
-            // every single line. For a very degenerate map, this could even be
-            // O(n^2). I am however not opposed to doing this if someone can 
-            // find a clean way to do it and show the performance hit is okay.
-            JunctionClassifier.NotifyDoneAddingOneSidedSegments();
-        }
-
+        /// <inheritdoc/>
+        public abstract BspNode? Build();
+        
         /// <summary>
         /// Takes the convex traversal that was done and adds it to the top BSP 
         /// node on the stack. This effectively creates the subsector.
         /// </summary>
         protected void AddConvexTraversalToTopNode()
         {
+            Invariant(!WorkItems.Empty(), "Cannot add convex traversal to an empty work item stack");
+
             ConvexTraversal traversal = ConvexChecker.States.ConvexTraversal;
             Rotation rotation = ConvexChecker.States.Rotation;
-            IList<SubsectorEdge> edges = SubsectorEdge.FromClockwiseTraversal(traversal, lineIdToSector, rotation);
-            NodeStack.Peek().ClockwiseEdges = edges;
+            List<SubsectorEdge> edges = SubsectorEdge.FromClockwiseTraversal(traversal, rotation);
+            
+            WorkItems.Peek().Node.ClockwiseEdges = edges;
         }
 
         /// <summary>
-        /// Loads the next work item, which starts a full 'cycle' (from 
-        /// convex checking to leaf node generation or miniseg splitting).
+        /// Forces the parent implementing classes to provide some instance of
+        /// this interface.
         /// </summary>
-        protected void LoadNextWorkItem()
-        {
-            Invariant(WorkItems.Count > 0, "Expected a root work item to be present");
-
-            ConvexChecker.Load(WorkItems.Peek().Segments);
-            States.SetState(BuilderState.CheckingConvexity);
-        }
+        /// <returns>A convex checking object.</returns>
+        protected abstract IConvexChecker CreateConvexChecker();
 
         /// <summary>
-        /// Performs the convexity check and populates the appropriate convex 
-        /// checker states.
+        /// Forces the parent implementing classes to provide some instance of
+        /// this interface.
         /// </summary>
-        protected void ExecuteConvexityCheck()
-        {
-            Invariant(WorkItems.Count < RecursiveOverflowAmount, "BSP recursive overflow detected");
+        /// <returns>A split calculator object.</returns>
+        protected abstract ISplitCalculator CreateSplitCalculator();
+        
+        /// <summary>
+        /// Forces the parent implementing classes to provide some instance of
+        /// this interface.
+        /// </summary>
+        /// <returns>A partitioning object.</returns>
+        protected abstract IPartitioner CreatePartitioner();
+        
+        /// <summary>
+        /// Forces the parent implementing classes to provide some instance of
+        /// this interface.
+        /// </summary>
+        /// <returns>A partitioning object.</returns>
+        protected abstract IMinisegCreator CreateMinisegCreator();
 
-            switch (ConvexChecker.States.State)
+        /// <summary>
+        /// Loads the next work item for processing.
+        /// </summary>
+        protected abstract void LoadNextWorkItem();
+
+        /// <summary>
+        /// Performs the convexity checking.
+        /// </summary>
+        protected abstract void ExecuteConvexityCheck();
+
+        /// <summary>
+        /// Creates leaf nodes from our convex subsector.
+        /// </summary>
+        protected abstract void ExecuteLeafNodeCreation();
+
+        /// <summary>
+        /// Performs discovery of the best splitter.
+        /// </summary>
+        protected abstract void ExecuteSplitterFinding();
+
+        /// <summary>
+        /// Uses the best splitter found to partition the segments.
+        /// </summary>
+        protected abstract void ExecuteSegmentPartitioning();
+
+        /// <summary>
+        /// Generates minisegs along the splitter line.
+        /// </summary>
+        protected abstract void ExecuteMinisegGeneration();
+
+        /// <summary>
+        /// Finalizes all of the actions taken thus far, and prepares the next
+        /// iteration.
+        /// </summary>
+        protected abstract void ExecuteSplitFinalization();
+        
+        private void PopulateAllocatorsFrom(IMap map)
+        {
+            foreach (Line line in map.Lines)
             {
-            case ConvexState.Loaded:
-            case ConvexState.Traversing:
-                ConvexChecker.Execute();
-                break;
-
-            case ConvexState.FinishedIsDegenerate:
-            case ConvexState.FinishedIsConvex:
-                States.SetState(BuilderState.CreatingLeafNode);
-                break;
-
-            case ConvexState.FinishedIsSplittable:
-                SplitCalculator.Load(WorkItems.Peek().Segments);
-                States.SetState(BuilderState.FindingSplitter);
-                break;
+                int startIndex = VertexAllocator[line.StartVertex.Position];
+                int endIndex = VertexAllocator[line.EndVertex.Position];
+                BspSegment bspSegment = SegmentAllocator.GetOrCreate(startIndex, endIndex, line);
+                JunctionClassifier.Add(bspSegment);
             }
+            
+            // The junction classifier will not generate the junctions until we
+            // call this function, because adding one by one and calculating on
+            // the fly would be pretty taxing and lead to O(n^2) calculations.
+            JunctionClassifier.NotifyDoneAdding();
         }
-
-        /// <summary>
-        /// Performs leaf node creation and sets the state to either convex
-        /// checking or complete.
-        /// </summary>
-        protected void ExecuteLeafNodeCreation()
-        {
-            ConvexState convexState = ConvexChecker.States.State;
-            Invariant(convexState == ConvexState.FinishedIsDegenerate || convexState == ConvexState.FinishedIsConvex, "Unexpected BSP leaf building state");
-
-            if (convexState == ConvexState.FinishedIsConvex)
-                AddConvexTraversalToTopNode();
-
-            WorkItems.Pop();
-            NodeStack.Pop();
-
-            if (WorkItems.Empty())
-            {
-                Root.StripDegenerateNodes();
-                States.SetState(BuilderState.Complete);
-            }
-            else
-                LoadNextWorkItem();
-        }
-
-        /// <summary>
-        /// Performs splitter finding.
-        /// </summary>
-        protected void ExecuteSplitterFinding()
-        {
-            switch (SplitCalculator.States.State)
-            {
-            case SplitterState.Loaded:
-            case SplitterState.Working:
-                SplitCalculator.Execute();
-                break;
-
-            case SplitterState.Finished:
-                Partitioner.Load(SplitCalculator.States.BestSplitter, WorkItems.Peek().Segments);
-                States.SetState(BuilderState.PartitioningSegments);
-                break;
-            }
-        }
-
-        /// <summary>
-        /// Takes the splitter found in the previous step and performs segment
-        /// partitioning.
-        /// </summary>
-        protected void ExecuteSegmentPartitioning()
-        {
-            switch (Partitioner.States.State)
-            {
-            case PartitionState.Loaded:
-            case PartitionState.Working:
-                Partitioner.Execute();
-                break;
-
-            case PartitionState.Finished:
-                if (Partitioner.States.Splitter == null)
-                    throw new NullReferenceException("Unexpected null partition splitter");
-                BspSegment? splitter = Partitioner.States.Splitter;
-                MinisegCreator.Load(splitter, Partitioner.States.CollinearVertices);
-                States.SetState(BuilderState.GeneratingMinisegs);
-                break;
-            }
-        }
-
-        /// <summary>
-        /// Generates minisegs along the partitioning line inside the level
-        /// where no segments are.
-        /// </summary>
-        protected void ExecuteMinisegGeneration()
-        {
-            switch (MinisegCreator.States.State)
-            {
-            case MinisegState.Loaded:
-            case MinisegState.Working:
-                MinisegCreator.Execute();
-                break;
-
-            case MinisegState.Finished:
-                States.SetState(BuilderState.FinishingSplit);
-                break;
-            }
-        }
-
-        /// <summary>
-        /// Finishes up the splitting.
-        /// </summary>
-        protected void ExecuteSplitFinalization()
-        {
-            BspWorkItem currentWorkItem = WorkItems.Pop();
-            string path = currentWorkItem.BranchPath;
-
-            BspNode parentNode = NodeStack.Pop();
-            BspNode leftChild = new BspNode();
-            BspNode rightChild = new BspNode();
-            parentNode.SetChildren(leftChild, rightChild);
-            parentNode.Splitter = SplitCalculator.States.BestSplitter;
-
-            // We arbitrarily decide to build left first, so left is stacked after.
-            IList<BspSegment> right = Partitioner.States.RightSegments;
-            IList<BspSegment> left = Partitioner.States.LeftSegments;
-            foreach (BspSegment segment in MinisegCreator.States.Minisegs)
-            {
-                right.Add(segment);
-                left.Add(segment);
-            }
-
-            WorkItems.Push(new BspWorkItem(right, path + "R"));
-            WorkItems.Push(new BspWorkItem(left, path + "L"));
-            NodeStack.Push(rightChild);
-            NodeStack.Push(leftChild);
-
-            LoadNextWorkItem();
-        }
-
-        /// <summary>
-        /// Performs an split-wise step.
-        /// </summary>
-        protected void Execute()
-        {
-            switch (States.Current)
-            {
-            case BuilderState.NotStarted:
-                LoadNextWorkItem();
-                break;
-
-            case BuilderState.CheckingConvexity:
-                ExecuteConvexityCheck();
-                break;
-
-            case BuilderState.CreatingLeafNode:
-                ExecuteLeafNodeCreation();
-                break;
-
-            case BuilderState.FindingSplitter:
-                ExecuteSplitterFinding();
-                break;
-
-            case BuilderState.PartitioningSegments:
-                ExecuteSegmentPartitioning();
-                break;
-
-            case BuilderState.GeneratingMinisegs:
-                ExecuteMinisegGeneration();
-                break;
-
-            case BuilderState.FinishingSplit:
-                ExecuteSplitFinalization();
-                break;
-
-            case BuilderState.Complete:
-            default:
-                break;
-            }
-        }
-
-        public abstract BspNode? Build();
     }
 }

@@ -1,38 +1,37 @@
-﻿using Helion.Bsp.Geometry;
 using System.Collections.Generic;
+using Helion.Bsp.Geometry;
 
 namespace Helion.Bsp.States.Miniseg
 {
-    /// <summary>
-    /// The states the miniseg generator can be in.
-    /// </summary>
-    public enum MinisegState
-    {
-        Loaded,
-        Working,
-        Finished
-    }
-
-    /// <summary>
-    /// Information on whether the miniseg creator was passing through the void
-    /// (the empty space outside of the map) or the non-void inside of the map.
-    /// </summary>
-    public enum VoidStatus
-    {
-        NotStarted,
-        InVoid,
-        NotInVoid
-    }
-
     /// <summary>
     /// All the states for the miniseg creator.
     /// </summary>
     public class MinisegStates
     {
+        /// <summary>
+        /// The current state of the miniseg generation.
+        /// </summary>
         public MinisegState State = MinisegState.Loaded;
+        
+        /// <summary>
+        /// Whether we're tracing inside or outside the map in the void.
+        /// </summary>
         public VoidStatus VoidStatus = VoidStatus.NotStarted;
+        
+        /// <summary>
+        /// All the vertices that lay along the splitter, to which we may have
+        /// to fill in with a miniseg if it's inside the level.
+        /// </summary>
         public List<VertexSplitterTime> Vertices = new List<VertexSplitterTime>();
+        
+        /// <summary>
+        /// All the generated minisegs.
+        /// </summary>
         public List<BspSegment> Minisegs = new List<BspSegment>();
+        
+        /// <summary>
+        /// The current vertex we are on.
+        /// </summary>
         public int CurrentVertexListIndex = 0;
     }
 }

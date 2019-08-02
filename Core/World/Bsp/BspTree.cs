@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Builder;
-using Helion.Bsp.Builder.GLBSP;
+using Helion.Bsp.Builder.Stepwise;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Geometry;
@@ -106,22 +106,10 @@ namespace Helion.World.Bsp
         /// <returns>The sector for the provided point.</returns>
         public Sector ToSector(Vec3D point) => ToSubsector(point.To2D()).Sector;
         
-        private BspTree(BspNode root, Map map)
+        private BspTree(BspNode root, IMap map)
         {
             Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
             CreateComponents(root, map);
-        }
-
-        private static BspTree? CreateFromInternalBspBuilder(Map map)
-        {
-            IBspBuilder builderBase = new OptimizedBspBuilderBase(map);
-            BspNode? root = builderBase.Build();
-
-            if (root != null) 
-                return new BspTree(root, map);
-            
-            Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
-            return null;
         }
         
         /// <summary>
@@ -133,34 +121,31 @@ namespace Helion.World.Bsp
         /// contain GLBSP nodes that we can use.</param>
         /// <returns>A built BSP tree, or a null value if the geometry for the
         /// map is corrupt beyond repair.</returns>
-        public static BspTree? Create(Map map, MapEntryCollection? mapEntryCollection = null)
+        public static BspTree? Create(IMap map, MapEntryCollection? mapEntryCollection = null)
         {
-            // For now, we'll attempt to make GLBSP nodes if the level has
-            // them. When we don't need this anymore, we will remove it.
-            if (mapEntryCollection != null)
-            {
-                IBspBuilder bspBuilder = new GLBspBuilder(map, mapEntryCollection);
-                BspNode? rootNode = bspBuilder.Build();
-                if (rootNode != null)
-                    return new BspTree(rootNode, map);
+            // TODO: Should use the optimized version when it's time!
+            IBspBuilder builderBase = new StepwiseBspBuilder(map);
+            BspNode? root = builderBase.Build();
 
-                Log.Warn("Unable to build BSP tree from GLBSP nodes for map '{0}', attempting with internal node builder...", map.Name);
-            }
-
-            Log.Error("Internal BSP builder disabled currently, cannot build BSP tree");
+            if (root != null) 
+                return new BspTree(root, map);
+            
+            Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
             return null;
         }
         
-        private static Side? GetSideFromEdge(Helion.Bsp.Node.SubsectorEdge edge, Map map)
+        private static Side? GetSideFromEdge(Helion.Bsp.Node.SubsectorEdge edge)
         {
-            if (edge.IsMiniseg)
+            if (edge.Line == null)
                 return null;
 
-            Line line = map.Lines[edge.LineId];
+            Precondition(!edge.Line.OneSided || edge.IsFront, "Trying to get a back side for a one sided line");
+            
+            Line line = edge.Line;
             return edge.IsFront ? line.Front : line.Back;
         }
 
-        private void CreateComponents(BspNode root, Map map)
+        private void CreateComponents(BspNode root, IMap map)
         {
             // Since it's a full binary tree, N nodes implies N + 1 leaves.
             int parentNodeCount = root.CalculateParentNodeCount();
@@ -177,35 +162,35 @@ namespace Helion.World.Bsp
             Postcondition(m_nextNodeIndex <= ushort.MaxValue, "Node index overflow (need a 4-byte BSP tree for this map)");
         }
 
-        private BspCreateResult RecursivelyCreateComponents(BspNode? node, Map map)
+        private BspCreateResult RecursivelyCreateComponents(BspNode? node, IMap map)
         {
             if (node == null || node.IsDegenerate)
                 throw new HelionException("Should never recurse onto a null/degenerate node when composing a world BSP tree");
 
-            return node.IsSubsector ? CreateSubsector(node, map) : CreateNode(node, map);
+            return node.IsSubsector ? CreateSubsector(node) : CreateNode(node, map);
         }
 
-        private BspCreateResult CreateSubsector(BspNode node, Map map)
+        private BspCreateResult CreateSubsector(BspNode node)
         {
-            List<SubsectorEdge> clockwiseSegments = CreateClockwiseSegments(node, map);
+            List<SubsectorEdge> clockwiseSegments = CreateClockwiseSegments(node);
 
             // Apparently contravariance doesn't work with lists...
             List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Cast<Seg2D>().ToList();
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
             
-            Sector sector = GetSectorFrom(node, map);
+            Sector sector = GetSectorFrom(node);
             Subsectors[m_nextSubsectorIndex] = new Subsector((int)m_nextSubsectorIndex, sector, clockwiseSegments, bbox);
 
             return BspCreateResult.Subsector(m_nextSubsectorIndex++);
         }
 
-        private List<SubsectorEdge> CreateClockwiseSegments(BspNode node, Map map)
+        private List<SubsectorEdge> CreateClockwiseSegments(BspNode node)
         {
             List<SubsectorEdge> returnSegments = new List<SubsectorEdge>();
-            
+         
             foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
             {
-                Side? side = GetSideFromEdge(edge, map);
+                Side? side = GetSideFromEdge(edge);
                 SubsectorEdge subsectorEdge = new SubsectorEdge(Segments.Count, side, edge.Start, edge.End);
                 
                 returnSegments.Add(subsectorEdge);
@@ -215,23 +200,19 @@ namespace Helion.World.Bsp
             return returnSegments;
         }
         
-        private Sector GetSectorFrom(BspNode node, Map map)
+        private Sector GetSectorFrom(BspNode node)
         {
-            // Even though the Where() clause guarantees us non-null values,
-            // Linq doesn't seem to know that yet or can't guarantee. We will
-            // just assume this always passes since we've screwed up really bad
-            // if the query is empty or
-            int sectorId = (from edge in node.ClockwiseEdges
-                            where edge.SectorId != null
-                            select edge.SectorId).FirstOrDefault() ?? 0;
+            foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
+            {
+                Sector? sector = edge.Sector;
+                if (sector != null)
+                    return sector;
+            }
 
-            Invariant(sectorId >= 0, "Should never run into a negative placeholder index");
-            Invariant(sectorId < map.Sectors.Count, "Sector index out of range, is a different map being used than the one for the BSP tree?");
-
-            return map.Sectors[sectorId];
+            throw new NullReferenceException("BSP building malformed, subsector made up of only minisegs (or is a not a leaf)");
         }
 
-        private BspCreateResult CreateNode(BspNode node, Map map)
+        private BspCreateResult CreateNode(BspNode node, IMap map)
         {
             if (node.Splitter == null)
                 throw new NullReferenceException("Malformed BSP node, splitter should never be null");

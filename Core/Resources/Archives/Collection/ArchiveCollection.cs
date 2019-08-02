@@ -59,7 +59,7 @@ namespace Helion.Resources.Archives.Collection
             return m_entries.Find(entryName, resourceNamespace);
         }
         
-        public (Map?, MapEntryCollection?) FindMap(string mapName)
+        public (IMap?, MapEntryCollection?) FindMap(string mapName)
         {
             string upperName = mapName.ToUpper();
 
@@ -76,7 +76,7 @@ namespace Helion.Resources.Archives.Collection
                     // confusing to the user in the case where they ask for the
                     // most recent map which is corrupt, but then get some
                     // earlier map in the pack which is not corrupt.
-                    Map? map = Map.From(mapEntryCollection);
+                    IMap? map = Map.From(mapEntryCollection);
                     if (map != null) 
                         return (map, mapEntryCollection);
                     

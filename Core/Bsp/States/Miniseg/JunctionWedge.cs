@@ -1,5 +1,6 @@
-﻿using Helion.Bsp.Geometry;
+using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Miniseg
 {
@@ -26,8 +27,17 @@ namespace Helion.Bsp.States.Miniseg
         /// </summary>
         public bool Obtuse;
 
+        /// <summary>
+        /// Creates a wedge from the inbound and outbound segments.
+        /// </summary>
+        /// <param name="inbound">The inbound segment, which means its ending
+        /// point is shared with the outbound starting vertex.</param>
+        /// <param name="outbound">The outbound segment, which means its
+        /// starting point matches the inbounds ending point.</param>
         public JunctionWedge(BspSegment inbound, BspSegment outbound)
         {
+            Precondition(inbound.EndIndex == outbound.StartIndex, "The inbound and outbound do not meet at a shared vertex");
+            
             Inbound = inbound;
             Outbound = outbound;
             Obtuse = !inbound.OnRight(outbound);
@@ -74,9 +84,7 @@ namespace Helion.Bsp.States.Miniseg
             if (!Obtuse)
             {
                 if (rightOfInbound && rightOfOutbound)
-                {
                     return true;
-                }
             }
             else if (rightOfInbound || rightOfOutbound)
                 return true;
