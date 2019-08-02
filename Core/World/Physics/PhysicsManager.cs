@@ -25,9 +25,21 @@ namespace Helion.World.Physics
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
+        private const double EntityUseDistance = 64.0;
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
+        private EntityActivateSpecialEventArgs m_entityActivatedSpecialArgs = new EntityActivateSpecialEventArgs();
+
+        /// <summary>
+        /// Fires when an entity activates a line special with use or by crossing a line.
+        /// </summary>
+        public event EventHandler<EntityActivateSpecialEventArgs> EntityActivatedSpecial;
+
+        /// <summary>
+        /// Fires when the player executes the use command but hits a non-special blocking line.
+        /// </summary>
+        public event EventHandler<Entity> PlayerUseFail;
 
         /// <summary>
         /// Creates a new physics manager which utilizes the arguments for any
@@ -60,6 +72,83 @@ namespace Helion.World.Physics
         {
             MoveXY(entity);
             MoveZ(entity);
+        }
+
+        /// <summary>
+        /// Executes use logic on the entity. 
+        /// EntityUseActivated event will fire if the entity activates a line special or is in range to hit a blocking line.
+        /// PlayerUseFail will fire if the entity is a player and we hit a block line but didn't activate a special.
+        /// </summary>
+        /// <remarks>
+        /// If the line has a special and we are hitting the front then we can use it (player Z does not apply here).
+        /// If there is a LineOpening with OpeningHeight <= 0, it's a closed sector. The special line behind it cannot activate until the sector has an opening.
+        /// </remarks>
+        /// <param name="entity">The entity to execute use.</param>
+        public void EntityUse(Entity entity)
+        {
+            Line? activateLine = null;
+            bool hitBlockLine = false;
+            double closetDist = double.MaxValue;
+            double currentClosestDist;
+
+            Vec2D start = entity.Position.To2D();
+            Vec2D end = new Vec2D(start.X + (Math.Cos(entity.Angle) * EntityUseDistance), start.Y + (Math.Sin(entity.Angle) * EntityUseDistance));
+            Seg2D useSeg = new Seg2D(start, end);
+            m_blockmap.Iterate(useSeg, TraceLineFinder);
+
+            GridIterationStatus TraceLineFinder(Block block)
+            {
+                for (int i = 0; i < block.Lines.Count; i++)
+                {
+                    Line line = block.Lines[i];
+                    if (line.Segment.Intersects(useSeg))
+                    {
+                        if (line.HasSpecial && line.Segment.OnRight(start))
+                            activateLine = line;
+
+                        bool isBlockingLine = line.OneSided;
+                        bool canActivateThrough = !line.OneSided;
+
+                        if (!isBlockingLine && line.Back != null)
+                        {
+                            LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
+                            isBlockingLine = !opening.CanPassOrStepThrough(entity);
+                            canActivateThrough = opening.OpeningHeight > 0;
+                        }
+
+                        if (isBlockingLine)
+                            hitBlockLine = true;
+
+                        if (!canActivateThrough || line.HasSpecial)
+                        {
+                            currentClosestDist = line.Segment.ClosestDistance(start);
+                            if (closetDist > currentClosestDist)
+                                closetDist = currentClosestDist;
+                        }
+                    }
+                }
+
+                return GridIterationStatus.Continue;
+            }
+
+            if (activateLine != null)
+            {
+                // The use line was blocked by a blocking line
+                if (activateLine.Segment.ClosestDistance(start) != closetDist)
+                    activateLine = null;
+            }
+
+            if (activateLine != null)
+            {
+                m_entityActivatedSpecialArgs.SpecialActivationType = SpecialActivationType.LineUse;
+                m_entityActivatedSpecialArgs.Entity = entity;
+                m_entityActivatedSpecialArgs.ActivateLineSpecial = activateLine;
+                EntityActivatedSpecial?.Invoke(this, m_entityActivatedSpecialArgs);
+            }
+            else if (hitBlockLine && entity.Player != null)
+            {
+                PlayerUseFail?.Invoke(this, entity);
+            }
         }
 
         private static int CalculateSteps(Vec2D velocity, double radius)
@@ -163,7 +252,7 @@ namespace Helion.World.Physics
             Sector centerSector = m_bspTree.ToSector(entity.Position);
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
             
-            Box2D box = entity.Box.To2D(); 
+            Box2D box = entity.Box.To2D();
             m_blockmap.Iterate(box, EntitySectorOverlapFinder);
             
             PerformSectorLinkingAndBoundDiscovery(entity, sectors, centerSector);
@@ -176,8 +265,11 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
-                        if (!entity.NoClip && line.HasSpecial && !entity.IntersectSpecialLines.Any(x => x.Id == line.Id))
-                            entity.IntersectSpecialLines.Add(line);
+                        if (!entity.NoClip)
+                        {
+                            if (line.HasSpecial && !entity.IntersectSpecialLines.Any(x => x.Id == line.Id))
+                                entity.IntersectSpecialLines.Add(line);
+                        }
 
                         sectors.Add(line.Front.Sector);
                         if (line.Back != null)
@@ -328,14 +420,11 @@ namespace Helion.World.Physics
 
             LinkToWorld(entity);
 
-            foreach (Line hitLine in entity.IntersectSpecialLines)
-                CheckLineSpecialActivation(entity, hitLine, previousPosition);
+            for (int i = 0; i < entity.IntersectSpecialLines.Count; i++)
+                CheckLineSpecialActivation(entity, entity.IntersectSpecialLines[i], previousPosition);
 
-            foreach (Entity hitEntity in entity.IntersectEntities)
-                HandleStepIfNeeded(entity, hitEntity);
-
-            entity.IntersectSpecialLines.Clear();
-            entity.IntersectEntities.Clear();
+            for (int i = 0; i < entity.IntersectEntities.Count; i++)
+                HandleStepIfNeeded(entity, entity.IntersectEntities[i]);
         }
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
@@ -343,7 +432,10 @@ namespace Helion.World.Physics
             bool fromFront = line.Segment.OnRight(previousPosition);
             if (fromFront && fromFront != line.Segment.OnRight(entity.Position.To2D()))
             {
-                //TODO actually activate the special
+                m_entityActivatedSpecialArgs.SpecialActivationType = SpecialActivationType.LineCross;
+                m_entityActivatedSpecialArgs.Entity = entity;
+                m_entityActivatedSpecialArgs.ActivateLineSpecial = line;
+                EntityActivatedSpecial?.Invoke(this, m_entityActivatedSpecialArgs);
             }
         }
 
