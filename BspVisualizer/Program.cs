@@ -25,7 +25,7 @@ namespace BspVisualizer
             if (File.Exists(path)) 
                 return false;
             
-            MessageBox.Show($@"Cannot find file at {path}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            MessageBox.Show($@"Cannot find file at path (or permissions are wrong): {path}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             return true;
         }
 
@@ -55,7 +55,7 @@ namespace BspVisualizer
             ArchiveCollection archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
             if (!archiveCollection.Load(new List<string> { args[0] }))
             {
-                MessageBox.Show($@"Error loading file at {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                MessageBox.Show($@"Error loading file at path: {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return;
             }
 

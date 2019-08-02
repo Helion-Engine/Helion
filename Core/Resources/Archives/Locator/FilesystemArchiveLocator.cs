@@ -15,20 +15,18 @@ namespace Helion.Entries.Archives.Locator
     {
         public Expected<Archive> Locate(string uri)
         {
-            string extension = Path.GetExtension(uri);
+            string? extension = Path.GetExtension(uri);
+            if (extension == null)
+                return $"Unable to get extension from {uri}";
 
             try
             {
                 if (extension.Equals(".wad", StringComparison.OrdinalIgnoreCase))
-                {
                     return new Wad(new EntryPath(uri));
-                }
-                else if (extension.Equals(".pk3", StringComparison.OrdinalIgnoreCase))
-                {
+                if (extension.Equals(".pk3", StringComparison.OrdinalIgnoreCase))
                     return new PK3(new EntryPath(uri));
-                }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return e.Message;
             }

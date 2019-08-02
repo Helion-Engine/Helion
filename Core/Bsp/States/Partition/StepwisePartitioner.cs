@@ -19,9 +19,9 @@ namespace Helion.Bsp.States.Partition
         /// <inheritdoc/>
         public PartitionStates States { get; private set; } = new PartitionStates();
         
-        private readonly BspConfig config;
-        private readonly SegmentAllocator segmentAllocator;
-        private readonly JunctionClassifier junctionClassifier;
+        private readonly BspConfig m_config;
+        private readonly SegmentAllocator m_segmentAllocator;
+        private readonly JunctionClassifier m_junctionClassifier;
 
         /// <summary>
         /// Creates a partitioner tha allows steppable debugging.
@@ -33,9 +33,9 @@ namespace Helion.Bsp.States.Partition
         /// with new junctions.</param>
         public StepwisePartitioner(BspConfig config, SegmentAllocator segmentAllocator, JunctionClassifier junctionClassifier)
         {
-            this.config = config;
-            this.segmentAllocator = segmentAllocator;
-            this.junctionClassifier = junctionClassifier;
+            m_config = config;
+            m_segmentAllocator = segmentAllocator;
+            m_junctionClassifier = junctionClassifier;
         }
         
         /// <inheritdoc/>
@@ -56,7 +56,7 @@ namespace Helion.Bsp.States.Partition
         }
 
         /// <inheritdoc/>
-        public virtual void Execute()
+        public void Execute()
         {
             Precondition(States.State != PartitionState.Finished, "Trying to partition when it's already completed");
             if (States.Splitter == null)
@@ -92,7 +92,7 @@ namespace Helion.Bsp.States.Partition
         
         private bool BetweenEndpoints(double splitterTime)
         {
-            double epsilon = config.VertexWeldingEpsilon;
+            double epsilon = m_config.VertexWeldingEpsilon;
             return epsilon < splitterTime && splitterTime < 1.0 - epsilon;
         }
 
@@ -125,13 +125,13 @@ namespace Helion.Bsp.States.Partition
             // Therefore our only solution is to do it by checking distances.
             Vec2D vertex = segmentToSplit.FromTime(segmentTime);
 
-            if (vertex.Distance(segmentToSplit.Start) <= config.VertexWeldingEpsilon)
+            if (vertex.Distance(segmentToSplit.Start) <= m_config.VertexWeldingEpsilon)
             {
                 endpoint = Endpoint.Start;
                 return true;
             }
 
-            if (vertex.Distance(segmentToSplit.End) <= config.VertexWeldingEpsilon)
+            if (vertex.Distance(segmentToSplit.End) <= m_config.VertexWeldingEpsilon)
             {
                 endpoint = Endpoint.End;
                 return true;
@@ -208,7 +208,7 @@ namespace Helion.Bsp.States.Partition
             // kind of reference that invalidates on a list resizing (like a
             // std::vector in C++), this will lead to undefined behavior since
             // it will add new segments and cause them to become dangling.
-            (BspSegment segA, BspSegment segB) = segmentAllocator.Split(segmentToSplit, segmentTime);
+            (BspSegment segA, BspSegment segB) = m_segmentAllocator.Split(segmentToSplit, segmentTime);
 
             // Since we split the segment such that the line is:
             //
@@ -261,7 +261,7 @@ namespace Helion.Bsp.States.Partition
             States.CollinearVertices.Add(middleVertexIndex);
 
             if (segmentToSplit.OneSided)
-                junctionClassifier.AddSplitJunction(segA, segB);
+                m_junctionClassifier.AddSplitJunction(segA, segB);
         }
 
         private void HandleSplit(BspSegment splitter, BspSegment segmentToSplit, double segmentTime, double splitterTime)

@@ -124,8 +124,10 @@ namespace Helion.Bsp.Geometry
             Vec2D middle = seg.FromTime(t);
             int middleIndex = m_vertexAllocator[middle];
 
-            BspSegment firstSeg = CreateNewSegment(seg.StartIndex, middleIndex, seg.CollinearIndex, seg.Line);
-            BspSegment secondSeg = CreateNewSegment(middleIndex, seg.EndIndex, seg.CollinearIndex, seg.Line);
+            // TODO: We know `seg.CollinearIndex`, it'd be nice to ass it in
+            //       instead of requiring a lookup for our split.
+            BspSegment firstSeg = GetOrCreate(seg.StartIndex, middleIndex, seg.Line);
+            BspSegment secondSeg = GetOrCreate(middleIndex, seg.EndIndex, seg.Line);
             return (firstSeg, secondSeg);
         }
 
