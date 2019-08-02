@@ -117,6 +117,26 @@ namespace Helion.Bsp.Geometry
         /// <returns>The index for the opposite endpoint.</returns>
         public int OppositeIndex(Endpoint endpoint) => endpoint == Endpoint.Start ? EndIndex : StartIndex;
 
+        /// <summary>
+        /// Checks if the endpoints are shared, meaning that their vertex index
+        /// is the same as one in another segment.
+        /// </summary>
+        /// <remarks>
+        /// This does not check based on position. It functions purely off of
+        /// the information from a <see cref="VertexAllocator"/> from which
+        /// this segment had its vertex index created from.
+        /// </remarks>
+        /// <param name="segment">The other segment to check against.</param>
+        /// <returns>True if one of the endpoints is shared, false if not.
+        /// </returns>
+        public bool SharesAnyEndpoints(BspSegment segment)
+        {
+            return StartIndex == segment.StartIndex ||
+                   StartIndex == segment.EndIndex ||
+                   EndIndex == segment.StartIndex ||
+                   EndIndex == segment.EndIndex;
+        }
+
         /// <inheritdoc/>
         public override string ToString()
         {

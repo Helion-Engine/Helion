@@ -67,5 +67,38 @@ namespace Helion.Test.Unit.Bsp.Geometry
             Assert.IsFalse(segment.OneSided);
             Assert.IsTrue(segment.IsMiniseg);
         }
+        
+        [TestMethod]
+        public void CheckForSharedEndpoints()
+        {
+            const int firstIndex = 0;
+            const int secondIndex = 1;
+            const int diffFirstIndex = 2;
+            const int diffSecondIndex = 3;
+
+            BspSegment segment = new BspSegment(start, end, firstIndex, secondIndex, 0);
+
+            // This case demonstrates that even though the endpoints are the
+            // same, it only checks for the endpoint indices.
+            BspSegment noSharedSegment = new BspSegment(start, end, diffFirstIndex, diffSecondIndex, 0);
+            Assert.IsFalse(segment.SharesAnyEndpoints(noSharedSegment));
+            
+            // All of the following are intended to have at least one endpoint
+            // index match.
+            foreach ((int startingIndex, int endingIndex) in new[]
+            {
+                (firstIndex, diffSecondIndex),
+                (secondIndex, diffSecondIndex),
+                (diffFirstIndex, firstIndex),
+                (diffFirstIndex, secondIndex),
+                (firstIndex, secondIndex),
+            })
+            {
+                // Remember that the endpoints are checked by index, not by the
+                // actual value of the endpoints (for optimization reasons).
+                BspSegment otherSeg = new BspSegment(start, end, startingIndex, endingIndex, 0);
+                Assert.IsTrue(segment.SharesAnyEndpoints(otherSeg));
+            }
+        }
     }
 }

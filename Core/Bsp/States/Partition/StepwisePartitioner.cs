@@ -84,7 +84,16 @@ namespace Helion.Bsp.States.Partition
             bool splits = splitter.IntersectionAsLine(segToSplit, out double splitterTime, out double segmentTime);
             Invariant(splits, "A non-parallel line should intersect");
 
-            if (MathHelper.InNormalRange(segmentTime))
+            // Note that it is possible for two segments that share endpoints
+            // to calculate intersections to each other outside of the normal
+            // range due (ex: D2M29 has one at approx t = 1.0000000000000002).
+            // Because they share a point and aren't parallel, then the line
+            // must be on one of the sides and isn't intersecting. This will
+            // also avoid very small cuts as well since we definitely do not
+            // want a cut happening at the pathological time seen above!
+            if (splitter.SharesAnyEndpoints(segToSplit))
+                HandleSegmentOnSide(splitter, segToSplit);
+            else if (MathHelper.InNormalRange(segmentTime))
                 HandleSplit(splitter, segToSplit, segmentTime, splitterTime);
             else
                 HandleSegmentOnSide(splitter, segToSplit);
@@ -143,6 +152,19 @@ namespace Helion.Bsp.States.Partition
 
         private void HandleSplitter(BspSegment splitter)
         {
+            // The reason we add these is because we (frequently) have cases
+            // where there is only one intersection from the splitter to some
+            // other line. Usually we relied on the endpoints of lines counting
+            // as an intersection and causing them to end up in the collinear
+            // vertex set, but we had to change that due to rounding issues.
+            //
+            // This change meant that it no longer recognized the endpoints of
+            // the lines attached to the splitter as ones that will end up in
+            // the collinear set. We have to provide these ones here so that
+            // miniseg generation has at least one reference point.
+            States.CollinearVertices.Add(splitter.StartIndex);
+            States.CollinearVertices.Add(splitter.EndIndex);
+
             States.RightSegments.Add(splitter);
             if (splitter.TwoSided)
                 States.LeftSegments.Add(splitter);
