@@ -187,7 +187,7 @@ namespace Helion.World.Bsp
         private List<SubsectorEdge> CreateClockwiseSegments(BspNode node)
         {
             List<SubsectorEdge> returnSegments = new List<SubsectorEdge>();
-            
+         
             foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge);

@@ -91,7 +91,10 @@ namespace Helion.Bsp.Node
         {
             List<SubsectorEdge> edges = CreateSubsectorEdges(convexTraversal, rotation);
             if (rotation == Rotation.Left)
+            {
                 edges.ForEach(edge => edge.Reverse());
+                edges.Reverse();
+            }
             
             // TODO: Assert valid subsector edges!
             return edges;
