@@ -56,6 +56,12 @@ namespace Helion.Bsp.Builder
         /// or outside of it relative to some point (when making minisegs).
         /// </summary>
         public readonly JunctionClassifier JunctionClassifier = new JunctionClassifier();
+
+        /// <summary>
+        /// The pruner that removes bad segments that affect the BSP builder
+        /// from running properly.
+        /// </summary>
+        public readonly SegmentChainPruner SegmentChainPruner = new SegmentChainPruner();
         
         /// <summary>
         /// The config to control various operations that we may want to vary
@@ -104,9 +110,8 @@ namespace Helion.Bsp.Builder
             Partitioner = CreatePartitioner();
             MinisegCreator = CreateMinisegCreator();
             
-            PopulateAllocatorsFrom(map);
-            
-            WorkItems.Push(new WorkItem(Root, SegmentAllocator.ToList()));
+            List<BspSegment> prunedSegments = ReadAndPopulateAllocatorsFrom(map);
+            WorkItems.Push(new WorkItem(Root, prunedSegments));
         }
 
         /// <inheritdoc/>
@@ -191,20 +196,28 @@ namespace Helion.Bsp.Builder
         /// </summary>
         protected abstract void ExecuteSplitFinalization();
         
-        private void PopulateAllocatorsFrom(IMap map)
+        private List<BspSegment> ReadAndPopulateAllocatorsFrom(IMap map)
         {
+            List<BspSegment> segments = new List<BspSegment>();
             foreach (Line line in map.Lines)
             {
                 int startIndex = VertexAllocator[line.StartVertex.Position];
                 int endIndex = VertexAllocator[line.EndVertex.Position];
-                BspSegment bspSegment = SegmentAllocator.GetOrCreate(startIndex, endIndex, line);
-                JunctionClassifier.Add(bspSegment);
+                segments.Add(SegmentAllocator.GetOrCreate(startIndex, endIndex, line));
             }
             
+            // TODO: Extract both out of the following out
+            
+            List<BspSegment> prunedSegments = SegmentChainPruner.Prune(segments);
+            
             // The junction classifier will not generate the junctions until we
-            // call this function, because adding one by one and calculating on
-            // the fly would be pretty taxing and lead to O(n^2) calculations.
+            // notify that we're done adding, because adding one by one and
+            // calculating on the fly would be pretty taxing and lead to O(n^2)
+            // work and we'd rather have O(n).
+            prunedSegments.ForEach(JunctionClassifier.Add);
             JunctionClassifier.NotifyDoneAdding();
+
+            return prunedSegments;
         }
     }
 }
