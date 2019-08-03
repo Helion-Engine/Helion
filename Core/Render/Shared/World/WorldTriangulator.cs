@@ -12,6 +12,9 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World
 {
+    /// <summary>
+    /// Triangulates a world so the triangles can be rendered on the GPU.
+    /// </summary>
     public class WorldTriangulator
     {
         private readonly Func<CIString, Dimension> m_textureDimensionFinder;
@@ -21,6 +24,13 @@ namespace Helion.Render.Shared.World
             m_textureDimensionFinder = textureDimensionFinder;
         }
 
+        /// <summary>
+        /// Triangulates a line.
+        /// </summary>
+        /// <param name="line">The line to triangulate.</param>
+        /// <param name="textureDimensionFinder">A function used to look up the
+        /// name of a texture and get the dimensions of it.</param>
+        /// <returns>All the triangles for this line.</returns>
         public static LineTriangles Triangulate(Line line, Func<CIString, Dimension> textureDimensionFinder)
         {
             WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
@@ -28,6 +38,13 @@ namespace Helion.Render.Shared.World
                                    triangulator.TriangulateTwoSided(line);
         }
 
+        /// <summary>
+        /// Triangulates a subsector.
+        /// </summary>
+        /// <param name="subsector">The subsector to triangulate.</param>
+        /// <param name="textureDimensionFinder">A function used to look up the
+        /// name of a texture and get the dimensions of it.</param>
+        /// <returns>All the triangles for this subsector.</returns>
         public static SubsectorTriangles Triangulate(Subsector subsector, Func<CIString, Dimension> textureDimensionFinder)
         {
             WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
@@ -107,8 +124,28 @@ namespace Helion.Render.Shared.World
 
             return true;
         }
+        
+        private static Vertex CalculateFlatVertex(Vec2D position, PlaneD plane, Dimension textureDimension)
+        {
+            Vec3D pos = new Vec3D(position.X, position.Y, plane.ToZ(position));
+            Vec2D uv = position / textureDimension.ToVector().ToDouble();
+            
+            // When we map coordinates to their texture coordinates, because
+            // we do division above, a coordinate with Y values of 16 to 32
+            // for a 64-dimension texture gets mapped onto 0.25 and 0.5.
+            // However the textures are drawn from the top down in vanilla
+            // (and all the other ports), which means 16 is effectively 0.75
+            // and 32 is 0.5.
+            //
+            // This means our drawing is inverted along the Y axis, and this is
+            // trivially fixed by inverting letting the shader take care of the
+            // rest when it clamps it to the image.
+            uv.Y = -uv.Y;
+            
+            return new Vertex(pos.ToFloat(), uv.ToFloat());
+        }
 
-        private UVQuad CalculateUpperUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
+        private static UVQuad CalculateUpperUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
         {
             Vector2 topLeft = new Vector2(offset.X, offset.Y);
             Vector2 topRight = new Vector2(offset.X + wallSpanU, offset.Y);
@@ -118,7 +155,7 @@ namespace Helion.Render.Shared.World
             return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
         }
         
-        private UVQuad CalculateLowerUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
+        private static UVQuad CalculateLowerUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
         {
             Vector2 topLeft = new Vector2(offset.X, 1.0f + offset.Y - leftSpanV);
             Vector2 topRight = new Vector2(offset.X + wallSpanU, 1.0f + offset.Y - rightSpanV);
@@ -128,7 +165,7 @@ namespace Helion.Render.Shared.World
             return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        private UVQuad CalculateUV(Line line, Side side, PositionQuad quad, Dimension textureDimension, 
+        private static UVQuad CalculateUV(Line line, Side side, PositionQuad quad, Dimension textureDimension, 
             SideSection section)
         {
             Vector2 invDimension = Vector2.One / textureDimension.ToVector().ToFloat();
@@ -145,7 +182,7 @@ namespace Helion.Render.Shared.World
                 CalculateLowerUV(offset, wallSpanU, leftSpanV, rightSpanV);
         }
 
-        private WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
+        private static WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
             CIString texture, Dimension textureDimension, SideFace sideFace, SideSection section)
         {
             // If looking at the front side we want to go from Start -> End,
@@ -237,14 +274,6 @@ namespace Helion.Render.Shared.World
             return new LineTriangles(line, frontTriangles, backTriangles);
         }
 
-        private static Vertex CalculateFlatVertex(Vec2D position, PlaneD plane, Dimension textureDimension)
-        {
-            Vec3D pos = new Vec3D(position.X, position.Y, plane.ToZ(position));
-            Vec2D uv = position / textureDimension.ToVector().ToDouble();
-            
-            return new Vertex(pos.ToFloat(), uv.ToFloat());
-        }
-        
         private SubsectorFlatFan TriangulateFlat(Subsector subsector, SectorFlat flat, Sector sector)
         {
             Dimension textureDimension = m_textureDimensionFinder(flat.Texture);
