@@ -100,9 +100,6 @@ namespace Helion.Util.Geometry
         /// function, false otherwise.</returns>
         public bool Iterate(Seg2DBase seg, Func<T, GridIterationStatus> func)
         {
-            Precondition(Bounds.Contains(seg.Start), "Segment start point outside of grid");
-            Precondition(Bounds.Contains(seg.End), "Segment end point outside of grid");
-
             // This algorithm requires us to be on the unit interval range for 
             // our block coordinates. We also want them to be positive, since 
             // it will allow us to do well defined bit mask optimizations.
@@ -180,7 +177,10 @@ namespace Helion.Util.Geometry
                 error -= (blockUnitStart.Y - Math.Floor(blockUnitStart.Y)) * absDelta.X;
             }
 
-            for (int i = 0; i < numBlocks; i++)
+            if (numBlocks > blocks.Length)
+                numBlocks = blocks.Length;
+
+            for (int i = 0; i < numBlocks && blockIndex < blocks.Length; i++)
             {
                 T gridElement = blocks[blockIndex];
                 if (func(gridElement) == GridIterationStatus.Stop)
