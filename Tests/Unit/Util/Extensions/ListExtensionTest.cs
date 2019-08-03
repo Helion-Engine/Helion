@@ -16,7 +16,7 @@ namespace Helion.Test.Unit.Util.Extensions
         [TestMethod]
         public void CheckIfNotEmpty()
         {
-            Assert.IsFalse(new List<int>{1}.Empty());
+            Assert.IsFalse(new List<int> { 1 }.Empty());
         }
         
         [TestMethod]
