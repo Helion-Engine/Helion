@@ -1,4 +1,5 @@
-﻿using Helion.Maps.Actions;
+﻿using System;
+using Helion.Maps.Actions;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Maps.Things;
@@ -170,7 +171,8 @@ namespace Helion.Maps.Entries
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
                 LineFlags lineFlags = MakeLineFlags(flags);
 
-                Line line = new Line(id, startVertex, endVertex, lineFlags, front, back);
+                // TODO assumes vanilla - need to check for boom when implemented
+                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, (LineSpecialType)lineType, sectorTag);
                 map.Lines.Add(line);
             }
 
@@ -210,7 +212,8 @@ namespace Helion.Maps.Entries
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
                 LineFlags lineFlags = MakeLineFlags(flags);
 
-                Line line = new Line(id, startVertex, endVertex, lineFlags, front, back);
+                // TODO properly get LineSpecialType when we have line special types for hexen
+                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, (LineSpecialType)actionSpecial, args);
                 map.Lines.Add(line);
             }
 

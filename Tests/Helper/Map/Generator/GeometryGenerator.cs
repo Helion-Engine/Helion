@@ -86,7 +86,7 @@ namespace Helion.Test.Helper.Map.Generator
         {
             Vertex startVertex = CreateVertex(start);
             Vertex endVertex = CreateVertex(end);
-            Line line = new Line(lines.Count, startVertex, endVertex, new LineFlags(), sides[sideId]);
+            Line line = new Line(lines.Count, startVertex, endVertex, sides[sideId]);
             lines.Add(line);
             
             return this;
@@ -108,7 +108,7 @@ namespace Helion.Test.Helper.Map.Generator
         {
             Vertex startVertex = CreateVertex(start);
             Vertex endVertex = CreateVertex(end);
-            Line line = new Line(lines.Count, startVertex, endVertex, new LineFlags(), sides[frontSideId], sides[backSideId]);
+            Line line = new Line(lines.Count, startVertex, endVertex, sides[frontSideId], sides[backSideId]);
             lines.Add(line);
             
             return this;
