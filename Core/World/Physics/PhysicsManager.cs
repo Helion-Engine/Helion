@@ -103,7 +103,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(useSeg))
                     {
-                        if (line.HasSpecial && line.Segment.OnRight(start))
+                        if (line.HasSpecial && line.Special.CanActivate(entity, ActivationContext.UseLine) && line.Segment.OnRight(start))
                             activateLine = line;
 
                         bool isBlockingLine = line.OneSided;
@@ -116,7 +116,8 @@ namespace Helion.World.Physics
                             canActivateThrough = opening.OpeningHeight > 0;
                         }
 
-                        if (isBlockingLine)
+                        // Only check BlocksEntity here so if we fail to activate special the PlayerUseFail event is raised for two-sided impassible lines
+                        if (isBlockingLine || line.BlocksEntity(entity))
                             hitBlockLine = true;
 
                         if (!canActivateThrough || line.HasSpecial)
@@ -140,7 +141,7 @@ namespace Helion.World.Physics
 
             if (activateLine != null)
             {
-                m_entityActivatedSpecialArgs.SpecialActivationType = SpecialActivationType.LineUse;
+                m_entityActivatedSpecialArgs.ActivationContext = ActivationContext.UseLine;
                 m_entityActivatedSpecialArgs.Entity = entity;
                 m_entityActivatedSpecialArgs.ActivateLineSpecial = activateLine;
                 EntityActivatedSpecial?.Invoke(this, m_entityActivatedSpecialArgs);
@@ -182,15 +183,16 @@ namespace Helion.World.Physics
         
         private static bool LineBlocksEntity(Entity entity, Line line)
         {
-            if (line.Back == null)
+            if (line.BlocksEntity(entity))
                 return true;
 
-            // TODO: Check blocking flags on the line.
-            if (line.Flags.Blocking.Players && entity.Player != null)
-                return true;
+            if (line.Back != null)
+            {
+                LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
+                return !opening.CanPassOrStepThrough(entity);
+            }
 
-            LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
-            return !opening.CanPassOrStepThrough(entity);
+            return false;
         }
 
         private static bool EntityBlocksEntity(Entity entity, Entity other)
@@ -431,10 +433,13 @@ namespace Helion.World.Physics
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
         {
+            if (!line.Special.CanActivate(entity, ActivationContext.CrossLine))
+                return;
+
             bool fromFront = line.Segment.OnRight(previousPosition);
             if (fromFront && fromFront != line.Segment.OnRight(entity.Position.To2D()))
             {
-                m_entityActivatedSpecialArgs.SpecialActivationType = SpecialActivationType.LineCross;
+                m_entityActivatedSpecialArgs.ActivationContext = ActivationContext.CrossLine;
                 m_entityActivatedSpecialArgs.Entity = entity;
                 m_entityActivatedSpecialArgs.ActivateLineSpecial = line;
                 EntityActivatedSpecial?.Invoke(this, m_entityActivatedSpecialArgs);

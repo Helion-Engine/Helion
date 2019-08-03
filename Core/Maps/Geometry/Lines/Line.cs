@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
+using Helion.World.Entities;
 
 namespace Helion.Maps.Geometry.Lines
 {
@@ -26,10 +27,51 @@ namespace Helion.Maps.Geometry.Lines
 
         public IList<Side> Sides => Containers.WithoutNulls(Front, Back);
 
-        // TODO set this flag when specials are read from a line
-        public bool HasSpecial;
+        public bool HasSpecial => Special.LineSpecialType != LineSpecialType.None;
 
-        public Line(int id, Vertex startVertex, Vertex endVertex, LineFlags lineFlags, Side front, Side? back = null)
+        public LineSpecial Special;
+
+        public bool HasSectorTag => SectorTag > 0;
+
+        public int SectorTag;
+
+        public byte[] Args;
+
+
+        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back = null)
+            : this(id, startVertex, endVertex, front, back, default, LineSpecialType.None, 0, null)
+        {
+
+        }
+
+
+        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecialType special, int sectorTag)
+            : this(id, startVertex, endVertex, front, back, lineFlags, special, sectorTag, null)
+        {
+
+        }
+
+        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecialType special, byte[] args)
+            : this(id, startVertex, endVertex, front, back, lineFlags, special, 0, args)
+        {
+
+        }
+
+        /// <summary>
+        /// If the line blocks the given entity. Only checks line properties and flags. No sector checking.
+        /// </summary>
+        public bool BlocksEntity(Entity entity)
+        {
+            if (OneSided)
+                return true;
+
+            if (entity.Player != null)
+                return Flags.Blocking.Players;
+
+            return false;
+        }
+
+        private Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecialType special, int sectorTag, byte[]? args)
         {
             Id = id;
             StartVertex = startVertex;
@@ -45,6 +87,14 @@ namespace Helion.Maps.Geometry.Lines
             front.Line = this;
             if (back != null)
                 back.Line = this;
+
+            Special = new LineSpecial(special);
+            SectorTag = sectorTag;
+
+            if (args == null)
+                Args = new byte[0];
+            else
+                Args = args;
         }
 
         /// <summary>

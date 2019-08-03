@@ -4,12 +4,12 @@ using Helion.World.Entities;
 namespace Helion.World.Physics
 {
     /// <summary>
-    /// Describes how the line was activated.
+    /// How to activate a special.
     /// </summary>
-    public enum SpecialActivationType
+    public enum ActivationContext
     {
-        LineUse,
-        LineCross,
+        CrossLine,
+        UseLine,
     }
 
     /// <summary>
@@ -20,7 +20,7 @@ namespace Helion.World.Physics
         /// <summary>
         /// How the special was activated.
         /// </summary>
-        public SpecialActivationType SpecialActivationType;
+        public ActivationContext ActivationContext;
 
         /// <summary>
         /// Entity that activated the special.
