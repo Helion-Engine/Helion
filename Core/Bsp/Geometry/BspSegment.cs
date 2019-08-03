@@ -1,4 +1,3 @@
-using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
@@ -34,17 +33,6 @@ namespace Helion.Bsp.Geometry
         public readonly Line? Line;
 
         /// <summary>
-        /// The sector on the front side. This is null if it's a miniseg.
-        /// </summary>
-        public Sector? FrontSector => Line.Front.Sector;
-
-        /// <summary>
-        /// The sector on the back side. This is null if it's a miniseg or if
-        /// it's a one sided line.
-        /// </summary>
-        public Sector? BackSector => Line.Back?.Sector;
-
-        /// <summary>
         /// True if this is a one sided segment, false if not.
         /// </summary>
         /// <remarks>
@@ -76,12 +64,14 @@ namespace Helion.Bsp.Geometry
         public BspSegment(Vec2D start, Vec2D end, int startIndex, int endIndex, int collinearIndex, Line? line = null) : 
             base(start, end)
         {
+            Precondition(startIndex != endIndex, "BSP segment shouldn't have a start and end index being the same");
+            
             StartIndex = startIndex;
             EndIndex = endIndex;
             CollinearIndex = collinearIndex;
             Line = line;
 
-            Postcondition(Length() >= 0.00001, "Extremely small split detected");
+            Postcondition(Length() >= 0.00001, "Extremely small BSP segment detected");
         }
 
         /// <summary>
