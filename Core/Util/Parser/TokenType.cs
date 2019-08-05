@@ -5,9 +5,9 @@ namespace Helion.Util.Parser
     /// </summary>
     public enum TokenType
     {
-        Number,
-        Identifier,
-        QuotedString,
+        Integer,
+        FloatingPoint,
+        Text,
         Backtick,
         Tilde,
         Exclamation,
