@@ -51,7 +51,12 @@ namespace Helion.Util.Parser
             }
             catch (ParserException e)
             {
-                e.LogToReadableMessage(text);
+                // It may be possible for the log message to have interpolation
+                // values in it. Don't know how the logging framework would
+                // handle that correctly but I'll play it safe here by hoping
+                // it doesn't recursively interpolate.
+                foreach (string logMessage in e.LogToReadableMessage(text))
+                    Log.Error("{0}", logMessage);
                 return false;
             }
             catch (AssertionException)

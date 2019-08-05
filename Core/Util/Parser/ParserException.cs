@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using Helion.Util.Extensions;
-using NLog;
 
 namespace Helion.Util.Parser
 {
@@ -8,8 +8,6 @@ namespace Helion.Util.Parser
     /// </summary>
     public class ParserException : HelionException
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
         /// <summary>
         /// The line number in the source file that the parsing error occurred
         /// at. This starts at 1 (should never be zero).
@@ -58,28 +56,21 @@ namespace Helion.Util.Parser
         /// error message.
         /// </summary>
         /// <param name="text">The entire parsed text.</param>
-        public void LogToReadableMessage(string text)
+        public List<string> LogToReadableMessage(string text)
         {
             if (text.Empty())
-            {
-                Log.Error("Cannot parse text when there are no tokens to read");
-                return;
-            }
+                return new List<string> { "Cannot parse text when there are no tokens to read" };
 
             if (CharOffset < 0)
-            {
-                Log.Error("Unexpected character offset, cannot generate error message (report to a developer)");
-                return;
-            }
+                return new List<string> { "Unexpected character offset, cannot generate error message (report to a developer)" };
 
             if (CharOffset >= text.Length)
-            {
-                Log.Error("Error occurred past end of file, cannot generate error message (report to a developer)");
-                return;
-            }
+                return new List<string> { "Error occurred past end of file, cannot generate error message (report to a developer)" };
 
-            Log.Error("Error parsing text on line {0}, offset {1}:", LineNumber, LineCharOffset);
-            LogContextualInformation(text);
+            List<string> errorMessages = new List<string> { $"Error parsing text on line {LineNumber}, offset {LineCharOffset}:" };
+            LogContextualInformation(text, errorMessages);
+
+            return errorMessages;
         }
         
         private static int CalculateLeftIndex(string text, int originalIndex)
@@ -118,14 +109,14 @@ namespace Helion.Util.Parser
             return MathHelper.Clamp(endIndex, originalIndex + 256, originalIndex);
         }
 
-        private void LogContextualInformation(string text)
+        private void LogContextualInformation(string text, List<string> errorMessages)
         {
             int leftIndex = CalculateLeftIndex(text, CharOffset);
             int rightIndexNonInclusive = CalculateRightNonInclusiveIndex(text, CharOffset);
             
             if (leftIndex == rightIndexNonInclusive)
             {
-                Log.Error("Parsing error occurred on a blank line with no text, no contextual information available");
+                errorMessages.Add("Parsing error occurred on a blank line with no text, no contextual information available");
                 return;
             }
             
@@ -133,8 +124,8 @@ namespace Helion.Util.Parser
             string textContext = text.Substring(leftIndex, rightIndexNonInclusive);
             string caret = new string(' ', numSpaces) + "^";
             
-            Log.Error(textContext);
-            Log.Error(caret);
+            errorMessages.Add(textContext);
+            errorMessages.Add(caret);
         }
     }
 }
