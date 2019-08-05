@@ -296,7 +296,6 @@ namespace Helion.Util.Parser
                     return ConsumeInteger();
 
                 Consume(TokenType.Minus);
-                CurrentTokenIndex++;
                 return -ConsumeInteger();
             }
 
@@ -341,7 +340,6 @@ namespace Helion.Util.Parser
                     return ConsumeFloat();
 
                 Consume(TokenType.Minus);
-                CurrentTokenIndex++;
                 return -ConsumeFloat();
             }
 
