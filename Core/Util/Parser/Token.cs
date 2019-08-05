@@ -106,8 +106,6 @@ namespace Helion.Util.Parser
                 return TokenType.Plus;    
             case '-':
                 return TokenType.Minus;    
-            case '_':
-                return TokenType.Underscore;    
             case '=':
                 return TokenType.Equals;    
             case '[':

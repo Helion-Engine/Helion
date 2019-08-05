@@ -23,7 +23,6 @@ namespace Helion.Util.Parser
         ParenRight,
         Plus,
         Minus,
-        Underscore,
         Equals,
         BracketLeft,
         BracketRight,

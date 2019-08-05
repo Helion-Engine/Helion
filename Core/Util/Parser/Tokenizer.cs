@@ -55,13 +55,24 @@ namespace Helion.Util.Parser
             return (c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126);
         }
         
+        private void ResetLineInfoTrackers()
+        {
+            // The next iteration will increment it to zero, which is what
+            // we want the line character offset to be.
+            m_lineCharOffset = -1;
+            m_lineNumber++;
+        }
+        
         private void CompleteIdentifierIfAvailable()
         {
             if (!BuildingIdentifier)
                 return;
 
             string text = m_identifierBuilder.ToString();
-            Token token = new Token(m_lineNumber, m_lineCharOffset, m_textIndex, text, TokenType.String);
+            int lineCharOffset = m_lineCharOffset - text.Length;
+            int charOffset = m_textIndex - text.Length;
+            
+            Token token = new Token(m_lineNumber, lineCharOffset, charOffset, text, TokenType.String);
             m_tokens.Add(token);
             
             m_identifierBuilder.Clear();
@@ -71,6 +82,7 @@ namespace Helion.Util.Parser
         {
             // We're on the opening quote, so move ahead to the starting character.
             m_textIndex++;
+            m_lineCharOffset++;
             
             int startingLineCharOffset = m_lineCharOffset;
             int startingTextIndex = m_textIndex;
@@ -80,16 +92,20 @@ namespace Helion.Util.Parser
             {
                 char c = m_text[m_textIndex];
                 
+                if (c == '"')
+                {
+                    string innerString = innerStringBuilder.ToString();
+                    Token token = new Token(m_lineNumber, startingLineCharOffset, startingTextIndex, innerString, TokenType.QuotedString);
+                    m_tokens.Add(token);
+                    return;
+                }
+                
                 if (IsPrintableCharacter(c))
                     innerStringBuilder.Append(c);
                 else if (c == '\n')
-                    throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "String missing ending quote");
-                else if (c == '"')
                 {
-                    string innerString = innerStringBuilder.ToString();
-                    Token token = new Token(m_lineNumber, m_lineCharOffset, m_textIndex, innerString, TokenType.QuotedString);
-                    m_tokens.Add(token);
-                    return;
+                    const string endingErrorMessage = "Ended line before finding terminating string quotation mark";
+                    throw new ParserException(m_lineNumber, startingLineCharOffset, startingTextIndex, endingErrorMessage);
                 }
             }
             
@@ -133,7 +149,7 @@ namespace Helion.Util.Parser
 
             string text = numberBuilder.ToString();
             if (text.EndsWith("."))
-                throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Decimal number cannot end with a period");
+                throw new ParserException(m_lineNumber, m_lineCharOffset - 1, m_textIndex - 1, "Decimal number cannot end with a period");
                 
             if (isFloat)
             {
@@ -145,6 +161,12 @@ namespace Helion.Util.Parser
                 Token intToken = new Token(m_lineNumber, startLineCharOffset, startCharOffset, text, TokenType.Integer);
                 m_tokens.Add(intToken);
             }
+            
+            // When we return control to the iteration loop, it'll consume a
+            // character and bypass it. Decrementing here makes it so this will
+            // not happen.
+            m_textIndex--;
+            m_lineCharOffset--;
 
             Postcondition(double.TryParse(text, out double _), "Returning a number token but cannot parse a number out of it");
         }
@@ -183,10 +205,7 @@ namespace Helion.Util.Parser
                 if (m_text[m_textIndex] != '\n') 
                     continue;
                 
-                // The next iteration will increment it to zero, which is what
-                // we want the line character offset to be.
-                m_lineCharOffset = -1;
-                m_lineNumber++;
+                ResetLineInfoTrackers();
                 return;
             }
         }
@@ -195,7 +214,13 @@ namespace Helion.Util.Parser
         {
             // We want to start one ahead so comments like /*/ don't work.
             m_textIndex++;
+            m_lineCharOffset++;
             
+            // However we can skip \n by moving ahead, so track that data.
+            int prevIndex = m_textIndex - 1;
+            if (prevIndex < m_text.Length && m_text[prevIndex] == '\n')
+                ResetLineInfoTrackers();
+
             // Note that the way this loop works means that if find EOF first,
             // it is considered okay. This is what zdoom appears to do, so we
             // will have to do it as well for compatibility reasons since the
@@ -206,19 +231,14 @@ namespace Helion.Util.Parser
 
                 if (c == '\n')
                 {
-                    // The next iteration will increment it to zero, which is what
-                    // we want the line character offset to be.
-                    m_lineCharOffset = -1;
-                    m_lineNumber++;
+                    ResetLineInfoTrackers();
                     continue;
                 }
-                
+
+                // We don't increment here because when we return the control
+                // back to the main loop, it'll do the incrementing instead.
                 if (c == '/' && m_text[m_textIndex - 1] == '*')
-                {
-                    m_textIndex++;
-                    m_lineCharOffset++;
                     return;
-                }
             }
         }
 
@@ -261,11 +281,7 @@ namespace Helion.Util.Parser
                 else if (c == '\n')
                 {
                     CompleteIdentifierIfAvailable();
-
-                    // The next iteration will increment it to zero, which is
-                    // what we want the line character offset to be.
-                    m_lineCharOffset = -1;
-                    m_lineNumber++;
+                    ResetLineInfoTrackers();
                 }
             }
 
