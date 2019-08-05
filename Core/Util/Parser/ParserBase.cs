@@ -112,8 +112,11 @@ namespace Helion.Util.Parser
         {
             if (CurrentTokenIndex >= m_tokens.Count) 
                 return false;
-            if (m_tokens[CurrentTokenIndex].Type != TokenType.Text)
+
+            TokenType type = m_tokens[CurrentTokenIndex].Type;
+            if (type != TokenType.String || type != TokenType.QuotedString)
                 return false;
+            
             return string.Equals(str, m_tokens[CurrentTokenIndex].Text);
         }
         
@@ -144,7 +147,14 @@ namespace Helion.Util.Parser
         /// </summary>
         /// <returns>True if so, false if we ran out of tokens or it is not a
         /// string.</returns>
-        protected bool PeekString() => Peek(TokenType.Text);
+        protected bool PeekString()
+        {
+            if (CurrentTokenIndex >= m_tokens.Count) 
+                return false;
+            
+            TokenType type = m_tokens[CurrentTokenIndex].Type;
+            return type == TokenType.String || type == TokenType.QuotedString;
+        }
 
         /// <summary>
         /// Consumes a character or throws.

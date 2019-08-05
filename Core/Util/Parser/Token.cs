@@ -49,7 +49,7 @@ namespace Helion.Util.Parser
             Precondition(lineNumber > 0, "Line number must be 1 or greater");
             Precondition(lineCharOffset >= 0, "Line char offset must not be negative");
             Precondition(charOffset >= 0, "Char offset must not be negative");
-            Precondition(!text.Empty(), "A token cannot have an empty string");
+            Precondition(type == TokenType.QuotedString || !text.Empty(), "A token cannot have an empty string (unless it's a quoted string)");
             
             LineNumber = lineNumber;
             LineCharOffset = lineCharOffset;
@@ -71,7 +71,7 @@ namespace Helion.Util.Parser
         public Token(int lineNumber, int lineCharOffset, int charOffset, char c) : 
             this(lineNumber, lineCharOffset, charOffset, c.ToString(), ToTokenType(c))
         {
-            Precondition(Type != TokenType.Text, $"Token symbol constructor did not get a symbol: {c}");
+            Precondition(Type != TokenType.String, $"Token symbol constructor did not get a symbol: {c}");
         }
 
         private static TokenType ToTokenType(char c)
@@ -135,7 +135,7 @@ namespace Helion.Util.Parser
             case '?':
                 return TokenType.QuestionMark;
             default:
-                return TokenType.Text;
+                return TokenType.String;
             }
         }
     }

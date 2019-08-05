@@ -7,7 +7,8 @@ namespace Helion.Util.Parser
     {
         Integer,
         FloatingPoint,
-        Text,
+        String,
+        QuotedString,
         Backtick,
         Tilde,
         Exclamation,
