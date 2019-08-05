@@ -24,19 +24,25 @@ namespace Helion.Util.Parser
         /// </summary>
         protected int CurrentTokenIndex;
         
-        private List<Token> m_tokens = new List<Token>();
+        /// <summary>
+        /// A list of the tokens to be processed.
+        /// </summary>
+        protected List<Token> Tokens = new List<Token>();
         
         /// <summary>
         /// Performs a full parsing on the text. On success, internal data
         /// structures will be populated. Returns success or failure status.
         /// </summary>
         /// <param name="text">The text to parse.</param>
-        /// <returns>True on success, false if any errors occurred.</returns>
+        /// <returns>True on success, false if any errors occurred. Failure
+        /// occurs when the grammar is not correct, or tokenizing fails from
+        /// malformed data (ex: string missing an ending quotation mark).
+        /// </returns>
         public bool Parse(string text)
         {
             try
             {
-                m_tokens = Tokenizer.Read(text);
+                Tokens = Tokenizer.Read(text);
                 PerformParsing();
                 return true;
             }
@@ -60,7 +66,7 @@ namespace Helion.Util.Parser
         /// <summary>
         /// Checks if all the tokens have been all consumed.
         /// </summary>
-        protected bool Done => CurrentTokenIndex >= m_tokens.Count;
+        protected bool Done => CurrentTokenIndex >= Tokens.Count;
 
         /// <summary>
         /// Peeks to the next token (if it exists) to check if it is the same
@@ -71,8 +77,8 @@ namespace Helion.Util.Parser
         /// it does not match or we are out of tokens to read.</returns>
         protected bool Peek(TokenType type)
         {
-            if (CurrentTokenIndex < m_tokens.Count)
-                return m_tokens[CurrentTokenIndex].Type == type;
+            if (CurrentTokenIndex < Tokens.Count)
+                return Tokens[CurrentTokenIndex].Type == type;
             return false;
         }
         
@@ -91,10 +97,10 @@ namespace Helion.Util.Parser
         /// the next one is not a character or we ran out of tokens.</returns>
         protected bool Peek(char c)
         {
-            if (CurrentTokenIndex >= m_tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count) 
                 return false;
             
-            string text = m_tokens[CurrentTokenIndex].Text;
+            string text = Tokens[CurrentTokenIndex].Text;
             return text.Length == 1 && text[0] == c;
         }
         
@@ -110,14 +116,14 @@ namespace Helion.Util.Parser
         /// ran out of tokens.</returns>
         protected bool Peek(string str)
         {
-            if (CurrentTokenIndex >= m_tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count) 
                 return false;
 
-            TokenType type = m_tokens[CurrentTokenIndex].Type;
+            TokenType type = Tokens[CurrentTokenIndex].Type;
             if (type != TokenType.String || type != TokenType.QuotedString)
                 return false;
             
-            return string.Equals(str, m_tokens[CurrentTokenIndex].Text);
+            return string.Equals(str, Tokens[CurrentTokenIndex].Text);
         }
         
         /// <summary>
@@ -128,19 +134,63 @@ namespace Helion.Util.Parser
         /// ran out of tokens.</returns>
         protected bool PeekFloat()
         {
-            if (CurrentTokenIndex >= m_tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count) 
                 return false;
             
-            TokenType type = m_tokens[CurrentTokenIndex].Type;
+            TokenType type = Tokens[CurrentTokenIndex].Type;
             return type == TokenType.Integer || type == TokenType.FloatingPoint;
         }
 
         /// <summary>
-        /// Checks to see if the next token is a whole number.
+        /// Checks to see if the next token is a whole number. This will not
+        /// read negatives, only unsigned numbers. If you want to read negative
+        /// numbers, use <see cref="PeekSignedInteger"/>.
         /// </summary>
         /// <returns>True if it is, false if not or if we ran out of tokens.
         /// </returns>
         protected bool PeekInteger() => Peek(TokenType.Integer);
+        
+        /// <summary>
+        /// Checks to see if either an integer or a negative integer is next.
+        /// If true, this means you can consume a signed integer.
+        /// </summary>
+        /// <returns>True if there is a next token that is an integer, or if
+        /// there are two tokens and they are a minus sign followed by an
+        /// integer; false otherwise.</returns>
+        protected bool PeekSignedInteger()
+        {
+            if (Done)
+                return false;
+
+            if (PeekInteger())
+                return true;
+
+            if (Peek(TokenType.Minus) && CurrentTokenIndex + 1 < Tokens.Count)
+                return Tokens[CurrentTokenIndex + 1].Type == TokenType.Integer;
+
+            return false;
+        }
+        
+        /// <summary>
+        /// Checks to see if either a float or a negative float is next. If
+        /// true, this means you can consume a signed float.
+        /// </summary>
+        /// <returns>True if there is a next token that is an float, or if
+        /// there are two tokens and they are a minus sign followed by a
+        /// float; false otherwise.</returns>
+        protected bool PeekSignedFloat()
+        {
+            if (Done)
+                return false;
+
+            if (PeekFloat())
+                return true;
+
+            if (Peek(TokenType.Minus) && CurrentTokenIndex + 1 < Tokens.Count)
+                return Tokens[CurrentTokenIndex + 1].Type == TokenType.FloatingPoint;
+
+            return false;
+        }
 
         /// <summary>
         /// Checks to see if the next token is a string or not.
@@ -149,11 +199,32 @@ namespace Helion.Util.Parser
         /// string.</returns>
         protected bool PeekString()
         {
-            if (CurrentTokenIndex >= m_tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count) 
                 return false;
             
-            TokenType type = m_tokens[CurrentTokenIndex].Type;
+            TokenType type = Tokens[CurrentTokenIndex].Type;
             return type == TokenType.String || type == TokenType.QuotedString;
+        }
+        
+        /// <summary>
+        /// Consumes the token type provided, or throws.
+        /// </summary>
+        /// <param name="type">The type to consume.</param>
+        /// <exception cref="ParserException">If the type does not match or we
+        /// ran out of tokens.</exception>
+        protected void Consume(TokenType type)
+        {
+            if (Tokens[CurrentTokenIndex].Type == type)
+            {
+                CurrentTokenIndex++;
+                return;
+            }
+            
+            if (Done)
+                ThrowOvershootException($"Expecting token type {type}, but ran out of tokens");
+
+            Token token = Tokens[CurrentTokenIndex];
+            throw new ParserException(token, $"Expecting to find {type}, got {Tokens[CurrentTokenIndex].Type} instead");
         }
 
         /// <summary>
@@ -164,13 +235,15 @@ namespace Helion.Util.Parser
         /// if the character was completely standalone, or is a symbol that
         /// forms its own token. This also does not return anything because you
         /// know exactly what character you are getting if this doesn't throw.
+        /// This is also a convenience function since writing Consume('{') is
+        /// easier than something like Consume(TokenType.LeftBrace).
         /// </remarks>
         /// <param name="c">The character to consume.</param>
         /// <exception cref="ParserException">If there is no match or we ran
         /// out of tokens.</exception>
         protected void Consume(char c)
         {
-            if (m_tokens[CurrentTokenIndex].Text.Length == 1 && m_tokens[CurrentTokenIndex].Text[0] == c)
+            if (Tokens[CurrentTokenIndex].Text.Length == 1 && Tokens[CurrentTokenIndex].Text[0] == c)
             {
                 CurrentTokenIndex++;
                 return;
@@ -179,7 +252,7 @@ namespace Helion.Util.Parser
             if (Done)
                 ThrowOvershootException($"Expecting character '{c}', but ran out of tokens");
 
-            Token token = m_tokens[CurrentTokenIndex];
+            Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find '{c}', got {token.Text} instead");
         }
         
@@ -192,13 +265,45 @@ namespace Helion.Util.Parser
         /// </exception>
         protected int ConsumeInteger()
         {
-            if (PeekInteger() && int.TryParse(m_tokens[CurrentTokenIndex++].Text, out int number))
-                return number;
+            if (PeekInteger())
+            {
+                if (int.TryParse(Tokens[CurrentTokenIndex].Text, out int number))
+                {
+                    CurrentTokenIndex++;
+                    return number;
+                }
+            }
 
             if (Done)
                 ThrowOvershootException("Expecting a number, but ran out of tokens");
             
-            Token token = m_tokens[CurrentTokenIndex];
+            Token token = Tokens[CurrentTokenIndex];
+            throw new ParserException(token, $"Expected a number, got a '{token.Type}' instead (which was \"{token.Text}\")");
+        }
+        
+        /// <summary>
+        /// Consumes a signed integer and parses it. Throws if it cannot.
+        /// </summary>
+        /// <returns>The integer (if it doesn't throw).</returns>
+        /// <exception cref="ParserException">If there is no match or we ran
+        /// out of tokens or there was a parsing error with the integer.
+        /// </exception>
+        protected int ConsumeSignedInteger()
+        {
+            if (PeekSignedInteger())
+            {
+                if (Tokens[CurrentTokenIndex].Type == TokenType.Integer)
+                    return ConsumeInteger();
+
+                Consume(TokenType.Minus);
+                CurrentTokenIndex++;
+                return -ConsumeInteger();
+            }
+
+            if (Done)
+                ThrowOvershootException("Expecting a number, but ran out of tokens");
+            
+            Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
         
@@ -211,13 +316,39 @@ namespace Helion.Util.Parser
         /// </exception>
         protected double ConsumeFloat()
         {
-            if (PeekFloat() && double.TryParse(m_tokens[CurrentTokenIndex++].Text, out double number))
+            if (PeekFloat() && double.TryParse(Tokens[CurrentTokenIndex++].Text, out double number))
                 return number;
 
             if (Done)
                 ThrowOvershootException("Expecting a decimal number, but ran out of tokens");
             
-            Token token = m_tokens[CurrentTokenIndex];
+            Token token = Tokens[CurrentTokenIndex];
+            throw new ParserException(token, $"Expected a decimal number, got a '{token.Type}' instead (which was \"{token.Text}\")");
+        }
+        
+        /// <summary>
+        /// Consumes a signed float and parses it. Throws if it cannot.
+        /// </summary>
+        /// <returns>The float (if it doesn't throw).</returns>
+        /// <exception cref="ParserException">If there is no match or we ran
+        /// out of tokens or there was a parsing error with the float.
+        /// </exception>
+        protected double ConsumeSignedFloat()
+        {
+            if (PeekSignedFloat())
+            {
+                if (Tokens[CurrentTokenIndex].Type == TokenType.FloatingPoint)
+                    return ConsumeFloat();
+
+                Consume(TokenType.Minus);
+                CurrentTokenIndex++;
+                return -ConsumeFloat();
+            }
+
+            if (Done)
+                ThrowOvershootException("Expecting a decimal number, but ran out of tokens");
+            
+            Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a decimal number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
 
@@ -231,12 +362,12 @@ namespace Helion.Util.Parser
         protected string ConsumeText()
         {
             if (PeekString())
-                return m_tokens[CurrentTokenIndex++].Text;
+                return Tokens[CurrentTokenIndex++].Text;
 
             if (Done)
                 ThrowOvershootException("Expecting text, but ran out of tokens");
             
-            Token token = m_tokens[CurrentTokenIndex];
+            Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected text, got a '{token.Type}' instead");
         }
 
@@ -253,7 +384,7 @@ namespace Helion.Util.Parser
         /// </exception>
         protected void ConsumeText(string str)
         {
-            if (string.Equals(str, m_tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(str, Tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase))
             {
                 CurrentTokenIndex++;
                 return;
@@ -262,7 +393,7 @@ namespace Helion.Util.Parser
             if (Done)
                 ThrowOvershootException($"Expecting text '{str}', but ran out of tokens");
 
-            Token token = m_tokens[CurrentTokenIndex];
+            Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find \"{str}\", got \"{token.Text}\" instead");
         }
 
@@ -275,9 +406,9 @@ namespace Helion.Util.Parser
         
         private void ThrowOvershootException(string message)
         {
-            if (m_tokens.Empty())
+            if (Tokens.Empty())
                 throw new ParserException(0, 0, 0, message);
-            throw new ParserException(m_tokens.Last(), message);
+            throw new ParserException(Tokens.Last(), message);
         }
     }
 }

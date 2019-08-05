@@ -169,14 +169,6 @@ namespace Helion.Util.Parser
                 }
             }
         }
-        
-        private void ConsumeMinusTokenOrNegativeNumber(string text)
-        {
-            // TODO: Check if it's a number that's negated.
-            
-            Token token = new Token(lineNumber, lineCharOffset, textIndex, '-');
-            m_tokens.Add(token);
-        }
 
         private void Tokenize(string text)
         {
@@ -208,8 +200,6 @@ namespace Helion.Util.Parser
                         ConsumeQuotedString(text);
                     else if (c == '/')
                         ConsumeSlashTokenOrComments(text);
-                    else if (c == '-')
-                        ConsumeMinusTokenOrNegativeNumber(text);
                     else
                     {
                         Token token = new Token(lineNumber, lineCharOffset, textIndex, c);
