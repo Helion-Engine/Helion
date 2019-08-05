@@ -49,14 +49,21 @@ namespace Helion.Util.Parser
                 PerformParsing();
                 return true;
             }
+            catch (ArgumentOutOfRangeException)
+            {
+                if (Tokens.Empty())
+                {
+                    Log.Error("No tokens to parse, cannot read definition");
+                    return false;
+                }
+
+                ParserException exception = new ParserException(Tokens.Last(), "Text ended too early when parsing");
+                HandleParserException(exception, text);
+                return false;
+            }
             catch (ParserException e)
             {
-                // It may be possible for the log message to have interpolation
-                // values in it. Don't know how the logging framework would
-                // handle that correctly but I'll play it safe here by hoping
-                // it doesn't recursively interpolate.
-                foreach (string logMessage in e.LogToReadableMessage(text))
-                    Log.Error("{0}", logMessage);
+                HandleParserException(e, text);
                 return false;
             }
             catch (AssertionException)
@@ -64,7 +71,7 @@ namespace Helion.Util.Parser
                 // We want this to leak through if it ever happens.
                 throw;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Log.Error("Unexpected error parsing text around character offset {0} (report this to a developer!)", CurrentTokenIndex);
                 return false;
@@ -128,12 +135,21 @@ namespace Helion.Util.Parser
                 return false;
 
             TokenType type = Tokens[CurrentTokenIndex].Type;
-            if (type != TokenType.String || type != TokenType.QuotedString)
+            if (type != TokenType.String && type != TokenType.QuotedString)
                 return false;
             
-            return string.Equals(str, Tokens[CurrentTokenIndex].Text);
+            return string.Equals(str, Tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase);
         }
-        
+
+        /// <summary>
+        /// Checks to see if the next token is a whole number. This will not
+        /// read negatives, only unsigned numbers. If you want to read negative
+        /// numbers, use <see cref="PeekSignedInteger"/>.
+        /// </summary>
+        /// <returns>True if it is, false if not or if we ran out of tokens.
+        /// </returns>
+        protected bool PeekInteger() => Peek(TokenType.Integer);
+
         /// <summary>
         /// Checks if the next token is a floating point number (or an integer
         /// as well).
@@ -149,15 +165,6 @@ namespace Helion.Util.Parser
             return type == TokenType.Integer || type == TokenType.FloatingPoint;
         }
 
-        /// <summary>
-        /// Checks to see if the next token is a whole number. This will not
-        /// read negatives, only unsigned numbers. If you want to read negative
-        /// numbers, use <see cref="PeekSignedInteger"/>.
-        /// </summary>
-        /// <returns>True if it is, false if not or if we ran out of tokens.
-        /// </returns>
-        protected bool PeekInteger() => Peek(TokenType.Integer);
-        
         /// <summary>
         /// Checks to see if either an integer or a negative integer is next.
         /// If true, this means you can consume a signed integer.
@@ -195,7 +202,10 @@ namespace Helion.Util.Parser
                 return true;
 
             if (Peek(TokenType.Minus) && CurrentTokenIndex + 1 < Tokens.Count)
-                return Tokens[CurrentTokenIndex + 1].Type == TokenType.FloatingPoint;
+            {
+                 TokenType type = Tokens[CurrentTokenIndex + 1].Type;
+                 return type == TokenType.FloatingPoint || type == TokenType.Integer;
+            }
 
             return false;
         }
@@ -227,9 +237,6 @@ namespace Helion.Util.Parser
                 CurrentTokenIndex++;
                 return;
             }
-            
-            if (Done)
-                ThrowOvershootException($"Expecting token type {type}, but ran out of tokens");
 
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find {type}, got {Tokens[CurrentTokenIndex].Type} instead");
@@ -256,9 +263,6 @@ namespace Helion.Util.Parser
                 CurrentTokenIndex++;
                 return;
             }
-            
-            if (Done)
-                ThrowOvershootException($"Expecting character '{c}', but ran out of tokens");
 
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find '{c}', got {token.Text} instead");
@@ -282,9 +286,6 @@ namespace Helion.Util.Parser
                 }
             }
 
-            if (Done)
-                ThrowOvershootException("Expecting a number, but ran out of tokens");
-            
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
@@ -307,9 +308,6 @@ namespace Helion.Util.Parser
                 return -ConsumeInteger();
             }
 
-            if (Done)
-                ThrowOvershootException("Expecting a number, but ran out of tokens");
-            
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
@@ -326,9 +324,6 @@ namespace Helion.Util.Parser
             if (PeekFloat() && double.TryParse(Tokens[CurrentTokenIndex++].Text, out double number))
                 return number;
 
-            if (Done)
-                ThrowOvershootException("Expecting a decimal number, but ran out of tokens");
-            
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a decimal number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
@@ -346,13 +341,12 @@ namespace Helion.Util.Parser
             {
                 if (Tokens[CurrentTokenIndex].Type == TokenType.FloatingPoint)
                     return ConsumeFloat();
+                if (Tokens[CurrentTokenIndex].Type == TokenType.Integer)
+                    return ConsumeInteger();
 
                 Consume(TokenType.Minus);
                 return -ConsumeFloat();
             }
-
-            if (Done)
-                ThrowOvershootException("Expecting a decimal number, but ran out of tokens");
             
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a decimal number, got a '{token.Type}' instead (which was \"{token.Text}\")");
@@ -365,14 +359,11 @@ namespace Helion.Util.Parser
         /// <exception cref="ParserException">If there is no match or we ran
         /// out of tokens.
         /// </exception>
-        protected string ConsumeText()
+        protected string ConsumeString()
         {
             if (PeekString())
                 return Tokens[CurrentTokenIndex++].Text;
 
-            if (Done)
-                ThrowOvershootException("Expecting text, but ran out of tokens");
-            
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected text, got a '{token.Type}' instead");
         }
@@ -388,16 +379,13 @@ namespace Helion.Util.Parser
         /// <exception cref="ParserException">If the string does not match, or
         /// if we ran out of tokens, or if the token is not a string value.
         /// </exception>
-        protected void ConsumeText(string str)
+        protected void ConsumeString(string str)
         {
             if (string.Equals(str, Tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase))
             {
                 CurrentTokenIndex++;
                 return;
             }
-            
-            if (Done)
-                ThrowOvershootException($"Expecting text '{str}', but ran out of tokens");
 
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find \"{str}\", got \"{token.Text}\" instead");
@@ -408,13 +396,21 @@ namespace Helion.Util.Parser
         /// this and carry out all of the parsing by using the methods provided
         /// in this class.
         /// </summary>
+        /// <remarks>
+        /// All the parsing invocations must be done in here. There is error
+        /// handling that wraps this function which will take care of anything
+        /// exceptional. Assertions will leak through though (as we'd want).
+        /// </remarks>
         protected abstract void PerformParsing();
-        
-        private void ThrowOvershootException(string message)
+
+        private static void HandleParserException(ParserException e, string text)
         {
-            if (Tokens.Empty())
-                throw new ParserException(0, 0, 0, message);
-            throw new ParserException(Tokens.Last(), message);
+            // It may be possible for the log message to have interpolation
+            // values in it. Don't know how the logging framework would
+            // handle that correctly but I'll play it safe here by hoping
+            // it doesn't recursively interpolate.
+            foreach (string logMessage in e.LogToReadableMessage(text))
+                Log.Error("{0}", logMessage);
         }
     }
 }
