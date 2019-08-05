@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.Assertion;
 using Helion.Util.Extensions;
+using NLog;
 
 namespace Helion.Util.Parser
 {
@@ -17,6 +18,8 @@ namespace Helion.Util.Parser
     /// </remarks>
     public abstract class ParserBase
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// The current token index we're at. This can be retrieved or set to
         /// change the current token bring processed. Note that this should not
@@ -48,7 +51,7 @@ namespace Helion.Util.Parser
             }
             catch (ParserException e)
             {
-                // TODO: Log the parsing information.
+                e.LogToReadableMessage(text);
                 return false;
             }
             catch (AssertionException)
@@ -58,7 +61,7 @@ namespace Helion.Util.Parser
             }
             catch (Exception e)
             {
-                // TODO: Log the information.
+                Log.Error("Unexpected error parsing text around character offset {0} (report this to a developer!)", CurrentTokenIndex);
                 return false;
             }
         }
