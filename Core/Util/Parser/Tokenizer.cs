@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Parser
 {
@@ -10,12 +11,18 @@ namespace Helion.Util.Parser
     {
         private readonly List<Token> m_tokens = new List<Token>();
         private readonly StringBuilder m_identifierBuilder = new StringBuilder();
-        private int lineNumber = 1;
-        private int lineCharOffset;
-        private int textIndex;
+        private readonly string m_text;
+        private int m_lineNumber = 1;
+        private int m_lineCharOffset;
+        private int m_textIndex;
 
         private bool BuildingIdentifier => m_identifierBuilder.Length > 0;
 
+        private Tokenizer(string text)
+        {
+            m_text = text;
+        }
+        
         /// <summary>
         /// Reads text into a series of tokens.
         /// </summary>
@@ -27,8 +34,8 @@ namespace Helion.Util.Parser
         /// </exception>
         public static List<Token> Read(string text)
         {
-            Tokenizer tokenizer = new Tokenizer();
-            tokenizer.Tokenize(text);
+            Tokenizer tokenizer = new Tokenizer(text);
+            tokenizer.Tokenize();
             return tokenizer.m_tokens;
         }
 
@@ -54,33 +61,33 @@ namespace Helion.Util.Parser
                 return;
 
             string text = m_identifierBuilder.ToString();
-            Token token = new Token(lineNumber, lineCharOffset, textIndex, text, TokenType.String);
+            Token token = new Token(m_lineNumber, m_lineCharOffset, m_textIndex, text, TokenType.String);
             m_tokens.Add(token);
             
             m_identifierBuilder.Clear();
         }
         
-        private void ConsumeQuotedString(string text)
+        private void ConsumeQuotedString()
         {
             // We're on the opening quote, so move ahead to the starting character.
-            textIndex++;
+            m_textIndex++;
             
-            int startingLineCharOffset = lineCharOffset;
-            int startingTextIndex = textIndex;
+            int startingLineCharOffset = m_lineCharOffset;
+            int startingTextIndex = m_textIndex;
             StringBuilder innerStringBuilder = new StringBuilder();
             
-            for (; textIndex < text.Length; textIndex++, lineCharOffset++)
+            for (; m_textIndex < m_text.Length; m_textIndex++, m_lineCharOffset++)
             {
-                char c = text[textIndex];
+                char c = m_text[m_textIndex];
                 
                 if (IsPrintableCharacter(c))
                     innerStringBuilder.Append(c);
                 else if (c == '\n')
-                    throw new ParserException(lineNumber, lineCharOffset, textIndex, "String missing ending quote");
+                    throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "String missing ending quote");
                 else if (c == '"')
                 {
                     string innerString = innerStringBuilder.ToString();
-                    Token token = new Token(lineNumber, lineCharOffset, textIndex, innerString, TokenType.QuotedString);
+                    Token token = new Token(m_lineNumber, m_lineCharOffset, m_textIndex, innerString, TokenType.QuotedString);
                     m_tokens.Add(token);
                     return;
                 }
@@ -89,92 +96,137 @@ namespace Helion.Util.Parser
             // This is for some exotic case where we run into EOF when trying
             // to complete the quoted string.
             const string errorMessage = "String missing ending quote, found end of text instead";
-            throw new ParserException(lineNumber, startingLineCharOffset, startingTextIndex, errorMessage);
+            throw new ParserException(m_lineNumber, startingLineCharOffset, startingTextIndex, errorMessage);
         }
 
         private void ConsumeNumber()
         {
-            // TODO
+            bool isFloat = false;
+            int startCharOffset = m_textIndex;
+            int startLineCharOffset = m_lineCharOffset;
+            StringBuilder numberBuilder = new StringBuilder();
+
+            while (m_textIndex < m_text.Length)
+            {
+                char c = m_text[m_textIndex];
+
+                if (IsNumber(c))
+                {
+                    numberBuilder.Append(c);
+                }
+                else if (c == '.')
+                {
+                    if (isFloat)
+                        throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Decimal number cannot have two decimals");
+                    
+                    isFloat = true;
+                    numberBuilder.Append(c);
+                }
+                else
+                {
+                    break;
+                }
+
+                m_textIndex++;
+                m_lineCharOffset++;
+            }
+
+            string text = numberBuilder.ToString();
+            if (text.EndsWith("."))
+                throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Decimal number cannot end with a period");
+                
+            if (isFloat)
+            {
+                Token floatToken = new Token(m_lineNumber, startLineCharOffset, startCharOffset, text, TokenType.FloatingPoint);
+                m_tokens.Add(floatToken);
+            }
+            else
+            {
+                Token intToken = new Token(m_lineNumber, startLineCharOffset, startCharOffset, text, TokenType.Integer);
+                m_tokens.Add(intToken);
+            }
+
+            Postcondition(double.TryParse(text, out double _), "Returning a number token but cannot parse a number out of it");
         }
         
-        private void ConsumeSlashTokenOrComments(string text)
+        private void ConsumeSlashTokenOrComments()
         {
-            if (textIndex + 1 < text.Length)
+            if (m_textIndex + 1 < m_text.Length)
             {
-                char nextChar = text[textIndex + 1];
+                char nextChar = m_text[m_textIndex + 1];
                 
                 if (nextChar == '/')
                 {
-                    textIndex += 2;
-                    lineCharOffset += 2;
-                    ConsumeSingleLineComment(text);
+                    m_textIndex += 2;
+                    m_lineCharOffset += 2;
+                    ConsumeSingleLineComment();
                     return;
                 }
                 
                 if (nextChar == '*')
                 {
-                    textIndex += 2;
-                    lineCharOffset += 2;
-                    ConsumeMultiLineComment(text);
+                    m_textIndex += 2;
+                    m_lineCharOffset += 2;
+                    ConsumeMultiLineComment();
                     return;
                 }
             }
                 
-            Token token = new Token(lineNumber, lineCharOffset, textIndex, '/');
+            Token token = new Token(m_lineNumber, m_lineCharOffset, m_textIndex, '/');
             m_tokens.Add(token);
         }
 
-        private void ConsumeSingleLineComment(string text)
+        private void ConsumeSingleLineComment()
         {
-            for (; textIndex < text.Length; textIndex++)
+            for (; m_textIndex < m_text.Length; m_textIndex++)
             {
-                if (text[textIndex] != '\n') 
+                if (m_text[m_textIndex] != '\n') 
                     continue;
                 
                 // The next iteration will increment it to zero, which is what
                 // we want the line character offset to be.
-                lineCharOffset = -1;
-                lineNumber++;
+                m_lineCharOffset = -1;
+                m_lineNumber++;
                 return;
             }
         }
 
-        private void ConsumeMultiLineComment(string text)
+        private void ConsumeMultiLineComment()
         {
             // We want to start one ahead so comments like /*/ don't work.
-            textIndex++;
+            m_textIndex++;
             
             // Note that the way this loop works means that if find EOF first,
             // it is considered okay. This is what zdoom appears to do, so we
             // will have to do it as well for compatibility reasons since the
             // enforcement of requiring a terminating */ will break wads.
-            for (; textIndex < text.Length; textIndex++, lineCharOffset++)
+            for (; m_textIndex < m_text.Length; m_textIndex++, m_lineCharOffset++)
             {
-                char c = text[textIndex];
+                char c = m_text[m_textIndex];
 
                 if (c == '\n')
                 {
                     // The next iteration will increment it to zero, which is what
                     // we want the line character offset to be.
-                    lineCharOffset = -1;
-                    lineNumber++;
+                    m_lineCharOffset = -1;
+                    m_lineNumber++;
                     continue;
                 }
                 
-                if (c == '/' && text[textIndex - 1] == '*')
+                if (c == '/' && m_text[m_textIndex - 1] == '*')
                 {
-                    textIndex++;
-                    lineCharOffset++;
+                    m_textIndex++;
+                    m_lineCharOffset++;
                     return;
                 }
             }
         }
 
-        private void Tokenize(string text)
+        private void Tokenize()
         {
-            for (textIndex = 0; textIndex < text.Length; textIndex++, lineCharOffset++)
+            for (m_textIndex = 0; m_textIndex < m_text.Length; m_textIndex++, m_lineCharOffset++)
             {
-                char c = text[textIndex];
+                char c = m_text[m_textIndex];
 
                 if (IsIdentifier(c))
                 {
@@ -197,12 +249,12 @@ namespace Helion.Util.Parser
                     CompleteIdentifierIfAvailable();
 
                     if (c == '"')
-                        ConsumeQuotedString(text);
+                        ConsumeQuotedString();
                     else if (c == '/')
-                        ConsumeSlashTokenOrComments(text);
+                        ConsumeSlashTokenOrComments();
                     else
                     {
-                        Token token = new Token(lineNumber, lineCharOffset, textIndex, c);
+                        Token token = new Token(m_lineNumber, m_lineCharOffset, m_textIndex, c);
                         m_tokens.Add(token);
                     }
                 }
@@ -212,8 +264,8 @@ namespace Helion.Util.Parser
 
                     // The next iteration will increment it to zero, which is
                     // what we want the line character offset to be.
-                    lineCharOffset = -1;
-                    lineNumber++;
+                    m_lineCharOffset = -1;
+                    m_lineNumber++;
                 }
             }
 
