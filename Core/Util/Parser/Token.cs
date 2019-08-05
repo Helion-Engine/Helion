@@ -122,6 +122,10 @@ namespace Helion.Util.Parser
                 return TokenType.Backslash;    
             case '|':
                 return TokenType.Pipe;    
+            case ':':
+                return TokenType.Colon;
+            case ';':
+                return TokenType.Semicolon;
             case '<':
                 return TokenType.AngleLeft;    
             case '>':

@@ -31,6 +31,8 @@ namespace Helion.Util.Parser
         BraceRight,
         Backslash,
         Pipe,
+        Colon,
+        Semicolon,
         AngleLeft,
         AngleRight,
         Comma,
