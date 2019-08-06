@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helion.Maps.Special;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
@@ -30,6 +31,8 @@ namespace Helion.Maps.Geometry.Lines
         public bool HasSpecial => Special.LineSpecialType != LineSpecialType.None;
 
         public LineSpecial Special;
+
+        public bool Activated;
 
         public bool HasSectorTag => SectorTag > 0;
 

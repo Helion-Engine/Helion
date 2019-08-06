@@ -12,16 +12,7 @@ namespace Helion.Maps.Geometry
         public CIString MiddleTexture;
         public CIString UpperTexture;
         public readonly Sector Sector;
-
-        public Line Line {
-            get {
-                if (line == null)
-                    throw new HelionException("Trying to get the line for a side that has not had it set");
-                return line;
-            }
-            set { line = value; }
-        }
-        private Line? line;
+        public Line? Line;
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
         public bool IsBack => !IsFront;

@@ -54,6 +54,8 @@ namespace Helion.World.Entities
         // TODO should use state enum flags when they exist
         public bool IsFlying { get; set; }
         public bool NoClip { get; set; }
+        public int FrozenTics;
+        public bool IsFrozen => FrozenTics > 0;
 
         /// <summary>
         /// A cached value to tell whether we are on the ground or not.
@@ -219,6 +221,8 @@ namespace Helion.World.Entities
         public void Tick()
         {
             PrevPosition = Box.Position;
+            if (FrozenTics > 0)
+                FrozenTics--;
         }
 
         /// <inheritdoc/>

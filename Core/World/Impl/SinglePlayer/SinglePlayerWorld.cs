@@ -3,7 +3,9 @@ using System.Linq;
 using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
+using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Special.Specials;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -42,6 +44,9 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleFrameInput(ConsumableInput frameInput)
         {
+            if (Player.Entity.IsFrozen)
+                return;
+
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
             Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
             moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
@@ -55,6 +60,9 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleTickCommand(TickCommand tickCommand)
         {
+            if (Player.Entity.IsFrozen)
+                return;
+
             Entity entity = Player.Entity;
 
             Vec3D movement = Vec3D.Zero;
@@ -122,39 +130,8 @@ namespace Helion.World.Impl.SinglePlayer
             if (e.ActivateLineSpecial != null)
             {
                 var special = e.ActivateLineSpecial.Special;
-                Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{special.Repeat}]");
-
-                if (special.LineSpecialType == LineSpecialType.WR_Teleport || special.LineSpecialType == LineSpecialType.W1_Teleport)
-                    ExecuteSuperHackedTeleport(e.Entity, e.ActivateLineSpecial.SectorTag);
-            }
-        }
-
-        private void ExecuteSuperHackedTeleport(Entity entity, int sectorTag)
-        {
-            var sector = Map.Sectors.FirstOrDefault(x => x.Tag == sectorTag);
-            if (sector != null)
-            {
-                var max_x1 = sector.Sides.Max(x => x.Line.Segment.Start.X);
-                var max_x2 = sector.Sides.Max(x => x.Line.Segment.End.X);
-                var max_y1 = sector.Sides.Max(x => x.Line.Segment.Start.Y);
-                var max_y2 = sector.Sides.Max(x => x.Line.Segment.End.Y);
-                var min_x1 = sector.Sides.Min(x => x.Line.Segment.Start.X);
-                var min_x2 = sector.Sides.Min(x => x.Line.Segment.End.X);
-                var min_y1 = sector.Sides.Min(x => x.Line.Segment.Start.Y);
-                var min_y2 = sector.Sides.Min(x => x.Line.Segment.End.Y);
-
-                max_x1 = Math.Max(max_x1, max_x2);
-                max_y1 = Math.Max(max_y1, max_y2);
-                min_x1 = Math.Min(min_x1, min_x2);
-                min_y1 = Math.Min(min_y1, min_y2);
-
-                Vec2D center = (new Seg2D(new Vec2D(min_x1, min_y1), new Vec2D(max_x1, max_y1))).FromTime(0.5);
-
-                entity.UnlinkFromWorld();
-                entity.Velocity = Vec3D.Zero;
-                entity.SetXY(center);
-                entity.SetZ(sector.Floor.Z);
-                PhysicsManager.LinkToWorld(entity);
+                if (SpecialManager.AddActivatedLineSpecial(e))
+                    Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{special.Repeat}]");
             }
         }
 

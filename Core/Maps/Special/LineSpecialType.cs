@@ -1,4 +1,4 @@
-﻿namespace Helion.Maps.Geometry.Lines
+﻿namespace Helion.Maps.Special
 {
     public enum LineSpecialType
     {
@@ -25,7 +25,7 @@
         S1_RaiseFloorToMatchNextHigher,
         S1_LowerLiftRaise,
         W1_RaiseFloorToMatchNextHigherChangeTexture,
-        S1_LowerFloorToLowerAdjacentFloor,
+        S1_LowerFloorToLowestAdjacentFloor,
         G1_RaiseFloorToLowestAdjacentCeiling,
         W1_SlowCrusherCeiling,
         DR_OpenBlueKeyClose,
@@ -81,7 +81,7 @@
         WR_CloseDoorThirtySeconds,
         WR_FastCrusherCeilingSlowDamage,
         Unused1,
-        WR_LiftOffMinBrightness,
+        WR_LightOffMinBrightness,
         WR_LightLevelMatchBrightestAdjacent,
         WR_LightOnMaxBrigthness,
         WR_LowerFloorToLowestAdjacentFloor,
@@ -96,7 +96,7 @@
         WR_RaiseFloorToLowestAdjacentCeiling,
         WR_RaiseFLoorTwentyFour,
         WR_RaiseFLoorChangeTexture,
-        WR_CrusherFLoorRaiseToEightBelowAdjacentCeiling,
+        WR_CrusherFloorRaiseToEightBelowAdjacentCeiling,
         WR_RaiseFloorToMatchNextHigherChangeTexture,
         WR_RaiseByShortestLowerTexture,
         WR_Teleport,
@@ -120,8 +120,8 @@
         SR_OpenDoorFastStay,
         SR_CloseDoorFast,
         DR_OpenDoorFastClose,
-        D1_OpenDoorFastSay,
-        S1_RaiseFloorToNextHigherFLoor,
+        D1_OpenDoorFastStay,
+        W1_RaiseFloorToNextHigherFloor,
         WR_LowerLiftFastRaise,
         W1_LowerLiftFastRaise,
         S1_LowerLiftFastRaise,

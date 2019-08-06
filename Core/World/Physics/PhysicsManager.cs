@@ -437,8 +437,11 @@ namespace Helion.World.Physics
                 return;
 
             bool fromFront = line.Segment.OnRight(previousPosition);
-            if (fromFront && fromFront != line.Segment.OnRight(entity.Position.To2D()))
+            if (fromFront != line.Segment.OnRight(entity.Position.To2D()))
             {
+                if (line.Special.IsTeleport() && !fromFront)
+                    return;
+
                 m_entityActivatedSpecialArgs.ActivationContext = ActivationContext.CrossLine;
                 m_entityActivatedSpecialArgs.Entity = entity;
                 m_entityActivatedSpecialArgs.ActivateLineSpecial = line;

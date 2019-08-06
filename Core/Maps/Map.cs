@@ -54,5 +54,112 @@ namespace Helion.Maps
             Map map = new Map(mapEntryCollection.Name, mapEntryCollection.MapType);
             return MapEntryReader.ReadInto(mapEntryCollection, map) ? map : null;
         }
+
+        // TODO use plane values - can probably make these neater and more concise, they are all basically the same function
+        // TODO add function to handle WR_RaiseByShortestLowerTexture
+        public Sector? GetLowestAdjacentFloor(Sector sector)
+        {
+            double lowestZ = double.MaxValue;
+            Sector? lowestSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector.Id != sector.Id && side.Sector.Floor.Z < lowestZ)
+                {
+                    lowestSector = side.Sector;
+                    lowestZ = lowestSector.Floor.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Floor.Z < lowestZ)
+                {
+                    lowestSector = side.PartnerSide.Sector;
+                    lowestZ = lowestSector.Floor.Z;
+                }
+            }
+
+            return lowestSector;
+        }
+
+
+        public Sector? GetHighestAdjacentFloor(Sector sector)
+        {
+            double highestZ = double.MinValue;
+            Sector? highestSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector.Id != sector.Id && side.Sector.Floor.Z > highestZ)
+                {
+                    highestSector = side.Sector;
+                    highestZ = highestSector.Floor.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Floor.Z > highestZ)
+                {
+                    highestSector = side.PartnerSide.Sector;
+                    highestZ = highestSector.Floor.Z;
+                }
+            }
+
+            return highestSector;
+        }
+
+        public Sector? GetLowestAdjacentCeiling(Sector sector)
+        {
+            double lowestZ = double.MaxValue;
+            Sector? lowestSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector.Id != sector.Id && side.Sector.Ceiling.Z < lowestZ)
+                {
+                    lowestSector = side.Sector;
+                    lowestZ = lowestSector.Ceiling.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Ceiling.Z < lowestZ)
+                {
+                    lowestSector = side.PartnerSide.Sector;
+                    lowestZ = lowestSector.Ceiling.Z;
+                }
+            }
+
+            return lowestSector;
+        }
+
+        public Sector? GetHighestAdjacentCeiling(Sector sector)
+        {
+            double highestZ = double.MinValue;
+            Sector? highestSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector.Id != sector.Id && side.Sector.Ceiling.Z > highestZ)
+                {
+                    highestSector = side.Sector;
+                    highestZ = highestSector.Ceiling.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Ceiling.Z > highestZ)
+                {
+                    highestSector = side.PartnerSide.Sector;
+                    highestZ = highestSector.Ceiling.Z;
+                }
+            }
+
+            return highestSector;
+        }
     }
 }

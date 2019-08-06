@@ -15,6 +15,8 @@ namespace Helion.Maps.Geometry
         public byte LightLevel;
         public int Tag;
 
+        public bool IsMoving;
+
         public SectorFlat Floor => Flats[0];
         public SectorFlat Ceiling => Flats[1];
         public float UnitLightLevel => LightLevel / 255.0f;

@@ -23,5 +23,10 @@ namespace Helion.Maps
         IList<SectorFlat> SectorFlats { get; }
         
         IList<Vertex> Vertices { get; }
+
+        Sector? GetLowestAdjacentFloor(Sector sector);
+        Sector? GetHighestAdjacentFloor(Sector sector);
+        Sector? GetLowestAdjacentCeiling(Sector sector);
+        Sector? GetHighestAdjacentCeiling(Sector sector);
     }
 }

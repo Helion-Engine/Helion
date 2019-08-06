@@ -1,5 +1,6 @@
 ﻿using Helion.Cheats;
 using Helion.Maps;
+using Helion.Maps.Special;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.World.Blockmaps;
@@ -20,6 +21,7 @@ namespace Helion.World
         protected readonly Config Config;
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
+        protected readonly SpecialManager SpecialManager;
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree)
         {
@@ -30,6 +32,7 @@ namespace Helion.World
             Blockmap = new Blockmap(map);
             PhysicsManager = new PhysicsManager(bspTree, Blockmap); 
             EntityManager = new EntityManager(this, archiveCollection, bspTree, Blockmap, PhysicsManager, map);
+            SpecialManager = new SpecialManager(PhysicsManager, Map);
         }
 
         public void Tick()
@@ -41,7 +44,9 @@ namespace Helion.World
                 entity.Tick();
                 PhysicsManager.Move(entity);
             });
-            
+
+            SpecialManager.Tick();
+
             Gametick++;
         }
     }
