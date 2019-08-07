@@ -61,12 +61,12 @@ namespace Helion.Render.Shared
         /// to that range.</param>
         public Camera(Vector3 position, float yawRadians, float pitchRadians)
         {
-            Precondition(yawRadians >= 0.0f && yawRadians < MathHelper.TwoPi, "Out of range yaw, should be in [0, 2*pi)");
-            Precondition(pitchRadians > -MathHelper.PiOver2 && pitchRadians < MathHelper.PiOver2, "Out of range pitch, should be in (-pi/2, pi/2)");
+            Precondition(yawRadians >= 0.0f && yawRadians < MathHelper.TwoPi, $"Out of range yaw, should be in [0, 2*pi), got {yawRadians}");
+            Precondition(pitchRadians > -MathHelper.PiOver2 && pitchRadians < MathHelper.PiOver2, $"Out of range pitch, should be in (-pi/2, pi/2), got {pitchRadians}");
             
             Position = position;
-            YawRadians = yawRadians;
-            PitchRadians = pitchRadians;
+            YawRadians = ClampYaw(yawRadians);
+            PitchRadians = ClampPitch(pitchRadians);
             Direction = DirectionFrom(yawRadians, pitchRadians);
         }
 
@@ -110,6 +110,19 @@ namespace Helion.Render.Shared
             float y = (float)Math.Sin(yawRadians);
             float z = (float)Math.Sin(pitchRadians);
             return Vector3.Normalize(new Vector3(x, y, z));
+        }
+
+        private static float ClampYaw(float yawRadians)
+        {
+            float clampedYaw = yawRadians % MathHelper.TwoPi;
+            if (clampedYaw < 0)
+                clampedYaw += MathHelper.TwoPi;
+            return clampedYaw;
+        }
+        
+        private static float ClampPitch(float pitchRadians)
+        {
+            return MathHelper.Clamp(pitchRadians, -MathHelper.PiOver2, MathHelper.PiOver2);
         }
     }
 }
