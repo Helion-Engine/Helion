@@ -119,5 +119,85 @@ namespace Helion.Test.Unit.Util.Atlas
             
             Assert.IsNull(atlas.Add(new Dimension(1, 1)));
         }
+
+        [TestMethod]
+        public void AtlasResizesWhenFullAndAddingSmallArea()
+        {
+            Atlas2D atlas = new Atlas2D(new Dimension(2, 2), 4);
+            
+            // t t
+            // b b
+            AtlasHandle? firstBottom = atlas.Add(new Dimension(2, 1));
+            AtlasHandle? firstTop = atlas.Add(new Dimension(2, 1));
+            Assert.IsNotNull(firstBottom);
+            Assert.IsNotNull(firstTop);
+            Assert.AreEqual(0, firstBottom.Location.BottomLeft.X);
+            Assert.AreEqual(0, firstBottom.Location.BottomLeft.Y);
+            Assert.AreEqual(2, firstBottom.Location.TopRight.X);
+            Assert.AreEqual(1, firstBottom.Location.TopRight.Y);
+            Assert.AreEqual(0, firstTop.Location.BottomLeft.X);
+            Assert.AreEqual(1, firstTop.Location.BottomLeft.Y);
+            Assert.AreEqual(2, firstTop.Location.TopRight.X);
+            Assert.AreEqual(2, firstTop.Location.TopRight.Y);
+            
+            // 3 3 4 4
+            // 3 3 4 4
+            // t t 2 2
+            // b b 2 2
+            AtlasHandle? second = atlas.Add(new Dimension(2, 2));
+            Assert.IsNotNull(second);
+            Assert.AreEqual(0, second.Location.BottomLeft.X);
+            Assert.AreEqual(2, second.Location.BottomLeft.Y);
+            Assert.AreEqual(2, second.Location.TopRight.X);
+            Assert.AreEqual(4, second.Location.TopRight.Y);
+            
+            AtlasHandle? third = atlas.Add(new Dimension(2, 2));
+            Assert.IsNotNull(third);
+            Assert.AreEqual(2, third.Location.BottomLeft.X);
+            Assert.AreEqual(0, third.Location.BottomLeft.Y);
+            Assert.AreEqual(4, third.Location.TopRight.X);
+            Assert.AreEqual(2, third.Location.TopRight.Y);
+            
+            AtlasHandle? fourth = atlas.Add(new Dimension(2, 2));
+            Assert.IsNotNull(fourth);
+            Assert.AreEqual(2, fourth.Location.BottomLeft.X);
+            Assert.AreEqual(2, fourth.Location.BottomLeft.Y);
+            Assert.AreEqual(4, fourth.Location.TopRight.X);
+            Assert.AreEqual(4, fourth.Location.TopRight.Y);
+            
+            // Due to the resizing that happens, all the new locations should
+            // be valid and not overwrite any other one. Likewise the old one
+            // should stay in tact.
+            Assert.AreEqual(0, firstBottom.Location.BottomLeft.X);
+            Assert.AreEqual(0, firstBottom.Location.BottomLeft.Y);
+            Assert.AreEqual(2, firstBottom.Location.TopRight.X);
+            Assert.AreEqual(1, firstBottom.Location.TopRight.Y);
+            Assert.AreEqual(0, firstTop.Location.BottomLeft.X);
+            Assert.AreEqual(1, firstTop.Location.BottomLeft.Y);
+            Assert.AreEqual(2, firstTop.Location.TopRight.X);
+            Assert.AreEqual(2, firstTop.Location.TopRight.Y);
+
+            AtlasHandle? overflow = atlas.Add(new Dimension(1, 1));
+            Assert.IsNull(overflow);
+        }
+        
+        [TestMethod]
+        public void AtlasResizesWhenFullAndAddingLargeArea()
+        {
+            Atlas2D atlas = new Atlas2D(new Dimension(2, 2), 16);
+            
+            AtlasHandle? first = atlas.Add(new Dimension(2, 2));
+            Assert.IsNotNull(first);
+            
+            AtlasHandle? second = atlas.Add(new Dimension(12, 12));
+            Assert.IsNotNull(second);
+            Assert.AreEqual(2, second.Location.BottomLeft.X);
+            Assert.AreEqual(0, second.Location.BottomLeft.Y);
+            Assert.AreEqual(14, second.Location.TopRight.X);
+            Assert.AreEqual(12, second.Location.TopRight.Y);
+            
+            AtlasHandle? tooLarge = atlas.Add(new Dimension(21, 17));
+            Assert.IsNull(tooLarge);
+        }
     }
 }
