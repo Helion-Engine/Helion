@@ -1,10 +1,10 @@
 using System;
 using Helion.Maps.Geometry.Lines;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using OpenTK;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic.Walls
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic.Walls
 {
     public class DynamicWallRenderer : IDisposable
     {

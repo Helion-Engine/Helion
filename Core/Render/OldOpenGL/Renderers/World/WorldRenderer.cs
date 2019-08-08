@@ -1,13 +1,13 @@
 using System;
-using Helion.Render.OpenGL.Old.Renderers.World.Geometry;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Renderers.World.Geometry;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.World;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World
+namespace Helion.Render.OldOpenGL.Renderers.World
 {
     public class WorldRenderer : IDisposable
     {

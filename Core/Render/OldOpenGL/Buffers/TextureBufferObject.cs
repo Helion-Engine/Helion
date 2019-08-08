@@ -1,9 +1,9 @@
 using System;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using Buffer = System.Buffer;
 
-namespace Helion.Render.OpenGL.Old.Buffers
+namespace Helion.Render.OldOpenGL.Buffers
 {
     // TODO: Perform sanity checks against GL_MAX_TEXTURE_BUFFER_SIZE.
     

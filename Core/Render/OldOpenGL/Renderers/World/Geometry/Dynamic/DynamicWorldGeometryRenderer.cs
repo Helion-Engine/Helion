@@ -1,14 +1,14 @@
 using System;
 using Helion.Maps.Geometry.Lines;
-using Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic.Flats;
-using Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic.Walls;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic.Flats;
+using Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic.Walls;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Resources.Images;
 using Helion.World.Bsp;
 using OpenTK;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic
 {
     public class DynamicWorldGeometryRenderer : IDisposable
     {

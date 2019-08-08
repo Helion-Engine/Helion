@@ -1,6 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.OpenGL.Old.Util
+namespace Helion.Render.OldOpenGL.Util
 {
     public static class GLConstants
     {

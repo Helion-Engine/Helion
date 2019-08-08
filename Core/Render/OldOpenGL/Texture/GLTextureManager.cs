@@ -1,7 +1,7 @@
 using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
@@ -11,7 +11,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.OpenGL.Old.Texture
+namespace Helion.Render.OldOpenGL.Texture
 {
     /// <summary>
     /// Manages all of the textures that are needed by OpenGL for rendering.

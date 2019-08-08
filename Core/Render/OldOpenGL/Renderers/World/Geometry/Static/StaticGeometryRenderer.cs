@@ -1,16 +1,16 @@
 using System;
 using System.Linq;
 using Helion.Maps;
-using Helion.Render.OpenGL.Old.Buffers;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Buffers;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Render.Shared.World;
 using Helion.Util;
 using Helion.Util.Extensions;
 using MoreLinq;
 using OpenTK;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Static
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Static
 {
     public class StaticGeometryRenderer : IDisposable
     {

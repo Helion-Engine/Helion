@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
 using Helion.Util.Extensions;
 
-namespace Helion.Render.OpenGL.Old.Util
+namespace Helion.Render.OldOpenGL.Util
 {
     public static class GLHelper
     {

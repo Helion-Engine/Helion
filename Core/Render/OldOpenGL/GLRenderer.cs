@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
-using Helion.Render.OpenGL.Old.Renderers.World;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Renderers.World;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
@@ -16,7 +16,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL
+namespace Helion.Render.OldOpenGL
 {
     /// <summary>
     /// An OpenGL based renderer.

@@ -1,9 +1,9 @@
 using System;
 using Helion.Maps.Geometry.Lines;
-using Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic;
-using Helion.Render.OpenGL.Old.Renderers.World.Geometry.Static;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic;
+using Helion.Render.OldOpenGL.Renderers.World.Geometry.Static;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
 using Helion.Resources.Archives.Collection;
@@ -16,7 +16,7 @@ using Helion.World.Bsp;
 using MoreLinq;
 using OpenTK;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry
 {
     public class WorldGeometryRenderer : IDisposable
     {

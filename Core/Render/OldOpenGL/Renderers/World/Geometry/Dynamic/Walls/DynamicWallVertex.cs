@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic.Walls
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic.Walls
 {
     [StructLayout(LayoutKind.Sequential, Pack=1)]
     public struct DynamicWallVertex

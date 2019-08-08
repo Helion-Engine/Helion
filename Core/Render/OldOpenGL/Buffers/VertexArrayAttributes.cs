@@ -2,11 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Old.Buffers
+namespace Helion.Render.OldOpenGL.Buffers
 {
     public class VertexArrayAttributes : IEnumerable<VertexArrayAttribute>
     {

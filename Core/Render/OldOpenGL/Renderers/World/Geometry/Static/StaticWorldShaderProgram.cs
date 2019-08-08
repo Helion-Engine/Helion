@@ -1,7 +1,7 @@
-using Helion.Render.OpenGL.Old.Buffers;
-using Helion.Render.OpenGL.Old.Shader;
+using Helion.Render.OldOpenGL.Buffers;
+using Helion.Render.OldOpenGL.Shader;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Static
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Static
 {
     public class StaticWorldShaderProgram : ShaderProgram
     {

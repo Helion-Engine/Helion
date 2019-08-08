@@ -1,4 +1,4 @@
-namespace Helion.Render.OpenGL.Old.Shader
+namespace Helion.Render.OldOpenGL.Shader
 {
     public class ShaderBuilder
     {

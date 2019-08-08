@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Old.Buffers
+namespace Helion.Render.OldOpenGL.Buffers
 {
     public abstract class BufferObject<T> : IDisposable where T : struct
     {

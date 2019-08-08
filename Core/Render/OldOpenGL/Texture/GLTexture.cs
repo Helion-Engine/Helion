@@ -3,7 +3,7 @@ using Helion.Util.Atlas;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Old.Texture
+namespace Helion.Render.OldOpenGL.Texture
 {
     /// <summary>
     /// A wrapper around a texture managed by a texture manager.

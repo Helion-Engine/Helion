@@ -4,7 +4,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Old.Shader
+namespace Helion.Render.OldOpenGL.Shader
 {
     public class ShaderUniformAttribute : Attribute
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Helion.Render.OpenGL.Old.Shader
+namespace Helion.Render.OldOpenGL.Shader
 {
     public class ShaderException : Exception
     {

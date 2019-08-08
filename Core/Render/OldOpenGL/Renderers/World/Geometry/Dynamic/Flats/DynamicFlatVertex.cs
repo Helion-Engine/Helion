@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic.Flats
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic.Flats
 {
     [StructLayout(LayoutKind.Sequential, Pack=1)]
     public struct DynamicFlatVertex

@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using Helion.Render.OpenGL.Old.Buffers;
+using Helion.Render.OldOpenGL.Buffers;
 using MoreLinq;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Old.Shader
+namespace Helion.Render.OldOpenGL.Shader
 {
     public class ShaderProgram : IDisposable
     {

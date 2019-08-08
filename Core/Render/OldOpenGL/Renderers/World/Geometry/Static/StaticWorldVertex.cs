@@ -2,7 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Helion.Util.Geometry;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Static
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Static
 {
     [StructLayout(LayoutKind.Sequential, Pack=1)]
     public struct StaticWorldVertex

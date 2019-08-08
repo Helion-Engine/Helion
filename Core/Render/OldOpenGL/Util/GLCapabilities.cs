@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace Helion.Render.OpenGL.Old.Util
+namespace Helion.Render.OldOpenGL.Util
 {
     public class GLCapabilities
     {

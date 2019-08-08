@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Helion.Input;
 using Helion.Render;
@@ -34,7 +33,7 @@ namespace Helion.Subsystems.OpenTK
         {
             m_config = cfg;
             m_windowId = nextAvailableWindowId++;
-            m_renderer = new GLRenderer(cfg, archiveCollection);
+            m_renderer = new GLRenderer(cfg, archiveCollection, new OpenTKGLFunctions());
             m_gameLoopFunc = gameLoopFunction;
 
             RegisterConfigListeners();
@@ -75,7 +74,8 @@ namespace Helion.Subsystems.OpenTK
 
         public void ClearMapResources()
         {
-            m_renderer.ClearResources();
+            throw new NotImplementedException("TODO");
+            //m_renderer.ClearResources();
         }
 
         public int GetId() => m_windowId;

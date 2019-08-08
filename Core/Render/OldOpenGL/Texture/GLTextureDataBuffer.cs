@@ -1,10 +1,10 @@
 using System;
-using Helion.Render.OpenGL.Old.Buffers;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Buffers;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Util.Container;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Old.Texture
+namespace Helion.Render.OldOpenGL.Texture
 {
     /// <summary>
     /// Responsible for writing texture information to a texture buffer object

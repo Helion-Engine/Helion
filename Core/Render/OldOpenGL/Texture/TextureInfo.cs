@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.OpenGL.Old.Texture
+namespace Helion.Render.OldOpenGL.Texture
 {
     [StructLayout(LayoutKind.Sequential, Pack=1)]
     public struct TextureInfo

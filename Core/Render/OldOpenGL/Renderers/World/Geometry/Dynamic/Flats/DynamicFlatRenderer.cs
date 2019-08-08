@@ -1,13 +1,13 @@
 using System;
-using Helion.Render.OpenGL.Old.Buffers;
-using Helion.Render.OpenGL.Old.Texture;
-using Helion.Render.OpenGL.Old.Util;
+using Helion.Render.OldOpenGL.Buffers;
+using Helion.Render.OldOpenGL.Texture;
+using Helion.Render.OldOpenGL.Util;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
 using Helion.World.Bsp;
 using OpenTK;
 
-namespace Helion.Render.OpenGL.Old.Renderers.World.Geometry.Dynamic.Flats
+namespace Helion.Render.OldOpenGL.Renderers.World.Geometry.Dynamic.Flats
 {
     public class DynamicFlatRenderer : IDisposable
     {
