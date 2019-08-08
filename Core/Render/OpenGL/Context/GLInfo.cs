@@ -1,4 +1,4 @@
-using Helion.Render.OpenGL.Context.Enums;
+using Helion.Render.OpenGL.Context.Types;
 
 namespace Helion.Render.OpenGL.Context
 {

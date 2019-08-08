@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Enums;
+using Helion.Render.OpenGL.Context.Types;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 

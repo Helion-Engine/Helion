@@ -1,4 +1,4 @@
-namespace Helion.Render.OpenGL.Context.Enums
+namespace Helion.Render.OpenGL.Context.Types
 {
     public enum ErrorType
     {

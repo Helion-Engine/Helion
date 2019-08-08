@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using Helion.Render.OldOpenGL.Util;
-using Helion.Render.OpenGL.Context.Enums;
+using Helion.Render.OpenGL.Context.Types;
 using NLog;
 
 namespace Helion.Render.OpenGL.Context

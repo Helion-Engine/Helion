@@ -1,6 +1,6 @@
 using System;
 
-namespace Helion.Render.OpenGL.Context.Enums
+namespace Helion.Render.OpenGL.Context.Types
 {
     [Flags]
     public enum ClearType
