@@ -1,5 +1,6 @@
 using System;
 using Helion.Maps.Geometry.Lines;
+using Helion.Render.OpenGL.Renderers.World.Geometry.Dynamic;
 using Helion.Render.OpenGL.Renderers.World.Geometry.Static;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Util;
@@ -22,6 +23,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         private readonly Config m_config;
         private readonly GLTextureManager m_textureManager;
         private readonly StaticGeometryRenderer m_staticGeometryRenderer;
+        private readonly DynamicWorldGeometryRenderer m_dynamicGeometryRenderer;
         private readonly ArchiveCollection m_archiveCollection;
 
         public WorldGeometryRenderer(Config config, GLCapabilities capabilities, ArchiveCollection archiveCollection,
@@ -30,6 +32,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
             m_config = config;
             m_textureManager = textureManager;
             m_staticGeometryRenderer = new StaticGeometryRenderer(capabilities, textureManager);
+            m_dynamicGeometryRenderer = new DynamicWorldGeometryRenderer(capabilities, textureManager);
             m_archiveCollection = archiveCollection;
         }
 
@@ -44,6 +47,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
             Matrix4 mvp = GLRenderer.CreateMVP(renderInfo, fovX);
             
             m_staticGeometryRenderer.Render(mvp);
+            m_dynamicGeometryRenderer.Render(mvp);
         }
 
         public void Dispose()
@@ -59,28 +63,26 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
             // of making new ones. By limiting this to the current scope, any
             // such textures will be GC'd shortly after and save us memory.
             IImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
+
+            foreach (Subsector subsector in world.BspTree.Subsectors)
+                m_dynamicGeometryRenderer.AddSubsector(subsector, imageRetriever);
+
+            //=================================================================
+            // TODO: The following is temporary
+            foreach (Line line in world.Map.Lines)
+                m_staticGeometryRenderer.AddLine(WorldTriangulator.Triangulate(line, TextureFinder));
             
-            world.Map.Lines.ForEach(line => Triangulate(line, imageRetriever));
-            world.BspTree.Subsectors.ForEach(subsector => Triangulate(subsector, imageRetriever));
-        }
-
-        private void Triangulate(Line line, IImageRetriever imageRetriever)
-        {
-            m_staticGeometryRenderer.AddLine(WorldTriangulator.Triangulate(line, TextureFinder));
-
-            Dimension TextureFinder(CIString name) => m_textureManager.GetWallTexture(name, imageRetriever).Dimension;
-        }
-        
-        private void Triangulate(Subsector subsector, IImageRetriever imageRetriever)
-        {
-            m_staticGeometryRenderer.AddSubsector(WorldTriangulator.Triangulate(subsector, TextureFinder));
-
-            Dimension TextureFinder(CIString name) => m_textureManager.GetFlatTexture(name, imageRetriever).Dimension;
+            Dimension TextureFinder(CIString name)
+            {
+                return m_textureManager.GetWallTexture(name, imageRetriever).Dimension;
+            }
+            //=================================================================
         }
 
         private void ReleaseUnmanagedResources()
         {
             m_staticGeometryRenderer.Dispose();
+            m_dynamicGeometryRenderer.Dispose();
         }
     }
 }
