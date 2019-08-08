@@ -67,13 +67,13 @@ namespace Helion.Maps
                 if (side.Line == null)
                     continue;
 
-                if (side.Sector.Id != sector.Id && side.Sector.Floor.Z < lowestZ)
+                if (side.Sector != sector && side.Sector.Floor.Z < lowestZ)
                 {
                     lowestSector = side.Sector;
                     lowestZ = lowestSector.Floor.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Floor.Z < lowestZ)
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Floor.Z < lowestZ)
                 {
                     lowestSector = side.PartnerSide.Sector;
                     lowestZ = lowestSector.Floor.Z;
@@ -94,13 +94,13 @@ namespace Helion.Maps
                 if (side.Line == null)
                     continue;
 
-                if (side.Sector.Id != sector.Id && side.Sector.Floor.Z > highestZ)
+                if (side.Sector != sector && side.Sector.Floor.Z > highestZ)
                 {
                     highestSector = side.Sector;
                     highestZ = highestSector.Floor.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Floor.Z > highestZ)
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Floor.Z > highestZ)
                 {
                     highestSector = side.PartnerSide.Sector;
                     highestZ = highestSector.Floor.Z;
@@ -120,13 +120,13 @@ namespace Helion.Maps
                 if (side.Line == null)
                     continue;
 
-                if (side.Sector.Id != sector.Id && side.Sector.Ceiling.Z < lowestZ)
+                if (side.Sector != sector && side.Sector.Ceiling.Z < lowestZ)
                 {
                     lowestSector = side.Sector;
                     lowestZ = lowestSector.Ceiling.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Ceiling.Z < lowestZ)
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Ceiling.Z < lowestZ)
                 {
                     lowestSector = side.PartnerSide.Sector;
                     lowestZ = lowestSector.Ceiling.Z;
@@ -146,13 +146,13 @@ namespace Helion.Maps
                 if (side.Line == null)
                     continue;
 
-                if (side.Sector.Id != sector.Id && side.Sector.Ceiling.Z > highestZ)
+                if (side.Sector != sector && side.Sector.Ceiling.Z > highestZ)
                 {
                     highestSector = side.Sector;
                     highestZ = highestSector.Ceiling.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector.Id != sector.Id && side.PartnerSide.Sector.Ceiling.Z > highestZ)
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Ceiling.Z > highestZ)
                 {
                     highestSector = side.PartnerSide.Sector;
                     highestZ = highestSector.Ceiling.Z;
