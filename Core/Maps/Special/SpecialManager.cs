@@ -19,7 +19,7 @@ namespace Helion.Maps.Special
             m_map = map;
         }
 
-        public bool AddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
+        public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
         {
             if (args.ActivateLineSpecial == null || (args.ActivateLineSpecial.Activated && !args.ActivateLineSpecial.Special.Repeat))
                 return false;
@@ -28,25 +28,9 @@ namespace Helion.Maps.Special
             var special = args.ActivateLineSpecial.Special;
 
             if (special.IsTeleport())
-            {
                 AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
-            }
             else if (special.IsSectorMoveSpecial())
-            {
-                LineSpecialData specialData = special.GetLineSpecialData();
-                if (specialData.Speed > 0.0)
-                {
-                    List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
-                    foreach (var sector in sectors)
-                    {
-                        if (sector != null && !sector.IsMoving)
-                        {
-                            double destZ = GetDestZ(sector, specialData.SectorDestination);
-                            AddSpecial(new SectorMoveSpecial(sector, destZ, specialData));
-                        }
-                    }
-                }
-            }
+                HandleSectorMoveSpecial(args, special);
 
             if (m_specials.Count > startSpecialCount)
             {
@@ -57,9 +41,21 @@ namespace Helion.Maps.Special
             return false;
         }
 
-        public void AddSpecial(ISpecial special)
+        private void HandleSectorMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
         {
-            m_specials.Add(special);
+            LineSpecialData specialData = special.GetLineSpecialData();
+            if (specialData.Speed > 0.0)
+            {
+                List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
+                foreach (var sector in sectors)
+                {
+                    if (sector != null && !sector.IsMoving)
+                    {
+                        double destZ = GetDestZ(sector, specialData.SectorDestination);
+                        AddSpecial(new SectorMoveSpecial(m_physicsManager, sector, destZ, specialData));
+                    }
+                }
+            }
         }
 
         public void Tick()
@@ -76,11 +72,16 @@ namespace Helion.Maps.Special
             }
         }
 
+        private void AddSpecial(ISpecial special)
+        {
+            m_specials.Add(special);
+        }
+
         private List<Sector> GetSectorsFromSpecialLine(Line line)
         {
             if (line.HasSectorTag)
                 return m_map.Sectors.Where(x => x.Tag == line.SectorTag).ToList();
-            else if (!line.OneSided)
+            else if (line.TwoSided)
                 return new List<Sector> { line.Sides[1].Sector };
 
             return new List<Sector> { };
@@ -110,37 +111,25 @@ namespace Helion.Maps.Special
         private double GetLowestFloorDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetLowestAdjacentFloor(sector);
-            if (destSector == null)
-                return sector.Floor.Z;
-            else
-                return destSector.Floor.Z;
+            return destSector == null ? sector.Floor.Z : destSector.Floor.Z;
         }
 
         private double GetHighestFloorDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetHighestAdjacentFloor(sector);
-            if (destSector == null)
-                return sector.Floor.Z;
-            else
-                return destSector.Floor.Z;
+            return destSector == null ? sector.Floor.Z : destSector.Floor.Z;
         }
 
         private double GetLowestCeilingDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetLowestAdjacentCeiling(sector);
-            if (destSector == null)
-                return sector.Ceiling.Z;
-            else
-                return destSector.Ceiling.Z;
+            return destSector == null ? sector.Ceiling.Z : destSector.Ceiling.Z;
         }
 
         private double GetHighestCeilingDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetHighestAdjacentCeiling(sector);
-            if (destSector == null)
-                return sector.Ceiling.Z;
-            else
-                return destSector.Ceiling.Z;
+            return destSector == null ? sector.Ceiling.Z : destSector.Ceiling.Z;
         }
     }
 }
