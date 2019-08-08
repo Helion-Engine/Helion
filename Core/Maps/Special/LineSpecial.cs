@@ -13,11 +13,11 @@ namespace Helion.Maps.Special
         public bool Repeat;
         public bool Active;
 
-        private const double SectorSlowSpeed = 2.0;
-        private const double SectorFastSpeed = 4.0;
+        private const double SectorSlowSpeed = 1.0;
+        private const double SectorFastSpeed = 2.0;
 
-        private const double LiftSlowSpeed = 2.0;
-        private const double LiftFastSpeed = 4.0;
+        private const double LiftSlowSpeed = 4.0;
+        private const double LiftFastSpeed = 8.0;
 
         private const double DoorSlowSpeed = 4.0;
         private const double DoorFastSpeed = 8.0;
@@ -33,7 +33,7 @@ namespace Helion.Maps.Special
             ActivationType = GetSpecialActivationType(type);
             Repeat = GetRepeat(type);
 
-            m_lineSpecialData = new LineSpecialData(LineSpecialType, ActivationType, GetSectorMoveType(), GetSectorStartDirection(), GetSectorDestination(), GetRepitition(), GetSectorMoveSpeed());
+            m_lineSpecialData = new LineSpecialData(LineSpecialType, ActivationType, GetSectorMoveType(), GetSectorStartDirection(), GetSectorDestination(), GetRepetition(), GetSectorMoveSpeed());
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace Helion.Maps.Special
             return SectorDest.None;
         }
 
-        public MoveRepitition GetRepitition()
+        public MoveRepetition GetRepetition()
         {
             switch (LineSpecialType)
             {
@@ -286,15 +286,6 @@ namespace Helion.Maps.Special
                 case LineSpecialType.S1_OpenRedKeyFastStay:
                 case LineSpecialType.SR_OpenYellowKeyFastStay:
                 case LineSpecialType.S1_OpenYellowKeyFastStay:
-                case LineSpecialType.SR_CloseDoor:
-                case LineSpecialType.W1_CloseDoor30Seconds:
-                case LineSpecialType.S1_CloseDoor:
-                case LineSpecialType.WR_CloseDoor:
-                case LineSpecialType.WR_CloseDoorThirtySeconds:
-                case LineSpecialType.WR_CloseDoorFast:
-                case LineSpecialType.W1_CloseDoorFast:
-                case LineSpecialType.S1_CloseDoorFast:
-                case LineSpecialType.SR_CloseDoorFast:
                 case LineSpecialType.S1_LowerFLoorToHighestAdjacentFloor:
                 case LineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
                 case LineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
@@ -315,10 +306,27 @@ namespace Helion.Maps.Special
                 case LineSpecialType.SR_LowerCeilingToFloor:
                 case LineSpecialType.WR_LowerCeilingToEightAboveFloor:
                 case LineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
-                    return MoveRepitition.None;
+                case LineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
+                case LineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
+                case LineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case LineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
+                case LineSpecialType.WR_LowerFLoorToLowestAdjacentFloorChangeTexture:
+                case LineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
+                    return MoveRepetition.None;
+
+                case LineSpecialType.SR_CloseDoor:
+                case LineSpecialType.W1_CloseDoor30Seconds:
+                case LineSpecialType.S1_CloseDoor:
+                case LineSpecialType.WR_CloseDoor:
+                case LineSpecialType.WR_CloseDoorThirtySeconds:
+                case LineSpecialType.WR_CloseDoorFast:
+                case LineSpecialType.W1_CloseDoorFast:
+                case LineSpecialType.S1_CloseDoorFast:
+                case LineSpecialType.SR_CloseDoorFast:
+                    return MoveRepetition.ReturnOnBlock;
             }
 
-            return MoveRepitition.RepeatOnce;
+            return MoveRepetition.DelayReturn;
         }
 
         public MoveDirection GetSectorStartDirection()
