@@ -68,7 +68,7 @@ namespace Helion.Render.OpenGL.Texture
             AtlasHandle = atlasHandle;
         }
 
-        private Box2F CalculateUVLocation(Dimension atlasDimension, AtlasHandle atlasHandle)
+        private static Box2F CalculateUVLocation(Dimension atlasDimension, AtlasHandle atlasHandle)
         {
             Vector2 min = atlasHandle.Location.BottomLeft.ToFloat();
             Vector2 max = atlasHandle.Location.TopRight.ToFloat();

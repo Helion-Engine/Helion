@@ -38,8 +38,7 @@ namespace Helion.Render.OpenGL.Texture
         }
         
         /// <summary>
-        /// Allocates a handle. This must be returned to this object by calling
-        /// <see cref="FreeTextureDataIndex"/> when done with the handle.
+        /// Allocates a handle.
         /// </summary>
         /// <returns>A newly allocated handle as an integer.</returns>
         public int AllocateTextureDataIndex() => m_availableTextureIndex.Next();

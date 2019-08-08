@@ -24,6 +24,9 @@ namespace Helion.Render.OpenGL.Texture
     /// </remarks>
     public class GLTextureManager : IDisposable
     {
+        // TODO: This is temporary until we get resizing working. 
+        private const int MinTextureSize = 4096;
+        
         /// <summary>
         /// A texture which represents a missing texture. It is the fallback
         /// when a texture cannot be found.
@@ -41,6 +44,7 @@ namespace Helion.Render.OpenGL.Texture
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Atlas2D m_atlas;
         private readonly ResourceTracker<GLTexture> m_textures = new ResourceTracker<GLTexture>();
+        private Dimension m_textureAtlasDimension;
 
         /// <summary>
         /// Creates a texture manager using the config and GL info provided.
@@ -56,6 +60,7 @@ namespace Helion.Render.OpenGL.Texture
             m_archiveCollection = archiveCollection;
             m_atlasTextureHandle = GL.GenTexture();
             m_atlas = new Atlas2D(GetBestAtlasDimension());
+            m_textureAtlasDimension = m_atlas.Dimension;
             TextureDataBuffer = new GLTextureDataBuffer(capabilities);
 
             AllocateTextureAtlasOnGPU();
@@ -209,7 +214,6 @@ namespace Helion.Render.OpenGL.Texture
         {
             BindTextureOnly();
             
-            // TODO: Needs to be updated with master, see the old GLTexManager
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
@@ -263,9 +267,9 @@ namespace Helion.Render.OpenGL.Texture
             // We have to be a bit careful, because on GPUs with very large
             // texture sizes, we can end up allocating a ridiculous amount of
             // memory which likely has to be backed by the OS. We'd rather only
-            // resize if we absolutely need to. We'll go with 4096 for now as
-            // this is big enough to avoid lots of resizing.
-            int atlasSize = Math.Min(m_capabilities.Limits.MaxTextureSize, 1024);
+            // resize if we absolutely need to.
+            // TODO: When we get resizing, we can pick a smaller value. 
+            int atlasSize = Math.Min(m_capabilities.Limits.MaxTextureSize, MinTextureSize);
             return new Dimension(atlasSize, atlasSize);
         }
 
@@ -309,6 +313,8 @@ namespace Helion.Render.OpenGL.Texture
             //       keep binding/unbinding for every single texture upload.
             BindTextureOnly();
             
+            ResizeAtlasTextureOnGPUIfNeeded();
+            
             var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
             var lockMode = ImageLockMode.ReadOnly;
             var format = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
@@ -325,6 +331,22 @@ namespace Helion.Render.OpenGL.Texture
             
             Unbind();
         }
+
+        private void ResizeAtlasTextureOnGPUIfNeeded()
+        {
+            if (!AtlasResizedButNotOnGPU()) 
+                return;
+            
+            int w = m_atlas.Dimension.Width;
+            int h = m_atlas.Dimension.Height;
+            
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                m_atlas.Dimension.Width, m_atlas.Dimension.Height,
+                0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
+                PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
+        }
+
+        private bool AtlasResizedButNotOnGPU() => !m_textureAtlasDimension.Equals(m_atlas.Dimension);
 
         private void ReleaseUnmanagedResources()
         {
