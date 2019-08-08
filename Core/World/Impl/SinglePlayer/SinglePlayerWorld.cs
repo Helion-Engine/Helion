@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Linq;
 using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
-using Helion.Maps.Special.Specials;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -130,7 +126,7 @@ namespace Helion.World.Impl.SinglePlayer
             if (e.ActivateLineSpecial != null)
             {
                 var special = e.ActivateLineSpecial.Special;
-                if (SpecialManager.AddActivatedLineSpecial(e))
+                if (SpecialManager.TryAddActivatedLineSpecial(e))
                     Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{special.Repeat}]");
             }
         }
