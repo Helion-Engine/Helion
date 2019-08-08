@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Special;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -26,6 +27,9 @@ namespace Helion.World.Physics
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0;
+
+        // TODO actually verify this value
+        private const double SetEntityToFloorSpeedMax = 5;
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
@@ -74,6 +78,55 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorFlat flat, SectorMoveType moveType, MoveDirection direction, double speed, double destZ)
+        {
+            // Save the Z value because we are only checking if the dest is valid
+            // If the move is invalid because of a blocking entity then it will not be set to destZ
+            // TODO handle plane Z
+            double startZ = flat.Z;
+            double thingZ;
+            flat.Z = destZ;
+
+            foreach (var entity in sector.Entities)
+            {
+                entity.UnlinkFromWorld();
+                LinkToWorld(entity);
+
+                thingZ = entity.OnGround ? sector.Floor.Z : entity.Position.Z;
+
+                if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
+                {
+                    flat.Z = startZ;
+
+                    // Entity blocked movement, reset all entities in moving sector after restting sector Z
+                    foreach (var relinkEntity in sector.Entities)
+                    {
+                        relinkEntity.UnlinkFromWorld();
+                        LinkToWorld(relinkEntity);
+                    }
+
+                    return SectorMoveStatus.Blocked;
+                }
+            }
+
+            // TODO temporary - just for my own sanity until renderer displays floor changes
+            System.Console.WriteLine(flat.Z);
+            flat.Plane.MoveZ(destZ - startZ);
+
+            // At slower speeds we need to set entities to the floor
+            // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
+            if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax)
+            {
+                foreach (var entity in sector.Entities)
+                {
+                    if (entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
+                        entity.SetZ(destZ);
+                }
+            }
+
+            return SectorMoveStatus.Success;
+        }
+
         /// <summary>
         /// Executes use logic on the entity. 
         /// EntityUseActivated event will fire if the entity activates a line special or is in range to hit a blocking line.
@@ -87,6 +140,7 @@ namespace Helion.World.Physics
         public void EntityUse(Entity entity)
         {
             Line? activateLine = null;
+            Line? currentActivateLine = null;
             bool hitBlockLine = false;
             double closetDist = double.MaxValue;
             double currentClosestDist;
@@ -104,7 +158,7 @@ namespace Helion.World.Physics
                     if (line.Segment.Intersects(useSeg))
                     {
                         if (line.HasSpecial && line.Special.CanActivate(entity, ActivationContext.UseLine) && line.Segment.OnRight(start))
-                            activateLine = line;
+                            currentActivateLine = line;
 
                         bool isBlockingLine = line.OneSided;
                         bool canActivateThrough = !line.OneSided;
@@ -123,8 +177,11 @@ namespace Helion.World.Physics
                         if (!canActivateThrough || line.HasSpecial)
                         {
                             currentClosestDist = line.Segment.ClosestDistance(start);
-                            if (closetDist > currentClosestDist)
+                            if (currentClosestDist < closetDist)
+                            {
+                                activateLine = currentActivateLine;
                                 closetDist = currentClosestDist;
+                            }
                         }
                     }
                 }
