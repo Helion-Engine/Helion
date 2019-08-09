@@ -49,6 +49,9 @@ namespace Helion.Maps.Special.Specials
             double destZ = MathHelper.Clamp(m_flat.Z + m_speed, m_minZ, m_maxZ);
             SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ);
 
+            if (status == SectorMoveStatus.CeilingHitFloor)
+                m_destZ = m_flat.Z;
+
             if (status == SectorMoveStatus.Blocked)
             {
                 if (m_data.MoveRepetition != MoveRepetition.None)
@@ -78,7 +81,7 @@ namespace Helion.Maps.Special.Specials
         private void FlipMovementDirection()
         {
             if (m_data.MoveRepetition == MoveRepetition.DelayReturn && m_direction == m_data.StartDirection)
-                m_delayTics = 70; // TODO verify this number - in future make it a variable
+                m_delayTics = m_data.Delay;
             m_speed = -m_speed;
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
             m_destZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
