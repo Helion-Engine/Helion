@@ -23,10 +23,10 @@ namespace Helion.Render.OpenGL
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
-        private readonly GLFunctions gl;
+        private readonly IGLFunctions gl;
         private bool m_disposed;
         
-        public GLRenderer(Config config, ArchiveCollection archiveCollection, GLFunctions functions)
+        public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
             m_config = config;
             m_archiveCollection = archiveCollection;

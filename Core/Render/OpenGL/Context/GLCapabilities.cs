@@ -15,7 +15,7 @@ namespace Helion.Render.OpenGL.Context
         public readonly GLInfo Info;
         public readonly GLVersion Version;
 
-        public GLCapabilities(GLFunctions functions)
+        public GLCapabilities(IGLFunctions functions)
         {
             Extensions = new GLExtensions(functions);
             Limits = new GLLimits(functions);
@@ -29,7 +29,7 @@ namespace Helion.Render.OpenGL.Context
             return Version.Supports(4, 4);
         }
 
-        private GLVersion DiscoverVersion(GLFunctions gl)
+        private GLVersion DiscoverVersion(IGLFunctions gl)
         {
             string version = gl.GetString(GetStringType.Version);
             Match match = VersionRegex.Match(version);

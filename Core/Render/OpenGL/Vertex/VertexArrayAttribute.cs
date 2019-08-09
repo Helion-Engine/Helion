@@ -22,6 +22,6 @@ namespace Helion.Render.OpenGL.Vertex
         
         public abstract int ByteLength();
 
-        public abstract void Enable(GLFunctions gl, int stride, int offset);
+        public abstract void Enable(IGLFunctions gl, int stride, int offset);
     }
 }

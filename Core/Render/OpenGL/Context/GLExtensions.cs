@@ -9,13 +9,13 @@ namespace Helion.Render.OpenGL.Context
 
         private readonly HashSet<string> m_extensions = new HashSet<string>();
 
-        public GLExtensions(GLFunctions functions)
+        public GLExtensions(IGLFunctions functions)
         {
             PopulateExtensions(functions);
             TextureFilterAnisotropic = Supports("GL_EXT_texture_filter_anisotropic"); 
         }
 
-        private void PopulateExtensions(GLFunctions gl)
+        private void PopulateExtensions(IGLFunctions gl)
         {
             int count = gl.GetInteger(GetIntegerType.NumExtensions);
             for (var i = 0; i < count; i++)

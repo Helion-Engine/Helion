@@ -5,7 +5,7 @@ namespace Helion.Render.OpenGL.Buffer.Array
 {
     public class StreamArrayBuffer<T> : ArrayBufferObject<T> where T : struct
     {
-        public StreamArrayBuffer(GLCapabilities capabilities, GLFunctions functions, string objectLabel = "") : 
+        public StreamArrayBuffer(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "") : 
             base(capabilities, functions, objectLabel)
         {
         }

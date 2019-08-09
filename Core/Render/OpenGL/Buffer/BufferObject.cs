@@ -12,14 +12,14 @@ namespace Helion.Render.OpenGL.Buffer
         public static readonly int BytesPerElement = Marshal.SizeOf<T>();
         
         protected readonly int BufferId;
-        protected readonly GLFunctions gl;
+        protected readonly IGLFunctions gl;
         protected DynamicArray<T> Data = new DynamicArray<T>();
         protected bool Uploaded;
 
         public int Count => Data.Length;
         public bool NeedsUpload => !Uploaded;
 
-        protected BufferObject(GLCapabilities capabilities, GLFunctions functions, string objectLabel = "")
+        protected BufferObject(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "")
         {
             gl = functions;
             BufferId = gl.GenBuffer();

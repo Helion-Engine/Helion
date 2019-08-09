@@ -6,7 +6,7 @@ namespace Helion.Render.OpenGL.Buffer.Array
 {
     public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     {
-        protected ArrayBufferObject(GLCapabilities capabilities, GLFunctions functions, string objectLabel = "") : 
+        protected ArrayBufferObject(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "") : 
             base(capabilities, functions, objectLabel)
         {
         }

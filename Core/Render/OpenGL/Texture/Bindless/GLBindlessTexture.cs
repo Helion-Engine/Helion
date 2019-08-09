@@ -5,7 +5,7 @@ namespace Helion.Render.OpenGL.Texture.Bindless
 {
     public class GLBindlessTexture : GLTexture
     {
-        public GLBindlessTexture(int id, int textureId, Dimension dimension, GLFunctions functions) : 
+        public GLBindlessTexture(int id, int textureId, Dimension dimension, IGLFunctions functions) : 
             base(id, textureId, dimension, functions)
         {
         }

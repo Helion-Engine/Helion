@@ -11,10 +11,10 @@ namespace Helion.Render.OpenGL.Texture
     {
         private readonly List<GLTexture?> Textures = new List<GLTexture>();
         private readonly Config m_config;
-        private readonly GLFunctions gl;
+        private readonly IGLFunctions gl;
         private readonly ResourceTracker<GLTexture> m_textureTracker = new ResourceTracker<GLTexture>();
 
-        protected GLTextureManager(Config config, GLFunctions functions)
+        protected GLTextureManager(Config config, IGLFunctions functions)
         {
             m_config = config;
             gl = functions;

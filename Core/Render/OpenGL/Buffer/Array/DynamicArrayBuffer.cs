@@ -5,7 +5,7 @@ namespace Helion.Render.OpenGL.Buffer.Array
 {
     public class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
     {
-        public DynamicArrayBuffer(GLCapabilities capabilities, GLFunctions functions, string objectLabel = "") : 
+        public DynamicArrayBuffer(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "") : 
             base(capabilities, functions, objectLabel)
         {
         }

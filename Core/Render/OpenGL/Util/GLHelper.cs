@@ -16,7 +16,7 @@ namespace Helion.Render.OpenGL.Util
         /// </remarks>
         /// <param name="gl">The GL functions.</param>
         [Conditional("DEBUG")]
-        public static void AssertNoGLError(GLFunctions gl)
+        public static void AssertNoGLError(IGLFunctions gl)
         {
             ErrorType error = gl.GetError();
             Invariant(error == ErrorType.None, $"OpenGL error detected: ID {(int)error}");
@@ -31,7 +31,7 @@ namespace Helion.Render.OpenGL.Util
         /// <param name="objectId">The integral GL object name.</param>
         /// <param name="name">The label to attach.</param>
         [Conditional("DEBUG")]
-        public static void ObjectLabel(GLFunctions gl, GLCapabilities capabilities, ObjectLabelType type, 
+        public static void ObjectLabel(IGLFunctions gl, GLCapabilities capabilities, ObjectLabelType type, 
             int objectId, string name)
         {
             if (name.Empty() || !capabilities.Version.Supports(4, 3))

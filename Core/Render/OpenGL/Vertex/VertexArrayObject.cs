@@ -9,10 +9,10 @@ namespace Helion.Render.OpenGL.Vertex
     public class VertexArrayObject : IDisposable
     {
         public readonly VertexArrayAttributes Attributes;
-        private readonly GLFunctions gl;
+        private readonly IGLFunctions gl;
         private readonly int m_vaoId;
 
-        public VertexArrayObject(GLCapabilities capabilities, GLFunctions functions, VertexArrayAttributes vaoAttributes, 
+        public VertexArrayObject(GLCapabilities capabilities, IGLFunctions functions, VertexArrayAttributes vaoAttributes, 
             string objectLabel = "")
         {
             gl = functions;

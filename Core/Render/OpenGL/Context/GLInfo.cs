@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL.Context
         
         public readonly string Renderer;
 
-        public GLInfo(GLFunctions gl)
+        public GLInfo(IGLFunctions gl)
         {
             Renderer = gl.GetString(GetStringType.Renderer);
             ShadingVersion = gl.GetString(GetStringType.ShadingLanguageVersion);

@@ -12,9 +12,9 @@ namespace Helion.Render.OpenGL.Texture
         public readonly Vector2 UVInverse;
         public readonly Dimension Dimension;
         private readonly int m_textureId;
-        private readonly GLFunctions gl;
+        private readonly IGLFunctions gl;
 
-        protected GLTexture(int id, int textureId, Dimension dimension, GLFunctions functions)
+        protected GLTexture(int id, int textureId, Dimension dimension, IGLFunctions functions)
         {
             Id = id;
             m_textureId = textureId;
