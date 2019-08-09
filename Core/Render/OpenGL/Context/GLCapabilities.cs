@@ -23,6 +23,12 @@ namespace Helion.Render.OpenGL.Context
             Version = DiscoverVersion(functions);
         }
 
+        public bool SupportsModernRenderer()
+        {
+            // TODO: Also need nv_gpu_shader5, 
+            return Version.Supports(4, 4);
+        }
+
         private GLVersion DiscoverVersion(GLFunctions gl)
         {
             string version = gl.GetString(GetStringType.Version);

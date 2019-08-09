@@ -8,9 +8,19 @@ namespace Helion.Subsystems.OpenTK
 {
     public class OpenTKGLFunctions : GLFunctions
     {
+        public override void BindBuffer(BufferType type, int bufferId)
+        {
+            GL.BindBuffer((BufferTarget)type, bufferId);
+        }
+        
         public override void BlendFunc(BlendingFactorType sourceFactor, BlendingFactorType destFactor)
         {
             GL.BlendFunc((BlendingFactor)sourceFactor, (BlendingFactor)destFactor);
+        }
+
+        public override void BufferData<T>(BufferType bufferType, int totalBytes, T[] data, BufferUsageType usageType)
+        {
+            GL.BufferData((BufferTarget)bufferType, totalBytes, data, (BufferUsageHint)usageType);
         }
         
         public override void Clear(ClearType type)
@@ -36,6 +46,16 @@ namespace Helion.Subsystems.OpenTK
                 callback((DebugLevel)severity, msg);
             }, IntPtr.Zero);
         }
+
+        public override void DeleteBuffer(int bufferId)
+        {
+            GL.DeleteBuffer(bufferId);
+        }
+
+        public override void DeleteTexture(int textureId)
+        {
+            GL.DeleteTexture(textureId);
+        }
         
         public override void Enable(EnableType type)
         {
@@ -45,6 +65,11 @@ namespace Helion.Subsystems.OpenTK
         public override void FrontFace(FrontFaceType type)
         {
             GL.FrontFace((FrontFaceDirection)type);
+        }
+
+        public override int GenBuffer()
+        {
+            return GL.GenBuffer();
         }
         
         public override ErrorType GetError()
@@ -66,6 +91,11 @@ namespace Helion.Subsystems.OpenTK
         public override string GetString(GetStringType type, int index)
         {
             return GL.GetString((StringNameIndexed)type, index);
+        }
+        
+        public override void ObjectLabel(ObjectLabelType type, int objectId, string name)
+        {
+            GL.ObjectLabel((ObjectLabelIdentifier)type, objectId, name.Length, name);
         }
 
         public override void PolygonMode(PolygonFaceType faceType, PolygonModeType fillType)

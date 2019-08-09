@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using NLog;
@@ -35,11 +36,14 @@ namespace Helion.Render.OpenGL
             PrintGLInfo();
             SetGLStates();
             SetGLDebugger();
+            
+            if (!m_capabilities.SupportsModernRenderer())
+                throw new HelionException("OpenGL version not high enough (will support 3.1+ soon)");
         }
 
         ~GLRenderer()
         {
-            Fail("Did not dispose of GLRenderer, finalizer run when it should not be");
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
 
