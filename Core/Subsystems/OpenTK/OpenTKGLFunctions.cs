@@ -195,6 +195,16 @@ namespace Helion.Subsystems.OpenTK
             GL.LinkProgram(programId);
         }
 
+        public void MakeTextureHandleNonResident(ulong handle)
+        {
+            GL.Arb.MakeTextureHandleNonResident(handle);
+        }
+
+        public void MakeTextureHandleResidentARB(ulong handle)
+        {
+            GL.Arb.MakeTextureHandleResident(handle);
+        }
+
         public void ObjectLabel(ObjectLabelType type, int objectId, string name)
         {
             GL.ObjectLabel((ObjectLabelIdentifier)type, objectId, name.Length, name);

@@ -9,7 +9,7 @@ namespace Helion.Render.OpenGL.Texture
 {
     public abstract class GLTextureManager : IDisposable
     {
-        private readonly List<GLTexture?> Textures = new List<GLTexture>();
+        private readonly List<GLTexture?> m_textures = new List<GLTexture>();
         private readonly Config m_config;
         private readonly IGLFunctions gl;
         private readonly ResourceTracker<GLTexture> m_textureTracker = new ResourceTracker<GLTexture>();
@@ -34,7 +34,7 @@ namespace Helion.Render.OpenGL.Texture
 
         private void ReleaseUnmanagedResources()
         {
-            Textures.ForEach(texture => texture?.Dispose());
+            m_textures.ForEach(texture => texture?.Dispose());
         }
     }
 }

@@ -41,6 +41,8 @@ namespace Helion.Render.OpenGL.Context
         string GetString(GetStringType type, int index);
         int GetUniformLocation(int programId, string name);
         void LinkProgram(int mrogramId);
+        void MakeTextureHandleNonResident(ulong handle);
+        void MakeTextureHandleResidentARB(ulong handle);
         void ObjectLabel(ObjectLabelType type, int objectId, string name);
         void PolygonMode(PolygonFaceType faceType, PolygonModeType fillType);
         void ShaderSource(int shaderId, string sourceText);

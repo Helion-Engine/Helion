@@ -11,8 +11,8 @@ namespace Helion.Render.OpenGL.Texture
         public readonly int Id;
         public readonly Vector2 UVInverse;
         public readonly Dimension Dimension;
+        protected readonly IGLFunctions gl;
         private readonly int m_textureId;
-        private readonly IGLFunctions gl;
 
         protected GLTexture(int id, int textureId, Dimension dimension, IGLFunctions functions)
         {
@@ -35,7 +35,7 @@ namespace Helion.Render.OpenGL.Texture
             GC.SuppressFinalize(this);
         }
 
-        private void ReleaseUnmanagedResources()
+        protected virtual void ReleaseUnmanagedResources()
         {
             gl.DeleteTexture(m_textureId);
         }
