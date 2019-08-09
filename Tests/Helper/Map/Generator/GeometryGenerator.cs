@@ -37,7 +37,7 @@ namespace Helion.Test.Helper.Map.Generator
             sectorFlats.Add(floor);
             sectorFlats.Add(ceiling);
             
-            Sector sector = new Sector(sectors.Count, (byte)sectors.Count, floor, ceiling);
+            Sector sector = new Sector(sectors.Count, (byte)sectors.Count, floor, ceiling, 0, 0);
             sectors.Add(sector);
             
             return this;

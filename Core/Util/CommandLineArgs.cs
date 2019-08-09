@@ -48,9 +48,10 @@ namespace Helion.Util
 
             try
             {
-                Parser.Default.ParseArguments<CommandLineArgs>(args)
-                              .WithParsed(cmdArgs => result = cmdArgs)
-                              .WithNotParsed(_ => HandleParsingError(result));
+                CommandLine.Parser.Default
+                    .ParseArguments<CommandLineArgs>(args)
+                    .WithParsed(cmdArgs => result = cmdArgs)
+                    .WithNotParsed(_ => HandleParsingError(result));
             }
             catch
             {
