@@ -9,6 +9,11 @@ namespace Helion.Render.OpenGL.Util
     public static class GLHelper
     {
         /// <summary>
+        /// A constant for GL_TRUE.
+        /// </summary>
+        public const int GLTrue = 1;
+        
+        /// <summary>
         /// Throws an exception of glGetError() returns an error value.
         /// </summary>
         /// <remarks>
