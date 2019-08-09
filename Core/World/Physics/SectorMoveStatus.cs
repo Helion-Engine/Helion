@@ -4,5 +4,6 @@
     {
         Blocked,
         Success,
+        CeilingHitFloor,
     }
 }

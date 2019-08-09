@@ -87,6 +87,12 @@ namespace Helion.World.Physics
             double thingZ;
             flat.Z = destZ;
 
+            if (sector.Ceiling.Z < sector.Floor.Z)
+            {
+                flat.Z = startZ;
+                return SectorMoveStatus.CeilingHitFloor;
+            }
+
             foreach (var entity in sector.Entities)
             {
                 entity.UnlinkFromWorld();
