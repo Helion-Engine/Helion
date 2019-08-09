@@ -12,7 +12,12 @@ namespace Helion.Subsystems.OpenTK
         {
             GL.BindBuffer((BufferTarget)type, bufferId);
         }
-        
+
+        public override void BindVertexArray(int vaoId)
+        {
+            GL.BindVertexArray(vaoId);
+        }
+
         public override void BlendFunc(BlendingFactorType sourceFactor, BlendingFactorType destFactor)
         {
             GL.BlendFunc((BlendingFactor)sourceFactor, (BlendingFactor)destFactor);
@@ -56,10 +61,20 @@ namespace Helion.Subsystems.OpenTK
         {
             GL.DeleteTexture(textureId);
         }
-        
+
+        public override void DeleteVertexArray(int vaoId)
+        {
+            GL.DeleteVertexArray(vaoId);
+        }
+
         public override void Enable(EnableType type)
         {
             GL.Enable((EnableCap)type);
+        }
+
+        public override void EnableVertexAttribArray(int index)
+        {
+            GL.EnableVertexAttribArray(index);
         }
 
         public override void FrontFace(FrontFaceType type)
@@ -71,7 +86,12 @@ namespace Helion.Subsystems.OpenTK
         {
             return GL.GenBuffer();
         }
-        
+
+        public override int GenVertexArray()
+        {
+            return GL.GenVertexArray();
+        }
+
         public override ErrorType GetError()
         {
             ErrorCode errorCode = GL.GetError();
@@ -102,7 +122,17 @@ namespace Helion.Subsystems.OpenTK
         {
             GL.PolygonMode((MaterialFace)faceType, (PolygonMode)fillType);
         }
-        
+
+        public override void VertexAttribIPointer(int index, int size, VertexAttributeIntegralPointerType type, int stride, int offset)
+        {
+            GL.VertexAttribIPointer(index, size, (VertexAttribIntegerType)type, stride, new IntPtr(offset));
+        }
+
+        public override void VertexAttribPointer(int index, int byteLength, VertexAttributePointerType type, bool normalized, int stride, int offset)
+        {
+            GL.VertexAttribPointer(index, byteLength, (VertexAttribPointerType)type, normalized, stride, new IntPtr(offset));
+        }
+
         public override void Viewport(int x, int y, int width, int height)
         {
             GL.Viewport(x, y, width, height);
