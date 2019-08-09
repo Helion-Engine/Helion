@@ -51,7 +51,7 @@ namespace Helion.Maps.Special
                 {
                     if (sector != null && !sector.IsMoving)
                     {
-                        double destZ = GetDestZ(sector, specialData.SectorDestination);
+                        double destZ = GetDestZ(sector, specialData.SectorDestination) + special.GetDestOffset();
                         AddSpecial(new SectorMoveSpecial(m_physicsManager, sector, destZ, specialData));
                     }
                 }

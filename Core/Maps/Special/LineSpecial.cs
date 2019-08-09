@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities;
+﻿using System;
+using Helion.World.Entities;
 using Helion.World.Physics;
 
 namespace Helion.Maps.Special
@@ -25,6 +26,11 @@ namespace Helion.Maps.Special
         private const double StairSlowSpeed = 0.5;
         private const double StairFastSpeed = 1.0;
 
+        private const int LiftDelay = 105;
+        private const int DoorDelay = 150;
+
+        private const int DoorDestOffset = -4;
+
         private LineSpecialData m_lineSpecialData;
 
         public LineSpecial(LineSpecialType type)
@@ -33,7 +39,8 @@ namespace Helion.Maps.Special
             ActivationType = GetSpecialActivationType(type);
             Repeat = GetRepeat(type);
 
-            m_lineSpecialData = new LineSpecialData(LineSpecialType, ActivationType, GetSectorMoveType(), GetSectorStartDirection(), GetSectorDestination(), GetRepetition(), GetSectorMoveSpeed());
+            m_lineSpecialData = new LineSpecialData(LineSpecialType, ActivationType, GetSectorMoveType(), GetSectorStartDirection(), GetSectorDestination(), 
+                GetRepetition(), GetSectorMoveSpeed(), GetDelay());
         }
 
         /// <summary>
@@ -312,8 +319,6 @@ namespace Helion.Maps.Special
                 case LineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
                 case LineSpecialType.WR_LowerFLoorToLowestAdjacentFloorChangeTexture:
                 case LineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
-                    return MoveRepetition.None;
-
                 case LineSpecialType.SR_CloseDoor:
                 case LineSpecialType.W1_CloseDoor30Seconds:
                 case LineSpecialType.S1_CloseDoor:
@@ -323,7 +328,7 @@ namespace Helion.Maps.Special
                 case LineSpecialType.W1_CloseDoorFast:
                 case LineSpecialType.S1_CloseDoorFast:
                 case LineSpecialType.SR_CloseDoorFast:
-                    return MoveRepetition.ReturnOnBlock;
+                    return MoveRepetition.None;
             }
 
             return MoveRepetition.DelayReturn;
@@ -584,6 +589,24 @@ namespace Helion.Maps.Special
             }
 
             return 0.0;
+        }
+
+        public double GetDestOffset()
+        {
+            if (m_lineSpecialData.StartDirection == MoveDirection.Up && IsDoor())
+                return DoorDestOffset;
+
+            return 0;
+        }
+
+        private int GetDelay()
+        {
+            if (IsDoor())
+                return DoorDelay;
+            else if (IsLift())
+                return LiftDelay;
+
+            return 0;
         }
 
         private ActivationType GetSpecialActivationType(LineSpecialType type)
