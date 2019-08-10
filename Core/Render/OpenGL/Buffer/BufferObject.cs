@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Util;
 using Helion.Util.Container;
 using static Helion.Util.Assertion.Assert;
 
@@ -88,18 +89,22 @@ namespace Helion.Render.OpenGL.Buffer
         
         protected abstract BufferType GetBufferType();
         protected abstract void PerformUpload();
-        protected abstract void SetObjectLabel(GLCapabilities capabilities, string objectLabel);
 
+        private void SetObjectLabel(GLCapabilities capabilities, string objectLabel)
+        {
+            GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.Buffer, BufferId, objectLabel);
+        }
+        
         private void ReleaseUnmanagedResources()
         {
+            gl.DeleteBuffer(BufferId);
+            
             // Since VBOs can end up holding a lot of data, if we dispose of it
             // but take a while to lose the reference, we still want to leave
             // the option for the GC to retrieve memory.
 #nullable disable
             Data = null;
 #nullable enable
-            
-            gl.DeleteBuffer(BufferId);
         }
     }
 }

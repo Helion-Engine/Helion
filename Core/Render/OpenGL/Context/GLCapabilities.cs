@@ -9,33 +9,36 @@ namespace Helion.Render.OpenGL.Context
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Regex VersionRegex = new Regex(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
-        public readonly GLExtensions Extensions;
-        public readonly GLLimits Limits;
-        public readonly GLInfo Info;
+
         public readonly GLVersion Version;
+        public readonly GLInfo Info;
+        public readonly GLLimits Limits;
+        public readonly GLExtensions Extensions;
 
         public GLCapabilities(IGLFunctions functions)
         {
-            Extensions = new GLExtensions(functions);
-            Limits = new GLLimits(functions);
-            Info = new GLInfo(functions);
             Version = DiscoverVersion(functions);
+            Info = new GLInfo(functions);
+            Limits = new GLLimits(functions);
+            Extensions = new GLExtensions(functions);
         }
 
         public bool SupportsModernRenderer()
         {
-            // TODO: Also need nv_gpu_shader5, 
-            return Version.Supports(4, 4);
+            return Version.Supports(4, 4) &&
+                   Extensions.BindlessTextures &&
+                   Extensions.GpuShader5 &&
+                   Extensions.ShaderImageLoadStore;
         }
 
         private GLVersion DiscoverVersion(IGLFunctions gl)
         {
             string version = gl.GetString(GetStringType.Version);
+            version = "4.6";
             Match match = VersionRegex.Match(version);
             if (!match.Success)
             {
-                Log.Error("Unable to match OpenGL version for: {0}", version);
+                Log.Error("Unable to match OpenGL version for: '{0}'", version);
                 return new GLVersion(0, 0);
             }
 

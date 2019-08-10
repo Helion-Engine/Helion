@@ -5,6 +5,8 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Texture;
+using Helion.Render.OpenGL.Texture.Bindless;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -21,24 +23,23 @@ namespace Helion.Render.OpenGL
         private static bool InfoPrinted;
         
         private readonly Config m_config;
-        private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
         private readonly IGLFunctions gl;
-        private bool m_disposed;
-        
+        private readonly IGLTextureManager m_textureManager;
+
         public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
             m_config = config;
-            m_archiveCollection = archiveCollection;
             m_capabilities = new GLCapabilities(functions);
             gl = functions;
 
-            PrintGLInfo();
-            SetGLStates();
-            SetGLDebugger();
-            
             if (!m_capabilities.SupportsModernRenderer())
                 throw new HelionException("OpenGL version not high enough (will support 3.1+ soon)");
+            
+            PrintGLInfo(m_capabilities);
+            SetGLDebugger();
+            SetGLStates();
+            m_textureManager = new GLBindlessTextureManager(config, m_capabilities, functions, archiveCollection);
         }
 
         ~GLRenderer()
@@ -57,7 +58,6 @@ namespace Helion.Render.OpenGL
                     HandleClearCommand(cmd);
                     break;
                 case DrawWorldCommand cmd:
-                    // TODO
                     break;
                 case ViewportCommand cmd:
                     HandleViewportCommand(cmd);
@@ -77,15 +77,15 @@ namespace Helion.Render.OpenGL
             GC.SuppressFinalize(this);
         }
         
-        private void PrintGLInfo()
+        private static void PrintGLInfo(GLCapabilities capabilities)
         {
             if (InfoPrinted)
                 return;
             
-            Log.Info("Loaded OpenGL v{0}", m_capabilities.Version);
-            Log.Info("OpenGL Shading Language: {0}", m_capabilities.Info.ShadingVersion);
-            Log.Info("Vendor: {0}", m_capabilities.Info.Vendor);
-            Log.Info("Hardware: {0}", m_capabilities.Info.Renderer);
+            Log.Info("Loaded OpenGL v{0}", capabilities.Version);
+            Log.Info("OpenGL Shading Language: {0}", capabilities.Info.ShadingVersion);
+            Log.Info("Vendor: {0}", capabilities.Info.Vendor);
+            Log.Info("Hardware: {0}", capabilities.Info.Renderer);
 
             InfoPrinted = true;
         }
@@ -166,11 +166,7 @@ namespace Helion.Render.OpenGL
 
         private void ReleaseUnmanagedResources()
         {
-            Precondition(!m_disposed, "Trying to dispose the GLRenderer twice");
-            
-            // TODO: Release unmanaged resources here.
-
-            m_disposed = true;
+            m_textureManager.Dispose();
         }
     }
 }

@@ -1,6 +1,5 @@
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
-using Helion.Render.OpenGL.Util;
 
 namespace Helion.Render.OpenGL.Buffer.Array
 {
@@ -16,11 +15,6 @@ namespace Helion.Render.OpenGL.Buffer.Array
         protected override void PerformUpload()
         {
             gl.BufferData(GetBufferType(), BytesPerElement * Data.Length, Data.Data, GetBufferUsageType());
-        }
-
-        protected override void SetObjectLabel(GLCapabilities capabilities, string objectLabel)
-        {
-            GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.Buffer, BufferId, objectLabel);
         }
         
         protected abstract BufferUsageType GetBufferUsageType();

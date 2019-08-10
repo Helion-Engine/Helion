@@ -162,25 +162,26 @@ namespace Helion.Client
             
             if (cmdArgs.ErrorWhileParsing)
                 Log.Error("Bad command line arguments, unexpected results may follow");
-            
-            using (Config config = new Config())
-            {
-                using Client client = new Client(cmdArgs, config);
 
-                try
+            try
+            {
+                using (Config config = new Config())
                 {
-                    client.Start();
+                    using Client client = new Client(cmdArgs, config);
+                    {
+                        client.Start();
+                    }
                 }
-                catch (Exception e)
-                {
-                    Log.Error("Unexpected exception: {0}", e.Message);
+            }
+            catch (Exception e)
+            {
+                Log.Error("Unexpected exception: {0}", e.Message);
 #if DEBUG
                     Log.Error("Stack trace:");
                     Log.Error("{0}", e.StackTrace);
 #endif
-                }
             }
-
+            
             LogManager.Shutdown();
 
             ForceFinalizersIfDebugMode();

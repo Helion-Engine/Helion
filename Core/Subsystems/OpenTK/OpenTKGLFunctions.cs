@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Util.Geometry;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Subsystems.OpenTK
@@ -21,6 +22,11 @@ namespace Helion.Subsystems.OpenTK
         public void BindBuffer(BufferType type, int bufferId)
         {
             GL.BindBuffer((BufferTarget)type, bufferId);
+        }
+
+        public void BindTexture(TextureTargetType type, int textureId)
+        {
+            GL.BindTexture((TextureTarget)type, textureId);
         }
 
         public void BindVertexArray(int vaoId)
@@ -132,6 +138,16 @@ namespace Helion.Subsystems.OpenTK
             return GL.GenBuffer();
         }
 
+        public void GenerateMipmap(MipmapTargetType type)
+        {
+            GL.GenerateMipmap((GenerateMipmapTarget)type);
+        }
+
+        public int GenTexture()
+        {
+            return GL.GenTexture();
+        }
+
         public int GenVertexArray()
         {
             return GL.GenVertexArray();
@@ -185,6 +201,11 @@ namespace Helion.Subsystems.OpenTK
             return GL.GetString((StringNameIndexed)type, index);
         }
 
+        public long GetTextureHandleARB(int textureId)
+        {
+            return GL.Arb.GetTextureHandle(textureId);
+        }
+
         public int GetUniformLocation(int programId, string name)
         {
             return GL.GetUniformLocation(programId, name);
@@ -195,12 +216,12 @@ namespace Helion.Subsystems.OpenTK
             GL.LinkProgram(programId);
         }
 
-        public void MakeTextureHandleNonResident(ulong handle)
+        public void MakeTextureHandleNonResident(long handle)
         {
             GL.Arb.MakeTextureHandleNonResident(handle);
         }
 
-        public void MakeTextureHandleResidentARB(ulong handle)
+        public void MakeTextureHandleResidentARB(long handle)
         {
             GL.Arb.MakeTextureHandleResident(handle);
         }
@@ -218,6 +239,22 @@ namespace Helion.Subsystems.OpenTK
         public void ShaderSource(int shaderId, string sourceText)
         {
             GL.ShaderSource(shaderId, sourceText);
+        }
+
+        public void TexParameter(TextureTargetType targetType, TextureParameterNameType paramType, int value)
+        {
+            GL.TexParameter((TextureTarget)targetType, (TextureParameterName)paramType, value);
+        }
+
+        public void TexStorage2D(TexStorageTargetType targetType, int mipmapLevels, TexStorageInternalType internalType, Dimension dimension)
+        {
+            GL.TexStorage2D((TextureTarget2d)targetType, mipmapLevels, (SizedInternalFormat)internalType, dimension.Width, dimension.Height);
+        }
+
+        public void TexSubImage2D(TextureTargetType targetType, int mipmapLevels, Vec2I position, Dimension dimension, PixelFormatType formatType, PixelDataType pixelType, IntPtr data)
+        {
+            GL.TexSubImage2D((TextureTarget)targetType, mipmapLevels, position.X, position.Y, 
+                dimension.Width, dimension.Height, (PixelFormat)formatType, (PixelType)pixelType, data);
         }
 
         public void Uniform1(int location, int value)
