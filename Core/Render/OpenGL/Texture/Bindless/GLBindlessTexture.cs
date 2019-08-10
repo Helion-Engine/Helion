@@ -30,6 +30,8 @@ namespace Helion.Render.OpenGL.Texture.Bindless
         {
             if (IsResident)
                 MakeNonResident();
+
+            base.ReleaseUnmanagedResources();
         }
     }
 }

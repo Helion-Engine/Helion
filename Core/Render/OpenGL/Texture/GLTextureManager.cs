@@ -20,7 +20,7 @@ namespace Helion.Render.OpenGL.Texture
         protected readonly IGLFunctions gl;
         protected readonly GLCapabilities Capabilities;
         private readonly IImageRetriever m_imageRetriever;
-        private readonly List<T?> m_textures = new List<T>();
+        private readonly List<T?> m_textures = new List<T?>();
         private readonly ResourceTracker<T> m_textureTracker = new ResourceTracker<T>();
         private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
 
@@ -109,7 +109,7 @@ namespace Helion.Render.OpenGL.Texture
 //            throw new NotImplementedException("Need to add anisotropic filtering code");
         }
 
-        protected virtual void DeleteOldTextureIfAny(CIString name, ResourceNamespace resourceNamespace)
+        protected void DeleteOldTextureIfAny(CIString name, ResourceNamespace resourceNamespace)
         {
             GLTexture? texture = m_textureTracker.GetOnly(name, resourceNamespace);
             if (texture == null)
@@ -137,8 +137,21 @@ namespace Helion.Render.OpenGL.Texture
             int id = m_freeTextureIndex.Next();
             T texture = GenerateTexture(id, image, name, resourceNamespace);
             m_textureTracker.Insert(name, resourceNamespace, texture);
-            
+            AddToTextureList(id, texture);
+
             return texture;
+        }
+
+        private void AddToTextureList(int id, T texture)
+        {
+            if (id == m_textures.Count)
+            {
+                m_textures.Add(texture);
+                return;
+            }
+
+            Invariant(id == m_textures.Count, $"Trying to add texture to an invalid index: {id} (count = {m_textures.Count})");
+            m_textures[id] = texture;
         }
     }
 }
