@@ -177,8 +177,8 @@ namespace Helion.Client
             {
                 Log.Error("Unexpected exception: {0}", e.Message);
 #if DEBUG
-                    Log.Error("Stack trace:");
-                    Log.Error("{0}", e.StackTrace);
+                Log.Error("Stack trace:");
+                Log.Error("{0}", e.StackTrace);
 #endif
             }
             
