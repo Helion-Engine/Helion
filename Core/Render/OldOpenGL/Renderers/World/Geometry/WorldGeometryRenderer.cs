@@ -65,18 +65,19 @@ namespace Helion.Render.OldOpenGL.Renderers.World.Geometry
             IImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
 
             foreach (Subsector subsector in world.BspTree.Subsectors)
-                m_dynamicGeometryRenderer.AddSubsector(subsector, imageRetriever);
-
-            //=================================================================
-            // TODO: The following is temporary
+                m_staticGeometryRenderer.AddSubsector(WorldTriangulator.Triangulate(subsector, TextureFlatFinder));
             foreach (Line line in world.Map.Lines)
-                m_staticGeometryRenderer.AddLine(WorldTriangulator.Triangulate(line, TextureFinder));
-            
-            Dimension TextureFinder(CIString name)
+                m_staticGeometryRenderer.AddLine(WorldTriangulator.Triangulate(line, TextureWallFinder));
+
+            Dimension TextureWallFinder(CIString name)
             {
                 return m_textureManager.GetWallTexture(name, imageRetriever).Dimension;
             }
-            //=================================================================
+
+            Dimension TextureFlatFinder(CIString name)
+            {
+                return m_textureManager.GetFlatTexture(name, imageRetriever).Dimension;
+            }
         }
 
         private void ReleaseUnmanagedResources()

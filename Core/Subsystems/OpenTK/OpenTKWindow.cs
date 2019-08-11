@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Helion.Input;
 using Helion.Render;
-using Helion.Render.OpenGL;
+using Helion.Render.OldOpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -18,7 +18,7 @@ namespace Helion.Subsystems.OpenTK
     public class OpenTKWindow : GameWindow, IWindow
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static int nextAvailableWindowId;
+        private static int NextAvailableWindowId;
 
         private readonly Config m_config;
         private readonly int m_windowId;
@@ -32,8 +32,8 @@ namespace Helion.Subsystems.OpenTK
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
             m_config = cfg;
-            m_windowId = nextAvailableWindowId++;
-            m_renderer = new GLRenderer(cfg, archiveCollection, new OpenTKGLFunctions());
+            m_windowId = NextAvailableWindowId++;
+            m_renderer = new GLRenderer(cfg, archiveCollection);
             m_gameLoopFunc = gameLoopFunction;
 
             RegisterConfigListeners();
@@ -74,7 +74,7 @@ namespace Helion.Subsystems.OpenTK
 
         public void ClearMapResources()
         {
-            throw new NotImplementedException("TODO");
+            throw new NotImplementedException("Clear map resources: TODO (Soon [TM])");
             //m_renderer.ClearResources();
         }
 
@@ -132,12 +132,6 @@ namespace Helion.Subsystems.OpenTK
             m_inputAdapter.HandleMouseUp(e);
             
             base.OnMouseDown(e);            
-        }
-
-        private void HandleWinMouseMove(int deltaX, int deltaY)
-        {
-            if (Focused)
-                m_inputAdapter.HandleMouseMovement(deltaX, deltaY);
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
@@ -211,6 +205,12 @@ namespace Helion.Subsystems.OpenTK
         {
             int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
             return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
+        }
+        
+        private void HandleWinMouseMove(int deltaX, int deltaY)
+        {
+            if (Focused)
+                m_inputAdapter.HandleMouseMovement(deltaX, deltaY);
         }
         
         private void RegisterConfigListeners()
