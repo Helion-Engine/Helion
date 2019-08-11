@@ -6,6 +6,7 @@ using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.World;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OldOpenGL.Renderers.World
 {
@@ -24,6 +25,7 @@ namespace Helion.Render.OldOpenGL.Renderers.World
 
         ~WorldRenderer()
         {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
 

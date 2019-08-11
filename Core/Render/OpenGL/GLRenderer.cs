@@ -5,8 +5,10 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Texture;
-using Helion.Render.OpenGL.Texture.Bindless;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -21,11 +23,13 @@ namespace Helion.Render.OpenGL
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool InfoPrinted;
-        
+
+        private readonly GLRenderType m_renderType;
         private readonly Config m_config;
         private readonly GLCapabilities m_capabilities;
         private readonly IGLFunctions gl;
         private readonly IGLTextureManager m_textureManager;
+        private readonly WorldRenderer m_worldRenderer;
 
         public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
@@ -33,12 +37,13 @@ namespace Helion.Render.OpenGL
             m_capabilities = new GLCapabilities(functions);
             gl = functions;
 
-            CheckOpenGLCapabilitiesSupported();
-            
             PrintGLInfo(m_capabilities);
             SetGLDebugger();
             SetGLStates();
-            m_textureManager = new GLBindlessTextureManager(config, m_capabilities, functions, archiveCollection);
+
+            m_renderType = GetRenderTypeFromCapabilities();
+            m_textureManager = CreateTextureManager(archiveCollection);
+            m_worldRenderer = CreateWorldRenderer();
         }
 
         ~GLRenderer()
@@ -89,19 +94,6 @@ namespace Helion.Render.OpenGL
             InfoPrinted = true;
         }
 
-        private void CheckOpenGLCapabilitiesSupported()
-        {
-            if (!m_capabilities.Version.Supports(3, 1))
-                throw new HelionException($"OpenGL version not high enough (need 3.1+, you have {m_capabilities.Version})");
-            
-            if (m_capabilities.SupportsModernRenderer()) 
-                return;
-            
-            if (!m_config.Engine.Developer.ForceModernGL)
-                throw new HelionException("OpenGL version not high enough (3.1+ coming very soon)");
-            Log.Warn("Forcing modern OpenGL, version or extensions are missing (intended for Renderdoc only)");
-        }
-        
         private void SetGLStates()
         {
             gl.Enable(EnableType.DepthTest);
@@ -152,6 +144,31 @@ namespace Helion.Render.OpenGL
                 }
             });
         }
+
+        private GLRenderType GetRenderTypeFromCapabilities()
+        {
+            // TODO: Modern renderer.
+            // TODO: Standard renderer.
+            if (m_capabilities.Version.Supports(2, 0))
+            {
+                Log.Info("Using legacy OpenGL renderer");
+                return GLRenderType.Legacy;
+            }
+            
+            throw new HelionException("OpenGL implementation too old or not supported");
+        }
+        
+        private IGLTextureManager CreateTextureManager(ArchiveCollection archiveCollection)
+        {
+            return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+        }
+
+        private WorldRenderer CreateWorldRenderer()
+        {
+            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+            
+            return new LegacyWorldRenderer(gl, (LegacyGLTextureManager)m_textureManager);
+        }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
         {
@@ -179,6 +196,7 @@ namespace Helion.Render.OpenGL
         private void ReleaseUnmanagedResources()
         {
             m_textureManager.Dispose();
+            m_worldRenderer.Dispose();
         }
     }
 }
