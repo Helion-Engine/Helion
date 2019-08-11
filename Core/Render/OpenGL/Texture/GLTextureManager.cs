@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Graphics;
+using Helion.Render.OpenGL.Buffer;
 using Helion.Render.OpenGL.Context;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -13,15 +14,24 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture
 {
-    public abstract class GLTextureManager<T> : IGLTextureManager where T : GLTexture
+    /// <summary>
+    /// An implementation of a texture manager in OpenGL.
+    /// </summary>
+    /// <typeparam name="GLTextureType">The type of GL texture.</typeparam>
+    /// <typeparam name="DataType">The struct data type that will be placed in
+    /// some kind of buffer for referencing.</typeparam>
+    public abstract class GLTextureManager<GLTextureType, DataType> : IGLTextureManager 
+        where GLTextureType : GLTexture 
+        where DataType : struct
     {
+        public readonly ShaderDataBufferObject<DataType> TextureData;
         protected readonly Config m_config;
         protected readonly ArchiveCollection m_archiveCollection;
         protected readonly IGLFunctions gl;
         protected readonly GLCapabilities Capabilities;
         private readonly IImageRetriever m_imageRetriever;
-        private readonly List<T?> m_textures = new List<T?>();
-        private readonly ResourceTracker<T> m_textureTracker = new ResourceTracker<T>();
+        private readonly List<GLTextureType?> m_textures = new List<GLTextureType?>();
+        private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
         private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
 
         public GLTexture NullTexture { get; }
@@ -35,6 +45,7 @@ namespace Helion.Render.OpenGL.Texture
             Capabilities = capabilities;
             gl = functions;
             NullTexture = CreateNullTexture();
+            TextureData = CreateTextureDataBuffer();
         }
         
         ~GLTextureManager()
@@ -91,8 +102,8 @@ namespace Helion.Render.OpenGL.Texture
             int smallerAxis = Math.Min(dimension.Width, dimension.Height);
             return (int)Math.Floor(Math.Log(smallerAxis, 2));
         }
-        
-        protected void SetAnisotrophicFiltering()
+
+        protected void SetAnisotropicFiltering()
         {
             if (!Capabilities.Extensions.TextureFilterAnisotropic || !m_config.Engine.Render.Anisotropy.Enable) 
                 return;
@@ -123,26 +134,35 @@ namespace Helion.Render.OpenGL.Texture
 
         protected virtual void ReleaseUnmanagedResources()
         {
+            TextureData.Dispose();
             NullTexture.Dispose();
             m_textures.ForEach(texture => texture?.Dispose());
         }
 
-        protected abstract GLTexture CreateNullTexture();
-        protected abstract T GenerateTexture(int id, Image image, CIString name, ResourceNamespace resourceNamespace);
+        protected abstract GLTextureType GenerateTexture(int id, Image image, CIString name, ResourceNamespace resourceNamespace);
+        protected abstract ShaderDataBufferObject<DataType> CreateTextureDataBuffer();
+        protected abstract void AddToTextureDataBuffer(GLTextureType texture);
+        
+        private GLTexture CreateNullTexture()
+        {
+            return GenerateTexture(0, ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
+        }
         
         private GLTexture CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
         {
             DeleteOldTextureIfAny(name, resourceNamespace);
 
             int id = m_freeTextureIndex.Next();
-            T texture = GenerateTexture(id, image, name, resourceNamespace);
+            GLTextureType texture = GenerateTexture(id, image, name, resourceNamespace);
             m_textureTracker.Insert(name, resourceNamespace, texture);
             AddToTextureList(id, texture);
+            
+            AddToTextureDataBuffer(texture);
 
             return texture;
         }
 
-        private void AddToTextureList(int id, T texture)
+        private void AddToTextureList(int id, GLTextureType texture)
         {
             if (id == m_textures.Count)
             {

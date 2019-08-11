@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Helion.Subsystems.OpenTK
 {
@@ -22,6 +22,11 @@ namespace Helion.Subsystems.OpenTK
         public void BindBuffer(BufferType type, int bufferId)
         {
             GL.BindBuffer((BufferTarget)type, bufferId);
+        }
+
+        public void BindBufferBase(BufferRangeType type, int bindIndex, int bufferId)
+        {
+            GL.BindBufferBase((BufferRangeTarget)type, bindIndex, bufferId);
         }
 
         public void BindTexture(TextureTargetType type, int textureId)
@@ -43,7 +48,18 @@ namespace Helion.Subsystems.OpenTK
         {
             GL.BufferData((BufferTarget)bufferType, totalBytes, data, (BufferUsageHint)usageType);
         }
-        
+
+        public void BufferStorage<T>(BufferType bufferType, int totalBytes, T[] data, BufferStorageFlagType flags) where T : struct
+        {
+            GL.BufferStorage((BufferTarget)bufferType, totalBytes, data, (BufferStorageFlags)flags);
+        }
+
+        public void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, T[] values) where T : struct
+        {
+            IntPtr offset = new IntPtr(byteOffset);
+            GL.BufferSubData((BufferTarget)type, offset, numBytes, values);
+        }
+
         public void Clear(ClearType type)
         {
             GL.Clear((ClearBufferMask)type);

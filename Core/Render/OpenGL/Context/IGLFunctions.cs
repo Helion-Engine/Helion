@@ -12,10 +12,13 @@ namespace Helion.Render.OpenGL.Context
         void AttachShader(int programId, int shaderId);
         void BindAttribLocation(int programId, int attrIndex, string attrName);
         void BindBuffer(BufferType type, int bufferId);
+        void BindBufferBase(BufferRangeType type, int bindIndex, int bufferId);
         void BindTexture(TextureTargetType type, int textureId);
         void BindVertexArray(int vaoId);
         void BlendFunc(BlendingFactorType sourceFactor, BlendingFactorType destFactor);
         void BufferData<T>(BufferType bufferType, int totalBytes, T[] data, BufferUsageType usageType) where T : struct;
+        void BufferStorage<T>(BufferType bufferType, int totalBytes, T[] data, BufferStorageFlagType flags) where T : struct;
+        void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, T[] values) where T : struct;
         void Clear(ClearType type);
         void ClearColor(float r, float g, float b, float a);
         void CompileShader(int shaderId);

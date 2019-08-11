@@ -61,7 +61,23 @@ namespace Helion.Test.Unit.Util.Container
             Assert.AreEqual(12345, array[4]);
             Assert.AreEqual(12345, array.Data[4]);
         }
-        
+
+        [TestMethod]
+        public void CanGetAndSetViaIndexer()
+        {
+            DynamicArray<int> array = new DynamicArray<int>();
+            array.Add(1, 2, 3);
+
+            for (int i = 0; i < array.Length; i++)
+                Assert.AreEqual(i + 1, array[i]);
+
+            for (int i = 0; i < array.Length; i++)
+                array[i] = array[i] - 1;
+            
+            for (int i = 0; i < array.Length; i++)
+                Assert.AreEqual(i, array[i]);
+        }
+
         [TestMethod]
         public void PerformsIteration()
         {

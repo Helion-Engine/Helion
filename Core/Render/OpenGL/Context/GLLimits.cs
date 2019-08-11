@@ -4,7 +4,10 @@ namespace Helion.Render.OpenGL.Context
     {
         public GLLimits(IGLFunctions functions)
         {
-            // TODO
+            // TODO: Anisotropy
+            // TODO: Texture unit max
+            // TODO: GL_MAX_UNIFORM_BUFFER_BINDINGS
+            // TODO: GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
         }
     }
 }

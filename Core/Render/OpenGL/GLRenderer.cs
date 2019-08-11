@@ -33,8 +33,7 @@ namespace Helion.Render.OpenGL
             m_capabilities = new GLCapabilities(functions);
             gl = functions;
 
-            if (!m_capabilities.SupportsModernRenderer())
-                throw new HelionException("OpenGL version not high enough (will support 3.1+ soon)");
+            CheckOpenGLCapabilitiesSupported();
             
             PrintGLInfo(m_capabilities);
             SetGLDebugger();
@@ -88,6 +87,19 @@ namespace Helion.Render.OpenGL
             Log.Info("Hardware: {0}", capabilities.Info.Renderer);
 
             InfoPrinted = true;
+        }
+
+        private void CheckOpenGLCapabilitiesSupported()
+        {
+            if (!m_capabilities.Version.Supports(3, 1))
+                throw new HelionException($"OpenGL version not high enough (need 3.1+, you have {m_capabilities.Version})");
+            
+            if (m_capabilities.SupportsModernRenderer()) 
+                return;
+            
+            if (!m_config.Engine.Developer.ForceModernGL)
+                throw new HelionException("OpenGL version not high enough (3.1+ coming very soon)");
+            Log.Warn("Forcing modern OpenGL, version or extensions are missing (intended for Renderdoc only)");
         }
         
         private void SetGLStates()

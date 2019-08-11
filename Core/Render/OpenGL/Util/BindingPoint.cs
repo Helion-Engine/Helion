@@ -6,9 +6,9 @@ namespace Helion.Render.OpenGL.Util
     /// </summary>
     public enum BindingPoint
     {
-        TextureInfo = 1,
-        TextureTable = 2,
-        Sector = 3,
-        SectorPlane = 4,
+        TextureData = 0,
+        TextureIndirection = 1,
+        Sector = 2,
+        SectorPlane = 3,
     }
 }

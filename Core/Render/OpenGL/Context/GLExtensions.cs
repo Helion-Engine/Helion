@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Render.OpenGL.Context.Types;
+using NLog;
 
 namespace Helion.Render.OpenGL.Context
 {

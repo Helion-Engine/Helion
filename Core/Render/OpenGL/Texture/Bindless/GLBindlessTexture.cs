@@ -5,24 +5,24 @@ namespace Helion.Render.OpenGL.Texture.Bindless
 {
     public class GLBindlessTexture : GLTexture
     {
+        public readonly long BindlessHandle;
         public bool IsResident { get; private set; }
-        private readonly long m_bindlessHandle;
         
         public GLBindlessTexture(int id, int textureId, Dimension dimension, IGLFunctions functions, long bindlessHandle) : 
             base(id, textureId, dimension, functions)
         {
-            m_bindlessHandle = bindlessHandle;
+            BindlessHandle = bindlessHandle;
         }
 
         public void MakeResident()
         {
-            gl.MakeTextureHandleResidentARB(m_bindlessHandle);
+            gl.MakeTextureHandleResidentARB(BindlessHandle);
             IsResident = true;
         }
 
         public void MakeNonResident()
         {
-            gl.MakeTextureHandleNonResident(m_bindlessHandle);
+            gl.MakeTextureHandleNonResident(BindlessHandle);
             IsResident = false;
         }
         

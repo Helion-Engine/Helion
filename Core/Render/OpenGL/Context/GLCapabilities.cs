@@ -34,7 +34,6 @@ namespace Helion.Render.OpenGL.Context
         private GLVersion DiscoverVersion(IGLFunctions gl)
         {
             string version = gl.GetString(GetStringType.Version);
-            version = "4.6";
             Match match = VersionRegex.Match(version);
             if (!match.Success)
             {

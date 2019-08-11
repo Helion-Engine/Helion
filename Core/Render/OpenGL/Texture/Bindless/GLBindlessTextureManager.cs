@@ -1,4 +1,6 @@
 using Helion.Graphics;
+using Helion.Render.OpenGL.Buffer;
+using Helion.Render.OpenGL.Buffer.ShaderStorage;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Util;
@@ -10,16 +12,11 @@ using Helion.Util.Geometry;
 
 namespace Helion.Render.OpenGL.Texture.Bindless
 {
-    public class GLBindlessTextureManager : GLTextureManager<GLBindlessTexture>
+    public class GLBindlessTextureManager : GLTextureManager<GLBindlessTexture, BindlessTextureData>
     {
         public GLBindlessTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection) : 
             base(config, capabilities, functions, archiveCollection)
         {
-        }
-
-        protected override GLTexture CreateNullTexture()
-        {
-            return GenerateTexture(0, ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
         }
 
         protected override GLBindlessTexture GenerateTexture(int id, Image image, CIString name, 
@@ -33,6 +30,17 @@ namespace Helion.Render.OpenGL.Texture.Bindless
             texture.MakeResident();
 
             return texture;
+        }
+
+        protected override ShaderDataBufferObject<BindlessTextureData> CreateTextureDataBuffer()
+        {
+            return new ShaderStorageBufferObject<BindlessTextureData>(Capabilities, gl, 
+                BindingPoint.TextureData, "Texture data SSBO");
+        }
+
+        protected override void AddToTextureDataBuffer(GLBindlessTexture texture)
+        {
+            // TODO
         }
 
         private void UploadData(int textureId, Image image, CIString name, ResourceNamespace resourceNamespace)
@@ -62,7 +70,6 @@ namespace Helion.Render.OpenGL.Texture.Bindless
 
         private void SetTextureParameters(TextureTargetType targetType, ResourceNamespace resourceNamespace)
         {
-            // TODO: Add interpolation types from the config as needed.
             if (resourceNamespace == ResourceNamespace.Sprites)
             {
                 gl.TexParameter(targetType, TextureParameterNameType.MinFilter, (int)TextureMinFilterType.Nearest);
@@ -72,13 +79,14 @@ namespace Helion.Render.OpenGL.Texture.Bindless
             }
             else
             {
+                // TODO: Add interpolation types from the config as needed.
                 gl.TexParameter(targetType, TextureParameterNameType.MinFilter, (int)TextureMinFilterType.Nearest);
                 gl.TexParameter(targetType, TextureParameterNameType.MagFilter, (int)TextureMagFilterType.Nearest);
                 gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.Repeat);
                 gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.Repeat);
             }
             
-            SetAnisotrophicFiltering();
+            SetAnisotropicFiltering();
         }
     }
 }
