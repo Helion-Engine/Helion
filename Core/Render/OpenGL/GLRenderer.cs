@@ -10,6 +10,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
+using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -54,6 +55,11 @@ namespace Helion.Render.OpenGL
 
         public void Render(RenderCommands renderCommands)
         {
+            // This has to be tracked beyond just the rendering command, and it
+            // also prevents something from going terribly wrong if there is no
+            // call to setting the viewport.
+            Rectangle viewport = new Rectangle(0, 0, 800, 600);
+            
             foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
             {
                 switch (renderCommand)
@@ -62,9 +68,10 @@ namespace Helion.Render.OpenGL
                     HandleClearCommand(cmd);
                     break;
                 case DrawWorldCommand cmd:
+                    HandleRenderWorldCommand(cmd, viewport);
                     break;
                 case ViewportCommand cmd:
-                    HandleViewportCommand(cmd);
+                    HandleViewportCommand(cmd, ref viewport);
                     break;
                 default:
                     Fail($"Unsupported render command type: {renderCommand}");
@@ -185,11 +192,19 @@ namespace Helion.Render.OpenGL
             
             gl.Clear(clearMask);
         }
-        
-        private void HandleViewportCommand(ViewportCommand viewportCommand)
+
+        private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
+        {
+            RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport);
+            m_worldRenderer.Render(cmd.World, renderInfo);
+        }
+
+        private void HandleViewportCommand(ViewportCommand viewportCommand, ref Rectangle currentViewport)
         {
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
+            currentViewport = new Rectangle(offset.X, offset.Y, dimension.Width, dimension.Height);
+            
             gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }
 
