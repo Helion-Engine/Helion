@@ -137,19 +137,7 @@ namespace Helion.Render.OpenGL
             // TODO: We should filter messages we want to get since this could
             //       pollute us with lots of messages and we wouldn't know it.
             //       https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-            gl.DebugMessageCallback((severity, message) =>
-            {
-                switch (severity)
-                {
-                case DebugLevel.High:
-                case DebugLevel.Medium:
-                    Log.Error("[GLDebug type={0}] {1}", severity, message);
-                    break;
-                case DebugLevel.Low:
-                    Log.Warn("[GLDebug type={0}] {1}", severity, message);
-                    break;
-                }
-            });
+            gl.DebugMessageCallback();
         }
 
         private GLRenderType GetRenderTypeFromCapabilities()

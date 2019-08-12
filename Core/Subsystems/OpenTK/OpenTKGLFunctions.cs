@@ -3,12 +3,15 @@ using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
+using NLog;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Helion.Subsystems.OpenTK
 {
     public class OpenTKGLFunctions : IGLFunctions
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public void AttachShader(int programId, int shaderId)
         {
             GL.AttachShader(programId, shaderId);
@@ -46,13 +49,7 @@ namespace Helion.Subsystems.OpenTK
 
         public void BufferData<T>(BufferType bufferType, int totalBytes, T[] data, BufferUsageType usageType) where T : struct
         {
-            BufferTarget bufferTarget = (BufferTarget)bufferType;
-            int bytes = totalBytes;
-            T[] rawData = data;
-            BufferUsageHint usageHint = (BufferUsageHint)usageType;
-            
-            GL.BufferData(bufferTarget, bytes, rawData, usageHint);
-//            GL.BufferData((BufferTarget)bufferType, totalBytes, data, (BufferUsageHint)usageType);
+            GL.BufferData((BufferTarget)bufferType, totalBytes, data, (BufferUsageHint)usageType);
         }
 
         public void BufferStorage<T>(BufferType bufferType, int totalBytes, T[] data, BufferStorageFlagType flags) where T : struct
@@ -96,12 +93,20 @@ namespace Helion.Subsystems.OpenTK
             GL.CullFace((CullFaceMode)type);
         }
 
-        public void DebugMessageCallback(Action<DebugLevel, string> callback)
+        public void DebugMessageCallback()
         {
             GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
-                string msg = Marshal.PtrToStringAnsi(message, length);
-                callback((DebugLevel)severity, msg);
+                switch (severity)
+                {
+                    case DebugSeverity.DebugSeverityHigh:
+                    case DebugSeverity.DebugSeverityMedium:
+                        Log.Error("[GLDebug type={0}] {1}", severity, Marshal.PtrToStringAnsi(message, length));
+                        break;
+                    case DebugSeverity.DebugSeverityLow:
+                        Log.Warn("[GLDebug type={0}] {1}", severity, Marshal.PtrToStringAnsi(message, length));
+                        break;
+                }
             }, IntPtr.Zero);
         }
 

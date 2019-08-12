@@ -6,7 +6,6 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.World;
-using OpenTK.Graphics.OpenGL4;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {
@@ -35,16 +34,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_vbo.Add(new SimpleVertex(-0.5f, -0.5f, 0.0f, 0.0f, 1.0f), // Left
                       new SimpleVertex(0.5f, -0.5f, 0.0f, 1.0f, 1.0f), // Right
                       new SimpleVertex(0.0f,  0.5f, 0.0f, 0.5f, 0.0f)); // Top
-            
-            // TODO: Why is this needed?
-            m_vbo.BindAnd(() =>
-            {
-                m_vbo.Upload();
-            });
         }
 
         public override void Render(WorldBase world, RenderInfo renderInfo)
         {
+            m_vbo.UploadIfNeeded();
+            
             m_shaderProgram.BindAnd(() =>
             {
                 m_shaderProgram.Texture.Set(gl, 0);

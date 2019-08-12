@@ -25,7 +25,7 @@ namespace Helion.Render.OpenGL.Context
         int CreateProgram();
         int CreateShader(ShaderComponentType type);
         void CullFace(CullFaceType type);
-        void DebugMessageCallback(Action<DebugLevel, string> callback);
+        void DebugMessageCallback();
         void DeleteBuffer(int bufferId);
         void DeleteProgram(int programId);
         void DeleteShader(int shaderId);
