@@ -137,7 +137,23 @@ namespace Helion.Render.OpenGL
             // TODO: We should filter messages we want to get since this could
             //       pollute us with lots of messages and we wouldn't know it.
             //       https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-            gl.DebugMessageCallback();
+            gl.DebugMessageCallback((level, message) =>
+            {
+                switch (level)
+                {
+                case DebugLevel.Low:
+                    Log.Error("OpenGL warning: {0}", message);
+                    return;
+                case DebugLevel.Medium:
+                    Log.Error("OpenGL minor error: {0}", message);
+                    return;
+                case DebugLevel.High:
+                    Log.Error("OpenGL major error: {0}", message);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unsupported enumeration debug callback: {level}");
+                }
+            });
         }
 
         private GLRenderType GetRenderTypeFromCapabilities()

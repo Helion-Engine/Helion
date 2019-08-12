@@ -3,15 +3,27 @@ using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
-using NLog;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Helion.Subsystems.OpenTK
 {
     public class OpenTKGLFunctions : IGLFunctions
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
+        /// <summary>
+        /// Holds a reference to the last registered callback. Required due to
+        /// how the GC works or else we trigger SystemAccessViolations.
+        /// </summary>
+        /// <remarks>
+        /// See: https://stackoverflow.com/questions/16544511/prevent-delegate-from-being-garbage-collected
+        /// See: https://stackoverflow.com/questions/6193711/call-has-been-made-on-garbage-collected-delegate-in-c
+        /// </remarks>
+        private Action<DebugLevel, string>? m_lastCallbackReference;
+        
+        /// <summary>
+        /// Same as <see cref="m_lastCallbackReference"/>.
+        /// </summary>
+        private DebugProc? m_lastCallbackProcReference;
+        
         public void AttachShader(int programId, int shaderId)
         {
             GL.AttachShader(programId, shaderId);
@@ -93,21 +105,29 @@ namespace Helion.Subsystems.OpenTK
             GL.CullFace((CullFaceMode)type);
         }
 
-        public void DebugMessageCallback()
+        public void DebugMessageCallback(Action<DebugLevel, string> callback)
         {
-            GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
+            // If we don't do this, the GC will collect it (since the lambda
+            // below won't) and then we end up with a SystemAccessViolation.
+            // See the docs of this variable for more information.
+            m_lastCallbackReference = callback;
+            m_lastCallbackProcReference = (source, type, id, severity, length, message, userParam) =>
             {
                 switch (severity)
                 {
-                    case DebugSeverity.DebugSeverityHigh:
-                    case DebugSeverity.DebugSeverityMedium:
-                        Log.Error("[GLDebug type={0}] {1}", severity, Marshal.PtrToStringAnsi(message, length));
-                        break;
-                    case DebugSeverity.DebugSeverityLow:
-                        Log.Warn("[GLDebug type={0}] {1}", severity, Marshal.PtrToStringAnsi(message, length));
-                        break;
+                case DebugSeverity.DebugSeverityHigh:
+                    callback(DebugLevel.High, Marshal.PtrToStringAnsi(message, length));
+                    break;
+                case DebugSeverity.DebugSeverityMedium:
+                    callback(DebugLevel.Medium, Marshal.PtrToStringAnsi(message, length));
+                    break;
+                case DebugSeverity.DebugSeverityLow:
+                    callback(DebugLevel.Low, Marshal.PtrToStringAnsi(message, length));
+                    break;
                 }
-            }, IntPtr.Zero);
+            };
+            
+            GL.DebugMessageCallback(m_lastCallbackProcReference, IntPtr.Zero);
         }
 
         public void DeleteBuffer(int bufferId)
