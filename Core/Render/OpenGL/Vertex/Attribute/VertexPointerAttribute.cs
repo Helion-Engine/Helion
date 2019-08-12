@@ -1,5 +1,6 @@
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Util;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Vertex.Attribute

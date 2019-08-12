@@ -5,11 +5,7 @@ namespace Helion.Render.OpenGL.Shader.Fields
 {
     public class UniformInt : UniformElement<int>
     {
-        public UniformInt(IGLFunctions functions) : base(functions)
-        {
-        }
-
-        public override void Set(int value)
+        public override void Set(IGLFunctions gl, int value)
         {
             Precondition(Location != NoLocation, "Uniform int value did not have the location set");
             

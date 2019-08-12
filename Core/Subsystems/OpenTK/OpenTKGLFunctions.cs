@@ -46,7 +46,13 @@ namespace Helion.Subsystems.OpenTK
 
         public void BufferData<T>(BufferType bufferType, int totalBytes, T[] data, BufferUsageType usageType) where T : struct
         {
-            GL.BufferData((BufferTarget)bufferType, totalBytes, data, (BufferUsageHint)usageType);
+            BufferTarget bufferTarget = (BufferTarget)bufferType;
+            int bytes = totalBytes;
+            T[] rawData = data;
+            BufferUsageHint usageHint = (BufferUsageHint)usageType;
+            
+            GL.BufferData(bufferTarget, bytes, rawData, usageHint);
+//            GL.BufferData((BufferTarget)bufferType, totalBytes, data, (BufferUsageHint)usageType);
         }
 
         public void BufferStorage<T>(BufferType bufferType, int totalBytes, T[] data, BufferStorageFlagType flags) where T : struct
@@ -299,9 +305,9 @@ namespace Helion.Subsystems.OpenTK
             GL.VertexAttribIPointer(index, size, (VertexAttribIntegerType)type, stride, new IntPtr(offset));
         }
 
-        public void VertexAttribPointer(int index, int byteLength, VertexAttributePointerType type, bool normalized, int stride, int offset)
+        public void VertexAttribPointer(int index, int size, VertexAttributePointerType type, bool normalized, int stride, int offset)
         {
-            GL.VertexAttribPointer(index, byteLength, (VertexAttribPointerType)type, normalized, stride, new IntPtr(offset));
+            GL.VertexAttribPointer(index, size, (VertexAttribPointerType)type, normalized, stride, new IntPtr(offset));
         }
 
         public void Viewport(int x, int y, int width, int height)

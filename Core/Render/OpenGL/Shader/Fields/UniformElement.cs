@@ -7,14 +7,8 @@ namespace Helion.Render.OpenGL.Shader.Fields
     {
         internal const int NoLocation = -1;
 
-        protected readonly IGLFunctions gl;
         protected internal int Location = NoLocation;
 
-        protected UniformElement(IGLFunctions functions)
-        {
-            gl = functions;
-        }
-
-        public abstract void Set(T value);
+        public abstract void Set(IGLFunctions gl, T value);
     }
 }

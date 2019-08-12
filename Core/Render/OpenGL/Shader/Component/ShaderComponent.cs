@@ -56,7 +56,7 @@ namespace Helion.Render.OpenGL.Shader.Component
 
         private void ReleaseUnmanagedResources()
         {
-            gl.DeleteShader(ShaderId);    
+            gl.DeleteShader(ShaderId);
         }
     }
 }

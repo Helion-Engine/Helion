@@ -65,7 +65,7 @@ namespace Helion.Render.OpenGL.Context
         void Uniform1(int location, float value);
         void UseProgram(int programId);
         void VertexAttribIPointer(int index, int size, VertexAttributeIntegralPointerType type, int stride, int offset);
-        void VertexAttribPointer(int index, int byteLength, VertexAttributePointerType type, bool normalized, int stride, int offset);
+        void VertexAttribPointer(int index, int size, VertexAttributePointerType type, bool normalized, int stride, int offset);
         void Viewport(int x, int y, int width, int height);
     }
 }

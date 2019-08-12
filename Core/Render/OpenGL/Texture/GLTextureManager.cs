@@ -24,7 +24,11 @@ namespace Helion.Render.OpenGL.Texture
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
         private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
         
-        public GLTexture NullTexture { get; }
+        /// <summary>
+        /// The null texture, intended to be used when the actual texture
+        /// cannot be found.
+        /// </summary>
+        public GLTextureType NullTexture { get; }
         
         protected GLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, 
             ArchiveCollection archiveCollection)
@@ -43,12 +47,23 @@ namespace Helion.Render.OpenGL.Texture
             Dispose();
         }
         
-        public GLTexture Get(CIString name, ResourceNamespace priorityNamespace)
+        /// <summary>
+        /// Gets the texture, with priority given to the namespace provided. If
+        /// it cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <param name="priorityNamespace">The namespace to search first.
+        /// </param>
+        /// <returns>The handle for the texture in the provided namespace, or
+        /// the texture in another namespace if the texture was not found in
+        /// the desired namespace, or the null texture if no such texture was
+        /// found with the name provided.</returns>
+        public GLTextureType Get(CIString name, ResourceNamespace priorityNamespace)
         {
             if (name == Constants.NoTexture)
                 return NullTexture;
             
-            GLTexture? textureForNamespace = m_textureTracker.GetOnly(name, priorityNamespace);
+            GLTextureType? textureForNamespace = m_textureTracker.GetOnly(name, priorityNamespace);
             if (textureForNamespace != null) 
                 return textureForNamespace;
 
@@ -65,7 +80,7 @@ namespace Helion.Render.OpenGL.Texture
 
             // Now that nothing in the desired namespace was found, we will
             // accept anything.
-            GLTexture? anyTexture = m_textureTracker.Get(name, priorityNamespace);
+            GLTextureType? anyTexture = m_textureTracker.Get(name, priorityNamespace);
             if (anyTexture != null) 
                 return anyTexture;
             
@@ -76,9 +91,27 @@ namespace Helion.Render.OpenGL.Texture
             return image != null ? CreateTexture(image, name, image.Metadata.Namespace) : NullTexture;
         }
 
-        public GLTexture GetWall(CIString name) => Get(name, ResourceNamespace.Textures);
+        /// <summary>
+        /// Gets the texture, with priority given to the texture namespace. If
+        /// it cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <returns>The handle for the texture in the provided namespace, or
+        /// the texture in another namespace if the texture was not found in
+        /// the desired namespace, or the null texture if no such texture was
+        /// found with the name provided.</returns>
+        public GLTextureType GetWall(CIString name) => Get(name, ResourceNamespace.Textures);
 
-        public GLTexture GetFlat(CIString name) => Get(name, ResourceNamespace.Flats);
+        /// <summary>
+        /// Gets the texture, with priority given to the flat namespace. If it
+        /// cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The flat texture name.</param>
+        /// <returns>The handle for the texture in the provided namespace, or
+        /// the texture in another namespace if the texture was not found in
+        /// the desired namespace, or the null texture if no such texture was
+        /// found with the name provided.</returns>
+        public GLTextureType GetFlat(CIString name) => Get(name, ResourceNamespace.Flats);
                 
         public void Dispose()
         {
@@ -92,7 +125,7 @@ namespace Helion.Render.OpenGL.Texture
             return (int)Math.Floor(Math.Log(smallerAxis, 2));
         }
         
-        protected virtual GLTexture CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
+        protected virtual GLTextureType CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
         { 
             DeleteOldTextureIfAny(name, resourceNamespace);
 
@@ -120,7 +153,7 @@ namespace Helion.Render.OpenGL.Texture
 
         protected abstract GLTextureType GenerateTexture(int id, Image image, CIString name, ResourceNamespace resourceNamespace);
         
-        private GLTexture CreateNullTexture()
+        private GLTextureType CreateNullTexture()
         {
             return GenerateTexture(0, ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
         }

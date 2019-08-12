@@ -174,7 +174,7 @@ namespace Helion.Render.OpenGL
         {
             Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
             
-            return new LegacyWorldRenderer(gl, (LegacyGLTextureManager)m_textureManager);
+            return new LegacyWorldRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
         }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)

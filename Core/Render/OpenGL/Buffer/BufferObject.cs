@@ -55,7 +55,7 @@ namespace Helion.Render.OpenGL.Buffer
         /// <summary>
         /// If an upload is needed.
         /// </summary>
-        public bool NeedsUpload => !Uploaded;
+        public bool NeedsUpload => !Uploaded && Count > 0;
         
         /// <summary>
         /// How many bytes should be allocated to hold all the data currently.
@@ -143,6 +143,17 @@ namespace Helion.Render.OpenGL.Buffer
         }
 
         /// <summary>
+        /// Checks to see if an upload is needed, and uploads. This will bind
+        /// the object, upload, and unbind, meaning any bind state will be
+        /// altered by this.
+        /// </summary>
+        public void UploadIfNeeded()
+        {
+            if (NeedsUpload)
+                BindAnd(Upload);
+        }
+
+        /// <summary>
         /// Clears the data.
         /// </summary>
         public void Clear()
@@ -157,6 +168,9 @@ namespace Helion.Render.OpenGL.Buffer
         public void Bind()
         {
             gl.BindBuffer(GetBufferType(), BufferId);
+
+//            if (NeedsUpload)
+//                Upload();
         }
 
         /// <summary>
@@ -164,7 +178,7 @@ namespace Helion.Render.OpenGL.Buffer
         /// </summary>
         public void Unbind()
         {
-            gl.BindBuffer(GetBufferType(), 0);   
+            gl.BindBuffer(GetBufferType(), 0);
         }
         
         /// <summary>
