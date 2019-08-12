@@ -273,6 +273,12 @@ namespace Helion.Subsystems.OpenTK
                 dimension.Width, dimension.Height, (PixelFormat)formatType, (PixelType)pixelType, data);
         }
 
+        public void TexImage2D(TextureTargetType textureType, int level, PixelInternalFormatType internalType, Dimension dimension, PixelFormatType formatType, PixelDataType dataType, IntPtr data)
+        {
+            GL.TexImage2D((TextureTarget)textureType, level, (PixelInternalFormat)internalType, dimension.Width, 
+                dimension.Height, 0, (PixelFormat)formatType, (PixelType)dataType, data);
+        }
+
         public void Uniform1(int location, int value)
         {
             GL.Uniform1(location, value);

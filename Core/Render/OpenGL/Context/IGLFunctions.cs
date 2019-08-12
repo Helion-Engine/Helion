@@ -60,6 +60,7 @@ namespace Helion.Render.OpenGL.Context
         void TexParameter(TextureTargetType targetType, TextureParameterNameType paramType, int value);
         void TexStorage2D(TexStorageTargetType targetType, int mipmapLevels, TexStorageInternalType internalType, Dimension dimension);
         void TexSubImage2D(TextureTargetType targetType, int mipmapLevels, Vec2I position, Dimension dimension, PixelFormatType formatType, PixelDataType pixelType, IntPtr data);
+        void TexImage2D(TextureTargetType textureType, int level, PixelInternalFormatType internalType, Dimension dimension, PixelFormatType formatType, PixelDataType dataType, IntPtr data);
         void Uniform1(int location, int value);
         void Uniform1(int location, float value);
         void UseProgram(int programId);

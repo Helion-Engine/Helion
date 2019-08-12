@@ -16,11 +16,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_textureManager = textureManager;
         }
         
-        // TODO
-        
         public override void Render(WorldBase world, RenderInfo renderInfo)
         {
-            throw new System.NotImplementedException();
+            // TODO
         }
 
         public override void Dispose()

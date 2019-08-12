@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Helion.Input;
 using Helion.Render;
-using Helion.Render.OldOpenGL;
+using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -33,7 +33,7 @@ namespace Helion.Subsystems.OpenTK
         {
             m_config = cfg;
             m_windowId = NextAvailableWindowId++;
-            m_renderer = new GLRenderer(cfg, archiveCollection);
+            m_renderer = new GLRenderer(cfg, archiveCollection, new OpenTKGLFunctions());
             m_gameLoopFunc = gameLoopFunction;
 
             RegisterConfigListeners();
@@ -46,7 +46,7 @@ namespace Helion.Subsystems.OpenTK
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // OpenTK currently does not support Windows raw input so use our own implmentation
+                // OpenTK currently does not support Windows raw input so use our own implementation
                 if (SetupNativeWinMouse())
                     m_useMouseOpenTK = false;
             }
