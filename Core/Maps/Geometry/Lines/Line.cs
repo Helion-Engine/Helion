@@ -26,9 +26,6 @@ namespace Helion.Maps.Geometry.Lines
         
         public bool TwoSided => !OneSided;
 
-        // TODO fix me
-        public IList<Side> Sides => Containers.WithoutNulls(Front, Back);
-
         public bool HasSpecial => Special.LineSpecialType != ZLineSpecialType.None;
 
         public LineSpecial Special;
@@ -46,11 +43,37 @@ namespace Helion.Maps.Geometry.Lines
         public byte DelayArg => Args[2];
         public byte AmountArg => Args[2];
 
-
         public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back = null)
             : this(id, startVertex, endVertex, front, back, default, new LineSpecial(ZLineSpecialType.None), null)
         {
+            
+        }
 
+        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecial special, byte[] args)
+        {
+            Id = id;
+            StartVertex = startVertex;
+            EndVertex = endVertex;
+            Front = front;
+            Back = back;
+            Flags = lineFlags;
+            Segment = new Seg2D(StartVertex.Position, EndVertex.Position);
+
+            startVertex.Add(this);
+            endVertex.Add(this);
+
+            front.Line = this;
+            front.Sector.AddLine(this);
+
+            if (back != null)
+            {
+                back.Sector.AddLine(this);
+                back.Line = this;
+            }
+
+            Special = special;
+     
+            Args = args;
         }
 
         /// <summary>
@@ -67,27 +90,6 @@ namespace Helion.Maps.Geometry.Lines
             return false;
         }
 
-        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecial? special, byte[] args)
-        {
-            Id = id;
-            StartVertex = startVertex;
-            EndVertex = endVertex;
-            Front = front;
-            Back = back;
-            Flags = lineFlags;
-            Segment = new Seg2D(StartVertex.Position, EndVertex.Position);
-
-            startVertex.Add(this);
-            endVertex.Add(this);
-
-            front.Line = this;
-            if (back != null)
-                back.Line = this;
-
-            Special = special;
-     
-            Args = args;
-        }
 
         /// <summary>
         /// To be invoked when the constructor is called or vertices update, so

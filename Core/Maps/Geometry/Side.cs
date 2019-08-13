@@ -27,8 +27,6 @@ namespace Helion.Maps.Geometry
             MiddleTexture = middleTexture;
             UpperTexture = upperTexture;
             Sector = sector;
-
-            sector.Add(this);
         }
     }
 }

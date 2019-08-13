@@ -62,20 +62,17 @@ namespace Helion.Maps
             double lowestZ = double.MaxValue;
             Sector? lowestSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Floor.Z < lowestZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Floor.Z < lowestZ)
                 {
-                    lowestSector = side.Sector;
+                    lowestSector = line.Front.Sector;
                     lowestZ = lowestSector.Floor.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Floor.Z < lowestZ)
+                if (line.Back != null && line.Back.Sector != sector && line.Back.Sector.Floor.Z < lowestZ)
                 {
-                    lowestSector = side.PartnerSide.Sector;
+                    lowestSector = line.Back.Sector;
                     lowestZ = lowestSector.Floor.Z;
                 }
             }
@@ -88,20 +85,17 @@ namespace Helion.Maps
             double highestZ = double.MinValue;
             Sector? highestSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Floor.Z > highestZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Floor.Z > highestZ)
                 {
-                    highestSector = side.Sector;
+                    highestSector = line.Front.Sector;
                     highestZ = highestSector.Floor.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Floor.Z > highestZ)
+                if (line.Back != null && line.Back.Sector != sector && line.Back.Sector.Floor.Z > highestZ)
                 {
-                    highestSector = side.PartnerSide.Sector;
+                    highestSector = line.Back.Sector;
                     highestZ = highestSector.Floor.Z;
                 }
             }
@@ -114,20 +108,17 @@ namespace Helion.Maps
             double lowestZ = double.MaxValue;
             Sector? lowestSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Ceiling.Z < lowestZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Ceiling.Z < lowestZ)
                 {
-                    lowestSector = side.Sector;
+                    lowestSector = line.Front.Sector;
                     lowestZ = lowestSector.Ceiling.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Ceiling.Z < lowestZ)
+                if (line.Back != null && line.Back.Sector != sector && line.Back.Sector.Ceiling.Z < lowestZ)
                 {
-                    lowestSector = side.PartnerSide.Sector;
+                    lowestSector = line.Back.Sector;
                     lowestZ = lowestSector.Ceiling.Z;
                 }
             }
@@ -140,20 +131,17 @@ namespace Helion.Maps
             double highestZ = double.MinValue;
             Sector? highestSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Ceiling.Z > highestZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Ceiling.Z > highestZ)
                 {
-                    highestSector = side.Sector;
+                    highestSector = line.Front.Sector;
                     highestZ = highestSector.Ceiling.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && side.PartnerSide.Sector.Ceiling.Z > highestZ)
+                if (line.Back != null && line.Back.Sector != sector && line.Back.Sector.Ceiling.Z > highestZ)
                 {
-                    highestSector = side.PartnerSide.Sector;
+                    highestSector = line.Back.Sector;
                     highestZ = highestSector.Ceiling.Z;
                 }
             }
@@ -166,21 +154,18 @@ namespace Helion.Maps
             double currentZ = double.MinValue;
             Sector? currentSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Floor.Z < sector.Floor.Z && side.Sector.Floor.Z > currentZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Floor.Z < sector.Floor.Z && line.Front.Sector.Floor.Z > currentZ)
                 {
-                    currentSector = side.Sector;
+                    currentSector = line.Front.Sector;
                     currentZ = currentSector.Floor.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && 
-                    side.PartnerSide.Sector.Floor.Z < sector.Floor.Z && side.PartnerSide.Sector.Floor.Z > currentZ)
+                if (line.Back != null && line.Back.Sector != sector &&
+                    line.Back.Sector.Floor.Z < sector.Floor.Z && line.Back.Sector.Floor.Z > currentZ)
                 {
-                    currentSector = side.PartnerSide.Sector;
+                    currentSector = line.Back.Sector;
                     currentZ = currentSector.Floor.Z;
                 }
             }
@@ -193,21 +178,18 @@ namespace Helion.Maps
             double currentZ = double.MinValue;
             Sector? currentSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Ceiling.Z < sector.Ceiling.Z && side.Sector.Ceiling.Z > currentZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Ceiling.Z < sector.Ceiling.Z && line.Front.Sector.Ceiling.Z > currentZ)
                 {
-                    currentSector = side.Sector;
+                    currentSector = line.Front.Sector;
                     currentZ = currentSector.Ceiling.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector &&
-                    side.PartnerSide.Sector.Ceiling.Z < sector.Ceiling.Z && side.PartnerSide.Sector.Ceiling.Z > currentZ)
+                if (line.Back != null && line.Back.Sector != sector &&
+                    line.Back.Sector.Ceiling.Z < sector.Ceiling.Z && line.Back.Sector.Ceiling.Z > currentZ)
                 {
-                    currentSector = side.PartnerSide.Sector;
+                    currentSector = line.Back.Sector;
                     currentZ = currentSector.Ceiling.Z;
                 }
             }
@@ -220,21 +202,18 @@ namespace Helion.Maps
             double currentZ = double.MaxValue;
             Sector? currentSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Floor.Z > sector.Floor.Z && side.Sector.Floor.Z < currentZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Floor.Z > sector.Floor.Z && line.Front.Sector.Floor.Z < currentZ)
                 {
-                    currentSector = side.Sector;
+                    currentSector = line.Front.Sector;
                     currentZ = currentSector.Floor.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector &&
-                    side.PartnerSide.Sector.Floor.Z > sector.Floor.Z && side.PartnerSide.Sector.Floor.Z < currentZ)
+                if (line.Back != null && line.Back.Sector != sector &&
+                    line.Back.Sector.Floor.Z > sector.Floor.Z && line.Back.Sector.Floor.Z < currentZ)
                 {
-                    currentSector = side.PartnerSide.Sector;
+                    currentSector = line.Back.Sector;
                     currentZ = currentSector.Floor.Z;
                 }
             }
@@ -247,21 +226,18 @@ namespace Helion.Maps
             double currentZ = double.MaxValue;
             Sector? currentSector = null;
 
-            foreach (var side in sector.Sides)
+            foreach (var line in sector.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Sector != sector && side.Sector.Ceiling.Z > sector.Ceiling.Z && side.Sector.Ceiling.Z < currentZ)
+                if (line.Front.Sector != sector && line.Front.Sector.Ceiling.Z > sector.Ceiling.Z && line.Front.Sector.Ceiling.Z < currentZ)
                 {
-                    currentSector = side.Sector;
+                    currentSector = line.Front.Sector;
                     currentZ = currentSector.Ceiling.Z;
                 }
 
-                if (side.PartnerSide != null && side.PartnerSide.Sector != sector &&
-                    side.PartnerSide.Sector.Ceiling.Z > sector.Ceiling.Z && side.PartnerSide.Sector.Ceiling.Z < currentZ)
+                if (line.Back != null && line.Back.Sector != sector &&
+                    line.Back.Sector.Ceiling.Z > sector.Ceiling.Z && line.Back.Sector.Ceiling.Z < currentZ)
                 {
-                    currentSector = side.PartnerSide.Sector;
+                    currentSector = line.Back.Sector;
                     currentZ = currentSector.Ceiling.Z;
                 }
             }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
@@ -9,6 +10,7 @@ namespace Helion.Maps.Geometry
     public class Sector
     {
         public readonly int Id;
+        public readonly List<Line> Lines = new List<Line>();
         public readonly List<Side> Sides = new List<Side>();
         public readonly List<SectorFlat> Flats = new List<SectorFlat>();
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
@@ -34,11 +36,10 @@ namespace Helion.Maps.Geometry
             Flats.ForEach(flat => flat.SetSector(this));
         }
 
-        public void Add(Side side)
+        public void AddLine(Line line)
         {
-            Precondition(Sides.All(s => s.Id != side.Id), "Trying to add the same side twice");
-
-            Sides.Add(side);
+            if (!Lines.Contains(line))
+                Lines.Add(line);
         }
 
         public LinkableNode<Entity> Link(Entity entity)
