@@ -51,6 +51,11 @@ namespace Helion.Render.OpenGL.Buffer
         /// How many items have been added to this buffer.
         /// </summary>
         public int Count => Data.Length;
+
+        /// <summary>
+        /// Checks if this buffer has no elements.
+        /// </summary>
+        public bool Empty => Count == 0;
         
         /// <summary>
         /// If an upload is needed.

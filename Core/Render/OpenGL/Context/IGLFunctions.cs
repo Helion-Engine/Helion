@@ -1,4 +1,5 @@
 using System;
+using GlmSharp;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
 
@@ -9,6 +10,7 @@ namespace Helion.Render.OpenGL.Context
     /// </summary>
     public interface IGLFunctions
     {
+        void ActiveTexture(TextureUnitType textureUnit);
         void AttachShader(int programId, int shaderId);
         void BindAttribLocation(int programId, int attrIndex, string attrName);
         void BindBuffer(BufferType type, int bufferId);
@@ -63,6 +65,7 @@ namespace Helion.Render.OpenGL.Context
         void TexImage2D(TextureTargetType textureType, int level, PixelInternalFormatType internalType, Dimension dimension, PixelFormatType formatType, PixelDataType dataType, IntPtr data);
         void Uniform1(int location, int value);
         void Uniform1(int location, float value);
+        void UniformMatrix4(int location, int count, bool transpose, mat4 matrix);
         void UseProgram(int programId);
         void VertexAttribIPointer(int index, int size, VertexAttributeIntegralPointerType type, int stride, int offset);
         void VertexAttribPointer(int index, int size, VertexAttributePointerType type, bool normalized, int stride, int offset);

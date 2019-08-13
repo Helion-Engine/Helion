@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using GlmSharp;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;
@@ -51,6 +52,22 @@ namespace Helion.Render.OpenGL
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
+        }
+
+        public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, float fovRadiansX)
+        {
+            Precondition(fovRadiansX > 0 && fovRadiansX <= MathHelper.Pi, $"Field of view X radians are out of range: {fovRadiansX}");
+            
+            float w = renderInfo.Viewport.Width;
+            float h = renderInfo.Viewport.Height;
+            float aspectRatio = w / h;
+            float fovY = Camera.FieldOfViewXToY(fovRadiansX, aspectRatio);
+            
+            mat4 model = mat4.Identity;
+            mat4 view = renderInfo.Camera.CalculateViewMatrix();
+            mat4 projection = mat4.PerspectiveFov(fovY, w, h, 7.9f, 8192.0f);
+            
+            return projection * view * model;
         }
 
         public void Render(RenderCommands renderCommands)
@@ -142,10 +159,10 @@ namespace Helion.Render.OpenGL
                 switch (level)
                 {
                 case DebugLevel.Low:
-                    Log.Error("OpenGL warning: {0}", message);
+                    Log.Error("OpenGL minor issue: {0}", message);
                     return;
                 case DebugLevel.Medium:
-                    Log.Error("OpenGL minor error: {0}", message);
+                    Log.Error("OpenGL issue: {0}", message);
                     return;
                 case DebugLevel.High:
                     Log.Error("OpenGL major error: {0}", message);
@@ -178,7 +195,7 @@ namespace Helion.Render.OpenGL
         {
             Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
             
-            return new LegacyWorldRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            return new LegacyWorldRenderer(m_config, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
         }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)

@@ -27,8 +27,10 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             ResourceNamespace resourceNamespace)
         {
             int textureId = gl.GenTexture();
+            string textureName = $"{name} [{resourceNamespace}]";
+            
             UploadData(textureId, image, name, resourceNamespace);
-            return new GLLegacyTexture(id, textureId, image.Dimension, gl, TextureTargetType.Texture2D);
+            return new GLLegacyTexture(id, textureId, textureName, image.Dimension, gl, TextureTargetType.Texture2D);
         }
 
         private void UploadData(int textureId, Image image, CIString name, ResourceNamespace resourceNamespace)

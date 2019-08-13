@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using GlmSharp;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
@@ -23,7 +24,12 @@ namespace Helion.Subsystems.OpenTK
         /// Same as <see cref="m_lastCallbackReference"/>.
         /// </summary>
         private DebugProc? m_lastCallbackProcReference;
-        
+
+        public void ActiveTexture(TextureUnitType textureUnit)
+        {
+            GL.ActiveTexture((TextureUnit)textureUnit);
+        }
+
         public void AttachShader(int programId, int shaderId)
         {
             GL.AttachShader(programId, shaderId);
@@ -318,6 +324,12 @@ namespace Helion.Subsystems.OpenTK
         public void Uniform1(int location, float value)
         {
             GL.Uniform1(location, value);
+        }
+
+        public void UniformMatrix4(int location, int count, bool transpose, mat4 matrix)
+        {
+            float[] data = matrix.Values1D;
+            GL.UniformMatrix4(location, count, transpose, data);
         }
 
         public void UseProgram(int programId)

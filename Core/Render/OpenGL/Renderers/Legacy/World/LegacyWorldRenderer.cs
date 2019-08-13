@@ -1,64 +1,69 @@
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
+using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.World;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {
     public class LegacyWorldRenderer : WorldRenderer
     {
-        private static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
+        public static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
             new VertexPointerFloatAttribute("pos", 0, 3),
-            new VertexPointerFloatAttribute("uv", 1, 2));
+            new VertexPointerFloatAttribute("uv", 1, 2),
+            new VertexPointerFloatAttribute("lightLevel", 2, 1));
 
+        private readonly Config m_config;
         private readonly IGLFunctions gl;
         private readonly LegacyGLTextureManager m_textureManager;
-        private readonly VertexArrayObject m_vao;
-        private readonly VertexBufferObject<SimpleVertex> m_vbo;
-        private readonly SimpleShader m_shaderProgram;
+        private readonly LegacyShader m_shaderProgram;
+        private readonly GeometryManager m_geometryManager;
 
-        public LegacyWorldRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
+        public LegacyWorldRenderer(Config config, GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
+            m_config = config;
             gl = functions;
             m_textureManager = textureManager;
-            m_vao = new VertexArrayObject(capabilities, functions, Attributes, "VAO: Test stuff");
-            m_vbo = new StaticVertexBuffer<SimpleVertex>(capabilities, functions, m_vao, "VBO: Test stuff");
+            m_geometryManager = new GeometryManager(capabilities, functions, textureManager);
 
-            using (ShaderBuilder shaderBuilder = SimpleShader.MakeBuilder(functions))
-                m_shaderProgram = new SimpleShader(functions, shaderBuilder, Attributes);
-            
-            m_vbo.Add(new SimpleVertex(-0.5f, -0.5f, 0.0f, 0.0f, 1.0f), // Left
-                      new SimpleVertex(0.5f, -0.5f, 0.0f, 1.0f, 1.0f), // Right
-                      new SimpleVertex(0.0f,  0.5f, 0.0f, 0.5f, 0.0f)); // Top
-        }
-
-        public override void Render(WorldBase world, RenderInfo renderInfo)
-        {
-            m_vbo.UploadIfNeeded();
-            
-            m_shaderProgram.BindAnd(() =>
-            {
-                m_shaderProgram.Texture.Set(gl, 0);
-                
-                m_textureManager.GetFlat("FLAT20").BindAnd(() =>
-                {
-                    m_vao.BindAnd(() =>
-                    {
-                        m_vbo.DrawArrays();
-                    });
-                });
-            });
+            using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
+                m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
         }
 
         public override void Dispose()
         {
-            m_vao.Dispose();
-            m_vbo.Dispose();
+            m_geometryManager.Dispose();
             m_shaderProgram.Dispose();
+        }
+
+        protected override void UpdateToNewWorld(WorldBase world)
+        {
+            m_geometryManager.UpdateTo(world);
+        }
+
+        protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
+        {
+            m_shaderProgram.BindAnd(() =>
+            {
+                SetUniforms(renderInfo);
+                gl.ActiveTexture(TextureUnitType.Zero);
+
+                m_geometryManager.Render(world, renderInfo);
+            });
+        }
+        
+        private void SetUniforms(RenderInfo renderInfo)
+        {
+            float fovX = (float)MathHelper.ToRadians(m_config.Engine.Render.FieldOfView);
+            
+            m_shaderProgram.BoundTexture.Set(gl, 0);
+            m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, fovX));
         }
     }
 }

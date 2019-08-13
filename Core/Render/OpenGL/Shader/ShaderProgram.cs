@@ -107,7 +107,10 @@ namespace Helion.Render.OpenGL.Shader
                 case UniformFloat uniformFloat:
                     uniformFloat.Location = location;
                     return;
-                // TODO: Vec3/Vec4/Mat4
+                case UniformMatrix4 uniformMatrix:
+                    uniformMatrix.Location = location;
+                    return;
+                // TODO: Vec3/Vec4
                 default:
                     throw new ShaderException($"Unexpected uniform type for uniform '{name}' in class '{GetType().Name}' with field '{field.Name}'");                        
                 }

@@ -11,12 +11,6 @@ namespace Helion.Render.OpenGL.Buffer.Array.Vertex
         {
         }
 
-        public override void DrawArrays()
-        {
-            base.DrawArrays();
-            Clear();
-        }
-
         protected override BufferUsageType GetBufferUsageType() => BufferUsageType.StreamDraw;
     }
 }

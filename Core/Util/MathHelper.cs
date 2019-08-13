@@ -17,7 +17,12 @@ namespace Helion.Util
         /// A constant value for pi / 2.
         /// </summary>
         public const double HalfPi = Math.PI / 2;
-        
+
+        /// <summary>
+        /// A constant value for pi.
+        /// </summary>
+        public const double Pi = Math.PI;
+            
         /// <summary>
         /// A constant value for 2 * pi.
         /// </summary>

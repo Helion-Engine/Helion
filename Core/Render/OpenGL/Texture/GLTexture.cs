@@ -10,17 +10,19 @@ namespace Helion.Render.OpenGL.Texture
     public abstract class GLTexture : IDisposable
     {
         public readonly int Id;
+        public readonly string Name;
         public readonly Vector2 UVInverse;
         public readonly Dimension Dimension;
         public readonly TextureTargetType TextureType;
         protected readonly int TextureId;
         protected readonly IGLFunctions gl;
 
-        protected GLTexture(int id, int textureId, Dimension dimension, IGLFunctions functions, 
+        protected GLTexture(int id, int textureId, string name, Dimension dimension, IGLFunctions functions, 
             TextureTargetType textureType)
         {
             Id = id;
             TextureId = textureId;
+            Name = name;
             Dimension = dimension;
             UVInverse = Vector2.One / dimension.ToVector().ToFloat();
             gl = functions;
