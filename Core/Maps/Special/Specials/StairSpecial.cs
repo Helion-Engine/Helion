@@ -7,32 +7,31 @@ namespace Helion.Maps.Special.Specials
 {
     public class StairSpecial : SectorMoveSpecial
     {
-        private bool m_crush;
-        private CIString m_floorpic;
         private int m_stairHeight;
         private int m_stairDelayTics;
         private int m_stairDelay;
         private double m_startZ;
 
         private List<Sector> m_sectors = new List<Sector>();
+        private int m_destroyCount;
 
         public StairSpecial(PhysicsManager physicsManager, Sector sector, double speed, int height, int delay, bool crush)
             : base(physicsManager, sector, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
         {
-            m_crush = crush;
             m_stairHeight = height;
-            m_stairDelay = delay; 
+            m_stairDelay = 35; 
             m_startZ = Sector.Floor.Z;
-            m_floorpic = Sector.Floor.Texture;
 
             Sector? nextSector = sector;
 
             do
             {
                 m_sectors.Add(nextSector);
-                nextSector = GetNextSector(nextSector);                   
+                nextSector = GetNextSector(nextSector, Sector.Floor.Texture);
             }
             while (nextSector != null);
+
+            m_sectors.ForEach(x => x.IsMoving = true);
         }
 
         public override SpecialTickStatus Tick()
@@ -50,28 +49,28 @@ namespace Helion.Maps.Special.Specials
                 Sector = m_sectors[i];
                 m_flat = Sector.Floor;
                 m_destZ = m_startZ + (m_stairHeight * (i + 1));
-                if (m_flat.Z < m_destZ)
+                if (Sector.IsMoving)
                     currentStatus = base.Tick();
-                
-                if (currentStatus == SpecialTickStatus.Destroy)
-                    m_stairDelayTics = m_stairDelay;
 
-                if (i == m_sectors.Count - 1 && currentStatus == SpecialTickStatus.Destroy)
+                if (currentStatus == SpecialTickStatus.Destroy)
+                {
+                    m_destroyCount++;
+                    m_stairDelayTics = m_stairDelay;
+                }
+
+                if (m_destroyCount == m_sectors.Count)
                     return SpecialTickStatus.Destroy;
             }
 
             return SpecialTickStatus.Continue;
         }
 
-        private Sector? GetNextSector(Sector start)
+        private static Sector? GetNextSector(Sector start, CIString floorpic)
         {
-            foreach (var side in start.Sides)
+            foreach (var line in start.Lines)
             {
-                if (side.Line == null)
-                    continue;
-
-                if (side.Line.TwoSided && side.Line.Front.Sector == start && side.Line.Back.Sector.Floor.Texture == m_floorpic)
-                    return side.Line.Back.Sector;
+                if (line.Back != null && line.Front.Sector == start && line.Back.Sector.Floor.Texture == floorpic)
+                    return line.Back.Sector;
             }
 
             return null;
