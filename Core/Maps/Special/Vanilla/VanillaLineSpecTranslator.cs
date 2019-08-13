@@ -5,10 +5,10 @@ namespace Helion.Maps.Special
     class VanillaLineSpecTranslator
     {
         private const byte SectorSlowSpeed = 8;
-        private const byte SectorFastSpeed = 4;
+        private const byte SectorFastSpeed = 16;
 
-        private const byte LiftSlowSpeed = 8;
-        private const byte LiftFastSpeed = 16;
+        private const byte LiftSlowSpeed = 32;
+        private const byte LiftFastSpeed = 64;
 
         private const byte DoorSlowSpeed = 16;
         private const int DoorFastSpeed = 32;
