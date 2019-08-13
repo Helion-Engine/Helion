@@ -10,11 +10,14 @@ using Helion.Util.Time;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
+using System;
 
 namespace Helion.Layer.Impl
 {
     public class SinglePlayerWorldLayer : GameLayer
     {
+        public event EventHandler LevelExit;
+
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -61,6 +64,7 @@ namespace Helion.Layer.Impl
             SinglePlayerWorld? world = SinglePlayerWorld.Create(m_config, archiveCollection, map, collection);
             if (world != null)
             {
+                world.LevelExit += World_LevelExit;
                 m_world = world;
                 m_ticker.Start();
                 return true;
@@ -68,6 +72,11 @@ namespace Helion.Layer.Impl
 
             Log.Warn("Map is corrupt, unable to create map {0}", mapName);
             return false;
+        }
+
+        private void World_LevelExit(object sender, EventArgs e)
+        {
+            LevelExit?.Invoke(this, e);
         }
 
         public override void HandleInput(ConsumableInput consumableInput)

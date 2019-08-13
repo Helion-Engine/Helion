@@ -26,9 +26,10 @@ namespace Helion.Maps.Geometry.Lines
         
         public bool TwoSided => !OneSided;
 
+        // TODO fix me
         public IList<Side> Sides => Containers.WithoutNulls(Front, Back);
 
-        public bool HasSpecial => Special.LineSpecialType != LineSpecialType.None;
+        public bool HasSpecial => Special.LineSpecialType != ZLineSpecialType.None;
 
         public LineSpecial Special;
 
@@ -36,26 +37,18 @@ namespace Helion.Maps.Geometry.Lines
 
         public bool HasSectorTag => SectorTag > 0;
 
-        public int SectorTag;
+        public int SectorTag => Args[0];
 
         public byte[] Args;
 
+        public byte TagArg => Args[0];
+        public byte SpeedArg => Args[1];
+        public byte DelayArg => Args[2];
+        public byte AmountArg => Args[2];
+
 
         public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back = null)
-            : this(id, startVertex, endVertex, front, back, default, LineSpecialType.None, 0, null)
-        {
-
-        }
-
-
-        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecialType special, int sectorTag)
-            : this(id, startVertex, endVertex, front, back, lineFlags, special, sectorTag, null)
-        {
-
-        }
-
-        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecialType special, byte[] args)
-            : this(id, startVertex, endVertex, front, back, lineFlags, special, 0, args)
+            : this(id, startVertex, endVertex, front, back, default, new LineSpecial(ZLineSpecialType.None), null)
         {
 
         }
@@ -74,7 +67,7 @@ namespace Helion.Maps.Geometry.Lines
             return false;
         }
 
-        private Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecialType special, int sectorTag, byte[]? args)
+        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecial? special, byte[] args)
         {
             Id = id;
             StartVertex = startVertex;
@@ -91,13 +84,9 @@ namespace Helion.Maps.Geometry.Lines
             if (back != null)
                 back.Line = this;
 
-            Special = new LineSpecial(special);
-            SectorTag = sectorTag;
-
-            if (args == null)
-                Args = new byte[0];
-            else
-                Args = args;
+            Special = special;
+     
+            Args = args;
         }
 
         /// <summary>

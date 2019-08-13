@@ -106,7 +106,7 @@ namespace Helion.Maps.Entries
             return true;
         }
 
-        private static LineFlags MakeLineFlags(ushort flags)
+        private static LineFlags MakeLineFlags(ushort flags, bool hexen)
         {
             LineFlags lineFlags = default;
 
@@ -134,7 +134,21 @@ namespace Helion.Maps.Entries
                 lineFlags.Unpegged.Upper = true;
             if ((flags & (ushort)LineFlag.LowerUnpegged) != 0)
                 lineFlags.Unpegged.Lower = true;
-            
+
+            if ((flags & (ushort)LineFlag.ActivateOnPlayerUse) != 0)
+                lineFlags.ActivationType = ActivationType.PlayerUse;
+            if ((flags & (ushort)LineFlag.ActivateOnMonsterCross) != 0)
+                lineFlags.ActivationType = ActivationType.MonsterLineCross;
+            if ((flags & (ushort)LineFlag.ActivateOnProjectileHit) != 0)
+                lineFlags.ActivationType = ActivationType.ProjectileHitsWall;
+            if ((flags & (ushort)LineFlag.ActivateWhenUsedByPlayerPassThrough) != 0)
+                lineFlags.ActivationType = ActivationType.PlayerUsePassThrough;
+            if ((flags & (ushort)LineFlag.RepeatSpecial) != 0)
+                lineFlags.Repeat = true;
+
+            if (hexen)
+                lineFlags.ActivationType = (ActivationType)((flags & 0x1C00) >> 10);
+
             return lineFlags;
         }
 
@@ -169,10 +183,11 @@ namespace Helion.Maps.Entries
                 Vertex endVertex = map.Vertices[endVertexId];
                 Side front = map.Sides[rightSidedef];
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
-                LineFlags lineFlags = MakeLineFlags(flags);
+                LineFlags lineFlags = MakeLineFlags(flags, false);
+                
+                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, null, new byte[ActionSpecial.ArgCount]);
+                line.Special = new LineSpecial(VanillaLineSpecTranslator.Translate(line, (VLineSpecialType)lineType, (byte)sectorTag));
 
-                // TODO assumes vanilla - need to check for boom when implemented
-                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, (LineSpecialType)lineType, sectorTag);
                 map.Lines.Add(line);
             }
 
@@ -210,10 +225,10 @@ namespace Helion.Maps.Entries
                 Vertex endVertex = map.Vertices[endVertexId];
                 Side front = map.Sides[rightSidedef];
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
-                LineFlags lineFlags = MakeLineFlags(flags);
+                LineFlags lineFlags = MakeLineFlags(flags, true);
 
                 // TODO properly get LineSpecialType when we have line special types for hexen
-                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, (LineSpecialType)actionSpecial, args);
+                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, new LineSpecial((ZLineSpecialType)actionSpecial), args);
                 map.Lines.Add(line);
             }
 

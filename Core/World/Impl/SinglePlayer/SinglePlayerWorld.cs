@@ -127,7 +127,7 @@ namespace Helion.World.Impl.SinglePlayer
             {
                 var special = e.ActivateLineSpecial.Special;
                 if (SpecialManager.TryAddActivatedLineSpecial(e))
-                    Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{special.Repeat}]");
+                    Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{e.ActivateLineSpecial.Flags.Repeat}]");
             }
         }
 

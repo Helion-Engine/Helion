@@ -9,18 +9,19 @@ namespace Helion.Maps.Special.Specials
     {
         public Sector Sector;
 
+        protected SectorMoveData m_data;
+        protected double m_destZ;
+        protected SectorFlat m_flat;
+
         private PhysicsManager m_physicsManager;
-        private LineSpecialData m_data;
-        private SectorFlat m_flat;
         private MoveDirection m_direction;
         private int m_delayTics;
         private double m_speed;
-        private double m_destZ;
         private double m_startZ;
         private double m_minZ;
         private double m_maxZ;
 
-        public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double dest, LineSpecialData specialData)
+        public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double dest, SectorMoveData specialData)
         {
             Sector = sector;
             m_physicsManager = physicsManager;
@@ -38,7 +39,7 @@ namespace Helion.Maps.Special.Specials
             Sector.IsMoving = true;
         }
 
-        public SpecialTickStatus Tick()
+        public virtual SpecialTickStatus Tick()
         {
             if (m_delayTics > 0)
             {
@@ -80,7 +81,7 @@ namespace Helion.Maps.Special.Specials
 
         private void FlipMovementDirection()
         {
-            if (m_data.MoveRepetition == MoveRepetition.DelayReturn && m_direction == m_data.StartDirection)
+            if (m_data.MoveRepetition == MoveRepetition.Perpetual || (m_data.MoveRepetition == MoveRepetition.DelayReturn && m_direction == m_data.StartDirection))
                 m_delayTics = m_data.Delay;
             m_speed = -m_speed;
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;

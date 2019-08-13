@@ -163,7 +163,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(useSeg))
                     {
-                        if (line.HasSpecial && line.Special.CanActivate(entity, ActivationContext.UseLine) && line.Segment.OnRight(start))
+                        if (line.HasSpecial && line.Special.CanActivate(entity, line.Flags, ActivationContext.UseLine) && line.Segment.OnRight(start))
                             currentActivateLine = line;
 
                         bool isBlockingLine = line.OneSided;
@@ -496,7 +496,7 @@ namespace Helion.World.Physics
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
         {
-            if (!line.Special.CanActivate(entity, ActivationContext.CrossLine))
+            if (!line.Special.CanActivate(entity, line.Flags, ActivationContext.CrossLine))
                 return;
 
             bool fromFront = line.Segment.OnRight(previousPosition);

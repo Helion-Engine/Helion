@@ -83,7 +83,6 @@ namespace Helion.Maps
             return lowestSector;
         }
 
-
         public Sector? GetHighestAdjacentFloor(Sector sector)
         {
             double highestZ = double.MinValue;
@@ -160,6 +159,114 @@ namespace Helion.Maps
             }
 
             return highestSector;
+        }
+
+        public Sector? GetNextLowestFloor(Sector sector)
+        {
+            double currentZ = double.MinValue;
+            Sector? currentSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector != sector && side.Sector.Floor.Z < sector.Floor.Z && side.Sector.Floor.Z > currentZ)
+                {
+                    currentSector = side.Sector;
+                    currentZ = currentSector.Floor.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector && 
+                    side.PartnerSide.Sector.Floor.Z < sector.Floor.Z && side.PartnerSide.Sector.Floor.Z > currentZ)
+                {
+                    currentSector = side.PartnerSide.Sector;
+                    currentZ = currentSector.Floor.Z;
+                }
+            }
+
+            return currentSector;
+        }
+
+        public Sector? GetNextLowestCeiling(Sector sector)
+        {
+            double currentZ = double.MinValue;
+            Sector? currentSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector != sector && side.Sector.Ceiling.Z < sector.Ceiling.Z && side.Sector.Ceiling.Z > currentZ)
+                {
+                    currentSector = side.Sector;
+                    currentZ = currentSector.Ceiling.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector &&
+                    side.PartnerSide.Sector.Ceiling.Z < sector.Ceiling.Z && side.PartnerSide.Sector.Ceiling.Z > currentZ)
+                {
+                    currentSector = side.PartnerSide.Sector;
+                    currentZ = currentSector.Ceiling.Z;
+                }
+            }
+
+            return currentSector;
+        }
+
+        public Sector? GetNextHighestFloor(Sector sector)
+        {
+            double currentZ = double.MaxValue;
+            Sector? currentSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector != sector && side.Sector.Floor.Z > sector.Floor.Z && side.Sector.Floor.Z < currentZ)
+                {
+                    currentSector = side.Sector;
+                    currentZ = currentSector.Floor.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector &&
+                    side.PartnerSide.Sector.Floor.Z > sector.Floor.Z && side.PartnerSide.Sector.Floor.Z < currentZ)
+                {
+                    currentSector = side.PartnerSide.Sector;
+                    currentZ = currentSector.Floor.Z;
+                }
+            }
+
+            return currentSector;
+        }
+
+        public Sector? GetNextHighestCeiling(Sector sector)
+        {
+            double currentZ = double.MaxValue;
+            Sector? currentSector = null;
+
+            foreach (var side in sector.Sides)
+            {
+                if (side.Line == null)
+                    continue;
+
+                if (side.Sector != sector && side.Sector.Ceiling.Z > sector.Ceiling.Z && side.Sector.Ceiling.Z < currentZ)
+                {
+                    currentSector = side.Sector;
+                    currentZ = currentSector.Ceiling.Z;
+                }
+
+                if (side.PartnerSide != null && side.PartnerSide.Sector != sector &&
+                    side.PartnerSide.Sector.Ceiling.Z > sector.Ceiling.Z && side.PartnerSide.Sector.Ceiling.Z < currentZ)
+                {
+                    currentSector = side.PartnerSide.Sector;
+                    currentZ = currentSector.Ceiling.Z;
+                }
+            }
+
+            return currentSector;
         }
     }
 }

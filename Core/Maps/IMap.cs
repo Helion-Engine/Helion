@@ -28,5 +28,9 @@ namespace Helion.Maps
         Sector? GetHighestAdjacentFloor(Sector sector);
         Sector? GetLowestAdjacentCeiling(Sector sector);
         Sector? GetHighestAdjacentCeiling(Sector sector);
+        Sector? GetNextLowestFloor(Sector sector);
+        Sector? GetNextLowestCeiling(Sector sector);
+        Sector? GetNextHighestFloor(Sector sector);
+        Sector? GetNextHighestCeiling(Sector sector);
     }
 }

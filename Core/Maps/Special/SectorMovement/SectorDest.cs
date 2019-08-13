@@ -7,7 +7,11 @@
         LowestAdjacentCeiling,
         HighestAdjacentFloor,
         HighestAdjacentCeiling,
+        NextLowestFloor,
+        NextLowestCeiling,
+        NextHighestFloor,
+        NextHighestCeiling,
         Floor,
-        Ceiling
+        Ceiling,
     }
 }

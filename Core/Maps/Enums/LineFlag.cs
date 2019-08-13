@@ -22,16 +22,16 @@ namespace Helion.Maps
         RepeatSpecial = 0x0200U,
         PhysicsBlockFloatingMonsters = 0x0400U,
         PhysicsWalkOn3DMidTexture = 0x0400U,
-        ActivateOnPlayerUse = 0x0400U,
-        ActivateOnProjectileHit = 0x0800U,
-        ActivateOnMonsterCross = 0x0C00U,
-        ActivateOnPlayerBump = 0x1000U,
-        ActivateOnPlayerCross = 0x1400U,
+        ActivateOnPlayerUse = 0x0400U,  
+        ActivateOnMonsterCross = 0x0800U,
+        ActivateOnProjectileHit = 0x0C00U,
+        ActivateOnPlayerPush = 0x1000U,
+        ActivateOnProjectileCross = 0x1400U,
         ActivateWhenUsedByPlayerPassThrough = 0x1800U,
         AlphaThreeQuartersTransparent = 0x1000U,
         AlphaQuarterTransparent = 0x2000U,
         MonsterCanActivate = 0x2000U,
         PhysicsBlockPlayer = 0x4000U,
-        PhysicsBlockEverything = 0x8000U
+        PhysicsBlockEverything = 0x8000U,
     };
 }

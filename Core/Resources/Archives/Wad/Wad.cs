@@ -19,7 +19,7 @@ namespace Helion.Resources.Archives
 
         public Wad(IEntryPath path) : base(path)
         {
-            m_byteReader = new ByteReader(new BinaryReader(File.Open(Path.FullPath, FileMode.Open)));
+            m_byteReader = new ByteReader(new BinaryReader(File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
             LoadWadEntries();
         }
 

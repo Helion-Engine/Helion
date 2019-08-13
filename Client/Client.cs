@@ -30,6 +30,9 @@ namespace Helion.Client
         private readonly GameLayerManager m_layerManager;
         private bool m_disposed;
 
+        private int m_currentLevel;
+        private bool m_mapFormat;
+
         private Client(CommandLineArgs cmdArgs, Config configuration)
         {
             m_commandLineArgs = cmdArgs;
@@ -58,21 +61,42 @@ namespace Helion.Client
                     break;
                 }
 
-                SinglePlayerWorldLayer layer = new SinglePlayerWorldLayer(m_config);
-                if (layer.LoadMap(ccmdArgs.Args[0], m_archiveCollection))
-                    m_layerManager.Add(layer);
+                ChangeLevel(ccmdArgs.Args[0]);
                 break;
             }
+        }
+
+        private void Layer_LevelExit(object sender, EventArgs e)
+        {
+            m_currentLevel++;
+            ChangeLevel(GetMapFormat(m_currentLevel));
         }
 
         private void CheatManager_CheatActivationChanged(object sender, ICheat e)
         {
             if (e.CheatType == CheatType.ChangeLevel)
             {
-                string level = string.Concat("MAP", ((ChangeLevelCheat)e).LevelDigits);
-                var spWorld = m_layerManager.GetGameLayer(typeof(SinglePlayerWorldLayer));
-                if (spWorld != null && spWorld is SinglePlayerWorldLayer && ((SinglePlayerWorldLayer)spWorld).LoadMap(level, m_archiveCollection))
+                m_currentLevel = Convert.ToInt32(((ChangeLevelCheat)e).LevelDigits);
+                ChangeLevel(GetMapFormat(m_currentLevel));
+            }
+        }
+
+        private void ChangeLevel(string map)
+        {
+            var spWorld = m_layerManager.GetGameLayer(typeof(SinglePlayerWorldLayer));
+            if (spWorld != null && spWorld is SinglePlayerWorldLayer)
+            {
+                if (((SinglePlayerWorldLayer)spWorld).LoadMap(map, m_archiveCollection))
                     m_window.ClearMapResources();
+            }
+            else
+            {
+                SinglePlayerWorldLayer layer = new SinglePlayerWorldLayer(m_config);
+                if (layer.LoadMap(map, m_archiveCollection))
+                {
+                    m_layerManager.Add(layer);
+                    layer.LevelExit += Layer_LevelExit;
+                }
             }
         }
 
@@ -81,8 +105,37 @@ namespace Helion.Client
             if (!m_archiveCollection.Load(m_commandLineArgs.Files))
                 Log.Error("Unable to load files at startup");
 
+            SetMapFormatAndStartMap();
+
             if (m_commandLineArgs.Warp != null)
-                m_console.AddInput($"map MAP{m_commandLineArgs.Warp.ToString().PadLeft(2, '0')}\n");
+            {
+                m_currentLevel = m_commandLineArgs.Warp.Value;
+                m_console.AddInput($"map {GetMapFormat(m_commandLineArgs.Warp.Value)}\n");
+            }
+            else
+            {
+                ChangeLevel(GetMapFormat(m_currentLevel));
+            }
+        }
+
+        private void SetMapFormatAndStartMap()
+        {
+            // If we find MAP01 then use MAPxx format, else use ExMx format
+            m_mapFormat = m_archiveCollection.FindMap("MAP01").Item1 != null;
+
+            if (m_mapFormat)
+                m_currentLevel = 1;
+            else
+                m_currentLevel = 11;
+        }
+
+        private string GetMapFormat(int level)
+        {
+            string levelDigits = level.ToString().PadLeft(2, '0');
+            if (m_mapFormat)
+                return $"MAP{levelDigits}";
+            else
+                return $"E{levelDigits[0]}M{levelDigits[1]}";
         }
         
         private void HandleInput()

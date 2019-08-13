@@ -1,3 +1,5 @@
+using Helion.Maps.Special;
+
 namespace Helion.Maps.Geometry.Lines
 {
     public struct LineFlags
@@ -5,7 +7,8 @@ namespace Helion.Maps.Geometry.Lines
         public LineAutomapFlags Automap;
         public LineBlockFlags Blocking;
         public UnpeggedFlags Unpegged;
+        public ActivationType ActivationType;
         public bool BlockSound;
-        public bool CanUseSpecialMultipleTimes;
+        public bool Repeat;
     }
 }

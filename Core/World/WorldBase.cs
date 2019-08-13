@@ -8,11 +8,14 @@ using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Physics;
 using MoreLinq;
+using System;
 
 namespace Helion.World
 {
     public abstract class WorldBase
     {
+        public event EventHandler LevelExit;
+
         public int Gametick { get; private set; }
         public readonly IMap Map;
         public readonly BspTree BspTree;
@@ -33,6 +36,13 @@ namespace Helion.World
             PhysicsManager = new PhysicsManager(bspTree, Blockmap); 
             EntityManager = new EntityManager(this, archiveCollection, bspTree, Blockmap, PhysicsManager, map);
             SpecialManager = new SpecialManager(PhysicsManager, Map);
+
+            SpecialManager.LevelExit += SpecialManager_LevelExit;
+        }
+
+        private void SpecialManager_LevelExit(object sender, EventArgs e)
+        {
+            LevelExit?.Invoke(this, e);
         }
 
         public void Tick()

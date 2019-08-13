@@ -1,6 +1,6 @@
 ﻿namespace Helion.Maps.Special
 {
-    public enum LineSpecialType
+    public enum VLineSpecialType
     {
         None,
         DR_DoorOpenClose,
@@ -16,9 +16,9 @@
         S_EndLevel,
         W1_LightLevelMatchBrightness,
         W1_LightOnMaxBrightness,
-        S1_RaiseFloor32MatchAdjacentChangeTexture,
-        S1_RaiseFloor24MatchAdjacentChangeTexture,
-        W1_CloseDoor30Seconds,
+        S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture,
+        S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture,
+        W1_CloseDoorThirtySeconds,
         W1_BlinkLightStartEveryOneSecond,
         S1_RaiseFloorMatchNextHigherFloor,
         W1_LowerFloorToHighestAdjacentFloor,
@@ -94,8 +94,8 @@
         WR_StopMovingFloor,
         WR_OpenDoorClose,
         WR_RaiseFloorToLowestAdjacentCeiling,
-        WR_RaiseFLoorTwentyFour,
-        WR_RaiseFLoorChangeTexture,
+        WR_RaiseFloorTwentyFour,
+        WR_RaiseFloorTwentyFourChangeTexture,
         WR_CrusherFloorRaiseToEightBelowAdjacentCeiling,
         WR_RaiseFloorToMatchNextHigherChangeTexture,
         WR_RaiseByShortestLowerTexture,
@@ -114,7 +114,7 @@
         W1_OpenDoorFastStay,
         W1_CloseDoorFast,
         S1_OpenDoorFastClose,
-        S1_OpenDoorFastSay,
+        S1_OpenDoorFastStay,
         S1_CloseDoorFast,
         SR_OpenDoorFastClose,
         SR_OpenDoorFastStay,
