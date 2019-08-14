@@ -36,7 +36,7 @@
             this.addButton = new System.Windows.Forms.Button();
             this.removeButton = new System.Windows.Forms.Button();
             this.launchButton = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.argsTextBox = new System.Windows.Forms.TextBox();
             this.argLabel = new System.Windows.Forms.Label();
             this.mapLabel = new System.Windows.Forms.Label();
             this.mapNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -91,6 +91,7 @@
             this.browseButton.TabIndex = 1;
             this.browseButton.Text = "Browse";
             this.browseButton.UseVisualStyleBackColor = true;
+            this.browseButton.Click += new System.EventHandler(this.BrowseButton_Click);
             // 
             // pwadListBox
             // 
@@ -112,6 +113,7 @@
             this.addButton.TabIndex = 2;
             this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
+            this.addButton.Click += new System.EventHandler(this.AddButton_Click);
             // 
             // removeButton
             // 
@@ -122,6 +124,7 @@
             this.removeButton.TabIndex = 3;
             this.removeButton.Text = "Remove";
             this.removeButton.UseVisualStyleBackColor = true;
+            this.removeButton.Click += new System.EventHandler(this.RemoveButton_Click);
             // 
             // launchButton
             // 
@@ -132,15 +135,16 @@
             this.launchButton.TabIndex = 4;
             this.launchButton.Text = "Launch Helion";
             this.launchButton.UseVisualStyleBackColor = true;
+            this.launchButton.Click += new System.EventHandler(this.LaunchButton_Click);
             // 
-            // textBox1
+            // argsTextBox
             // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.argsTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(120, 369);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(245, 20);
-            this.textBox1.TabIndex = 5;
+            this.argsTextBox.Location = new System.Drawing.Point(120, 369);
+            this.argsTextBox.Name = "argsTextBox";
+            this.argsTextBox.Size = new System.Drawing.Size(245, 20);
+            this.argsTextBox.TabIndex = 5;
             // 
             // argLabel
             // 
@@ -183,7 +187,7 @@
             this.Controls.Add(this.mapNumericUpDown);
             this.Controls.Add(this.mapLabel);
             this.Controls.Add(this.argLabel);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.argsTextBox);
             this.Controls.Add(this.launchButton);
             this.Controls.Add(this.pwadGroupBox);
             this.Controls.Add(this.iwadGroupBox);
@@ -208,7 +212,7 @@
         private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.ListBox pwadListBox;
         private System.Windows.Forms.Button launchButton;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox argsTextBox;
         private System.Windows.Forms.Label argLabel;
         private System.Windows.Forms.Label mapLabel;
         private System.Windows.Forms.NumericUpDown mapNumericUpDown;

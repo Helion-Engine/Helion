@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BspVisualizer", "BspVisuali
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinMouse", "WinMouse\WinMouse.csproj", "{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Startup", "Startup\Startup.csproj", "{7617D3FA-E20E-48AD-BFDF-A6AF30F70B3C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7617D3FA-E20E-48AD-BFDF-A6AF30F70B3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7617D3FA-E20E-48AD-BFDF-A6AF30F70B3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7617D3FA-E20E-48AD-BFDF-A6AF30F70B3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7617D3FA-E20E-48AD-BFDF-A6AF30F70B3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
