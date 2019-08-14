@@ -63,6 +63,10 @@ namespace Helion.Maps.Special.Specials
             {
                 if (m_data.MoveRepetition == MoveRepetition.None || m_data.MoveRepetition == MoveRepetition.ReturnOnBlock)
                 {
+                    // TODO fix issue with CIString for m_data.FloorChangeTexture != null
+                    if (!ReferenceEquals(m_data.FloorChangeTexture, null))
+                        Sector.Floor.Texture = m_data.FloorChangeTexture;
+
                     Sector.IsMoving = false;
                     return SpecialTickStatus.Destroy;
                 }

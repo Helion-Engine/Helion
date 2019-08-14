@@ -16,6 +16,8 @@ namespace Helion.Maps.Special
         private const byte StairSlowSpeed = 2;
         private const byte StairFastSpeed = 4;
 
+        private const byte DonutSpeed = 4;
+
         private const byte LiftDelay = 105;
         private const byte DoorDelay = 150;
 
@@ -280,8 +282,8 @@ namespace Helion.Maps.Special
                     line.Args[0] = tag;
 
                     // TODO verify these speeds
-                    line.Args[1] = 10; // PIllar speed
-                    line.Args[2] = 15; // Surrounding speed
+                    line.Args[1] = DonutSpeed; // Pillar speed
+                    line.Args[2] = DonutSpeed; // Surrounding speed
                     return ZLineSpecialType.FloorDonut;
 
                 case VLineSpecialType.ScrollTextureLeft:

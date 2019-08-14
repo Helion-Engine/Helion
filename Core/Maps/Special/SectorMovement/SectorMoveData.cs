@@ -1,15 +1,18 @@
-﻿namespace Helion.Maps.Special
+﻿using Helion.Util;
+
+namespace Helion.Maps.Special
 {
     public class SectorMoveData
     {
         public SectorMoveData(SectorMoveType moveType, MoveDirection startDirection,
-            MoveRepetition repetition, double speed, int delay)
+           MoveRepetition repetition, double speed, int delay, CIString? floorChangeTexture = null)
         {
             SectorMoveType = moveType;
             StartDirection = startDirection;
             MoveRepetition = repetition;
             Speed = speed;
             Delay = delay;
+            FloorChangeTexture = floorChangeTexture;
         }
 
         public SectorMoveType SectorMoveType { get; private set; }
@@ -17,5 +20,6 @@
         public MoveRepetition MoveRepetition { get; private set; }
         public double Speed { get; private set; }
         public int Delay { get; private set; }
+        public CIString? FloorChangeTexture { get; private set; }
     }
 }
