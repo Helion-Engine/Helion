@@ -11,11 +11,11 @@ using System.Windows.Forms;
 
 namespace Startup
 {
-    public partial class Form1 : Form
+    public partial class StartupForm : Form
     {
         private readonly OpenFileDialog openFileDialog = new OpenFileDialog();
 
-        public Form1()
+        public StartupForm()
         {
             InitializeComponent();
         }
