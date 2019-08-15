@@ -1,15 +1,130 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Helion.Maps;
 using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
+using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World
 {
     public static class WorldTriangulator
     {
+        // TODO: There is probably a lot of repetition for the wall geometry
+        //       generators. Let's refactor it later.
+        
+        public static WallVertices HandleOneSided(Line line, Side side, Vector2 textureUVInverse)
+        {
+            Sector sector = side.Sector;
+            SectorFlat floor = sector.Floor;
+            SectorFlat ceiling = sector.Ceiling;
+
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = ceiling.Z;
+            double bottomZ = floor.Z;
+
+            double length = line.Segment.Length();
+            double spanZ = topZ - bottomZ;
+            WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+            
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
+        }
+
+        public static WallVertices HandleTwoSidedLower(Line line, Side facingSide, Side otherSide, Vector2 textureUVInverse)
+        {
+            Sector sector = facingSide.Sector;
+            SectorFlat topFlat = otherSide.Sector.Floor;
+            SectorFlat bottomFlat = sector.Floor;
+            
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = topFlat.Z;
+            double bottomZ = bottomFlat.Z;
+            
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+            
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
+        }
+        
+        public static WallVertices HandleTwoSidedMiddle(Line line, Side facingSide, Side otherSide, 
+            Dimension textureDimension, Vector2 textureUVInverse, LineOpening opening, out bool nothingVisibleToDraw)
+        {
+            Precondition(opening.OpeningHeight > 0, "Should not be handling a two sided middle when there's no opening");
+
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = opening.CeilingZ;
+            double bottomZ = opening.FloorZ;
+
+            if (line.Flags.Unpegged.Lower)
+                topZ = bottomZ + textureDimension.Height;
+            else
+                bottomZ = topZ - textureDimension.Height;
+
+            topZ += facingSide.Offset.Y;
+            bottomZ += facingSide.Offset.Y;
+            
+            // We want to clip it to the line opening.
+            topZ = Math.Min(topZ, opening.CeilingZ);
+            bottomZ = Math.Max(bottomZ, opening.FloorZ);
+
+            if (topZ <= bottomZ)
+            {
+                nothingVisibleToDraw = true;
+                return default;
+            }
+            
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, textureUVInverse);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+
+            nothingVisibleToDraw = false;
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
+        }
+
+        public static WallVertices HandleTwoSidedUpper(Line line, Side facingSide, Side otherSide, Vector2 textureUVInverse)
+        {
+            Sector sector = facingSide.Sector;
+            SectorFlat topFlat = sector.Ceiling;
+            SectorFlat bottomFlat = otherSide.Sector.Ceiling;
+            
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = topFlat.Z;
+            double bottomZ = bottomFlat.Z;
+            double spanZ = topZ - bottomZ;
+            
+            // TODO: If unchanging, we can pre-calculate the length.
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+            
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
+        }
+
         public static List<WorldVertex> HandleSubsector(Subsector subsector, SectorFlat flat,
             Dimension textureDimension)
         {
@@ -25,7 +140,7 @@ namespace Helion.Render.Shared.World
                     float z = (float)plane.ToZ(vertex);
                     
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, z);
-                    Vector2 uv = CalculateUV(vertex, textureDimension);
+                    Vector2 uv = CalculateFlatUV(vertex, textureDimension);
                     
                     vertices.Add(new WorldVertex(position, uv));
                 }
@@ -41,7 +156,7 @@ namespace Helion.Render.Shared.World
                     float z = (float)plane.ToZ(vertex);
                     
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, z);
-                    Vector2 uv = CalculateUV(vertex, textureDimension);
+                    Vector2 uv = CalculateFlatUV(vertex, textureDimension);
                     
                     vertices.Add(new WorldVertex(position, uv));
                 }
@@ -51,7 +166,105 @@ namespace Helion.Render.Shared.World
             return vertices;
         }
 
-        private static Vector2 CalculateUV(Vec2D vertex, Dimension textureDimension)
+        private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length, 
+            Vector2 textureUVInverse, double spanZ)
+        {
+            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+            float spanV = (float)spanZ * textureUVInverse.V();
+
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV;
+            float bottomV;
+            
+            if (line.Flags.Unpegged.Lower)
+            {
+                bottomV = 1.0f + offsetUV.V();
+                topV = bottomV - spanV;
+            }
+            else
+            {
+                topV = offsetUV.V();
+                bottomV = offsetUV.V() + spanV;
+            }
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
+        }
+
+        private static WallUV CalculateTwoSidedLowerWallUV(Line line, Side facingSide, double length, 
+            Vector2 textureUVInverse, double topZ, double bottomZ)
+        {
+            Vector2 offsetUV = facingSide.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV;
+            float bottomV;
+            
+            if (line.Flags.Unpegged.Lower)
+            {
+                double ceilZ = facingSide.Sector.Ceiling.Z;
+                float topDistFromCeil = (float)(ceilZ - topZ);
+                float bottomDistFromCeil = (float)(ceilZ - bottomZ);
+                
+                topV = offsetUV.V() + (topDistFromCeil * textureUVInverse.V());
+                bottomV = offsetUV.V() + (bottomDistFromCeil * textureUVInverse.V());
+            }
+            else
+            {
+                float spanZ = (float)(topZ - bottomZ);
+                float spanV = spanZ * textureUVInverse.V();
+
+                topV = offsetUV.V();
+                bottomV = offsetUV.V() + spanV;
+            }
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
+        }
+        
+        private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, Vector2 textureUVInverse)
+        {
+            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+
+            // TODO: This is not right, we will fix it later.
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV = offsetUV.V();
+            float bottomV = 1.0f + offsetUV.V();
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
+        }
+        
+        private static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length, 
+            Vector2 textureUVInverse, double spanZ)
+        {
+            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+            float spanV = (float)spanZ * textureUVInverse.V();
+
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV;
+            float bottomV;
+            
+            if (line.Flags.Unpegged.Upper)
+            {
+                topV = offsetUV.V();
+                bottomV = topV + spanV;
+            }
+            else
+            {
+                bottomV = 1.0f + offsetUV.V();
+                topV = bottomV - spanV;
+            }
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
+        }
+        
+        private static Vector2 CalculateFlatUV(Vec2D vertex, Dimension textureDimension)
         {
             // TODO: Sector offsets will go here eventually.
             Vector2 uv = vertex.ToFloat() / textureDimension.ToVector().ToFloat();

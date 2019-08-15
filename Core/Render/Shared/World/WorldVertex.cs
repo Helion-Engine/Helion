@@ -19,6 +19,11 @@ namespace Helion.Render.Shared.World
             V = v;
         }
 
+        public WorldVertex(double x, double y, double z, double u, double v) :
+            this((float)x, (float)y, (float)z, (float)u, (float)v)
+        {
+        }
+
         public WorldVertex(Vector3 position, Vector2 uv) :
             this(position.X, position.Y, position.Z, uv.X, uv.Y)
         {

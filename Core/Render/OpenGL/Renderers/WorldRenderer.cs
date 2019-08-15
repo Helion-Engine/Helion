@@ -19,7 +19,7 @@ namespace Helion.Render.OpenGL.Renderers
         /// <param name="renderInfo">The rendering metadata.</param>
         public void Render(WorldBase world, RenderInfo renderInfo)
         {
-            if (m_lastRenderedWorld.TryGetTarget(out WorldBase? lastWorld) && !ReferenceEquals(lastWorld, world))
+            if (IsWorldNotSeenBefore(world))
             {
                 m_lastRenderedWorld.SetTarget(world);
                 UpdateToNewWorld(world);
@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL.Renderers
             
             PerformRender(world, renderInfo);
         }
-        
+
         public abstract void Dispose();
 
         /// <summary>
@@ -36,12 +36,19 @@ namespace Helion.Render.OpenGL.Renderers
         /// </summary>
         /// <param name="world">The world to update to.</param>
         protected abstract void UpdateToNewWorld(WorldBase world);
-        
+
         /// <summary>
         /// Performs the actual rendering commands.
         /// </summary>
         /// <param name="world">The world.</param>
         /// <param name="renderInfo">The rendering metadata.</param>
         protected abstract void PerformRender(WorldBase world, RenderInfo renderInfo);
+
+        private bool IsWorldNotSeenBefore(WorldBase world)
+        {
+            if (!m_lastRenderedWorld.TryGetTarget(out WorldBase? lastWorld))
+                return true;
+            return !ReferenceEquals(lastWorld, world);
+        }
     }
 }

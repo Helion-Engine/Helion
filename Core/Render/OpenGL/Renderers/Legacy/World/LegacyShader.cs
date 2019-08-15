@@ -51,6 +51,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 void main() {
                     fragColor = texture(boundTexture, uvFrag.st);
                     fragColor.xyz *= lightLevelFrag;
+
+                    if (fragColor.w <= 0.0)
+                        discard;
                 }
             ";
             
