@@ -232,6 +232,18 @@ namespace Helion.World.Entities
             EntityListNode.Unlink();
         }
 
+        public double GetViewHeight()
+        {
+            if (LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < 42.0)
+                return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z;
+            return 42.0;
+        }
+
+        public bool IsCrushing()
+        {
+            return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
+        }
+
         private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
 
         // Temporary - until we have some enums for flags

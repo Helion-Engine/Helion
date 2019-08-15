@@ -174,10 +174,13 @@ namespace Helion.Maps.Special
 
                 case ZLineSpecialType.CeilingMoveToValueTimes8:
                     return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorMoveType.Ceiling, line.SpeedArg * SpeedFactor,
-                    line.AmountArg * 8, line.Args[3]);
+                        line.AmountArg * 8, line.Args[3]);
 
                 case ZLineSpecialType.PlatPerpetualRaiseLip:
                     return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args[3]);
+
+                case ZLineSpecialType.FloorRaiseByValueTxTy:
+                    return CreateFloorRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
 
                 case ZLineSpecialType.StairsBuildUpDoom:
                     return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], false);
@@ -188,9 +191,27 @@ namespace Helion.Maps.Special
                 case ZLineSpecialType.FloorDonut:
                     HandleFloorDonut(line, sector);
                     return null;
+
+                case ZLineSpecialType.CeilingCrushAndRaiseDist:
+                    return CreateCeilingCrusherSpecial(sector, line.Args[1], line.Args[2] * SpeedFactor, line.Args[3], (ZCrushMode)line.Args[4]);
+
+                case ZLineSpecialType.FloorRaiseAndCrushDoom:
+                    return CreateFloorCrusherSpecial(sector, line.Args[1] * SpeedFactor, line.Args[2], (ZCrushMode)line.Args[3]);
             }
 
             return null;
+        }
+
+        private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZCrushMode crushMode)
+        {
+            double destZ = sector.Floor.Z + dist;
+            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
+        }
+
+        private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZCrushMode crushMode)
+        {
+            double destZ = sector.Ceiling.Z - 8;
+            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
         }
 
         private void HandleFloorDonut(Line line, Sector sector)
@@ -294,7 +315,7 @@ namespace Helion.Maps.Special
         public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, CIString? floorChangeTexture = null)
         {
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
-                MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTexture));
+                MoveDirection.Up, MoveRepetition.None, speed, 0, null, floorChangeTexture));
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)

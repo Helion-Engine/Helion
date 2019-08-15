@@ -78,13 +78,14 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorFlat flat, SectorMoveType moveType, MoveDirection direction, double speed, double destZ)
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorFlat flat, SectorMoveType moveType, MoveDirection direction, double speed, double destZ, CrushData? crush)
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
             // TODO handle plane Z
             double startZ = flat.Z;
             double thingZ;
+            SectorMoveStatus status = SectorMoveStatus.Success;
             flat.Z = destZ;
 
             if (sector.Ceiling.Z < sector.Floor.Z)
@@ -102,6 +103,13 @@ namespace Helion.World.Physics
 
                 if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
                 {
+                    if (crush != null)
+                    {              
+                        status = SectorMoveStatus.Crush;
+                        if (CrusherShouldContinue(status, crush))
+                            continue;
+                    }
+
                     flat.Z = startZ;
 
                     // Entity blocked movement, reset all entities in moving sector after restting sector Z
@@ -115,23 +123,29 @@ namespace Helion.World.Physics
                 }
             }
 
-            // TODO temporary - just for my own sanity until renderer displays floor changes
-            System.Console.WriteLine(flat.Z);
-            flat.Plane.MoveZ(destZ - startZ);
-
-            // At slower speeds we need to set entities to the floor
-            // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-            if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax)
+            // For crushing ceilings we continue to move, but still want to return SectorMoveStatus.Crush
+            if (status == SectorMoveStatus.Success || CrusherShouldContinue(status, crush))
             {
-                foreach (var entity in sector.Entities)
+                // TODO temporary - just for my own sanity until renderer displays floor changes
+                System.Console.WriteLine(flat.Z);
+                flat.Plane.MoveZ(destZ - startZ);
+
+                // At slower speeds we need to set entities to the floor
+                // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
+                if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax)
                 {
-                    if (entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
-                        entity.SetZ(destZ);
+                    foreach (var entity in sector.Entities)
+                    {
+                        if (entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
+                            entity.SetZ(destZ);
+                    }
                 }
             }
 
-            return SectorMoveStatus.Success;
+            return status;
         }
+
+        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush) => crush != null && status == SectorMoveStatus.Crush && crush.CrushMode == ZCrushMode.DoomWithSlowDown;
 
         /// <summary>
         /// Executes use logic on the entity. 
@@ -231,7 +245,7 @@ namespace Helion.World.Physics
         {
             if (!entity.OnGround && !entity.IsFlying)
                 return;
-            
+
             entity.Velocity.X *= Friction;
             entity.Velocity.Y *= Friction;
         }
@@ -397,6 +411,10 @@ namespace Helion.World.Physics
                 HandleNoClip(entity, velocity);
                 return;
             }
+
+            // TODO temporary until we know how this actually works
+            if (entity.IsCrushing())
+                return;
 
             // We advance in small steps that are smaller than the radius of
             // the actor so we don't skip over any lines or things due to fast

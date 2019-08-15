@@ -178,24 +178,41 @@ namespace Helion.Maps.Special
                 // TODO handle crusher ceilings...
                 case VLineSpecialType.W1_FastCrusherCeiling:
                 case VLineSpecialType.W1_SlowCrusherCeiling:
-                case VLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
                 case VLineSpecialType.WR_SlowCrusherCeilingFastDamage:
                 case VLineSpecialType.WR_FastCrusherCeilingSlowDamage:
+                    line.Args[0] = tag;
+                    line.Args[1] = 0; // Distance above floor
+                    line.Args[2] = GetSectorMoveSpeed(type);
+                    line.Args[3] = 8; // Damage
+                    line.Args[4] = (byte)ZCrushMode.DoomWithSlowDown;
+                    return ZLineSpecialType.CeilingCrushAndRaiseDist;
+
+                case VLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
+                    line.Args[0] = tag;
+                    line.Args[1] = 8; // Distance above floor
+                    line.Args[2] = GetSectorMoveSpeed(type);
+                    line.Args[3] = 8; // Damage
+                    line.Args[4] = (byte)ZCrushMode.DoomWithSlowDown;
                     return ZLineSpecialType.CeilingCrushAndRaiseDist;
 
                 case VLineSpecialType.W1_QuietCrusherCeilingFastDamage:
                     return ZLineSpecialType.CeilingCrushRaiseSilent;
 
                 case VLineSpecialType.WR_RaiseFloorTwentyFour:
-                case VLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
                 case VLineSpecialType.W1_RaiseFloorTwentyFour:
-                case VLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
-                case VLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
-                case VLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
                     line.Args[0] = tag;
                     line.Args[1] = GetSectorMoveSpeed(type);
                     line.Args[2] = 24;
                     return ZLineSpecialType.FloorRaiseByValue;
+
+                case VLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
+                case VLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
+                case VLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
+                    line.Args[0] = tag;
+                    line.Args[1] = GetSectorMoveSpeed(type);
+                    line.Args[2] = 24;
+                    return ZLineSpecialType.FloorRaiseByValueTxTy;
 
                 case VLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
                 case VLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:

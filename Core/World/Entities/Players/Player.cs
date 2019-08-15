@@ -56,7 +56,7 @@ namespace Helion.World.Entities.Players
             
             // TODO: This should be clamped to the floor/ceiling and use the
             //       property for the player.
-            position.Z += 42.0;
+            position.Z += Entity.GetViewHeight();
                 
             return new Camera(position.ToFloat(), yaw, pitch);
         }

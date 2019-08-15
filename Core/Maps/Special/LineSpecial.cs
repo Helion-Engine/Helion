@@ -14,11 +14,13 @@ namespace Helion.Maps.Special
         public bool Active;
 
         private bool m_moveSpecial;
+        private bool m_lightSpecial;
 
         public LineSpecial(ZLineSpecialType type)
         {
             LineSpecialType = type;
             m_moveSpecial = SetMoveSpecial();
+            m_lightSpecial = SetLightSpecial();
         }
 
         /// <summary>
@@ -38,6 +40,7 @@ namespace Helion.Maps.Special
         }
 
         public bool IsSectorMoveSpecial() => m_moveSpecial;
+        public bool IsSectorLightSpecial() => m_lightSpecial;
 
         public bool IsTeleport()
         {
@@ -109,6 +112,28 @@ namespace Helion.Maps.Special
                 case ZLineSpecialType.StairsBuildUpDoom:
                 case ZLineSpecialType.StairsBuildUpDoomCrush:
                 case ZLineSpecialType.DoorLockedRaise:
+                case ZLineSpecialType.CeilingCrushAndRaiseDist:
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool SetLightSpecial()
+        {
+            switch (LineSpecialType)
+            {
+                case ZLineSpecialType.LightRaiseByValue:
+                case ZLineSpecialType.LightLowerByValue:
+                case ZLineSpecialType.LightChangeToValue:
+                case ZLineSpecialType.LightFadeToValue:
+                case ZLineSpecialType.LightGlow:
+                case ZLineSpecialType.LightFlicker:
+                case ZLineSpecialType.LightStrobe:
+                case ZLineSpecialType.LightStop:
+                case ZLineSpecialType.LightStrobeDoom:
+                case ZLineSpecialType.LightMinNeighbor:
+                case ZLineSpecialType.LightMaxNeighor:
                     return true;
             }
 

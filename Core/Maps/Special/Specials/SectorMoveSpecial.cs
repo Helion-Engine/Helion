@@ -20,6 +20,7 @@ namespace Helion.Maps.Special.Specials
         private double m_startZ;
         private double m_minZ;
         private double m_maxZ;
+        private bool m_crushing;
 
         public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double dest, SectorMoveData specialData)
         {
@@ -48,7 +49,7 @@ namespace Helion.Maps.Special.Specials
             }
 
             double destZ = MathHelper.Clamp(m_flat.Z + m_speed, m_minZ, m_maxZ);
-            SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ);
+            SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ, m_data.Crush);
 
             if (status == SectorMoveStatus.CeilingHitFloor)
                 m_destZ = m_flat.Z;
@@ -58,6 +59,15 @@ namespace Helion.Maps.Special.Specials
                 if (m_data.MoveRepetition != MoveRepetition.None)
                     FlipMovementDirection();
             }
+            else if (m_direction == m_data.StartDirection && status == SectorMoveStatus.Crush && !m_crushing)
+            {
+                m_crushing = true;
+                if (m_data.Crush.CrushMode == ZCrushMode.DoomWithSlowDown)
+                    m_speed = m_speed < 0 ? -0.1 : 0.1;
+            }
+
+            if (m_crushing && status == SectorMoveStatus.Success)
+                m_crushing = false;
 
             if (m_flat.Z == m_destZ)
             {
@@ -87,9 +97,19 @@ namespace Helion.Maps.Special.Specials
         {
             if (m_data.MoveRepetition == MoveRepetition.Perpetual || (m_data.MoveRepetition == MoveRepetition.DelayReturn && m_direction == m_data.StartDirection))
                 m_delayTics = m_data.Delay;
-            m_speed = -m_speed;
+                
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
             m_destZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
+
+            if (m_crushing)
+            {
+                m_speed = m_data.Speed;
+                m_crushing = false;
+            }
+            else
+            {
+                m_speed = -m_speed;
+            }
         }
     }
 }
