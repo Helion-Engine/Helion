@@ -11,7 +11,6 @@ namespace Helion.Maps.Geometry
     {
         public readonly int Id;
         public readonly List<Line> Lines = new List<Line>();
-        public readonly List<Side> Sides = new List<Side>();
         public readonly List<SectorFlat> Flats = new List<SectorFlat>();
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public byte LightLevel;

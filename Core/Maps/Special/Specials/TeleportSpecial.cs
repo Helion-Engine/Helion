@@ -48,14 +48,14 @@ namespace Helion.Maps.Special.Specials
 
             if (sector != null)
             {
-                var max_x1 = sector.Sides.Where(x => x.Line != null).Max(x => x.Line.Segment.Start.X);
-                var max_x2 = sector.Sides.Where(x => x.Line != null).Max(x => x.Line.Segment.End.X);
-                var max_y1 = sector.Sides.Where(x => x.Line != null).Max(x => x.Line.Segment.Start.Y);
-                var max_y2 = sector.Sides.Where(x => x.Line != null).Max(x => x.Line.Segment.End.Y);
-                var min_x1 = sector.Sides.Where(x => x.Line != null).Min(x => x.Line.Segment.Start.X);
-                var min_x2 = sector.Sides.Where(x => x.Line != null).Min(x => x.Line.Segment.End.X);
-                var min_y1 = sector.Sides.Where(x => x.Line != null).Min(x => x.Line.Segment.Start.Y);
-                var min_y2 = sector.Sides.Where(x => x.Line != null).Min(x => x.Line.Segment.End.Y);
+                var max_x1 = sector.Lines.Max(x => x.Segment.Start.X);
+                var max_x2 = sector.Lines.Max(x => x.Segment.End.X);
+                var max_y1 = sector.Lines.Max(x => x.Segment.Start.Y);
+                var max_y2 = sector.Lines.Max(x => x.Segment.End.Y);
+                var min_x1 = sector.Lines.Min(x => x.Segment.Start.X);
+                var min_x2 = sector.Lines.Min(x => x.Segment.End.X);
+                var min_y1 = sector.Lines.Min(x => x.Segment.Start.Y);
+                var min_y2 = sector.Lines.Min(x => x.Segment.End.Y);
 
                 max_x1 = Math.Max(max_x1, max_x2);
                 max_y1 = Math.Max(max_y1, max_y2);
