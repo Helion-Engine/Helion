@@ -126,8 +126,6 @@ namespace Helion.World.Physics
             // For crushing ceilings we continue to move, but still want to return SectorMoveStatus.Crush
             if (status == SectorMoveStatus.Success || CrusherShouldContinue(status, crush))
             {
-                // TODO temporary - just for my own sanity until renderer displays floor changes
-                System.Console.WriteLine(flat.Z);
                 flat.Plane.MoveZ(destZ - startZ);
 
                 // At slower speeds we need to set entities to the floor
