@@ -50,10 +50,14 @@ namespace Helion.Util.Container
         /// <summary>
         /// Accesses the element at the provided index.
         /// </summary>
-        /// <param name="index">The index to get.</param>
+        /// <param name="index">The index to get/set.</param>
         /// <exception cref="IndexOutOfRangeException">If the index is out of
         /// range.</exception>
-        public T this[int index] => Data[index];
+        public T this[int index]
+        {
+            get => Data[index];
+            set => Data[index] = value;
+        }
 
         /// <summary>
         /// Clears the data.

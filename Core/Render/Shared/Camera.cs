@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Numerics;
+using GlmSharp;
+using Helion.Util;
 using Helion.Util.Geometry;
-using OpenTK;
 using static Helion.Util.Assertion.Assert;
-using Vector3 = System.Numerics.Vector3;
 
 namespace Helion.Render.Shared
 {
@@ -24,9 +25,9 @@ namespace Helion.Render.Shared
         public static readonly Vector3 Up = new Vector3(0, 0, 1);
         
         /// <summary>
-        /// The Up vector in OpenTK's vector format.
+        /// The Up vector in GLM's vector format.
         /// </summary>
-        public static readonly OpenTK.Vector3 UpOpenTk = Up.ToOpenTKVector();
+        public static readonly vec3 UpGlm = Up.ToGlmVector();
 
         /// <summary>
         /// The current camera position.
@@ -61,12 +62,12 @@ namespace Helion.Render.Shared
         /// to that range.</param>
         public Camera(Vector3 position, float yawRadians, float pitchRadians)
         {
-            Precondition(yawRadians >= 0.0f && yawRadians < MathHelper.TwoPi, "Out of range yaw, should be in [0, 2*pi)");
-            Precondition(pitchRadians > -MathHelper.PiOver2 && pitchRadians < MathHelper.PiOver2, "Out of range pitch, should be in (-pi/2, pi/2)");
+            Precondition(yawRadians >= 0.0f && yawRadians < MathHelper.TwoPi, $"Out of range yaw, should be in [0, 2*pi), got {yawRadians}");
+            Precondition(pitchRadians > -MathHelper.HalfPi && pitchRadians < MathHelper.TwoPi, $"Out of range pitch, should be in (-pi/2, pi/2), got {pitchRadians}");
             
             Position = position;
-            YawRadians = yawRadians;
-            PitchRadians = pitchRadians;
+            YawRadians = ClampYaw(yawRadians);
+            PitchRadians = ClampPitch(pitchRadians);
             Direction = DirectionFrom(yawRadians, pitchRadians);
         }
 
@@ -90,11 +91,11 @@ namespace Helion.Render.Shared
         /// Creates a view matrix for a camera information object.
         /// </summary>
         /// <returns>The view matrix for the camera information.</returns>
-        public Matrix4 CalculateViewMatrix()
+        public mat4 CalculateViewMatrix()
         {
-            OpenTK.Vector3 pos = Position.ToOpenTKVector();
-            OpenTK.Vector3 eye = pos + Direction.ToOpenTKVector();
-            return Matrix4.LookAt(pos, eye, UpOpenTk);
+            vec3 pos = Position.ToGlmVector();
+            vec3 eye = pos + Direction.ToGlmVector();
+            return mat4.LookAt(pos, eye, UpGlm);
         }
         
         /// <summary>
@@ -110,6 +111,19 @@ namespace Helion.Render.Shared
             float y = (float)Math.Sin(yawRadians);
             float z = (float)Math.Sin(pitchRadians);
             return Vector3.Normalize(new Vector3(x, y, z));
+        }
+
+        private static float ClampYaw(double yawRadians)
+        {
+            double clampedYaw = yawRadians % MathHelper.TwoPi;
+            if (clampedYaw < 0)
+                clampedYaw += MathHelper.TwoPi;
+            return (float)clampedYaw;
+        }
+        
+        private static float ClampPitch(double pitchRadians)
+        {
+            return (float)MathHelper.Clamp(pitchRadians, -MathHelper.HalfPi, MathHelper.HalfPi);
         }
     }
 }

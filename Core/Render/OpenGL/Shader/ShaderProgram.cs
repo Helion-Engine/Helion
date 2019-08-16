@@ -1,128 +1,95 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using Helion.Render.OpenGL.Buffers;
-using MoreLinq;
-using OpenTK.Graphics.OpenGL;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Shader.Fields;
+using Helion.Render.OpenGL.Util;
+using Helion.Render.OpenGL.Vertex;
+using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shader
 {
     public class ShaderProgram : IDisposable
     {
+        private readonly IGLFunctions gl;
         private readonly int m_programId;
-        
-        protected ShaderProgram(ShaderBuilder builder, VertexArrayAttributes attributes)
+
+        public ShaderProgram(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes)
         {
-            Precondition(builder.IsValid, "Must be a valid shader builder");
-
-            // TODO: We should throw only after we've deallocated whatever has
-            //       been created. It might be best to follow through to the
-            //       end and then call Dispose() on any failures, and then have
-            //       an exception be thrown so that way there's no leaking of
-            //       resources.
+            gl = functions;
+            m_programId = gl.CreateProgram();
             
-            int vertexShader = CreateAndCompileShaderOrThrow(ShaderType.VertexShader, builder.VertexShaderText);
-            int fragmentShader = CreateAndCompileShaderOrThrow(ShaderType.FragmentShader, builder.FragmentShaderText);
-
-            m_programId = GL.CreateProgram();
-            GL.AttachShader(m_programId, vertexShader);
-            GL.AttachShader(m_programId, fragmentShader);
-
-            attributes.ForEach(attr => GL.BindAttribLocation(m_programId, attr.Index, attr.Name));
-            LinkProgramOrThrow();
-            AssertAttributesMatch(attributes);
-
-            GL.DetachShader(m_programId, vertexShader);
-            GL.DetachShader(m_programId, fragmentShader);
-            GL.DeleteShader(fragmentShader);
-            GL.DeleteShader(vertexShader);
-
+            builder.Vertex.AttachAnd(m_programId, () =>
+            {
+                builder.Fragment.AttachAnd(m_programId, () =>
+                {
+                    // TODO: This will cause us to not detach if any throw.
+                    attributes.ForEach(attr => gl.BindAttribLocation(m_programId, attr.Index, attr.Name));
+                    LinkProgramOrThrow();
+                    AssertAttributesMatch(attributes);
+                });
+            });
+            
             IndexUniformsOrThrow();
         }
         
         ~ShaderProgram()
         {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
         
         public void Bind()
         {
-            GL.UseProgram(m_programId);            
+            gl.UseProgram(m_programId);            
         }
 
         public void Unbind()
         {
-            GL.UseProgram(0);
+            gl.UseProgram(0);
         }
-
+        
         public void BindAnd(Action action)
         {
             Bind();
             action.Invoke();
             Unbind();
         }
-
+        
         public void Dispose()
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
         
-        private int CreateAndCompileShaderOrThrow(ShaderType shaderType, string vertexShaderText)
+        private static bool HasUniformAttribute(FieldInfo fieldInfo)
         {
-            int shaderId = GL.CreateShader(shaderType);
-            GL.ShaderSource(shaderId, vertexShaderText);
-            GL.CompileShader(shaderId);
-
-            GL.GetShader(shaderId, ShaderParameter.CompileStatus, out int status);
-            if (status != (int)All.True)
-            {
-                string errorMsg = GL.GetShaderInfoLog(shaderId);
-                throw new ShaderException($"Error compiling shader {shaderType.ToString()}: {errorMsg}");
-            }
-
-            return shaderId;
+            return fieldInfo.FieldType.IsDefined(typeof(UniformAttribute), true);
         }
-        
-        private void LinkProgramOrThrow()
-        {
-            GL.LinkProgram(m_programId);
-
-            GL.GetProgram(m_programId, GetProgramParameterName.LinkStatus, out var status);
-            if (status != (int)All.True)
-            {
-                string errorMsg = GL.GetProgramInfoLog(m_programId);
-                throw new ShaderException($"Error linking shader: {errorMsg}");
-            }
-        }
-
+                
         [Conditional("DEBUG")]
         private void AssertAttributesMatch(VertexArrayAttributes attributes)
         {
-            GL.GetProgram(m_programId, GetProgramParameterName.ActiveAttributes, out int numAttributes);
+            gl.GetProgram(m_programId, GetProgramParameterType.ActiveAttributes, out int numAttributes);
             Invariant(numAttributes == attributes.Count, "Attribute mismatch, shader attributes do not match VAO attribute size (did you forget some? or not remove some?)");
         }
         
-        private static bool HasUniformAttribute(FieldInfo fieldInfo)
-        {
-            return fieldInfo.FieldType.IsDefined(typeof(ShaderUniformAttribute), true);
-        }
-
         private void IndexUniformsOrThrow()
         {
-            GL.GetProgram(m_programId, GetProgramParameterName.ActiveUniforms, out int numUniforms);
+            gl.GetProgram(m_programId, GetProgramParameterType.ActiveUniforms, out int numUniforms);
 
             for (int uniformIndex = 0; uniformIndex < numUniforms; uniformIndex++)
             {
-                string name = GL.GetActiveUniform(m_programId, uniformIndex, out _, out _);
-                int location = GL.GetUniformLocation(m_programId, name);
+                string name = gl.GetActiveUniform(m_programId, uniformIndex, out _, out _);
+                int location = gl.GetUniformLocation(m_programId, name);
                 Invariant(location != -1, $"Unable to index shader uniform {name}");
 
                 FindAndSetUniformFieldIndexOrThrow(name, location);
             }
         }
-
+        
         private void FindAndSetUniformFieldIndexOrThrow(string name, int location)
         {
             string lowerName = name.ToLower();
@@ -140,15 +107,10 @@ namespace Helion.Render.OpenGL.Shader
                 case UniformFloat uniformFloat:
                     uniformFloat.Location = location;
                     return;
-                case UniformVec3 uniformVec3:
-                    uniformVec3.Location = location;
+                case UniformMatrix4 uniformMatrix:
+                    uniformMatrix.Location = location;
                     return;
-                case UniformVec4 uniformVec4:
-                    uniformVec4.Location = location;
-                    return;
-                case UniformMatrix4 uniformMatrix4:
-                    uniformMatrix4.Location = location;
-                    return;
+                // TODO: Vec3/Vec4
                 default:
                     throw new ShaderException($"Unexpected uniform type for uniform '{name}' in class '{GetType().Name}' with field '{field.Name}'");                        
                 }
@@ -156,10 +118,22 @@ namespace Helion.Render.OpenGL.Shader
 
             throw new ShaderException($"Encountered uniform '{name}' which has no backing field in the class: {GetType().Name}");
         }
+        
+        private void LinkProgramOrThrow()
+        {
+            gl.LinkProgram(m_programId);
+
+            gl.GetProgram(m_programId, GetProgramParameterType.LinkStatus, out var status);
+            if (status == GLHelper.GLTrue)
+                return;
+
+            string errorMsg = gl.GetProgramInfoLog(m_programId);
+            throw new ShaderException($"Error linking shader: {errorMsg}");
+        }
 
         private void ReleaseUnmanagedResources()
         {
-            GL.DeleteProgram(m_programId);
+            gl.DeleteProgram(m_programId);
         }
     }
 }

@@ -1,23 +1,10 @@
-using System;
-using System.Runtime.Serialization;
+using Helion.Util;
 
 namespace Helion.Render.OpenGL.Shader
 {
-    public class ShaderException : Exception
+    public class ShaderException : HelionException
     {
-        public ShaderException()
-        {
-        }
-
         public ShaderException(string message) : base(message)
-        {
-        }
-
-        public ShaderException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        protected ShaderException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

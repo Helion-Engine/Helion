@@ -10,6 +10,8 @@ namespace Helion.Util.Geometry
         public int X;
         public int Y;
 
+        public bool IsOrigin => this == Zero;
+
         public Vec2I(int x, int y)
         {
             X = x;

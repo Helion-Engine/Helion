@@ -1,134 +1,273 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
-using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
+using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World
 {
-    /// <summary>
-    /// Triangulates a world so the triangles can be rendered on the GPU.
-    /// </summary>
-    public class WorldTriangulator
+    public static class WorldTriangulator
     {
-        private readonly Func<CIString, Dimension> m_textureDimensionFinder;
-
-        private WorldTriangulator(Func<CIString, Dimension> textureDimensionFinder)
+        // TODO: There is probably a lot of repetition for the wall geometry
+        //       generators. Let's refactor it later.
+        
+        public static WallVertices HandleOneSided(Line line, Side side, Vector2 textureUVInverse)
         {
-            m_textureDimensionFinder = textureDimensionFinder;
-        }
+            Sector sector = side.Sector;
+            SectorFlat floor = sector.Floor;
+            SectorFlat ceiling = sector.Ceiling;
 
-        /// <summary>
-        /// Triangulates a line.
-        /// </summary>
-        /// <param name="line">The line to triangulate.</param>
-        /// <param name="textureDimensionFinder">A function used to look up the
-        /// name of a texture and get the dimensions of it.</param>
-        /// <returns>All the triangles for this line.</returns>
-        public static LineTriangles Triangulate(Line line, Func<CIString, Dimension> textureDimensionFinder)
-        {
-            WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
-            return line.OneSided ? triangulator.TriangulateOneSided(line) : 
-                                   triangulator.TriangulateTwoSided(line);
-        }
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = ceiling.Z;
+            double bottomZ = floor.Z;
 
-        /// <summary>
-        /// Triangulates a subsector.
-        /// </summary>
-        /// <param name="subsector">The subsector to triangulate.</param>
-        /// <param name="textureDimensionFinder">A function used to look up the
-        /// name of a texture and get the dimensions of it.</param>
-        /// <returns>All the triangles for this subsector.</returns>
-        public static SubsectorTriangles Triangulate(Subsector subsector, Func<CIString, Dimension> textureDimensionFinder)
-        {
-            WorldTriangulator triangulator = new WorldTriangulator(textureDimensionFinder);
-            return triangulator.TriangulateSubsector(subsector);
-        }
-
-        private static void CalculateTwoSidedMiddlePosition(ref Vector3 top, ref Vector3 bottom, 
-            Dimension textureDimension, Line line)
-        {
-            float spanZ = top.Z - bottom.Z;
-
-            // TODO: This does not handle offsets, which can shift the texture
-            //       and further change how it's clipped. We will deal with the
-            //       offset case at a later date.
+            double length = line.Segment.Length();
+            double spanZ = topZ - bottomZ;
+            WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ);
             
-            // If the texture already fits in the tight gap, then we're done as
-            // the UV calculator will do the rest of the work for us. We only
-            // need to continue on if the texture won't fit into
-            if (spanZ < textureDimension.Height)
-                return;
-
-            if (line.Flags.Unpegged.Lower)
-                top.Z = bottom.Z + textureDimension.Height;
-            else
-                bottom.Z = top.Z - textureDimension.Height;
-        }
-
-        private static PositionQuad CalculatePosition(Line line, Side side, PlaneD floor, PlaneD ceiling, 
-            Vec2D start, Vec2D end, SideSection sideSection, Dimension textureDimension)
-        {
-            Vector3 topLeft = new Vec3D(start.X, start.Y, ceiling.ToZ(start)).ToFloat();
-            Vector3 topRight = new Vec3D(end.X, end.Y, ceiling.ToZ(end)).ToFloat();
-            Vector3 bottomLeft = new Vec3D(start.X, start.Y, floor.ToZ(start)).ToFloat();
-            Vector3 bottomRight = new Vec3D(end.X, end.Y, floor.ToZ(end)).ToFloat();
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
             
-            // Middle textures on two sided lines are special since they have
-            // their geometry clipped based on whether the space for the wall
-            // or the texture itself is smaller. It is also unique because the
-            // ceiling and floor determination of where to start is different.
-            if (line.TwoSided && sideSection == SideSection.Middle)
-            {
-                if (side.PartnerSide == null)
-                    throw new NullReferenceException("Should not have a null opposite side for a two sided middle");
-                Side otherSide = side.PartnerSide;
-                Sector facingSector = side.Sector;
-                Sector otherSector = otherSide.Sector;
-
-                topLeft.Z = (float)Math.Min(facingSector.Ceiling.Plane.ToZ(start), otherSector.Ceiling.Plane.ToZ(start));
-                topRight.Z = (float)Math.Min(facingSector.Ceiling.Plane.ToZ(end), otherSector.Ceiling.Plane.ToZ(end));
-                bottomLeft.Z = (float)Math.Max(facingSector.Floor.Plane.ToZ(start), otherSector.Floor.Plane.ToZ(start));
-                bottomRight.Z = (float)Math.Max(facingSector.Floor.Plane.ToZ(end), otherSector.Floor.Plane.ToZ(end));
-                
-                CalculateTwoSidedMiddlePosition(ref topLeft, ref bottomLeft, textureDimension, line);
-                CalculateTwoSidedMiddlePosition(ref topRight, ref bottomRight, textureDimension, line);
-            }
-
-            return new PositionQuad(topLeft, topRight, bottomLeft, bottomRight);
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        private static bool CheckIfPegToTop(Line line, SideSection section)
+        public static WallVertices HandleTwoSidedLower(Line line, Side facingSide, Side otherSide, Vector2 textureUVInverse)
         {
-            switch (section)
-            {
-            case SideSection.Upper:
-                // Pegs to the bottom by default, only `upper` overrides it.
-                return line.Flags.Unpegged.Upper;
-            case SideSection.Middle:
-                goto case SideSection.Lower;
-            case SideSection.Lower:
-                // Middle and lower are pegged to the top by default.
-                // TODO: This is not how it's done, it's based off of the top.
-                return !line.Flags.Unpegged.Lower;
-            default:
-                Fail("Unexpected section type when setting UV coordinates");
-                break;
-            }
-
-            return true;
+            Sector sector = facingSide.Sector;
+            SectorFlat topFlat = otherSide.Sector.Floor;
+            SectorFlat bottomFlat = sector.Floor;
+            
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = topFlat.Z;
+            double bottomZ = bottomFlat.Z;
+            
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+            
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
         
-        private static Vertex CalculateFlatVertex(Vec2D position, PlaneD plane, Dimension textureDimension)
+        public static WallVertices HandleTwoSidedMiddle(Line line, Side facingSide, Side otherSide, 
+            Dimension textureDimension, Vector2 textureUVInverse, LineOpening opening, out bool nothingVisibleToDraw)
         {
-            Vec3D pos = new Vec3D(position.X, position.Y, plane.ToZ(position));
-            Vec2D uv = position / textureDimension.ToVector().ToDouble();
+            Precondition(opening.OpeningHeight > 0, "Should not be handling a two sided middle when there's no opening");
+
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = opening.CeilingZ;
+            double bottomZ = opening.FloorZ;
+
+            if (line.Flags.Unpegged.Lower)
+                topZ = bottomZ + textureDimension.Height;
+            else
+                bottomZ = topZ - textureDimension.Height;
+
+            topZ += facingSide.Offset.Y;
+            bottomZ += facingSide.Offset.Y;
+            
+            // We want to clip it to the line opening.
+            topZ = Math.Min(topZ, opening.CeilingZ);
+            bottomZ = Math.Max(bottomZ, opening.FloorZ);
+
+            if (topZ <= bottomZ)
+            {
+                nothingVisibleToDraw = true;
+                return default;
+            }
+            
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, textureUVInverse);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+
+            nothingVisibleToDraw = false;
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
+        }
+
+        public static WallVertices HandleTwoSidedUpper(Line line, Side facingSide, Side otherSide, Vector2 textureUVInverse)
+        {
+            Sector sector = facingSide.Sector;
+            SectorFlat topFlat = sector.Ceiling;
+            SectorFlat bottomFlat = otherSide.Sector.Ceiling;
+            
+            Vec2D left = line.Segment.Start;
+            Vec2D right = line.Segment.End;
+            double topZ = topFlat.Z;
+            double bottomZ = bottomFlat.Z;
+            double spanZ = topZ - bottomZ;
+            
+            // TODO: If unchanging, we can pre-calculate the length.
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+            
+            return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
+        }
+
+        public static List<WorldVertex> HandleSubsector(Subsector subsector, SectorFlat flat,
+            Dimension textureDimension)
+        {
+            PlaneD plane = flat.Plane;
+            List<SubsectorEdge> edges = subsector.ClockwiseEdges;
+            List<WorldVertex> vertices = new List<WorldVertex>();
+
+            if (flat.Facing == SectorFlatFace.Ceiling)
+            {
+                for (int i = 0; i < edges.Count; i++)
+                {
+                    Vec2D vertex = edges[i].Start;
+                    float z = (float)plane.ToZ(vertex);
+                    
+                    Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, z);
+                    Vector2 uv = CalculateFlatUV(vertex, textureDimension);
+                    
+                    vertices.Add(new WorldVertex(position, uv));
+                }
+            }
+            else
+            {
+                // Because the floor is looked at downwards and because it is
+                // clockwise, to get counter-clockwise vertices we reverse the
+                // iteration order and go from the end vertex.
+                for (int i = edges.Count - 1; i >= 0; i--)
+                {
+                    Vec2D vertex = edges[i].End;
+                    float z = (float)plane.ToZ(vertex);
+                    
+                    Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, z);
+                    Vector2 uv = CalculateFlatUV(vertex, textureDimension);
+                    
+                    vertices.Add(new WorldVertex(position, uv));
+                }
+            }
+
+            Postcondition(vertices.Count >= 3, $"Processed a degenerate subsector flat {subsector.Id} (for sector {subsector.Sector.Id})");
+            return vertices;
+        }
+
+        private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length, 
+            Vector2 textureUVInverse, double spanZ)
+        {
+            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+            float spanV = (float)spanZ * textureUVInverse.V();
+
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV;
+            float bottomV;
+            
+            if (line.Flags.Unpegged.Lower)
+            {
+                bottomV = 1.0f + offsetUV.V();
+                topV = bottomV - spanV;
+            }
+            else
+            {
+                topV = offsetUV.V();
+                bottomV = offsetUV.V() + spanV;
+            }
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
+        }
+
+        private static WallUV CalculateTwoSidedLowerWallUV(Line line, Side facingSide, double length, 
+            Vector2 textureUVInverse, double topZ, double bottomZ)
+        {
+            Vector2 offsetUV = facingSide.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV;
+            float bottomV;
+            
+            if (line.Flags.Unpegged.Lower)
+            {
+                double ceilZ = facingSide.Sector.Ceiling.Z;
+                float topDistFromCeil = (float)(ceilZ - topZ);
+                float bottomDistFromCeil = (float)(ceilZ - bottomZ);
+                
+                topV = offsetUV.V() + (topDistFromCeil * textureUVInverse.V());
+                bottomV = offsetUV.V() + (bottomDistFromCeil * textureUVInverse.V());
+            }
+            else
+            {
+                float spanZ = (float)(topZ - bottomZ);
+                float spanV = spanZ * textureUVInverse.V();
+
+                topV = offsetUV.V();
+                bottomV = offsetUV.V() + spanV;
+            }
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
+        }
+        
+        private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, Vector2 textureUVInverse)
+        {
+            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+
+            // TODO: This is not right, we will fix it later.
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV = offsetUV.V();
+            float bottomV = 1.0f + offsetUV.V();
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
+        }
+        
+        private static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length, 
+            Vector2 textureUVInverse, double spanZ)
+        {
+            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            float wallSpanU = (float)length * textureUVInverse.U();
+            float spanV = (float)spanZ * textureUVInverse.V();
+
+            float leftU = offsetUV.U();
+            float rightU = offsetUV.U() + wallSpanU;
+            float topV;
+            float bottomV;
+            
+            if (line.Flags.Unpegged.Upper)
+            {
+                topV = offsetUV.V();
+                bottomV = topV + spanV;
+            }
+            else
+            {
+                bottomV = 1.0f + offsetUV.V();
+                topV = bottomV - spanV;
+            }
+            
+            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
+        }
+        
+        private static Vector2 CalculateFlatUV(Vec2D vertex, Dimension textureDimension)
+        {
+            // TODO: Sector offsets will go here eventually.
+            Vector2 uv = vertex.ToFloat() / textureDimension.ToVector().ToFloat();
             
             // When we map coordinates to their texture coordinates, because
             // we do division above, a coordinate with Y values of 16 to 32
@@ -141,166 +280,7 @@ namespace Helion.Render.Shared.World
             // trivially fixed by inverting letting the shader take care of the
             // rest when it clamps it to the image.
             uv.Y = -uv.Y;
-            
-            return new Vertex(pos.ToFloat(), uv.ToFloat());
-        }
-
-        private static UVQuad CalculateUpperUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
-        {
-            Vector2 topLeft = new Vector2(offset.X, offset.Y);
-            Vector2 topRight = new Vector2(offset.X + wallSpanU, offset.Y);
-            Vector2 bottomLeft = new Vector2(offset.X, offset.Y + leftSpanV);
-            Vector2 bottomRight = new Vector2(offset.X + wallSpanU, offset.Y + rightSpanV);
-            
-            return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
-        }
-        
-        private static UVQuad CalculateLowerUV(Vector2 offset, float wallSpanU, float leftSpanV, float rightSpanV)
-        {
-            Vector2 topLeft = new Vector2(offset.X, 1.0f + offset.Y - leftSpanV);
-            Vector2 topRight = new Vector2(offset.X + wallSpanU, 1.0f + offset.Y - rightSpanV);
-            Vector2 bottomLeft = new Vector2(offset.X, 1.0f + offset.Y);
-            Vector2 bottomRight = new Vector2(offset.X + wallSpanU, 1.0f + offset.Y);
-
-            return new UVQuad(topLeft, topRight, bottomLeft, bottomRight);
-        }
-
-        private static UVQuad CalculateUV(Line line, Side side, PositionQuad quad, Dimension textureDimension, 
-            SideSection section)
-        {
-            Vector2 invDimension = Vector2.One / textureDimension.ToVector().ToFloat();
-            Vector2 offset = side.Offset.ToFloat() * invDimension;
-            float wallSpanU = (float)line.Segment.Length() * invDimension.U();
-            
-            // Note: This will get weird with slopes since we need a reference
-            // point. Will need to rethink this later.
-            float leftSpanV = (quad.TopLeft.Z - quad.BottomLeft.Z) * invDimension.V();
-            float rightSpanV = (quad.TopRight.Z - quad.BottomRight.Z) * invDimension.V();
-
-            return CheckIfPegToTop(line, section) ? 
-                CalculateUpperUV(offset, wallSpanU, leftSpanV, rightSpanV) : 
-                CalculateLowerUV(offset, wallSpanU, leftSpanV, rightSpanV);
-        }
-
-        private static WallQuad TriangulateSideSection(Line line, Side side, SectorFlat floor, SectorFlat ceiling, 
-            CIString texture, Dimension textureDimension, SideFace sideFace, SideSection section)
-        {
-            // If looking at the front side we want to go from Start -> End,
-            // otherwise the back side needs End -> Start to keep everything
-            // counterclockwise.
-            Vec2D leftVertex = sideFace == SideFace.Front ? line.StartVertex.Position : line.EndVertex.Position;
-            Vec2D rightVertex = sideFace == SideFace.Front ? line.EndVertex.Position : line.StartVertex.Position;
-            
-            PositionQuad quad = CalculatePosition(line, side, floor.Plane, ceiling.Plane, leftVertex, rightVertex, section, textureDimension);
-            UVQuad uv = CalculateUV(line, side, quad, textureDimension, section);
-
-            Vertex topLeft = new Vertex(quad.TopLeft, uv.TopLeft);
-            Vertex topRight = new Vertex(quad.TopRight, uv.TopRight);
-            Vertex bottomLeft = new Vertex(quad.BottomLeft, uv.BottomLeft);
-            Vertex bottomRight = new Vertex(quad.BottomRight, uv.BottomRight);
-            
-            return new WallQuad(topLeft, topRight, bottomLeft, bottomRight, texture, side, section, floor, ceiling);
-        }
-
-        private LineTriangles TriangulateOneSided(Line line)
-        {
-            CIString texture = line.Front.MiddleTexture;
-            SectorFlat floor = line.Front.Sector.Floor;
-            SectorFlat ceiling = line.Front.Sector.Ceiling;
-            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
-
-            WallQuad middle = TriangulateSideSection(line, line.Front, floor, ceiling, texture, dimension, SideFace.Front, SideSection.Middle);
-            SideTriangles sideTriangles = new SideTriangles(line.Front, middle);
-            return new LineTriangles(line, sideTriangles);
-        }
-
-        private WallQuad TriangulateTwoSidedUpper(Line line, Side facingSide, SideFace sideFace)
-        {
-            if (facingSide.PartnerSide == null)
-                throw new NullReferenceException("Should never have a null back side for an upper two sided line");
-            Side backSide = facingSide.PartnerSide;
-
-            CIString texture = facingSide.UpperTexture;
-            SectorFlat floor = backSide.Sector.Ceiling;
-            SectorFlat ceiling = facingSide.Sector.Ceiling;
-            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
-
-            return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, sideFace, SideSection.Upper);
-        }
-
-        private WallQuad TriangulateTwoSidedMiddle(Line line, Side facingSide, SideFace sideFace)
-        {
-            SectorFlat floor = facingSide.Sector.Floor;
-            SectorFlat ceiling = facingSide.Sector.Ceiling;
-            CIString texture = facingSide.MiddleTexture;
-            
-            if (texture == Constants.NoTexture)
-                return WallQuad.Degenerate(facingSide, SideSection.Middle, floor, ceiling);
-            
-            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
-            return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, sideFace, SideSection.Middle);
-        }
-
-        private WallQuad TriangulateTwoSidedLower(Line line, Side facingSide, SideFace sideFace)
-        {
-            if (facingSide.PartnerSide == null)
-                throw new NullReferenceException("Should never have a null back side for a lower two sided line");
-            Side backSide = facingSide.PartnerSide;
-
-            CIString texture = facingSide.LowerTexture;
-            SectorFlat floor = facingSide.Sector.Floor;
-            SectorFlat ceiling = backSide.Sector.Floor;
-            Dimension dimension = m_textureDimensionFinder.Invoke(texture);
-
-            return TriangulateSideSection(line, facingSide, floor, ceiling, texture, dimension, sideFace, SideSection.Lower);
-        }
-
-        private SideTriangles TriangulateTwoSidedSide(Line line, Side side, SideFace sideFace)
-        {
-            WallQuad upper = TriangulateTwoSidedUpper(line, side, sideFace);
-            WallQuad middle = TriangulateTwoSidedMiddle(line, side, sideFace);
-            WallQuad lower = TriangulateTwoSidedLower(line, side, sideFace);
-            
-            return new SideTriangles(side, middle, upper, lower);
-        }
-
-        private LineTriangles TriangulateTwoSided(Line line)
-        {
-            if (line.Back == null)
-                throw new NullReferenceException("Should not have a null back side when triangulating a two-sided line");
-
-            SideTriangles frontTriangles = TriangulateTwoSidedSide(line, line.Front, SideFace.Front);
-            SideTriangles backTriangles = TriangulateTwoSidedSide(line, line.Back, SideFace.Back);
-            return new LineTriangles(line, frontTriangles, backTriangles);
-        }
-
-        private SubsectorFlatFan TriangulateFlat(Subsector subsector, SectorFlat flat, Sector sector)
-        {
-            Dimension textureDimension = m_textureDimensionFinder(flat.Texture);
-            
-            var edges = subsector.ClockwiseEdges;
-            Vertex root = CalculateFlatVertex(edges.First().Start, flat.Plane, textureDimension);
-            List<Vertex> fan = edges.Skip(1)
-                                    .Select(edge => edge.Start)
-                                    .Select(pos => CalculateFlatVertex(pos, flat.Plane, textureDimension))
-                                    .ToList();
-
-            // When looking down at the ground, we'd get clockwise vertices,
-            // which get culled by virtue of being CW instead of CCW. Doing a
-            // reverse is a trivial fix.
-            if (flat.Facing == SectorFlatFace.Floor)
-                fan.Reverse();
-            
-            return new SubsectorFlatFan(root, fan, flat.Texture.ToString(), sector);
-    }
-
-        private SubsectorTriangles TriangulateSubsector(Subsector subsector)
-        {
-            Sector sector = subsector.Sector;
-            SubsectorFlatFan floorFan = TriangulateFlat(subsector, sector.Floor, sector);
-            SubsectorFlatFan ceilingFan = TriangulateFlat(subsector, sector.Ceiling, sector);
-            
-            return new SubsectorTriangles(floorFan, ceilingFan);
+            return uv;
         }
     }
 }

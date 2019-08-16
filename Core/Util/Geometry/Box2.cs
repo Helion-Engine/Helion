@@ -7,7 +7,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry
 {
-       /// <summary>
+    /// <summary>
     /// A two dimensional box, which follows the cartesian coordinate system.
     /// </summary>
     public struct Box2I

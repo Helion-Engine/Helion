@@ -135,7 +135,45 @@ namespace Helion.Util.Atlas
         }
 
         /// <summary>
-        /// A recursive call that bubbles upwards to the parent
+        /// Deletes the node by making its space available. This will invoke
+        /// recursive traversal to clean up space.
+        /// </summary>
+        internal void Delete()
+        {
+            Precondition(!HasChildren, "Trying to delete a parent atlas node, we should only delete from leaves");
+            Precondition(m_occupied, "Trying to delete an atlas node that has not been used");
+            
+            // TODO
+            throw new NotImplementedException("AtlasNode.Delete() not implemented yet");
+        }
+        
+        /// <summary>
+        /// Make this current node be the tree from another atlas node.
+        /// </summary>
+        /// <remarks>
+        /// Right now we do not support adding an existing tree to anywhere but
+        /// the origin, so we can only add an existing tree to a new tree if it
+        /// was the first one to be added. We could however fix this by doing a
+        /// recursive traversal and adding the offset of this node to the child
+        /// location coordinates. This unfortunately would break invariants for
+        /// the class since things that depend on this (like texture managers)
+        /// depend on the location staying the exact same, and is why we do not
+        /// do this.
+        /// </remarks>
+        /// <param name="treeRoot">The root of another atlas tree.</param>
+        internal void EmplaceExistingTree(AtlasNode treeRoot)
+        {
+            Precondition(!HasChildren, "Trying to fuse a child atlas tree into to a non-empty node");
+            Precondition(Location.BottomLeft.IsOrigin, "All the locations of the child nodes will be wrong");
+            
+            m_left = treeRoot.m_left;
+            m_right = treeRoot.m_right;
+            m_occupied = treeRoot.m_occupied;
+            m_maxAvailableDimensions = treeRoot.m_maxAvailableDimensions;
+        }
+
+        /// <summary>
+        /// A recursive call that bubbles upwards to the parent.
         /// </summary>
         private void RecursivelyNotifySomeChildWasAdded()
         {
