@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
@@ -23,6 +24,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly Dictionary<GLLegacyTexture, RenderGeometryData> m_textureToGeometry = new Dictionary<GLLegacyTexture, RenderGeometryData>();
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
+        private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
         
         public GeometryManager(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
@@ -61,16 +63,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-        
-        private static bool HasMiddleOpeningWithTexture(Side facingSide, Sector facingSector, Sector otherSector)
-        {
-            if (facingSide.MiddleTexture == Constants.NoTexture)
-                return false;
-            double lowestCeil = Math.Min(facingSector.Ceiling.Z, otherSector.Ceiling.Z);
-            double highestFloor = Math.Max(facingSector.Floor.Z, otherSector.Floor.Z);
-            return lowestCeil > highestFloor;
-        }
-        
+
         private void RecursivelyRenderBSP(BspNodeCompact node, Vec2D position, WorldBase world)
         {
             // TODO: This is probably a performance issue, consider optimizing.
@@ -155,12 +148,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             //    |/  /|
             //    1  / |
             //      4--5
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.BottomRight, lightLevel));
+            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
         private void RenderTwoSided(Line line, Side facingSide, Side otherSide)
@@ -188,12 +182,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, texture.UVInverse);
             
             // See RenderOneSided() for an ASCII image of why we do this.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.BottomRight, lightLevel));
+            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
         private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, LineOpening opening)
@@ -215,12 +210,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 return;
             
             // See RenderOneSided() for an ASCII image of why we do this.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.BottomRight, lightLevel));
+            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
         private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide)
@@ -233,12 +229,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, texture.UVInverse);
             
             // See RenderOneSided() for an ASCII image of why we do this.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.TopRight, lightLevel),
-                new LegacyVertex(wall.BottomLeft, lightLevel),
-                new LegacyVertex(wall.BottomRight, lightLevel));
+            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
         private void RenderFlats(Subsector subsector)
@@ -257,17 +254,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             // Note that the subsector triangulator is supposed to realize when
             // we're passing it a floor or ceiling and order the vertices for
             // us such that it's always in counter-clockwise order.
-            List<WorldVertex> vertices = WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension);
+            WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);
 
-            WorldVertex root = vertices[0];
-            for (int i = 1; i < vertices.Count - 1; i++)
+            WorldVertex root = m_subsectorVertices[0];
+            for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
             {
-                WorldVertex second = vertices[i];
-                WorldVertex third = vertices[i + 1];
-                
-                renderData.Vbo.Add(new LegacyVertex(root, lightLevel), 
-                    new LegacyVertex(second, lightLevel),
-                    new LegacyVertex(third, lightLevel));
+                WorldVertex second = m_subsectorVertices[i];
+                WorldVertex third = m_subsectorVertices[i + 1];
+
+                // TODO: Do some kind of stackalloc here to avoid calling it 3x.
+                renderData.Vbo.Add(new LegacyVertex(root, lightLevel)); 
+                renderData.Vbo.Add(new LegacyVertex(second, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(third, lightLevel));
             }
         }
 

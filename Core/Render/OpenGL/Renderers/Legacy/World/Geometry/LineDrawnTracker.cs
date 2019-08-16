@@ -24,14 +24,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         public bool HasDrawn(Line line)
         {
-            Precondition(line.Id < m_maxLineId, $"Checking drawn line {line.Id} which is out of range (max ID should be {m_maxLineId})");
+            Precondition(line.Id < m_maxLineId, "Checking drawn line which is out of range");
             
             return m_lineWasDrawn.Get(line.Id);
         }
 
         public void MarkDrawn(Line line)
         {
-            Precondition(line.Id < m_maxLineId, $"Marking line {line.Id} which is out of range (max ID should be {m_maxLineId})");
+            Precondition(line.Id < m_maxLineId, "Marking line which is out of range");
             
             m_lineWasDrawn.Set(line.Id, true);
         }

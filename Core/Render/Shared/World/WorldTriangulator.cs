@@ -4,6 +4,7 @@ using System.Numerics;
 using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
 using Helion.World.Physics;
@@ -15,7 +16,7 @@ namespace Helion.Render.Shared.World
     {
         // TODO: There is probably a lot of repetition for the wall geometry
         //       generators. Let's refactor it later.
-        
+
         public static WallVertices HandleOneSided(Line line, Side side, Vector2 textureUVInverse)
         {
             Sector sector = side.Sector;
@@ -125,12 +126,23 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static List<WorldVertex> HandleSubsector(Subsector subsector, SectorFlat flat,
-            Dimension textureDimension)
+        /// <summary>
+        /// Triangulates a subsector by populating the provided dynamic array
+        /// of vertices.
+        /// </summary>
+        /// <param name="subsector">The subsector to triangulate.</param>
+        /// <param name="flat">The flat plane for the subsector.</param>
+        /// <param name="textureDimension">The texture dimension.</param>
+        /// <param name="verticesToPopulate">An output array where vertices are
+        /// written to upon triangulating.</param>
+        public static void HandleSubsector(Subsector subsector, SectorFlat flat, Dimension textureDimension, 
+            DynamicArray<WorldVertex> verticesToPopulate)
         {
+            Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
+            
             PlaneD plane = flat.Plane;
             List<SubsectorEdge> edges = subsector.ClockwiseEdges;
-            List<WorldVertex> vertices = new List<WorldVertex>();
+            verticesToPopulate.Clear();
 
             if (flat.Facing == SectorFlatFace.Ceiling)
             {
@@ -142,7 +154,7 @@ namespace Helion.Render.Shared.World
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, z);
                     Vector2 uv = CalculateFlatUV(vertex, textureDimension);
                     
-                    vertices.Add(new WorldVertex(position, uv));
+                    verticesToPopulate.Add(new WorldVertex(position, uv));
                 }
             }
             else
@@ -158,12 +170,9 @@ namespace Helion.Render.Shared.World
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, z);
                     Vector2 uv = CalculateFlatUV(vertex, textureDimension);
                     
-                    vertices.Add(new WorldVertex(position, uv));
+                    verticesToPopulate.Add(new WorldVertex(position, uv));
                 }
             }
-
-            Postcondition(vertices.Count >= 3, $"Processed a degenerate subsector flat {subsector.Id} (for sector {subsector.Sector.Id})");
-            return vertices;
         }
 
         private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length, 

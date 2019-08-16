@@ -36,17 +36,20 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             if (Vbo.Empty)
                 return;
 
-            Texture.BindAnd(() =>
-            {
-                Vao.BindAnd(() =>
-                {
-                    Vbo.BindAnd(() =>
-                    {
-                        Vbo.Upload();
-                        Vbo.DrawArrays();
-                    });
-                });
-            });
+            // We are doing binding manually since apparently these are all
+            // coming up in the memory profiler as a bunch of new 'actions'.
+            // We don't want GC pressure if there's a lot of textures, since
+            // this means we get O(N) actions for N used textures.
+            Texture.Bind();
+            Vao.Bind();
+            Vbo.Bind();
+            
+            Vbo.Upload();
+            Vbo.DrawArrays();
+            
+            Vbo.Unbind();
+            Vao.Unbind();
+            Texture.Unbind();
         }
 
         public void Dispose()
