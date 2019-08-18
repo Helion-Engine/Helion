@@ -41,6 +41,7 @@ namespace Helion.Maps.Special
 
         public bool IsSectorMoveSpecial() => m_moveSpecial;
         public bool IsSectorLightSpecial() => m_lightSpecial;
+        public bool CanActivateDuringSectorMovement() => LineSpecialType == ZLineSpecialType.DoorOpenClose;
 
         public bool IsTeleport()
         {
@@ -113,6 +114,7 @@ namespace Helion.Maps.Special
                 case ZLineSpecialType.StairsBuildUpDoomCrush:
                 case ZLineSpecialType.DoorLockedRaise:
                 case ZLineSpecialType.CeilingCrushAndRaiseDist:
+                case ZLineSpecialType.PlatRaiseAndStay:
                     return true;
             }
 
