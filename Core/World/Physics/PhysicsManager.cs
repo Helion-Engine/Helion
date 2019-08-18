@@ -87,19 +87,29 @@ namespace Helion.World.Physics
             double thingZ;
             SectorMoveStatus status = SectorMoveStatus.Success;
             flat.Z = destZ;
+            flat.Plane.MoveZ(destZ - startZ);
 
             if (sector.Ceiling.Z < sector.Floor.Z)
             {
                 flat.Z = startZ;
+                flat.Plane.MoveZ(startZ - destZ);
                 return SectorMoveStatus.CeilingHitFloor;
             }
 
             foreach (var entity in sector.Entities)
             {
+                // At slower speeds we need to set entities to the floor
+                // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
+                if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
+                    entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
+                {
+                    entity.SetZ(destZ);
+                }
+
                 entity.UnlinkFromWorld();
                 LinkToWorld(entity);
 
-                thingZ = entity.OnGround ? sector.Floor.Z : entity.Position.Z;
+                thingZ = entity.OnGround ? sector.Floor.Plane.ToZ(entity.Position.To2D()) : entity.Position.Z;
 
                 if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
                 {
@@ -111,6 +121,7 @@ namespace Helion.World.Physics
                     }
 
                     flat.Z = startZ;
+                    flat.Plane.MoveZ(startZ - destZ);
 
                     // Entity blocked movement, reset all entities in moving sector after restting sector Z
                     foreach (var relinkEntity in sector.Entities)
@@ -125,20 +136,7 @@ namespace Helion.World.Physics
 
             // For crushing ceilings we continue to move, but still want to return SectorMoveStatus.Crush
             if (status == SectorMoveStatus.Success || CrusherShouldContinue(status, crush))
-            {
-                flat.Plane.MoveZ(destZ - startZ);
-
-                // At slower speeds we need to set entities to the floor
-                // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax)
-                {
-                    foreach (var entity in sector.Entities)
-                    {
-                        if (entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
-                            entity.SetZ(destZ);
-                    }
-                }
-            }
+                flat.PrevZ = startZ;
 
             return status;
         }
