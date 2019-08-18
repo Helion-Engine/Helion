@@ -131,7 +131,7 @@ namespace Helion.Subsystems.OpenTK
         {
             m_inputAdapter.HandleMouseUp(e);
             
-            base.OnMouseDown(e);            
+            base.OnMouseUp(e);            
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
