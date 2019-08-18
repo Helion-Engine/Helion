@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Special;
 using Helion.Util.Container.Linkable;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
@@ -16,7 +17,8 @@ namespace Helion.Maps.Geometry
         public byte LightLevel;
         public int Tag;
 
-        public bool IsMoving;
+        public ISpecial? ActiveMoveSpecial;
+        public bool IsMoving => ActiveMoveSpecial != null;
 
         public SectorFlat Floor => Flats[0];
         public SectorFlat Ceiling => Flats[1];
