@@ -89,13 +89,6 @@ namespace Helion.World.Physics
             flat.Z = destZ;
             flat.Plane.MoveZ(destZ - startZ);
 
-            if (sector.Ceiling.Z < sector.Floor.Z)
-            {
-                flat.Z = startZ;
-                flat.Plane.MoveZ(startZ - destZ);
-                return SectorMoveStatus.CeilingHitFloor;
-            }
-
             foreach (var entity in sector.Entities)
             {
                 // At slower speeds we need to set entities to the floor

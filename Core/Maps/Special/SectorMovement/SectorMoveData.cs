@@ -17,7 +17,7 @@ namespace Helion.Maps.Special
         }
 
         public SectorMoveType SectorMoveType { get; private set; }
-        public MoveDirection StartDirection { get; private set; }
+        public MoveDirection StartDirection { get; set; }
         public MoveRepetition MoveRepetition { get; private set; }
         public double Speed { get; private set; }
         public int Delay { get; private set; }

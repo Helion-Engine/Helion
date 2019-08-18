@@ -4,7 +4,6 @@
     {
         Blocked,
         Success,
-        CeilingHitFloor,
         Crush,
     }
 }
