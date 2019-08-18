@@ -16,7 +16,7 @@ namespace Helion.Maps.Special.Specials
         private int m_destroyCount;
 
         public StairSpecial(PhysicsManager physicsManager, Sector sector, double speed, int height, int delay, bool crush)
-            : base(physicsManager, sector, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
+            : base(physicsManager, sector, 0, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
         {
             m_stairHeight = height;
             m_stairDelay = 35; 
@@ -31,7 +31,7 @@ namespace Helion.Maps.Special.Specials
             }
             while (nextSector != null);
 
-            m_sectors.ForEach(x => x.IsMoving = true);
+            m_sectors.ForEach(x => x.ActiveMoveSpecial = this);
         }
 
         public override SpecialTickStatus Tick()

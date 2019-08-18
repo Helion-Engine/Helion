@@ -1,4 +1,7 @@
-﻿namespace Helion.Maps.Special
+﻿using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
+
+namespace Helion.Maps.Special
 {
     public enum SpecialTickStatus
     {
@@ -8,6 +11,8 @@
 
     public interface ISpecial
     {
+        Sector? Sector { get; }
         SpecialTickStatus Tick();
+        void Use();
     }
 }
