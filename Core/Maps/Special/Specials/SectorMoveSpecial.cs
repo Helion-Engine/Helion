@@ -7,28 +7,28 @@ namespace Helion.Maps.Special.Specials
 {
     public class SectorMoveSpecial : ISpecial
     {
-        public Sector Sector;
+        public Sector? Sector { get; protected set; }
 
         protected SectorMoveData m_data;
         protected double m_destZ;
         protected SectorFlat m_flat;
+        protected int m_delayTics;
 
         private PhysicsManager m_physicsManager;
         private MoveDirection m_direction;
-        private int m_delayTics;
         private double m_speed;
         private double m_startZ;
         private double m_minZ;
         private double m_maxZ;
         private bool m_crushing;
 
-        public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double dest, SectorMoveData specialData)
+        public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double start, double dest, SectorMoveData specialData)
         {
             Sector = sector;
             m_physicsManager = physicsManager;
             m_data = specialData;
             m_flat = m_data.SectorMoveType == SectorMoveType.Floor ? sector.Floor : sector.Ceiling;
-            m_startZ = m_flat.Z;
+            m_startZ = start;
             m_destZ = dest;
 
             m_direction = m_data.StartDirection;
@@ -37,7 +37,20 @@ namespace Helion.Maps.Special.Specials
             m_minZ = Math.Min(m_startZ, m_destZ);
             m_maxZ = Math.Max(m_startZ, m_destZ);
 
-            Sector.IsMoving = true;
+            // Emulate some vanilla tricks - these check for sector movement params that will never hit the destination
+            // Swap the direction and max out speed so we instantly hit our destination
+            if (m_direction == MoveDirection.Down && m_flat.Z < m_destZ)
+            {
+                m_speed = double.MaxValue;
+                m_direction = MoveDirection.Up;
+            }
+            else if (m_direction == MoveDirection.Up && m_flat.Z > m_destZ)
+            {
+                m_speed = double.MinValue;
+                m_direction = MoveDirection.Down;
+            }
+
+            Sector.ActiveMoveSpecial = this;
         }
 
         public virtual SpecialTickStatus Tick()
@@ -59,7 +72,7 @@ namespace Helion.Maps.Special.Specials
                 if (m_data.MoveRepetition != MoveRepetition.None)
                     FlipMovementDirection();
             }
-            else if (m_direction == m_data.StartDirection && status == SectorMoveStatus.Crush && !m_crushing)
+            else if (status == SectorMoveStatus.Crush && IsInitCrush)
             {
                 m_crushing = true;
                 if (m_data.Crush.CrushMode == ZCrushMode.DoomWithSlowDown)
@@ -71,31 +84,35 @@ namespace Helion.Maps.Special.Specials
 
             if (m_flat.Z == m_destZ)
             {
-                if (m_data.MoveRepetition == MoveRepetition.None || m_data.MoveRepetition == MoveRepetition.ReturnOnBlock)
+                if (IsNonRepeat)
                 {
                     // TODO fix issue with CIString for m_data.FloorChangeTexture != null
                     if (!ReferenceEquals(m_data.FloorChangeTexture, null))
                         Sector.Floor.Texture = m_data.FloorChangeTexture;
 
-                    Sector.IsMoving = false;
+                    Sector.ActiveMoveSpecial = null;
                     return SpecialTickStatus.Destroy;
                 }
 
                 FlipMovementDirection();
             }
 
-            if (m_data.MoveRepetition == MoveRepetition.DelayReturn && m_flat.Z == m_startZ)
+            if (IsDelayReturn && m_flat.Z == m_startZ)
             {
-                Sector.IsMoving = false;
+                Sector.ActiveMoveSpecial = null;
                 return SpecialTickStatus.Destroy;
             }
 
             return SpecialTickStatus.Continue;
         }
 
-        private void FlipMovementDirection()
+        public virtual void Use()
         {
-            if (m_data.MoveRepetition == MoveRepetition.Perpetual || (m_data.MoveRepetition == MoveRepetition.DelayReturn && m_direction == m_data.StartDirection))
+        }
+
+        protected void FlipMovementDirection()
+        {
+            if (m_data.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == m_data.StartDirection))
                 m_delayTics = m_data.Delay;
                 
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
@@ -111,5 +128,9 @@ namespace Helion.Maps.Special.Specials
                 m_speed = -m_speed;
             }
         }
+
+        private bool IsNonRepeat => m_data.MoveRepetition == MoveRepetition.None || m_data.MoveRepetition == MoveRepetition.ReturnOnBlock;
+        private bool IsDelayReturn => m_data.MoveRepetition == MoveRepetition.DelayReturn;
+        private bool IsInitCrush => m_data.Crush != null && m_direction == m_data.StartDirection && !m_crushing;
     }
 }
