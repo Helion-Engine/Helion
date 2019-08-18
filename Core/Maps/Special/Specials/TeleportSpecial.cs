@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using Helion.Maps.Geometry;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
 using Helion.World.Physics;
@@ -8,6 +10,8 @@ namespace Helion.Maps.Special.Specials
 {
     public class TeleportSpecial : ISpecial
     {
+        public Sector? Sector { get; protected set; }
+
         private const int TeleportFreezeTicks = 18;
 
         private EntityActivateSpecialEventArgs m_args;
@@ -40,6 +44,10 @@ namespace Helion.Maps.Special.Specials
             }
 
             return SpecialTickStatus.Destroy;
+        }
+
+        public void Use()
+        {
         }
 
         private bool GetTeleportPosition(out Vec2D position)
