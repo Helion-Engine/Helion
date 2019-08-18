@@ -147,24 +147,28 @@ namespace Helion.Maps.Special
                 case VLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
                 case VLineSpecialType.S1_RaiseFloorToNextHigherFloor:
                 case VLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
-                case VLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
                 case VLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
                 case VLineSpecialType.S1_RaiseFloorToMatchNextHigher:
-                case VLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
-                case VLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
-                case VLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VLineSpecialType.SR_RaiseFloorToNextHigher:
                     line.Args[0] = tag;
                     line.Args[1] = GetSectorMoveSpeed(type);
                     return ZLineSpecialType.FloorRaiseToNearset;
 
+                case VLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
+                case VLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
+                    line.Args[0] = tag;
+                    line.Args[1] = GetSectorMoveSpeed(type);
+                    line.Args[2] = 0; // Lockout ???
+                    return ZLineSpecialType.PlatRaiseAndStay;
+
                 case VLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
                 case VLineSpecialType.WR_RaiseByShortestLowerTexture:
                     line.Args[0] = tag;
                     line.Args[1] = GetSectorMoveSpeed(type);
-                    break;             
-                
-                // TODO handle crusher floor...
+                    break;
+
                 case VLineSpecialType.S1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VLineSpecialType.W1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
@@ -219,7 +223,7 @@ namespace Helion.Maps.Special
                     line.Args[0] = tag;
                     line.Args[1] = GetSectorMoveSpeed(type);
                     line.Args[2] = 32;
-                    return ZLineSpecialType.FloorRaiseByValue;
+                    return ZLineSpecialType.FloorRaiseByValueTxTy;
 
                 case VLineSpecialType.S1_RaiseFloor512:
                     line.Args[0] = tag;
