@@ -19,13 +19,18 @@ namespace Helion.Maps.Special
         private const double SpeedFactor = 0.125;
 
         private LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
+        private List<ISpecial> m_destroyedMoveSpecials = new List<ISpecial>();
         private PhysicsManager m_physicsManager;
         private IMap m_map;
+
+        private SwitchManager m_switchManager = new SwitchManager();
 
         public SpecialManager(PhysicsManager physicsManager, IMap map)
         {
             m_physicsManager = physicsManager;
             m_map = map;
+
+            StartInitSpecials();
         }
 
         public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
@@ -35,21 +40,37 @@ namespace Helion.Maps.Special
 
             int startSpecialCount = m_specials.Count;
             var special = args.ActivateLineSpecial.Special;
+            bool sectorSpecialSuccess = false;
 
             if (special.IsTeleport())
                 AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
             else if (special.IsSectorMoveSpecial())
-                HandleSectorMoveSpecial(args, special);
+                sectorSpecialSuccess = HandleSectorMoveSpecial(args, special);
             else
                 HandleDefault(args, special);
 
             if (m_specials.Count > startSpecialCount)
             {
-                args.ActivateLineSpecial.Activated = true;
+                if (sectorSpecialSuccess && args.ActivationContext == ActivationContext.UseLine && !args.ActivateLineSpecial.Activated)
+                    AddSpecial(new SwitchChangeSpecial(m_switchManager, args.ActivateLineSpecial));
+
                 return true;
             }
 
             return false;
+        }
+
+        private void StartInitSpecials()
+        {
+            var lines = m_map.Lines.Where(x => x.Special != null && x.Flags.ActivationType == ActivationType.LevelStart);
+
+            foreach (var line in lines)
+            {
+                if (line.Special.LineSpecialType == ZLineSpecialType.ScrollTextureLeft)
+                {
+                    AddSpecial(new LineScrollSpecial(line, line.Args[0] / 32, (ZLineScroll)line.Args[1]));
+                }
+            }
         }
 
         private void HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special)
@@ -62,8 +83,10 @@ namespace Helion.Maps.Special
             }
         }
 
-        private void HandleSectorMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
+        private bool HandleSectorMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
         {
+            bool success = false;
+
             List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
             foreach (var sector in sectors)
             {
@@ -71,9 +94,19 @@ namespace Helion.Maps.Special
                 {
                     ISpecial? sectorSpecial = CreateSectorSpecial(args, special, sector);
                     if (sectorSpecial != null)
+                    {
+                        success = true;
                         AddSpecial(sectorSpecial);
+                    }
+                }
+                else if (args.ActivationContext == ActivationContext.UseLine && args.ActivateLineSpecial.Special.CanActivateDuringSectorMovement() 
+                    && args.ActivateLineSpecial.SectorTag == 0)
+                {
+                    sector.ActiveMoveSpecial.Use();
                 }
             }
+
+            return success;
         }
 
         private ISpecial? CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
@@ -179,39 +212,59 @@ namespace Helion.Maps.Special
                 case ZLineSpecialType.PlatPerpetualRaiseLip:
                     return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args[3]);
 
-                case ZLineSpecialType.FloorRaiseByValueTxTy:
-                    return CreateFloorRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
-
                 case ZLineSpecialType.StairsBuildUpDoom:
                     return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], false);
 
                 case ZLineSpecialType.StairsBuildUpDoomCrush:
                     return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], true);
 
-                case ZLineSpecialType.FloorDonut:
-                    HandleFloorDonut(line, sector);
-                    return null;
-
                 case ZLineSpecialType.CeilingCrushAndRaiseDist:
                     return CreateCeilingCrusherSpecial(sector, line.Args[1], line.Args[2] * SpeedFactor, line.Args[3], (ZCrushMode)line.Args[4]);
 
                 case ZLineSpecialType.FloorRaiseAndCrushDoom:
                     return CreateFloorCrusherSpecial(sector, line.Args[1] * SpeedFactor, line.Args[2], (ZCrushMode)line.Args[3]);
+
+                case ZLineSpecialType.FloorRaiseByValueTxTy:
+                    return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+
+                case ZLineSpecialType.PlatRaiseAndStay:
+                    return CreateRaisePlatTxSpecial(sector, line, line.Args[1] * SpeedFactor, line.Args[2]);
+
+                case ZLineSpecialType.FloorDonut:
+                    HandleFloorDonut(line, sector);
+                    return null;
             }
 
             return null;
         }
 
+        public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
+        {
+            sector.Floor.Texture = line.Front.Sector.Floor.Texture;
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
+                MoveDirection.Up, MoveRepetition.None, speed, 0));
+        }
+
+        private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, byte lockout)
+        {
+            // TODO clear sector special when implemented
+            double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
+            sector.Floor.Texture = line.Front.Sector.Floor.Texture;
+            //sector.Special = null;
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
+                MoveDirection.Up, MoveRepetition.None, speed, 0, null));
+        }
+
         private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZCrushMode crushMode)
         {
             double destZ = sector.Floor.Z + dist;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
         }
 
         private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZCrushMode crushMode)
         {
             double destZ = sector.Ceiling.Z - 8;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
         }
 
         private void HandleFloorDonut(Line line, Sector sector)
@@ -231,13 +284,29 @@ namespace Helion.Maps.Special
 
         public void Tick()
         {
+            if (m_destroyedMoveSpecials.Count > 0)
+            {
+                foreach (var special in m_destroyedMoveSpecials)
+                {
+                    special.Sector.Floor.PrevZ = special.Sector.Floor.Z;
+                    special.Sector.Ceiling.PrevZ = special.Sector.Ceiling.Z;
+                }
+
+                m_destroyedMoveSpecials.Clear();
+            }
+
             var node = m_specials.First;
 
             while (node != null)
             {
                 var next = node.Next;
                 if (node.Value.Tick() == SpecialTickStatus.Destroy)
+                {
                     m_specials.Remove(node);
+                    if (node.Value.Sector != null)
+                        m_destroyedMoveSpecials.Add(node.Value);
+                }
+
                 node = next;
             }
         }
@@ -249,22 +318,21 @@ namespace Helion.Maps.Special
 
         public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay)
         {
-            double destZ = GetDestZ(sector, SectorDest.NextLowestFloor);
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Floor,
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay));
         }
 
         public ISpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
         {
-            double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - DoorDestOffset;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
-                MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay));
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - DoorDestOffset;
+            return new DoorOpenCloseSpecial(m_physicsManager, sector, destZ, speed, delay);
         }
 
         public ISpecial CreateDoorCloseOpenSpecial(Sector sector, double speed, int delay)
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay));
         }
 
@@ -272,21 +340,21 @@ namespace Helion.Maps.Special
         {
             // TODO handle keys
             double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - DoorDestOffset;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay));
         }
 
         public ISpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
         {
-            double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - DoorDestOffset;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - DoorDestOffset;
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateDoorCloseSpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
@@ -295,59 +363,59 @@ namespace Helion.Maps.Special
             double destZ = GetDestZ(sector, sectorDest);
             if (adjust != 0)
                 destZ = destZ + adjust - 128;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateFloorLowerSpecial(Sector sector, double amount, double speed)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z - amount, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, CIString? floorChangeTexture = null)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0, null, floorChangeTexture));
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, int amount, double speed)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z - amount, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, sector.Ceiling.Z - amount, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateCeilingRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateCeilingRaiseSpecial(Sector sector, int amount, double speed)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z + amount, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, sector.Ceiling.Z + amount, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
         {
             double destZ = GetDestZ(sector, SectorDest.NextLowestFloor) + lip;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.Perpetual, speed, delay));
         }
 
@@ -356,7 +424,7 @@ namespace Helion.Maps.Special
             if (negative > 0)
                 destZ = -destZ;
             MoveDirection dir = destZ > flat.Z ? MoveDirection.Up : MoveDirection.Down;
-            return new SectorMoveSpecial(m_physicsManager, sector, destZ, new SectorMoveData(moveType,
+            return new SectorMoveSpecial(m_physicsManager, sector, flat.Z, destZ, new SectorMoveData(moveType,
                 dir, MoveRepetition.None, speed, 0));
         }
 
