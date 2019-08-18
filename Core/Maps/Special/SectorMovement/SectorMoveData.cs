@@ -21,7 +21,7 @@ namespace Helion.Maps.Special
         public MoveRepetition MoveRepetition { get; private set; }
         public double Speed { get; private set; }
         public int Delay { get; private set; }
-        public CrushData Crush { get; private set; }
+        public CrushData? Crush { get; private set; }
         public CIString? FloorChangeTexture { get; private set; }
     }
 }
