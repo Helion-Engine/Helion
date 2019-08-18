@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Resources.Definitions.Decorate;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Players;
@@ -234,8 +235,6 @@ namespace Helion.World.Entities
 
         public double GetViewHeight()
         {
-            if (LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < 42.0)
-                return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z;
             return 42.0;
         }
 

@@ -53,11 +53,13 @@ namespace Helion.World.Entities.Players
             // interpolate in the wrong direction.
             float yaw = (float)Entity.Angle;
             float pitch = (float)Pitch;
-            
+
             // TODO: This should be clamped to the floor/ceiling and use the
             //       property for the player.
+           
             position.Z += Entity.GetViewHeight();
-                
+            position.Z = MathHelper.Clamp(position.Z, Entity.HighestFloorSector.Floor.Z, Entity.LowestCeilingSector.Ceiling.Z - 8);
+
             return new Camera(position.ToFloat(), yaw, pitch);
         }
         
