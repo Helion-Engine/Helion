@@ -25,6 +25,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly Dictionary<GLLegacyTexture, RenderGeometryData> m_textureToGeometry = new Dictionary<GLLegacyTexture, RenderGeometryData>();
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
+        private double m_tickFraction;
         
         public GeometryManager(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
@@ -51,7 +52,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_lineDrawnTracker.ClearDrawnLines();
             
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Clear());
-            
+
+            m_tickFraction = renderInfo.TickFraction;
             Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
             RecursivelyRenderBSP(world.BspTree.Root, position, world);
             
@@ -138,7 +140,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             Sector sector = side.Sector;
             byte lightLevel = sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(side.MiddleTexture);
-            WallVertices wall = WorldTriangulator.HandleOneSided(line, side, texture.UVInverse);
+            WallVertices wall = WorldTriangulator.HandleOneSided(line, side, texture.UVInverse, m_tickFraction);
             
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
@@ -180,7 +182,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
-                texture.UVInverse, isFrontSide);
+                texture.UVInverse, isFrontSide, m_tickFraction);
             
             // See RenderOneSided() for an ASCII image of why we do this.
             // TODO: Do some kind of stackalloc here to avoid calling it 6x.
@@ -203,7 +205,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
-                texture.Dimension, texture.UVInverse, opening, isFrontSide, out bool nothingVisibleToDraw);
+                texture.Dimension, texture.UVInverse, opening, isFrontSide, m_tickFraction,
+                out bool nothingVisibleToDraw);
             
             // If the texture can't be drawn because the level has offsets that
             // are messed up (ex: offset causes it to be completely missing) we
@@ -229,7 +232,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
-                texture.UVInverse, isFrontSide);
+                texture.UVInverse, isFrontSide, m_tickFraction);
             
             // See RenderOneSided() for an ASCII image of why we do this.
             // TODO: Do some kind of stackalloc here to avoid calling it 6x.
@@ -257,7 +260,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             // Note that the subsector triangulator is supposed to realize when
             // we're passing it a floor or ceiling and order the vertices for
             // us such that it's always in counter-clockwise order.
-            WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);
+            WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
 
             WorldVertex root = m_subsectorVertices[0];
             for (int i = 1; i < m_subsectorVertices.Length - 1; i++)

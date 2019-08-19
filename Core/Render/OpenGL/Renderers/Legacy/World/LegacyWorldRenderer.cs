@@ -49,13 +49,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
         {
-            m_shaderProgram.BindAnd(() =>
-            {
-                SetUniforms(renderInfo);
-                gl.ActiveTexture(TextureUnitType.Zero);
+            m_shaderProgram.Bind();
+            
+            SetUniforms(renderInfo);
+            gl.ActiveTexture(TextureUnitType.Zero);
 
-                m_geometryManager.Render(world, renderInfo);
-            });
+            m_geometryManager.Render(world, renderInfo);
+
+            m_shaderProgram.Unbind();
         }
         
         private void SetUniforms(RenderInfo renderInfo)
