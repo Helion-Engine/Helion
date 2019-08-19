@@ -48,9 +48,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 uniform sampler2D boundTexture;
 
+                float calculateLightLevel() {
+                    float lightLevel = lightLevelFrag;
+
+                    if (lightLevel <= 0.75) {
+	                    if (lightLevel > 0.4) {
+		                    lightLevel = -0.6375 + (1.85 * lightLevel);
+		                    if (lightLevel < 0.08) {
+			                    lightLevel = 0.08 + (lightLevel * 0.2);
+		                    }
+	                    } else {
+		                    lightLevel /= 5.0;
+	                    }
+                    }
+  
+                    return clamp(lightLevel, 0.0, 1.0);
+                }
+
                 void main() {
                     fragColor = texture(boundTexture, uvFrag.st);
-                    fragColor.xyz *= lightLevelFrag;
+                    fragColor.xyz *= calculateLightLevel();
 
                     if (fragColor.w <= 0.0)
                         discard;
