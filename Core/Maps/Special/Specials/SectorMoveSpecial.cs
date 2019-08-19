@@ -43,11 +43,13 @@ namespace Helion.Maps.Special.Specials
             {
                 m_speed = double.MaxValue;
                 m_direction = MoveDirection.Up;
+                m_data.StartDirection = MoveDirection.Up;
             }
             else if (m_direction == MoveDirection.Up && m_flat.Z > m_destZ)
             {
                 m_speed = double.MinValue;
                 m_direction = MoveDirection.Down;
+                m_data.StartDirection = MoveDirection.Down;
             }
 
             Sector.ActiveMoveSpecial = this;
@@ -63,9 +65,6 @@ namespace Helion.Maps.Special.Specials
 
             double destZ = MathHelper.Clamp(m_flat.Z + m_speed, m_minZ, m_maxZ);
             SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ, m_data.Crush);
-
-            if (status == SectorMoveStatus.CeilingHitFloor)
-                m_destZ = m_flat.Z;
 
             if (status == SectorMoveStatus.Blocked)
             {

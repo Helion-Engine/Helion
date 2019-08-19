@@ -11,7 +11,7 @@ namespace Helion.Maps.Special
         private const byte LiftFastSpeed = 64;
 
         private const byte DoorSlowSpeed = 16;
-        private const int DoorFastSpeed = 32;
+        private const int DoorFastSpeed = 64;
 
         private const byte StairSlowSpeed = 2;
         private const byte StairFastSpeed = 4;
