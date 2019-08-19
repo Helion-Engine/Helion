@@ -11,6 +11,12 @@ namespace WinMouse.Native
         public const ushort HID_USAGE_GENERIC_MOUSE = 2;
         public const uint RIDEV_INPUTSINK = 0x00000100;
         public const uint RID_INPUT = 0x10000003;
+        public const uint RI_MOUSE_LEFT_BUTTON_DOWN = 0x0001;
+        public const uint RI_MOUSE_LEFT_BUTTON_UP = 0x0002;
+        public const uint RI_MOUSE_MIDDLE_BUTTON_DOWN = 0x0010;
+        public const uint RI_MOUSE_MIDDLE_BUTTON_UP = 0x0020;
+        public const uint RI_MOUSE_RIGHT_BUTTON_DOWN = 0x0004;
+        public const uint RI_MOUSE_RIGHT_BUTTON_UP = 0x0008;
     };
 
     [StructLayout(LayoutKind.Sequential)]
@@ -74,6 +80,7 @@ namespace WinMouse.Native
                 RAWINPUT rawInput = (RAWINPUT)Marshal.PtrToStructure(rawData, typeof(RAWINPUT));
                 x = rawInput.mouse.lLastX;
                 y = rawInput.mouse.lLastY;
+                // TODO: Mask `rawInput.mouse.ulButtons` with Constants for button presses.
             }
             else
             {
