@@ -8,10 +8,10 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.World;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
-using Helion.World.Physics;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
@@ -166,12 +166,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
             if (facingSector.Floor.Z < otherSector.Floor.Z)
                 RenderTwoSidedLower(line, facingSide, otherSide, isFrontSide);
+            if (facingSide.MiddleTexture != Constants.NoTexture)
+                RenderTwoSidedMiddle(line, facingSide, otherSide, isFrontSide);
             if (facingSector.Ceiling.Z > otherSector.Ceiling.Z)
                 RenderTwoSidedUpper(line, facingSide, otherSide, isFrontSide);
-            
-            LineOpening lineOpening = new LineOpening(facingSector, otherSector);
-            if (lineOpening.OpeningHeight > 0 && facingSide.MiddleTexture != Constants.NoTexture)
-                RenderTwoSidedMiddle(line, facingSide, otherSide, lineOpening, isFrontSide);
         }
 
         private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
@@ -194,24 +192,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
-        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, LineOpening opening, 
-            bool isFrontSide)
+        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
-            Precondition(opening.OpeningHeight > 0, "Should not be rendering a two sided middle when there's no opening");
             Precondition(facingSide.MiddleTexture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
-            
+
+            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             byte lightLevel = facingSide.Sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.MiddleTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
-                texture.Dimension, texture.UVInverse, opening, isFrontSide, m_tickFraction,
-                out bool nothingVisibleToDraw);
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible);
             
             // If the texture can't be drawn because the level has offsets that
             // are messed up (ex: offset causes it to be completely missing) we
             // can exit early since nothing can be drawn.
-            if (nothingVisibleToDraw)
+            if (nothingVisible)
                 return;
             
             // See RenderOneSided() for an ASCII image of why we do this.
@@ -222,6 +218,28 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
             renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+        }
+
+        private (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector)
+        {
+            SectorFlat facingFloor = facingSector.Floor;
+            SectorFlat facingCeiling = facingSector.Ceiling;
+            SectorFlat otherFloor = otherSector.Floor;
+            SectorFlat otherCeiling = otherSector.Ceiling;
+
+            double facingFloorZ = facingFloor.PrevZ.Interpolate(facingFloor.Z, m_tickFraction);
+            double facingCeilingZ = facingCeiling.PrevZ.Interpolate(facingCeiling.Z, m_tickFraction);
+            double otherFloorZ = otherFloor.PrevZ.Interpolate(otherFloor.Z, m_tickFraction);
+            double otherCeilingZ = otherCeiling.PrevZ.Interpolate(otherCeiling.Z, m_tickFraction);
+
+            double bottomZ = facingFloorZ;
+            double topZ = facingCeilingZ;
+            if (otherFloorZ > facingFloorZ)
+                bottomZ = otherFloorZ;
+            if (otherCeilingZ < facingCeilingZ)
+                topZ = otherCeilingZ;
+
+            return (bottomZ, topZ);
         }
 
         private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)

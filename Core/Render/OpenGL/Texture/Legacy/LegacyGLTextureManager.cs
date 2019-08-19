@@ -50,6 +50,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             gl.TexImage2D(TextureTargetType.Texture2D, 0, PixelInternalFormatType.Rgba8, image.Dimension, 
                 PixelFormatType.Bgra, PixelDataType.UnsignedInt8888Rev, bitmapData.Scan0);
             SetTextureParameters(TextureTargetType.Texture2D, resourceNamespace);
+            gl.GenerateMipmap(MipmapTargetType.Texture2D);
 
             image.Bitmap.UnlockBits(bitmapData);
             

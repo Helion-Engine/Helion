@@ -8,16 +8,12 @@ using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
-using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World
 {
     public static class WorldTriangulator
     {
-        // TODO: There is probably a lot of repetition for the wall geometry
-        //       generators. Let's refactor it later.
-
         public static WallVertices HandleOneSided(Line line, Side side, Vector2 textureUVInverse, 
             double tickFraction)
         {
@@ -70,47 +66,33 @@ namespace Helion.Render.Shared.World
         }
         
         public static WallVertices HandleTwoSidedMiddle(Line line, Side facingSide, Side otherSide, 
-            Dimension textureDimension, Vector2 textureUVInverse, LineOpening opening, bool isFrontSide, 
-            double tickFraction, out bool nothingVisibleToDraw)
+            Dimension textureDimension, Vector2 textureUVInverse, double bottomOpeningZ, double topOpeningZ,
+            bool isFrontSide, out bool nothingVisible)
         {
-            Precondition(opening.OpeningHeight > 0, "Should not be handling a two sided middle when there's no opening");
-
-            Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
-            Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
-            
-            // TODO: Need to allow for interpolation here, maybe we need to
-            //       calculate this ourselves instead of piggy-backing on a
-            //       line opening.
-            double topZ = opening.CeilingZ;
-            double bottomZ = opening.FloorZ;
-
-            if (line.Flags.Unpegged.Lower)
-                topZ = bottomZ + textureDimension.Height;
-            else
-                bottomZ = topZ - textureDimension.Height;
-
-            topZ += facingSide.Offset.Y;
-            bottomZ += facingSide.Offset.Y;
-            
-            // We want to clip it to the line opening.
-            topZ = Math.Min(topZ, opening.CeilingZ);
-            bottomZ = Math.Max(bottomZ, opening.FloorZ);
-
-            if (topZ <= bottomZ)
+            if (topOpeningZ <= bottomOpeningZ)
             {
-                nothingVisibleToDraw = true;
+                nothingVisible = true;
                 return default;
             }
             
-            double length = line.Segment.Length();
-            WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, textureUVInverse);
-            
-            WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
-            WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
-            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
-            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+            MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, textureDimension);
+            if (drawSpan.NotVisible())
+            {
+                nothingVisible = true;
+                return default;
+            }
 
-            nothingVisibleToDraw = false;
+            Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
+            Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
+            double length = line.Segment.Length();
+            WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan, textureUVInverse);
+            
+            WorldVertex topLeft = new WorldVertex(left.X, left.Y, drawSpan.VisibleTopZ, uv.TopLeft.X, uv.TopLeft.Y);
+            WorldVertex topRight = new WorldVertex(right.X, right.Y, drawSpan.VisibleTopZ, uv.BottomRight.X, uv.TopLeft.Y);
+            WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, drawSpan.VisibleBottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+            WorldVertex bottomRight = new WorldVertex(right.X, right.Y, drawSpan.VisibleBottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+
+            nothingVisible = false;
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
@@ -198,6 +180,26 @@ namespace Helion.Render.Shared.World
                 }
             }
         }
+        
+        private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, double bottomOpeningZ, 
+            double topOpeningZ, Dimension textureDimension)
+        {
+            double topZ = topOpeningZ;
+            double bottomZ = topZ - textureDimension.Height;
+            if (line.Flags.Unpegged.Lower)
+            {
+                bottomZ = bottomOpeningZ;
+                topZ = bottomZ + textureDimension.Height;
+            }
+
+            topZ += facingSide.Offset.Y;
+            bottomZ += facingSide.Offset.Y;
+            
+            double visibleTopZ = Math.Min(topZ, topOpeningZ);
+            double visibleBottomZ = Math.Max(bottomZ, bottomOpeningZ);
+            
+            return new MiddleDrawSpan(bottomZ, topZ, visibleBottomZ, visibleTopZ);
+        }
 
         private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length, 
             Vector2 textureUVInverse, double spanZ)
@@ -257,16 +259,23 @@ namespace Helion.Render.Shared.World
             return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
         }
         
-        private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, Vector2 textureUVInverse)
+        private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, MiddleDrawSpan drawSpan,
+            Vector2 textureUVInverse)
         {
             Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
             float wallSpanU = (float)length * textureUVInverse.U();
-
-            // TODO: This is not right, we will fix it later.
+            
             float leftU = offsetUV.U();
             float rightU = offsetUV.U() + wallSpanU;
-            float topV = offsetUV.V();
-            float bottomV = 1.0f + offsetUV.V();
+            
+            // Since we only draw one of the texture, all we need to do is find
+            // out where the texture is clamped by and find that value between
+            // [0.0, 1.0]. For example if a texture height of 10 only has two
+            // pixels available between 6 -> 7 for the line opening, then
+            // the top V would be 0.6 and the bottom V would be 0.7.
+            double textureHeight = drawSpan.TopZ - drawSpan.BottomZ;
+            float topV = 1.0f - (float)((drawSpan.VisibleTopZ - drawSpan.BottomZ) / textureHeight);
+            float bottomV = 1.0f - (float)((drawSpan.VisibleBottomZ - drawSpan.BottomZ) / textureHeight);
             
             return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
         }
