@@ -117,20 +117,20 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 if (side == null)
                     throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
-                RenderSide(edge.Line, side);
+                RenderSide(edge.Line, side, onFrontSide);
                 
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
             }
         }
 
-        private void RenderSide(Line line, Side side)
+        private void RenderSide(Line line, Side side, bool isFrontSide)
         {
             // TODO: All of the following functions and their children can be
             //       heavily refactored!
             if (side.PartnerSide == null)
                 RenderOneSided(line, side);
             else
-                RenderTwoSided(line, side, side.PartnerSide);
+                RenderTwoSided(line, side, side.PartnerSide, isFrontSide);
         }
 
         private void RenderOneSided(Line line, Side side)
@@ -157,29 +157,30 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
-        private void RenderTwoSided(Line line, Side facingSide, Side otherSide)
+        private void RenderTwoSided(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
             Sector facingSector = facingSide.Sector;
             Sector otherSector = otherSide.Sector;
 
             if (facingSector.Floor.Z < otherSector.Floor.Z)
-                RenderTwoSidedLower(line, facingSide, otherSide);
+                RenderTwoSidedLower(line, facingSide, otherSide, isFrontSide);
             if (facingSector.Ceiling.Z > otherSector.Ceiling.Z)
-                RenderTwoSidedUpper(line, facingSide, otherSide);
+                RenderTwoSidedUpper(line, facingSide, otherSide, isFrontSide);
             
             LineOpening lineOpening = new LineOpening(facingSector, otherSector);
             if (lineOpening.OpeningHeight > 0 && facingSide.MiddleTexture != Constants.NoTexture)
-                RenderTwoSidedMiddle(line, facingSide, otherSide, lineOpening);
+                RenderTwoSidedMiddle(line, facingSide, otherSide, lineOpening, isFrontSide);
         }
 
-        private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide)
+        private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
             byte lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.LowerTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
-            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, texture.UVInverse);
+            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
+                texture.UVInverse, isFrontSide);
             
             // See RenderOneSided() for an ASCII image of why we do this.
             // TODO: Do some kind of stackalloc here to avoid calling it 6x.
@@ -191,7 +192,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
-        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, LineOpening opening)
+        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, LineOpening opening, 
+            bool isFrontSide)
         {
             Precondition(opening.OpeningHeight > 0, "Should not be rendering a two sided middle when there's no opening");
             Precondition(facingSide.MiddleTexture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
@@ -201,7 +203,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
-                texture.Dimension, texture.UVInverse, opening, out bool nothingVisibleToDraw);
+                texture.Dimension, texture.UVInverse, opening, isFrontSide, out bool nothingVisibleToDraw);
             
             // If the texture can't be drawn because the level has offsets that
             // are messed up (ex: offset causes it to be completely missing) we
@@ -219,14 +221,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
-        private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide)
+        private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
             byte lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.UpperTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
-            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, texture.UVInverse);
+            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
+                texture.UVInverse, isFrontSide);
             
             // See RenderOneSided() for an ASCII image of why we do this.
             // TODO: Do some kind of stackalloc here to avoid calling it 6x.

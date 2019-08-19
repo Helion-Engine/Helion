@@ -40,14 +40,15 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static WallVertices HandleTwoSidedLower(Line line, Side facingSide, Side otherSide, Vector2 textureUVInverse)
+        public static WallVertices HandleTwoSidedLower(Line line, Side facingSide, Side otherSide, 
+            Vector2 textureUVInverse, bool isFrontSide)
         {
             Sector sector = facingSide.Sector;
             SectorFlat topFlat = otherSide.Sector.Floor;
             SectorFlat bottomFlat = sector.Floor;
             
-            Vec2D left = line.Segment.Start;
-            Vec2D right = line.Segment.End;
+            Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
+            Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
             double topZ = topFlat.Z;
             double bottomZ = bottomFlat.Z;
             
@@ -63,12 +64,13 @@ namespace Helion.Render.Shared.World
         }
         
         public static WallVertices HandleTwoSidedMiddle(Line line, Side facingSide, Side otherSide, 
-            Dimension textureDimension, Vector2 textureUVInverse, LineOpening opening, out bool nothingVisibleToDraw)
+            Dimension textureDimension, Vector2 textureUVInverse, LineOpening opening, bool isFrontSide, 
+            out bool nothingVisibleToDraw)
         {
             Precondition(opening.OpeningHeight > 0, "Should not be handling a two sided middle when there's no opening");
 
-            Vec2D left = line.Segment.Start;
-            Vec2D right = line.Segment.End;
+            Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
+            Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
             double topZ = opening.CeilingZ;
             double bottomZ = opening.FloorZ;
 
@@ -102,14 +104,15 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static WallVertices HandleTwoSidedUpper(Line line, Side facingSide, Side otherSide, Vector2 textureUVInverse)
+        public static WallVertices HandleTwoSidedUpper(Line line, Side facingSide, Side otherSide, 
+            Vector2 textureUVInverse, bool isFrontSide)
         {
             Sector sector = facingSide.Sector;
             SectorFlat topFlat = sector.Ceiling;
             SectorFlat bottomFlat = otherSide.Sector.Ceiling;
             
-            Vec2D left = line.Segment.Start;
-            Vec2D right = line.Segment.End;
+            Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
+            Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
             double topZ = topFlat.Z;
             double bottomZ = bottomFlat.Z;
             double spanZ = topZ - bottomZ;
