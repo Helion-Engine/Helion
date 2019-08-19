@@ -86,6 +86,7 @@ namespace Helion.World.Physics
             double startZ = flat.Z;
             double thingZ;
             SectorMoveStatus status = SectorMoveStatus.Success;
+            flat.PrevZ = startZ;
             flat.Z = destZ;
             flat.Plane.MoveZ(destZ - startZ);
 
@@ -126,10 +127,6 @@ namespace Helion.World.Physics
                     return SectorMoveStatus.Blocked;
                 }
             }
-
-            // For crushing ceilings we continue to move, but still want to return SectorMoveStatus.Crush
-            if (status == SectorMoveStatus.Success || CrusherShouldContinue(status, crush))
-                flat.PrevZ = startZ;
 
             return status;
         }

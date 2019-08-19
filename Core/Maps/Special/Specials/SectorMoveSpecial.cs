@@ -59,6 +59,7 @@ namespace Helion.Maps.Special.Specials
         {
             if (m_delayTics > 0)
             {
+                m_flat.PrevZ = m_flat.Z;
                 m_delayTics--;
                 return SpecialTickStatus.Continue;
             }
