@@ -28,6 +28,7 @@ namespace Helion.Render.OpenGL
 
         private readonly GLRenderType m_renderType;
         private readonly Config m_config;
+        private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
         private readonly IGLFunctions gl;
         private readonly IGLTextureManager m_textureManager;
@@ -36,6 +37,7 @@ namespace Helion.Render.OpenGL
         public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
             m_config = config;
+            m_archiveCollection = archiveCollection;
             m_capabilities = new GLCapabilities(functions);
             gl = functions;
 
@@ -195,7 +197,7 @@ namespace Helion.Render.OpenGL
         {
             Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
             
-            return new LegacyWorldRenderer(m_config, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
         }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)

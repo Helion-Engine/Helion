@@ -54,7 +54,7 @@ namespace Helion.Resources.Archives.Collection
             return true;
         }
 
-        public Entry GetEntry(CIString entryName, ResourceNamespace resourceNamespace)
+        public Entry? GetEntry(CIString entryName, ResourceNamespace resourceNamespace)
         {
             return m_entries.Find(entryName, resourceNamespace);
         }

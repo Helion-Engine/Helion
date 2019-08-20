@@ -3,10 +3,17 @@ using System.Collections.Generic;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Vertex;
+using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -19,23 +26,38 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 {
     public class GeometryManager : IDisposable
     {
+        public static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
+            new VertexPointerFloatAttribute("pos", 0, 3),
+            new VertexPointerFloatAttribute("uv", 1, 2),
+            new VertexPointerFloatAttribute("lightLevel", 2, 1));
+
+        private readonly Config m_config;
         private readonly IGLFunctions gl;
         private readonly GLCapabilities m_capabilities;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly Dictionary<GLLegacyTexture, RenderGeometryData> m_textureToGeometry = new Dictionary<GLLegacyTexture, RenderGeometryData>();
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
+        private readonly LegacySkyRenderer m_skyRenderer;
+        private readonly LegacyShader m_shaderProgram;
         private double m_tickFraction;
         
-        public GeometryManager(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
+        public GeometryManager(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
+            IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
+            m_config = config;
             m_capabilities = capabilities;
             gl = functions;
             m_textureManager = textureManager;
+            m_skyRenderer = new LegacySkyRenderer(archiveCollection, functions, textureManager);
+            
+            using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
+                m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
         }
         
         ~GeometryManager()
         {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
 
@@ -43,21 +65,19 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         {
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Dispose());
             m_textureToGeometry.Clear();
+            m_skyRenderer.Clear();
             
             m_lineDrawnTracker.UpdateToWorld(world);
         }
 
         public void Render(WorldBase world, RenderInfo renderInfo)
         {
-            m_lineDrawnTracker.ClearDrawnLines();
+            ClearStates();
             
-            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Clear());
-
-            m_tickFraction = renderInfo.TickFraction;
-            Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
-            RecursivelyRenderBSP(world.BspTree.Root, position, world);
+            TraverseGeometry(world, renderInfo);
             
-            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Draw());
+            RenderGeometry(renderInfo);
+            m_skyRenderer.Render(renderInfo);
         }
 
         public void Dispose()
@@ -65,7 +85,24 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
+        
+        private void ClearStates()
+        {
+            m_skyRenderer.Clear();
+            m_lineDrawnTracker.ClearDrawnLines();
+            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Clear());
+        }
 
+        private void TraverseGeometry(WorldBase world, RenderInfo renderInfo)
+        {
+            m_tickFraction = renderInfo.TickFraction;
+            Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
+            
+            // Note that this will also emit geometry to the sky renderer as
+            // well, it is not just for this class.
+            RecursivelyRenderBSP(world.BspTree.Root, position, world);
+        }
+        
         private void RecursivelyRenderBSP(BspNodeCompact node, Vec2D position, WorldBase world)
         {
             // TODO: This is probably a performance issue, consider optimizing.
@@ -302,10 +339,31 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_textureToGeometry[texture] = newData;
             return newData;
         }
+        
+        private void SetUniforms(RenderInfo renderInfo)
+        {
+            float fovX = (float)MathHelper.ToRadians(m_config.Engine.Render.FieldOfView);
+            
+            m_shaderProgram.BoundTexture.Set(gl, 0);
+            m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, fovX));
+        }
+        
+        private void RenderGeometry(RenderInfo renderInfo)
+        {
+            m_shaderProgram.Bind();
+            
+            SetUniforms(renderInfo);
+            gl.ActiveTexture(TextureUnitType.Zero);
+            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Draw());
+
+            m_shaderProgram.Unbind();
+        }
 
         private void ReleaseUnmanagedResources()
         {
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Dispose());
+            m_shaderProgram.Dispose();
+            m_skyRenderer.Dispose();
         }
     }
 }
