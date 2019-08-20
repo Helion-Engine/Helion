@@ -5,7 +5,6 @@ using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
@@ -13,9 +12,9 @@ using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 using Image = Helion.Graphics.Image;
 
-namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 {
-    public class SkySphereComponent : SkyComponent
+    public class SkySphereTextures : IDisposable
     {
         private const string DefaultSky = "RSKY1";
         private const int PixelRowsToEvaluate = 16;
@@ -28,7 +27,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
         private bool m_allocatedNewTextures;
         private bool m_generatedSky;
 
-        public SkySphereComponent(ArchiveCollection archiveCollection, IGLFunctions functions, 
+        public SkySphereTextures(ArchiveCollection archiveCollection, IGLFunctions functions,
             LegacyGLTextureManager textureManager)
         {
             m_archiveCollection = archiveCollection;
@@ -38,27 +37,21 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
             m_upperTexture = textureManager.NullTexture;
         }
 
-        ~SkySphereComponent()
+        ~SkySphereTextures()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
-            Dispose();
-        }
-        
-        public void Clear()
-        {
-            // TODO
+            ReleaseUnmanagedResources();
         }
 
-        public void Add(LegacyVertex first, LegacyVertex second, LegacyVertex third)
+        public GLLegacyTexture GetUpperSky()
         {
-            // TODO
+            GenerateSkyIfNeeded();
+            return m_upperTexture;
         }
 
-        public void Render(RenderInfo renderInfo)
+        public GLLegacyTexture GetLowerSky()
         {
-            GenerateSkyIfMissing();
-            
-            // TODO
+            GenerateSkyIfNeeded();
+            return m_lowerTexture;
         }
 
         public void Dispose()
@@ -66,7 +59,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
+        
         private static Color CalculateAverageRowColor(int startY, int exclusiveEndY, Image skyImage)
         {
             int r = 0;
@@ -91,16 +84,19 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 
             return Color.FromArgb(255, r, g, b);
         }
-
-        private void GenerateSkyIfMissing()
+        
+        private void GenerateSkyIfNeeded()
         {
             if (m_generatedSky)
                 return;
-            
+         
+            // This sucks, but we need the archive to be populated before we
+            // can draw the sky. This has to be lazily loaded when we request
+            // rendering so we know all the textures have been loaded.
             GenerateSkyTextures();
             m_generatedSky = true;
         }
-
+        
         private void GenerateSkyTextures()
         {
             Image? skyImage = GetSkyImage();
@@ -111,13 +107,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
             CreateLowerSkyTexture(skyImage);
             m_allocatedNewTextures = true;
         }
-
+        
         private Image GetSkyImage()
         {
             ArchiveImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
             return imageRetriever.Get(DefaultSky, ResourceNamespace.Textures);
         }
-
+        
         private void CreateUpperSkyTexture(Image skyImage)
         {
             int rowsToEvaluate = Math.Min(skyImage.Height, PixelRowsToEvaluate);
@@ -139,7 +135,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 
             m_lowerTexture = CreateTexture(fadedSkyImage, $"[SKY] Lower: {DefaultSky}");
         }
-
+        
         private Bitmap CreateFadedSkyTop(int blendRange, Color fadeColor, Image skyImage)
         {
             Precondition(blendRange < 255 && blendRange > 0, "Invalid blending range for sky texture");
@@ -204,11 +200,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 
         private void ReleaseUnmanagedResources()
         {
-            if (m_allocatedNewTextures)
-            {
-                m_lowerTexture.Dispose();
-                m_upperTexture.Dispose();
-            }
+            if (!m_allocatedNewTextures) 
+                return;
+            
+            m_lowerTexture.Dispose();
+            m_upperTexture.Dispose();
         }
     }
 }

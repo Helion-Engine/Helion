@@ -49,7 +49,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_capabilities = capabilities;
             gl = functions;
             m_textureManager = textureManager;
-            m_skyRenderer = new LegacySkyRenderer(archiveCollection, functions, textureManager);
+            m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
             
             using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
                 m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
