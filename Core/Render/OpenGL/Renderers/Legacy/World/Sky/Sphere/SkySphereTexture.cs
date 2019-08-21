@@ -18,6 +18,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
     {
         private const string DefaultSky = "RSKY1";
         private const int PixelRowsToEvaluate = 16;
+        private const int DefaultPaddingDivisor = 3;
 
         public float ScaleU = 1.0f;
         private readonly ArchiveCollection m_archiveCollection;
@@ -66,24 +67,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             // it, we can just make it so that the texture scales around to
             // it's nearest power of two.
             //
-            // To do so, first find out X when we have width = 2^X.
+            // To do so, first find out X when we have width = 2^X. We need
+            // to force this to be a whole number so we round. This is likely
+            // not correct due to how a value at 0.5 won't do what we think,
+            // but we'll deal with this later if the need ever arises.
             double roundedExponent = Math.Round(Math.Log(imageWidth, 2));
             
             // We want to fit it onto a sky that is 1024 in width. We can now
-            // do `1024 / width` where width is a power of two. Since 1024 is
-            // 2^10, then we can find out the scaling factor with the following
-            // rearrangement:
-            //          1024 / width
+            // do `1024 / width` where width is a power of two. We can find out
+            // the scaling factor with the following rearrangement:
+            //      f = 1024 / width
             //        = 2^10 / 2^x       [because x is a whole number now]
             //        = 2^(10 - x)
-            float factor = (float)Math.Pow(2, 10 - roundedExponent); 
+            float scalingFactor = (float)Math.Pow(2, 10 - roundedExponent); 
             
             // We make the scale negative so that the U coordinate is reversed.
             // The sphere is made in a counter-clockwise direction but drawing
             // the texture in other ports appears visually to be clockwise. By
             // setting the U scaling to be negative, the shader will reverse
             // the direction of the texturing (which is what we want).
-            return -factor;
+            return -scalingFactor;
         }
 
         private static Color CalculateAverageRowColor(int startY, int exclusiveEndY, Image skyImage)
@@ -114,30 +117,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         private static Bitmap CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, 
             Image skyImage)
         {
-            int quarterY = skyImage.Height / 2;
-            int middleY = quarterY + skyImage.Height;
-            int threeQuartersY = middleY + skyImage.Height;
+            int padding = Math.Max(1, skyImage.Height / DefaultPaddingDivisor);
             Pen topPen = new Pen(Color.FromArgb(255, topFadeColor));
             Pen bottomPen = new Pen(Color.FromArgb(255, bottomFadeColor));
 
-            // The sky texture looks like this:
+            // The sky texture looks like this (p = padding):
             //
-            //  0  o----------o 
-            //     |Fade color|
-            // 1/8 o..........o  <- Blending
-            //     |          |
-            //     | Texture  |
-            // 1/2 o----------o
-            //     |          |
-            //     | Texture  |
-            // 7/8 o..........o  <- Blending
-            //     |Fade color|
-            //  1  o----------o
+            //      0  o----------o
+            //         |Fade color|
+            //     1/p o..........o  <- Blending
+            //         |          |
+            //         | Texture  |
+            //     1/2 o----------o
+            //         |          |
+            //         | Texture  |
+            // 1 - 1/p o..........o  <- Blending
+            //         |Fade color|
+            //      1  o----------o
             //
             // This is why we multiply by four. Note that there is no blending
             // at the horizon (middle line).
-            Bitmap bitmap = new Bitmap(skyImage.Width, skyImage.Height * 3);
+            Bitmap bitmap = new Bitmap(skyImage.Width, (skyImage.Height + padding) * 2);
             System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(bitmap);
+            
+            int topPaddingSeamY = padding;
+            int middleY = bitmap.Height / 2;
+            int bottomPaddingSeamY = bitmap.Height - padding;
+            
             g.FillRectangle(topPen.Brush, 0, 0, skyImage.Width, middleY);
             g.FillRectangle(bottomPen.Brush, 0, middleY, skyImage.Width, middleY);
             
@@ -145,9 +151,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             g.DrawImage(skyImage.Bitmap, 0, middleY);
             
             g.CompositingMode = CompositingMode.SourceOver;
-            BlendSeam(quarterY + rowsToEvaluate - 1, quarterY - 1, topFadeColor);
-            BlendSeam(threeQuartersY - rowsToEvaluate, threeQuartersY + 1, bottomFadeColor);
+            BlendSeam(topPaddingSeamY + rowsToEvaluate - 1, topPaddingSeamY - 1, topFadeColor);
+            BlendSeam(bottomPaddingSeamY - rowsToEvaluate, bottomPaddingSeamY + 1, bottomFadeColor);
 
+            // TODO: Remove
+            bitmap.Save(@"D:\Helion\img.png");
+            
             return bitmap;
             
             void BlendSeam(int startY, int endExclusiveY, Color fadeColor)
