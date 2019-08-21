@@ -67,6 +67,8 @@ namespace Helion.Render.OpenGL
             
             mat4 model = mat4.Identity;
             mat4 view = renderInfo.Camera.CalculateViewMatrix();
+            // TODO: Should base this off of the actor radius and config view
+            //       distance or the length of the level.
             mat4 projection = mat4.PerspectiveFov(fovY, w, h, 7.9f, 8192.0f);
             
             return projection * view * model;

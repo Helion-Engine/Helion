@@ -9,14 +9,15 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 {
     public class SkySphereRenderer : IDisposable
     {
-        private const int HorizontalSpherePoints = 32;
-        private const int VerticalSpherePoints = 32;
+        private const int HorizontalSpherePoints = 16;
+        private const int VerticalSpherePoints = 16;
         
         private static readonly VertexArrayAttributes SphereAttributes = new VertexArrayAttributes(
             new VertexPointerFloatAttribute("pos", 0, 3),
@@ -54,13 +55,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 
             gl.ActiveTexture(TextureUnitType.Zero);
             m_sphereShaderProgram.BoundTexture.Set(gl, 0);
+            m_sphereShaderProgram.Mvp.Set(gl, CalculateMvp(renderInfo));
 
-            // TODO: Calculate the proper rotation matrix.
-            mat4 mvp = mat4.Identity;
-            m_sphereShaderProgram.Mvp.Set(gl, mvp);
-
-            DrawHemisphere(m_skyTextures.GetUpperSky());
-            //DrawHemisphere(m_skyTextures.GetLowerSky());
+//            DrawHemisphere(m_skyTextures.GetUpperSky());
+            DrawHemisphere(m_skyTextures.GetLowerSky());
             
             m_sphereShaderProgram.Unbind();
         }
@@ -69,6 +67,27 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
+        }
+        
+        private static mat4 CalculateMvp(RenderInfo renderInfo)
+        {
+            // TODO: Use the config value. Or better, expose GLRenderer func.
+            const float fovRadiansX = (float)MathHelper.HalfPi; 
+            
+            float w = renderInfo.Viewport.Width;
+            float h = renderInfo.Viewport.Height;
+            float aspectRatio = w / h;
+            float fovY = Camera.FieldOfViewXToY(fovRadiansX, aspectRatio);
+
+            // We want the sky sphere to not be touching the NDC edges because
+            // we'll be doing some translating which could push it outside of
+            // the clipping box. Therefore we shrink the unit sphere from r = 1
+            // down to r = 0.5 around the origin.
+            mat4 model = mat4.Scale(0.5f);
+            mat4 view = mat4.Identity;
+            mat4 projection = mat4.PerspectiveFov(fovY, w, h, 0.0f, 0.5f);
+            
+            return projection * view * model;
         }
 
         private void DrawHemisphere(GLLegacyTexture texture)

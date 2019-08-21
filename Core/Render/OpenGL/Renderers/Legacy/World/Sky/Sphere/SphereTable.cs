@@ -41,8 +41,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         /// the vertical plane.</param>
         public SphereTable(int horizontalPoints, int verticalPoints)
         {
-            Precondition(horizontalPoints >= 4, "Insufficient amount of horizontal points for sphere angle table");
-            Precondition(verticalPoints >= 4, "Insufficient amount of vertical points for sphere angle table");
+            Precondition(horizontalPoints >= 2, "Insufficient amount of horizontal points for sphere angle table");
+            Precondition(verticalPoints >= 2, "Insufficient amount of vertical points for sphere angle table");
 
             List<float> sinYaw = new List<float>();
             List<float> cosYaw = new List<float>();
@@ -56,23 +56,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
                 cosYaw.Add((float)Math.Cos(i * inverseHorizontal));
             }
             
-            float inverseVertical = (float)MathHelper.TwoPi / verticalPoints;
+            // The vertical axis goes from [0, pi] as per spherical coordinates
+            // require, but due to how we write coordinates, it should start at
+            // the bottom. Since iteration begins at 0 and goes to Pi, then the
+            // system becomes cos(0) -> cos(pi) which is 1 -> -1... opposite
+            // direction of what we want. We'll just do Pi - angle instead to
+            // flip this.
+            float inverseVertical = (float)MathHelper.Pi / verticalPoints;
             for (int i = 0; i <= verticalPoints; i++)
             {
-                sinPitch.Add((float)Math.Sin(i * inverseVertical));
-                cosPitch.Add((float)Math.Cos(i * inverseVertical));
+                sinPitch.Add((float)Math.Sin(MathHelper.Pi - (i * inverseVertical)));
+                cosPitch.Add((float)Math.Cos(MathHelper.Pi - (i * inverseVertical)));
             }
 
             MercatorRectangle = new SkySphereVertex[verticalPoints + 1, horizontalPoints + 1];
+
+            float verticalPointsInverse = 1.0f / verticalPoints;
+            float horizontalPointsInverse = 1.0f / horizontalPoints;
             for (int row = 0; row <= verticalPoints; row++)
             {
                 for (int col = 0; col <= horizontalPoints; col++)
                 {
-                    float x = cosYaw[row] * sinPitch[col];
-                    float y = cosPitch[col];
-                    float z = sinYaw[row] * sinPitch[col];
-                    float u = col * inverseHorizontal;
-                    float v = row * inverseHorizontal;
+                    float x = cosYaw[col] * sinPitch[row];
+                    float y = cosPitch[row];
+                    float z = sinYaw[col] * sinPitch[row];
+                    // TODO: The 2's are temporary scalars.
+                    float u = 2 * col * verticalPointsInverse;
+                    float v = 2 * row * horizontalPointsInverse;
                     MercatorRectangle[row, col] = new SkySphereVertex(x, y, z, u, v);
                 }
             }
