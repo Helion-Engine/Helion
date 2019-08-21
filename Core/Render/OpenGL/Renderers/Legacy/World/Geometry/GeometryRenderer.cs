@@ -214,6 +214,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
+            bool isSky = otherSide.Sector.Floor.Texture == Constants.SkyTexture;
             byte lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.LowerTexture);
@@ -222,14 +223,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
                 texture.UVInverse, isFrontSide, m_tickFraction);
             
-            // See RenderOneSided() for an ASCII image of why we do this.
-            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+            if (isSky)
+            {
+                m_skyRenderer.DefaultSky.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
+                m_skyRenderer.DefaultSky.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+            }
+            else
+            {
+                // See RenderOneSided() for an ASCII image of why we do this.
+                // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+                renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+            }
         }
 
         private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, bool isFrontSide)
@@ -284,6 +293,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
+            bool isSky = otherSide.Sector.Ceiling.Texture == Constants.SkyTexture;
             byte lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.UpperTexture);
@@ -291,15 +301,23 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
                 texture.UVInverse, isFrontSide, m_tickFraction);
-            
-            // See RenderOneSided() for an ASCII image of why we do this.
-            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+
+            if (isSky)
+            {
+                m_skyRenderer.DefaultSky.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
+                m_skyRenderer.DefaultSky.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+            }
+            else
+            {
+                // See RenderOneSided() for an ASCII image of why we do this.
+                // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+                renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));   
+            }
         }
 
         private void RenderFlats(Subsector subsector)
