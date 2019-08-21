@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using GlmSharp;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
@@ -16,9 +17,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 {
     public class SkySphereRenderer : IDisposable
     {
-        private const int HorizontalSpherePoints = 16;
-        private const int VerticalSpherePoints = 16;
+        private const int HorizontalSpherePoints = 32;
+        private const int VerticalSpherePoints = 32;
         
+        private static readonly vec3 UpOpenGL = new vec3(0, 1, 0);
         private static readonly VertexArrayAttributes SphereAttributes = new VertexArrayAttributes(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2));
@@ -27,7 +29,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         private readonly StaticVertexBuffer<SkySphereVertex> m_sphereVbo;
         private readonly VertexArrayObject m_sphereVao;
         private readonly SkySphereShader m_sphereShaderProgram;
-        private readonly SkySphereTextures m_skyTextures;
+        private readonly SkySphereTexture m_skyTexture;
 
         public SkySphereRenderer(ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -38,7 +40,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             using (ShaderBuilder builder = SkySphereShader.MakeBuilder(functions))
                 m_sphereShaderProgram = new SkySphereShader(functions, builder, SphereAttributes);
             
-            m_skyTextures = new SkySphereTextures(archiveCollection, functions, textureManager);
+            m_skyTexture = new SkySphereTexture(archiveCollection, functions, textureManager);
 
             GenerateSphereVerticesAndUpload();
         }
@@ -56,9 +58,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             gl.ActiveTexture(TextureUnitType.Zero);
             m_sphereShaderProgram.BoundTexture.Set(gl, 0);
             m_sphereShaderProgram.Mvp.Set(gl, CalculateMvp(renderInfo));
+            m_sphereShaderProgram.ScaleU.Set(gl, m_skyTexture.ScaleU);
 
-//            DrawHemisphere(m_skyTextures.GetUpperSky());
-            DrawHemisphere(m_skyTextures.GetLowerSky());
+            DrawSphere(m_skyTexture.GetTexture());
             
             m_sphereShaderProgram.Unbind();
         }
@@ -71,26 +73,36 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         
         private static mat4 CalculateMvp(RenderInfo renderInfo)
         {
-            // TODO: Use the config value. Or better, expose GLRenderer func.
-            const float fovRadiansX = (float)MathHelper.HalfPi; 
-            
+            // Note that this means we've hard coded the sky to always render
+            // the same regardless of the field of view.
             float w = renderInfo.Viewport.Width;
             float h = renderInfo.Viewport.Height;
             float aspectRatio = w / h;
-            float fovY = Camera.FieldOfViewXToY(fovRadiansX, aspectRatio);
-
+            float fovY = Camera.FieldOfViewXToY((float)MathHelper.HalfPi, aspectRatio);
+            
             // We want the sky sphere to not be touching the NDC edges because
             // we'll be doing some translating which could push it outside of
             // the clipping box. Therefore we shrink the unit sphere from r = 1
             // down to r = 0.5 around the origin.
             mat4 model = mat4.Scale(0.5f);
-            mat4 view = mat4.Identity;
+            
+            // Our world system is in the form <X, Z, -Y> with respect to
+            // the OpenGL coordinate transformation system. We will also move
+            // our body upwards by 20% (so 0.1 units since r = 0.5) so prevent
+            // the horizon from appearing.
+            Vector3 direction = renderInfo.Camera.Direction;
+            vec3 pos = new vec3(0.0f, 0.1f, 0.0f);
+            vec3 eye = new vec3(direction.X, direction.Z, -direction.Y);
+            mat4 view = mat4.LookAt(pos, pos + eye, UpOpenGL);
+            
+            // Our projection far plane only goes as far as the scaled sphere
+            // radius.
             mat4 projection = mat4.PerspectiveFov(fovY, w, h, 0.0f, 0.5f);
             
             return projection * view * model;
         }
 
-        private void DrawHemisphere(GLLegacyTexture texture)
+        private void DrawSphere(GLLegacyTexture texture)
         {
             texture.Bind();
             m_sphereVao.Bind();
@@ -135,7 +147,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             m_sphereVao.Dispose();
             m_sphereVbo.Dispose();
             
-            m_skyTextures.Dispose();
+            m_skyTexture.Dispose();
         }
     }
 }

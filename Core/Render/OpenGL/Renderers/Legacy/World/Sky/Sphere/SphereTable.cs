@@ -80,9 +80,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
                     float x = cosYaw[col] * sinPitch[row];
                     float y = cosPitch[row];
                     float z = sinYaw[col] * sinPitch[row];
-                    // TODO: The 2's are temporary scalars.
-                    float u = 2 * col * verticalPointsInverse;
-                    float v = 2 * row * horizontalPointsInverse;
+                    
+                    // We do `1 - v` below because we upload the image upside
+                    // down (due to OpenGL's image system being cartesian).
+                    float u = col * horizontalPointsInverse;
+                    float v = 1.0f - (row * verticalPointsInverse);
+                    
                     MercatorRectangle[row, col] = new SkySphereVertex(x, y, z, u, v);
                 }
             }

@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
     {
         public readonly UniformInt BoundTexture = new UniformInt();
         public readonly UniformMatrix4 Mvp = new UniformMatrix4();
+        public readonly UniformFloat ScaleU = new UniformFloat();
 
         public SkySphereShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) : 
             base(functions, builder, attributes)
@@ -42,10 +43,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 
                 out vec4 fragColor;
 
+                uniform float scaleU;
                 uniform sampler2D boundTexture;
 
                 void main() {
-                    fragColor = texture(boundTexture, uvFrag.st);
+                    fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU, uvFrag.y));
                 }
             ";
             
