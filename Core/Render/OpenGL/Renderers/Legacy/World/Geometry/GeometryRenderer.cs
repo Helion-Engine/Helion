@@ -24,7 +24,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 {
-    public class GeometryManager : IDisposable
+    public class GeometryRenderer : IDisposable
     {
         public static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
             new VertexPointerFloatAttribute("pos", 0, 3),
@@ -42,7 +42,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly LegacyShader m_shaderProgram;
         private double m_tickFraction;
         
-        public GeometryManager(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
+        public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
             m_config = config;
@@ -55,7 +55,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
         }
         
-        ~GeometryManager()
+        ~GeometryRenderer()
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
@@ -65,6 +65,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         {
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Dispose());
             m_textureToGeometry.Clear();
+            
+            // TODO: We should create a new one from the ground up to destroy
+            //       the old state left over, not clear.
             m_skyRenderer.Clear();
             
             m_lineDrawnTracker.UpdateToWorld(world);
@@ -308,6 +311,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderFlat(Subsector subsector, SectorFlat flat)
         {
+            bool isSky = flat.Texture == Constants.SkyTexture;
+            
+            // TODO: A lot of this stuff is not needed if we are doing sky
+            //       geometry. We don't care about UV coordinates or texture
+            //       stuff, only positional coordinates.
             byte lightLevel = flat.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetFlat(flat.Texture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
@@ -318,15 +326,28 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
 
             WorldVertex root = m_subsectorVertices[0];
-            for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
-            {
-                WorldVertex second = m_subsectorVertices[i];
-                WorldVertex third = m_subsectorVertices[i + 1];
 
-                // TODO: Do some kind of stackalloc here to avoid calling it 3x.
-                renderData.Vbo.Add(new LegacyVertex(root, lightLevel)); 
-                renderData.Vbo.Add(new LegacyVertex(second, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(third, lightLevel));
+            if (isSky)
+            {
+                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                {
+                    WorldVertex second = m_subsectorVertices[i];
+                    WorldVertex third = m_subsectorVertices[i + 1];
+                    m_skyRenderer.DefaultSky.Add(root, second, third);
+                }
+            }
+            else
+            {
+                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                {
+                    WorldVertex second = m_subsectorVertices[i];
+                    WorldVertex third = m_subsectorVertices[i + 1];
+
+                    // TODO: Do some kind of stackalloc here to avoid calling it 3x.
+                    renderData.Vbo.Add(new LegacyVertex(root, lightLevel)); 
+                    renderData.Vbo.Add(new LegacyVertex(second, lightLevel));
+                    renderData.Vbo.Add(new LegacyVertex(third, lightLevel));
+                }   
             }
         }
 

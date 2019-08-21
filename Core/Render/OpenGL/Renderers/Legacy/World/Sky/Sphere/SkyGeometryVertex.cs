@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Helion.Render.Shared.World;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 {
@@ -16,7 +17,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             Z = z;
         }
 
-        public SkyGeometryVertex(LegacyVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
+        public SkyGeometryVertex(WorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
         {
         }
     }

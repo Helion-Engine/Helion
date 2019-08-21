@@ -12,12 +12,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {
     public class LegacyWorldRenderer : WorldRenderer
     {
-        private readonly GeometryManager m_geometryManager;
+        private readonly GeometryRenderer m_geometryRenderer;
 
         public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
-            m_geometryManager = new GeometryManager(config, archiveCollection, capabilities, functions, textureManager);
+            m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions, textureManager);
         }
 
         ~LegacyWorldRenderer()
@@ -34,17 +34,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         protected override void UpdateToNewWorld(WorldBase world)
         {
-            m_geometryManager.UpdateTo(world);
+            m_geometryRenderer.UpdateTo(world);
         }
 
         protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
         {
-            m_geometryManager.Render(world, renderInfo);
+            m_geometryRenderer.Render(world, renderInfo);
         }
 
         private void ReleaseUnmanagedResources()
         {
-            m_geometryManager.Dispose();
+            m_geometryRenderer.Dispose();
         }
     }
 }

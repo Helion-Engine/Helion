@@ -155,7 +155,11 @@ namespace Helion.Render.OpenGL.Buffer
         public void UploadIfNeeded()
         {
             if (NeedsUpload)
-                BindAnd(Upload);
+            {
+                Bind();
+                Upload();
+                Unbind();
+            }
         }
 
         /// <summary>
@@ -173,9 +177,6 @@ namespace Helion.Render.OpenGL.Buffer
         public void Bind()
         {
             gl.BindBuffer(GetBufferType(), BufferId);
-
-//            if (NeedsUpload)
-//                Upload();
         }
 
         /// <summary>

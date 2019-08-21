@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared;
@@ -12,6 +13,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 {
     public class LegacySkyRenderer : IDisposable
     {
+        private const int StencilIndex = 1;
+       
         public readonly ISkyComponent DefaultSky;
         private readonly IGLFunctions gl;
         private readonly List<ISkyComponent> m_skyComponents;
@@ -39,10 +42,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 
         public void Render(RenderInfo renderInfo)
         {
-//            glEnable(GL_STENCIL_TEST);
-//            glClearStencil(0x00);
-//            glStencilMask(0xFF);
-//            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+            gl.Enable(EnableType.StencilTest);
+            gl.StencilMask(0xFF);
+            gl.StencilOp(StencilOpType.Keep, StencilOpType.Keep, StencilOpType.Replace);
 
             for (int i = 0; i < m_skyComponents.Count; i++)
             {
@@ -50,21 +52,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
                 if (!sky.HasGeometry)
                     continue;
 
-//                glColorMask(false, false, false, false);
-//                glStencilFunc(GL_ALWAYS, skyIndex, 0xFF);
+                gl.Clear(ClearType.StencilBufferBit);
+                gl.ColorMask(false, false, false, false);
+                gl.StencilFunc(StencilFuncType.Always, StencilIndex, 0xFF);
 
                 sky.RenderWorldGeometry(renderInfo);
 
-//                glColorMask(true, true, true, true);
-//                glStencilFunc(GL_EQUAL, skyIndex, 0xFF);
-//                glDisable(GL_DEPTH_TEST);
+                gl.ColorMask(true, true, true, true);
+                gl.StencilFunc(StencilFuncType.Equal, StencilIndex, 0xFF);
+                gl.Disable(EnableType.DepthTest);
 
                 sky.RenderSky(renderInfo);
 
-//                glEnable(GL_DEPTH_TEST);
+                gl.Enable(EnableType.DepthTest);
             }
 
-//            glDisable(GL_STENCIL_TEST);
+            gl.Disable(EnableType.StencilTest);
         }
 
         public void Dispose()

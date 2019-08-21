@@ -9,6 +9,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
     public class SkySphereShader : ShaderProgram
     {
         public readonly UniformInt BoundTexture = new UniformInt();
+        public readonly UniformMatrix4 Mvp = new UniformMatrix4();
 
         public SkySphereShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) : 
             base(functions, builder, attributes)
@@ -25,10 +26,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 
                 out vec2 uvFrag;
 
+                uniform mat4 mvp;
+
                 void main() {
                     uvFrag = uv;
 
-                    gl_Position = vec4(pos, 1.0);
+                    gl_Position = mvp * vec4(pos, 1.0);
                 }
             ";
             

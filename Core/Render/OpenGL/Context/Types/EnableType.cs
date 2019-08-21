@@ -4,6 +4,7 @@ namespace Helion.Render.OpenGL.Context.Types
     {
         CullFace = 2884,
         DepthTest = 2929,
+        StencilTest = 2960,
         Blend = 3042,
         Multisample = 32925,
         DebugOutputSynchronous = 33346,

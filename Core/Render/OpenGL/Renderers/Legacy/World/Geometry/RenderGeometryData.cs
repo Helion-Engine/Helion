@@ -16,7 +16,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         public RenderGeometryData(GLCapabilities capabilities, IGLFunctions functions, GLLegacyTexture texture)
         {
             Texture = texture;
-            Vao = new VertexArrayObject(capabilities, functions, GeometryManager.Attributes, $"VAO: Attributes for {texture.Name}");
+            Vao = new VertexArrayObject(capabilities, functions, GeometryRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
             Vbo = new StreamVertexBuffer<LegacyVertex>(capabilities, functions, Vao, $"VBO: Geometry for {texture.Name}");
         }
 

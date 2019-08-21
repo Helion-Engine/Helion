@@ -1,5 +1,6 @@
 using System;
 using Helion.Render.Shared;
+using Helion.Render.Shared.World;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 {
@@ -28,7 +29,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
         /// <param name="first">The first vertex.</param>
         /// <param name="second">The second vertex.</param>
         /// <param name="third">The third vertex.</param>
-        void Add(LegacyVertex first, LegacyVertex second, LegacyVertex third);
+        void Add(WorldVertex first, WorldVertex second, WorldVertex third);
         
         /// <summary>
         /// Renders the world geometry. It is assumed the stencil buffer can be
