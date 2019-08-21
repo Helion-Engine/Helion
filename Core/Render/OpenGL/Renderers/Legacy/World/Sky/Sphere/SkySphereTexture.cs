@@ -154,9 +154,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             BlendSeam(topPaddingSeamY + rowsToEvaluate - 1, topPaddingSeamY - 1, topFadeColor);
             BlendSeam(bottomPaddingSeamY - rowsToEvaluate, bottomPaddingSeamY + 1, bottomFadeColor);
 
-            // TODO: Remove
-            bitmap.Save(@"D:\Helion\img.png");
-            
             return bitmap;
             
             void BlendSeam(int startY, int endExclusiveY, Color fadeColor)
