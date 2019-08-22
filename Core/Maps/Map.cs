@@ -244,5 +244,35 @@ namespace Helion.Maps
 
             return currentSector;
         }
+
+        public byte GetMinLightLevelNeighbor(Sector sector)
+        {
+            byte min = sector.LightLevel;
+
+            foreach (var line in sector.Lines)
+            {
+                if (line.Front.Sector != sector && line.Front.Sector.LightLevel < min)
+                    min = line.Front.Sector.LightLevel;
+                if (line.Back != null && line.Back.Sector != sector && line.Back.Sector.LightLevel < min)
+                    min = line.Back.Sector.LightLevel;
+            }
+
+            return min;
+        }
+
+        public byte GetMaxLightLevelNeighbor(Sector sector)
+        {
+            byte max = sector.LightLevel;
+
+            foreach (var line in sector.Lines)
+            {
+                if (line.Front.Sector != sector && line.Front.Sector.LightLevel > max)
+                    max = line.Front.Sector.LightLevel;
+                if (line.Back != null && line.Back.Sector != sector && line.Back.Sector.LightLevel > max)
+                    max = line.Back.Sector.LightLevel;
+            }
+
+            return max;
+        }
     }
 }

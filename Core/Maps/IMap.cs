@@ -32,5 +32,7 @@ namespace Helion.Maps
         Sector? GetNextLowestCeiling(Sector sector);
         Sector? GetNextHighestFloor(Sector sector);
         Sector? GetNextHighestCeiling(Sector sector);
+        byte GetMinLightLevelNeighbor(Sector sector);
+        byte GetMaxLightLevelNeighbor(Sector sector);
     }
 }
