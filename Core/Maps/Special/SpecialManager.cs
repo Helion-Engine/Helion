@@ -24,6 +24,7 @@ namespace Helion.Maps.Special
         private IMap m_map;
 
         private SwitchManager m_switchManager = new SwitchManager();
+        private DoomRandom m_random = new DoomRandom();
 
         public SpecialManager(PhysicsManager physicsManager, IMap map)
         {
@@ -44,8 +45,8 @@ namespace Helion.Maps.Special
 
             if (special.IsTeleport())
                 AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
-            else if (special.IsSectorMoveSpecial())
-                sectorSpecialSuccess = HandleSectorMoveSpecial(args, special);
+            else if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial())
+                sectorSpecialSuccess = HandleSectorLineSpecial(args, special);
             else
                 HandleDefault(args, special);
 
@@ -63,13 +64,70 @@ namespace Helion.Maps.Special
         private void StartInitSpecials()
         {
             var lines = m_map.Lines.Where(x => x.Special != null && x.Flags.ActivationType == ActivationType.LevelStart);
-
             foreach (var line in lines)
+                HandleLineInitSpecial(line);
+
+            var sectors = m_map.Sectors.Where(x => x.SectorSpecialType != ZSectorSpecialType.None);
+            foreach (var sector in sectors)
+                HandleSectorSpecial(sector);
+        }
+
+        private void HandleLineInitSpecial(Line line)
+        {
+            switch (line.Special.LineSpecialType)
             {
-                if (line.Special.LineSpecialType == ZLineSpecialType.ScrollTextureLeft)
-                {
+                case ZLineSpecialType.ScrollTextureLeft:
                     AddSpecial(new LineScrollSpecial(line, line.Args[0] / 32, (ZLineScroll)line.Args[1]));
-                }
+                    break;
+            }
+        }
+
+        private void HandleSectorSpecial(Sector sector)
+        {
+            switch (sector.SectorSpecialType)
+            {
+                case ZSectorSpecialType.LightFlickerDoom:
+                    AddSpecial(new LightFlickerDoomSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector)));
+                    break;
+
+                case ZSectorSpecialType.LightStrobeFastDoom:
+                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 17, 5));
+                    break;
+
+                case ZSectorSpecialType.LightStrobeSlowDoom:
+                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 35, 5));
+                    break;
+
+                case ZSectorSpecialType.LightStrobeHurtDoom:
+                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 35, 5));
+                    break;
+
+                case ZSectorSpecialType.LightGlow:
+                    AddSpecial(new LightPulsateSpecial(sector, m_map.GetMinLightLevelNeighbor(sector)));
+                    break;
+
+                case ZSectorSpecialType.SectorDoorClose30Seconds:
+                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, 16 * SpeedFactor), 35 * 30));
+                    break;
+
+                case ZSectorSpecialType.DamageEnd:
+                    break;
+
+                case ZSectorSpecialType.LightStrobeSlowSync:
+                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 35, 5));
+                    break;
+
+                case ZSectorSpecialType.LightStrobeFastSync:
+                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 17, 5));
+                    break;
+
+                case ZSectorSpecialType.DoorRaiseIn5Minutes:
+                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, 16 * SpeedFactor), 35 * 60 * 5));
+                    break;
+
+                case ZSectorSpecialType.LightFireFlicker:
+                    AddSpecial(new LightFireFlickerDoom(sector, m_random, m_map.GetMinLightLevelNeighbor(sector)));
+                    break;
             }
         }
 
@@ -83,14 +141,15 @@ namespace Helion.Maps.Special
             }
         }
 
-        private bool HandleSectorMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
+        private bool HandleSectorLineSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
         {
             bool success = false;
 
             List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
+            var lineSpecial = args.ActivateLineSpecial.Special;
             foreach (var sector in sectors)
             {
-                if (!sector.IsMoving)
+                if ((lineSpecial.IsSectorMoveSpecial() && !sector.IsMoving) || lineSpecial.IsSectorLightSpecial())
                 {
                     ISpecial? sectorSpecial = CreateSectorSpecial(args, special, sector);
                     if (sectorSpecial != null)
@@ -99,7 +158,7 @@ namespace Helion.Maps.Special
                         AddSpecial(sectorSpecial);
                     }
                 }
-                else if (args.ActivationContext == ActivationContext.UseLine && args.ActivateLineSpecial.Special.CanActivateDuringSectorMovement() 
+                else if (args.ActivationContext == ActivationContext.UseLine && lineSpecial.CanActivateDuringSectorMovement() 
                     && args.ActivateLineSpecial.SectorTag == 0)
                 {
                     sector.ActiveMoveSpecial.Use();
@@ -230,12 +289,26 @@ namespace Helion.Maps.Special
                 case ZLineSpecialType.PlatRaiseAndStay:
                     return CreateRaisePlatTxSpecial(sector, line, line.Args[1] * SpeedFactor, line.Args[2]);
 
+                case ZLineSpecialType.LightChangeToValue:
+                    return CreateLightChangeSpecial(sector, line.Args[1]);
+
+                case ZLineSpecialType.LightMinNeighbor:
+                    return CreateLightChangeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector));
+
+                case ZLineSpecialType.LightMaxNeighor:
+                    return CreateLightChangeSpecial(sector, m_map.GetMaxLightLevelNeighbor(sector));
+
                 case ZLineSpecialType.FloorDonut:
                     HandleFloorDonut(line, sector);
                     return null;
             }
 
             return null;
+        }
+
+        private ISpecial CreateLightChangeSpecial(Sector sector, byte lightLevel, int fadeTics = 0)
+        {
+            return new LightChangeSpecial(sector, lightLevel, fadeTics);
         }
 
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
@@ -282,7 +355,7 @@ namespace Helion.Maps.Special
             }
         }
 
-        public void Tick()
+        public void Tick(long gametic)
         {
             if (m_destroyedMoveSpecials.Count > 0)
             {
@@ -300,7 +373,7 @@ namespace Helion.Maps.Special
             while (node != null)
             {
                 var next = node.Next;
-                if (node.Value.Tick() == SpecialTickStatus.Destroy)
+                if (node.Value.Tick(gametic) == SpecialTickStatus.Destroy)
                 {
                     m_specials.Remove(node);
                     if (node.Value.Sector != null)
@@ -311,7 +384,7 @@ namespace Helion.Maps.Special
             }
         }
 
-        private void AddSpecial(ISpecial special)
+        public void AddSpecial(ISpecial special)
         {
             m_specials.AddLast(special);
         }

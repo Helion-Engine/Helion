@@ -23,13 +23,15 @@ namespace Helion.Maps.Geometry
         public SectorFlat Floor => Flats[0];
         public SectorFlat Ceiling => Flats[1];
         public float UnitLightLevel => LightLevel / 255.0f;
+        public ZSectorSpecialType SectorSpecialType;
 
-        public Sector(int id, byte lightLevel, SectorFlat floor, SectorFlat ceiling, int special, int tag)
+        public Sector(int id, byte lightLevel, SectorFlat floor, SectorFlat ceiling, ZSectorSpecialType special, int tag)
         {
             Precondition(floor.Z <= ceiling.Z, "Sector floor is above the ceiling");
 
             Id = id;
             LightLevel = lightLevel;
+            SectorSpecialType = special;
             Tag = tag;
             
             Flats.Add(floor);
@@ -48,6 +50,13 @@ namespace Helion.Maps.Geometry
             // TODO: Precondition to assert the entity is in only once.
             
             return Entities.Add(entity);            
+        }
+
+        public void SetLightLevel(byte lightLevel)
+        {
+            LightLevel = lightLevel;
+            Floor.LightLevel = lightLevel;
+            Ceiling.LightLevel = lightLevel;
         }
 
         public override bool Equals(object obj) => obj is Sector sector && Id == sector.Id;
