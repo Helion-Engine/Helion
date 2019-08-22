@@ -11,6 +11,7 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
+using Helion.Render.Shared.World.ViewClipper;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -40,6 +41,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
         private readonly LegacySkyRenderer m_skyRenderer;
         private readonly LegacyShader m_shaderProgram;
+        private readonly ViewClipper m_viewClipper = new ViewClipper();
         private double m_tickFraction;
         
         public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
@@ -91,6 +93,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         
         private void ClearStates()
         {
+            m_viewClipper.Clear();
             m_skyRenderer.Clear();
             m_lineDrawnTracker.ClearDrawnLines();
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Clear());
@@ -103,6 +106,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             // Note that this will also emit geometry to the sky renderer as
             // well, it is not just for this class.
+            m_viewClipper.Center = position;
             RecursivelyRenderBSP(world.BspTree.Root, position, world);
         }
         
@@ -177,6 +181,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderOneSided(Line line, Side side)
         {
+            // TODO: If we can't see it (dot product and looking generally
+            //       horizontally), don't draw it.
+            
             Sector sector = side.Sector;
             byte lightLevel = sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(side.MiddleTexture);
@@ -228,6 +235,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
+            // TODO: If we can't see it (dot product and looking generally
+            //       horizontally), don't draw it.
+            
             bool isSky = otherSide.Sector.Floor.Texture == Constants.SkyTexture;
             byte lightLevel = facingSide.Sector.LightLevel;
             
@@ -259,6 +269,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         {
             Precondition(facingSide.MiddleTexture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
 
+            // TODO: If we can't see it (dot product and looking generally
+            //       horizontally), don't draw it.
+            
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             byte lightLevel = facingSide.Sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.MiddleTexture);
@@ -307,6 +320,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
+            // TODO: If we can't see it (dot product and looking generally
+            //       horizontally), don't draw it.
+            
             bool isSky = otherSide.Sector.Ceiling.Texture == Constants.SkyTexture;
             byte lightLevel = facingSide.Sector.LightLevel;
             
@@ -343,6 +359,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderFlat(Subsector subsector, SectorFlat flat)
         {
+            // TODO: If we can't see it (dot product the plane) then exit.
+            
             bool isSky = flat.Texture == Constants.SkyTexture;
             
             // TODO: A lot of this stuff is not needed if we are doing sky

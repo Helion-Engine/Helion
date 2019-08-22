@@ -1,4 +1,4 @@
-﻿using Helion.Cheats;
+﻿using System;
 using Helion.Maps;
 using Helion.Maps.Special;
 using Helion.Resources.Archives.Collection;
@@ -8,7 +8,6 @@ using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Physics;
 using MoreLinq;
-using System;
 
 namespace Helion.World
 {
@@ -19,7 +18,7 @@ namespace Helion.World
         public int Gametick { get; private set; }
         public readonly IMap Map;
         public readonly BspTree BspTree;
-        protected readonly Blockmap Blockmap;
+        public readonly Blockmap Blockmap;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly EntityManager EntityManager;

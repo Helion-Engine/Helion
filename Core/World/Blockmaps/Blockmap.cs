@@ -17,6 +17,7 @@ namespace Helion.World.Blockmaps
     /// </summary>
     public class Blockmap
     {
+        public readonly Box2D Bounds;
         private readonly UniformGrid<Block> m_blocks;
         
         /// <summary>
@@ -25,8 +26,8 @@ namespace Helion.World.Blockmaps
         /// <param name="map">The map to make the grid for.</param>
         public Blockmap(IMap map)
         {
-            Box2D mapBounds = FindMapBoundingBox(map);
-            m_blocks = new UniformGrid<Block>(mapBounds);
+            Bounds = FindMapBoundingBox(map);
+            m_blocks = new UniformGrid<Block>(Bounds);
             SetBlockCoordinates();
             AddLinesToBlocks(map);
         }
