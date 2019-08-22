@@ -112,7 +112,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         
         private void RecursivelyRenderBSP(BspNodeCompact node, Vec2D position, WorldBase world)
         {
-            // TODO: This is probably a performance issue, consider optimizing.
+            if (NotVisible(node, position))
+                return;
+            
             // TODO: Consider changing to xor trick to avoid branching?
             if (node.Splitter.OnRight(position))
             {
@@ -138,6 +140,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 else
                     RecursivelyRenderBSP(world.BspTree.Nodes[node.RightChild], position, world);
             }
+        }
+
+        private bool NotVisible(in BspNodeCompact node, in Vec2D position)
+        {
+            if (node.BoundingBox.Contains(position))
+                return false;
+            
+            (Vec2D first, Vec2D second) = node.BoundingBox.GetDiagonalCorners(position);
+            return m_viewClipper.InsideAnyRange(first, second);
         }
 
         private void RenderSubsector(Subsector subsector, Vec2D position)

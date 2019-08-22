@@ -479,7 +479,21 @@ namespace Helion.Util.Geometry
             Vec2D newMin = new Vec2D(offset.X - radius, offset.Y - radius);
             Vec2D newMax = new Vec2D(offset.X + radius, offset.Y + radius);
             return new Box2D(newMin, newMax);
-        } 
+        }
+
+        /// <summary>
+        /// Gets the diagonal corners relative to some position.
+        /// </summary>
+        /// <param name="position">The position to check. This is assumed to
+        /// not be inside the box (otherwise the results are arbitrary).
+        /// </param>
+        /// <returns>The two corners that form a diagonal segment.</returns>
+        public (Vec2D, Vec2D) GetDiagonalCorners(in Vec2D position)
+        {
+            if (position.X > Right)
+                return position.Y > Top ? (TopLeft, BottomRight) : (BottomLeft, TopRight);
+            return position.Y > Top ? (BottomLeft, TopRight) : (TopLeft, BottomRight);
+        }
 
         /// <summary>
         /// Calculates the sides of this bounding box.

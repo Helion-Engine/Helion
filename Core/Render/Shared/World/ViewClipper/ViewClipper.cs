@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -21,7 +22,7 @@ namespace Helion.Render.Shared.World.ViewClipper
     /// use of this class, it should be cleared, and have the center set to the
     /// central view reference point.
     /// </remarks>
-    public class ViewClipper
+    public class ViewClipper : IEnumerable<ClipSpan>
     {
         private const uint DiamondScale = uint.MaxValue / 4;
         private const uint PiAngle = uint.MaxValue / 2;
@@ -33,11 +34,24 @@ namespace Helion.Render.Shared.World.ViewClipper
         /// </summary>
         public Vec2D Center { private get; set; } = Vec2D.Zero;
 
+        /// <summary>
+        /// Clears all the clip ranges.
+        /// </summary>
+        /// <remarks>
+        /// Unless you know what you are doing, you should also set the
+        /// <see cref="Center"/> variable to a new position.
+        /// </remarks>
         public void Clear()
         {
             m_nodes.Clear();
         }
 
+        /// <summary>
+        /// Adds two positions that will be converted into angles and then
+        /// added to be a clipping range.
+        /// </summary>
+        /// <param name="first">The first vertex of a line segment.</param>
+        /// <param name="second">The second vertex of a line segment.</param>
         public void AddLine(Vec2D first, Vec2D second)
         {
             (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(first), ToDiamondAngle(second));
@@ -50,6 +64,40 @@ namespace Helion.Render.Shared.World.ViewClipper
             else
                 AddRange(smallerAngle, largerAngle);
         }
+        
+        /// <summary>
+        /// Checks if the two points provided are encased in any ranges.
+        /// </summary>
+        /// <param name="first">The first vertex of a line segment.</param>
+        /// <param name="second">The second vertex of a line segment.</param>
+        /// <returns>True if they are in a range, false if not.</returns>
+        public bool InsideAnyRange(Vec2D first, Vec2D second)
+        {
+            if (m_nodes.Empty())
+                return false;
+            
+            (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(first), ToDiamondAngle(second));
+
+            LinkedListNode<ClipSpan>? node = m_nodes.First;
+            while (node != null)
+            {
+                if (node.Value.Contains(smallerAngle, largerAngle))
+                    return true;
+
+                if (largerAngle < node.Value.StartAngle)
+                    return false;
+                
+                node = node.Next;
+            }
+            
+            return false;
+        }
+        
+        /// <inheritdoc/>
+        public IEnumerator<ClipSpan> GetEnumerator() => m_nodes.GetEnumerator();
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         /// <summary>
         /// Checks if the arc from the chord crosses the origin vector [1, 0].
