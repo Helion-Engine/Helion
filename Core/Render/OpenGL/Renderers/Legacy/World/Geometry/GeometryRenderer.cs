@@ -204,12 +204,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             Sector facingSector = facingSide.Sector;
             Sector otherSector = otherSide.Sector;
 
-            if (facingSector.Floor.Z < otherSector.Floor.Z)
+            if (LowerIsVisible(facingSector, otherSector))
                 RenderTwoSidedLower(line, facingSide, otherSide, isFrontSide);
             if (facingSide.MiddleTexture != Constants.NoTexture)
                 RenderTwoSidedMiddle(line, facingSide, otherSide, isFrontSide);
-            if (facingSector.Ceiling.Z > otherSector.Ceiling.Z)
+            if (UpperIsVisible(facingSector, otherSector))
                 RenderTwoSidedUpper(line, facingSide, otherSide, isFrontSide);
+        }
+
+        private bool LowerIsVisible(Sector facingSector, Sector otherSector)
+        {
+            double facingZ = facingSector.Floor.PrevZ.Interpolate(facingSector.Floor.Z, m_tickFraction);
+            double otherZ = otherSector.Floor.PrevZ.Interpolate(otherSector.Floor.Z, m_tickFraction);
+            return facingZ < otherZ;
+        }
+
+        private bool UpperIsVisible(Sector facingSector, Sector otherSector)
+        {
+            double facingZ = facingSector.Ceiling.PrevZ.Interpolate(facingSector.Ceiling.Z, m_tickFraction);
+            double otherZ = otherSector.Ceiling.PrevZ.Interpolate(otherSector.Ceiling.Z, m_tickFraction);
+            return facingZ > otherZ;
         }
 
         private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
