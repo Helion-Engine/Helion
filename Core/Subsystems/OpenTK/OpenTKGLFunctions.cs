@@ -91,6 +91,11 @@ namespace Helion.Subsystems.OpenTK
             GL.ClearColor(r, g, b, a);
         }
 
+        public void ColorMask(bool red, bool green, bool blue, bool alpha)
+        {
+            GL.ColorMask(red, green, blue, alpha);
+        }
+
         public void CompileShader(int shaderId)
         {
             GL.CompileShader(shaderId);
@@ -164,6 +169,11 @@ namespace Helion.Subsystems.OpenTK
         public void DetachShader(int programId, int shaderId)
         {
             GL.DetachShader(programId, shaderId);
+        }
+
+        public void Disable(EnableType type)
+        {
+            GL.Disable((EnableCap)type);
         }
 
         public void DrawArrays(PrimitiveDrawType type, int startIndex, int count)
@@ -292,6 +302,21 @@ namespace Helion.Subsystems.OpenTK
         public void ShaderSource(int shaderId, string sourceText)
         {
             GL.ShaderSource(shaderId, sourceText);
+        }
+
+        public void StencilFunc(StencilFuncType type, int value, int mask)
+        {
+            GL.StencilFunc((StencilFunction)type, value, mask);
+        }
+
+        public void StencilMask(int mask)
+        {
+            GL.StencilMask(mask);
+        }
+
+        public void StencilOp(StencilOpType stencilFail, StencilOpType depthFail, StencilOpType depthPass)
+        {
+            GL.StencilOp((StencilOp)stencilFail, (StencilOp)depthFail, (StencilOp)depthPass);
         }
 
         public void TexParameter(TextureTargetType targetType, TextureParameterNameType paramType, int value)

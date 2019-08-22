@@ -15,7 +15,7 @@ namespace Helion.Render.OpenGL.Buffer.Array.Vertex
             BindAttributes(vao);
         }
         
-        public virtual void DrawArrays()
+        public void DrawArrays()
         {
             if (Count == 0)
                 return;

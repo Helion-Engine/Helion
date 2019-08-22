@@ -1,3 +1,4 @@
+using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
@@ -22,6 +23,33 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
+        
+        public void UploadAndSetParameters(GLLegacyTexture texture, Image image, CIString name, ResourceNamespace resourceNamespace)
+        {
+            Precondition(image.Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
+            
+            gl.BindTexture(texture.TextureType, texture.TextureId);
+
+            GLHelper.ObjectLabel(gl, Capabilities, ObjectLabelType.Texture, texture.TextureId, "Texture: " + name);
+
+            var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
+            var lockMode = ImageLockMode.ReadOnly;
+            var format = PixelFormat.Format32bppArgb;
+            var bitmapData = image.Bitmap.LockBits(pixelArea, lockMode, format);
+            
+            // Because the C# image format is 'ARGB', we can get it into the
+            // RGBA format by doing a BGRA format and then reversing it.
+            gl.TexImage2D(texture.TextureType, 0, PixelInternalFormatType.Rgba8, image.Dimension, 
+                PixelFormatType.Bgra, PixelDataType.UnsignedInt8888Rev, bitmapData.Scan0);
+            
+            image.Bitmap.UnlockBits(bitmapData);
+
+            Invariant(texture.TextureType == TextureTargetType.Texture2D, "Need to support non-2D textures for mipmapping");
+            gl.GenerateMipmap(MipmapTargetType.Texture2D);
+            SetTextureParameters(TextureTargetType.Texture2D, resourceNamespace);
+
+            gl.BindTexture(texture.TextureType, 0);
+        }
 
         protected override GLLegacyTexture GenerateTexture(int id, Image image, CIString name, 
             ResourceNamespace resourceNamespace)
@@ -29,31 +57,10 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             int textureId = gl.GenTexture();
             string textureName = $"{name} [{resourceNamespace}]";
             
-            UploadData(textureId, image, name, resourceNamespace);
-            return new GLLegacyTexture(id, textureId, textureName, image.Dimension, gl, TextureTargetType.Texture2D);
-        }
-
-        private void UploadData(int textureId, Image image, CIString name, ResourceNamespace resourceNamespace)
-        {
-            gl.BindTexture(TextureTargetType.Texture2D, textureId);
+            GLLegacyTexture texture = new GLLegacyTexture(id, textureId, textureName, image.Dimension, gl, TextureTargetType.Texture2D);
+            UploadAndSetParameters(texture, image, name, resourceNamespace);
             
-            // TODO: Implement mipmaps manually (and use CalculateMipmapLevels).
-            GLHelper.ObjectLabel(gl, Capabilities, ObjectLabelType.Texture, textureId, "Texture: " + name);
-
-            var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
-            var lockMode = System.Drawing.Imaging.ImageLockMode.ReadOnly;
-            var format = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
-            var bitmapData = image.Bitmap.LockBits(pixelArea, lockMode, format);
-            
-            // Because the C# image format is 'ARGB', we can get it into the
-            // RGBA format by doing a BGRA format and then reversing it.
-            gl.TexImage2D(TextureTargetType.Texture2D, 0, PixelInternalFormatType.Rgba8, image.Dimension, 
-                PixelFormatType.Bgra, PixelDataType.UnsignedInt8888Rev, bitmapData.Scan0);
-            SetTextureParameters(TextureTargetType.Texture2D, resourceNamespace);
-
-            image.Bitmap.UnlockBits(bitmapData);
-            
-            gl.BindTexture(TextureTargetType.Texture2D, 0);
+            return texture;
         }
 
         private void SetTextureParameters(TextureTargetType targetType, ResourceNamespace resourceNamespace)

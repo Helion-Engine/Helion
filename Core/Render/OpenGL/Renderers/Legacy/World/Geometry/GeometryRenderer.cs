@@ -3,39 +3,61 @@ using System.Collections.Generic;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Vertex;
+using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
-using Helion.World.Physics;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 {
-    public class GeometryManager : IDisposable
+    public class GeometryRenderer : IDisposable
     {
+        public static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
+            new VertexPointerFloatAttribute("pos", 0, 3),
+            new VertexPointerFloatAttribute("uv", 1, 2),
+            new VertexPointerFloatAttribute("lightLevel", 2, 1));
+
+        private readonly Config m_config;
         private readonly IGLFunctions gl;
         private readonly GLCapabilities m_capabilities;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly Dictionary<GLLegacyTexture, RenderGeometryData> m_textureToGeometry = new Dictionary<GLLegacyTexture, RenderGeometryData>();
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
+        private readonly LegacySkyRenderer m_skyRenderer;
+        private readonly LegacyShader m_shaderProgram;
         private double m_tickFraction;
         
-        public GeometryManager(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
+        public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
+            IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
+            m_config = config;
             m_capabilities = capabilities;
             gl = functions;
             m_textureManager = textureManager;
+            m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
+            
+            using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
+                m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
         }
         
-        ~GeometryManager()
+        ~GeometryRenderer()
         {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
 
@@ -44,20 +66,21 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Dispose());
             m_textureToGeometry.Clear();
             
+            // TODO: We should create a new one from the ground up to destroy
+            //       the old state left over, not clear.
+            m_skyRenderer.Clear();
+            
             m_lineDrawnTracker.UpdateToWorld(world);
         }
 
         public void Render(WorldBase world, RenderInfo renderInfo)
         {
-            m_lineDrawnTracker.ClearDrawnLines();
+            ClearStates();
             
-            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Clear());
-
-            m_tickFraction = renderInfo.TickFraction;
-            Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
-            RecursivelyRenderBSP(world.BspTree.Root, position, world);
+            TraverseGeometry(world, renderInfo);
             
-            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Draw());
+            RenderGeometry(renderInfo);
+            m_skyRenderer.Render(renderInfo);
         }
 
         public void Dispose()
@@ -65,7 +88,24 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
+        
+        private void ClearStates()
+        {
+            m_skyRenderer.Clear();
+            m_lineDrawnTracker.ClearDrawnLines();
+            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Clear());
+        }
 
+        private void TraverseGeometry(WorldBase world, RenderInfo renderInfo)
+        {
+            m_tickFraction = renderInfo.TickFraction;
+            Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
+            
+            // Note that this will also emit geometry to the sky renderer as
+            // well, it is not just for this class.
+            RecursivelyRenderBSP(world.BspTree.Root, position, world);
+        }
+        
         private void RecursivelyRenderBSP(BspNodeCompact node, Vec2D position, WorldBase world)
         {
             // TODO: This is probably a performance issue, consider optimizing.
@@ -164,18 +204,31 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             Sector facingSector = facingSide.Sector;
             Sector otherSector = otherSide.Sector;
 
-            if (facingSector.Floor.Z < otherSector.Floor.Z)
+            if (LowerIsVisible(facingSector, otherSector))
                 RenderTwoSidedLower(line, facingSide, otherSide, isFrontSide);
-            if (facingSector.Ceiling.Z > otherSector.Ceiling.Z)
+            if (facingSide.MiddleTexture != Constants.NoTexture)
+                RenderTwoSidedMiddle(line, facingSide, otherSide, isFrontSide);
+            if (UpperIsVisible(facingSector, otherSector))
                 RenderTwoSidedUpper(line, facingSide, otherSide, isFrontSide);
-            
-            LineOpening lineOpening = new LineOpening(facingSector, otherSector);
-            if (lineOpening.OpeningHeight > 0 && facingSide.MiddleTexture != Constants.NoTexture)
-                RenderTwoSidedMiddle(line, facingSide, otherSide, lineOpening, isFrontSide);
+        }
+
+        private bool LowerIsVisible(Sector facingSector, Sector otherSector)
+        {
+            double facingZ = facingSector.Floor.PrevZ.Interpolate(facingSector.Floor.Z, m_tickFraction);
+            double otherZ = otherSector.Floor.PrevZ.Interpolate(otherSector.Floor.Z, m_tickFraction);
+            return facingZ < otherZ;
+        }
+
+        private bool UpperIsVisible(Sector facingSector, Sector otherSector)
+        {
+            double facingZ = facingSector.Ceiling.PrevZ.Interpolate(facingSector.Ceiling.Z, m_tickFraction);
+            double otherZ = otherSector.Ceiling.PrevZ.Interpolate(otherSector.Ceiling.Z, m_tickFraction);
+            return facingZ > otherZ;
         }
 
         private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
+            bool isSky = otherSide.Sector.Floor.Texture == Constants.SkyTexture;
             byte lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.LowerTexture);
@@ -184,34 +237,40 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
                 texture.UVInverse, isFrontSide, m_tickFraction);
             
-            // See RenderOneSided() for an ASCII image of why we do this.
-            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+            if (isSky)
+            {
+                m_skyRenderer.DefaultSky.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
+                m_skyRenderer.DefaultSky.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+            }
+            else
+            {
+                // See RenderOneSided() for an ASCII image of why we do this.
+                // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+                renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+            }
         }
 
-        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, LineOpening opening, 
-            bool isFrontSide)
+        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
-            Precondition(opening.OpeningHeight > 0, "Should not be rendering a two sided middle when there's no opening");
             Precondition(facingSide.MiddleTexture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
-            
+
+            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             byte lightLevel = facingSide.Sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.MiddleTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
-                texture.Dimension, texture.UVInverse, opening, isFrontSide, m_tickFraction,
-                out bool nothingVisibleToDraw);
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible);
             
             // If the texture can't be drawn because the level has offsets that
             // are messed up (ex: offset causes it to be completely missing) we
             // can exit early since nothing can be drawn.
-            if (nothingVisibleToDraw)
+            if (nothingVisible)
                 return;
             
             // See RenderOneSided() for an ASCII image of why we do this.
@@ -224,8 +283,31 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
+        private (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector)
+        {
+            SectorFlat facingFloor = facingSector.Floor;
+            SectorFlat facingCeiling = facingSector.Ceiling;
+            SectorFlat otherFloor = otherSector.Floor;
+            SectorFlat otherCeiling = otherSector.Ceiling;
+
+            double facingFloorZ = facingFloor.PrevZ.Interpolate(facingFloor.Z, m_tickFraction);
+            double facingCeilingZ = facingCeiling.PrevZ.Interpolate(facingCeiling.Z, m_tickFraction);
+            double otherFloorZ = otherFloor.PrevZ.Interpolate(otherFloor.Z, m_tickFraction);
+            double otherCeilingZ = otherCeiling.PrevZ.Interpolate(otherCeiling.Z, m_tickFraction);
+
+            double bottomZ = facingFloorZ;
+            double topZ = facingCeilingZ;
+            if (otherFloorZ > facingFloorZ)
+                bottomZ = otherFloorZ;
+            if (otherCeilingZ < facingCeilingZ)
+                topZ = otherCeilingZ;
+
+            return (bottomZ, topZ);
+        }
+
         private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
+            bool isSky = otherSide.Sector.Ceiling.Texture == Constants.SkyTexture;
             byte lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.UpperTexture);
@@ -233,15 +315,23 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
                 texture.UVInverse, isFrontSide, m_tickFraction);
-            
-            // See RenderOneSided() for an ASCII image of why we do this.
-            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+
+            if (isSky)
+            {
+                m_skyRenderer.DefaultSky.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
+                m_skyRenderer.DefaultSky.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+            }
+            else
+            {
+                // See RenderOneSided() for an ASCII image of why we do this.
+                // TODO: Do some kind of stackalloc here to avoid calling it 6x.
+                renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
+                renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));   
+            }
         }
 
         private void RenderFlats(Subsector subsector)
@@ -253,6 +343,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderFlat(Subsector subsector, SectorFlat flat)
         {
+            bool isSky = flat.Texture == Constants.SkyTexture;
+            
+            // TODO: A lot of this stuff is not needed if we are doing sky
+            //       geometry. We don't care about UV coordinates or texture
+            //       stuff, only positional coordinates.
             byte lightLevel = flat.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetFlat(flat.Texture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
@@ -263,15 +358,28 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
 
             WorldVertex root = m_subsectorVertices[0];
-            for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
-            {
-                WorldVertex second = m_subsectorVertices[i];
-                WorldVertex third = m_subsectorVertices[i + 1];
 
-                // TODO: Do some kind of stackalloc here to avoid calling it 3x.
-                renderData.Vbo.Add(new LegacyVertex(root, lightLevel)); 
-                renderData.Vbo.Add(new LegacyVertex(second, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(third, lightLevel));
+            if (isSky)
+            {
+                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                {
+                    WorldVertex second = m_subsectorVertices[i];
+                    WorldVertex third = m_subsectorVertices[i + 1];
+                    m_skyRenderer.DefaultSky.Add(root, second, third);
+                }
+            }
+            else
+            {
+                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                {
+                    WorldVertex second = m_subsectorVertices[i];
+                    WorldVertex third = m_subsectorVertices[i + 1];
+
+                    // TODO: Do some kind of stackalloc here to avoid calling it 3x.
+                    renderData.Vbo.Add(new LegacyVertex(root, lightLevel)); 
+                    renderData.Vbo.Add(new LegacyVertex(second, lightLevel));
+                    renderData.Vbo.Add(new LegacyVertex(third, lightLevel));
+                }   
             }
         }
 
@@ -284,10 +392,31 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_textureToGeometry[texture] = newData;
             return newData;
         }
+        
+        private void SetUniforms(RenderInfo renderInfo)
+        {
+            float fovX = (float)MathHelper.ToRadians(m_config.Engine.Render.FieldOfView);
+            
+            m_shaderProgram.BoundTexture.Set(gl, 0);
+            m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, fovX));
+        }
+        
+        private void RenderGeometry(RenderInfo renderInfo)
+        {
+            m_shaderProgram.Bind();
+            
+            SetUniforms(renderInfo);
+            gl.ActiveTexture(TextureUnitType.Zero);
+            m_textureToGeometry.Values.ForEach(geometryData => geometryData.Draw());
+
+            m_shaderProgram.Unbind();
+        }
 
         private void ReleaseUnmanagedResources()
         {
             m_textureToGeometry.Values.ForEach(geometryData => geometryData.Dispose());
+            m_shaderProgram.Dispose();
+            m_skyRenderer.Dispose();
         }
     }
 }
