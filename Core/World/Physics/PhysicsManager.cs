@@ -103,7 +103,7 @@ namespace Helion.World.Physics
                 entity.UnlinkFromWorld();
                 LinkToWorld(entity);
 
-                thingZ = entity.OnGround ? sector.Floor.Plane.ToZ(entity.Position.To2D()) : entity.Position.Z;
+                thingZ = entity.OnGround ? entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position.To2D()) : entity.Position.Z;
 
                 if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
                 {
