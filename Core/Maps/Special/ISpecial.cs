@@ -12,7 +12,7 @@ namespace Helion.Maps.Special
     public interface ISpecial
     {
         Sector? Sector { get; }
-        SpecialTickStatus Tick();
+        SpecialTickStatus Tick(long gametic);
         void Use();
     }
 }

@@ -20,7 +20,7 @@ namespace Helion.Maps.Special.Specials
             m_line.Activated = true;
         }
 
-        public SpecialTickStatus Tick()
+        public SpecialTickStatus Tick(long gametic)
         {
             if (m_switchDelayTics > 0)
             {

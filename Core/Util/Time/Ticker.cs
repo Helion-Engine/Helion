@@ -15,6 +15,7 @@ namespace Helion.Util.Time
         private readonly Stopwatch m_stopwatch = new Stopwatch();
         private long m_lastTickSeen;
         private long m_tickAccumulation = 0;
+        public long GameTic = 0;
 
         /// <summary>
         /// Creates a new ticker that creates the following ticks per second.
@@ -79,6 +80,8 @@ namespace Helion.Util.Time
             float fraction = (float)(tickFractionUnit - ticks);
 
             RemoveExcessTicks(ticks);
+
+            GameTic += ticks;
 
             return new TickerInfo(ticks, fraction);
         }

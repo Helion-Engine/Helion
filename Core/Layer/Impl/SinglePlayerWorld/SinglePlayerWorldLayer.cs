@@ -114,7 +114,7 @@ namespace Helion.Layer.Impl
 
             while (ticksToRun > 0)
             {
-                m_world.Tick();
+                m_world.Tick(m_ticker.GameTic - ticksToRun);
                 ticksToRun--;
             }
         }

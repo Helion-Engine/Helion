@@ -25,7 +25,7 @@ namespace Helion.Maps.Special.Specials
             m_map = map;
         }
 
-        public SpecialTickStatus Tick()
+        public SpecialTickStatus Tick(long gametic)
         {
             Vec2D position;
             Entity entity = m_args.Entity;

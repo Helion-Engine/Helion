@@ -45,7 +45,7 @@ namespace Helion.World
             LevelExit?.Invoke(this, e);
         }
 
-        public void Tick()
+        public void Tick(long gametic)
         {
             EntityManager.Players.Values.ForEach(player => player.Tick());
             
@@ -55,7 +55,7 @@ namespace Helion.World
                 PhysicsManager.Move(entity);
             });
 
-            SpecialManager.Tick();
+            SpecialManager.Tick(gametic);
 
             Gametick++;
         }

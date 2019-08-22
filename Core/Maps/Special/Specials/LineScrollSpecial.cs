@@ -19,7 +19,7 @@ namespace Helion.Maps.Special.Specials
             m_scroll = scroll;
         }
 
-        public SpecialTickStatus Tick()
+        public SpecialTickStatus Tick(long gametic)
         {
             m_line.Front.Offset.X += m_speed;
             return SpecialTickStatus.Continue;

@@ -52,10 +52,14 @@ namespace Helion.Maps.Special.Specials
                 m_data.StartDirection = MoveDirection.Down;
             }
 
+            // Doom starts with the delay on perpetual movement
+            if (m_data.MoveRepetition == MoveRepetition.Perpetual)
+                m_delayTics = m_data.Delay;
+
             Sector.ActiveMoveSpecial = this;
         }
 
-        public virtual SpecialTickStatus Tick()
+        public virtual SpecialTickStatus Tick(long gametic)
         {
             if (m_delayTics > 0)
             {

@@ -34,7 +34,8 @@ namespace Helion.Maps.Special.Specials
             m_sectors.ForEach(x => x.ActiveMoveSpecial = this);
         }
 
-        public override SpecialTickStatus Tick()
+        // TODO verify me - PrevZ probably doesn't work right
+        public override SpecialTickStatus Tick(long gametic)
         {
             if (m_stairDelayTics > 0)
             {
@@ -50,7 +51,7 @@ namespace Helion.Maps.Special.Specials
                 m_flat = Sector.Floor;
                 m_destZ = m_startZ + (m_stairHeight * (i + 1));
                 if (Sector.IsMoving)
-                    currentStatus = base.Tick();
+                    currentStatus = base.Tick(gametic);
 
                 if (currentStatus == SpecialTickStatus.Destroy)
                 {
