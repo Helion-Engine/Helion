@@ -48,9 +48,6 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// is equal to the <see cref="Center"/>.</returns>
         public uint ToDiamondAngle(Vec2D vertex)
         {
-            if (vertex == Vec2D.Zero)
-                return 0;
-
             // The code below takes some position and finds the vector from the
             // center to the position.
             //
@@ -71,6 +68,8 @@ namespace Helion.Render.Shared.World.ViewClipping
             // blocked or not by mapping every position onto a unit circle with
             // 2^32 precision.
             Vec2D pos = vertex - Center;
+            if (pos == Vec2D.Zero)
+                return 0;
             
             // TODO: Can we fuse two if statements into one statement somehow?
             if (pos.Y >= 0)
@@ -205,7 +204,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// <param name="endAngle">The ending angle.</param>
         private void AddRange(uint startAngle, uint endAngle)
         {
-            Precondition(startAngle < endAngle, "Range must have the start angle being before the end angle");
+            Precondition(startAngle <= endAngle, "Range must have the start angle being before the end angle");
 
             LinkedListNode<ClipSpan> startNode = FindOrMakeStartNode(startAngle, endAngle);
             MergeUntil(startNode, endAngle);
@@ -240,6 +239,10 @@ namespace Helion.Render.Shared.World.ViewClipping
 
             if (startNode.Value.Contains(startAngle))
                 return startNode;
+            
+            // If we're in between a gap, we'll make a new node.
+            if (startNode.Value.StartAngle > endAngle)
+                return m_nodes.AddBefore(startNode, new ClipSpan(startAngle, endAngle));
             
             // We can extend the starting node backwards without worrying about
             // creating an overlap, since `startNode` would have been that node
@@ -301,12 +304,14 @@ namespace Helion.Render.Shared.World.ViewClipping
                 
                 lastSeenNodeEndAngle = clipSpan.EndAngle;
 
+                LinkedListNode<ClipSpan>? next = current.Next;
+                m_nodes.Remove(current);
+                current = next;
+
+                // We do this last because we need to make sure we unlink the
+                // node as we will be extending the starting node onwards.
                 if (clipSpan.Contains(endAngle))
                     break;
-
-                LinkedListNode<ClipSpan> nodeToUnlink = current;
-                current = current.Next;
-                m_nodes.Remove(nodeToUnlink);
             }
 
             uint newEndingAngle = Math.Max(endAngle, lastSeenNodeEndAngle);

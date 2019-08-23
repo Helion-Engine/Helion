@@ -5,6 +5,7 @@ namespace Helion.Test.Unit.Util.Assertion
     [TestClass]
     public class AssertTest
     {
+#if DEBUG
         [TestMethod]
         public void CanPassPrecondition()
         {
@@ -86,5 +87,6 @@ namespace Helion.Test.Unit.Util.Assertion
                 Assert.AreEqual(errorMsg, e.Message);
             }
         }
+#endif
     }
 }

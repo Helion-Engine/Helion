@@ -26,7 +26,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// to the start angle.</param>
         public ClipSpan(uint startAngle, uint endAngle)
         {
-            Precondition(startAngle < endAngle, "Cannot have the end angle be less than the start angle");
+            Precondition(startAngle <= endAngle, "Cannot have the end angle be less than the start angle");
             
             StartAngle = startAngle;
             EndAngle = endAngle;

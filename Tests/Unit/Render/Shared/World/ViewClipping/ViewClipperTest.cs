@@ -98,7 +98,7 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
         public void AddMultipleDisjointSpans()
         {
             ViewClipper clipper = new ViewClipper();
-            
+
             clipper.AddLine(Top, Right);
             clipper.AddLine(Left, Bottom);
             
@@ -127,10 +127,13 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
         // 22222
         // [-------]
         [TestMethod]
-        public void AddTwoSpansThatMergeNoOverlapBeginning()
+        public void AddTwoSpansThatMergeNoOverlapBeginningAtNewCenter()
         {
-            ViewClipper clipper = new ViewClipper();
-
+            ViewClipper clipper = new ViewClipper
+            {
+                Center = new Vec2D(0.1, 0.3)
+            };
+            
             clipper.AddLine(Left, Bottom);
             clipper.AddLine(Top, Left);
             
@@ -232,6 +235,239 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             uint firstAngle = clipper.ToDiamondAngle(Right);
             uint secondAngle = clipper.ToDiamondAngle(Bottom);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
+        }
+        
+        // 11111 
+        //         222222
+        //    3333333
+        // [------------]
+        [TestMethod]
+        public void AddThreeSpansMiddleMergesBothOverlap()
+        {
+            ViewClipper clipper = new ViewClipper();
+            
+            clipper.AddLine(Right, Top);
+            Assert.AreEqual(1, clipper.ToList().Count);
+            
+            clipper.AddLine(Left, Bottom);
+            Assert.AreEqual(2, clipper.ToList().Count);
+            
+            Vec2D topRight = new Vec2D(1, 2);
+            Vec2D bottomLeft = new Vec2D(-2, -1);
+            clipper.AddLine(topRight, bottomLeft);
+            
+            List<ClipSpan> spans = clipper.ToList();
+            Assert.AreEqual(1, spans.Count);
+            
+            uint firstAngle = clipper.ToDiamondAngle(Right);
+            uint secondAngle = clipper.ToDiamondAngle(Bottom);
+            AssertSpanEquals(spans[0], firstAngle, secondAngle);
+        }
+        
+        //   11 
+        //       222222
+        // 33333333333333
+        // [------------]
+        [TestMethod]
+        public void AddThreeSpansCompleteOverlap()
+        {
+            ViewClipper clipper = new ViewClipper();
+            
+            Vec2D first = new Vec2D(1, 1);
+            Vec2D second = new Vec2D(1, 2);
+            clipper.AddLine(first, second);
+            Assert.AreEqual(1, clipper.ToList().Count);
+
+            Vec2D third = Top;
+            Vec2D fourth = new Vec2D(-1, 5);
+            clipper.AddLine(third, fourth);
+            Assert.AreEqual(2, clipper.ToList().Count);
+
+            Vec2D beginning = new Vec2D(5, 1);
+            Vec2D end = new Vec2D(-1, 4);
+            clipper.AddLine(beginning, end);
+
+            List<ClipSpan> spans = clipper.ToList();
+            Assert.AreEqual(1, spans.Count);
+            
+            uint firstAngle = clipper.ToDiamondAngle(beginning);
+            uint secondAngle = clipper.ToDiamondAngle(end);
+            AssertSpanEquals(spans[0], firstAngle, secondAngle);
+        }
+        
+        // The letters map onto the ends so this is easier to keep track of.
+        // ABCDEF GHI J KL
+        //  11
+        //      222
+        // 3333          333 
+        //            4
+        //          5 
+        //   6666666   
+        //  7777
+        //              888
+        // [--------] | [--]
+        //  bcdef ghi j klm
+        //
+        // 1: b c
+        // 2: f g
+        // 3: d l
+        // 4: j j
+        // 5: i i
+        // 6: c h
+        // 7: b e
+        // 8: k m
+        [TestMethod]
+        public void AddManySpansAndCrossOriginVectorWithClear()
+        {
+            Vec2D B = new Vec2D(5, 1);
+            Vec2D C = new Vec2D(3, 1);
+            Vec2D D = new Vec2D(1, 1);
+            Vec2D E = new Vec2D(1, 2);
+            Vec2D F = new Vec2D(0, 1);
+            Vec2D G = new Vec2D(-1, 3);
+            Vec2D H = new Vec2D(-2, 1);
+            Vec2D I = new Vec2D(-3, 1);
+            Vec2D J = new Vec2D(-1, -1);
+            Vec2D K = new Vec2D(-1, -5);
+            Vec2D L = new Vec2D(1, -3);
+            Vec2D M = new Vec2D(1, -1);
+            
+            ViewClipper clipper = new ViewClipper();
+
+            uint b = clipper.ToDiamondAngle(B);
+            uint c = clipper.ToDiamondAngle(C);
+            uint d = clipper.ToDiamondAngle(D);
+            uint e = clipper.ToDiamondAngle(E);
+            uint f = clipper.ToDiamondAngle(F);
+            uint g = clipper.ToDiamondAngle(G);
+            uint h = clipper.ToDiamondAngle(H);
+            uint i = clipper.ToDiamondAngle(I);
+            uint j = clipper.ToDiamondAngle(J);
+            uint k = clipper.ToDiamondAngle(K);
+            uint l = clipper.ToDiamondAngle(L);
+            uint m = clipper.ToDiamondAngle(M);
+            
+            //-----------------------------------------------------------------
+            // Add everything in the forward direction
+            //-----------------------------------------------------------------
+            clipper.AddLine(B, C);
+            List<ClipSpan> spans = clipper.ToList();
+            Assert.AreEqual(1, spans.Count);
+            AssertSpanEquals(spans[0], b, c);
+            
+            clipper.AddLine(F, G);
+            spans = clipper.ToList();
+            Assert.AreEqual(2, spans.Count);
+            AssertSpanEquals(spans[0], b, c);
+            AssertSpanEquals(spans[1], f, g);
+            
+            clipper.AddLine(D, L);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, d);
+            AssertSpanEquals(spans[1], f, g);
+            AssertSpanEquals(spans[2], l, uint.MaxValue);
+            
+            clipper.AddLine(J, J);
+            spans = clipper.ToList();
+            Assert.AreEqual(4, spans.Count);
+            AssertSpanEquals(spans[0], 0, d);
+            AssertSpanEquals(spans[1], f, g);
+            AssertSpanEquals(spans[2], j, j);
+            AssertSpanEquals(spans[3], l, uint.MaxValue);
+
+            clipper.AddLine(I, I);
+            spans = clipper.ToList();
+            Assert.AreEqual(5, spans.Count);
+            AssertSpanEquals(spans[0], 0, d);
+            AssertSpanEquals(spans[1], f, g);
+            AssertSpanEquals(spans[2], i, i);
+            AssertSpanEquals(spans[3], j, j);
+            AssertSpanEquals(spans[4], l, uint.MaxValue);
+            
+            clipper.AddLine(C, I);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, i);
+            AssertSpanEquals(spans[1], j, j);
+            AssertSpanEquals(spans[2], l, uint.MaxValue);
+
+            clipper.AddLine(B, E);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, i);
+            AssertSpanEquals(spans[1], j, j);
+            AssertSpanEquals(spans[2], l, uint.MaxValue);
+
+            clipper.AddLine(K, M);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, i);
+            AssertSpanEquals(spans[1], j, j);
+            AssertSpanEquals(spans[2], k, uint.MaxValue);
+            
+            //-----------------------------------------------------------------
+            // Add everything in reverse
+            //-----------------------------------------------------------------
+            clipper.Clear();
+            spans = clipper.ToList();
+            Assert.AreEqual(0, spans.Count);
+            
+            clipper.AddLine(C, B);
+            spans = clipper.ToList();
+            Assert.AreEqual(1, spans.Count);
+            AssertSpanEquals(spans[0], b, c);
+            
+            clipper.AddLine(G, F);
+            spans = clipper.ToList();
+            Assert.AreEqual(2, spans.Count);
+            AssertSpanEquals(spans[0], b, c);
+            AssertSpanEquals(spans[1], f, g);
+            
+            clipper.AddLine(L, D);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, d);
+            AssertSpanEquals(spans[1], f, g);
+            AssertSpanEquals(spans[2], l, uint.MaxValue);
+            
+            clipper.AddLine(J, J);
+            spans = clipper.ToList();
+            Assert.AreEqual(4, spans.Count);
+            AssertSpanEquals(spans[0], 0, d);
+            AssertSpanEquals(spans[1], f, g);
+            AssertSpanEquals(spans[2], j, j);
+            AssertSpanEquals(spans[3], l, uint.MaxValue);
+
+            clipper.AddLine(I, I);
+            spans = clipper.ToList();
+            Assert.AreEqual(5, spans.Count);
+            AssertSpanEquals(spans[0], 0, d);
+            AssertSpanEquals(spans[1], f, g);
+            AssertSpanEquals(spans[2], i, i);
+            AssertSpanEquals(spans[3], j, j);
+            AssertSpanEquals(spans[4], l, uint.MaxValue);
+            
+            clipper.AddLine(I, C);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, i);
+            AssertSpanEquals(spans[1], j, j);
+            AssertSpanEquals(spans[2], l, uint.MaxValue);
+
+            clipper.AddLine(E, B);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, i);
+            AssertSpanEquals(spans[1], j, j);
+            AssertSpanEquals(spans[2], l, uint.MaxValue);
+
+            clipper.AddLine(M, K);
+            spans = clipper.ToList();
+            Assert.AreEqual(3, spans.Count);
+            AssertSpanEquals(spans[0], 0, i);
+            AssertSpanEquals(spans[1], j, j);
+            AssertSpanEquals(spans[2], k, uint.MaxValue);
         }
     }
 }
