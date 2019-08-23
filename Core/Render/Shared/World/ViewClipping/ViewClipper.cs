@@ -6,7 +6,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Shared.World.ViewClipper
+namespace Helion.Render.Shared.World.ViewClipping
 {
     // TODO: Implement this with some kind of discrete fused interval tree for O(lg n).
     
@@ -34,6 +34,57 @@ namespace Helion.Render.Shared.World.ViewClipper
         /// </summary>
         public Vec2D Center { private get; set; } = Vec2D.Zero;
 
+        /// <summary>
+        /// Takes a position and gets the diamond angle value relative to the
+        /// last set center spot. The diamond angle is an ordered angle that
+        /// is similar to degrees or radians, and has absolute ordering.
+        /// </summary>
+        /// <remarks>
+        /// Learned this optimization from:
+        /// https://stackoverflow.com/questions/1427422/cheap-algorithm-to-find-measure-of-angle-between-vectors
+        /// </remarks>
+        /// <param name="vertex">The vertex to convert to a diamond angle.</param>
+        /// <returns>The diamond angle for the vertex. This will be zero if it
+        /// is equal to the <see cref="Center"/>.</returns>
+        public uint ToDiamondAngle(Vec2D vertex)
+        {
+            if (vertex == Vec2D.Zero)
+                return 0;
+
+            // The code below takes some position and finds the vector from the
+            // center to the position.
+            //
+            // It then is able to take the X and Y components of this vector,
+            // and turn them into some ratio between [0.0, 4.0) as follows for
+            // this table:
+            //
+            //      X,  Y    Result
+            //     -----------------
+            //      1,  0     0.0
+            //      0,  1     1.0
+            //     -1,  0     2.0
+            //      0, -1     3.0
+            //
+            // As such, we can then multiply it by a big number to turn it into
+            // a value between [0, 2^32). The key here is that we get an order
+            // out of the values, because this allows us to see what angles are
+            // blocked or not by mapping every position onto a unit circle with
+            // 2^32 precision.
+            Vec2D pos = vertex - Center;
+            
+            // TODO: Can we fuse two if statements into one statement somehow?
+            if (pos.Y >= 0)
+            {
+                if (pos.X >= 0)
+                    return (uint)(DiamondScale * (pos.Y / (pos.X + pos.Y)));
+                return (uint)(DiamondScale * (1 - (pos.X / (-pos.X + pos.Y))));
+            }
+
+            if (pos.X < 0)
+                return (uint)(DiamondScale * (2 - (pos.Y / (-pos.X - pos.Y))));
+            return (uint)(DiamondScale * (3 + (pos.X / (pos.X - pos.Y))));
+        }
+        
         /// <summary>
         /// Clears all the clip ranges.
         /// </summary>
@@ -78,19 +129,9 @@ namespace Helion.Render.Shared.World.ViewClipper
             
             (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(first), ToDiamondAngle(second));
 
-            LinkedListNode<ClipSpan>? node = m_nodes.First;
-            while (node != null)
-            {
-                if (node.Value.Contains(smallerAngle, largerAngle))
-                    return true;
-
-                if (largerAngle < node.Value.StartAngle)
-                    return false;
-                
-                node = node.Next;
-            }
-            
-            return false;
+            if (AnglesSpanOriginVector(smallerAngle, largerAngle))
+                return InRange(0, smallerAngle) && InRange(largerAngle, uint.MaxValue);
+            return InRange(smallerAngle, largerAngle);
         }
         
         /// <inheritdoc/>
@@ -129,6 +170,31 @@ namespace Helion.Render.Shared.World.ViewClipper
             // starting at the top half of the circle, you must go right, and
             // pass through the origin vector (aka: <1, 0>).
             return smallerAngle + PiAngle < largerAngle;
+        }
+        
+        /// <summary>
+        /// Checks if the start/end angles are contained in any interval.
+        /// </summary>
+        /// <param name="startAngle">The starting angle.</param>
+        /// <param name="endAngle">the ending angle.</param>
+        /// <returns>True if so, false otherwise.</returns>
+        private bool InRange(uint startAngle, uint endAngle)
+        {
+            // TODO: If endAngle > uint.MaxValue / 2, search backwards?
+            
+            LinkedListNode<ClipSpan>? node = m_nodes.First;
+            while (node != null)
+            {
+                if (node.Value.Contains(startAngle, endAngle))
+                    return true;
+
+                if (endAngle < node.Value.StartAngle)
+                    return false;
+                
+                node = node.Next;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -197,7 +263,7 @@ namespace Helion.Render.Shared.World.ViewClipper
 
             while (node != null)
             {
-                if (startAngle >= node.Value.EndAngle)
+                if (node.Value.Contains(startAngle) || node.Value.StartAngle >= startAngle)
                     break;
                 
                 node = node.Next;
@@ -217,11 +283,13 @@ namespace Helion.Render.Shared.World.ViewClipper
         /// <param name="endAngle">The ending angle of the span to add.</param>
         private void MergeUntil(LinkedListNode<ClipSpan> startNode, uint endAngle)
         {
+            // If we start and end inside the same node, then we're done and
+            // have no merging to do.
             if (endAngle <= startNode.Value.EndAngle)
                 return;
 
             uint lastSeenNodeEndAngle = startNode.Value.EndAngle;
-            LinkedListNode<ClipSpan>? current = startNode;
+            LinkedListNode<ClipSpan>? current = startNode.Next;
             
             while (current != null)
             {
@@ -243,47 +311,6 @@ namespace Helion.Render.Shared.World.ViewClipper
 
             uint newEndingAngle = Math.Max(endAngle, lastSeenNodeEndAngle);
             startNode.Value = new ClipSpan(startNode.Value.StartAngle, newEndingAngle);
-        }
-
-        // Learned this optimization from:
-        // https://stackoverflow.com/questions/1427422/cheap-algorithm-to-find-measure-of-angle-between-vectors
-        // TODO: Can we fuse two 'if' statements into one statement somehow?
-        private uint ToDiamondAngle(Vec2D vertex)
-        {
-            if (vertex == Vec2D.Zero)
-                return 0;
-
-            // The code below takes some position and finds the vector from the
-            // center to the position.
-            //
-            // It then is able to take the X and Y components of this vector,
-            // and turn them into some ratio between [0.0, 4.0) as follows for
-            // this table:
-            //
-            //      X,  Y    Result
-            //     -----------------
-            //      1,  0     0.0
-            //      0,  1     1.0
-            //     -1,  0     2.0
-            //      0, -1     3.0
-            //
-            // As such, we can then multiply it by a big number to turn it into
-            // a value between [0, 2^32). The key here is that we get an order
-            // out of the values, because this allows us to see what angles are
-            // blocked or not by mapping every position onto a unit circle with
-            // 2^32 precision.
-            Vec2D pos = vertex - Center;
-            
-            if (pos.Y >= 0)
-            {
-                if (pos.X >= 0)
-                    return (uint)(DiamondScale * (pos.Y / (pos.X + pos.Y)));
-                return (uint)(DiamondScale * (1 - (pos.X / (-pos.X + pos.Y))));
-            }
-
-            if (pos.X < 0)
-                return (uint)(DiamondScale * (2 - (pos.Y / (-pos.X - pos.Y))));
-            return (uint)(DiamondScale * (3 + (pos.X / (pos.X - pos.Y))));
         }
     }
 }

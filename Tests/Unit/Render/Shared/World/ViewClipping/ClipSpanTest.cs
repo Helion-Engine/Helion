@@ -1,7 +1,7 @@
-using Helion.Render.Shared.World.ViewClipper;
+using Helion.Render.Shared.World.ViewClipping;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Helion.Test.Unit.Render.Shared.World.ViewClipper
+namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
 {
     [TestClass]
     public class ClipSpanTest

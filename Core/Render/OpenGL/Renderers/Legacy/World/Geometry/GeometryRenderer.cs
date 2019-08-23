@@ -11,7 +11,7 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
-using Helion.Render.Shared.World.ViewClipper;
+using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -103,10 +103,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         {
             m_tickFraction = renderInfo.TickFraction;
             Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
-            
+           
+            m_viewClipper.Center = position;
+
             // Note that this will also emit geometry to the sky renderer as
             // well, it is not just for this class.
-            m_viewClipper.Center = position;
             RecursivelyRenderBSP(world.BspTree.Root, position, world);
         }
         
@@ -177,6 +178,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 RenderSide(edge.Line, side, onFrontSide);
                 
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
+                if (edge.Line.OneSided)
+                    m_viewClipper.AddLine(edge.Start, edge.End);
             }
         }
 
