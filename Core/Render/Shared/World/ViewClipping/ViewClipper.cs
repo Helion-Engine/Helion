@@ -105,7 +105,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         public void AddLine(Vec2D first, Vec2D second)
         {
             (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(first), ToDiamondAngle(second));
-
+            
             if (AnglesSpanOriginVector(smallerAngle, largerAngle))
             {
                 AddRange(0, smallerAngle);

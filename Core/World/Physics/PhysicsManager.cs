@@ -443,7 +443,7 @@ namespace Helion.World.Physics
 
         private bool CanMoveTo(Entity entity, Vec2D nextPosition)
         {
-            Box2D nextBox = entity.Box.To2D().CopyToOffset(nextPosition, entity.Radius);
+            Box2D nextBox = Box2D.CopyToOffset(nextPosition, entity.Radius);
             return !m_blockmap.Iterate(nextBox, CheckForBlockers);
 
             GridIterationStatus CheckForBlockers(Block block)

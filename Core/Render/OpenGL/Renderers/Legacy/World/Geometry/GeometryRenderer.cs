@@ -113,7 +113,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         
         private void RecursivelyRenderBSP(BspNodeCompact node, Vec2D position, WorldBase world)
         {
-            if (NotVisible(node, position))
+            if (Occluded(node, position))
                 return;
             
             // TODO: Consider changing to xor trick to avoid branching?
@@ -143,12 +143,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             }
         }
 
-        private bool NotVisible(in BspNodeCompact node, in Vec2D position)
+        private bool Occluded(in BspNodeCompact node, in Vec2D position)
         {
             if (node.BoundingBox.Contains(position))
                 return false;
             
-            (Vec2D first, Vec2D second) = node.BoundingBox.GetDiagonalCorners(position);
+            (Vec2D first, Vec2D second) = node.BoundingBox.GetSpanningEdge(position);
             return m_viewClipper.InsideAnyRange(first, second);
         }
 
