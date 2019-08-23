@@ -490,9 +490,27 @@ namespace Helion.Util.Geometry
         /// <returns>The two corners that form a diagonal segment.</returns>
         public (Vec2D, Vec2D) GetDiagonalCorners(in Vec2D position)
         {
-            if (position.X > Right)
-                return position.Y > Top ? (TopLeft, BottomRight) : (BottomLeft, TopRight);
-            return position.Y > Top ? (BottomLeft, TopRight) : (TopLeft, BottomRight);
+            // Using the diagram below, we either get the diagonal being A -> D
+            // or C -> B based on the quadrant its in relative to the box. As
+            // we have a precondition that we're not inside the box, this means
+            // we can tell which diagonal we need from whether we're above or
+            // to the right of the bbox edges.
+            //
+            // We can select the top left and bottom right via an exclusive or
+            // of the two condition above as follows:
+            //           .
+            //       CB  .  AD
+            //           .
+            // ....A-----B......
+            //     |     |
+            //     |     |  CB
+            //     C-----D
+            //           .
+            //       AD  .
+            //           .
+            bool onTop = position.Y > Top;
+            bool onRight = position.X > Right;
+            return onTop ^ onRight ? (BottomLeft, TopRight) : (TopLeft, BottomRight);
         }
 
         /// <summary>
