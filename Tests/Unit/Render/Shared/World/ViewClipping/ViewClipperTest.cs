@@ -306,7 +306,7 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
         //  7777
         //              888
         // [--------] | [--]
-        //  bcdef ghi j klm
+        //  bcdef g i j klm
         //
         // 1: b c
         // 2: f g
@@ -325,7 +325,6 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             Vec2D E = new Vec2D(1, 2);
             Vec2D F = new Vec2D(0, 1);
             Vec2D G = new Vec2D(-1, 3);
-            Vec2D H = new Vec2D(-2, 1);
             Vec2D I = new Vec2D(-3, 1);
             Vec2D J = new Vec2D(-1, -1);
             Vec2D K = new Vec2D(-1, -5);
@@ -337,15 +336,12 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             uint b = clipper.ToDiamondAngle(B);
             uint c = clipper.ToDiamondAngle(C);
             uint d = clipper.ToDiamondAngle(D);
-            uint e = clipper.ToDiamondAngle(E);
             uint f = clipper.ToDiamondAngle(F);
             uint g = clipper.ToDiamondAngle(G);
-            uint h = clipper.ToDiamondAngle(H);
             uint i = clipper.ToDiamondAngle(I);
             uint j = clipper.ToDiamondAngle(J);
             uint k = clipper.ToDiamondAngle(K);
             uint l = clipper.ToDiamondAngle(L);
-            uint m = clipper.ToDiamondAngle(M);
             
             //-----------------------------------------------------------------
             // Add everything in the forward direction
@@ -468,6 +464,87 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             AssertSpanEquals(spans[0], 0, i);
             AssertSpanEquals(spans[1], j, j);
             AssertSpanEquals(spans[2], k, uint.MaxValue);
+        }
+
+        [TestMethod]
+        public void CanSeeExactSpanOrInside()
+        {
+            ViewClipper clipper = new ViewClipper();
+            
+            clipper.AddLine(Top, Left);
+            
+            Vec2D leftOfTop = new Vec2D(-1, 5);
+            Vec2D topOfLeft = new Vec2D(-5, 1);
+            
+            Assert.IsTrue(clipper.InsideAnyRange(Top, Left));
+            Assert.IsTrue(clipper.InsideAnyRange(Left, Top));
+            Assert.IsTrue(clipper.InsideAnyRange(Left, leftOfTop));
+            Assert.IsTrue(clipper.InsideAnyRange(leftOfTop, Left));
+            Assert.IsTrue(clipper.InsideAnyRange(topOfLeft, Top));
+            Assert.IsTrue(clipper.InsideAnyRange(Top, topOfLeft));
+            Assert.IsTrue(clipper.InsideAnyRange(leftOfTop, topOfLeft));
+            Assert.IsTrue(clipper.InsideAnyRange(topOfLeft, leftOfTop));
+        }
+
+        [TestMethod]
+        public void CanSeeSpanThatCrossesOriginVector()
+        {
+            ViewClipper clipper = new ViewClipper();
+            
+            Vec2D topRight = new Vec2D(1, 1);
+            Vec2D bottomRight = new Vec2D(1, -1);
+            clipper.AddLine(topRight, bottomRight);
+            
+            Assert.IsTrue(clipper.InsideAnyRange(topRight, bottomRight));
+            Assert.IsTrue(clipper.InsideAnyRange(bottomRight, topRight));
+            
+            Vec2D topOfOriginVector = new Vec2D(100, 1);
+            Vec2D bottomOfOriginVector = new Vec2D(100, -1);
+            Assert.IsTrue(clipper.InsideAnyRange(topOfOriginVector, bottomOfOriginVector));
+            Assert.IsTrue(clipper.InsideAnyRange(bottomOfOriginVector, topOfOriginVector));
+        }
+
+        [TestMethod]
+        public void CannotSeeIfSpanSlightlyOutside()
+        {
+            ViewClipper clipper = new ViewClipper();
+            
+            clipper.AddLine(Top, Left);
+            
+            Vec2D rightOfTop = new Vec2D(1, 5);
+            Vec2D bottomOfLeft = new Vec2D(5, -1);
+            Assert.IsFalse(clipper.InsideAnyRange(rightOfTop, Left));
+            Assert.IsFalse(clipper.InsideAnyRange(Left, rightOfTop));
+            Assert.IsFalse(clipper.InsideAnyRange(Top, bottomOfLeft));
+            Assert.IsFalse(clipper.InsideAnyRange(bottomOfLeft, Top));
+            Assert.IsFalse(clipper.InsideAnyRange(rightOfTop, bottomOfLeft));
+        }
+
+        
+        // 1---2---3---4---5---6
+        // [_______]   [_______] <-- The ranges we add.
+        //     @@@@@@@@@@@@@     <-- Should fail due to the hole from 3 -> 4.
+        [TestMethod]
+        public void CannotSeeIfHoleBetweenRange()
+        {
+            ViewClipper clipper = new ViewClipper();
+            
+            Vec2D first = new Vec2D(5, 1);
+            Vec2D second = new Vec2D(4, 1);
+            Vec2D third = new Vec2D(3, 1);
+            Vec2D fourth = new Vec2D(2, 1);
+            Vec2D fifth = new Vec2D(1, 1);
+            Vec2D sixth = new Vec2D(1, 2);
+            clipper.AddLine(first, third);
+            clipper.AddLine(sixth, fourth);
+            
+            Assert.IsFalse(clipper.InsideAnyRange(second, fifth));
+            Assert.IsFalse(clipper.InsideAnyRange(fifth, second));
+            
+            // Adding the full range will fix this.
+            clipper.AddLine(first, sixth);
+            Assert.IsTrue(clipper.InsideAnyRange(second, fifth));
+            Assert.IsTrue(clipper.InsideAnyRange(fifth, second));
         }
     }
 }
