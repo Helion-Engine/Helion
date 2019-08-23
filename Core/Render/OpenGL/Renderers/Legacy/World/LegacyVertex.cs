@@ -13,17 +13,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public readonly float V;
         public readonly float LightLevelUnit;
 
-        public LegacyVertex(float x, float y, float z, float u, float v, byte lightLevel)
+        public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel)
         {
             X = x;
             Y = y;
             Z = z;
             U = u;
             V = v;
-            LightLevelUnit = lightLevel / 255.0f;
+            LightLevelUnit = lightLevel / 256.0f;
         }
 
-        public LegacyVertex(WorldVertex vertex, byte lightLevel) :
+        public LegacyVertex(WorldVertex vertex, short lightLevel) :
             this(vertex.X, vertex.Y, vertex.Z, vertex.U, vertex.V, lightLevel)
         {
         }
