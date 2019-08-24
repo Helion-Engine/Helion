@@ -31,13 +31,13 @@ namespace Helion.Client
         private int m_currentLevel;
         private bool m_mapFormat;
 
-        private Client(CommandLineArgs cmdArgs, Config configuration)
+        private Client(CommandLineArgs cmdArgs, Config config)
         {
             m_commandLineArgs = cmdArgs;
-            m_config = configuration;
-            m_console = new HelionConsole(m_config);
-            m_window = new OpenTKWindow(m_config, m_archiveCollection, RunGameLoop);
-            m_layerManager = new GameLayerManager(m_console);
+            m_config = config;
+            m_console = new HelionConsole(config);
+            m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
+            m_layerManager = new GameLayerManager(config, m_console);
 
             m_console.OnConsoleCommandEvent += OnConsoleCommand;
             CheatManager.Instance.CheatActivationChanged += CheatManager_CheatActivationChanged;

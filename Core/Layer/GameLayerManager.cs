@@ -1,5 +1,6 @@
 using Helion.Input;
 using Helion.Util;
+using Helion.Util.Configuration;
 
 namespace Helion.Layer
 {
@@ -15,20 +16,21 @@ namespace Helion.Layer
     /// </remarks>
     public class GameLayerManager : GameLayer
     {
+        private readonly Config m_config;
         private readonly HelionConsole m_console;
 
         protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
-        public GameLayerManager(HelionConsole console)
+        public GameLayerManager(Config config, HelionConsole console)
         {
+            m_config = config;
             m_console = console;
         }
 
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            // TODO: Should use the config key for this instead!
-            if (consumableInput.ConsumeKeyPressed(InputKey.Backtick))
+            if (consumableInput.ConsumeKeyPressed(m_config.Engine.Controls.Console))
             {
                 if (AnyExistByName(ConsoleWorldLayer.LayerName))
                     RemoveAllByName(ConsoleWorldLayer.LayerName);

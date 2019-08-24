@@ -1,7 +1,7 @@
+using System;
 using Helion.Input;
 using Helion.Render.Shared;
 using Helion.Window;
-using System;
 
 namespace Helion.Util.Configuration
 {
@@ -41,6 +41,7 @@ namespace Helion.Util.Configuration
         public readonly ConfigValue<InputKey> Use = new ConfigValue<InputKey>(InputKey.E);
         public readonly ConfigValue<InputKey> Jump = new ConfigValue<InputKey>(InputKey.Space);
         public readonly ConfigValue<InputKey> Crouch = new ConfigValue<InputKey>(InputKey.C);
+        public readonly ConfigValue<InputKey> Console = new ConfigValue<InputKey>(InputKey.Backtick);
     }
 
     [ConfigComponent]
