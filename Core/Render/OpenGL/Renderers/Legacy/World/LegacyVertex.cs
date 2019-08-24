@@ -20,7 +20,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             Z = z;
             U = u;
             V = v;
-            LightLevelUnit = lightLevel / 255.0f;
+            LightLevelUnit = lightLevel / 256.0f;
         }
 
         public LegacyVertex(WorldVertex vertex, short lightLevel) :

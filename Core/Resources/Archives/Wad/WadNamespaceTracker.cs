@@ -12,8 +12,12 @@ namespace Helion.Resources.Archives
         {
             ["F_START"] = ResourceNamespace.Flats,
             ["F_END"] = ResourceNamespace.Global,
+            ["FF_START"] = ResourceNamespace.Flats,
+            ["FF_END"] = ResourceNamespace.Global,
             ["P_START"] = ResourceNamespace.Textures,
             ["P_END"] = ResourceNamespace.Global,
+            ["PP_START"] = ResourceNamespace.Textures,
+            ["PP_END"] = ResourceNamespace.Global,
             ["S_START"] = ResourceNamespace.Sprites,
             ["S_END"] = ResourceNamespace.Global,
             ["T_START"] = ResourceNamespace.Textures,

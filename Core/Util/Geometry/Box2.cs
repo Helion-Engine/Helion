@@ -421,6 +421,20 @@ namespace Helion.Util.Geometry
 
             return Combine(segments.First().Box, segments.Skip(1).Select(s => s.Box).ToArray());
         }
+        
+        /// <summary>
+        /// Takes some offset delta and creates a copy of the box at the offset
+        /// provided.
+        /// </summary>
+        /// <param name="offset">The absolute center coordinate.</param>
+        /// <param name="radius">The radius of the box.</param>
+        /// <returns>The box at the position.</returns>
+        public static Box2D CopyToOffset(Vec2D offset, double radius)
+        {
+            Vec2D newMin = new Vec2D(offset.X - radius, offset.Y - radius);
+            Vec2D newMax = new Vec2D(offset.X + radius, offset.Y + radius);
+            return new Box2D(newMin, newMax);
+        }
 
         /// <summary>
         /// Checks if the box contains the point. Being on the edge is not
@@ -468,18 +482,76 @@ namespace Helion.Util.Geometry
         public bool Intersects(Seg2D seg) => seg.Intersects(this);
 
         /// <summary>
-        /// Takes some offset delta and creates a copy of the box at the offset
-        /// provided.
+        /// Gets the closest edge to some point. If along diagonals, it instead
+        /// will return the diagonal.
         /// </summary>
-        /// <param name="offset">The absolute center coordinate.</param>
-        /// <param name="radius">The radius of the box.</param>
-        /// <returns>The box at the position.</returns>
-        public Box2D CopyToOffset(Vec2D offset, double radius)
+        /// <param name="position">The position to look from.</param>
+        /// <returns>The start and end points along the bounding box.</returns>
+        [Pure]
+        public (Vec2D, Vec2D) GetSpanningEdge(in Vec2D position)
         {
-            Vec2D newMin = new Vec2D(offset.X - radius, offset.Y - radius);
-            Vec2D newMax = new Vec2D(offset.X + radius, offset.Y + radius);
-            return new Box2D(newMin, newMax);
-        } 
+            // This is best understood by asking ourselves how we'd classify
+            // where we are along a 1D line. Suppose we want to find out which
+            // one of the spans were in along the X axis:
+            //
+            //      0     1     2
+            //   A-----B-----C-----D
+            //
+            // We want to know if we're in span 0, 1, or 2. We can just check
+            // by doing `if x > B` for span 1 or 2, and `if x > C` for span 2.
+            // Instead of doing if statements, we can just cast the bool to an
+            // int and add them up.
+            //
+            // Next we do this along the Y axis.
+            //
+            // After our results, we can merge the bits such that the higher
+            // two bits are the Y value, and the lower 2 bits are the X value.
+            // This gives us: 0bYYXX.
+            //
+            // Since each coordinate in the following image has its own unique
+            // bitcode, we can switch on the bitcode to get the corners.
+            //
+            //       XY values           Binary codes 
+            //
+            //      02 | 12 | 22       1000|1001|1010 
+            //         |    |           8  | 9  | A   
+            //     ----o----o----      ----o----o---- 
+            //      01 | 11 | 21       0100|0101|0110 
+            //         |    |           4  | 5  | 6   
+            //     ----o----o----      ----o----o---- 
+            //      00 | 10 | 20       0000|0001|0010 
+            //         |    |           0  | 1  | 2   
+            //
+            // Note this is my optimization to the Cohen-Sutherland algorithm
+            // bitcode detector.
+            uint horizontalBits = Convert.ToUInt32(position.X > Left) + Convert.ToUInt32(position.X > Right);
+            uint verticalBits = Convert.ToUInt32(position.Y > Bottom) + Convert.ToUInt32(position.Y > Top);
+
+            switch (horizontalBits | (verticalBits << 2))
+            {
+            case 0x0: // Bottom left
+                return (TopLeft, BottomRight);
+            case 0x1: // Bottom middle
+                return (BottomLeft, BottomRight);
+            case 0x2: // Bottom right
+                return (BottomLeft, TopRight);
+            case 0x4: // Middle left
+                return (TopLeft, BottomLeft);
+            case 0x5: // Center (this shouldn't be a case via precondition).
+                return (TopLeft, BottomRight);
+            case 0x6: // Middle right
+                return (BottomRight, TopRight);
+            case 0x8: // Top left
+                return (TopRight, BottomLeft);
+            case 0x9: // Top middle
+                return (TopRight, TopLeft);
+            case 0xA: // Top right
+                return (BottomRight, TopLeft);
+            default:
+                Fail("Unexpected spanning edge bit code");
+                return (TopLeft, BottomRight);
+            }
+        }
 
         /// <summary>
         /// Calculates the sides of this bounding box.

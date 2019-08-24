@@ -53,7 +53,7 @@ namespace Helion.Maps.Entries
                 short ceilHeight = reader.ReadInt16();
                 string floorTexture = reader.ReadEightByteString().ToUpper();
                 string ceilTexture = reader.ReadEightByteString().ToUpper();
-                byte lightLevel = (byte)reader.ReadInt16();
+                short lightLevel = reader.ReadInt16();
                 ushort special = reader.ReadUInt16();
                 ushort tag = reader.ReadUInt16();
 

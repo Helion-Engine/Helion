@@ -160,11 +160,25 @@ namespace Helion.Test.Unit.Util
         }
 
         [TestMethod]
-        public void MinMaxCalculatedCorrectly()
+        public void MinMaxIntCalculatedCorrectly()
         {
             int first = 6;
             int second = 8;
             (int lower, int higher) = MathHelper.MinMax(first, second);
+            Assert.AreEqual(first, lower);
+            Assert.AreEqual(second, higher);
+            
+            (lower, higher) = MathHelper.MinMax(second, first);
+            Assert.AreEqual(first, lower);
+            Assert.AreEqual(second, higher);
+        }
+        
+        [TestMethod]
+        public void MinMaxUintCalculatedCorrectly()
+        {
+            uint first = 6;
+            uint second = 8;
+            (uint lower, uint higher) = MathHelper.MinMax(first, second);
             Assert.AreEqual(first, lower);
             Assert.AreEqual(second, higher);
             

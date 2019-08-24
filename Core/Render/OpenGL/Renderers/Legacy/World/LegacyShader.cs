@@ -32,7 +32,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 void main() {
                     uvFrag = uv;    
-                    lightLevelFrag = lightLevel;
+                    lightLevelFrag = clamp(lightLevel, 0.0, 1.0);
 
                     gl_Position = mvp * vec4(pos, 1.0);
                 }
