@@ -37,21 +37,6 @@ namespace Helion.Maps.Special.Specials
             m_minZ = Math.Min(m_startZ, m_destZ);
             m_maxZ = Math.Max(m_startZ, m_destZ);
 
-            // Emulate some vanilla tricks - these check for sector movement params that will never hit the destination
-            // Swap the direction and max out speed so we instantly hit our destination
-            if (m_direction == MoveDirection.Down && m_flat.Z < m_destZ)
-            {
-                m_speed = double.MaxValue;
-                m_direction = MoveDirection.Up;
-                m_data.StartDirection = MoveDirection.Up;
-            }
-            else if (m_direction == MoveDirection.Up && m_flat.Z > m_destZ)
-            {
-                m_speed = double.MinValue;
-                m_direction = MoveDirection.Down;
-                m_data.StartDirection = MoveDirection.Down;
-            }
-
             // Doom starts with the delay on perpetual movement
             if (m_data.MoveRepetition == MoveRepetition.Perpetual)
                 m_delayTics = m_data.Delay;
@@ -68,7 +53,12 @@ namespace Helion.Maps.Special.Specials
                 return SpecialTickStatus.Continue;
             }
 
-            double destZ = MathHelper.Clamp(m_flat.Z + m_speed, m_minZ, m_maxZ);
+            double destZ = m_flat.Z + m_speed;
+            if (m_direction == MoveDirection.Down && m_flat.Z < m_destZ)
+                destZ = m_destZ;
+            else if (m_direction == MoveDirection.Up && m_flat.Z > m_destZ)
+                destZ = m_destZ;
+
             SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ, m_data.Crush);
 
             if (status == SectorMoveStatus.Blocked)
