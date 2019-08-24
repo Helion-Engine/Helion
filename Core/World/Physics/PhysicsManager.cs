@@ -27,9 +27,7 @@ namespace Helion.World.Physics
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0;
-
-        // TODO actually verify this value
-        private const double SetEntityToFloorSpeedMax = 5;
+        private const double SetEntityToFloorSpeedMax = 9;
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
