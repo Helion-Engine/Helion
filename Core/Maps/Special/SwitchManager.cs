@@ -42,6 +42,7 @@ namespace Helion.Maps.Special
             m_switchData.Add(new SwitchData("SW1STON1", "SW2STON1"));
             m_switchData.Add(new SwitchData("SW1SLAD", "SW2SLAD"));
             m_switchData.Add(new SwitchData("SW1PIPE", "SW2PIPE"));
+            m_switchData.Add(new SwitchData("SW1STRTN", "SW2STRTN"));
         }
 
         public void SetLineSwitch(Line line)
