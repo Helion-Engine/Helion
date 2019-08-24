@@ -239,7 +239,7 @@ namespace Helion.Util.Geometry
             int baseIndex = (blockUnitStart.Y * Width) + blockUnitStart.X;
 
             // baseIndex can be negative with no clip
-            if (baseIndex > 0)
+            if (baseIndex > -1)
             {
                 for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
                 {
