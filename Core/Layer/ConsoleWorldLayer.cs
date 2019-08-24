@@ -36,5 +36,12 @@ namespace Helion.Layer
             
             base.Render(renderCommands);
         }
+
+        protected override void PerformDispose()
+        {
+            m_console.ClearInputText();
+            
+            base.PerformDispose();
+        }
     }
 }

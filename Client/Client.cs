@@ -14,6 +14,7 @@ using Helion.Entries.Archives.Locator;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Assertion;
 using NLog;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client
 {
@@ -27,7 +28,6 @@ namespace Helion.Client
         private readonly OpenTKWindow m_window;
         private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
         private readonly GameLayerManager m_layerManager;
-        private bool m_disposed;
 
         private int m_currentLevel;
         private bool m_mapFormat;
@@ -42,6 +42,11 @@ namespace Helion.Client
 
             m_console.OnConsoleCommandEvent += OnConsoleCommand;
             CheatManager.Instance.CheatActivationChanged += CheatManager_CheatActivationChanged;
+        }
+
+        ~Client()
+        {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         }
 
         private void OnConsoleCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
@@ -134,7 +139,8 @@ namespace Helion.Client
         
         private void HandleInput()
         {
-            m_layerManager.HandleInput(new ConsumableInput(m_window.PollInput()));
+            ConsumableInput input = new ConsumableInput(m_window.PollInput());
+            m_layerManager.HandleInput(input);
         }
 
         private void RunLogic()
@@ -186,16 +192,12 @@ namespace Helion.Client
 
         public void Dispose()
         {
-            if (m_disposed)
-                return;
-            
             m_console.OnConsoleCommandEvent -= OnConsoleCommand;
 
             m_layerManager.Dispose();
             m_window.Dispose();
             m_console.Dispose();
 
-            m_disposed = true;
             GC.SuppressFinalize(this);
         }
 

@@ -27,6 +27,7 @@ namespace Helion.Layer
 
         public override void HandleInput(ConsumableInput consumableInput)
         {
+            // TODO: Should use the config key for this instead!
             if (consumableInput.ConsumeKeyPressed(InputKey.Backtick))
             {
                 if (AnyExistByName(ConsoleWorldLayer.LayerName))

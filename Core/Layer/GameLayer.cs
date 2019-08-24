@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Util;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
@@ -13,6 +14,14 @@ namespace Helion.Layer
     /// priority will handle input/rendering/etc before ones that have a lower
     /// priority.
     /// </summary>
+    /// <remarks>
+    /// Layers with a lower priority will get their rendering done first.
+    /// This is because we want a painters algorithm done so things render
+    /// correctly. Input will be handled from highest priority (1.0) down to
+    /// the lowest (0.0), since we don't want input consumed in the higher
+    /// priority layers to be read by lower layers. The logic will be handled
+    /// in a top down way, but this could be either direction.
+    /// </remarks>
     public abstract class GameLayer : IDisposable, IComparable<GameLayer>
     {
         private readonly List<GameLayer> m_layers = new List<GameLayer>();
@@ -94,7 +103,7 @@ namespace Helion.Layer
         /// <param name="consumableInput">The input.</param>
         public virtual void HandleInput(ConsumableInput consumableInput)
         {
-            m_layers.ForEach(layer => layer.HandleInput(consumableInput));
+            m_layers.ForEachReverse(layer => layer.HandleInput(consumableInput));
         }
 
         /// <summary>
@@ -105,7 +114,7 @@ namespace Helion.Layer
         /// </remarks>
         public virtual void RunLogic()
         {
-            m_layers.ForEach(layer => layer.RunLogic());
+            m_layers.ForEachReverse(layer => layer.RunLogic());
         }
 
         /// <summary>
@@ -129,6 +138,12 @@ namespace Helion.Layer
             GC.SuppressFinalize(this);
         }
 
+        protected virtual void PerformDispose()
+        {
+            m_layers.ForEach(layer => layer.Dispose());
+            m_layers.Clear();
+        }
+
         private void RemoveLayers(List<GameLayer> layersToRemove)
         {
             // Though we extracted the list so we could invoke .Any(), it must
@@ -139,12 +154,6 @@ namespace Helion.Layer
                 layer.Dispose();
                 m_layers.Remove(layer);
             });
-        }
-
-        private void PerformDispose()
-        {
-            m_layers.ForEach(layer => layer.Dispose());
-            m_layers.Clear();
         }
     }
 }
