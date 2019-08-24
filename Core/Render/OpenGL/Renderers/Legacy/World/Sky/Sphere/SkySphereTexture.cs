@@ -16,7 +16,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 {
     public class SkySphereTexture : IDisposable
     {
-        private const string DefaultSky = "RSKY1";
+        private const string DefaultSky = "SKY1";
         private const int PixelRowsToEvaluate = 16;
         private const int DefaultPaddingDivisor = 3;
 

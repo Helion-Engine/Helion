@@ -7,12 +7,12 @@ namespace Helion.Maps.Special.Specials
     {
         public Sector Sector { get; private set; }
 
-        private byte m_lightLevel;
+        private short m_lightLevel;
         private int m_step;
         private int m_min;
         private int m_max;
 
-        public LightChangeSpecial(Sector sector, byte lightLevel, int fadeTics)
+        public LightChangeSpecial(Sector sector, short lightLevel, int fadeTics)
         {
             Sector = sector;
             m_lightLevel = lightLevel;
@@ -37,7 +37,7 @@ namespace Helion.Maps.Special.Specials
         public SpecialTickStatus Tick(long gametic)
         {
             int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
-            Sector.SetLightLevel((byte)set);
+            Sector.SetLightLevel((short)set);
 
             if (set == m_lightLevel)
                 return SpecialTickStatus.Destroy;

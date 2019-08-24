@@ -178,7 +178,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderOneSided(Line line, Side side)
         {
             Sector sector = side.Sector;
-            byte lightLevel = sector.LightLevel;
+            short lightLevel = sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(side.MiddleTexture);
             WallVertices wall = WorldTriangulator.HandleOneSided(line, side, texture.UVInverse, m_tickFraction);
             
@@ -229,7 +229,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
             bool isSky = otherSide.Sector.Floor.Texture == Constants.SkyTexture;
-            byte lightLevel = facingSide.Sector.LightLevel;
+            short lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.LowerTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
@@ -260,7 +260,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             Precondition(facingSide.MiddleTexture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
 
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
-            byte lightLevel = facingSide.Sector.LightLevel;
+            short lightLevel = facingSide.Sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.MiddleTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             
@@ -308,7 +308,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)
         {
             bool isSky = otherSide.Sector.Ceiling.Texture == Constants.SkyTexture;
-            byte lightLevel = facingSide.Sector.LightLevel;
+            short lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.UpperTexture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
@@ -344,11 +344,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderFlat(Subsector subsector, SectorFlat flat)
         {
             bool isSky = flat.Texture == Constants.SkyTexture;
-            
+
             // TODO: A lot of this stuff is not needed if we are doing sky
             //       geometry. We don't care about UV coordinates or texture
             //       stuff, only positional coordinates.
-            byte lightLevel = flat.LightLevel;
+            short lightLevel = flat.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetFlat(flat.Texture);
             RenderGeometryData renderData = FindOrCreateRenderGeometryData(texture);
             

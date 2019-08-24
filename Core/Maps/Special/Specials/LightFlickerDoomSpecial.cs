@@ -7,11 +7,11 @@ namespace Helion.Maps.Special.Specials
         public Sector Sector { get; private set; }
 
         private readonly IRandom m_random;
-        private byte m_maxBright;
-        private byte m_minBright;
+        private short m_maxBright;
+        private short m_minBright;
         private int m_delay;
 
-        public LightFlickerDoomSpecial(Sector sector, IRandom random, byte minLightLevel)
+        public LightFlickerDoomSpecial(Sector sector, IRandom random, short minLightLevel)
         {
             Sector = sector;
             m_random = random;

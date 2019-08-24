@@ -245,9 +245,9 @@ namespace Helion.Maps
             return currentSector;
         }
 
-        public byte GetMinLightLevelNeighbor(Sector sector)
+        public short GetMinLightLevelNeighbor(Sector sector)
         {
-            byte min = sector.LightLevel;
+            short min = sector.LightLevel;
 
             foreach (var line in sector.Lines)
             {
@@ -260,9 +260,9 @@ namespace Helion.Maps
             return min;
         }
 
-        public byte GetMaxLightLevelNeighbor(Sector sector)
+        public short GetMaxLightLevelNeighbor(Sector sector)
         {
-            byte max = sector.LightLevel;
+            short max = sector.LightLevel;
 
             foreach (var line in sector.Lines)
             {

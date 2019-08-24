@@ -14,7 +14,7 @@ namespace Helion.Maps.Geometry
         public readonly List<Line> Lines = new List<Line>();
         public readonly List<SectorFlat> Flats = new List<SectorFlat>();
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-        public byte LightLevel;
+        public short LightLevel;
         public int Tag;
 
         public ISpecial? ActiveMoveSpecial;
@@ -25,7 +25,7 @@ namespace Helion.Maps.Geometry
         public float UnitLightLevel => LightLevel / 255.0f;
         public ZSectorSpecialType SectorSpecialType;
 
-        public Sector(int id, byte lightLevel, SectorFlat floor, SectorFlat ceiling, ZSectorSpecialType special, int tag)
+        public Sector(int id, short lightLevel, SectorFlat floor, SectorFlat ceiling, ZSectorSpecialType special, int tag)
         {
             Precondition(floor.Z <= ceiling.Z, "Sector floor is above the ceiling");
 
@@ -52,7 +52,7 @@ namespace Helion.Maps.Geometry
             return Entities.Add(entity);            
         }
 
-        public void SetLightLevel(byte lightLevel)
+        public void SetLightLevel(short lightLevel)
         {
             LightLevel = lightLevel;
             Floor.LightLevel = lightLevel;

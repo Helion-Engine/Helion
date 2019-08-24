@@ -9,11 +9,11 @@ namespace Helion.Maps.Special.Specials
 
         private const int DoomPulsateValue = 8;
 
-        private byte m_maxBright;
-        private byte m_minBright;
+        private short m_maxBright;
+        private short m_minBright;
         private int m_inc;
 
-        public LightPulsateSpecial(Sector sector, byte minLightLevel)
+        public LightPulsateSpecial(Sector sector, short minLightLevel)
         {
             Sector = sector;
             m_maxBright = sector.LightLevel;
@@ -26,7 +26,7 @@ namespace Helion.Maps.Special.Specials
         {
             int lightLevel = Sector.LightLevel + m_inc;
             lightLevel = MathHelper.Clamp(lightLevel, m_minBright, m_maxBright);
-            Sector.SetLightLevel((byte)lightLevel);
+            Sector.SetLightLevel((short)lightLevel);
 
             if (Sector.LightLevel == m_minBright || Sector.LightLevel == m_maxBright)
                 m_inc = -m_inc;
