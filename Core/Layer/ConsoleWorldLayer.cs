@@ -2,7 +2,6 @@ using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Util;
-using Helion.Util.Configuration;
 using MoreLinq;
 
 namespace Helion.Layer
