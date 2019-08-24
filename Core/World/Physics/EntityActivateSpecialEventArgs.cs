@@ -30,6 +30,6 @@ namespace Helion.World.Physics
         /// <summary>
         /// The line that activated the special if applicable.
         /// </summary>
-        public Line? ActivateLineSpecial;
+        public Line ActivateLineSpecial;
     }
 }
