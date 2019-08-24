@@ -20,14 +20,14 @@ namespace Helion.Util
         [Option('l', "log", Required = false, HelpText = "The name of the log file")]
         public string LogPath { get; set; } = "";
 
+        [Option("nostdout", Required = false, HelpText = "Will not write to stdout")]
+        public bool NoWriteToConsole { get; set; } = false;
+
         [Option]
         public bool TimestampLogFile { get; set; } = false;
 
         [Option("warp", Required = false, HelpText = "The level to warp to")]
         public int? Warp { get; set; }
-
-        [Option("stdout", Required = false, HelpText = "Will also write to stdout")]
-        public bool WriteToConsole { get; set; } = false;
 
         private static void HandleParsingError(CommandLineArgs result)
         {

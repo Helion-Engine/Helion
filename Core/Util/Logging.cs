@@ -26,7 +26,7 @@ namespace Helion.Util
         
         private static void SetupConsole(LoggingConfiguration config, CommandLineArgs commandLineArgs)
         {
-            if (!commandLineArgs.WriteToConsole)
+            if (commandLineArgs.NoWriteToConsole)
                 return;
 
             ConsoleTarget consoleTarget = new ConsoleTarget("console")
