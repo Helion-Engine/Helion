@@ -7,6 +7,7 @@ using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -33,6 +34,7 @@ namespace Helion.Render.OpenGL
         private readonly IGLFunctions gl;
         private readonly IGLTextureManager m_textureManager;
         private readonly WorldRenderer m_worldRenderer;
+        private readonly HudRenderer m_hudRenderer;
 
         public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
@@ -48,6 +50,7 @@ namespace Helion.Render.OpenGL
             m_renderType = GetRenderTypeFromCapabilities();
             m_textureManager = CreateTextureManager(archiveCollection);
             m_worldRenderer = CreateWorldRenderer();
+            m_hudRenderer = CreateHudRenderer();
         }
 
         ~GLRenderer()
@@ -76,6 +79,8 @@ namespace Helion.Render.OpenGL
 
         public void Render(RenderCommands renderCommands)
         {
+            m_hudRenderer.Clear();
+            
             // This has to be tracked beyond just the rendering command, and it
             // also prevents something from going terribly wrong if there is no
             // call to setting the viewport.
@@ -92,7 +97,7 @@ namespace Helion.Render.OpenGL
                     HandleRenderWorldCommand(cmd, viewport);
                     break;
                 case ViewportCommand cmd:
-                    HandleViewportCommand(cmd, ref viewport);
+                    HandleViewportCommand(cmd, out viewport);
                     break;
                 default:
                     Fail($"Unsupported render command type: {renderCommand}");
@@ -201,6 +206,13 @@ namespace Helion.Render.OpenGL
             
             return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
         }
+
+        private HudRenderer CreateHudRenderer()
+        {
+            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+            
+            return new LegacyHudRenderer(m_config, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+        }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
         {
@@ -224,7 +236,7 @@ namespace Helion.Render.OpenGL
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
 
-        private void HandleViewportCommand(ViewportCommand viewportCommand, ref Rectangle currentViewport)
+        private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle currentViewport)
         {
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
@@ -236,6 +248,7 @@ namespace Helion.Render.OpenGL
         private void ReleaseUnmanagedResources()
         {
             m_textureManager.Dispose();
+            m_hudRenderer.Dispose();
             m_worldRenderer.Dispose();
         }
     }
