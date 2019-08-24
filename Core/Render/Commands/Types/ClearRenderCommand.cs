@@ -4,6 +4,8 @@ namespace Helion.Render.Commands.Types
 {
     public struct ClearRenderCommand : IRenderCommand
     {
+        public static readonly Color DefaultClearColor = System.Drawing.Color.Black;
+        
         public readonly bool Color;
         public readonly bool Depth;
         public readonly bool Stencil;
@@ -22,6 +24,11 @@ namespace Helion.Render.Commands.Types
         public static ClearRenderCommand All(Color clearColor)
         {
             return new ClearRenderCommand(true, true, true, clearColor);
+        }
+
+        public static ClearRenderCommand DepthOnly()
+        {
+            return new ClearRenderCommand(false, true, false, DefaultClearColor);
         }
     }
 }

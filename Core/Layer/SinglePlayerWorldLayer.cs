@@ -1,3 +1,4 @@
+using System;
 using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
@@ -10,43 +11,44 @@ using Helion.Util.Time;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
-using System;
 
-namespace Helion.Layer.Impl
+namespace Helion.Layer
 {
     public class SinglePlayerWorldLayer : GameLayer
     {
-        public event EventHandler LevelExit;
-
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly CIString LayerName = "WORLD";
 
-        private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
+        public event EventHandler LevelExit;
+        protected override double Priority => 0.25;
+        protected override CIString Name => LayerName;
         private readonly Config m_config;
-        private SinglePlayerWorld m_world;
+        private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
+        private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
+        private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
+        private bool m_firstInputHandling = true;
         private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
         private TickCommand m_tickCommand = new TickCommand();
-        private bool m_firstInputHandling = true;
-        private (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
-        private (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
+        private SinglePlayerWorld m_world;
 
         public SinglePlayerWorldLayer(Config config)
-            : base(config)
         {
             m_config = config;
-            m_consumeKeys = new (ConfigValue<InputKey>, TickCommands)[]
+            
+            m_consumeKeys = new[]
             {
-                (Config.Engine.Controls.MoveForward,    TickCommands.Forward),
-                (Config.Engine.Controls.MoveLeft,       TickCommands.Left),
-                (Config.Engine.Controls.MoveBackward,   TickCommands.Backward),
-                (Config.Engine.Controls.MoveRight,      TickCommands.Right),
-                (Config.Engine.Controls.Jump,           TickCommands.Jump),
-                (Config.Engine.Controls.Crouch,         TickCommands.Crouch),
+                (config.Engine.Controls.MoveForward,  TickCommands.Forward),
+                (config.Engine.Controls.MoveLeft,     TickCommands.Left),
+                (config.Engine.Controls.MoveBackward, TickCommands.Backward),
+                (config.Engine.Controls.MoveRight,    TickCommands.Right),
+                (config.Engine.Controls.Jump,         TickCommands.Jump),
+                (config.Engine.Controls.Crouch,       TickCommands.Crouch),
             };
 
-            m_consumeDownKeys = new (ConfigValue<InputKey>, TickCommands)[]
+            m_consumeDownKeys = new[]
             {
-                (Config.Engine.Controls.Use,            TickCommands.Use),
+                (config.Engine.Controls.Use,          TickCommands.Use),
             };
         }
 
@@ -74,16 +76,8 @@ namespace Helion.Layer.Impl
             return false;
         }
 
-        private void World_LevelExit(object sender, EventArgs e)
-        {
-            LevelExit?.Invoke(this, e);
-        }
-
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            // TODO: We ignore the first command for now because it is an
-            //       accumulation of the mouse movement at the beginning of
-            //       the window loading. We should fix this there later on.
             if (m_firstInputHandling)
             {
                 m_firstInputHandling = false;
@@ -124,8 +118,11 @@ namespace Helion.Layer.Impl
             Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
             renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction);
         }
-
-        protected override double GetPriority() => 0.25;
+        
+        private void World_LevelExit(object sender, EventArgs e)
+        {
+            LevelExit?.Invoke(this, e);
+        }
 
         private void HandleMovementInput(ConsumableInput consumableInput)
         {

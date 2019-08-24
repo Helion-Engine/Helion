@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using GlmSharp;
@@ -7,6 +8,7 @@ using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -26,13 +28,13 @@ namespace Helion.Render.OpenGL
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool InfoPrinted;
 
-        private readonly GLRenderType m_renderType;
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
         private readonly IGLFunctions gl;
         private readonly IGLTextureManager m_textureManager;
         private readonly WorldRenderer m_worldRenderer;
+        private readonly HudRenderer m_hudRenderer;
 
         public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
@@ -45,9 +47,10 @@ namespace Helion.Render.OpenGL
             SetGLDebugger();
             SetGLStates();
 
-            m_renderType = GetRenderTypeFromCapabilities();
-            m_textureManager = CreateTextureManager(archiveCollection);
-            m_worldRenderer = CreateWorldRenderer();
+            GLRenderType renderType = GetRenderTypeFromCapabilities();
+            m_textureManager = CreateTextureManager(renderType, archiveCollection);
+            m_worldRenderer = CreateWorldRenderer(renderType);
+            m_hudRenderer = CreateHudRenderer(renderType);
         }
 
         ~GLRenderer()
@@ -76,29 +79,38 @@ namespace Helion.Render.OpenGL
 
         public void Render(RenderCommands renderCommands)
         {
+            m_hudRenderer.Clear();
+            
             // This has to be tracked beyond just the rendering command, and it
             // also prevents something from going terribly wrong if there is no
             // call to setting the viewport.
             Rectangle viewport = new Rectangle(0, 0, 800, 600);
-            
-            foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
+            IReadOnlyList<IRenderCommand> commands = renderCommands.GetCommands();
+
+            for (int i = 0; i < commands.Count; i++)
             {
+                IRenderCommand renderCommand = commands[i];
                 switch (renderCommand)
                 {
                 case ClearRenderCommand cmd:
                     HandleClearCommand(cmd);
                     break;
+                case DrawImageCommand cmd:
+                    HandleDrawImage(cmd);
+                    break;
                 case DrawWorldCommand cmd:
                     HandleRenderWorldCommand(cmd, viewport);
                     break;
                 case ViewportCommand cmd:
-                    HandleViewportCommand(cmd, ref viewport);
+                    HandleViewportCommand(cmd, out viewport);
                     break;
                 default:
                     Fail($"Unsupported render command type: {renderCommand}");
                     break;
                 }
             }
+            
+            DrawHudImagesIfAnyQueued(viewport);
             
             GLHelper.AssertNoGLError(gl);
         }
@@ -163,10 +175,10 @@ namespace Helion.Render.OpenGL
                 switch (level)
                 {
                 case DebugLevel.Low:
-                    Log.Error("OpenGL minor issue: {0}", message);
+                    Log.Warn("OpenGL minor issue: {0}", message);
                     return;
                 case DebugLevel.Medium:
-                    Log.Error("OpenGL issue: {0}", message);
+                    Log.Error("OpenGL warning: {0}", message);
                     return;
                 case DebugLevel.High:
                     Log.Error("OpenGL major error: {0}", message);
@@ -179,9 +191,7 @@ namespace Helion.Render.OpenGL
 
         private GLRenderType GetRenderTypeFromCapabilities()
         {
-            // TODO: Modern renderer.
-            // TODO: Standard renderer.
-            if (m_capabilities.Version.Supports(2, 0))
+            if (m_capabilities.Version.Supports(3, 1))
             {
                 Log.Info("Using legacy OpenGL renderer");
                 return GLRenderType.Legacy;
@@ -190,16 +200,45 @@ namespace Helion.Render.OpenGL
             throw new HelionException("OpenGL implementation too old or not supported");
         }
         
-        private IGLTextureManager CreateTextureManager(ArchiveCollection archiveCollection)
+        private IGLTextureManager CreateTextureManager(GLRenderType renderType, ArchiveCollection archiveCollection)
         {
-            return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+            switch (renderType)
+            {
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+            }
         }
 
-        private WorldRenderer CreateWorldRenderer()
+        private WorldRenderer CreateWorldRenderer(GLRenderType renderType)
         {
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            
-            return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            switch (renderType)
+            {
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+                return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            }
+        }
+
+        private HudRenderer CreateHudRenderer(GLRenderType renderType)
+        {
+            switch (renderType)
+            {
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+                return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            }
         }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
@@ -217,14 +256,27 @@ namespace Helion.Render.OpenGL
             
             gl.Clear(clearMask);
         }
+        
+        private void HandleDrawImage(DrawImageCommand cmd)
+        {
+            if (cmd.AreaIsTextureDimension)
+            {
+                Vec2I topLeft = new Vec2I(cmd.DrawArea.X, cmd.DrawArea.Y);
+                m_hudRenderer.AddImage(cmd.TextureName, topLeft, cmd.Color, cmd.Alpha);
+            }
+            else
+                m_hudRenderer.AddImage(cmd.TextureName, cmd.DrawArea, cmd.Color, cmd.Alpha);
+        }
 
         private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
         {
+            DrawHudImagesIfAnyQueued(currentViewport);
+            
             RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport);
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
 
-        private void HandleViewportCommand(ViewportCommand viewportCommand, ref Rectangle currentViewport)
+        private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle currentViewport)
         {
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
@@ -232,10 +284,16 @@ namespace Helion.Render.OpenGL
             
             gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }
+        
+        private void DrawHudImagesIfAnyQueued(Rectangle viewport)
+        {
+            m_hudRenderer.Render(viewport);
+        }
 
         private void ReleaseUnmanagedResources()
         {
             m_textureManager.Dispose();
+            m_hudRenderer.Dispose();
             m_worldRenderer.Dispose();
         }
     }

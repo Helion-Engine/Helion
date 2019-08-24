@@ -9,7 +9,8 @@ namespace Helion.Render.OpenGL.Vertex.Attribute
     {
         public readonly bool Normalized;
 
-        public VertexPointerAttribute(string name, int index, int size, bool normalized) : base(name, index, size)
+        public VertexPointerAttribute(string name, int index, int size, bool normalized) : 
+            base(name, index, size)
         {
             Normalized = normalized;
         }

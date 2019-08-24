@@ -59,7 +59,7 @@ namespace Helion.Resources.Archives.Collection
             return m_entries.Find(entryName, resourceNamespace);
         }
         
-        public (IMap?, MapEntryCollection?) FindMap(string mapName)
+        public (IMap? Map, MapEntryCollection? EntryCollection) FindMap(string mapName)
         {
             string upperName = mapName.ToUpper();
 
