@@ -1,34 +1,41 @@
-using Helion.Input;
-using Helion.Render.Commands;
-using Helion.Util.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Input;
+using Helion.Render.Commands;
+using Helion.Util;
+using Helion.Util.Configuration;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
 {
     public abstract class GameLayer : IDisposable, IComparable<GameLayer>
     {
-        private bool disposed;
-        private List<GameLayer> layers = new List<GameLayer>();
-
-        protected abstract double GetPriority();
-
         protected readonly Config Config;
+        private readonly List<GameLayer> m_layers = new List<GameLayer>();
 
-        public GameLayer(Config config)
+        protected abstract CIString Name { get; }
+        protected abstract double Priority { get; }
+
+        protected GameLayer(Config config)
         {
             Config = config;
         }
 
+        ~GameLayer()
+        {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            PerformDispose();
+        }
+
         public GameLayer? GetGameLayer(Type type)
         {
-            return layers.FirstOrDefault(x => x.GetType() == type);
+            return m_layers.FirstOrDefault(x => x.GetType() == type);
         }
         
         public bool RemoveAllTypes(Type type)
         {
-            List<GameLayer> layersToRemove = layers.Where(layer => layer.GetType() == type).ToList();
+            List<GameLayer> layersToRemove = m_layers.Where(layer => layer.GetType() == type).ToList();
             
             // Though we extracted the list so we could invoke .Any(), it must
             // also be noted that we can't call this as part of the query or it
@@ -36,7 +43,7 @@ namespace Helion.Layer
             layersToRemove.ForEach(layer =>
             {
                 layer.Dispose();
-                layers.Remove(layer);
+                m_layers.Remove(layer);
             });
 
             return layersToRemove.Any();
@@ -46,45 +53,37 @@ namespace Helion.Layer
         {
             RemoveAllTypes(layer.GetType());
             
-            layers.Add(layer);
-            layers.Sort();
+            m_layers.Add(layer);
+            m_layers.Sort();
         } 
         
         public virtual void HandleInput(ConsumableInput consumableInput)
         {
-            layers.ForEach(layer => layer.HandleInput(consumableInput));
+            m_layers.ForEach(layer => layer.HandleInput(consumableInput));
         }
 
         public virtual void RunLogic()
         {
-            layers.ForEach(layer => layer.RunLogic());
+            m_layers.ForEach(layer => layer.RunLogic());
         }
 
         public virtual void Render(RenderCommands renderCommands)
         {
-            layers.ForEach(layer => layer.Render(renderCommands));
+            m_layers.ForEach(layer => layer.Render(renderCommands));
         }
 
-        public int CompareTo(GameLayer other) => GetPriority().CompareTo(other.GetPriority());
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposed)
-                return;
-
-            if (disposing)
-            {
-                layers.ForEach(layer => layer.Dispose());
-                layers.Clear();
-            }
-            
-            disposed = true;
-        }
+        public int CompareTo(GameLayer other) => Priority.CompareTo(other.Priority);
 
         public void Dispose()
         {
-            Dispose(true);
+            PerformDispose();
             GC.SuppressFinalize(this);
+        }
+
+        private void PerformDispose()
+        {
+            m_layers.ForEach(layer => layer.Dispose());
+            m_layers.Clear();
         }
     }
 }

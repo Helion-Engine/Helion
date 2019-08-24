@@ -1,41 +1,53 @@
-using Helion.Render.Commands.Types;
-using Helion.Util.Geometry;
 using System.Collections.Generic;
+using System.Drawing;
+using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
+using Helion.Util;
+using Helion.Util.Geometry;
 using Helion.World;
 
 namespace Helion.Render.Commands
 {
     public class RenderCommands
     {
-        private Dimension windowDimension;
-        private List<IRenderCommand> commands = new List<IRenderCommand>();
+        private readonly List<IRenderCommand> m_commands = new List<IRenderCommand>();
+        private Dimension m_windowDimension;
 
         public RenderCommands(Dimension windowDimensions)
         {
-            windowDimension = windowDimensions;
+            m_windowDimension = windowDimensions;
         }
         
         public void Clear()
         {
-            commands.Add(ClearRenderCommand.All());
+            m_commands.Add(ClearRenderCommand.All());
         }
 
+        public void DrawImage(CIString textureName, Rectangle drawArea)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, drawArea));
+        }
+        
+        public void DrawImage(CIString textureName, Rectangle drawArea, float alpha)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, drawArea, alpha));
+        }
+        
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction)
         {
-            commands.Add(new DrawWorldCommand(world, camera, gametick, fraction));
+            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction));
         }
 
         public void Viewport(Dimension dimension)
         {
-            commands.Add(new ViewportCommand(dimension));
+            m_commands.Add(new ViewportCommand(dimension));
         }
 
         public void Viewport(Dimension dimension, Vec2I offset)
         {
-            commands.Add(new ViewportCommand(dimension, offset));
+            m_commands.Add(new ViewportCommand(dimension, offset));
         }
 
-        public IReadOnlyList<IRenderCommand> GetCommands() => commands.AsReadOnly();
+        public IReadOnlyList<IRenderCommand> GetCommands() => m_commands.AsReadOnly();
     }
 }

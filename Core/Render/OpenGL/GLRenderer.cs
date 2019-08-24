@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using GlmSharp;
@@ -85,13 +86,18 @@ namespace Helion.Render.OpenGL
             // also prevents something from going terribly wrong if there is no
             // call to setting the viewport.
             Rectangle viewport = new Rectangle(0, 0, 800, 600);
-            
-            foreach (IRenderCommand renderCommand in renderCommands.GetCommands())
+            IReadOnlyList<IRenderCommand> commands = renderCommands.GetCommands();
+
+            for (int i = 0; i < commands.Count; i++)
             {
+                IRenderCommand renderCommand = commands[i];
                 switch (renderCommand)
                 {
                 case ClearRenderCommand cmd:
                     HandleClearCommand(cmd);
+                    break;
+                case DrawImageCommand cmd:
+                    HandleDrawImage(cmd);
                     break;
                 case DrawWorldCommand cmd:
                     HandleRenderWorldCommand(cmd, viewport);
@@ -104,6 +110,8 @@ namespace Helion.Render.OpenGL
                     break;
                 }
             }
+            
+            DrawHudImagesIfAnyQueued();
             
             GLHelper.AssertNoGLError(gl);
         }
@@ -168,10 +176,10 @@ namespace Helion.Render.OpenGL
                 switch (level)
                 {
                 case DebugLevel.Low:
-                    Log.Error("OpenGL minor issue: {0}", message);
+                    Log.Warn("OpenGL minor issue: {0}", message);
                     return;
                 case DebugLevel.Medium:
-                    Log.Error("OpenGL issue: {0}", message);
+                    Log.Error("OpenGL warning: {0}", message);
                     return;
                 case DebugLevel.High:
                     Log.Error("OpenGL major error: {0}", message);
@@ -186,7 +194,7 @@ namespace Helion.Render.OpenGL
         {
             // TODO: Modern renderer.
             // TODO: Standard renderer.
-            if (m_capabilities.Version.Supports(2, 0))
+            if (m_capabilities.Version.Supports(3, 1))
             {
                 Log.Info("Using legacy OpenGL renderer");
                 return GLRenderType.Legacy;
@@ -211,7 +219,7 @@ namespace Helion.Render.OpenGL
         {
             Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
             
-            return new LegacyHudRenderer(m_config, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
         }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
@@ -229,9 +237,16 @@ namespace Helion.Render.OpenGL
             
             gl.Clear(clearMask);
         }
+        
+        private void HandleDrawImage(DrawImageCommand cmd)
+        {
+            m_hudRenderer.AddImage(cmd.TextureName, cmd.DrawArea, cmd.Alpha);
+        }
 
         private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
         {
+            DrawHudImagesIfAnyQueued();
+            
             RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport);
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
@@ -243,6 +258,11 @@ namespace Helion.Render.OpenGL
             currentViewport = new Rectangle(offset.X, offset.Y, dimension.Width, dimension.Height);
             
             gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
+        }
+        
+        private void DrawHudImagesIfAnyQueued()
+        {
+            m_hudRenderer.Render();
         }
 
         private void ReleaseUnmanagedResources()

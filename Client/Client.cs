@@ -1,20 +1,19 @@
 ﻿using System;
+using Helion.Cheats;
 using System.Diagnostics;
 using Helion.Input;
 using Helion.Layer;
-using Helion.Layer.Impl;
 using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Subsystems.OpenTK;
 using Helion.Util;
 using Helion.Util.Configuration;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Entries.Archives.Locator;
 using Helion.Resources.Archives.Collection;
 using NLog;
 using Console = Helion.Util.Console;
-using Helion.Cheats;
-using Helion.Util.Extensions;
 
 namespace Helion.Client
 {
