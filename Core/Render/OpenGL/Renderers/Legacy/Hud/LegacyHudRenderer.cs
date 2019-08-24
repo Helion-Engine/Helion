@@ -22,7 +22,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         private static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
-            new VertexPointerFloatAttribute("alpha", 2, 1));
+            new VertexPointerUnsignedByteAttribute("rgb", 2, 3, true),
+            new VertexPointerUnsignedByteAttribute("rgbBlend", 3, 1, true),
+            new VertexPointerFloatAttribute("alpha", 4, 1));
         
         private readonly IGLFunctions gl;
         private readonly LegacyGLTextureManager m_textureManager;
@@ -56,18 +58,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_drawBuffer.Clear();
         }
 
-        public override void AddImage(CIString textureName, Rectangle drawArea, float alpha)
+        public override void AddImage(CIString textureName, Rectangle drawArea, Color color, float alpha)
         {
             GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
-            AddImage(texture, drawArea, alpha);
+            AddImage(texture, drawArea, color, alpha);
         }
 
-        public override void AddImage(CIString textureName, Vec2I topLeft, float alpha)
+        public override void AddImage(CIString textureName, Vec2I topLeft, Color color, float alpha)
         {
             GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
             Dimension dimension = texture.Dimension;
             Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, dimension.Width, dimension.Height);
-            AddImage(texture, drawArea, alpha);
+            AddImage(texture, drawArea, color, alpha);
         }
 
         public override void Render(Rectangle viewport)
@@ -115,13 +117,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_vbo.Unbind();
         }
 
-        private void AddImage(GLLegacyTexture texture, Rectangle drawArea, float alpha)
+        private void AddImage(GLLegacyTexture texture, Rectangle drawArea, Color color, float alpha)
         {
-            // The glm::ortho we use has Z being the depth.
-            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, alpha);
-            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, alpha);
-            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, alpha);
-            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, alpha);
+            // Remember that we are drawing along the Z for visual depth now.
+            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, color, alpha);
+            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, color, alpha);
+            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, color, alpha);
+            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, color, alpha);
             
             HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
             m_drawBuffer.Add(texture, quad);

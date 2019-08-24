@@ -33,19 +33,39 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawImageCommand(textureName, topLeft));
         }
         
+        public void DrawImage(CIString textureName, Vec2I topLeft, Color color)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, topLeft, color));
+        }
+
+        public void DrawImage(CIString textureName, Vec2I topLeft, float alpha)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, topLeft, alpha));
+        }
+        
+        public void DrawImage(CIString textureName, Vec2I topLeft, Color color, float alpha)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, topLeft, color, alpha));
+        }
+        
         public void DrawImage(CIString textureName, int left, int top, int width, int height)
         {
             m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height)));
         }
         
-        public void DrawImage(CIString textureName, Rectangle drawArea)
+        public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color)
         {
-            m_commands.Add(new DrawImageCommand(textureName, drawArea));
+            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color));
         }
         
-        public void DrawImage(CIString textureName, Rectangle drawArea, float alpha)
+        public void DrawImage(CIString textureName, int left, int top, int width, int height, float alpha)
         {
-            m_commands.Add(new DrawImageCommand(textureName, drawArea, alpha));
+            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), alpha));
+        }
+        
+        public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color, float alpha)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color, alpha));
         }
         
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction)

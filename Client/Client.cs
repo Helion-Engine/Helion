@@ -28,7 +28,6 @@ namespace Helion.Client
         private readonly OpenTKWindow m_window;
         private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
         private readonly GameLayerManager m_layerManager;
-
         private int m_currentLevel;
         private bool m_mapFormat;
 
@@ -216,12 +215,8 @@ namespace Helion.Client
             try
             {
                 using (Config config = new Config())
-                {
-                    using Client client = new Client(cmdArgs, config);
-                    {
+                    using (Client client = new Client(cmdArgs, config))
                         client.Start();
-                    }
-                }
             }
             catch (AssertionException)
             {
