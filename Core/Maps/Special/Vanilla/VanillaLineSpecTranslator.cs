@@ -4,22 +4,7 @@ namespace Helion.Maps.Special
 {
     class VanillaLineSpecTranslator
     {
-        private const byte SectorSlowSpeed = 8;
-        private const byte SectorFastSpeed = 16;
 
-        private const byte LiftSlowSpeed = 32;
-        private const byte LiftFastSpeed = 64;
-
-        private const byte DoorSlowSpeed = 16;
-        private const int DoorFastSpeed = 64;
-
-        private const byte StairSlowSpeed = 2;
-        private const byte StairFastSpeed = 4;
-
-        private const byte DonutSpeed = 4;
-
-        private const byte LiftDelay = 105;
-        private const byte DoorDelay = 150;
 
         public static ZLineSpecialType Translate(Line line, VLineSpecialType type, byte tag)
         {
@@ -303,8 +288,8 @@ namespace Helion.Maps.Special
                     line.Args[0] = tag;
 
                     // TODO verify these speeds
-                    line.Args[1] = DonutSpeed; // Pillar speed
-                    line.Args[2] = DonutSpeed; // Surrounding speed
+                    line.Args[1] = VConstants.DonutSpeed; // Pillar speed
+                    line.Args[2] = VConstants.DonutSpeed; // Surrounding speed
                     return ZLineSpecialType.FloorDonut;
 
                 case VLineSpecialType.ScrollTextureLeft:
@@ -405,49 +390,31 @@ namespace Helion.Maps.Special
                 case VLineSpecialType.W1_FastCrusherCeiling:
                 case VLineSpecialType.WR_FastCrusherCeilingSlowDamage:
                 case VLineSpecialType.W1_QuietCrusherCeilingFastDamage:
-                    return SectorFastSpeed;
+                    return VConstants.SectorFastSpeed;
 
                 case VLineSpecialType.W1_RaiseFloorToLowestAdjacentCeiling:
                 case VLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
                 case VLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
                 case VLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
-                case VLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
                 case VLineSpecialType.S1_RaiseFloorToMatchNextHigher:
-                case VLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
-                case VLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
                 case VLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
                 case VLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
-                case VLineSpecialType.W1_LowerFloorEightAboveHighestAdjacentFloor:
-                case VLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
-                case VLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
-                case VLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
-                case VLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VLineSpecialType.W1_StartMovingFloorPerpetual:
                 case VLineSpecialType.S1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VLineSpecialType.W1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VLineSpecialType.W1_RaiseFloorTwentyFour:
                 case VLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
-                case VLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
                 case VLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
                 case VLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
                 case VLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
-                case VLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VLineSpecialType.SR_RaiseFloorToNextHigher:
-                case VLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
-                case VLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
-                case VLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
-                case VLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
-                case VLineSpecialType.WR_LowerFLoorToLowestAdjacentFloorChangeTexture:
                 case VLineSpecialType.WR_StartMovingFloorPerpetual:
                 case VLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
                 case VLineSpecialType.WR_RaiseFloorTwentyFour:
                 case VLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
                 case VLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-                case VLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
-                case VLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
                 case VLineSpecialType.S1_RaiseFLoorToLowestAdjacentCeiling:
-                case VLineSpecialType.S1_LowerFLoorToHighestAdjacentFloor:
                 case VLineSpecialType.W1_RaiseFloorToNextHigherFloor:
                 case VLineSpecialType.WR_RaiseFloorToNextHigherFloor:
                 case VLineSpecialType.S1_RaiseFloorToNextHigherFloor:
@@ -460,19 +427,42 @@ namespace Helion.Maps.Special
                 case VLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
                 case VLineSpecialType.WR_SlowCrusherCeilingFastDamage:
                 case VLineSpecialType.WR_LowerCeilingToEightAboveFloor:
-                    return SectorSlowSpeed;
+                    return VConstants.SectorFastSpeed;
+
+                case VLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
+                case VLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
+                    return VConstants.FloorSlowSpeed;
+
+                // TODO verify these!
+                case VLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
+                case VLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
+                case VLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
+                case VLineSpecialType.S1_LowerFLoorToHighestAdjacentFloor:
+                case VLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
+                case VLineSpecialType.WR_LowerFLoorToLowestAdjacentFloorChangeTexture:
+                case VLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
+                case VLineSpecialType.W1_LowerFloorEightAboveHighestAdjacentFloor:
+                case VLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
+                case VLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
+                    return VConstants.LiftSlowSpeed;
 
                 case VLineSpecialType.W1_LowerLiftRaise:
                 case VLineSpecialType.S1_LowerLiftRaise:
                 case VLineSpecialType.SR_LowerLiftRaise:
                 case VLineSpecialType.WR_LowerLiftRaise:
-                    return LiftSlowSpeed;
+                    return VConstants.LiftSlowSpeed;
 
                 case VLineSpecialType.WR_LowerLiftFastRaise:
                 case VLineSpecialType.W1_LowerLiftFastRaise:
                 case VLineSpecialType.S1_LowerLiftFastRaise:
                 case VLineSpecialType.SR_LowerLiftFastRaise:
-                    return LiftFastSpeed;
+                    return VConstants.LiftFastSpeed;
 
                 case VLineSpecialType.DR_OpenRedKeyClose:
                 case VLineSpecialType.DR_OpenBlueKeyClose:
@@ -497,7 +487,7 @@ namespace Helion.Maps.Special
                 case VLineSpecialType.WR_OpenDoorStay:
                 case VLineSpecialType.WR_OpenDoorClose:
                 case VLineSpecialType.S1_OpenDoorStay:
-                    return DoorSlowSpeed;
+                    return VConstants.DoorSlowSpeed;
 
                 case VLineSpecialType.SR_OpenYellowKeyFastStay:
                 case VLineSpecialType.S1_OpenYellowKeyFastStay:
@@ -519,15 +509,15 @@ namespace Helion.Maps.Special
                 case VLineSpecialType.W1_CloseDoorFast:
                 case VLineSpecialType.S1_CloseDoorFast:
                 case VLineSpecialType.SR_CloseDoorFast:
-                    return DoorFastSpeed;
+                    return VConstants.DoorFastSpeed;
 
                 case VLineSpecialType.S1_RaiseStairs8:
                 case VLineSpecialType.W1_RaiseStairs8:
-                    return StairSlowSpeed;
+                    return VConstants.StairSlowSpeed;
 
                 case VLineSpecialType.W1_RaiseStairsFast:
                 case VLineSpecialType.S1_RaiseStairsFast:
-                    return StairFastSpeed;
+                    return VConstants.StairFastSpeed;
             }
 
             return 0;
@@ -536,15 +526,15 @@ namespace Helion.Maps.Special
         private static byte GetDelay(VLineSpecialType type)
         {
             if (IsDoorWithDelay(type))
-                return DoorDelay;
+                return VConstants.DoorDelay;
             else if (IsLift(type))
-                return LiftDelay;
+                return VConstants.LiftDelay;
 
             switch (type)
             {
                 case VLineSpecialType.W1_StartMovingFloorPerpetual:
                 case VLineSpecialType.WR_StartMovingFloorPerpetual:
-                    return LiftDelay;
+                    return VConstants.LiftDelay;
             }
 
             return 0;
