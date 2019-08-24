@@ -13,8 +13,6 @@ namespace Helion.Maps.Special
     {
         public event EventHandler LevelExit;
 
-        private const int DoorDestOffset = 4;
-
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         private const double SpeedFactor = 0.125;
 
@@ -39,26 +37,18 @@ namespace Helion.Maps.Special
             if (args.ActivateLineSpecial == null || (args.ActivateLineSpecial.Activated && !args.ActivateLineSpecial.Flags.Repeat))
                 return false;
 
-            int startSpecialCount = m_specials.Count;
             var special = args.ActivateLineSpecial.Special;
-            bool sectorSpecialSuccess = false;
+            bool specialActivateSuccess;
 
-            if (special.IsTeleport())
-                AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
-            else if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial())
-                sectorSpecialSuccess = HandleSectorLineSpecial(args, special);
+            if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial())
+                specialActivateSuccess = HandleSectorLineSpecial(args, special);
             else
-                HandleDefault(args, special);
+                specialActivateSuccess = HandleDefault(args, special);
 
-            if (m_specials.Count > startSpecialCount)
-            {
-                if (sectorSpecialSuccess && args.ActivationContext == ActivationContext.UseLine && !args.ActivateLineSpecial.Activated)
-                    AddSpecial(new SwitchChangeSpecial(m_switchManager, args.ActivateLineSpecial));
+            if (specialActivateSuccess && args.ActivationContext == ActivationContext.UseLine && !args.ActivateLineSpecial.Activated)
+                AddSpecial(new SwitchChangeSpecial(m_switchManager, args.ActivateLineSpecial));
 
-                return true;
-            }
-
-            return false;
+            return specialActivateSuccess;
         }
 
         private void StartInitSpecials()
@@ -91,15 +81,15 @@ namespace Helion.Maps.Special
                     break;
 
                 case ZSectorSpecialType.LightStrobeFastDoom:
-                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 17, 5));
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.FastDarkTime, false));
                     break;
 
                 case ZSectorSpecialType.LightStrobeSlowDoom:
-                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 35, 5));
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, false));
                     break;
 
                 case ZSectorSpecialType.LightStrobeHurtDoom:
-                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 35, 5));
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, false));
                     break;
 
                 case ZSectorSpecialType.LightGlow:
@@ -107,22 +97,22 @@ namespace Helion.Maps.Special
                     break;
 
                 case ZSectorSpecialType.SectorDoorClose30Seconds:
-                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, 16 * SpeedFactor), 35 * 30));
+                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, VConstants.DoorSlowSpeed * SpeedFactor), 35 * 30));
                     break;
 
                 case ZSectorSpecialType.DamageEnd:
                     break;
 
                 case ZSectorSpecialType.LightStrobeSlowSync:
-                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 35, 5));
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, true));
                     break;
 
                 case ZSectorSpecialType.LightStrobeFastSync:
-                    AddSpecial(new LightStrobeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector), 17, 5));
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.FastDarkTime, true));
                     break;
 
                 case ZSectorSpecialType.DoorRaiseIn5Minutes:
-                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, 16 * SpeedFactor), 35 * 60 * 5));
+                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, VConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5));
                     break;
 
                 case ZSectorSpecialType.LightFireFlicker:
@@ -131,14 +121,19 @@ namespace Helion.Maps.Special
             }
         }
 
-        private void HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special)
+        private bool HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special)
         {
             switch (special.LineSpecialType)
             {
+                case ZLineSpecialType.Teleport:
+                    AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
+                    return true;
                 case ZLineSpecialType.ExitNormal:
-                    LevelExit?.Invoke(this, new EventArgs());
-                    break;
+                    AddSpecial(new ExitSpecial(15));
+                    return true;
             }
+
+            return false;
         }
 
         private bool HandleSectorLineSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
@@ -158,8 +153,8 @@ namespace Helion.Maps.Special
                         AddSpecial(sectorSpecial);
                     }
                 }
-                else if (args.ActivationContext == ActivationContext.UseLine && lineSpecial.CanActivateDuringSectorMovement() 
-                    && args.ActivateLineSpecial.SectorTag == 0)
+                else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
+                    args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
                 {
                     sector.ActiveMoveSpecial.Use();
                 }
@@ -306,7 +301,7 @@ namespace Helion.Maps.Special
             return null;
         }
 
-        private ISpecial CreateLightChangeSpecial(Sector sector, byte lightLevel, int fadeTics = 0)
+        private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)
         {
             return new LightChangeSpecial(sector, lightLevel, fadeTics);
         }
@@ -378,6 +373,8 @@ namespace Helion.Maps.Special
                     m_specials.Remove(node);
                     if (node.Value.Sector != null)
                         m_destroyedMoveSpecials.Add(node.Value);
+                    if (node.Value is ExitSpecial)
+                        LevelExit?.Invoke(this, new EventArgs());
                 }
 
                 node = next;
@@ -398,7 +395,7 @@ namespace Helion.Maps.Special
 
         public ISpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
         {
-            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - DoorDestOffset;
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VConstants.DoorDestOffset;
             return new DoorOpenCloseSpecial(m_physicsManager, sector, destZ, speed, delay);
         }
 
@@ -412,14 +409,14 @@ namespace Helion.Maps.Special
         public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
         {
             // TODO handle keys
-            double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - DoorDestOffset;
+            double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - VConstants.DoorDestOffset;
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay));
         }
 
         public ISpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
         {
-            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - DoorDestOffset;
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VConstants.DoorDestOffset;
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
