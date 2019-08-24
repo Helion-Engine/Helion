@@ -2,6 +2,6 @@
 {
     public interface IRandom
     {
-        public int NextRandom();
+        int NextRandom();
     }
 }
