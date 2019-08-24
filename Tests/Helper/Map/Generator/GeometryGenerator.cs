@@ -157,6 +157,8 @@ namespace Helion.Test.Helper.Map.Generator
             public Sector? GetNextLowestCeiling(Sector sector) => null;
             public Sector? GetNextHighestFloor(Sector sector) => null;
             public Sector? GetNextHighestCeiling(Sector sector) => null;
-        } 
+            public short GetMinLightLevelNeighbor(Sector sector) => 0;
+            public short GetMaxLightLevelNeighbor(Sector sector) => 0;
+        }
     }
 }
