@@ -563,7 +563,7 @@ namespace Helion.Maps.Special
         private double GetNextHighestCeilingDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetNextHighestCeiling(sector);
-            return destSector == null ? sector.Floor.Z : destSector.Ceiling.Z;
+            return destSector == null ? sector.Ceiling.Z : destSector.Ceiling.Z;
         }
 
         private double GetLowestFloorDestZ(Sector sector)
