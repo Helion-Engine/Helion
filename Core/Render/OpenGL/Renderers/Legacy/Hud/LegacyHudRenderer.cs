@@ -68,7 +68,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             AddImage(texture, drawArea, alpha);
         }
 
-        public override void Render()
+        public override void Render(Rectangle viewport)
         {
             UploadDrawBuffer();
             m_vbo.UploadIfNeeded();
@@ -77,7 +77,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             
             gl.ActiveTexture(TextureUnitType.Zero);
             m_shaderProgram.BoundTexture.Set(gl, 0);
-            m_shaderProgram.Mvp.Set(gl, CreateMvp());
+            m_shaderProgram.Mvp.Set(gl, CreateMvp(viewport));
             
             m_vao.Bind();
             m_vbo.DrawArrays();
@@ -94,10 +94,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
         private void AddImage(GLTexture texture, Rectangle drawArea, float alpha)
         {
-            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, alpha);
-            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, alpha);
-            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, alpha);
-            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, alpha);
+            HudVertex topLeft = new HudVertex(drawArea.Left, DrawDepth, drawArea.Top, 0.0f, 0.0f, alpha);
+            HudVertex topRight = new HudVertex(drawArea.Right, DrawDepth, drawArea.Top, 1.0f, 0.0f, alpha);
+            HudVertex bottomLeft = new HudVertex(drawArea.Left, DrawDepth, drawArea.Bottom, 0.0f, 1.0f, alpha);
+            HudVertex bottomRight = new HudVertex(drawArea.Right, DrawDepth, drawArea.Bottom, 1.0f, 1.0f, alpha);
             
             HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
             m_drawBuffer.Add(texture, quad);
@@ -108,10 +108,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             DrawDepth += 1.0f;
         }
 
-        private mat4 CreateMvp()
+        private mat4 CreateMvp(Rectangle viewport)
         {
-            // TODO
-            return mat4.Identity;
+            // We draw from the top down, so we want the top being zero and the
+            // bottom being the height. Also note that the rectangle is on a
+            // cartesian coordinate system, but we need an inverted the Y so
+            // the bottom/top are swapped.
+            return mat4.Ortho(viewport.Left, viewport.Right, viewport.Bottom, viewport.Top, 0, DrawDepth + 1);
         }
 
         private void UploadDrawBuffer()

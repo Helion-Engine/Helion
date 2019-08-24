@@ -111,7 +111,7 @@ namespace Helion.Render.OpenGL
                 }
             }
             
-            DrawHudImagesIfAnyQueued();
+            DrawHudImagesIfAnyQueued(viewport);
             
             GLHelper.AssertNoGLError(gl);
         }
@@ -245,7 +245,7 @@ namespace Helion.Render.OpenGL
 
         private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
         {
-            DrawHudImagesIfAnyQueued();
+            DrawHudImagesIfAnyQueued(currentViewport);
             
             RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport);
             m_worldRenderer.Render(cmd.World, renderInfo);
@@ -260,9 +260,9 @@ namespace Helion.Render.OpenGL
             gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }
         
-        private void DrawHudImagesIfAnyQueued()
+        private void DrawHudImagesIfAnyQueued(Rectangle viewport)
         {
-            m_hudRenderer.Render();
+            m_hudRenderer.Render(viewport);
         }
 
         private void ReleaseUnmanagedResources()
