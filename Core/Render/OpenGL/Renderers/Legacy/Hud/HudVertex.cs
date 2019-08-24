@@ -5,14 +5,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct HudVertex
     {
-        public readonly int X;
-        public readonly int Y;
-        public readonly int Z;
-        public readonly int U;
-        public readonly int V;
+        public readonly float X;
+        public readonly float Y;
+        public readonly float Z;
+        public readonly float U;
+        public readonly float V;
         public readonly float Alpha;
 
-        public HudVertex(int x, int y, int z, int u, int v, float alpha)
+        public HudVertex(float x, float y, float z, float u, float v, float alpha)
         {
             X = x;
             Y = y;

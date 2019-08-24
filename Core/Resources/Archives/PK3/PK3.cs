@@ -21,6 +21,8 @@ namespace Helion.Resources.Archives
             ["ACS"] = ResourceNamespace.ACS,
             ["FLATS"] = ResourceNamespace.Flats,
             ["FONTS"] = ResourceNamespace.Fonts,
+            ["GRAPHICS"] = ResourceNamespace.Graphics,
+            ["HIRES"] = ResourceNamespace.Textures,
             ["MUSIC"] = ResourceNamespace.Music,
             ["SOUNDS"] = ResourceNamespace.Sounds,
             ["SPRITES"] = ResourceNamespace.Sprites,

@@ -13,6 +13,7 @@
         ACS,
         Flats,
         Fonts,
+        Graphics,
         Music,
         Sounds,
         Sprites,
