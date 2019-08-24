@@ -18,7 +18,7 @@ namespace Helion.Layer
     {
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static readonly CIString LayerName = "CONSOLE";
+        private static readonly CIString LayerName = "WORLD";
 
         public event EventHandler LevelExit;
         protected override double Priority => 0.25;
@@ -32,23 +32,23 @@ namespace Helion.Layer
         private TickCommand m_tickCommand = new TickCommand();
         private SinglePlayerWorld m_world;
 
-        public SinglePlayerWorldLayer(Config config) : base(config)
+        public SinglePlayerWorldLayer(Config config)
         {
             m_config = config;
             
             m_consumeKeys = new[]
             {
-                (Config.Engine.Controls.MoveForward,    TickCommands.Forward),
-                (Config.Engine.Controls.MoveLeft,       TickCommands.Left),
-                (Config.Engine.Controls.MoveBackward,   TickCommands.Backward),
-                (Config.Engine.Controls.MoveRight,      TickCommands.Right),
-                (Config.Engine.Controls.Jump,           TickCommands.Jump),
-                (Config.Engine.Controls.Crouch,         TickCommands.Crouch),
+                (config.Engine.Controls.MoveForward,  TickCommands.Forward),
+                (config.Engine.Controls.MoveLeft,     TickCommands.Left),
+                (config.Engine.Controls.MoveBackward, TickCommands.Backward),
+                (config.Engine.Controls.MoveRight,    TickCommands.Right),
+                (config.Engine.Controls.Jump,         TickCommands.Jump),
+                (config.Engine.Controls.Crouch,       TickCommands.Crouch),
             };
 
             m_consumeDownKeys = new[]
             {
-                (Config.Engine.Controls.Use,            TickCommands.Use),
+                (config.Engine.Controls.Use,          TickCommands.Use),
             };
         }
 

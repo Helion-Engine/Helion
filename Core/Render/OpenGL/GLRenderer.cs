@@ -28,7 +28,6 @@ namespace Helion.Render.OpenGL
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool InfoPrinted;
 
-        private readonly GLRenderType m_renderType;
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
@@ -48,10 +47,10 @@ namespace Helion.Render.OpenGL
             SetGLDebugger();
             SetGLStates();
 
-            m_renderType = GetRenderTypeFromCapabilities();
-            m_textureManager = CreateTextureManager(archiveCollection);
-            m_worldRenderer = CreateWorldRenderer();
-            m_hudRenderer = CreateHudRenderer();
+            GLRenderType renderType = GetRenderTypeFromCapabilities();
+            m_textureManager = CreateTextureManager(renderType, archiveCollection);
+            m_worldRenderer = CreateWorldRenderer(renderType);
+            m_hudRenderer = CreateHudRenderer(renderType);
         }
 
         ~GLRenderer()
@@ -192,8 +191,6 @@ namespace Helion.Render.OpenGL
 
         private GLRenderType GetRenderTypeFromCapabilities()
         {
-            // TODO: Modern renderer.
-            // TODO: Standard renderer.
             if (m_capabilities.Version.Supports(3, 1))
             {
                 Log.Info("Using legacy OpenGL renderer");
@@ -203,23 +200,45 @@ namespace Helion.Render.OpenGL
             throw new HelionException("OpenGL implementation too old or not supported");
         }
         
-        private IGLTextureManager CreateTextureManager(ArchiveCollection archiveCollection)
+        private IGLTextureManager CreateTextureManager(GLRenderType renderType, ArchiveCollection archiveCollection)
         {
-            return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+            switch (renderType)
+            {
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+            }
         }
 
-        private WorldRenderer CreateWorldRenderer()
+        private WorldRenderer CreateWorldRenderer(GLRenderType renderType)
         {
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            
-            return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            switch (renderType)
+            {
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+                return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            }
         }
 
-        private HudRenderer CreateHudRenderer()
+        private HudRenderer CreateHudRenderer(GLRenderType renderType)
         {
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            
-            return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            switch (renderType)
+            {
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+                return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            }
         }
         
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
@@ -240,7 +259,13 @@ namespace Helion.Render.OpenGL
         
         private void HandleDrawImage(DrawImageCommand cmd)
         {
-            m_hudRenderer.AddImage(cmd.TextureName, cmd.DrawArea, cmd.Alpha);
+            if (cmd.AreaIsTextureDimension)
+            {
+                Vec2I topLeft = new Vec2I(cmd.DrawArea.X, cmd.DrawArea.Y);
+                m_hudRenderer.AddImage(cmd.TextureName, topLeft, cmd.Alpha);
+            }
+            else
+                m_hudRenderer.AddImage(cmd.TextureName, cmd.DrawArea, cmd.Alpha);
         }
 
         private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)

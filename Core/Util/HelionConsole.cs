@@ -1,12 +1,12 @@
-﻿using Helion.Graphics.String;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Text;
+using Helion.Graphics.String;
 using Helion.Util.Configuration;
 using Helion.Util.Extensions;
 using NLog;
 using NLog.Targets;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util
@@ -20,10 +20,10 @@ namespace Helion.Util
     /// be a medium for user pressed characters and messages from a variety of
     /// message emitters (ex: loggers).
     /// </remarks>
-    public class Console : Target
+    public class HelionConsole : Target
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
-        private static readonly string targetName = "HelionConsole";
+        private const string TargetName = "HelionConsole";
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// How many console messages wil be logged. Any more than this will
@@ -39,14 +39,14 @@ namespace Helion.Util
         /// Because the upper bound is inclusive, it is unsafe to use this as a
         /// direct index into the 
         /// </remarks>
-        public int InputCaretPosition { get; private set; } = 0;
+        public int InputCaretPosition { get; private set; }
 
         /// <summary>
         /// All the messages that have been received thus far.
         /// </summary>
         /// <remarks>
         /// This will never exceed <see cref="Capacity"/>. Any messages at the
-        /// end of the list will be removed once this grows past the capcity
+        /// end of the list will be removed once this grows past the capacity
         /// value.
         /// </remarks>
         public readonly LinkedList<ColoredString> Messages = new LinkedList<ColoredString>();
@@ -66,11 +66,10 @@ namespace Helion.Util
 
         private readonly Config config;
         private readonly StringBuilder input = new StringBuilder();
-        private bool disposed;
 
-        public Console(Config cfg)
+        public HelionConsole(Config cfg)
         {
-            Name = targetName;
+            Name = TargetName;
             config = cfg;
             
             Capacity = config.Engine.Console.MaxMessages;
@@ -79,9 +78,9 @@ namespace Helion.Util
             AddToLogger();
         }
 
-        ~Console()
+        ~HelionConsole()
         {
-            Dispose(false);
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         }
         
         private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
@@ -99,14 +98,14 @@ namespace Helion.Util
         private void AddToLogger()
         {
             var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
-            LogManager.Configuration.AddTarget(targetName, this);
+            LogManager.Configuration.AddTarget(TargetName, this);
             LogManager.Configuration.LoggingRules.Add(rule);
             LogManager.ReconfigExistingLoggers();
         }
 
         private void RemoveLogger()
         {
-            LogManager.Configuration.RemoveTarget(targetName);
+            LogManager.Configuration.RemoveTarget(TargetName);
         }
 
         private void RemoveExcessMessagesIfAny()
@@ -142,7 +141,7 @@ namespace Helion.Util
             if (inputText.Empty())
                 return;
 
-            log.Info(inputText);
+            Log.Info(inputText);
             OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(inputText));
         }
 
@@ -213,25 +212,18 @@ namespace Helion.Util
             }
         }
 
-        protected override void Dispose(bool disposing)
+        public new void Dispose()
         {
-            if (disposed)
-                return;
-
-            if (disposing)
-            {
-                config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
-                
-                // TODO: Investigate whether this is correct or not, the logger
-                // documentation isn't clear and stackoverflow has some unusual
-                // results for how to properly remove the logger.
-                // The logger stops logging to this target after we dispose of
-                // this object, but I'd like to make sure that it's foolproof.
-                base.Dispose(disposing);
-                RemoveLogger();
-            }
-
-            disposed = true;
+            config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+            
+            // TODO: Investigate whether this is correct or not, the logger
+            // documentation isn't clear and stack overflow has some unusual
+            // results for how to properly remove the logger.
+            // The logger stops logging to this target after we dispose of
+            // this object, but I'd like to make sure that it's foolproof.
+            RemoveLogger();
+            base.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 

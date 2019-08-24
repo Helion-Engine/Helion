@@ -1,5 +1,5 @@
+using Helion.Input;
 using Helion.Util;
-using Helion.Util.Configuration;
 
 namespace Helion.Layer
 {
@@ -15,11 +15,27 @@ namespace Helion.Layer
     /// </remarks>
     public class GameLayerManager : GameLayer
     {
+        private readonly HelionConsole m_console;
+
         protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
-        public GameLayerManager(Config config) : base(config)
+        public GameLayerManager(HelionConsole console)
         {
+            m_console = console;
+        }
+
+        public override void HandleInput(ConsumableInput consumableInput)
+        {
+            if (consumableInput.ConsumeKeyPressed(InputKey.Backtick))
+            {
+                if (AnyExistByName(ConsoleWorldLayer.LayerName))
+                    RemoveAllByName(ConsoleWorldLayer.LayerName);
+                else
+                    Add(new ConsoleWorldLayer(m_console));
+            }
+            
+            base.HandleInput(consumableInput);
         }
     }
 }

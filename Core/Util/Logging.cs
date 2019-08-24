@@ -26,7 +26,7 @@ namespace Helion.Util
         
         private static void SetupConsole(LoggingConfiguration config, CommandLineArgs commandLineArgs)
         {
-            if (commandLineArgs.NoConsole)
+            if (!commandLineArgs.WriteToConsole)
                 return;
 
             ConsoleTarget consoleTarget = new ConsoleTarget("console")
@@ -54,7 +54,7 @@ namespace Helion.Util
 
             string logFile = commandLineArgs.LogPath;
             if (commandLineArgs.TimestampLogFile)
-                logFile = $"helion_{DateTime.Now.ToString("o")}_{logFile}";
+                logFile = $"helion_{DateTime.Now:o}_{logFile}";
 
             FileTarget fileTarget = new FileTarget("file")
             {

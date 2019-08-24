@@ -4,23 +4,16 @@ using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Util;
-using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
 {
     public abstract class GameLayer : IDisposable, IComparable<GameLayer>
     {
-        protected readonly Config Config;
         private readonly List<GameLayer> m_layers = new List<GameLayer>();
 
         protected abstract CIString Name { get; }
         protected abstract double Priority { get; }
-
-        protected GameLayer(Config config)
-        {
-            Config = config;
-        }
 
         ~GameLayer()
         {
@@ -32,31 +25,29 @@ namespace Helion.Layer
         {
             return m_layers.FirstOrDefault(x => x.GetType() == type);
         }
-        
-        public bool RemoveAllTypes(Type type)
-        {
-            List<GameLayer> layersToRemove = m_layers.Where(layer => layer.GetType() == type).ToList();
-            
-            // Though we extracted the list so we could invoke .Any(), it must
-            // also be noted that we can't call this as part of the query or it
-            // may (will?) mutate while handling iteration, which is bad.
-            layersToRemove.ForEach(layer =>
-            {
-                layer.Dispose();
-                m_layers.Remove(layer);
-            });
 
-            return layersToRemove.Any();
+        public bool AnyExistByName(CIString name) => m_layers.Any(layer => layer.Name == name);
+        
+        public void RemoveAllByName(CIString name)
+        {
+            List<GameLayer> layersToRemove = m_layers.Where(layer => layer.Name == name).ToList();
+            RemoveLayers(layersToRemove);
         }
         
+        public void RemoveAllTypes(Type type)
+        {
+            List<GameLayer> layersToRemove = m_layers.Where(layer => layer.GetType() == type).ToList();
+            RemoveLayers(layersToRemove);
+        }
+
         public void Add(GameLayer layer)
         {
             RemoveAllTypes(layer.GetType());
             
             m_layers.Add(layer);
             m_layers.Sort();
-        } 
-        
+        }
+
         public virtual void HandleInput(ConsumableInput consumableInput)
         {
             m_layers.ForEach(layer => layer.HandleInput(consumableInput));
@@ -78,6 +69,18 @@ namespace Helion.Layer
         {
             PerformDispose();
             GC.SuppressFinalize(this);
+        }
+
+        protected void RemoveLayers(List<GameLayer> layersToRemove)
+        {
+            // Though we extracted the list so we could invoke .Any(), it must
+            // also be noted that we can't call this as part of the query or it
+            // may (will?) mutate while handling iteration, which is bad.
+            layersToRemove.ForEach(layer =>
+            {
+                layer.Dispose();
+                m_layers.Remove(layer);
+            });
         }
 
         private void PerformDispose()

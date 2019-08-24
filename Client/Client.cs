@@ -1,6 +1,6 @@
 ﻿using System;
-using Helion.Cheats;
 using System.Diagnostics;
+using Helion.Cheats;
 using Helion.Input;
 using Helion.Layer;
 using Helion.Render;
@@ -12,8 +12,8 @@ using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Entries.Archives.Locator;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Assertion;
 using NLog;
-using Console = Helion.Util.Console;
 
 namespace Helion.Client
 {
@@ -22,7 +22,7 @@ namespace Helion.Client
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs m_commandLineArgs;
-        private readonly Console m_console;
+        private readonly HelionConsole m_console;
         private readonly Config m_config;
         private readonly OpenTKWindow m_window;
         private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
@@ -36,9 +36,9 @@ namespace Helion.Client
         {
             m_commandLineArgs = cmdArgs;
             m_config = configuration;
-            m_console = new Console(m_config);
+            m_console = new HelionConsole(m_config);
             m_window = new OpenTKWindow(m_config, m_archiveCollection, RunGameLoop);
-            m_layerManager = new GameLayerManager(m_config);
+            m_layerManager = new GameLayerManager(m_console);
 
             m_console.OnConsoleCommandEvent += OnConsoleCommand;
             CheatManager.Instance.CheatActivationChanged += CheatManager_CheatActivationChanged;
@@ -83,9 +83,9 @@ namespace Helion.Client
         private void ChangeLevel(string map)
         {
             var spWorld = m_layerManager.GetGameLayer(typeof(SinglePlayerWorldLayer));
-            if (spWorld != null && spWorld is SinglePlayerWorldLayer)
+            if (spWorld is SinglePlayerWorldLayer worldLayer)
             {
-                if (((SinglePlayerWorldLayer)spWorld).LoadMap(map, m_archiveCollection))
+                if (worldLayer.LoadMap(map, m_archiveCollection))
                     m_window.ClearMapResources();
             }
             else
@@ -120,12 +120,8 @@ namespace Helion.Client
         private void SetMapFormatAndStartMap()
         {
             // If we find MAP01 then use MAPxx format, else use ExMx format
-            m_mapFormat = m_archiveCollection.FindMap("MAP01").Item1 != null;
-
-            if (m_mapFormat)
-                m_currentLevel = 1;
-            else
-                m_currentLevel = 11;
+            m_mapFormat = m_archiveCollection.FindMap("MAP01").Map != null;
+            m_currentLevel = m_mapFormat ? 1 : 11;
         }
 
         private string GetMapFormat(int level)
@@ -133,8 +129,7 @@ namespace Helion.Client
             string levelDigits = level.ToString().PadLeft(2, '0');
             if (m_mapFormat)
                 return $"MAP{levelDigits}";
-            else
-                return $"E{levelDigits[0]}M{levelDigits[1]}";
+            return $"E{levelDigits[0]}M{levelDigits[1]}";
         }
         
         private void HandleInput()
@@ -195,10 +190,11 @@ namespace Helion.Client
                 return;
             
             m_console.OnConsoleCommandEvent -= OnConsoleCommand;
-            
+
             m_layerManager.Dispose();
             m_window.Dispose();
-            
+            m_console.Dispose();
+
             m_disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -224,6 +220,11 @@ namespace Helion.Client
                         client.Start();
                     }
                 }
+            }
+            catch (AssertionException)
+            {
+                Log.Error("Assertion failure detected");
+                throw;
             }
             catch (Exception e)
             {

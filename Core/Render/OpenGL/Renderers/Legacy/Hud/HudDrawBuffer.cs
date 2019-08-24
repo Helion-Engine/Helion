@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Texture;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util.Extensions;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
@@ -20,7 +20,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
     {
         public readonly List<HudDrawBufferData> DrawBuffer = new List<HudDrawBufferData>();
 
-        public void Add(GLTexture texture, HudQuad quad)
+        public void Add(GLLegacyTexture texture, HudQuad quad)
         {
             HudDrawBufferData data = GetOrCreate(texture);
             
@@ -33,7 +33,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             data.Vertices.Add(quad.BottomRight);
         }
 
-        private HudDrawBufferData GetOrCreate(GLTexture texture)
+        public void Clear()
+        {
+            DrawBuffer.Clear();
+        }
+
+        private HudDrawBufferData GetOrCreate(GLLegacyTexture texture)
         {
             if (DrawBuffer.Empty())
                 return AllocateNewAndAdd(texture);
@@ -42,8 +47,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             HudDrawBufferData front = DrawBuffer[DrawBuffer.Count - 1];
             return front.Texture == texture ? front : AllocateNewAndAdd(texture);
         }
-        
-        private HudDrawBufferData AllocateNewAndAdd(GLTexture texture)
+
+        private HudDrawBufferData AllocateNewAndAdd(GLLegacyTexture texture)
         {
             HudDrawBufferData newData = new HudDrawBufferData(texture);
             DrawBuffer.Add(newData);

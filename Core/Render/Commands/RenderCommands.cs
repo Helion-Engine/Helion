@@ -10,19 +10,34 @@ namespace Helion.Render.Commands
 {
     public class RenderCommands
     {
+        public readonly Dimension WindowDimension;
         private readonly List<IRenderCommand> m_commands = new List<IRenderCommand>();
-        private Dimension m_windowDimension;
 
         public RenderCommands(Dimension windowDimensions)
         {
-            m_windowDimension = windowDimensions;
+            WindowDimension = windowDimensions;
         }
         
         public void Clear()
         {
             m_commands.Add(ClearRenderCommand.All());
         }
+        
+        public void ClearDepth()
+        {
+            m_commands.Add(ClearRenderCommand.DepthOnly());
+        }
 
+        public void DrawImage(CIString textureName, Vec2I topLeft)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, topLeft));
+        }
+        
+        public void DrawImage(CIString textureName, int left, int top, int width, int height)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height)));
+        }
+        
         public void DrawImage(CIString textureName, Rectangle drawArea)
         {
             m_commands.Add(new DrawImageCommand(textureName, drawArea));

@@ -1,16 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using GlmSharp;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
@@ -52,17 +53,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         {
             DrawDepth = 1.0f;
             m_vbo.Clear();
+            m_drawBuffer.Clear();
         }
 
         public override void AddImage(CIString textureName, Rectangle drawArea, float alpha)
         {
-            GLTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
+            GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
             AddImage(texture, drawArea, alpha);
         }
 
         public override void AddImage(CIString textureName, Vec2I topLeft, float alpha)
         {
-            GLTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
+            GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
             Dimension dimension = texture.Dimension;
             Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, dimension.Width, dimension.Height);
             AddImage(texture, drawArea, alpha);
@@ -70,18 +72,23 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
         public override void Render(Rectangle viewport)
         {
-            UploadDrawBuffer();
-            m_vbo.UploadIfNeeded();
-            
             m_shaderProgram.Bind();
             
             gl.ActiveTexture(TextureUnitType.Zero);
             m_shaderProgram.BoundTexture.Set(gl, 0);
             m_shaderProgram.Mvp.Set(gl, CreateMvp(viewport));
             
-            m_vao.Bind();
-            m_vbo.DrawArrays();
-            m_vao.Unbind();
+            // TODO: Bind VAO and VBO out here and not constantly bind/unbind?
+            foreach (HudDrawBufferData data in m_drawBuffer.DrawBuffer)
+            {
+                UploadVerticesToVbo(data);
+                    
+                data.Texture.Bind();
+                m_vao.Bind();
+                m_vbo.DrawArrays();
+                m_vao.Unbind();   
+                data.Texture.Unbind();
+            }
             
             m_shaderProgram.Unbind();
         }
@@ -92,12 +99,29 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             GC.SuppressFinalize(this);
         }
 
-        private void AddImage(GLTexture texture, Rectangle drawArea, float alpha)
+        private void UploadVerticesToVbo(HudDrawBufferData data)
         {
-            HudVertex topLeft = new HudVertex(drawArea.Left, DrawDepth, drawArea.Top, 0.0f, 0.0f, alpha);
-            HudVertex topRight = new HudVertex(drawArea.Right, DrawDepth, drawArea.Top, 1.0f, 0.0f, alpha);
-            HudVertex bottomLeft = new HudVertex(drawArea.Left, DrawDepth, drawArea.Bottom, 0.0f, 1.0f, alpha);
-            HudVertex bottomRight = new HudVertex(drawArea.Right, DrawDepth, drawArea.Bottom, 1.0f, 1.0f, alpha);
+            Precondition(!data.Vertices.Empty(), "Should have at least some vertices to draw for some hud texture");
+            
+            m_vbo.Clear();
+            
+            m_vbo.Bind();
+
+            List<HudVertex> vertices = data.Vertices;
+            for (int i = 0; i < vertices.Count; i++)
+                m_vbo.Add(vertices[i]);
+            
+            m_vbo.Upload();
+            m_vbo.Unbind();
+        }
+
+        private void AddImage(GLLegacyTexture texture, Rectangle drawArea, float alpha)
+        {
+            // The glm::ortho we use has Z being the depth.
+            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, alpha);
+            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, alpha);
+            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, alpha);
+            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, alpha);
             
             HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
             m_drawBuffer.Add(texture, quad);
@@ -110,19 +134,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
         private mat4 CreateMvp(Rectangle viewport)
         {
-            // We draw from the top down, so we want the top being zero and the
-            // bottom being the height. Also note that the rectangle is on a
-            // cartesian coordinate system, but we need an inverted the Y so
-            // the bottom/top are swapped.
-            return mat4.Ortho(viewport.Left, viewport.Right, viewport.Bottom, viewport.Top, 0, DrawDepth + 1);
-        }
-
-        private void UploadDrawBuffer()
-        {
-            m_vbo.Bind();
-            m_drawBuffer.DrawBuffer.ForEach(data => data.Vertices.ForEach(m_vbo.Add));
-            m_vbo.Upload();
-            m_vbo.Unbind();
+            // There's a few things we do here:
+            //
+            // 1) We draw from the top downwards because we have the top left
+            // being our draw origin, and thus they are inverted.
+            //
+            // 2) We flip the Z depths so that we draw back-to-front, meaning
+            // the stuff we drew first should be drawn behind the stuff we drew
+            // later on. This gives us the Painters Algorithm approach we want.
+            return mat4.Ortho(viewport.Left, viewport.Right, viewport.Bottom, viewport.Top, -(DrawDepth + 1), 0);
         }
 
         private void ReleaseUnmanagedResources()
