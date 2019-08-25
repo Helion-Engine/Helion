@@ -1,4 +1,3 @@
-using System;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
@@ -20,13 +19,6 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         public void Unbind()
         {
             gl.BindTexture(TextureType, 0);
-        }
-
-        public void BindAnd(Action action)
-        {
-            Bind();
-            action.Invoke();
-            Unbind();
         }
     }
 }

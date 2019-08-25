@@ -8,7 +8,7 @@
         /// <summary>
         /// The character that makes up this glyph.
         /// </summary>
-        public char C { get; }
+        public char Character { get; }
 
         /// <summary>
         /// The image for this glyph.
@@ -17,7 +17,7 @@
 
         public Glyph(char c, Image image)
         {
-            C = c;
+            Character = c;
             Image = image;
         }
     }

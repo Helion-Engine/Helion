@@ -1,4 +1,6 @@
-﻿namespace Helion.Graphics.Fonts
+﻿using static Helion.Util.Assertion.Assert;
+
+namespace Helion.Graphics.Fonts
 {
     /// <summary>
     /// A collection of information for a font.
@@ -32,6 +34,8 @@
 
         public FontMetrics(int fontSize, int maxHeight, int maxAscent, int maxDescent, int lineSkip)
         {
+            Precondition(maxHeight > 0, "Font must have a positive height");
+            
             FontSize = fontSize;
             MaxHeight = maxHeight;
             MaxAscent = maxAscent;

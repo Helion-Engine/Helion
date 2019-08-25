@@ -209,7 +209,7 @@ namespace Helion.Render.OpenGL
             case GLRenderType.Standard:
                 throw new NotImplementedException("Standard GL renderer not implemented yet");
             default:
-                return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+                return new LegacyGLTextureManager(m_capabilities, gl, archiveCollection);
             }
         }
 

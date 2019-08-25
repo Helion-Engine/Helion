@@ -1,26 +1,29 @@
 using System;
 using System.Collections.Generic;
 using Helion.Graphics;
+using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 using Helion.Util;
-using Helion.Util.Configuration;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
+using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture
 {
     public abstract class GLTextureManager<GLTextureType> : IGLTextureManager where GLTextureType : GLTexture
     {
-        protected readonly Config Config;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly GLCapabilities Capabilities;
         protected readonly IGLFunctions gl;
         private readonly IImageRetriever m_imageRetriever;
         private readonly List<GLTextureType?> m_textures = new List<GLTextureType?>();
+        private readonly Dictionary<CIString, GLFontTexture<GLTextureType>> m_fonts = new Dictionary<CIString, GLFontTexture<GLTextureType>>();
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
         private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
         
@@ -30,15 +33,19 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         public GLTextureType NullTexture { get; }
         
-        protected GLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, 
-            ArchiveCollection archiveCollection)
+        /// <summary>
+        /// The null font, intended to be used when a font cannot be found.
+        /// </summary>
+        public GLFontTexture<GLTextureType> NullFont { get; }
+        
+        protected GLTextureManager(GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection)
         {
-            Config = config;
             ArchiveCollection = archiveCollection;
             m_imageRetriever = new ArchiveImageRetriever(ArchiveCollection);
             Capabilities = capabilities;
             gl = functions;
             NullTexture = CreateNullTexture();
+            NullFont = CreateNullFont();
         }
         
         ~GLTextureManager()
@@ -112,7 +119,32 @@ namespace Helion.Render.OpenGL.Texture
         /// the desired namespace, or the null texture if no such texture was
         /// found with the name provided.</returns>
         public GLTextureType GetFlat(CIString name) => Get(name, ResourceNamespace.Flats);
-                
+
+        /// <summary>
+        /// Gets the font for the name, or returns a default font that will
+        /// contain null images.
+        /// </summary>
+        /// <param name="name">The name of the font.</param>
+        /// <returns>The font for the provided name, otherwise the 'Null
+        /// texture' (which isn't null but is made up of textures that are the
+        /// missing texture image).</returns>
+        public GLFontTexture<GLTextureType> GetFont(CIString name)
+        {
+            if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType> existingFontTexture))
+                return existingFontTexture;
+            
+            // Look for a font definition.
+            // TODO
+            
+            Entry? entry = ArchiveCollection.GetEntry(name, ResourceNamespace.Fonts);
+            if (entry == null)
+                return NullFont;
+
+            // Attempt to read as a TTF file.
+            // TODO: Implement TTF reader and then this!
+            return NullFont;
+        }
+        
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -125,7 +157,7 @@ namespace Helion.Render.OpenGL.Texture
             return (int)Math.Floor(Math.Log(smallerAxis, 2));
         }
         
-        protected virtual GLTextureType CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
+        protected GLTextureType CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
         { 
             DeleteOldTextureIfAny(name, resourceNamespace);
 
@@ -137,7 +169,7 @@ namespace Helion.Render.OpenGL.Texture
             return texture;
         }
         
-        protected virtual void DeleteTexture(GLTextureType texture, CIString name, ResourceNamespace resourceNamespace)
+        protected void DeleteTexture(GLTextureType texture, CIString name, ResourceNamespace resourceNamespace)
         {
             m_textures[texture.Id] = null;
             m_freeTextureIndex.MakeAvailable(texture.Id);
@@ -145,17 +177,33 @@ namespace Helion.Render.OpenGL.Texture
             texture.Dispose();
         }
 
-        protected virtual void ReleaseUnmanagedResources()
+        protected void ReleaseUnmanagedResources()
         {
             NullTexture.Dispose();
             m_textures.ForEach(texture => texture?.Dispose());
+            
+            NullFont.Dispose();
+            m_fonts.ForEach(pair => pair.Value.Dispose());
         }
 
         protected abstract GLTextureType GenerateTexture(int id, Image image, CIString name, ResourceNamespace resourceNamespace);
         
+        protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, int id, CIString name, ResourceNamespace resourceNamespace);
+
         private GLTextureType CreateNullTexture()
         {
             return GenerateTexture(0, ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
+        }
+
+        private GLFontTexture<GLTextureType> CreateNullFont()
+        {
+            Image nullImage = ImageHelper.CreateNullImage();
+            Glyph glyph = new Glyph('?', nullImage);
+            List<Glyph> glyphs = new List<Glyph>() { glyph };
+            FontMetrics metrics = new FontMetrics(nullImage.Height, nullImage.Height, 0, 0, 0);
+
+            Font font = new Font(glyph, glyphs, metrics);
+            return GenerateFont(font, 0, "NULL_FONT", ResourceNamespace.Fonts);
         }
 
         private void AddToTextureList(int id, GLTextureType texture)

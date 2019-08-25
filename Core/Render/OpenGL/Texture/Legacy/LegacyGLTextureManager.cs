@@ -1,20 +1,21 @@
 using System.Drawing.Imaging;
 using Helion.Graphics;
+using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Legacy
 {
     public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     {
-        public LegacyGLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection) :
-            base(config, capabilities, functions, archiveCollection)
+        public LegacyGLTextureManager(GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection) :
+            base(capabilities, functions, archiveCollection)
         {
         }
 
@@ -51,6 +52,15 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             gl.BindTexture(texture.TextureType, 0);
         }
 
+        /// <summary>
+        /// Creates a new texture. The caller is responsible for disposing it.
+        /// </summary>
+        /// <param name="id">A unique ID for this texture.</param>
+        /// <param name="image">The image that makes up this texture.</param>
+        /// <param name="name">The name of the texture.</param>
+        /// <param name="resourceNamespace">What namespace the texture is from.
+        /// </param>
+        /// <returns>A new texture.</returns>
         protected override GLLegacyTexture GenerateTexture(int id, Image image, CIString name, 
             ResourceNamespace resourceNamespace)
         {
@@ -61,6 +71,15 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             UploadAndSetParameters(texture, image, name, resourceNamespace);
             
             return texture;
+        }
+
+        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, int id, CIString name, 
+            ResourceNamespace resourceNamespace)
+        {
+            (Image image, GLFontMetrics metrics) = GLFontGenerator.CreateFontAtlasFrom(font); 
+            GLLegacyTexture texture = GenerateTexture(id, image, name, resourceNamespace);
+            GLLegacyFontTexture fontTexture = new GLLegacyFontTexture(texture, metrics);
+            return fontTexture;
         }
 
         private void SetTextureParameters(TextureTargetType targetType, ResourceNamespace resourceNamespace)
