@@ -61,9 +61,10 @@ namespace Helion.World.Physics
         /// <param name="entity">The entity to link.</param>
         public void LinkToWorld(Entity entity)
         {
+            Sector lastSector = entity.HighestFloorSector;
             m_blockmap.Link(entity);
             LinkToSectors(entity);
-            ClampBetweenFloorAndCeiling(entity);
+            ClampBetweenFloorAndCeiling(entity, lastSector != entity.HighestFloorSector);
         }
 
         /// <summary>
@@ -95,7 +96,7 @@ namespace Helion.World.Physics
                 if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
                     entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
                 {
-                    entity.SetZ(destZ);
+                    entity.SetZ(destZ, false);
                 }
 
                 entity.UnlinkFromWorld();
@@ -263,7 +264,7 @@ namespace Helion.World.Physics
             return !ReferenceEquals(entity, other);
         }
 
-        private void SetEntityOnFloorOrEntity(Entity entity, double floorZ)
+        private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
         {
             // If we're airborne and just landed on the ground, we need a delay
             // for jumping. This should only happen if we've coming down from a
@@ -274,7 +275,7 @@ namespace Helion.World.Physics
                 entity.JumpDelayTicks = JumpDelayTicks;
             }
             
-            entity.SetZ(floorZ);
+            entity.SetZ(floorZ, smoothZ);
             entity.OnGround = true;
             
             // For now we remove any negative velocity. If upward velocity is
@@ -284,7 +285,7 @@ namespace Helion.World.Physics
             entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
 
-        private void ClampBetweenFloorAndCeiling(Entity entity)
+        private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ)
         {
             if (entity.NoClip && entity.IsFlying)
                 return;
@@ -294,12 +295,12 @@ namespace Helion.World.Physics
 
             if (entity.Box.Top > lowestCeil)
             {
-                entity.SetZ(lowestCeil - entity.Height);
+                entity.SetZ(lowestCeil - entity.Height, smoothZ);
                 entity.Velocity.Z = 0;
             }
 
             if (entity.Box.Bottom <= highestFloor)
-                SetEntityOnFloorOrEntity(entity, highestFloor);
+                SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ);
             else
                 entity.OnGround = false;
         }
@@ -477,7 +478,7 @@ namespace Helion.World.Physics
                 return;
             
             Precondition(entity.Box.Bottom >= other.Box.Top - entity.Definition.Properties.StepHeight, "Entity too high to step up onto");
-            SetEntityOnFloorOrEntity(entity, other.Box.Top);
+            SetEntityOnFloorOrEntity(entity, other.Box.Top, true);
         }
 
         private void MoveTo(Entity entity, Vec2D nextPosition)
@@ -748,8 +749,8 @@ namespace Helion.World.Physics
             
             // TODO: Check if any entities are in the way of our movement.
 
-            entity.SetZ(entity.Position.Z + entity.Velocity.Z);
-            ClampBetweenFloorAndCeiling(entity);
+            entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
+            ClampBetweenFloorAndCeiling(entity, false);
         }
     }
 }

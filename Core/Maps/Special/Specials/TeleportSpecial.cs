@@ -39,7 +39,7 @@ namespace Helion.Maps.Special.Specials
                 if (entity.Player != null)
                     entity.Player.Pitch = 0;
                 m_physicsManager.LinkToWorld(entity);
-                entity.SetZ(entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position));
+                entity.SetZ(entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position), false);
                 entity.OnGround = true;
             }
 
