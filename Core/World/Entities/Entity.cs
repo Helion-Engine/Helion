@@ -42,6 +42,20 @@ namespace Helion.World.Entities
         /// </summary>
         public Vec3D Position => Box.Position;
 
+        public Vec3D GetViewPosition()
+        {
+            Vec3D position = Position;
+            position.Z += m_viewHeight;
+            return position;
+        }
+
+        public Vec3D GetPrevViewPosition()
+        {
+            Vec3D position = PrevPosition;
+            position.Z += m_prevViewHeight;
+            return position;
+        }
+
         /// <summary>
         /// The angle in radians the entity is facing.
         /// </summary>
@@ -128,6 +142,13 @@ namespace Helion.World.Entities
         /// </summary>
         public ActorFlags Flags => Definition.Flags;
 
+        private const double PlayerViewHeight = 42.0;
+        private const double HalfPlayerViewHeight = PlayerViewHeight / 2.0;
+
+        private double m_viewHeight = PlayerViewHeight;
+        private double m_prevViewHeight = PlayerViewHeight;
+        private double m_deltaViewHeight = 0.0;
+
         /// <summary>
         /// Creates an entity with the following information.
         /// </summary>
@@ -157,8 +178,15 @@ namespace Helion.World.Entities
         /// provided.
         /// </summary>
         /// <param name="z">The Z coordinate.</param>
-        public void SetZ(double z)
+        /// <param name="smooth">If the entity should smooth the player's view height. This smooths the camera when stepping up to a higher sector.</param>
+        public void SetZ(double z, bool smooth)
         {
+            if (Player != null && smooth && Box.Bottom < z)
+            {
+                m_viewHeight -= z - Box.Bottom;
+                m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / 8.0;
+            }
+
             Box.SetZ(z);
         }
 
@@ -222,6 +250,19 @@ namespace Helion.World.Entities
         public void Tick()
         {
             PrevPosition = Box.Position;
+            m_prevViewHeight = m_viewHeight;
+
+            m_viewHeight += m_deltaViewHeight;
+
+            if (m_viewHeight > PlayerViewHeight)
+                m_viewHeight = PlayerViewHeight;
+
+            if (m_viewHeight < HalfPlayerViewHeight)
+                m_viewHeight = HalfPlayerViewHeight;
+
+            if (m_deltaViewHeight > 0)
+                m_deltaViewHeight += 0.25;
+
             if (FrozenTics > 0)
                 FrozenTics--;
         }
@@ -233,19 +274,11 @@ namespace Helion.World.Entities
             EntityListNode.Unlink();
         }
 
-        public double GetViewHeight()
-        {
-            return 42.0;
-        }
-
         public bool IsCrushing()
         {
             return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
         }
 
         private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
-
-        // Temporary - until we have some enums for flags
-        private bool m_flying;
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
@@ -44,8 +43,8 @@ namespace Helion.World.Entities.Players
 
         public Camera GetCamera(double t)
         {
-            Vec3D position = Entity.PrevPosition.Interpolate(Entity.Position, t);
-            
+            Vec3D position = Entity.GetPrevViewPosition().Interpolate(Entity.GetViewPosition(), t);
+
             // When rendering, we always want the most up-to-date values. We
             // would only want to interpolate here if looking at another player
             // and would likely need to add more logic for wrapping around if
@@ -55,9 +54,7 @@ namespace Helion.World.Entities.Players
             float pitch = (float)Pitch;
 
             // TODO: This should be clamped to the floor/ceiling and use the
-            //       property for the player.
-           
-            position.Z += Entity.GetViewHeight();
+            //       property for the player.           
             position.Z = MathHelper.Clamp(position.Z, Entity.HighestFloorSector.Floor.Z, Entity.LowestCeilingSector.Ceiling.Z - 8);
 
             return new Camera(position.ToFloat(), yaw, pitch);
