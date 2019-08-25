@@ -11,6 +11,10 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Fonts
 {
+    /// <summary>
+    /// Handles the logic of generating a font atlas that GL font textures can be
+    /// made from.
+    /// </summary>
     public static class GLFontGenerator
     {
         private const int MaxGlyphWidth = 2048;
@@ -24,6 +28,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
         /// implementation.</returns>
         public static (Image, GLFontMetrics) CreateFontAtlasFrom(Font font)
         {
+            // TODO: This entire function has a potentially horrible memory footprint...
             // We add one for the default glyph. This will be a repeat, but it
             // is okay since it's just one character.
             int glyphCount = font.Count() + 1;
@@ -33,7 +38,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
             // wasteful for large fonts though.
             Dimension glyphArea = new Dimension(maxWidth * 2, font.Metrics.MaxHeight * 2);
             Precondition(glyphArea.Width <= MaxGlyphWidth, "Font too large to fit onto a texture");
-
+            
             int glyphsPerRow = MaxGlyphWidth / glyphArea.Width;
             int rows = (glyphCount / glyphsPerRow) + 1;
             Image image = CreateFontAtlasImage(glyphArea, glyphsPerRow, rows);
