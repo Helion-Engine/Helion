@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Helion.Resources.Archives.Entries;
 using Helion.Util.Assertion;
 using Helion.Util.Extensions;
 using NLog;
@@ -31,7 +33,29 @@ namespace Helion.Util.Parser
         /// A list of the tokens to be processed.
         /// </summary>
         protected List<Token> Tokens = new List<Token>();
-        
+
+        /// <summary>
+        /// Performs parsing a data entry. For more information on how this
+        /// works, see <see cref="Parse(string)"/>.
+        /// </summary>
+        /// <param name="entry">The entry to read as text.</param>
+        /// <returns>See <see cref="Parse(string)"/>.</returns>
+        public bool Parse(Entry entry)
+        {
+            return Parse(entry.ReadData());
+        }
+
+        /// <summary>
+        /// Performs parsing on a set of ASCII characters. For more information
+        /// see <see cref="Parse(string)"/>.
+        /// </summary>
+        /// <param name="textData">The ASCII text data in byte form.</param>
+        /// <returns>See <see cref="Parse(string)"/>.</returns>
+        public bool Parse(byte[] textData)
+        {
+            return Parse(Encoding.ASCII.GetString(textData));
+        }
+
         /// <summary>
         /// Performs a full parsing on the text. On success, internal data
         /// structures will be populated. Returns success or failure status.
@@ -267,6 +291,29 @@ namespace Helion.Util.Parser
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find '{c}', got {token.Text} instead");
         }
+
+        /// <summary>
+        /// Consumes a boolean and parses it. Throws if it cannot. This only
+        /// works for the values 'true' and 'false' (not case sensitive).
+        /// </summary>
+        /// <returns>The boolean (if it doesn't throw).</returns>
+        /// <exception cref="ParserException">If there is no match or we ran
+        /// out of tokens or there was a parsing error with the boolean.
+        /// </exception>
+        protected bool ConsumeBoolean()
+        {
+            string str = ConsumeString();
+            switch (str.ToUpper())
+            {
+            case "TRUE":
+                return true;
+            case "FALSE":
+                return false;
+            default:
+                ThrowException($"Expecting boolean value of 'true' or 'false', got {str} instead");
+                return false;
+            }
+        }
         
         /// <summary>
         /// Consumes an integer and parses it. Throws if it cannot.
@@ -389,6 +436,95 @@ namespace Helion.Util.Parser
 
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expecting to find \"{str}\", got \"{token.Text}\" instead");
+        }
+
+        /// <summary>
+        /// Consumes the symbol provided in character form, or does nothing if
+        /// there is no matching symbol after. This is equal to peeking, and
+        /// consuming if it matches.
+        /// </summary>
+        /// <param name="c">The symbol character.</param>
+        /// <returns>True if it consumed, false if not.</returns>
+        protected bool ConsumeIf(char c)
+        {
+            if (!Peek(c))
+                return false;
+            
+            Consume(c);
+            return true;
+        }
+        
+        /// <summary>
+        /// Consumes the case insensitive string, or does nothing if there is
+        /// no matching symbol after. This is equal to peeking, and consuming
+        /// if it matches.
+        /// </summary>
+        /// <param name="str">The case insensitive string.</param>
+        /// <returns>True if it consumed, false if not.</returns>
+        protected bool ConsumeIf(string str)
+        {
+            if (!Peek(str))
+                return false;
+            
+            ConsumeString(str);
+            return true;
+        }
+
+        /// <summary>
+        /// Will keep peeking for the character, and invoking the action if the
+        /// peeking does not find it. As soon as it finds the character, it
+        /// consumes it.
+        /// </summary>
+        /// <param name="c">The symbol character.</param>
+        /// <param name="action">The action to invoke every time the character
+        /// symbol is not found.</param>
+        protected void InvokeUntilAndConsume(char c, Action action)
+        {
+            while (!Peek(c))
+            {
+                int beforeIndex = CurrentTokenIndex;
+                action();
+                if (CurrentTokenIndex == beforeIndex)
+                    throw new ParserException(Tokens[beforeIndex], "Infinite parsing loop detected, InvokeUntilAndConsume(char) usage incorrect (report to a developer)");
+            }
+            
+            Consume(c);
+        }
+        
+        /// <summary>
+        /// Will keep peeking for the character, and invoking the action if the
+        /// peeking does not find it. As soon as it finds the character, it
+        /// consumes it.
+        /// </summary>
+        /// <param name="str">The symbol character.</param>
+        /// <param name="action">The action to invoke every time the character
+        /// symbol is not found.</param>
+        protected void InvokeUntilAndConsume(string str, Action action)
+        {
+            while (!Peek(str))
+            {
+                int beforeIndex = CurrentTokenIndex;
+                action();
+                if (CurrentTokenIndex == beforeIndex)
+                    throw new ParserException(Tokens[beforeIndex], "Infinite parsing loop detected, InvokeUntilAndConsume(char) usage incorrect (report to a developer)");
+            }
+            
+            ConsumeString(str);
+        }
+
+        /// <summary>
+        /// Throws an exception, halting parsing. The error message used is the
+        /// one provided as the argument.
+        /// </summary>
+        /// <param name="reason">The reason for throwing.</param>
+        /// <exception cref="ParserException">The exception.</exception>
+        protected void ThrowException(string reason)
+        {
+            // If we get an index out of bounds, that is also handled. This can
+            // occur when there are zero tokens in the stream, but it is all
+            // handled.
+            int index = (CurrentTokenIndex >= Tokens.Count ? Tokens.Count - 1 : CurrentTokenIndex);
+            throw new ParserException(Tokens[index], reason);
         }
 
         /// <summary>

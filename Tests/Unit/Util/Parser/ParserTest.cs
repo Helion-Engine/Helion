@@ -440,6 +440,144 @@ namespace Helion.Test.Unit.Util.Parser
             ParserTestImpl parser = new ParserTestImpl("");
             parser.ConsumeString("stuff");
         }
+        
+        [TestMethod]
+        [ExpectedException(typeof(ParserException))]
+        public void InvokingThrowWillPerformThrowing()
+        {
+            ParserTestImpl parser = new ParserTestImpl(";-");
+            parser.ThrowException("msg");
+        }
+        
+        [TestMethod]
+        public void ConsumesBooleans()
+        {
+            ParserTestImpl parser = new ParserTestImpl("true TRUE trUe false FALSE falSe trve");
+            
+            Assert.IsTrue(parser.ConsumeBoolean());
+            Assert.IsTrue(parser.ConsumeBoolean());
+            Assert.IsTrue(parser.ConsumeBoolean());
+            Assert.IsFalse(parser.ConsumeBoolean());
+            Assert.IsFalse(parser.ConsumeBoolean());
+            Assert.IsFalse(parser.ConsumeBoolean());
+
+            try
+            {
+                parser.ConsumeBoolean();
+                Assert.Fail("Parsed boolean when it was not");
+            }
+            catch (ParserException)
+            {
+                // We want to end up in here.
+            }
+        }
+        
+        [TestMethod]
+        public void ConsumeIfAdvanceOnSuccess()
+        {
+            ParserTestImpl parser = new ParserTestImpl("{ hello");
+            
+            Assert.IsTrue(parser.ConsumeIf('{'));
+            Assert.AreEqual(1, parser.CurrentTokenIndex);
+            
+            Assert.IsTrue(parser.ConsumeIf("hello"));
+            Assert.AreEqual(2, parser.CurrentTokenIndex);
+        }
+
+        [TestMethod]
+        public void ConsumeIfDoesntAdvanceOnFailure()
+        {
+            ParserTestImpl parser = new ParserTestImpl("{");
+            
+            Assert.IsFalse(parser.ConsumeIf('}'));
+            Assert.AreEqual(0, parser.CurrentTokenIndex);
+            
+            Assert.IsFalse(parser.ConsumeIf("hi"));
+            Assert.AreEqual(0, parser.CurrentTokenIndex);
+        }
+
+
+        [TestMethod]
+        public void ConsumeIfDoesntAdvanceOnEOF()
+        {
+            ParserTestImpl parser = new ParserTestImpl("");
+
+            Assert.IsFalse(parser.ConsumeIf('}'));
+            Assert.AreEqual(0, parser.CurrentTokenIndex);
+            
+            // Try it one more time to make sure no state got corrupt.
+            Assert.IsFalse(parser.ConsumeIf('}'));
+            Assert.AreEqual(0, parser.CurrentTokenIndex);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void ConsumeBooleanPastEndThrows()
+        {
+            ParserTestImpl parser = new ParserTestImpl("");
+            parser.ConsumeBoolean();
+        }
+        
+        [TestMethod]
+        public void InvokeCharSymbolWillPerformInvocations()
+        {
+            ParserTestImpl parser = new ParserTestImpl("1 2 3 }");
+
+            int invocations = 0;
+            parser.InvokeUntilAndConsume('}', IntReader);
+            Assert.AreEqual(3, invocations);
+
+            void IntReader()
+            {
+                invocations++;
+                if (parser.PeekInteger())
+                    parser.ConsumeInteger();
+            }
+        }
+        
+        [TestMethod]
+        public void InvokeStringWillPerformInvocations()
+        {
+            ParserTestImpl parser = new ParserTestImpl("1 yes");
+
+            int invocations = 0;
+            parser.InvokeUntilAndConsume("yes", IntReader);
+            Assert.AreEqual(1, invocations);
+
+            void IntReader()
+            {
+                invocations++;
+                if (parser.PeekInteger())
+                    parser.ConsumeInteger();
+            }
+        }
+        
+        [TestMethod]
+        [ExpectedException(typeof(ParserException))]
+        public void InvokeUntilInfiniteLoopDetected()
+        {
+            ParserTestImpl parser = new ParserTestImpl("a b c }");
+            
+            parser.InvokeUntilAndConsume('}', () => { });
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void InvokeCharSymbolUntilThrowsOnEOF()
+        {
+            ParserTestImpl parser = new ParserTestImpl("");
+            
+            parser.InvokeUntilAndConsume('}', () => { });
+        }
+        
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void InvokeStringUntilThrowsOnEOF()
+        {
+            ParserTestImpl parser = new ParserTestImpl("");
+            
+            parser.InvokeUntilAndConsume("yes", () => { });
+        }
     }
 
     // Allow us access to the internals to manipulate them. This makes it sort
@@ -471,6 +609,12 @@ namespace Helion.Test.Unit.Util.Parser
         public new double ConsumeSignedFloat() => base.ConsumeSignedFloat();
         public new string ConsumeString() => base.ConsumeString();
         public new void ConsumeString(string str) => base.ConsumeString(str);
+        public new bool ConsumeBoolean() => base.ConsumeBoolean();
+        public new bool ConsumeIf(string str) => base.ConsumeIf(str);
+        public new bool ConsumeIf(char c) => base.ConsumeIf(c);
+        public new void InvokeUntilAndConsume(char c, Action action) => base.InvokeUntilAndConsume(c, action);
+        public new void InvokeUntilAndConsume(string str, Action action) => base.InvokeUntilAndConsume(str, action);
+        public new void ThrowException(string msg) => base.ThrowException(msg);
         
         protected override void PerformParsing()
         {

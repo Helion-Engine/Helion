@@ -50,13 +50,14 @@ namespace Helion.Util.Parser
         public ParserException(Token token, string message) : this(token.LineNumber, token.LineCharOffset, token.CharOffset, message)
         {
         }
-        
+
         /// <summary>
         /// Takes the parsed text and the exception and logs a human readable
         /// error message.
         /// </summary>
         /// <param name="text">The entire parsed text.</param>
-        public List<string> LogToReadableMessage(string text)
+        /// <returns>Readable log messages for the error.</returns>
+        public IEnumerable<string> LogToReadableMessage(string text)
         {
             if (text.Empty())
                 return new List<string> { "Cannot parse text when there are no tokens to read" };

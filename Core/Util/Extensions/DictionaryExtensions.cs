@@ -8,6 +8,15 @@ namespace Helion.Util.Extensions
     public static class DictionaryExtensions
     {
         /// <summary>
+        /// Checks if a dictionary is empty or not.
+        /// </summary>
+        /// <param name="dictionary">The dictionary to check.</param>
+        /// <typeparam name="K">The key type.</typeparam>
+        /// <typeparam name="V">The value type.</typeparam>
+        /// <returns>True if it is, false if not.</returns>
+        public static bool Empty<K, V>(this Dictionary<K, V> dictionary) => dictionary.Count == 0;
+        
+        /// <summary>
         /// Gets the value, or returns the default value provided.
         /// </summary>
         /// <param name="dictionary">The dictionary to operate on.</param>

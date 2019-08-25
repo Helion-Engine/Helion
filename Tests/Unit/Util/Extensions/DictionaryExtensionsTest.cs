@@ -8,6 +8,19 @@ namespace Helion.Test.Unit.Util.Extensions
     public class DictionaryExtensionsTest
     {
         [TestMethod]
+        public void CheckIfEmpty()
+        {
+            Assert.IsTrue(new Dictionary<int, string>().Empty());
+        }
+        
+        [TestMethod]
+        public void CheckIfNotEmpty()
+        {
+            Dictionary<int, string> dictionary = new Dictionary<int, string> { [1] = "hi", [17] = "17!" };
+            Assert.IsFalse(dictionary.Empty());
+        }
+
+        [TestMethod]
         public void GetDefaultValueWhenKeyMissing()
         {
             const string defaultValue = "default";

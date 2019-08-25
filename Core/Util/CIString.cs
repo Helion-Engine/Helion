@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Util.Extensions;
 
 namespace Helion.Util
 {
@@ -15,6 +16,8 @@ namespace Helion.Util
         /// How many characters are in this string.
         /// </summary>
         public int Length => str.Length;
+
+        public bool Empty => str.Empty();
         
         public CIString(string s) => str = s;
 
@@ -29,8 +32,6 @@ namespace Helion.Util
         public static bool operator ==(CIString self, string other) => self.str.Equals(other, StringComparison.OrdinalIgnoreCase);
         
         public static bool operator !=(CIString self, string other) => !self.str.Equals(other, StringComparison.OrdinalIgnoreCase);
-
-        public bool Empty() => string.IsNullOrEmpty(str);
 
         public override bool Equals(object obj) => obj is CIString s && str.Equals(s.str, StringComparison.OrdinalIgnoreCase);
         
