@@ -54,9 +54,9 @@ namespace Helion.Maps.Special.Specials
             }
 
             double destZ = m_flat.Z + m_speed;
-            if (m_direction == MoveDirection.Down && m_flat.Z < m_destZ)
+            if (m_direction == MoveDirection.Down && destZ < m_destZ)
                 destZ = m_destZ;
-            else if (m_direction == MoveDirection.Up && m_flat.Z > m_destZ)
+            else if (m_direction == MoveDirection.Up && destZ > m_destZ)
                 destZ = m_destZ;
 
             SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ, m_data.Crush);
