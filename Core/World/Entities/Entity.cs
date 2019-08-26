@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Resources.Definitions.Decorate;
-using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Players;
@@ -15,8 +14,6 @@ namespace Helion.World.Entities
     /// </summary>
     public class Entity : IDisposable
     {
-        public Player? Player;
-
         /// <summary>
         /// A unique identifier for this entity.
         /// </summary>
@@ -42,20 +39,6 @@ namespace Helion.World.Entities
         /// </summary>
         public Vec3D Position => Box.Position;
 
-        public Vec3D GetViewPosition()
-        {
-            Vec3D position = Position;
-            position.Z += m_viewHeight;
-            return position;
-        }
-
-        public Vec3D GetPrevViewPosition()
-        {
-            Vec3D position = PrevPosition;
-            position.Z += m_prevViewHeight;
-            return position;
-        }
-
         /// <summary>
         /// The angle in radians the entity is facing.
         /// </summary>
@@ -65,6 +48,7 @@ namespace Helion.World.Entities
         /// The movement of the entity.
         /// </summary>
         public Vec3D Velocity = Vec3D.Zero;
+        public Player? Player;
 
         // TODO should use state enum flags when they exist
         public bool IsFlying { get; set; }
@@ -76,23 +60,6 @@ namespace Helion.World.Entities
         /// A cached value to tell whether we are on the ground or not.
         /// </summary>
         public bool OnGround { get; internal set; }
-        
-        /// <summary>
-        /// Checks whether the player is currently jumping or not.
-        /// </summary>
-        /// <remarks>
-        /// This is set when a player jumps, which is primarily used to seeing
-        /// whether a jump should be allowed upon hitting the ground next or if
-        /// a jump delay should be applied after landing on the ground.
-        /// </remarks>
-        public bool IsJumping { get; internal set; }
-        
-        /// <summary>
-        /// After we land, we don't want to immediately be able to jump. This
-        /// is a counter of how many ticks remaining until we can jump again.
-        /// </summary>
-        // TODO: This should be part of the player, not the entity. 
-        public int JumpDelayTicks { get; internal set; }
 
         /// <summary>
         /// The sector that is at the center of the entity.
@@ -109,10 +76,13 @@ namespace Helion.World.Entities
         /// </summary>
         public Sector HighestFloorSector;
 
+        public List<Line> IntersectSpecialLines = new List<Line>();
+        public List<Entity> IntersectEntities = new List<Entity>();
+
         /// <summary>
         /// The node in the linked list of entities.
         /// </summary>
-        internal LinkableNode<Entity> EntityListNode;
+        internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
 
         /// <summary>
         /// All the linked list nodes for blocks that this entity belongs to.
@@ -123,9 +93,6 @@ namespace Helion.World.Entities
         /// All the linked list nodes for sectors that this entity belongs to.
         /// </summary>
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
-
-        public List<Line> IntersectSpecialLines = new List<Line>();
-        public List<Entity> IntersectEntities = new List<Entity>();
 
         /// <summary>
         /// A (shorter to type) reference to the definition's height value.
@@ -141,13 +108,6 @@ namespace Helion.World.Entities
         /// A (shorter to type) reference to the definition's flags.
         /// </summary>
         public ActorFlags Flags => Definition.Flags;
-
-        private const double PlayerViewHeight = 42.0;
-        private const double HalfPlayerViewHeight = PlayerViewHeight / 2.0;
-
-        private double m_viewHeight = PlayerViewHeight;
-        private double m_prevViewHeight = PlayerViewHeight;
-        private double m_deltaViewHeight = 0.0;
 
         /// <summary>
         /// Creates an entity with the following information.
@@ -182,10 +142,7 @@ namespace Helion.World.Entities
         public void SetZ(double z, bool smooth)
         {
             if (Player != null && smooth && Box.Bottom < z)
-            {
-                m_viewHeight -= z - Box.Bottom;
-                m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / 8.0;
-            }
+                Player.SetSmoothZ(z);
 
             Box.SetZ(z);
         }
@@ -250,18 +207,6 @@ namespace Helion.World.Entities
         public void Tick()
         {
             PrevPosition = Box.Position;
-            m_prevViewHeight = m_viewHeight;
-
-            m_viewHeight += m_deltaViewHeight;
-
-            if (m_viewHeight > PlayerViewHeight)
-                m_viewHeight = PlayerViewHeight;
-
-            if (m_viewHeight < HalfPlayerViewHeight)
-                m_viewHeight = HalfPlayerViewHeight;
-
-            if (m_deltaViewHeight > 0)
-                m_deltaViewHeight += 0.25;
 
             if (FrozenTics > 0)
                 FrozenTics--;

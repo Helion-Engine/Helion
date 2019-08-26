@@ -21,7 +21,6 @@ namespace Helion.World.Physics
     public class PhysicsManager
     {
         private const int MaxSlides = 3;
-        private const int JumpDelayTicks = 7;
         private const double Gravity = 1.0;
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
@@ -266,14 +265,8 @@ namespace Helion.World.Physics
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
         {
-            // If we're airborne and just landed on the ground, we need a delay
-            // for jumping. This should only happen if we've coming down from a
-            // manual jump.
-            if (!entity.OnGround && entity.IsJumping)
-            {
-                entity.IsJumping = false;
-                entity.JumpDelayTicks = JumpDelayTicks;
-            }
+            if (entity.Player != null && !entity.OnGround)
+                entity.Player.SetHitZ(IsHardHitZ(entity));
             
             entity.SetZ(floorZ, smoothZ);
             entity.OnGround = true;
@@ -284,6 +277,9 @@ namespace Helion.World.Physics
             // application of jumping after the XY movement instead of before?
             entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
+
+        // TODO take sector gravity into account when implemented
+        private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
         private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ)
         {
@@ -734,21 +730,11 @@ namespace Helion.World.Physics
         private void MoveZ(Entity entity)
         {
             if (entity.Player != null && entity.IsFlying)
-            {
                 entity.Velocity.Z *= Friction;
-            }
-            else if (entity.OnGround)
-            {
-                if (entity.JumpDelayTicks > 0)
-                    entity.JumpDelayTicks--;
-            }
-            else
-            {
+            else if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
-            }
             
             // TODO: Check if any entities are in the way of our movement.
-
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
             ClampBetweenFloorAndCeiling(entity, false);
         }

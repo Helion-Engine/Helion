@@ -79,10 +79,9 @@ namespace Helion.World.Impl.SinglePlayer
                     movement.Z = 0;
                     entity.Velocity.Z = Player.ForwardMovementSpeed * 2;
                 }
-                else if (Player.AbleToJump())
+                else
                 {
-                    entity.IsJumping = true;
-                    entity.Velocity.Z += Player.JumpZ;
+                    Player.Jump();
                 }
             }
 
