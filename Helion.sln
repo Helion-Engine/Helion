@@ -3,16 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28809.33
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{A702538C-AA2B-4765-86A2-796CC76365E3}"
-	ProjectSection(ProjectDependencies) = postProject
-		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16} = {9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}
-		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{8A68F691-F36D-4D1C-844D-0B0A2F19CD76}"
-	ProjectSection(ProjectDependencies) = postProject
-		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604} = {DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{964A9B91-D588-4C47-86BF-646E1D566630}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -24,9 +15,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BspVisualizer", "BspVisuali
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinMouse", "WinMouse\WinMouse.csproj", "{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets", "Assets\Assets.csproj", "{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{8169087F-1C7B-4644-B0DF-655BD44F3B0F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16} = {9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}
+		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,10 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A702538C-AA2B-4765-86A2-796CC76365E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A702538C-AA2B-4765-86A2-796CC76365E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A702538C-AA2B-4765-86A2-796CC76365E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A702538C-AA2B-4765-86A2-796CC76365E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,14 +41,14 @@ Global
 		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00D8A3DB-53C3-4CE4-9A90-5D3691E6EFB2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD3109BB-4F73-4E1C-91AE-0AB65E7EB604}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8169087F-1C7B-4644-B0DF-655BD44F3B0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8169087F-1C7B-4644-B0DF-655BD44F3B0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8169087F-1C7B-4644-B0DF-655BD44F3B0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8169087F-1C7B-4644-B0DF-655BD44F3B0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

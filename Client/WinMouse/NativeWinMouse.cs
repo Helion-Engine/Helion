@@ -1,12 +1,11 @@
-﻿using System.Windows.Forms;
-using System;
-using WinMouse.Native;
+﻿using System;
+using System.Windows.Forms;
 
-namespace WinMouse
+namespace Helion.Client.WinMouse
 {
     public delegate void WinMouseMove(int deltaX, int deltaY);
 
-    public partial class NativeWinMouse : Form
+    public class NativeWinMouse : Form
     {
         private readonly WinMouseMove m_callback;
 
@@ -32,7 +31,7 @@ namespace WinMouse
         {
             switch (message.Msg)
             {
-                case Constants.WM_INPUT:
+                case WinMouseConstants.WM_INPUT:
                     int x, y;
                     NativeMethods.GetRawInput(ref message, out x, out y);
                     m_callback(x, y);

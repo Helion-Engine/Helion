@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Windows.Forms;
 using Helion.Cheats;
+using Helion.Client.OpenTK;
 using Helion.Input;
 using Helion.Layer;
 using Helion.Render;
 using Helion.Render.Commands;
-using Helion.Subsystems.OpenTK;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Extensions;
@@ -53,19 +54,19 @@ namespace Helion.Client
             // TODO: This function will get ugly and bloated *very* quickly...
             switch (ccmdArgs.Command)
             {
-            case "EXIT":
-                m_window.Close();
-                break;
-            
-            case "MAP":
-                if (ccmdArgs.Args.Empty())
-                {
-                    Log.Info("Usage: map <mapName>");
+                case "EXIT":
+                    m_window.Close();
                     break;
-                }
 
-                ChangeLevel(ccmdArgs.Args[0]);
-                break;
+                case "MAP":
+                    if (ccmdArgs.Args.Empty())
+                    {
+                        Log.Info("Usage: map <mapName>");
+                        break;
+                    }
+
+                    ChangeLevel(ccmdArgs.Args[0]);
+                    break;
             }
         }
 
@@ -135,7 +136,7 @@ namespace Helion.Client
                 return $"MAP{levelDigits}";
             return $"E{levelDigits[0]}M{levelDigits[1]}";
         }
-        
+
         private void HandleInput()
         {
             ConsumableInput input = new ConsumableInput(m_window.PollInput());
@@ -159,20 +160,20 @@ namespace Helion.Client
 
             renderer.Render(renderCommands);
         }
-        
+
         private void RunGameLoop()
         {
             HandleInput();
             RunLogic();
             Render();
-            
+
             m_window.SwapBuffers();
         }
 
         private void Start()
         {
             HandleCommandLineArgs();
-            
+
             // Until we move to OpenTK 4.0, we're stuck with 3.0's infinite
             // loop until exit here. How we get around this right now is giving
             // a series of callbacks previously that will hook into this
@@ -202,13 +203,15 @@ namespace Helion.Client
 
         public static void Main(string[] args)
         {
+            ExitIfTieredCompilationEnabled();
+            
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
 
             Logging.Initialize(cmdArgs);
             Log.Info("=========================================");
             Log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
             Log.Info("=========================================");
-            
+
             if (cmdArgs.ErrorWhileParsing)
                 Log.Error("Bad command line arguments, unexpected results may follow");
 
@@ -217,6 +220,8 @@ namespace Helion.Client
                 using (Config config = new Config())
                     using (Client client = new Client(cmdArgs, config))
                         client.Start();
+
+                ForceFinalizersIfDebugMode();
             }
             catch (AssertionException)
             {
@@ -231,10 +236,29 @@ namespace Helion.Client
                 Log.Error("{0}", e.StackTrace);
 #endif
             }
-            
-            LogManager.Shutdown();
+            finally
+            {
+                LogManager.Shutdown();
+            }
+        }
 
-            ForceFinalizersIfDebugMode();
+        private static void ExitIfTieredCompilationEnabled()
+        {
+            string? tieredCompilation = Environment.GetEnvironmentVariable("COMPlus_TieredCompilation");
+            if (tieredCompilation == null || (int.TryParse(tieredCompilation, out int value) && value != 0))
+            {
+                string message = "Missing critical performance environmental variable. Set the following:\n" +
+                                 "\n" +
+                                 "    COMPlus_TieredCompilation = 0\n" +
+                                 "\n" +
+                                 "This environmental variable is needed because (as of .NET Core 3.0 preview) " +
+                                 "the tiered JIT compilation causes bad microstutters when playing the game. " +
+                                 "This bug may be resolved in later versions of .NET however.\n" +
+                                 "\n" +
+                                 "If you are not a developer and see this message, contact a developer immediately.";
+                MessageBox.Show(message, "Helion Critical Performance Issue", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(1);
+            }
         }
 
         [Conditional("DEBUG")]

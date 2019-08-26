@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Numerics;
 using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Physics;
-using OpenTK;
-using Vector2 = System.Numerics.Vector2;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -113,7 +113,7 @@ namespace Helion.World.Impl.SinglePlayer
         
         private static Vec3D CalculateStrafeRightMovement(Entity entity)
         {
-            double rightRotateAngle = entity.Angle - MathHelper.PiOver2;
+            double rightRotateAngle = entity.Angle - MathHelper.HalfPi;
             double x = Math.Cos(rightRotateAngle) * Player.SideMovementSpeed;
             double y = Math.Sin(rightRotateAngle) * Player.SideMovementSpeed;
 

@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Helion.Client.OpenTK.Extensions;
+using Helion.Client.WinMouse;
 using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;
@@ -12,8 +14,9 @@ using NLog;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Subsystems.OpenTK
+namespace Helion.Client.OpenTK
 {
     public class OpenTKWindow : GameWindow, IWindow
     {
@@ -27,7 +30,7 @@ namespace Helion.Subsystems.OpenTK
         private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
         private bool m_disposed;
         private bool m_useMouseOpenTK;
-        
+
         public OpenTKWindow(Config cfg, ArchiveCollection archiveCollection, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
@@ -38,6 +41,12 @@ namespace Helion.Subsystems.OpenTK
 
             RegisterConfigListeners();
             SetupMouse();
+        }
+
+        ~OpenTKWindow()
+        {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            Dispose(false);
         }
 
         private void SetupMouse()
@@ -56,7 +65,7 @@ namespace Helion.Subsystems.OpenTK
         {
             try
             {
-                WinMouse.NativeWinMouse nativeWinMouse = new WinMouse.NativeWinMouse(HandleWinMouseMove);
+                NativeWinMouse nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
                 return true;
             }
             catch
@@ -65,11 +74,6 @@ namespace Helion.Subsystems.OpenTK
             }
 
             return false;
-        }
-
-        ~OpenTKWindow()
-        {
-            Dispose(false);
         }
 
         public void ClearMapResources()
@@ -103,7 +107,7 @@ namespace Helion.Subsystems.OpenTK
 
             base.OnKeyDown(e);
         }
-        
+
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             if (Focused)
@@ -123,15 +127,15 @@ namespace Helion.Subsystems.OpenTK
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
             m_inputAdapter.HandleMouseDown(e);
-            
-            base.OnMouseDown(e);            
+
+            base.OnMouseDown(e);
         }
-        
+
         protected override void OnMouseUp(MouseButtonEventArgs e)
         {
             m_inputAdapter.HandleMouseUp(e);
-            
-            base.OnMouseUp(e);            
+
+            base.OnMouseUp(e);
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
@@ -178,23 +182,23 @@ namespace Helion.Subsystems.OpenTK
             // of our (lack of) arguments to Run(), we can do this either in
             // the update or render function. We arbitrarily chose this one.
             m_gameLoopFunc();
-            
+
             base.OnRenderFrame(e);
         }
-        
+
         protected override void Dispose(bool disposing)
         {
             if (m_disposed)
                 return;
-            
+
             if (disposing)
             {
                 m_config.Engine.Developer.MouseFocus.OnChanged -= OnMouseFocusChanged;
                 m_config.Engine.Window.VSync.OnChanged -= OnVSyncChanged;
                 m_config.Engine.Window.State.OnChanged -= OnWindowStateChanged;
-                
+
                 m_renderer.Dispose();
-                
+
                 m_disposed = true;
             }
 
@@ -206,37 +210,42 @@ namespace Helion.Subsystems.OpenTK
             int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
             return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
         }
-        
+
         private void HandleWinMouseMove(int deltaX, int deltaY)
         {
             if (Focused)
+            {
                 m_inputAdapter.HandleMouseMovement(deltaX, deltaY);
+
+                if (WindowState == WindowState.Fullscreen)
+                    NativeMethods.CenterMouse(GetDimension());
+            }
         }
-        
+
         private void RegisterConfigListeners()
         {
             CursorVisible = !m_config.Engine.Developer.MouseFocus;
             m_config.Engine.Developer.MouseFocus.OnChanged += OnMouseFocusChanged;
-                
-            VSync = m_config.Engine.Window.VSync.Get().ToOpenTKVSync(); 
+
+            VSync = m_config.Engine.Window.VSync.Get().ToOpenTKVSync();
             m_config.Engine.Window.VSync.OnChanged += OnVSyncChanged;
 
-            WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState(); 
+            WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState();
             m_config.Engine.Window.State.OnChanged += OnWindowStateChanged;
-            
+
             // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
         }
-        
-        private void OnMouseFocusChanged(object sender,  ConfigValueEvent<bool> mouseFocusEvent)
+
+        private void OnMouseFocusChanged(object sender, ConfigValueEvent<bool> mouseFocusEvent)
         {
             CursorVisible = !mouseFocusEvent.NewValue;
         }
-        
+
         private void OnVSyncChanged(object sender, ConfigValueEvent<VerticalSync> vsyncEvent)
         {
             VSync = vsyncEvent.NewValue.ToOpenTKVSync();
         }
-        
+
         private void OnWindowStateChanged(object sender, ConfigValueEvent<WindowStatus> stateEvent)
         {
             WindowState = stateEvent.NewValue.ToOpenTKWindowState();

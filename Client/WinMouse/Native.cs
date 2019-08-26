@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Helion.Util.Geometry;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace WinMouse.Native
+namespace Helion.Client.WinMouse
 {
-    public static class Constants
+    public static class WinMouseConstants
     {
         public const int WM_INPUT = 255;
         public const ushort HID_USAGE_PAGE_GENERIC = 1;
@@ -60,9 +61,9 @@ namespace WinMouse.Native
         public static bool RegisterRawMouseInput(IntPtr handle)
         {
             RAWINPUTDEVICE[] rid = new RAWINPUTDEVICE[1];
-            rid[0].usUsagePage = Constants.HID_USAGE_PAGE_GENERIC;
-            rid[0].usUsage = Constants.HID_USAGE_GENERIC_MOUSE;
-            rid[0].dwFlags = Constants.RIDEV_INPUTSINK;
+            rid[0].usUsagePage = WinMouseConstants.HID_USAGE_PAGE_GENERIC;
+            rid[0].usUsage = WinMouseConstants.HID_USAGE_GENERIC_MOUSE;
+            rid[0].dwFlags = WinMouseConstants.RIDEV_INPUTSINK;
             rid[0].hwndTarget = handle;
 
             return RegisterRawInputDevices(rid, 1, Convert.ToUInt32(Marshal.SizeOf(rid[0])));
@@ -74,7 +75,7 @@ namespace WinMouse.Native
             uint headerSize = (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER));
             IntPtr rawData = Marshal.AllocHGlobal((int)dwSize);
 
-            if (GetRawInputData(message.LParam, Constants.RID_INPUT, rawData, ref dwSize, headerSize) != -1)
+            if (GetRawInputData(message.LParam, WinMouseConstants.RID_INPUT, rawData, ref dwSize, headerSize) != -1)
             {
                 // In the future if we register for any other form of input we would need to check for header.dwType == RIM_TYPEMOUSE
                 RAWINPUT rawInput = (RAWINPUT)Marshal.PtrToStructure(rawData, typeof(RAWINPUT));
@@ -88,6 +89,11 @@ namespace WinMouse.Native
             }
 
             Marshal.FreeHGlobal(rawData);
+        }
+
+        public static void CenterMouse(Dimension windowDimension)
+        {
+            SetCursorPos(windowDimension.Width / 2, windowDimension.Height / 2);
         }
 
         [DllImport("User32.dll", SetLastError = true)]

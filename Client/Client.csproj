@@ -1,30 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net48</TargetFramework>
-    <StartupObject>Helion.Client.Client</StartupObject>
-    <ApplicationIcon />
-    <LangVersion>preview</LangVersion>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Helion.Client</RootNamespace>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
     <NullableReferenceTypes>true</NullableReferenceTypes>
-    <RootNamespace>Helion.Client</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <NoWarn>1701;1702;S101</NoWarn>
-    <CodeAnalysisRuleSet />
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <CodeAnalysisRuleSet />
+    <NoWarn>1701;1702;NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0-preview.19073.11" />
-    <PackageReference Include="NLog" Version="4.6.5" />
+    <PackageReference Include="NLog" Version="4.6.7" />
+    <PackageReference Include="OpenTK" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

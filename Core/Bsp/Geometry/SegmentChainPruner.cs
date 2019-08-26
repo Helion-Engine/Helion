@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.Extensions;
 using MoreLinq;
+using MoreLinq.Extensions;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -95,15 +96,14 @@ namespace Helion.Bsp.Geometry
 
         private void DiscoverTerminalChains()
         {
-            m_vertexAdjacencyList.Where(intToListPair => intToListPair.Value.Count == 1)
-                                 .ForEach(intToListPair => m_terminalChainTails.Add(intToListPair.Key));
+            MoreEnumerable.ForEach(m_vertexAdjacencyList.Where(intToListPair => intToListPair.Value.Count == 1), intToListPair => m_terminalChainTails.Add(intToListPair.Key));
         }
 
         private void RemoveAllTerminalChains()
         {
             // We can't remove while iterating so we have to do this annoying
             // stuff unfortunately.
-            HashSet<int> indicesToRemove = m_terminalChainTails.ToHashSet();
+            HashSet<int> indicesToRemove = ToHashSetExtension.ToHashSet(m_terminalChainTails);
 
             foreach (int index in indicesToRemove)
             {

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>Helion</RootNamespace>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
@@ -40,9 +40,8 @@
     <PackageReference Include="CommandLineParser.NS20" Version="2.3.1" />
     <PackageReference Include="GlmSharp" Version="0.9.8" />
     <PackageReference Include="ini-parser" Version="2.5.2" />
-    <PackageReference Include="morelinq" Version="3.1.1" />
-    <PackageReference Include="NLog" Version="4.6.5" />
-    <PackageReference Include="OpenTK" Version="3.0.1" />
+    <PackageReference Include="morelinq" Version="3.2.0" />
+    <PackageReference Include="NLog" Version="4.6.7" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -50,10 +49,6 @@
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.6.0-preview5.19224.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\WinMouse\WinMouse.csproj" />
   </ItemGroup>
 
   <ItemGroup>

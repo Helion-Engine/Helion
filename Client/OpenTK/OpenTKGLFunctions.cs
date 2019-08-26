@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Render.OpenGL.Context;
@@ -6,7 +6,7 @@ using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
 using OpenTK.Graphics.OpenGL4;
 
-namespace Helion.Subsystems.OpenTK
+namespace Helion.Client.OpenTK
 {
     public class OpenTKGLFunctions : IGLFunctions
     {
@@ -19,7 +19,7 @@ namespace Helion.Subsystems.OpenTK
         /// See: https://stackoverflow.com/questions/6193711/call-has-been-made-on-garbage-collected-delegate-in-c
         /// </remarks>
         private Action<DebugLevel, string>? m_lastCallbackReference;
-        
+
         /// <summary>
         /// Same as <see cref="m_lastCallbackReference"/>.
         /// </summary>
@@ -85,7 +85,7 @@ namespace Helion.Subsystems.OpenTK
         {
             GL.Clear((ClearBufferMask)type);
         }
-        
+
         public void ClearColor(float r, float g, float b, float a)
         {
             GL.ClearColor(r, g, b, a);
@@ -126,18 +126,18 @@ namespace Helion.Subsystems.OpenTK
             {
                 switch (severity)
                 {
-                case DebugSeverity.DebugSeverityHigh:
-                    callback(DebugLevel.High, Marshal.PtrToStringAnsi(message, length));
-                    break;
-                case DebugSeverity.DebugSeverityMedium:
-                    callback(DebugLevel.Medium, Marshal.PtrToStringAnsi(message, length));
-                    break;
-                case DebugSeverity.DebugSeverityLow:
-                    callback(DebugLevel.Low, Marshal.PtrToStringAnsi(message, length));
-                    break;
+                    case DebugSeverity.DebugSeverityHigh:
+                        callback(DebugLevel.High, Marshal.PtrToStringAnsi(message, length));
+                        break;
+                    case DebugSeverity.DebugSeverityMedium:
+                        callback(DebugLevel.Medium, Marshal.PtrToStringAnsi(message, length));
+                        break;
+                    case DebugSeverity.DebugSeverityLow:
+                        callback(DebugLevel.Low, Marshal.PtrToStringAnsi(message, length));
+                        break;
                 }
             };
-            
+
             GL.DebugMessageCallback(m_lastCallbackProcReference, IntPtr.Zero);
         }
 
@@ -228,7 +228,7 @@ namespace Helion.Subsystems.OpenTK
             ErrorCode errorCode = GL.GetError();
             return errorCode == ErrorCode.NoError ? ErrorType.None : (ErrorType)errorCode;
         }
-        
+
         public int GetInteger(GetIntegerType type)
         {
             return GL.GetInteger((GetPName)type);
@@ -331,13 +331,13 @@ namespace Helion.Subsystems.OpenTK
 
         public void TexSubImage2D(TextureTargetType targetType, int mipmapLevels, Vec2I position, Dimension dimension, PixelFormatType formatType, PixelDataType pixelType, IntPtr data)
         {
-            GL.TexSubImage2D((TextureTarget)targetType, mipmapLevels, position.X, position.Y, 
+            GL.TexSubImage2D((TextureTarget)targetType, mipmapLevels, position.X, position.Y,
                 dimension.Width, dimension.Height, (PixelFormat)formatType, (PixelType)pixelType, data);
         }
 
         public void TexImage2D(TextureTargetType textureType, int level, PixelInternalFormatType internalType, Dimension dimension, PixelFormatType formatType, PixelDataType dataType, IntPtr data)
         {
-            GL.TexImage2D((TextureTarget)textureType, level, (PixelInternalFormat)internalType, dimension.Width, 
+            GL.TexImage2D((TextureTarget)textureType, level, (PixelInternalFormat)internalType, dimension.Width,
                 dimension.Height, 0, (PixelFormat)formatType, (PixelType)dataType, data);
         }
 
