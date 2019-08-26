@@ -89,7 +89,7 @@ namespace Helion.Util.Parser
             // This keeps us in some reasonable range. We also don't need
             // to worry about it going negative because startIndex should
             // never go negative due to the loop exiting before that.
-            return MathHelper.Clamp(startIndex, originalIndex - 256, originalIndex);
+            return MathHelper.Clamp(startIndex, originalIndex - 128, originalIndex);
         }
             
         private static int CalculateRightNonInclusiveIndex(string text, int originalIndex)
@@ -97,7 +97,7 @@ namespace Helion.Util.Parser
             int endIndex = originalIndex;
             for (; endIndex < text.Length; endIndex++)
             {
-                if (text[endIndex] == '\n')
+                if (text[endIndex] == '\n' || text[endIndex] == '\r')
                 {
                     endIndex--;
                     break;
@@ -107,7 +107,7 @@ namespace Helion.Util.Parser
             // This keeps us in some reasonable range. We also don't need
             // to worry about it going negative because startIndex should
             // never go negative due to the loop exiting before that.
-            return MathHelper.Clamp(endIndex, originalIndex + 256, originalIndex);
+            return MathHelper.Clamp(endIndex, originalIndex, originalIndex + 128);
         }
 
         private void LogContextualInformation(string text, List<string> errorMessages)
@@ -115,14 +115,15 @@ namespace Helion.Util.Parser
             int leftIndex = CalculateLeftIndex(text, CharOffset);
             int rightIndexNonInclusive = CalculateRightNonInclusiveIndex(text, CharOffset);
             
-            if (leftIndex == rightIndexNonInclusive)
+            if (leftIndex >= rightIndexNonInclusive)
             {
                 errorMessages.Add("Parsing error occurred on a blank line with no text, no contextual information available");
                 return;
             }
             
             int numSpaces = CharOffset - leftIndex;
-            string textContext = text.Substring(leftIndex, rightIndexNonInclusive);
+            int substringLength = rightIndexNonInclusive - leftIndex + 1;
+            string textContext = text.Substring(leftIndex, substringLength);
             string caret = new string(' ', numSpaces) + "^";
             
             errorMessages.Add(textContext);

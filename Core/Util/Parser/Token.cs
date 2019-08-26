@@ -74,6 +74,8 @@ namespace Helion.Util.Parser
             Precondition(Type != TokenType.String, $"Token symbol constructor did not get a symbol: {c}");
         }
 
+        public override string ToString() => $"{Text} (line {LineNumber}, offset {LineCharOffset}, type {Type})";
+
         private static TokenType ToTokenType(char c)
         {
             switch (c)

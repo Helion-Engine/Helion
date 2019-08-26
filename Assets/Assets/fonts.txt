@@ -63,7 +63,7 @@ font SmallFont
         "Y" STCFN089;
         "Z" STCFN090;
         "[" STCFN091;
-        "\" STCFN092;
+        "\\" STCFN092;
         "]" STCFN093;
         "^" STCFN094 align top;
         "_" STCFN095;

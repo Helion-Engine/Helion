@@ -545,6 +545,7 @@ namespace Helion.Util.Parser
             // values in it. Don't know how the logging framework would
             // handle that correctly but I'll play it safe here by hoping
             // it doesn't recursively interpolate.
+            Log.Error("Parsing error: {0}", e.Message);
             foreach (string logMessage in e.LogToReadableMessage(text))
                 Log.Error("{0}", logMessage);
         }

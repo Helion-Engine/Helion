@@ -39,11 +39,13 @@ namespace Helion.Util.Parser
             return tokenizer.m_tokens;
         }
 
-        private static bool IsSpace(char c) => c == ' ' || c == '\t';
+        private static bool IsSpace(char c) => c == ' ' || c == '\t' || c == '\r';
 
         private static bool IsNumber(char c) => c >= '0' && c <= '9';
         
         private static bool IsPrintableCharacter(char c) => c >= 32 && c <= 126;
+
+        private static bool IsEscapableStringChar(char c) => c == '"' || c == '\\';
 
         private static bool IsIdentifier(char c)
         {
@@ -80,12 +82,13 @@ namespace Helion.Util.Parser
         
         private void ConsumeQuotedString()
         {
+            int startingLineCharOffset = m_lineCharOffset;
+            int startingTextIndex = m_textIndex;
+            
             // We're on the opening quote, so move ahead to the starting character.
             m_textIndex++;
             m_lineCharOffset++;
             
-            int startingLineCharOffset = m_lineCharOffset;
-            int startingTextIndex = m_textIndex;
             StringBuilder innerStringBuilder = new StringBuilder();
             
             for (; m_textIndex < m_text.Length; m_textIndex++, m_lineCharOffset++)
@@ -98,6 +101,21 @@ namespace Helion.Util.Parser
                     Token token = new Token(m_lineNumber, startingLineCharOffset, startingTextIndex, innerString, TokenType.QuotedString);
                     m_tokens.Add(token);
                     return;
+                }
+                
+                if (c == '\\')
+                {
+                    if (m_textIndex + 1 >= m_text.Length)
+                        throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Expected character after escaping in a string");
+
+                    char nextChar = m_text[m_textIndex + 1];
+                    if (!IsEscapableStringChar(nextChar))
+                        throw new ParserException(m_lineNumber, m_lineCharOffset + 1, m_textIndex + 1, "Expecting an escaped quote to follow a backslash in a string");
+
+                    innerStringBuilder.Append(nextChar);
+                    m_textIndex++;
+                    m_lineCharOffset++;
+                    continue;
                 }
                 
                 if (IsPrintableCharacter(c))
@@ -114,7 +132,7 @@ namespace Helion.Util.Parser
             const string errorMessage = "String missing ending quote, found end of text instead";
             throw new ParserException(m_lineNumber, startingLineCharOffset, startingTextIndex, errorMessage);
         }
-
+        
         private void ConsumeNumber()
         {
             bool isFloat = false;

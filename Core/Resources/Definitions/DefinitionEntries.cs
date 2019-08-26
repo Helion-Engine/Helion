@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate;
+using Helion.Resources.Definitions.Fonts;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using MoreLinq;
@@ -17,16 +18,9 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
-        /// <summary>
-        /// All of the texture definitions from the parsed files.
-        /// </summary>
-        public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
-
-        /// <summary>
-        /// All the parsed decorate definitions.
-        /// </summary>
         public readonly DecorateDefinitions Decorate = new DecorateDefinitions();
-        
+        public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
+        public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
@@ -36,6 +30,7 @@ namespace Helion.Resources.Definitions
         /// </summary>
         public DefinitionEntries()
         {
+            m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinition(entry);
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));
             m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
@@ -50,10 +45,10 @@ namespace Helion.Resources.Definitions
         public void Track(Archive archive)
         {
             m_pnamesTextureXCollection = new PnamesTextureXCollection();
-            
+
             foreach (Entry entry in archive.Entries)
                 if (m_entryNameToAction.TryGetValue(entry.Path.Name, out var action))
-                    action.Invoke(entry);
+                    action(entry);
 
             if (m_pnamesTextureXCollection.Valid)
                 CreateImageDefinitionsFrom(m_pnamesTextureXCollection);

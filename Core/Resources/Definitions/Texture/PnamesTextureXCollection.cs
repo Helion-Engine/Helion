@@ -33,18 +33,20 @@ namespace Helion.Resources.Definitions.Texture
         /// Adds a correctly read pnames to the tracker.
         /// </summary>
         /// <param name="pnames">The pnames to add.</param>
-        public void Add(Pnames pnames)
+        public void Add(Pnames? pnames)
         {
-            Pnames.Add(pnames);
+            if (pnames != null)
+                Pnames.Add(pnames);
         }
         
         /// <summary>
         /// Adds a correctly parsed texture1/2/3 to the tracker.
         /// </summary>
         /// <param name="textureX">The texture1/2/3 data.</param>
-        public void Add(TextureX textureX)
+        public void Add(TextureX? textureX)
         {
-            TextureX.Add(textureX);
+            if (textureX != null)
+                TextureX.Add(textureX);
         }
     }
 }

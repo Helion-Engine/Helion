@@ -6,6 +6,7 @@ using Helion.Resources.Archives.Locator;
 using Helion.Resources.Data;
 using Helion.Resources.Definitions;
 using Helion.Util;
+using Helion.Util.Extensions;
 using NLog;
 
 namespace Helion.Resources.Archives.Collection
@@ -32,8 +33,16 @@ namespace Helion.Resources.Archives.Collection
         public bool Load(IEnumerable<string> files)
         {
             List<Archive> loadedArchives = new List<Archive>();
+            List<string> filePaths = new List<string>();
+            
+            // If we have nothing loaded, we want to make sure assets.pk3 is
+            // loaded before anything else. We also do not want it to be loaded
+            // if we have already loaded it.
+            if (m_archives.Empty())
+                filePaths.Add(Constants.AssetsFileName);
+            filePaths.AddRange(files);
 
-            foreach (string filePath in files)
+            foreach (string filePath in filePaths)
             {
                 Archive? archive = m_archiveLocator.Locate(filePath);
                 if (archive != null)

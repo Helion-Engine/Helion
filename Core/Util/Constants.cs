@@ -13,6 +13,12 @@ namespace Helion.Util
         public const string ApplicationName = "Helion";
 
         /// <summary>
+        /// The name of the resources archive that should be loaded in all
+        /// instances of the application.
+        /// </summary>
+        public const string AssetsFileName = "assets.pk3";
+
+        /// <summary>
         /// How many gameticks occur per second.
         /// </summary>
         public const double TicksPerSecond = 35.0;

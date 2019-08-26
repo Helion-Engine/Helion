@@ -141,8 +141,17 @@ namespace Helion.Test.Unit.Util.Parser
             AssertToken(tokens[0], 1, 0, 0, "abc", TokenType.String);
             AssertToken(tokens[1], 1, 4, 4, "_abc", TokenType.String);
             AssertToken(tokens[2], 1, 11, 11, "Hello", TokenType.String);
-            AssertToken(tokens[3], 1, 18, 18, "hi{-5", TokenType.QuotedString);
-            AssertToken(tokens[4], 1, 26, 26, "", TokenType.QuotedString);
+            AssertToken(tokens[3], 1, 17, 17, "hi{-5", TokenType.QuotedString);
+            AssertToken(tokens[4], 1, 25, 25, "", TokenType.QuotedString);
+        }
+
+        [TestMethod]
+        public void TokenizeQuotedStringEscape()
+        {
+            List<Token> tokens = Tokenizer.Read("\"\\\"\\\\\"");
+            
+            Assert.AreEqual(1, tokens.Count);
+            AssertToken(tokens[0], 1, 0, 0, "\"\\", TokenType.QuotedString);
         }
 
         [TestMethod]
@@ -238,6 +247,38 @@ namespace Helion.Test.Unit.Util.Parser
         public void ThrowsIfNumberMissingPeriodAtEnd()
         {
             Tokenizer.Read("4.");
+        }
+        
+        [TestMethod]
+        [ExpectedException(typeof(ParserException))]
+        public void TokenizeQuotedStringEscapeBadNextCharacter()
+        {
+            Tokenizer.Read("\"\\P\"");
+        }
+        
+        // This just tells us we don't support \t right now. This can be
+        // removed when we do end up supporting it (if ever) in the future.
+        [TestMethod]
+        [ExpectedException(typeof(ParserException))]
+        public void TokenizeQuotedStringEscapeBadNextCharacterT()
+        {
+            Tokenizer.Read("\"\\t\"");
+        }
+        
+        // This just tells us we don't support \n right now. This can be
+        // removed when we do end up supporting it (if ever) in the future.
+        [TestMethod]
+        [ExpectedException(typeof(ParserException))]
+        public void TokenizeQuotedStringEscapeBadNextCharacterN()
+        {
+            Tokenizer.Read("\"\\n\"");
+        }
+        
+        [TestMethod]
+        [ExpectedException(typeof(ParserException))]
+        public void TokenizeQuotedStringEscapeNoNextCharacter()
+        {
+            Tokenizer.Read("\"\\");
         }
     }
 }

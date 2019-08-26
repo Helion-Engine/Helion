@@ -23,8 +23,8 @@ namespace Helion.Resources.Definitions.Fonts.Definition
     /// </remarks>
     public class FontDefinitionParser : ParserBase
     {
-        public List<FontDefinition> Definitions = new List<FontDefinition>();
-        private FontDefinition CurrentDefinition = new FontDefinition("");
+        public readonly List<FontDefinition> Definitions = new List<FontDefinition>();
+        private FontDefinition CurrentDefinition = new FontDefinition("none");
 
         protected override void PerformParsing()
         {
@@ -81,6 +81,8 @@ namespace Helion.Resources.Definitions.Fonts.Definition
             FontAlignment? alignment = null;
             if (ConsumeIf("ALIGN"))
                 alignment = ConsumeFontAlignmentType();
+            
+            Consume(';');
             
             CurrentDefinition.CharDefinitions[c] = new CharDefinition(c, imageName, isDefault, alignment); 
         }
@@ -141,7 +143,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
             if (fontName.Empty())
                 ThrowException("Should not be getting an empty font definition name");
             
-            CurrentDefinition = new FontDefinition(ConsumeString());
+            CurrentDefinition = new FontDefinition(fontName);
             
             Consume('{');
             InvokeUntilAndConsume('}', ConsumeFontDefinitionElement);
