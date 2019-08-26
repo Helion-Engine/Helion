@@ -203,11 +203,12 @@ namespace Helion.Client
 
         public static void Main(string[] args)
         {
-            ExitIfTieredCompilationEnabled();
-            
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
-
             Logging.Initialize(cmdArgs);
+            
+            WarnIfTieredCompilationEnabled();
+            SetMaximumProcessAffinity();
+            
             Log.Info("=========================================");
             Log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
             Log.Info("=========================================");
@@ -242,9 +243,19 @@ namespace Helion.Client
             }
         }
 
-        private static void ExitIfTieredCompilationEnabled()
+        private static void WarnIfTieredCompilationEnabled()
         {
-            string? tieredCompilation = Environment.GetEnvironmentVariable("COMPlus_TieredCompilation");
+            string? tieredCompilation = null;
+
+            try
+            {
+                tieredCompilation = Environment.GetEnvironmentVariable("COMPlus_TieredCompilation");
+            }
+            catch
+            {
+                Log.Error("Unable to check for tiered compilation in the environment");
+            }
+
             if (tieredCompilation == null || (int.TryParse(tieredCompilation, out int value) && value != 0))
             {
                 string message = "Missing critical performance environmental variable. Set the following:\n" +
@@ -252,12 +263,24 @@ namespace Helion.Client
                                  "    COMPlus_TieredCompilation = 0\n" +
                                  "\n" +
                                  "This environmental variable is needed because (as of .NET Core 3.0 preview) " +
-                                 "the tiered JIT compilation causes bad microstutters when playing the game. " +
+                                 "the tiered JIT compilation causes microstuttering when playing the game. " +
                                  "This bug may be resolved in later versions of .NET however.\n" +
                                  "\n" +
                                  "If you are not a developer and see this message, contact a developer immediately.";
-                MessageBox.Show(message, "Helion Critical Performance Issue", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Environment.Exit(1);
+                MessageBox.Show(message, "Helion Critical Performance Issue", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private static void SetMaximumProcessAffinity()
+        {
+            try
+            {
+                using (Process process = Process.GetCurrentProcess())
+                    process.PriorityClass = ProcessPriorityClass.RealTime; 
+            }
+            catch
+            {
+                Log.Error("Unable to set the process to real time priority");
             }
         }
 
