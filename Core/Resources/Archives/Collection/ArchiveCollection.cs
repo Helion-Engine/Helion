@@ -35,15 +35,15 @@ namespace Helion.Resources.Archives.Collection
 
             foreach (string filePath in files)
             {
-                Expected<Archive> archiveExpected = m_archiveLocator.Locate(filePath);
-                if (archiveExpected.Value != null)
+                Archive? archive = m_archiveLocator.Locate(filePath);
+                if (archive != null)
                 {
                     Log.Info("Loaded {0}", filePath);
-                    loadedArchives.Add(archiveExpected.Value);
+                    loadedArchives.Add(archive);
                 }
                 else
                 {
-                    Log.Error("Failure when loading {0}", archiveExpected.Error);
+                    Log.Error("Failure when loading {0}", filePath);
                     return false;
                 }
             }

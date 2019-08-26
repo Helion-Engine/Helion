@@ -18,6 +18,6 @@ namespace Helion.Resources.Archives.Locator
         /// <param name="uri">The resource locator index.</param>
         /// <returns>The archive, or an error reason on why it cannot be found.
         /// </returns>
-        Expected<Archive> Locate(string uri);
+        Archive? Locate(string uri);
     }
 }

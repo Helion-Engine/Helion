@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using Helion.Bsp.Builder.Stepwise;
-using Helion.Entries.Archives.Locator;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Locator;
 
 namespace BspVisualizer
 {

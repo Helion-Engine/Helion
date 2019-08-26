@@ -1,11 +1,9 @@
 ﻿using System;
 using System.IO;
-using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
-using Helion.Resources.Archives.Locator;
-using Helion.Util;
+using NLog;
 
-namespace Helion.Entries.Archives.Locator
+namespace Helion.Resources.Archives.Locator
 {
     /// <summary>
     /// Searches the local file system for archives. This functions off of full
@@ -13,11 +11,16 @@ namespace Helion.Entries.Archives.Locator
     /// </summary>
     public class FilesystemArchiveLocator : IArchiveLocator
     {
-        public Expected<Archive> Locate(string uri)
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        public Archive? Locate(string uri)
         {
             string? extension = Path.GetExtension(uri);
             if (extension == null)
-                return $"Unable to get extension from {uri}";
+            {
+                Log.Error("Missing extension, cannot determine archive type from: {0}", uri);
+                return null;
+            }
 
             try
             {
@@ -28,10 +31,12 @@ namespace Helion.Entries.Archives.Locator
             }
             catch (Exception e)
             {
-                return e.Message;
+                Log.Error("Unexpected error when loading {0}: {1}", uri, e.Message);
+                return null;
             }
 
-            return $"Archive file extension is not supported: {uri}";
+            Log.Error("Archive file extension is not supported for {0}", uri);
+            return null;
         }
     }
 }
