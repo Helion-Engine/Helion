@@ -6,9 +6,10 @@ namespace Helion.Window
 {
     public interface IWindow
     {
-        int GetId();
+        int WindowID { get; }
+        IRenderer Renderer { get; }
+        Dimension WindowDimension { get; }
+        
         InputEvent PollInput();
-        IRenderer GetRenderer();
-        Dimension GetDimension();
     }
 }

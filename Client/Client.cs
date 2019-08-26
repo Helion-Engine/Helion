@@ -54,19 +54,19 @@ namespace Helion.Client
             // TODO: This function will get ugly and bloated *very* quickly...
             switch (ccmdArgs.Command)
             {
-                case "EXIT":
-                    m_window.Close();
-                    break;
+            case "EXIT":
+                m_window.Close();
+                break;
 
-                case "MAP":
-                    if (ccmdArgs.Args.Empty())
-                    {
-                        Log.Info("Usage: map <mapName>");
-                        break;
-                    }
-
-                    ChangeLevel(ccmdArgs.Args[0]);
+            case "MAP":
+                if (ccmdArgs.Args.Empty())
+                {
+                    Log.Info("Usage: map <mapName>");
                     break;
+                }
+
+                ChangeLevel(ccmdArgs.Args[0]);
+                break;
             }
         }
 
@@ -150,8 +150,8 @@ namespace Helion.Client
 
         private void Render()
         {
-            Dimension windowDimension = m_window.GetDimension();
-            IRenderer renderer = m_window.GetRenderer();
+            Dimension windowDimension = m_window.WindowDimension;
+            IRenderer renderer = m_window.Renderer;
             RenderCommands renderCommands = new RenderCommands(windowDimension);
 
             renderCommands.Viewport(windowDimension);

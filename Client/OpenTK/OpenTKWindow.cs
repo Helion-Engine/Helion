@@ -24,18 +24,21 @@ namespace Helion.Client.OpenTK
         private static int NextAvailableWindowId;
 
         private readonly Config m_config;
-        private readonly int m_windowId;
         private readonly GLRenderer m_renderer;
         private readonly Action m_gameLoopFunc;
         private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
         private bool m_disposed;
         private bool m_useMouseOpenTK;
+        
+        public int WindowID { get; }
+        public IRenderer Renderer => m_renderer;
+        public Dimension WindowDimension => new Dimension(Width, Height);
 
         public OpenTKWindow(Config cfg, ArchiveCollection archiveCollection, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
             m_config = cfg;
-            m_windowId = NextAvailableWindowId++;
+            WindowID = NextAvailableWindowId++;
             m_renderer = new GLRenderer(cfg, archiveCollection, new OpenTKGLFunctions());
             m_gameLoopFunc = gameLoopFunction;
 
@@ -49,46 +52,13 @@ namespace Helion.Client.OpenTK
             Dispose(false);
         }
 
-        private void SetupMouse()
-        {
-            m_useMouseOpenTK = true;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // OpenTK currently does not support Windows raw input so use our own implementation
-                if (SetupNativeWinMouse())
-                    m_useMouseOpenTK = false;
-            }
-        }
-
-        private bool SetupNativeWinMouse()
-        {
-            try
-            {
-                NativeWinMouse nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
-                return true;
-            }
-            catch
-            {
-                Log.Error("Failed to initialize Windows mouse raw input - Defaulting to OpenTK");
-            }
-
-            return false;
-        }
-
         public void ClearMapResources()
         {
             throw new NotImplementedException("Clear map resources: TODO (Soon [TM])");
             //m_renderer.ClearResources();
         }
-
-        public int GetId() => m_windowId;
-
+        
         public InputEvent PollInput() => m_inputAdapter.PollInput();
-
-        public IRenderer GetRenderer() => m_renderer;
-
-        public Dimension GetDimension() => new Dimension(Width, Height);
 
         public override void Dispose()
         {
@@ -211,6 +181,33 @@ namespace Helion.Client.OpenTK
             return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
         }
 
+        private void SetupMouse()
+        {
+            m_useMouseOpenTK = true;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // OpenTK currently does not support Windows raw input so use our own implementation
+                if (SetupNativeWinMouse())
+                    m_useMouseOpenTK = false;
+            }
+        }
+
+        private bool SetupNativeWinMouse()
+        {
+            try
+            {
+                NativeWinMouse nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
+                return true;
+            }
+            catch
+            {
+                Log.Error("Failed to initialize Windows mouse raw input - Defaulting to OpenTK");
+            }
+
+            return false;
+        }
+        
         private void HandleWinMouseMove(int deltaX, int deltaY)
         {
             if (Focused)
@@ -218,7 +215,7 @@ namespace Helion.Client.OpenTK
                 m_inputAdapter.HandleMouseMovement(deltaX, deltaY);
 
                 if (WindowState == WindowState.Fullscreen)
-                    NativeMethods.CenterMouse(GetDimension());
+                    NativeMethods.CenterMouse(WindowDimension);
             }
         }
 
