@@ -4,6 +4,23 @@ using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions.Fonts.Definition
 {
+    /// <summary>
+    /// Parses a new font definition file (not ZDooms one).
+    /// </summary>
+    /// <remarks>
+    /// Has the following BNF format:
+    /// <code>
+    /// SPACING: "space" "=" NUMBER ";"
+    /// GRAYSCALE: "grayscale" "=" BOOL ";"
+    /// POSITION = "top" | "center" | "bottom"
+    /// ALIGN = "align" "=" POSITION ";"
+    /// ALIGNCHAR = "align" POSITION 
+    /// CHARDEF: STRING STRING ["default"] [ALIGNCHAR] ";"
+    /// CHARACTERS: "characters" "{" CHARDEF "}"
+    /// FONTDEF: ALIGN | SPACING | GRAYSCALE | CHARACTERS
+    /// FONT: "font" IDENTIFIER "{" FONTDEF* "}"
+    /// </code>
+    /// </remarks>
     public class FontDefinitionParser : ParserBase
     {
         public List<FontDefinition> Definitions = new List<FontDefinition>();
@@ -11,6 +28,8 @@ namespace Helion.Resources.Definitions.Fonts.Definition
 
         protected override void PerformParsing()
         {
+            Definitions.Clear();
+            
             while (!Done)
                 ParseFontDefinitions();
         }
