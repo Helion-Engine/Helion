@@ -5,6 +5,7 @@ using System.Linq;
 using Helion.Resources;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -31,7 +32,10 @@ namespace Helion.Graphics.Fonts
             if (!definition.IsValid())
                 return null;
 
-            Dictionary<char, GlyphPrototype> charImages = GetCharacterImages(definition, imageRetriever);
+            Dictionary<char, GlyphPrototype>? charImages = GetCharacterImages(definition, imageRetriever);
+            if (charImages == null)
+                return null;
+            
             FontMetrics metrics = CalculateMetrics(charImages);
             AddSpaceGlyphIfMissing(charImages, metrics, definition);
             
@@ -60,7 +64,7 @@ namespace Helion.Graphics.Fonts
             charImages[' '] = new GlyphPrototype(spaceImage, definition.Alignment);
         }
 
-        private static Dictionary<char, GlyphPrototype> GetCharacterImages(FontDefinition definition, 
+        private static Dictionary<char, GlyphPrototype>? GetCharacterImages(FontDefinition definition, 
             IImageRetriever imageRetriever)
         {
             Dictionary<char, GlyphPrototype> charImages = new Dictionary<char, GlyphPrototype>();
@@ -72,7 +76,7 @@ namespace Helion.Graphics.Fonts
                     charImages[c] = new GlyphPrototype(image, charDef.Alignment);
             }
 
-            return charImages;
+            return charImages.Empty() ? null : charImages;
         }
 
         private static bool MissingDefaultImage(char defaultChar, Dictionary<char, GlyphPrototype> charImages)

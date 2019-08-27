@@ -122,6 +122,8 @@ namespace Helion.Client
                     m_layerManager.Add(layer);
                     layer.LevelExit += Layer_LevelExit;
                 }
+                else
+                    layer.Dispose();
             }
         }
 
@@ -241,7 +243,7 @@ namespace Helion.Client
                 using (Config config = new Config())
                     using (Client client = new Client(cmdArgs, config))
                         client.Start();
-
+                
                 ForceFinalizersIfDebugMode();
             }
             catch (AssertionException)
@@ -253,8 +255,7 @@ namespace Helion.Client
             {
                 Log.Error("Unexpected exception: {0}", e.Message);
 #if DEBUG
-                Log.Error("Stack trace:");
-                Log.Error("{0}", e.StackTrace);
+                throw;
 #endif
             }
             finally

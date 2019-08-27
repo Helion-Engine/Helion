@@ -41,7 +41,7 @@ namespace Helion.Util
                 m_lastGenAmount[gen] = GC.CollectionCount(gen);
 
                 if (m_lastGenAmount[gen] > m_collectionGen[gen] && gen != 0)
-                    Log.Info("GC ran for generation {0} at {1}", gen, DateTime.Now.ToString("HH:mm:ss"));
+                    Log.Info("GC ran for generation {0} at {1}", gen, DateTime.Now.ToString("HH:mm:ss.fff"));
             }
         }
     }
