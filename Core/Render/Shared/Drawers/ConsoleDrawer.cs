@@ -43,7 +43,7 @@ namespace Helion.Render.Shared.Drawers
             ColoredStringBuilder builder = new ColoredStringBuilder();
             builder.Append(Color.Yellow, console.Input);
             if (IsCursorFlashTime())
-                builder.Append(InputFlashColor, "]");
+                builder.Append(InputFlashColor, "|");
 
             renderCommands.DrawText(builder.Build(), "SmallFont", 4, baseY - 10);
         }
