@@ -24,6 +24,8 @@ namespace Helion.Util
     {
         private const string TargetName = "HelionConsole";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly Color DebugColor = Color.FromArgb(255, 128, 255, 255);
+        private static readonly Color TraceColor = Color.FromArgb(255, 200, 255, 255);
 
         /// <summary>
         /// How many console messages wil be logged. Any more than this will
@@ -127,8 +129,20 @@ namespace Helion.Util
         /// <param name="message">The message to add.</param>
         public void AddMessage(string message)
         {
-            ColoredString coloredStr = RGBColoredStringDecoder.Decode(message);
-            Messages.AddFirst(coloredStr);
+            AddMessage(RGBColoredStringDecoder.Decode(message));
+        }
+        
+        /// <summary>
+        /// Adds a new message to the console.
+        /// </summary>
+        /// <remarks>
+        /// If this message causes the console to exceed the capacity, then it
+        /// will remove the older messages to make space for this message.
+        /// </remarks>
+        /// <param name="message">The message to add.</param>
+        public void AddMessage(ColoredString message)
+        {
+            Messages.AddFirst(message);
             RemoveExcessMessagesIfAny();
         }
 
@@ -181,20 +195,25 @@ namespace Helion.Util
             // We can't switch on this because the values are not a constant.
             // Therefore we'll provide the most common levels first to avoid
             // branching evaluations.
-            if (logEvent.Level == LogLevel.Info)
-                AddMessage(logEvent.FormattedMessage);
-            else if (logEvent.Level == LogLevel.Warn)
-                AddMessage(RGBColoredString.Create(Color.Yellow, logEvent.FormattedMessage));
-            else if (logEvent.Level == LogLevel.Error || logEvent.Level == LogLevel.Fatal)
-                AddMessage(RGBColoredString.Create(Color.Red, logEvent.FormattedMessage));
-            else if (logEvent.Level == LogLevel.Debug)
-                AddMessage(RGBColoredString.Create(Color.Cyan, logEvent.FormattedMessage));
-            else if (logEvent.Level == LogLevel.Trace)
-                AddMessage(RGBColoredString.Create(Color.LightCyan, logEvent.FormattedMessage));
-            else
+            switch (logEvent.Level.Ordinal)
             {
-                Fail($"Unexpected logging message type: {logEvent.Level}");
-                AddMessage(RGBColoredString.Create(Color.Pink, logEvent.FormattedMessage));
+            case 0:
+                AddMessage(ColoredStringBuilder.From(TraceColor, logEvent.FormattedMessage));
+                break;
+            case 1:
+                AddMessage(ColoredStringBuilder.From(DebugColor, logEvent.FormattedMessage));
+                break;
+            case 2:
+                AddMessage(logEvent.FormattedMessage);
+                break;
+            case 3:
+                AddMessage(ColoredStringBuilder.From(Color.Yellow, logEvent.FormattedMessage));
+                break;
+            default:
+                if (logEvent.Level.Ordinal < 0 || logEvent.Level.Ordinal > 6)
+                    Fail("Unexpected log level detected, outside of NLog ordinal range");
+                AddMessage(RGBColoredString.Create(Color.Red, logEvent.FormattedMessage));
+                break;
             }
         }
 

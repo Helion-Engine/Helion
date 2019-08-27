@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Helion.Cheats;
 using Helion.Client.OpenTK;
@@ -37,10 +38,12 @@ namespace Helion.Client
             m_commandLineArgs = cmdArgs;
             m_config = config;
             m_console = new HelionConsole(config);
+            LogClientInformation();
+            
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
             m_layerManager = new GameLayerManager(config, m_console);
 
-            m_console.OnConsoleCommandEvent += OnConsoleCommand;
+            m_console.OnConsoleCommandEvent += Console_OnCommand;
             CheatManager.Instance.CheatActivationChanged += CheatManager_CheatActivationChanged;
         }
 
@@ -49,7 +52,7 @@ namespace Helion.Client
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         }
 
-        private void OnConsoleCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
+        private void Console_OnCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
         {
             // TODO: This function will get ugly and bloated *very* quickly...
             switch (ccmdArgs.Command)
@@ -83,6 +86,21 @@ namespace Helion.Client
             {
                 m_currentLevel = Convert.ToInt32(((ChangeLevelCheat)e).LevelDigits);
                 ChangeLevel(GetMapFormat(m_currentLevel));
+            }
+        }
+        
+        private void LogClientInformation()
+        {
+            Log.Info("{0} v{1}", Constants.ApplicationName, Constants.ApplicationVersion);
+            
+            Log.Info("Processor: {0} {1}", Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER"), RuntimeInformation.OSArchitecture);
+            Log.Info("Processor count: {0}", Environment.ProcessorCount);
+            Log.Info("OS: {0} {1} (running {2})", Environment.OSVersion, Environment.Is64BitOperatingSystem ? "x64" : "x86", Environment.Is64BitProcess ? "x64" : "x86");
+
+            if (Environment.Is64BitOperatingSystem != Environment.Is64BitProcess)
+            {
+                Log.Warn("Using a different bit architecture for the process than the OS supports!");
+                Log.Warn("This may lead to performance issues.");
             }
         }
 
@@ -193,7 +211,7 @@ namespace Helion.Client
 
         public void Dispose()
         {
-            m_console.OnConsoleCommandEvent -= OnConsoleCommand;
+            m_console.OnConsoleCommandEvent -= Console_OnCommand;
 
             m_layerManager.Dispose();
             m_window.Dispose();
@@ -209,11 +227,9 @@ namespace Helion.Client
             
             WarnIfTieredCompilationEnabled();
             SetMaximumProcessAffinity();
-            
-            Log.Info("=========================================");
-            Log.Info($"{Constants.ApplicationName} v{Constants.ApplicationVersion}");
-            Log.Info("=========================================");
 
+            Log.Info($"Initializing {Constants.ApplicationName} v{Constants.ApplicationVersion}");
+            
             if (cmdArgs.ErrorWhileParsing)
                 Log.Error("Bad command line arguments, unexpected results may follow");
 

@@ -11,12 +11,14 @@ using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Physics;
+using NLog;
 
 namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
         private const double AirControl = 0.00390625;
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly Player Player;
         
@@ -126,13 +128,13 @@ namespace Helion.World.Impl.SinglePlayer
             {
                 var special = e.ActivateLineSpecial.Special;
                 if (SpecialManager.TryAddActivatedLineSpecial(e))
-                    Console.WriteLine($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{e.ActivateLineSpecial.Flags.Repeat}]");
+                    Log.Debug($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{e.ActivateLineSpecial.Flags.Repeat}]");
             }
         }
 
         private void PhysicsManager_PlayerUseFail(object sender, Entity e)
         {
-            Console.WriteLine("Player - 'oof'");
+            Log.Debug("Player - 'oof'");
         }
 
         private void Instance_CheatActivationChanged(object sender, ICheat e)
