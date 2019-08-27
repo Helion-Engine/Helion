@@ -17,6 +17,9 @@ namespace Helion.Render.Shared.Drawers
         private const int LeftEdgeOffset = 4;
         private const int InputToMessagePadding = 8;
         private const int BetweenMessagePadding = 3;
+        private const long FlashSpanNanos = 500 * 1000L * 1000L;
+        private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
+        private const float BackgroundAlpha = 0.95f;
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
         
@@ -29,13 +32,13 @@ namespace Helion.Render.Shared.Drawers
             DrawMessages(console, viewport, renderCommands, inputDrawTop);
         }
 
-        private static bool IsCursorFlashTime() => Ticker.NanoTime() % 500_000_000 < 250_000_000;
+        private static bool IsCursorFlashTime() => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
 
         private static void DrawBackgroundImage(Dimension viewport, RenderCommands cmd)
         {
             int middleY = viewport.Height / 2;
             
-            cmd.DrawImage("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
+            cmd.DrawImage("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, BackgroundAlpha);
             cmd.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
