@@ -27,6 +27,7 @@ namespace Helion.Client
         private readonly CommandLineArgs m_commandLineArgs;
         private readonly HelionConsole m_console;
         private readonly Config m_config;
+        private readonly GCTracker m_gcTracker;
         private readonly OpenTKWindow m_window;
         private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
         private readonly GameLayerManager m_layerManager;
@@ -37,6 +38,7 @@ namespace Helion.Client
         {
             m_commandLineArgs = cmdArgs;
             m_config = config;
+            m_gcTracker = new GCTracker(config);
             m_console = new HelionConsole(config);
             LogClientInformation();
             
@@ -182,10 +184,11 @@ namespace Helion.Client
 
         private void RunGameLoop()
         {
+            m_gcTracker.Update();
+            
             HandleInput();
             RunLogic();
             Render();
-
             m_window.SwapBuffers();
         }
 
