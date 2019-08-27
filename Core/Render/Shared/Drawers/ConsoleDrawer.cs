@@ -2,6 +2,7 @@ using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
 
@@ -13,6 +14,8 @@ namespace Helion.Render.Shared.Drawers
     public static class ConsoleDrawer
     {
         private const int BlackBarDividerHeight = 3;
+        private const int InputToMessagePadding = 8;
+        private const int BetweenMessagePadding = 3;
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
         
@@ -21,44 +24,52 @@ namespace Helion.Render.Shared.Drawers
             renderCommands.ClearDepth();
             
             DrawBackgroundImage(viewport, renderCommands);
-            DrawInput(console, viewport, renderCommands, out int drawHeight);
-            DrawMessages(console, viewport, renderCommands, drawHeight);
+            DrawInput(console, viewport, renderCommands, out int inputDrawTop);
+            DrawMessages(console, viewport, renderCommands, inputDrawTop);
         }
 
         private static bool IsCursorFlashTime() => Ticker.NanoTime() % 500_000_000 < 250_000_000;
 
         private static void DrawBackgroundImage(Dimension viewport, RenderCommands renderCommands)
         {
-            renderCommands.DrawImage("TITLEPIC", 0, -viewport.Height / 2, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
-            renderCommands.FillRect(0, (viewport.Height / 2) - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
+            int middleY = viewport.Height / 2;
+            
+            renderCommands.DrawImage("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
+            renderCommands.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
         private static void DrawInput(HelionConsole console, Dimension viewport, RenderCommands renderCommands,
-            out int drawHeight)
+            out int inputDrawTop)
         {
+            int fontHeight = 8; // TODO: Actually get the font height!
+            int middleY = viewport.Height / 2;
+            int baseY = middleY - BlackBarDividerHeight - 5;
             ColoredString str = ColoredStringBuilder.From(Color.Yellow, console.Input);
-            int baseY = (viewport.Height / 2) - BlackBarDividerHeight;
-            
-            renderCommands.DrawText(str, "SmallFont", 4, baseY - 10, out Rectangle drawArea);
-            drawHeight = drawArea.Height;
+
+            renderCommands.DrawText(str, "SmallFont", 4, baseY - fontHeight, out Rectangle drawArea);
+            inputDrawTop = drawArea.Top;
 
             if (IsCursorFlashTime())
             {
-                Rectangle drawRect = new Rectangle(drawArea.Right + 2, drawArea.Top, 4, drawArea.Height);
+                // We want to pad right of the last character, only if there
+                // are characters to draw.
+                int left = console.Input.Empty() ? drawArea.Right : drawArea.Right + 2;
+                
+                Rectangle drawRect = new Rectangle(left, drawArea.Top, 2, drawArea.Height);
                 renderCommands.FillRect(drawRect, InputFlashColor);
             }
         }
 
         private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands renderCommands,
-            int drawHeight)
+            int inputDrawTop)
         {
-            int topY = (viewport.Height / 2) - BlackBarDividerHeight - drawHeight - 15;
+            int fontHeight = 8; // TODO: Actually get the font height!
+            int topY = inputDrawTop - InputToMessagePadding - fontHeight;
 
             foreach (ColoredString message in console.Messages)
             {
-                // TODO: We should remove the out value and not calculate it, waste of computation!
-                renderCommands.DrawText(message, "SmallFont", 4, topY, out _);
-                topY -= 10;
+                renderCommands.DrawText(message, "SmallFont", 4, topY);
+                topY -= fontHeight + BetweenMessagePadding;
 
                 if (topY < 0)
                     break;

@@ -92,14 +92,30 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
         }
 
+        public void DrawText(string text, string font, int x, int y)
+        {
+            DrawText(RGBColoredStringDecoder.Decode(text), font, x, y, 1.0f);
+        }
+        
         public void DrawText(string text, string font, int x, int y, out Rectangle drawArea)
         {
             DrawText(RGBColoredStringDecoder.Decode(text), font, x, y, 1.0f, out drawArea);
         }
         
+        public void DrawText(ColoredString text, string font, int x, int y)
+        {
+            DrawText(text, font, x, y, 1.0f);
+        }
+        
         public void DrawText(ColoredString text, string font, int x, int y, out Rectangle drawArea)
         {
             DrawText(text, font, x, y, 1.0f, out drawArea);
+        }
+        
+        public void DrawText(ColoredString text, string font, int x, int y, float alpha)
+        {
+            Vec2I topLeft = new Vec2I(x, y);
+            m_commands.Add(new DrawTextCommand(text, font, topLeft, alpha, null));
         }
         
         public void DrawText(ColoredString text, string font, int x, int y, float alpha, out Rectangle drawArea)
