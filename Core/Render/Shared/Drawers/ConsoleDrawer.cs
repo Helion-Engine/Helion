@@ -25,6 +25,8 @@ namespace Helion.Render.Shared.Drawers
             DrawMessages(console, viewport, renderCommands);
         }
 
+        private static bool IsCursorFlashTime() => Ticker.NanoTime() % 500_000_000 < 250_000_000;
+
         private static void DrawBackgroundImage(Dimension viewport, RenderCommands renderCommands)
         {
             renderCommands.DrawImage("TITLEPIC", 0, -viewport.Height / 2, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
@@ -40,7 +42,7 @@ namespace Helion.Render.Shared.Drawers
             
             ColoredStringBuilder builder = new ColoredStringBuilder();
             builder.Append(Color.Yellow, console.Input);
-            if (Ticker.NanoTime() % 500_000_000 < 250_000_000)
+            if (IsCursorFlashTime())
                 builder.Append(InputFlashColor, "]");
 
             renderCommands.DrawText(builder.Build(), "SmallFont", 4, baseY - 10);

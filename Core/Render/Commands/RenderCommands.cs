@@ -69,6 +69,26 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color, alpha));
         }
 
+        public void FillRect(int left, int top, int width, int height, Color color)
+        {
+            FillRect(new Rectangle(left, top, width, height), color, 1.0f);
+        }
+        
+        public void FillRect(int left, int top, int width, int height, Color color, float alpha)
+        {
+            FillRect(new Rectangle(left, top, width, height), color, alpha);
+        }
+
+        public void FillRect(Rectangle rectangle, Color color)
+        {
+            FillRect(rectangle, color, 1.0f);
+        }
+
+        public void FillRect(Rectangle rectangle, Color color, float alpha)
+        {
+            m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
+        }
+
         public void DrawText(string text, string font, int x, int y)
         {
             ColoredString coloredString = RGBColoredStringDecoder.Decode(text);

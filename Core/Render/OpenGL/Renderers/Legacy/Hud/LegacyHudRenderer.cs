@@ -67,6 +67,21 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
         }
 
+        public override void DrawImage(CIString textureName, Vec2I topLeft, Color mixColor, Color multiplyColor, 
+            float alpha)
+        {
+            GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
+            Dimension dimension = texture.Dimension;
+            Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, dimension.Width, dimension.Height);
+            AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
+        }
+
+        public override void DrawShape(Rectangle area, Color color, float alpha)
+        {
+            GLLegacyTexture texture = m_textureManager.NullTexture;
+            AddImage(texture, area, Color.FromArgb(255, color.R, color.G, color.B), Color.Transparent, alpha);
+        }
+        
         public override void DrawText(ColoredString text, CIString fontName, Vec2I topLeftDraw, float alpha)
         {
             GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(fontName);
@@ -94,15 +109,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             }
             
             DrawDepth += 1.0f;
-        }
-
-        public override void DrawImage(CIString textureName, Vec2I topLeft, Color mixColor, Color multiplyColor, 
-            float alpha)
-        {
-            GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
-            Dimension dimension = texture.Dimension;
-            Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, dimension.Width, dimension.Height);
-            AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
         }
 
         public override void Render(Rectangle viewport)

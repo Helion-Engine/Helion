@@ -98,6 +98,9 @@ namespace Helion.Render.OpenGL
                 case DrawImageCommand cmd:
                     HandleDrawImage(cmd);
                     break;
+                case DrawShapeCommand cmd:
+                    HandleDrawShape(cmd);
+                    break;
                 case DrawTextCommand cmd:
                     HandleDrawText(cmd);
                     break;
@@ -271,6 +274,11 @@ namespace Helion.Render.OpenGL
                 m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MixColor, cmd.MultiplyColor, cmd.Alpha);
         }
 
+        private void HandleDrawShape(DrawShapeCommand cmd)
+        {
+            m_hudRenderer.DrawShape(cmd.Rectangle, cmd.Color, cmd.Alpha);
+        }
+        
         private void HandleDrawText(DrawTextCommand cmd)
         {
             m_hudRenderer.DrawText(cmd.Text, cmd.FontName, cmd.Location, cmd.Alpha);
