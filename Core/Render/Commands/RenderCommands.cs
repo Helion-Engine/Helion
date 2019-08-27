@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using Helion.Graphics.String;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
@@ -70,24 +71,15 @@ namespace Helion.Render.Commands
 
         public void DrawText(string text, string font, int x, int y)
         {
-            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), 1.0f, Color.Transparent, null));
+            ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
+            m_commands.Add(new DrawTextCommand(coloredString, font, new Vec2I(x, y), 1.0f, null));
         }
         
-        public void DrawText(string text, string font, int x, int y, float alpha)
+        public void DrawText(ColoredString text, string font, int x, int y)
         {
-            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), alpha, Color.Transparent, null));
+            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), 1.0f, null));
         }
-        
-        public void DrawText(string text, string font, int x, int y, Color color)
-        {
-            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), 1.0f, color, null));
-        }
-        
-        public void DrawText(string text, string font, int x, int y, float alpha, Color color)
-        {
-            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), alpha, color, null));
-        }
-        
+
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction)
         {
             m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction));

@@ -104,8 +104,7 @@ namespace Helion.Graphics.String
             return Color.FromArgb(
                 (byte)MathHelper.Clamp(r, 0, 255),
                 (byte)MathHelper.Clamp(g, 0, 255),
-                (byte)MathHelper.Clamp(b, 0, 255)
-            );
+                (byte)MathHelper.Clamp(b, 0, 255));
         }
 
         /// <summary>

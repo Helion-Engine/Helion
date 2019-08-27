@@ -10,7 +10,7 @@ namespace Helion.Graphics.String
         /// <summary>
         /// The character value.
         /// </summary>
-        public char C { get; }
+        public char Character { get; }
 
         /// <summary>
         /// The color for the character.
@@ -19,7 +19,7 @@ namespace Helion.Graphics.String
 
         public ColoredChar(char c, Color color)
         {
-            C = c;
+            Character = c;
             Color = color;
         }
     }

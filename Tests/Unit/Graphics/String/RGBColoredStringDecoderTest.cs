@@ -24,7 +24,7 @@ namespace Helion.Test.Unit.Graphics.String
                 for (int i = startIndex; i < endIndex; i++)
                 {
                     char expectedChar = str[i - startIndex];
-                    Assert.AreEqual(colorStr[i].C, expectedChar);
+                    Assert.AreEqual(colorStr[i].Character, expectedChar);
                     Assert.AreEqual(colorStr[i].Color, color);
                 }
 

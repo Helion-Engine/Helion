@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using GlmSharp;
+using Helion.Graphics.String;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
@@ -66,16 +67,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
         }
 
-        public override void DrawText(string text, CIString fontName, Vec2I topLeftDraw, Color mixColor, 
-            Color multiplyColor, float alpha)
+        public override void DrawText(ColoredString text, CIString fontName, Vec2I topLeftDraw, float alpha)
         {
             GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(fontName);
             int maxHeight = font.Metrics.MaxHeight;
 
             float offset = topLeftDraw.X;
-            foreach (char c in text)
+            foreach (ColoredChar c in text)
             {
-                GLGlyph glyph = font[c];
+                GLGlyph glyph = font[c.Character];
                 GlyphUV uv = glyph.UV;
 
                 float top = topLeftDraw.Y;
@@ -83,10 +83,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 float left = offset;
                 float right = left + glyph.Width;
                 
-                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, mixColor, multiplyColor, alpha);
-                HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, mixColor, multiplyColor, alpha);
-                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uv.Left, uv.Bottom, mixColor, multiplyColor, alpha);
-                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uv.Right, uv.Bottom, mixColor, multiplyColor, alpha);
+                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, Color.Transparent, c.Color, alpha);
+                HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, Color.Transparent, c.Color, alpha);
+                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uv.Left, uv.Bottom, Color.Transparent, c.Color, alpha);
+                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uv.Right, uv.Bottom, Color.Transparent, c.Color, alpha);
                 HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
                 m_drawBuffer.Add(font.Texture, quad);
 
