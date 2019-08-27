@@ -61,11 +61,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                     fragColor.w *= alphaFrag;
 
                     fragColor.xyz = mix(fragColor.xyz, rgbMixFrag.xyz, rgbMixFrag.w);
-
-                    // TODO: Can we do better than this? Avoid the if seems feasible!
-                    if (rgbMultiplierFrag.w > 0.0) {
-                        fragColor.xyz = fragColor.xyz * rgbMultiplierFrag.xyz;
-                    }
+                    fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
                 }
             ";
             
