@@ -24,6 +24,13 @@ namespace Helion.Layer
         public override void HandleInput(ConsumableInput consumableInput)
         {
             consumableInput.ConsumeTypedCharacters().ForEach(m_console.AddInput);
+
+            if (consumableInput.ConsumeKeyPressed(InputKey.Backspace))
+                m_console.RemoveInputCharacter();
+            
+            if (consumableInput.ConsumeKeyPressed(InputKey.Enter))
+                m_console.SubmitInputText();
+            
             consumableInput.ConsumeAll();
             
             base.HandleInput(consumableInput);

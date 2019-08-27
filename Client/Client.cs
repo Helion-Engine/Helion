@@ -64,8 +64,11 @@ namespace Helion.Client
                     Log.Info("Usage: map <mapName>");
                     break;
                 }
-
                 ChangeLevel(ccmdArgs.Args[0]);
+                break;
+            
+            default:
+                Log.Info($"Unknown command: {ccmdArgs.Command}");
                 break;
             }
         }

@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Text;
+using MoreLinq;
 
 namespace Helion.Graphics.String
 {
@@ -15,15 +18,17 @@ namespace Helion.Graphics.String
         /// </summary>
         public static readonly Color DefaultColor = Color.White;
 
-        private readonly List<ColoredChar> characters;
+        private readonly List<ColoredChar> m_characters;
 
         /// <summary>
         /// How many characters the string has.
         /// </summary>
-        public int Length => characters.Count;
+        public int Length => m_characters.Count;
 
-        public ColoredString() => characters = new List<ColoredChar>();
-        public ColoredString(List<ColoredChar> characters) => this.characters = characters;
+        public ColoredString(List<ColoredChar> characters)
+        {
+            m_characters = characters;
+        }
 
         /// <summary>
         /// Gets the character at the index provided. This is not bounds 
@@ -32,13 +37,17 @@ namespace Helion.Graphics.String
         /// <param name="index">The index to use.</param>
         /// <returns>The colored character for the string.</returns>
         /// <throws>An out of bounds exception if out of range.</throws>
-        public ColoredChar this[int index] => characters[index];
+        public ColoredChar this[int index] => m_characters[index];
 
-        public IEnumerator<ColoredChar> GetEnumerator() => characters.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
+        public override string ToString()
         {
-            return GetEnumerator();
+            StringBuilder builder = new StringBuilder(Length);
+            m_characters.Select(coloredChar => coloredChar.C).ForEach(c => builder.Append(c));
+            return builder.ToString();
         }
+
+        public IEnumerator<ColoredChar> GetEnumerator() => m_characters.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
