@@ -40,6 +40,7 @@ namespace Helion.Maps.Special.Specials
                     entity.Player.Pitch = 0;
                 m_physicsManager.LinkToWorld(entity);
                 entity.SetZ(entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position), false);
+                entity.ResetInterpolation();
                 entity.OnGround = true;
             }
 

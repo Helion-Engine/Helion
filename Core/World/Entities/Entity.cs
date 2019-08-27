@@ -167,6 +167,8 @@ namespace Helion.World.Entities
         public void ResetInterpolation()
         {
             PrevPosition = Position;
+            if (Player != null)
+                Player.ResetInterpolation();
         }
 
         /// <summary>
