@@ -60,11 +60,9 @@ namespace Helion.Client
 
             case "MAP":
                 if (ccmdArgs.Args.Empty())
-                {
                     Log.Info("Usage: map <mapName>");
-                    break;
-                }
-                ChangeLevel(ccmdArgs.Args[0]);
+                else
+                    ChangeLevel(ccmdArgs.Args[0]);
                 break;
             
             default:
