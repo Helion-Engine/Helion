@@ -23,7 +23,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
     /// </remarks>
     public class FontDefinitionParser : ParserBase
     {
-        public readonly List<FontDefinition> Definitions = new List<FontDefinition>();
+        public readonly IList<FontDefinition> Definitions = new List<FontDefinition>();
         private FontDefinition CurrentDefinition = new FontDefinition("none");
 
         protected override void PerformParsing()

@@ -73,11 +73,10 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             return texture;
         }
 
-        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, int id, CIString name, 
-            ResourceNamespace resourceNamespace)
+        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, CIString name)
         {
             (Image image, GLFontMetrics metrics) = GLFontGenerator.CreateFontAtlasFrom(font); 
-            GLLegacyTexture texture = GenerateTexture(id, image, name, resourceNamespace);
+            GLLegacyTexture texture = GenerateTexture(0, image, name, ResourceNamespace.Fonts);
             GLLegacyFontTexture fontTexture = new GLLegacyFontTexture(texture, metrics);
             return fontTexture;
         }

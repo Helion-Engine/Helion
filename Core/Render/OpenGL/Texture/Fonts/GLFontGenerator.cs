@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
         /// <param name="font">The font to create the atlas from.</param>
         /// <returns>The image and metrics that can be used by some OpenGL font
         /// implementation.</returns>
-        public static (Image, GLFontMetrics) CreateFontAtlasFrom(Font font)
+        public static (Image atlas, GLFontMetrics metrics) CreateFontAtlasFrom(Font font)
         {
             // TODO: This entire function has a potentially horrible memory footprint...
             // We add one for the default glyph. This will be a repeat, but it

@@ -1,12 +1,10 @@
-﻿using Helion.Util;
-using Helion.Util.Geometry;
-using NLog;
-using System;
+﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using NLog.Targets;
+using Helion.Util;
+using Helion.Util.Geometry;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics
@@ -44,13 +42,6 @@ namespace Helion.Graphics
         /// The extra data that accompanies the pixels/dimensions.
         /// </summary>
         public ImageMetadata Metadata { get; } = new ImageMetadata();
-
-        /// <summary>
-        /// Creates an image which has a default bitmap.
-        /// </summary>
-        public Image()
-        {
-        }
 
         /// <summary>
         /// Creates an image from an existing bitmap.
@@ -142,28 +133,6 @@ namespace Helion.Graphics
             Bitmap.UnlockBits(data);
         }
 
-        private static Bitmap MakeDefaultBitmap() => new Bitmap(1, 1, PixelFormat.Format32bppArgb);
-
-        private static Bitmap EnsureInArgbFormat(Bitmap bitmap)
-        {
-            if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
-                return bitmap;
-
-            Bitmap newBitmap = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
-
-            try
-            {
-                using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(newBitmap))
-                    graphics.DrawImage(bitmap, 0, 0);
-                return newBitmap;
-            }
-            catch (Exception e)
-            {
-                Log.Warn($"Unable to convert bitmap from {bitmap.PixelFormat} to a 32-bit ARGB raster: {e.Message}");
-                return MakeDefaultBitmap();
-            }
-        }
-
         /// <summary>
         /// Fills the image with the color provided.
         /// </summary>
@@ -171,12 +140,34 @@ namespace Helion.Graphics
         public void Fill(Color color)
         {
             using (SolidBrush b = new SolidBrush(color))
-            {
                 using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(Bitmap))
-                {
                     g.FillRectangle(b, 0, 0, Bitmap.Width, Bitmap.Height);
-                }
+        }
+
+        public Image ToBrightnessCopy()
+        {
+            Precondition(Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Unsupported pixel format type");
+            
+            Rectangle rect = new Rectangle(0, 0, Width, Height);
+            BitmapData data = Bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+            int numBytes = 4 * Width * Height;
+            byte[] argb = new byte[numBytes];
+            Marshal.Copy(data.Scan0, argb, 0, numBytes);
+            
+            Bitmap.UnlockBits(data);
+
+            for (int i = 0; i < numBytes; i += 4)
+            {
+                // Note: Because of endianness, ARGB is read in BGRA format.
+                // This means we need the first 3 bytes, and not the last 3.
+                byte maxRGB = Math.Max(Math.Max(argb[i], argb[i + 1]), argb[i + 2]);
+                argb[i] = maxRGB;
+                argb[i + 1] = maxRGB;
+                argb[i + 2] = maxRGB;
             }
+
+            return new Image(Width, Height, argb, Metadata);
         }
 
         /// <summary>
@@ -209,6 +200,28 @@ namespace Helion.Graphics
             {
                 Log.Error($"Unable to save image to {path}");
                 return false;
+            }
+        }
+        
+        private static Bitmap MakeDefaultBitmap() => new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+
+        private static Bitmap EnsureInArgbFormat(Bitmap bitmap)
+        {
+            if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
+                return bitmap;
+
+            Bitmap newBitmap = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
+
+            try
+            {
+                using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(newBitmap))
+                    graphics.DrawImage(bitmap, 0, 0);
+                return newBitmap;
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"Unable to convert bitmap from {bitmap.PixelFormat} to a 32-bit ARGB raster: {e.Message}");
+                return MakeDefaultBitmap();
             }
         }
     }

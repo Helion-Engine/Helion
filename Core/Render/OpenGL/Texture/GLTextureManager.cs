@@ -132,10 +132,11 @@ namespace Helion.Render.OpenGL.Texture
         {
             if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType> existingFontTexture))
                 return existingFontTexture;
-            
-            // Look for a font definition.
-            // TODO
-            
+
+            Font? font = ArchiveCollection.CompileFont(name);
+            if (font != null)
+                return CreateNewFont(font, name);
+
             Entry? entry = ArchiveCollection.GetEntry(name, ResourceNamespace.Fonts);
             if (entry == null)
                 return NullFont;
@@ -144,7 +145,7 @@ namespace Helion.Render.OpenGL.Texture
             // TODO: Implement TTF reader and then this!
             return NullFont;
         }
-        
+
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -188,7 +189,7 @@ namespace Helion.Render.OpenGL.Texture
 
         protected abstract GLTextureType GenerateTexture(int id, Image image, CIString name, ResourceNamespace resourceNamespace);
         
-        protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, int id, CIString name, ResourceNamespace resourceNamespace);
+        protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, CIString name);
 
         private GLTextureType CreateNullTexture()
         {
@@ -203,7 +204,7 @@ namespace Helion.Render.OpenGL.Texture
             FontMetrics metrics = new FontMetrics(nullImage.Height, nullImage.Height, 0, 0, 0);
 
             Font font = new Font(glyph, glyphs, metrics);
-            return GenerateFont(font, 0, "NULL_FONT", ResourceNamespace.Fonts);
+            return GenerateFont(font, "NULL");
         }
 
         private void AddToTextureList(int id, GLTextureType texture)
@@ -223,6 +224,25 @@ namespace Helion.Render.OpenGL.Texture
             GLTextureType? texture = m_textureTracker.GetOnly(name, resourceNamespace);
             if (texture != null)
                 DeleteTexture(texture, name, resourceNamespace);
+        }
+        
+        private GLFontTexture<GLTextureType> CreateNewFont(Font font, CIString name)
+        {
+            GLFontTexture<GLTextureType> fontTexture = GenerateFont(font, name);
+            
+            DeleteOldFontIfAny(name);
+            m_fonts[name] = fontTexture;
+            
+            return fontTexture;
+        }
+
+        private void DeleteOldFontIfAny(CIString name)
+        {
+            if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType> texture))
+            {
+                texture.Dispose();
+                m_fonts.Remove(name);
+            }
         }
     }
 }
