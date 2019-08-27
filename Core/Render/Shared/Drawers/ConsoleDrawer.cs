@@ -14,6 +14,7 @@ namespace Helion.Render.Shared.Drawers
     public static class ConsoleDrawer
     {
         private const int BlackBarDividerHeight = 3;
+        private const int LeftEdgeOffset = 4;
         private const int InputToMessagePadding = 8;
         private const int BetweenMessagePadding = 3;
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
@@ -46,7 +47,7 @@ namespace Helion.Render.Shared.Drawers
             int baseY = middleY - BlackBarDividerHeight - 5;
             ColoredString str = ColoredStringBuilder.From(Color.Yellow, console.Input);
 
-            renderCommands.DrawText(str, "SmallFont", 4, baseY - fontHeight, out Rectangle drawArea);
+            renderCommands.DrawText(str, "SmallFont", LeftEdgeOffset, baseY - fontHeight, out Rectangle drawArea);
             inputDrawTop = drawArea.Top;
 
             if (IsCursorFlashTime())
