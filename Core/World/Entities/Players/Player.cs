@@ -1,6 +1,7 @@
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities.Players
@@ -10,6 +11,8 @@ namespace Helion.World.Entities.Players
         public const double ForwardMovementSpeed = 1.5625;
         public const double SideMovementSpeed = 1.25;
         public const double MaxMovement = 30.0;
+        
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
         public readonly int PlayerNumber;
         public Entity Entity;
@@ -83,7 +86,7 @@ namespace Helion.World.Entities.Players
 
             if (hardHit && !Entity.IsFlying)
             {
-                System.Console.WriteLine("Player - oof (Hit ground)");
+                Log.Debug("Player - oof (Hit ground)");
                 m_deltaViewHeight = Entity.Velocity.Z / PlayerViewDivider;
             }
         }
