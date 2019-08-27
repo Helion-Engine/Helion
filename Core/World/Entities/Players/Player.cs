@@ -61,6 +61,13 @@ namespace Helion.World.Entities.Players
             m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / PlayerViewDivider;
         }
 
+        public void ResetInterpolation()
+        {
+            m_viewHeight = PlayerViewHeight;
+            m_prevViewHeight = PlayerViewHeight;
+            m_deltaViewHeight = 0;
+        }
+
         /// <summary>
         /// Sets the entity hitting the floor / another entity.
         /// </summary>
