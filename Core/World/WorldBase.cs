@@ -3,6 +3,7 @@ using Helion.Maps;
 using Helion.Maps.Special;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
+using Helion.Util.Time;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -15,18 +16,20 @@ namespace Helion.World
     {
         public event EventHandler LevelExit;
 
-        public int Gametick { get; private set; }
+        public readonly long CreationTimeNanos;
         public readonly IMap Map;
         public readonly BspTree BspTree;
         public readonly Blockmap Blockmap;
+        public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly SpecialManager SpecialManager;
-
+        
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree)
         {
+            CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
             Config = config;
             Map = map;

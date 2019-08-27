@@ -11,6 +11,14 @@ namespace Helion.Render.Shared.Text
     public interface ITextDrawCalculator
     {
         /// <summary>
+        /// Gets the vertical height of the font, which is the tallest
+        /// character that can be rendered from the bottom.
+        /// </summary>
+        /// <param name="font">The name of the font.</param>
+        /// <returns>The font height in pixels.</returns>
+        int GetFontHeight(string font);
+        
+        /// <summary>
         /// Calculates the rectangle draw area of the string for the font and
         /// font size (if any) provided.
         /// </summary>

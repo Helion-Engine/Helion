@@ -5,6 +5,7 @@ using System.Text;
 using Helion.Graphics.String;
 using Helion.Util.Configuration;
 using Helion.Util.Extensions;
+using Helion.Util.Time;
 using NLog;
 using NLog.Targets;
 using static Helion.Util.Assertion.Assert;
@@ -51,7 +52,7 @@ namespace Helion.Util
         /// end of the list will be removed once this grows past the capacity
         /// value.
         /// </remarks>
-        public readonly LinkedList<ColoredString> Messages = new LinkedList<ColoredString>();
+        public readonly LinkedList<ConsoleMessage> Messages = new LinkedList<ConsoleMessage>();
 
         /// <summary>
         /// Gets the current input.
@@ -129,6 +130,9 @@ namespace Helion.Util
         /// <param name="message">The message to add.</param>
         public void AddMessage(string message)
         {
+            if (message.Empty())
+                return;
+            
             AddMessage(RGBColoredStringDecoder.Decode(message));
         }
         
@@ -142,7 +146,10 @@ namespace Helion.Util
         /// <param name="message">The message to add.</param>
         public void AddMessage(ColoredString message)
         {
-            Messages.AddFirst(message);
+            if (message.Empty)
+                return;
+            
+            Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime()));
             RemoveExcessMessagesIfAny();
         }
 
@@ -287,5 +294,18 @@ namespace Helion.Util
         }
 
         public override string ToString() => $"{Command} [{string.Join(", ", Args)}]";
+    }
+
+    // TODO: Move this out of the class.
+    public readonly struct ConsoleMessage
+    {
+        public readonly ColoredString Message;
+        public readonly long TimeNanos;
+
+        public ConsoleMessage(ColoredString message, long timeNanos)
+        {
+            Message = message;
+            TimeNanos = timeNanos;
+        }
     }
 }

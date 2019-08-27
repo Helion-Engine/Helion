@@ -31,23 +31,22 @@ namespace Helion.Render.Shared.Drawers
 
         private static bool IsCursorFlashTime() => Ticker.NanoTime() % 500_000_000 < 250_000_000;
 
-        private static void DrawBackgroundImage(Dimension viewport, RenderCommands renderCommands)
+        private static void DrawBackgroundImage(Dimension viewport, RenderCommands cmd)
         {
             int middleY = viewport.Height / 2;
             
-            renderCommands.DrawImage("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
-            renderCommands.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
+            cmd.DrawImage("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
+            cmd.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
-        private static void DrawInput(HelionConsole console, Dimension viewport, RenderCommands renderCommands,
-            out int inputDrawTop)
+        private static void DrawInput(HelionConsole console, Dimension viewport, RenderCommands cmd, out int inputDrawTop)
         {
-            int fontHeight = 8; // TODO: Actually get the font height!
+            int fontHeight = cmd.GetFontHeight("SmallFont");
             int middleY = viewport.Height / 2;
             int baseY = middleY - BlackBarDividerHeight - 5;
             ColoredString str = ColoredStringBuilder.From(Color.Yellow, console.Input);
 
-            renderCommands.DrawText(str, "SmallFont", LeftEdgeOffset, baseY - fontHeight, out Rectangle drawArea);
+            cmd.DrawText(str, "SmallFont", LeftEdgeOffset, baseY - fontHeight, out Rectangle drawArea);
             inputDrawTop = drawArea.Top;
 
             if (IsCursorFlashTime())
@@ -57,19 +56,18 @@ namespace Helion.Render.Shared.Drawers
                 int left = console.Input.Empty() ? drawArea.Right : drawArea.Right + 2;
                 
                 Rectangle drawRect = new Rectangle(left, drawArea.Top, 2, drawArea.Height);
-                renderCommands.FillRect(drawRect, InputFlashColor);
+                cmd.FillRect(drawRect, InputFlashColor);
             }
         }
 
-        private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands renderCommands,
-            int inputDrawTop)
+        private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands cmd, int inputDrawTop)
         {
-            int fontHeight = 8; // TODO: Actually get the font height!
+            int fontHeight = cmd.GetFontHeight("SmallFont");
             int topY = inputDrawTop - InputToMessagePadding - fontHeight;
 
-            foreach (ColoredString message in console.Messages)
+            foreach (ConsoleMessage msg in console.Messages)
             {
-                renderCommands.DrawText(message, "SmallFont", 4, topY);
+                cmd.DrawText(msg.Message, "SmallFont", 4, topY);
                 topY -= fontHeight + BetweenMessagePadding;
 
                 if (topY < 0)

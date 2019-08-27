@@ -25,6 +25,11 @@ namespace Helion.Graphics.String
         /// </summary>
         public int Length => m_characters.Count;
 
+        /// <summary>
+        /// Checks whether the string is empty of characters or not.
+        /// </summary>
+        public bool Empty => Length == 0;
+
         public ColoredString(List<ColoredChar> characters)
         {
             m_characters = characters;

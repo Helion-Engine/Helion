@@ -141,6 +141,8 @@ namespace Helion.Render.Commands
             m_commands.Add(new ViewportCommand(dimension, offset));
         }
 
+        public int GetFontHeight(string fontName) => m_textDrawCalculator.GetFontHeight(fontName);
+        
         public IReadOnlyList<IRenderCommand> GetCommands() => m_commands.AsReadOnly();
     }
 }

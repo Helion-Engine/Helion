@@ -4,6 +4,7 @@ using Helion.Input;
 using Helion.Maps;
 using Helion.Render.Commands;
 using Helion.Render.Shared;
+using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -24,6 +25,7 @@ namespace Helion.Layer
         protected override double Priority => 0.25;
         protected override CIString Name => LayerName;
         private readonly Config m_config;
+        private readonly HelionConsole m_console;
         private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeKeys;
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
@@ -32,9 +34,10 @@ namespace Helion.Layer
         private TickCommand m_tickCommand = new TickCommand();
         private SinglePlayerWorld m_world;
 
-        public SinglePlayerWorldLayer(Config config)
+        public SinglePlayerWorldLayer(Config config, HelionConsole console)
         {
             m_config = config;
+            m_console = console;
             
             m_consumeKeys = new[]
             {
@@ -117,6 +120,9 @@ namespace Helion.Layer
         {
             Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
             renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction);
+
+            // TODO: Should not be passing the window dimension as the viewport.
+            WorldHudDrawer.Draw(m_world, m_console, renderCommands.WindowDimension, renderCommands);
         }
         
         private void World_LevelExit(object sender, EventArgs e)

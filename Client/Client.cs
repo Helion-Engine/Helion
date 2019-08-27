@@ -114,7 +114,7 @@ namespace Helion.Client
             }
             else
             {
-                SinglePlayerWorldLayer layer = new SinglePlayerWorldLayer(m_config);
+                SinglePlayerWorldLayer layer = new SinglePlayerWorldLayer(m_config, m_console);
                 if (layer.LoadMap(map, m_archiveCollection))
                 {
                     m_layerManager.Add(layer);

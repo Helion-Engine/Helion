@@ -15,6 +15,8 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             m_textureManager = textureManager;
         }
 
+        public int GetFontHeight(string font) => m_textureManager.GetFont(font).Metrics.MaxHeight;
+
         public Rectangle GetDrawArea(ColoredString str, string font, Vec2I topLeft, int? fontSize = null)
         {
             GLFontTexture<GLLegacyTexture> fontTexture = m_textureManager.GetFont(font);
