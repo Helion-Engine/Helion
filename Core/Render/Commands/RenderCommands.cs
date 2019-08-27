@@ -67,6 +67,26 @@ namespace Helion.Render.Commands
         {
             m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color, alpha));
         }
+
+        public void DrawText(string text, string font, int x, int y)
+        {
+            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), 1.0f, Color.Transparent, null));
+        }
+        
+        public void DrawText(string text, string font, int x, int y, float alpha)
+        {
+            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), alpha, Color.Transparent, null));
+        }
+        
+        public void DrawText(string text, string font, int x, int y, Color color)
+        {
+            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), 1.0f, color, null));
+        }
+        
+        public void DrawText(string text, string font, int x, int y, float alpha, Color color)
+        {
+            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), alpha, color, null));
+        }
         
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction)
         {

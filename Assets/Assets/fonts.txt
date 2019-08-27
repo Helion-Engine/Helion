@@ -16,7 +16,7 @@ font SmallFont
         "*" STCFN042 align top;
         "+" STCFN043 align center;
         "," STCFN044;
-        "-" STCFN045;
+        "-" STCFN045 align center;
         "." STCFN046;
         "/" STCFN047;
         "0" STCFN048;

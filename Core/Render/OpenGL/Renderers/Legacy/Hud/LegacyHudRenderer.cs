@@ -6,6 +6,7 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
@@ -58,13 +59,42 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_drawBuffer.Clear();
         }
 
-        public override void AddImage(CIString textureName, Rectangle drawArea, Color color, float alpha)
+        public override void DrawImage(CIString textureName, Rectangle drawArea, Color color, float alpha)
         {
             GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
             AddImage(texture, drawArea, color, alpha);
         }
 
-        public override void AddImage(CIString textureName, Vec2I topLeft, Color color, float alpha)
+        public override void DrawText(string text, CIString fontName, Vec2I topLeftDraw, Color color, float alpha)
+        {
+            GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(fontName);
+            int maxHeight = font.Metrics.MaxHeight;
+
+            float offset = topLeftDraw.X;
+            foreach (char c in text)
+            {
+                GLGlyph glyph = font[c];
+                GlyphUV uv = glyph.UV;
+
+                float top = topLeftDraw.Y;
+                float bottom = top + maxHeight;
+                float left = offset;
+                float right = left + glyph.Width;
+                
+                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, color, alpha);
+                HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, color, alpha);
+                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uv.Left, uv.Bottom, color, alpha);
+                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uv.Right, uv.Bottom, color, alpha);
+                HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
+                m_drawBuffer.Add(font.Texture, quad);
+
+                offset += glyph.Width;
+            }
+            
+            DrawDepth += 1.0f;
+        }
+
+        public override void DrawImage(CIString textureName, Vec2I topLeft, Color color, float alpha)
         {
             GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
             Dimension dimension = texture.Dimension;

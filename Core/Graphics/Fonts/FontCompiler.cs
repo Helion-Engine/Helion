@@ -32,18 +32,32 @@ namespace Helion.Graphics.Fonts
                 return null;
 
             Dictionary<char, GlyphPrototype> charImages = GetCharacterImages(definition, imageRetriever);
+            FontMetrics metrics = CalculateMetrics(charImages);
+            AddSpaceGlyphIfMissing(charImages, metrics, definition);
+            
             char defaultChar = definition.CharDefinitions.First(def => def.Value.Default).Value.Character;
-
             if (MissingDefaultImage(defaultChar, charImages))
             {
                 Log.Error("Missing default image from font {0}, cannot make font", definition.Name);
                 return null;
             }
 
-            FontMetrics metrics = CalculateMetrics(charImages);
             (Glyph defaultGlyph, List<Glyph> glyphs) = CreateGlyphs(charImages, definition, metrics, defaultChar);
-            
             return new Font(defaultGlyph, glyphs, metrics);
+        }
+
+        private static void AddSpaceGlyphIfMissing(IDictionary<char, GlyphPrototype> charImages, FontMetrics metrics,
+            FontDefinition definition)
+        {
+            if (charImages.ContainsKey(' '))
+                return;
+
+            Precondition(definition.SpaceWidth != null, "Invalid definition detected, has no space image nor spacing attribute");
+            int width = definition.SpaceWidth ?? 1;
+            int height = metrics.MaxHeight;
+            
+            Image spaceImage = new Image(width, height, Color.Transparent);
+            charImages[' '] = new GlyphPrototype(spaceImage, definition.Alignment);
         }
 
         private static Dictionary<char, GlyphPrototype> GetCharacterImages(FontDefinition definition, 

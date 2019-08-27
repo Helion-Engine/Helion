@@ -2,7 +2,7 @@ using System.Drawing;
 using Helion.Util;
 using Helion.Util.Geometry;
 
-namespace Helion.Render.Commands
+namespace Helion.Render.Commands.Types
 {
     public readonly struct DrawImageCommand : IRenderCommand
     {

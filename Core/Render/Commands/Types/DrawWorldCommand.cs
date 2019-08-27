@@ -3,7 +3,7 @@ using Helion.World;
 
 namespace Helion.Render.Commands.Types
 {
-    public struct DrawWorldCommand : IRenderCommand
+    public readonly struct DrawWorldCommand : IRenderCommand
     {
         public readonly WorldBase World;
         public readonly Camera Camera;

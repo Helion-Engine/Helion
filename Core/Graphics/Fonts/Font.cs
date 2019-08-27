@@ -13,7 +13,7 @@ namespace Helion.Graphics.Fonts
         /// <summary>
         /// The metrics for the entire font.
         /// </summary>
-        public FontMetrics Metrics { get; }
+        public readonly FontMetrics Metrics;
 
         /// <summary>
         /// The default glyph for this font.
@@ -22,6 +22,8 @@ namespace Helion.Graphics.Fonts
         
         private readonly Dictionary<char, Glyph> m_glyphs = new Dictionary<char, Glyph>();
 
+        public int Count => m_glyphs.Count;
+        
         /// <summary>
         /// Creates a new font from a series of glyphs.
         /// </summary>
@@ -54,6 +56,13 @@ namespace Helion.Graphics.Fonts
         /// <param name="c">The char.</param>
         /// <returns>The glyph for the char.</returns>
         public Glyph this[char c] => m_glyphs.GetValueOrDefault(c, DefaultGlyph);
+
+        /// <summary>
+        /// Checks if the font has the character as a glyph.
+        /// </summary>
+        /// <param name="c">The character to check.</param>
+        /// <returns>True if so, false otherwise.</returns>
+        public bool HasCharacter(char c) => m_glyphs.ContainsKey(c);
 
         public IEnumerator<Glyph> GetEnumerator() => m_glyphs.Values.GetEnumerator();
 

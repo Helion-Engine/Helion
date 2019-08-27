@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace Helion.Render.Commands.Types
 {
-    public struct ClearRenderCommand : IRenderCommand
+    public readonly struct ClearRenderCommand : IRenderCommand
     {
         public static readonly Color DefaultClearColor = System.Drawing.Color.Black;
         
