@@ -23,21 +23,21 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
                 in vec3 pos;
                 in vec2 uv;
-                in vec3 rgb;
-                in float rgbBlend;    
+                in vec4 rgbMix;
+                in vec4 rgbMultiplier;    
                 in float alpha;
 
                 out vec2 uvFrag;
-                out vec3 rgbFrag;
-                out float rgbBlendFrag;   
+                out vec4 rgbMixFrag;
+                out vec4 rgbMultiplierFrag;   
                 out float alphaFrag;
 
                 uniform mat4 mvp;
 
                 void main() {
                     uvFrag = uv;
-                    rgbFrag = rgb;
-                    rgbBlendFrag = rgbBlend; 
+                    rgbMixFrag = rgbMix;
+                    rgbMultiplierFrag = rgbMultiplier; 
                     alphaFrag = alpha; 
 
                     gl_Position = mvp * vec4(pos, 1.0);
@@ -48,8 +48,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 #version 130
 
                 in vec2 uvFrag;
-                in vec3 rgbFrag;
-                in float rgbBlendFrag;
+                in vec4 rgbMixFrag;
+                in vec4 rgbMultiplierFrag;   
                 in float alphaFrag;
 
                 out vec4 fragColor;
@@ -60,7 +60,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                     fragColor = texture(boundTexture, uvFrag.st);
                     fragColor.w *= alphaFrag;
 
-                    fragColor.xyz = mix(fragColor.xyz, rgbFrag, rgbBlendFrag);
+                    fragColor.xyz = mix(fragColor.xyz, rgbMixFrag.xyz, rgbMixFrag.w);
+
+                    // TODO: Can we do better than this? Avoid the if seems feasible!
+                    if (rgbMultiplierFrag.w > 0.0) {
+                        fragColor.xyz = fragColor.xyz * rgbMultiplierFrag.xyz;
+                    }
                 }
             ";
             

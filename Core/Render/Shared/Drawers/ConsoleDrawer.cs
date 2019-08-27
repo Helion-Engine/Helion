@@ -15,6 +15,7 @@ namespace Helion.Render.Shared.Drawers
     {
         private const int BlackBarDividerHeight = 3;
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
+        private static readonly Color InputColor = Color.FromArgb(0, 255, 0);
         
         public static void Draw(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
         {
@@ -42,8 +43,8 @@ namespace Helion.Render.Shared.Drawers
             string input = console.Input;
             if (Ticker.NanoTime() % 500_000_000 < 250_000_000)
                 input += "]";
-            
-            renderCommands.DrawText(input, "SmallFont", 4, baseY - 10);
+
+            renderCommands.DrawText(input, "SmallFont", 4, baseY - 10, InputColor);
         }
 
         private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands renderCommands)

@@ -23,8 +23,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         private static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
-            new VertexPointerUnsignedByteAttribute("rgb", 2, 3, true),
-            new VertexPointerUnsignedByteAttribute("rgbBlend", 3, 1, true),
+            new VertexPointerUnsignedByteAttribute("rgbMix", 2, 4, true),
+            new VertexPointerUnsignedByteAttribute("rgbMultiplier", 3, 4, true),
             new VertexPointerFloatAttribute("alpha", 4, 1));
         
         private readonly IGLFunctions gl;
@@ -59,13 +59,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_drawBuffer.Clear();
         }
 
-        public override void DrawImage(CIString textureName, Rectangle drawArea, Color color, float alpha)
+        public override void DrawImage(CIString textureName, Rectangle drawArea, Color mixColor, Color multiplyColor,
+            float alpha)
         {
             GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
-            AddImage(texture, drawArea, color, alpha);
+            AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
         }
 
-        public override void DrawText(string text, CIString fontName, Vec2I topLeftDraw, Color color, float alpha)
+        public override void DrawText(string text, CIString fontName, Vec2I topLeftDraw, Color mixColor, 
+            Color multiplyColor, float alpha)
         {
             GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(fontName);
             int maxHeight = font.Metrics.MaxHeight;
@@ -81,10 +83,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 float left = offset;
                 float right = left + glyph.Width;
                 
-                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, color, alpha);
-                HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, color, alpha);
-                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uv.Left, uv.Bottom, color, alpha);
-                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uv.Right, uv.Bottom, color, alpha);
+                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, mixColor, multiplyColor, alpha);
+                HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, mixColor, multiplyColor, alpha);
+                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uv.Left, uv.Bottom, mixColor, multiplyColor, alpha);
+                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uv.Right, uv.Bottom, mixColor, multiplyColor, alpha);
                 HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
                 m_drawBuffer.Add(font.Texture, quad);
 
@@ -94,12 +96,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             DrawDepth += 1.0f;
         }
 
-        public override void DrawImage(CIString textureName, Vec2I topLeft, Color color, float alpha)
+        public override void DrawImage(CIString textureName, Vec2I topLeft, Color mixColor, Color multiplyColor, 
+            float alpha)
         {
             GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
             Dimension dimension = texture.Dimension;
             Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, dimension.Width, dimension.Height);
-            AddImage(texture, drawArea, color, alpha);
+            AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
         }
 
         public override void Render(Rectangle viewport)
@@ -147,13 +150,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_vbo.Unbind();
         }
 
-        private void AddImage(GLLegacyTexture texture, Rectangle drawArea, Color color, float alpha)
+        private void AddImage(GLLegacyTexture texture, Rectangle drawArea, Color mixColor, Color multiplyColor, 
+            float alpha)
         {
             // Remember that we are drawing along the Z for visual depth now.
-            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, color, alpha);
-            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, color, alpha);
-            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, color, alpha);
-            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, color, alpha);
+            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, mixColor, multiplyColor, alpha);
+            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, mixColor, multiplyColor, alpha);
+            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, mixColor, multiplyColor, alpha);
+            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, mixColor, multiplyColor, alpha);
             
             HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
             m_drawBuffer.Add(texture, quad);
