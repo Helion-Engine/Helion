@@ -14,6 +14,7 @@ using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
+using Helion.Render.Shared.Text;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -35,6 +36,8 @@ namespace Helion.Render.OpenGL
         private readonly IGLTextureManager m_textureManager;
         private readonly WorldRenderer m_worldRenderer;
         private readonly HudRenderer m_hudRenderer;
+
+        public ITextDrawCalculator TextDrawCalculator => m_textureManager.TextDrawCalculator;
 
         public GLRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
@@ -76,7 +79,7 @@ namespace Helion.Render.OpenGL
             
             return projection * view * model;
         }
-
+        
         public void Render(RenderCommands renderCommands)
         {
             m_hudRenderer.Clear();

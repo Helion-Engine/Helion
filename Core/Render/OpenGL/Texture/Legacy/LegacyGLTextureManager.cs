@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
+using Helion.Render.Shared.Text;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -14,11 +15,14 @@ namespace Helion.Render.OpenGL.Texture.Legacy
 {
     public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     {
+        public override ITextDrawCalculator TextDrawCalculator { get; }
+        
         public LegacyGLTextureManager(GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection) :
             base(capabilities, functions, archiveCollection)
         {
+            TextDrawCalculator = new GLLegacyTextDrawCalculator(this);
         }
-
+        
         ~LegacyGLTextureManager()
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");

@@ -153,7 +153,7 @@ namespace Helion.Client
         {
             Dimension windowDimension = m_window.WindowDimension;
             IRenderer renderer = m_window.Renderer;
-            RenderCommands renderCommands = new RenderCommands(windowDimension);
+            RenderCommands renderCommands = new RenderCommands(windowDimension, renderer.TextDrawCalculator);
 
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();

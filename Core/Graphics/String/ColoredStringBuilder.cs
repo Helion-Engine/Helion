@@ -8,6 +8,13 @@ namespace Helion.Graphics.String
     {
         private readonly StringBuilder m_builder = new StringBuilder();
 
+        public static ColoredString From(params object[] objects)
+        {
+            ColoredStringBuilder builder = new ColoredStringBuilder();
+            builder.Append(objects);
+            return builder.Build();
+        }
+        
         public ColoredStringBuilder Append(params object[] objects)
         {
             foreach (object obj in objects)

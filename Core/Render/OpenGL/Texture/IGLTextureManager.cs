@@ -1,4 +1,5 @@
 using System;
+using Helion.Render.Shared.Text;
 using Helion.Resources;
 using Helion.Util;
 
@@ -9,5 +10,9 @@ namespace Helion.Render.OpenGL.Texture
     /// </summary>
     public interface IGLTextureManager : IDisposable
     {
+        /// <summary>
+        /// The string render size area calculation.
+        /// </summary>
+        ITextDrawCalculator TextDrawCalculator { get; }
     }
 }

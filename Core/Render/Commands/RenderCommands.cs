@@ -3,6 +3,7 @@ using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
+using Helion.Render.Shared.Text;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World;
@@ -13,10 +14,12 @@ namespace Helion.Render.Commands
     {
         public readonly Dimension WindowDimension;
         private readonly List<IRenderCommand> m_commands = new List<IRenderCommand>();
+        private readonly ITextDrawCalculator m_textDrawCalculator;
 
-        public RenderCommands(Dimension windowDimensions)
+        public RenderCommands(Dimension windowDimensions, ITextDrawCalculator textDrawCalculator)
         {
             WindowDimension = windowDimensions;
+            m_textDrawCalculator = textDrawCalculator;
         }
         
         public void Clear()
@@ -89,15 +92,22 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
         }
 
-        public void DrawText(string text, string font, int x, int y)
+        public void DrawText(string text, string font, int x, int y, out Rectangle drawArea)
         {
-            ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
-            m_commands.Add(new DrawTextCommand(coloredString, font, new Vec2I(x, y), 1.0f, null));
+            DrawText(RGBColoredStringDecoder.Decode(text), font, x, y, 1.0f, out drawArea);
         }
         
-        public void DrawText(ColoredString text, string font, int x, int y)
+        public void DrawText(ColoredString text, string font, int x, int y, out Rectangle drawArea)
         {
-            m_commands.Add(new DrawTextCommand(text, font, new Vec2I(x, y), 1.0f, null));
+            DrawText(text, font, x, y, 1.0f, out drawArea);
+        }
+        
+        public void DrawText(ColoredString text, string font, int x, int y, float alpha, out Rectangle drawArea)
+        {
+            Vec2I topLeft = new Vec2I(x, y);
+            m_commands.Add(new DrawTextCommand(text, font, topLeft, alpha, null));
+            
+            drawArea = m_textDrawCalculator.GetDrawArea(text, font, topLeft);
         }
 
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction)

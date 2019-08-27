@@ -4,6 +4,7 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Render.Shared.Text;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -27,6 +28,8 @@ namespace Helion.Render.OpenGL.Texture
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
         private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
         
+        public abstract ITextDrawCalculator TextDrawCalculator { get; }
+
         /// <summary>
         /// The null texture, intended to be used when the actual texture
         /// cannot be found.

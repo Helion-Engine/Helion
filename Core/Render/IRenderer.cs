@@ -1,4 +1,5 @@
 using Helion.Render.Commands;
+using Helion.Render.Shared.Text;
 
 namespace Helion.Render
 {
@@ -7,6 +8,12 @@ namespace Helion.Render
     /// </summary>
     public interface IRenderer
     {
+        /// <summary>
+        /// A helper class that will calculate the draw area when trying to
+        /// draw a string with some font and font size.
+        /// </summary>
+        ITextDrawCalculator TextDrawCalculator { get; }
+        
         /// <summary>
         /// Performs rendering of all the commands.
         /// </summary>

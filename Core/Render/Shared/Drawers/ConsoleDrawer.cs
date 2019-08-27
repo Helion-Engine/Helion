@@ -21,8 +21,8 @@ namespace Helion.Render.Shared.Drawers
             renderCommands.ClearDepth();
             
             DrawBackgroundImage(viewport, renderCommands);
-            DrawInput(console, viewport, renderCommands);
-            DrawMessages(console, viewport, renderCommands);
+            DrawInput(console, viewport, renderCommands, out int drawHeight);
+            DrawMessages(console, viewport, renderCommands, drawHeight);
         }
 
         private static bool IsCursorFlashTime() => Ticker.NanoTime() % 500_000_000 < 250_000_000;
@@ -30,33 +30,34 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawBackgroundImage(Dimension viewport, RenderCommands renderCommands)
         {
             renderCommands.DrawImage("TITLEPIC", 0, -viewport.Height / 2, viewport.Width, viewport.Height, BackgroundFade, 0.8f);
-            
-            // TODO: Implement DrawShape().
-            renderCommands.DrawImage("TITLEPIC", 0, (viewport.Height / 2) - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
+            renderCommands.FillRect(0, (viewport.Height / 2) - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
-        private static void DrawInput(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
+        private static void DrawInput(HelionConsole console, Dimension viewport, RenderCommands renderCommands,
+            out int drawHeight)
         {
-            // TODO: Need some kind of drawing function or font maxHeight here.
+            ColoredString str = ColoredStringBuilder.From(Color.Yellow, console.Input);
             int baseY = (viewport.Height / 2) - BlackBarDividerHeight;
             
-            ColoredStringBuilder builder = new ColoredStringBuilder();
-            builder.Append(Color.Yellow, console.Input);
-            if (IsCursorFlashTime())
-                builder.Append(InputFlashColor, "|");
+            renderCommands.DrawText(str, "SmallFont", 4, baseY - 10, out Rectangle drawArea);
+            drawHeight = drawArea.Height;
 
-            renderCommands.DrawText(builder.Build(), "SmallFont", 4, baseY - 10);
+            if (IsCursorFlashTime())
+            {
+                Rectangle drawRect = new Rectangle(drawArea.Right + 2, drawArea.Top, 4, drawArea.Height);
+                renderCommands.FillRect(drawRect, InputFlashColor);
+            }
         }
 
-        private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
+        private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands renderCommands,
+            int drawHeight)
         {
-            // TODO: Need some kind of drawing function or font maxHeight here.
-            // along with the height from DrawInput().
-            int topY = (viewport.Height / 2) - BlackBarDividerHeight - 25;
+            int topY = (viewport.Height / 2) - BlackBarDividerHeight - drawHeight - 15;
 
             foreach (ColoredString message in console.Messages)
             {
-                renderCommands.DrawText(message, "SmallFont", 4, topY);
+                // TODO: We should remove the out value and not calculate it, waste of computation!
+                renderCommands.DrawText(message, "SmallFont", 4, topY, out _);
                 topY -= 10;
 
                 if (topY < 0)
