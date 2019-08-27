@@ -105,7 +105,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
             float top = position.Y / atlasDimension.Height;
             float right = (position.X + glyph.Image.Width) / atlasDimension.Width;
             float bottom = (position.Y + glyph.Image.Height) / atlasDimension.Height;
-            GlyphUV uv = new GlyphUV(top, left, bottom, right);
+            GlyphUV uv = new GlyphUV(left, top, right, bottom);
             
             return new GLGlyph(glyph.Character, uv, glyph.Image.Dimension);
         }
