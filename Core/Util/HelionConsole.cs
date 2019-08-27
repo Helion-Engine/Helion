@@ -83,38 +83,10 @@ namespace Helion.Util
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         }
         
-        private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
-        
-        private static bool IsBackspaceCharacter(char c) => c == 8;
-        
-        private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
-
-        private void OnMaxMessagesChanged(object sender, ConfigValueEvent<int> maxMsgEvent)
-        {
-            Capacity = Math.Max(1, maxMsgEvent.NewValue);
-            RemoveExcessMessagesIfAny();
-        }
-        
-        private void AddToLogger()
-        {
-            var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
-            LogManager.Configuration.AddTarget(TargetName, this);
-            LogManager.Configuration.LoggingRules.Add(rule);
-            LogManager.ReconfigExistingLoggers();
-        }
-
-        private void RemoveLogger()
-        {
-            LogManager.Configuration.RemoveTarget(TargetName);
-        }
-
-        private void RemoveExcessMessagesIfAny()
-        {
-            while (Messages.Count > Capacity)
-                Messages.RemoveLast();
-        }
-
-        private void RemoveInputCharacter()
+               /// <summary>
+        /// Removes an input character, if any.
+        /// </summary>
+        public void RemoveInputCharacter()
         {
             if (input.Length > 0)
                 input.Remove(input.Length - 1, 1);
@@ -190,6 +162,20 @@ namespace Helion.Util
             Array.ForEach(text.ToCharArray(), AddInput);
         }
 
+        public new void Dispose()
+        {
+            config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+            
+            // TODO: Investigate whether this is correct or not, the logger
+            // documentation isn't clear and stack overflow has some unusual
+            // results for how to properly remove the logger.
+            // The logger stops logging to this target after we dispose of
+            // this object, but I'd like to make sure that it's foolproof.
+            RemoveLogger();
+            base.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
         protected override void Write(LogEventInfo logEvent)
         {
             // We can't switch on this because the values are not a constant.
@@ -212,18 +198,35 @@ namespace Helion.Util
             }
         }
 
-        public new void Dispose()
+        private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
+        
+        private static bool IsBackspaceCharacter(char c) => c == 8;
+        
+        private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
+
+        private void OnMaxMessagesChanged(object sender, ConfigValueEvent<int> maxMsgEvent)
         {
-            config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
-            
-            // TODO: Investigate whether this is correct or not, the logger
-            // documentation isn't clear and stack overflow has some unusual
-            // results for how to properly remove the logger.
-            // The logger stops logging to this target after we dispose of
-            // this object, but I'd like to make sure that it's foolproof.
-            RemoveLogger();
-            base.Dispose();
-            GC.SuppressFinalize(this);
+            Capacity = Math.Max(1, maxMsgEvent.NewValue);
+            RemoveExcessMessagesIfAny();
+        }
+        
+        private void AddToLogger()
+        {
+            var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
+            LogManager.Configuration.AddTarget(TargetName, this);
+            LogManager.Configuration.LoggingRules.Add(rule);
+            LogManager.ReconfigExistingLoggers();
+        }
+
+        private void RemoveLogger()
+        {
+            LogManager.Configuration.RemoveTarget(TargetName);
+        }
+
+        private void RemoveExcessMessagesIfAny()
+        {
+            while (Messages.Count > Capacity)
+                Messages.RemoveLast();
         }
     }
 

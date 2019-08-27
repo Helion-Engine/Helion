@@ -35,7 +35,12 @@ namespace Helion.Layer
                 if (AnyExistByName(ConsoleWorldLayer.LayerName))
                     RemoveAllByName(ConsoleWorldLayer.LayerName);
                 else
+                {
+                    // Don't want input that opened the console to be something
+                    // added to the console, so first we clear all characters.
+                    consumableInput.ConsumeTypedCharacters();
                     Add(new ConsoleWorldLayer(m_console));
+                }
             }
             
             base.HandleInput(consumableInput);

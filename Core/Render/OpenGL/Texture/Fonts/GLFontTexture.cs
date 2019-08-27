@@ -3,10 +3,16 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Fonts
 {
-    public abstract class GLFontTexture<GLTextureType> : IDisposable where GLTextureType : GLTexture
+    public class GLFontTexture<GLTextureType> : IDisposable where GLTextureType : GLTexture
     {
-        public abstract GLTextureType Texture { get; }
-        public abstract GLFontMetrics Metrics { get; }
+        public readonly GLTextureType Texture;
+        public readonly GLFontMetrics Metrics;
+
+        public GLFontTexture(GLTextureType texture, GLFontMetrics metrics)
+        {
+            Texture = texture;
+            Metrics = metrics;
+        }
 
         ~GLFontTexture()
         {

@@ -73,12 +73,17 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             return texture;
         }
 
-        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, int id, CIString name, 
-            ResourceNamespace resourceNamespace)
+        /// <summary>
+        /// Creates a new font. The caller is responsible for disposing it.
+        /// </summary>
+        /// <param name="font">The font to make this from.</param>
+        /// <param name="name">The name of the font.</param>
+        /// <returns>A newly allocated font texture.</returns>
+        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, CIString name)
         {
             (Image image, GLFontMetrics metrics) = GLFontGenerator.CreateFontAtlasFrom(font); 
-            GLLegacyTexture texture = GenerateTexture(id, image, name, resourceNamespace);
-            GLLegacyFontTexture fontTexture = new GLLegacyFontTexture(texture, metrics);
+            GLLegacyTexture texture = GenerateTexture(0, image, $"[FONT] {name}", ResourceNamespace.Fonts);
+            GLFontTexture<GLLegacyTexture> fontTexture = new GLFontTexture<GLLegacyTexture>(texture, metrics);
             return fontTexture;
         }
 

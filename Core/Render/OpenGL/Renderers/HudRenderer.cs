@@ -9,8 +9,9 @@ namespace Helion.Render.OpenGL.Renderers
     {
         public abstract void Clear();
         public abstract void Dispose();
-        public abstract void AddImage(CIString textureName, Vec2I topLeft, Color color, float alpha);
-        public abstract void AddImage(CIString textureName, Rectangle drawArea, Color color, float alpha);
+        public abstract void DrawImage(CIString textureName, Vec2I topLeft, Color mixColor, Color multiplyColor, float alpha);
+        public abstract void DrawImage(CIString textureName, Rectangle drawArea, Color mixColor, Color multiplyColor, float alpha);
+        public abstract void DrawText(string text, CIString fontName, Vec2I topLeft, Color mixColor, Color multiplyColor, float alpha);
         public abstract void Render(Rectangle viewport);
     }
 }

@@ -6,7 +6,6 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
-using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Fonts
@@ -17,6 +16,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
     /// </summary>
     public static class GLFontGenerator
     {
+        // TODO: We should grab the max texture width instead.
         private const int MaxGlyphWidth = 2048;
         private static readonly System.Drawing.Color BackgroundColor = System.Drawing.Color.Transparent;
         
@@ -26,12 +26,12 @@ namespace Helion.Render.OpenGL.Texture.Fonts
         /// <param name="font">The font to create the atlas from.</param>
         /// <returns>The image and metrics that can be used by some OpenGL font
         /// implementation.</returns>
-        public static (Image, GLFontMetrics) CreateFontAtlasFrom(Font font)
+        public static (Image atlas, GLFontMetrics metrics) CreateFontAtlasFrom(Font font)
         {
             // TODO: This entire function has a potentially horrible memory footprint...
             // We add one for the default glyph. This will be a repeat, but it
             // is okay since it's just one character.
-            int glyphCount = font.Count() + 1;
+            const int glyphCount = byte.MaxValue;
             int maxWidth = Math.Max(font.Select(glyph => glyph.Image.Width).Max(), font.DefaultGlyph.Image.Width);
 
             // We want enough padding between it for mipmaps. Probably a bit
@@ -61,9 +61,12 @@ namespace Helion.Render.OpenGL.Texture.Fonts
 
             Vec2I drawPosition = Vec2I.Zero;
             int glyphsDrawnPerRow = 0;
-            
-            font.ForEach(glyph =>
+
+            for (int asciiIndex = 0; asciiIndex < byte.MaxValue; asciiIndex++)
             {
+                char c = (char)asciiIndex;
+                Glyph glyph = font[c];
+
                 glyph.Image.DrawOnTopOf(atlasImage, drawPosition);
                 GLGlyph glyphData = CreateGlyphFrom(glyph, drawPosition.ToFloat(), atlasImage.Dimension);
                 glyphs.Add(glyphData);
@@ -77,7 +80,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
                     drawPosition.Y += glyphArea.Height;
                     glyphsDrawnPerRow = 0;
                 }
-            });
+            }
 
             return glyphs;
         }
@@ -85,7 +88,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
         private static GLFontMetrics CreateFontMetrics(Font font, List<GLGlyph> glyphs)
         {
             GLGlyph defaultGlyph = FindDefaultGlyph(glyphs, font.DefaultGlyph.Character);
-            return new GLFontMetrics(defaultGlyph, glyphs);
+            return new GLFontMetrics(defaultGlyph, glyphs, font.Metrics.MaxHeight);
         }
 
         private static GLGlyph FindDefaultGlyph(IList<GLGlyph> glyphs, char defaultChar)
@@ -105,7 +108,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts
             float top = position.Y / atlasDimension.Height;
             float right = (position.X + glyph.Image.Width) / atlasDimension.Width;
             float bottom = (position.Y + glyph.Image.Height) / atlasDimension.Height;
-            GlyphUV uv = new GlyphUV(top, left, bottom, right);
+            GlyphUV uv = new GlyphUV(left, top, right, bottom);
             
             return new GLGlyph(glyph.Character, uv, glyph.Image.Dimension);
         }

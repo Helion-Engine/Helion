@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using Helion.Graphics.Fonts;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Archives.Iterator;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Data;
 using Helion.Resources.Definitions;
+using Helion.Resources.Definitions.Fonts.Definition;
+using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Extensions;
 using NLog;
@@ -95,6 +98,16 @@ namespace Helion.Resources.Archives.Collection
             }
             
             return (null, null);
+        }
+        
+        public Font? CompileFont(CIString name)
+        {
+            FontDefinition? definition = Definitions.Fonts.Get(name);
+            if (definition == null)
+                return null;
+
+            IImageRetriever imageRetriever = new ArchiveImageRetriever(this);
+            return FontCompiler.From(definition, imageRetriever);
         }
 
         private void ProcessAndIndexEntries(IEnumerable<Archive> archives)

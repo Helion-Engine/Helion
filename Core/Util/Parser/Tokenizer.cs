@@ -64,7 +64,21 @@ namespace Helion.Util.Parser
             m_lineCharOffset = -1;
             m_lineNumber++;
         }
-        
+
+        private void ReadEscapeCharacterOrThrow(StringBuilder innerStringBuilder)
+        {
+            if (m_textIndex + 1 >= m_text.Length)
+                throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Expected character after escaping in a string");
+
+            char nextChar = m_text[m_textIndex + 1];
+            if (!IsEscapableStringChar(nextChar))
+                throw new ParserException(m_lineNumber, m_lineCharOffset + 1, m_textIndex + 1, "Expecting an escaped quote to follow a backslash in a string");
+
+            innerStringBuilder.Append(nextChar);
+            m_textIndex++;
+            m_lineCharOffset++;
+        }
+
         private void CompleteIdentifierIfAvailable()
         {
             if (!BuildingIdentifier)
@@ -79,7 +93,14 @@ namespace Helion.Util.Parser
             
             m_identifierBuilder.Clear();
         }
-        
+
+        private void AddCompletedQuotedString(StringBuilder builder, int lineCharOffset, int textIndex)
+        {
+            string innerString = builder.ToString();
+            Token token = new Token(m_lineNumber, lineCharOffset, textIndex, innerString, TokenType.QuotedString);
+            m_tokens.Add(token);
+        }
+
         private void ConsumeQuotedString()
         {
             int startingLineCharOffset = m_lineCharOffset;
@@ -89,37 +110,25 @@ namespace Helion.Util.Parser
             m_textIndex++;
             m_lineCharOffset++;
             
-            StringBuilder innerStringBuilder = new StringBuilder();
-            
+            StringBuilder innerBuilder = new StringBuilder();
             for (; m_textIndex < m_text.Length; m_textIndex++, m_lineCharOffset++)
             {
                 char c = m_text[m_textIndex];
                 
                 if (c == '"')
                 {
-                    string innerString = innerStringBuilder.ToString();
-                    Token token = new Token(m_lineNumber, startingLineCharOffset, startingTextIndex, innerString, TokenType.QuotedString);
-                    m_tokens.Add(token);
+                    AddCompletedQuotedString(innerBuilder, startingLineCharOffset, startingTextIndex);
                     return;
                 }
                 
                 if (c == '\\')
                 {
-                    if (m_textIndex + 1 >= m_text.Length)
-                        throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Expected character after escaping in a string");
-
-                    char nextChar = m_text[m_textIndex + 1];
-                    if (!IsEscapableStringChar(nextChar))
-                        throw new ParserException(m_lineNumber, m_lineCharOffset + 1, m_textIndex + 1, "Expecting an escaped quote to follow a backslash in a string");
-
-                    innerStringBuilder.Append(nextChar);
-                    m_textIndex++;
-                    m_lineCharOffset++;
+                    ReadEscapeCharacterOrThrow(innerBuilder);
                     continue;
                 }
                 
                 if (IsPrintableCharacter(c))
-                    innerStringBuilder.Append(c);
+                    innerBuilder.Append(c);
                 else if (c == '\n')
                 {
                     const string endingErrorMessage = "Ended line before finding terminating string quotation mark";
@@ -132,7 +141,7 @@ namespace Helion.Util.Parser
             const string errorMessage = "String missing ending quote, found end of text instead";
             throw new ParserException(m_lineNumber, startingLineCharOffset, startingTextIndex, errorMessage);
         }
-        
+
         private void ConsumeNumber()
         {
             bool isFloat = false;
@@ -145,21 +154,16 @@ namespace Helion.Util.Parser
                 char c = m_text[m_textIndex];
 
                 if (IsNumber(c))
-                {
                     numberBuilder.Append(c);
-                }
                 else if (c == '.')
                 {
                     if (isFloat)
                         throw new ParserException(m_lineNumber, m_lineCharOffset, m_textIndex, "Decimal number cannot have two decimals");
-                    
                     isFloat = true;
                     numberBuilder.Append(c);
                 }
                 else
-                {
                     break;
-                }
 
                 m_textIndex++;
                 m_lineCharOffset++;
