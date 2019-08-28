@@ -37,8 +37,8 @@ namespace Helion.Util.Configuration
                 if (MathHelper.AreEqual(Math.Round(value), value))
                     return $"{value}.0";
             }
-            
-            return configValue.ToString().ToLower();
+
+            return configValue.ToString()?.ToLower() ?? "?";
         }
 
         private static void PopulateIniKeysRecursively(object configNode, KeyDataCollection keyData, string keySoFar = "")

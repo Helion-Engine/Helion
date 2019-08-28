@@ -61,6 +61,17 @@ namespace Helion.Util.Time
         }
 
         /// <summary>
+        /// Restarts the ticker by resetting its ticks to zero and starting it.
+        /// </summary>
+        public void Restart()
+        {
+            m_stopwatch.Restart();
+            GameTic = 0;
+            m_lastTickSeen = 0;
+            m_tickAccumulation = 0;
+        }
+
+        /// <summary>
         /// Gets the ticking info since the last invocation of this function.
         /// </summary>
         /// <remarks>

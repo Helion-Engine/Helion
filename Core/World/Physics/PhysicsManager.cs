@@ -34,12 +34,12 @@ namespace Helion.World.Physics
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
         /// </summary>
-        public event EventHandler<EntityActivateSpecialEventArgs> EntityActivatedSpecial;
+        public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
 
         /// <summary>
         /// Fires when the player executes the use command but hits a non-special blocking line.
         /// </summary>
-        public event EventHandler<Entity> PlayerUseFail;
+        public event EventHandler<Entity>? PlayerUseFail;
 
         /// <summary>
         /// Creates a new physics manager which utilizes the arguments for any

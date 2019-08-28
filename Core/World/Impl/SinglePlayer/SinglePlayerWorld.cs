@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using Helion.Cheats;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
@@ -8,10 +7,12 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
+using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Physics;
 using NLog;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -21,6 +22,7 @@ namespace Helion.World.Impl.SinglePlayer
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly Player Player;
+        private readonly CheatManager m_cheatManager = new CheatManager();
         
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree) : 
             base(config, archiveCollection, map, bspTree)
@@ -30,11 +32,16 @@ namespace Helion.World.Impl.SinglePlayer
                 throw new NullReferenceException("TODO: Should not allow this, maybe spawn player forcefully?");
 
             Player = player;
-            CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
-            CheatManager.Instance.ActivateToggleCheats();
 
+            m_cheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
             PhysicsManager.EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
             PhysicsManager.PlayerUseFail += PhysicsManager_PlayerUseFail;
+        }
+
+        ~SinglePlayerWorld()
+        {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            PerformDispose();
         }
 
         public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map, 
@@ -46,18 +53,8 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleFrameInput(ConsumableInput frameInput)
         {
-            if (Player.Entity.IsFrozen)
-                return;
-
-            Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
-            Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
-            moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
-            moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
-
-            Player.AddToYaw(moveDelta.X);
-
-            if (Config.Engine.Mouse.MouseLook)
-                Player.AddToPitch(moveDelta.Y);
+            m_cheatManager.HandleInput(frameInput);
+            HandleMouseLook(frameInput);
         }
 
         public void HandleTickCommand(TickCommand tickCommand)
@@ -104,6 +101,15 @@ namespace Helion.World.Impl.SinglePlayer
             if (tickCommand.Has(TickCommands.Use))
                 PhysicsManager.EntityUse(Player.Entity);             
         }
+        
+        protected override void PerformDispose()
+        {
+            m_cheatManager.CheatActivationChanged -= Instance_CheatActivationChanged;
+            PhysicsManager.EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
+            PhysicsManager.PlayerUseFail -= PhysicsManager_PlayerUseFail;
+            
+            base.PerformDispose();
+        }
 
         private static Vec3D CalculateForwardMovement(Entity entity)
         {
@@ -141,12 +147,39 @@ namespace Helion.World.Impl.SinglePlayer
             Log.Debug("Player - 'oof'");
         }
 
-        private void Instance_CheatActivationChanged(object? sender, ICheat e)
+        private void Instance_CheatActivationChanged(object? sender, ICheat cheatEvent)
         {
-            if (e.CheatType == CheatType.NoClip)
-                Player.Entity.NoClip = e.Activated;
-            else if (e.CheatType == CheatType.Fly)
-                Player.Entity.IsFlying = e.Activated;
+            if (cheatEvent is ChangeLevelCheat changeLevel)
+            {
+                ChangeToLevel(changeLevel.LevelNumber);
+                return;
+            }
+            
+            switch (cheatEvent.CheatType)
+            {
+            case CheatType.NoClip:
+                Player.Entity.NoClip = cheatEvent.Activated;
+                break;
+            case CheatType.Fly:
+                Player.Entity.IsFlying = cheatEvent.Activated;
+                break;
+            }
+        }
+        
+        private void HandleMouseLook(ConsumableInput frameInput)
+        {
+            if (Player.Entity.IsFrozen)
+                return;
+
+            Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
+            Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
+            moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
+            moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
+
+            Player.AddToYaw(moveDelta.X);
+
+            if (Config.Engine.Mouse.MouseLook)
+                Player.AddToPitch(moveDelta.Y);
         }
     }
 }

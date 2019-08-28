@@ -9,12 +9,13 @@ using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Physics;
 using MoreLinq;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World
 {
-    public abstract class WorldBase
+    public abstract class WorldBase : IDisposable
     {
-        public event EventHandler LevelExit;
+        public event EventHandler<LevelChangeEvent>? LevelExit;
 
         public readonly long CreationTimeNanos;
         public readonly IMap Map;
@@ -42,6 +43,12 @@ namespace Helion.World
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
 
+        ~WorldBase()
+        {
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            PerformDispose();
+        }
+
         public void Tick(long gametic)
         {
             EntityManager.Players.Values.ForEach(player => player.Tick());
@@ -56,8 +63,24 @@ namespace Helion.World
 
             Gametick++;
         }
+        
+        public void Dispose()
+        {
+            PerformDispose();
+            GC.SuppressFinalize(this);
+        }
 
-        private void SpecialManager_LevelExit(object? sender, EventArgs e)
+        protected void ChangeToLevel(int number)
+        {
+            LevelExit?.Invoke(this, new LevelChangeEvent(number));
+        }
+
+        protected virtual void PerformDispose()
+        {
+            SpecialManager.LevelExit -= SpecialManager_LevelExit;
+        }
+
+        private void SpecialManager_LevelExit(object? sender, LevelChangeEvent e)
         {
             LevelExit?.Invoke(this, e);
         }

@@ -42,7 +42,7 @@ namespace Helion.Resources.Archives.Collection
         /// null if it does not exist.</returns>
         public Entry? Find(CIString name)
         {
-            return m_nameToEntries.TryGetValue(name, out Entry entry) ? entry : null;
+            return m_nameToEntries.TryGetValue(name, out Entry? entry) ? entry : null;
         }
         
         /// <summary>

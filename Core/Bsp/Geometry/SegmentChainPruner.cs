@@ -88,7 +88,7 @@ namespace Helion.Bsp.Geometry
 
             void AddToAdjacencyList(int beginIndex, int endIndex)
             {
-                if (m_vertexAdjacencyList.TryGetValue(beginIndex, out List<int> indices))
+                if (m_vertexAdjacencyList.TryGetValue(beginIndex, out List<int>? indices))
                     indices.Add(endIndex);
                 else
                     m_vertexAdjacencyList[beginIndex] = new List<int> { endIndex };
@@ -138,7 +138,7 @@ namespace Helion.Bsp.Geometry
             {
                 PruneSegment(currentIndex, nextIndex);
 
-                if (!m_vertexAdjacencyList.TryGetValue(nextIndex, out List<int> nextIndexList)) 
+                if (!m_vertexAdjacencyList.TryGetValue(nextIndex, out List<int>? nextIndexList)) 
                     return (nextIndex, true);
 
                 if (nextIndexList.Count >= 2) 

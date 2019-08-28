@@ -71,14 +71,18 @@ namespace Helion.World.Entities
         // TODO: Change this method name, it clashes with another...
         public Player? CreatePlayer(int playerStartLocation)
         {
-            if (Players.TryGetValue(playerStartLocation, out Player existingPlayer))
+            if (Players.TryGetValue(playerStartLocation, out Player? existingPlayer))
             {
                 Fail("Trying to create player twice (temporary code!)");
                 return existingPlayer;
             }
                 
-            Invariant(m_archiveCollection.Definitions.Decorate.Contains(Constants.PlayerClass), "Missing player class, cannot spawn player");
-            ActorDefinition playerDefinition = m_archiveCollection.Definitions.Decorate[Constants.PlayerClass];
+            ActorDefinition? playerDefinition = m_archiveCollection.Definitions.Decorate[Constants.PlayerClass];
+            if (playerDefinition == null)
+            {
+                Log.Error("Missing player definition class, cannot create player");
+                return null;
+            }
 
             // TODO: Use playerStartLocation w/ cached player spawn locations.
             // TODO: This is only for player 1, which is obviously not what we want.

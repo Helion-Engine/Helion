@@ -43,7 +43,7 @@ namespace Helion.Resources.Data
         /// <param name="entry">The entry to possibly read and process.</param>
         public void Read(Entry entry)
         {
-            if (m_entryNameToAction.TryGetValue(entry.Path.Name, out Action<Entry> action))
+            if (m_entryNameToAction.TryGetValue(entry.Path.Name, out Action<Entry>? action))
                 action.Invoke(entry);
         }
 

@@ -434,7 +434,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private RenderGeometryData FindOrCreateRenderGeometryData(GLLegacyTexture texture)
         {
-            if (m_textureToGeometry.TryGetValue(texture, out RenderGeometryData data))
+            if (m_textureToGeometry.TryGetValue(texture, out RenderGeometryData? data))
                 return data;
             
             RenderGeometryData newData = new RenderGeometryData(m_capabilities, gl, texture);

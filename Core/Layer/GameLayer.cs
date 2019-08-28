@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
@@ -49,7 +50,7 @@ namespace Helion.Layer
         /// </summary>
         /// <param name="type">The type to get.</param>
         /// <returns>The layer with the type.</returns>
-        public GameLayer? GetGameLayer(Type type)
+        public GameLayer? Get(Type type)
         {
             return m_layers.FirstOrDefault(x => x.GetType() == type);
         }
@@ -59,13 +60,20 @@ namespace Helion.Layer
         /// </summary>
         /// <param name="name">The layer name.</param>
         /// <returns>True if so, false otherwise.</returns>
-        public bool AnyExistByName(CIString name) => m_layers.Any(layer => layer.Name == name);
+        public bool Contains(CIString name) => m_layers.Any(layer => layer.Name == name);
+        
+        /// <summary>
+        /// Checks if any layers exist with the type provided.
+        /// </summary>
+        /// <param name="type">The layer type.</param>
+        /// <returns>True if so, false otherwise.</returns>
+        public bool Contains(Type type) => m_layers.Any(layer => layer.GetType() == type);
         
         /// <summary>
         /// Removes all layers with a matching name.
         /// </summary>
         /// <param name="name">The layer name.</param>
-        public void RemoveAllByName(CIString name)
+        public void RemoveByName(CIString name)
         {
             List<GameLayer> layersToRemove = m_layers.Where(layer => layer.Name == name).ToList();
             RemoveLayers(layersToRemove);
@@ -75,7 +83,7 @@ namespace Helion.Layer
         /// Removes all types that match the type provided.
         /// </summary>
         /// <param name="type">The type to remove.</param>
-        public void RemoveAllTypes(Type type)
+        public void RemoveByType(Type type)
         {
             List<GameLayer> layersToRemove = m_layers.Where(layer => layer.GetType() == type).ToList();
             RemoveLayers(layersToRemove);
@@ -88,10 +96,30 @@ namespace Helion.Layer
         /// <param name="layer">The layer to add.</param>
         public void Add(GameLayer layer)
         {
-            RemoveAllTypes(layer.GetType());
+            RemoveByType(layer.GetType());
             
             m_layers.Add(layer);
             m_layers.Sort();
+        }
+        
+        /// <summary>
+        /// Tries to get the layer type provided.
+        /// </summary>
+        /// <param name="layer">The layer to be populated with if it is found.
+        /// </param>
+        /// <typeparam name="T">The type of layer.</typeparam>
+        /// <returns>True on success, false otherwise.</returns>
+        public bool TryGetLayer<T>([MaybeNullWhen(false)] out T? layer) where T : GameLayer
+        {
+            GameLayer? gameLayer = Get(typeof(T));
+            if (gameLayer != null)
+            {
+                layer = (T)gameLayer;
+                return true;
+            }
+
+            layer = default;
+            return false;
         }
 
         /// <summary>

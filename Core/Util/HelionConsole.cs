@@ -61,7 +61,7 @@ namespace Helion.Util
         /// <summary>
         /// The event handler that emits console commands on user input.
         /// </summary>
-        public event EventHandler<ConsoleCommandEventArgs> OnConsoleCommandEvent;
+        public event EventHandler<ConsoleCommandEventArgs>? OnConsoleCommandEvent;
 
         private readonly Config config;
         private readonly StringBuilder input = new StringBuilder();

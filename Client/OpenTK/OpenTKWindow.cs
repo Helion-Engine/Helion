@@ -51,12 +51,6 @@ namespace Helion.Client.OpenTK
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             Dispose(false);
         }
-
-        public void ClearMapResources()
-        {
-            throw new NotImplementedException("Clear map resources: TODO (Soon [TM])");
-            //m_renderer.ClearResources();
-        }
         
         public InputEvent PollInput() => m_inputAdapter.PollInput();
 

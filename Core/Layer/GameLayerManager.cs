@@ -32,14 +32,14 @@ namespace Helion.Layer
         {
             if (consumableInput.ConsumeKeyPressed(m_config.Engine.Controls.Console))
             {
-                if (AnyExistByName(ConsoleWorldLayer.LayerName))
-                    RemoveAllByName(ConsoleWorldLayer.LayerName);
+                if (Contains(ConsoleLayer.LayerName))
+                    RemoveByName(ConsoleLayer.LayerName);
                 else
                 {
                     // Don't want input that opened the console to be something
                     // added to the console, so first we clear all characters.
                     consumableInput.ConsumeTypedCharacters();
-                    Add(new ConsoleWorldLayer(m_console));
+                    Add(new ConsoleLayer(m_console));
                 }
             }
             

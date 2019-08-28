@@ -14,8 +14,8 @@ namespace Helion.Resources.Definitions.Decorate
             AddTemporaryPlayerDefinition();
         }
 
-        public ActorDefinition? this[CIString name] => m_definitions.TryGetValue(name, out ActorDefinition def) ? def : null;
-        public ActorDefinition? this[int editorNum] => m_definitionsByEditorNumber.TryGetValue(editorNum, out ActorDefinition def) ? def : null;
+        public ActorDefinition? this[CIString name] => m_definitions.TryGetValue(name, out ActorDefinition? def) ? def : null;
+        public ActorDefinition? this[int editorNum] => m_definitionsByEditorNumber.TryGetValue(editorNum, out ActorDefinition? def) ? def : null;
 
         public bool Contains(CIString name) => m_definitions.ContainsKey(name);
         

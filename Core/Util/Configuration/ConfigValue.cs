@@ -13,7 +13,7 @@ namespace Helion.Util.Configuration
     [ConfigValueComponent]
     public class ConfigValue<T> where T : IConvertible
     {
-        public event EventHandler<ConfigValueEvent<T>> OnChanged;
+        public event EventHandler<ConfigValueEvent<T>>? OnChanged;
         private T value;
 
         public ConfigValue(T defaultValue)

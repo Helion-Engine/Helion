@@ -26,7 +26,7 @@ namespace Helion.Input
     {
         private readonly HashSet<InputKey> m_keysDown = new HashSet<InputKey>();
         private readonly HashSet<InputKey> m_keysPressed = new HashSet<InputKey>();
-        private readonly IList<char> m_typedCharacters = new List<char>();
+        private readonly List<char> m_typedCharacters = new List<char>();
         private Vec2I m_mouseDelta;
         private int m_mouseScroll;
 
@@ -66,18 +66,6 @@ namespace Helion.Input
         /// Consumes the key, returns the result of whether it's down or
         /// pressed depending whether it's been consumed or not.
         /// </summary>
-        /// <param name="textKey">The name of the key to check.</param>
-        /// <returns>True if it was pressed or down, false if it was not or if
-        /// it was consumed before this invocation.</returns>
-        public bool ConsumeKeyPressedOrDown(string textKey)
-        {
-            return ConsumeKeyPressedOrDown(InputKeyHelper.ToKey(textKey));
-        }
-
-        /// <summary>
-        /// Consumes the key, returns the result of whether it's down or
-        /// pressed depending whether it's been consumed or not.
-        /// </summary>
         /// <param name="inputKey">The key to check.</param>
         /// <returns>True if it was pressed or down, false if it was not or if
         /// it was consumed before this invocation.</returns>
@@ -90,17 +78,18 @@ namespace Helion.Input
         }
 
         /// <summary>
-        /// Consumes the key, returns the result of whether it's pressed 
-        /// depending whether it's been consumed or not.
+        /// Peeks whether the key is pressed or down, returns the result of
+        /// whether it's down or pressed depending whether it's been consumed
+        /// or not.
         /// </summary>
-        /// <param name="textKey">The name of the key to check.</param>
-        /// <returns>True if it was pressed, false if it was not or if it was
-        /// consumed before this invocation.</returns>
-        public bool ConsumeKeyPressed(string textKey)
+        /// <param name="inputKey">The key to check.</param>
+        /// <returns>True if it was pressed or down, false if it was not or if
+        /// it was consumed before this invocation.</returns>
+        public bool PeekKeyPressedOrDown(InputKey inputKey)
         {
-            return ConsumeKeyPressed(InputKeyHelper.ToKey(textKey));
-        }
-
+            return m_keysPressed.Contains(inputKey) || m_keysDown.Contains(inputKey); 
+        } 
+        
         /// <summary>
         /// Consumes the key, returns the result of whether it's pressed 
         /// depending whether it's been consumed or not.
@@ -114,6 +103,15 @@ namespace Helion.Input
             m_keysPressed.Remove(inputKey);
             return contains;
         }
+                
+        /// <summary>
+        /// Peeks if the key was pressed, returns the result of whether it's
+        /// pressed depending whether it's been consumed or not.
+        /// </summary>
+        /// <param name="inputKey">The key to check.</param>
+        /// <returns>True if it was pressed, false if it was not or if it was
+        /// consumed before this invocation.</returns>
+        public bool PeekKeyPressed(InputKey inputKey) => m_keysPressed.Contains(inputKey);
 
         /// <summary>
         /// Consumes the mouse movement.
@@ -126,6 +124,12 @@ namespace Helion.Input
             m_mouseDelta = new Vec2I(0, 0);
             return delta;
         }
+        
+        /// <summary>
+        /// Peeks at the value without consuming it.
+        /// </summary>
+        /// <returns>The mouse movement value.</returns>
+        public Vec2I PeekMouseDelta() => m_mouseDelta;
 
         /// <summary>
         /// Consumes the mouse scroll movement.
@@ -140,6 +144,12 @@ namespace Helion.Input
         }
 
         /// <summary>
+        /// Peeks at the value without consuming it.
+        /// </summary>
+        /// <returns>The mouse scroll value.</returns>
+        public int PeekMouseScroll() => m_mouseScroll;
+
+        /// <summary>
         /// Consumes the typed characters.
         /// </summary>
         /// <returns>The typed characters, or an empty list if it was already 
@@ -150,10 +160,11 @@ namespace Helion.Input
             m_typedCharacters.Clear();
             return typedChars;
         }
-
-        public IList<char> GetTypedCharacters()
-        {
-            return m_typedCharacters;
-        }
+        
+        /// <summary>
+        /// Peeks at the typed characters without consuming them.
+        /// </summary>
+        /// <returns>The list of characters.</returns>
+        public IReadOnlyList<char> PeekTypedCharacters() => m_typedCharacters;
     }
 }

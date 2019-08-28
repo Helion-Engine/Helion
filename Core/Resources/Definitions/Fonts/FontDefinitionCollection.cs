@@ -22,7 +22,7 @@ namespace Helion.Resources.Definitions.Fonts
         /// exist.</returns>
         public FontDefinition? Get(CIString name)
         {
-            return m_definitions.TryGetValue(name, out FontDefinition definition) ? definition : null;
+            return m_definitions.TryGetValue(name, out FontDefinition? definition) ? definition : null;
         }
 
         internal void AddFontDefinition(Entry entry)

@@ -32,7 +32,7 @@ namespace Helion.Util.Geometry
             int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
-                if (grid.TryGetValue(xQuantized, out Dictionary<int, T> yValues))
+                if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
                     foreach (int yQuantized in yComponents)
                         if (yValues.ContainsKey(yQuantized))
                             return true;
@@ -64,12 +64,12 @@ namespace Helion.Util.Geometry
             int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
-                if (grid.TryGetValue(xQuantized, out Dictionary<int, T> yValues))
+                if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
                     foreach (int yQuantized in yComponents)
                         if (yValues.TryGetValue(yQuantized, out T element))
                             return element;
 
-            if (grid.TryGetValue(xMiddle, out Dictionary<int, T> existingYValues))
+            if (grid.TryGetValue(xMiddle, out Dictionary<int, T>? existingYValues))
                 existingYValues[yMiddle] = newValue;
             else
                 grid[xMiddle] = new Dictionary<int, T>() { [yMiddle] = newValue };
@@ -96,7 +96,7 @@ namespace Helion.Util.Geometry
             int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
-                if (grid.TryGetValue(xQuantized, out Dictionary<int, T> yValues))
+                if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
                     foreach (int yQuantized in yComponents)
                         if (yValues.TryGetValue(yQuantized, out value))
                             return true;

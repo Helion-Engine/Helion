@@ -32,7 +32,7 @@ namespace Helion.Bsp.States.Miniseg
             if (!segment.OneSided)
                 return;
 
-            if (!m_vertexToJunction.TryGetValue(segment.EndIndex, out Junction endJunction))
+            if (!m_vertexToJunction.TryGetValue(segment.EndIndex, out Junction? endJunction))
             {
                 endJunction = new Junction();
                 m_vertexToJunction.Add(segment.EndIndex, endJunction);
@@ -41,7 +41,7 @@ namespace Helion.Bsp.States.Miniseg
             Precondition(!endJunction.InboundSegments.Contains(segment), "Adding same segment to inbound junction twice");
             endJunction.InboundSegments.Add(segment);
             
-            if (!m_vertexToJunction.TryGetValue(segment.StartIndex, out Junction startJunction))
+            if (!m_vertexToJunction.TryGetValue(segment.StartIndex, out Junction? startJunction))
             {
                 startJunction = new Junction();
                 m_vertexToJunction.Add(segment.StartIndex, startJunction);
@@ -116,7 +116,7 @@ namespace Helion.Bsp.States.Miniseg
         /// it is inside the map.</returns>
         public bool CheckCrossingVoid(int firstIndex, Vec2D secondVertex)
         {
-            if (m_vertexToJunction.TryGetValue(firstIndex, out Junction junction))
+            if (m_vertexToJunction.TryGetValue(firstIndex, out Junction? junction))
                 return !junction.BetweenWedge(secondVertex);
             return false;
         }

@@ -1,29 +1,28 @@
-﻿namespace Helion.Cheats
+﻿namespace Helion.World.Cheats
 {
     public class ChangeLevelCheat : ICheat
     {
-        private readonly string m_code = "idclev";
+        private const string Code = "idclev";
 
         public string CheatName => string.Empty;
-
         public string? ConsoleCommand => null;
-
         public CheatType CheatType => CheatType.ChangeLevel;
-
         public bool Activated { get; set; }
-
         public bool IsToggleCheat => false;
-
-        public string? LevelDigits { get; private set; }
+        public int LevelNumber { get; private set; } = 1;
 
         public bool IsMatch(string str)
         {
-            if (PartialMatch(str) && str.Length == m_code.Length + 2)
+            if (PartialMatch(str) && str.Length == Code.Length + 2)
             {
                 if (char.IsDigit(str[str.Length - 1]) && char.IsDigit(str[str.Length - 2]))
                 {
-                    LevelDigits = str.Substring(str.Length - 2, 2);
-                    return true;
+                    string digits = str.Substring(str.Length - 2, 2);
+                    if (int.TryParse(digits, out int levelNumber))
+                    {
+                        LevelNumber = levelNumber;
+                        return true;
+                    }
                 }
             }
 
@@ -32,12 +31,9 @@
 
         public bool PartialMatch(string str)
         {
-            if (m_code.StartsWith(str))
+            if (Code.StartsWith(str))
                 return true;
-            if (str.Length <= m_code.Length + 2 && str.StartsWith(m_code))
-                return true;
-
-            return false;
+            return str.Length <= Code.Length + 2 && str.StartsWith(Code);
         }
     }
 }

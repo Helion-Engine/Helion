@@ -64,14 +64,14 @@ namespace Helion.Test.Unit.Bsp.Geometry
             Assert.IsTrue(CheckContains(table, firstSeg));
             Assert.IsTrue(CheckContains(table, secondSeg));
 
-            bool foundExisting = table.TryGetValue(firstSeg.StartIndex, firstSeg.EndIndex, out BspSegment foundFirst);
+            bool foundExisting = table.TryGetValue(firstSeg.StartIndex, firstSeg.EndIndex, out BspSegment? foundFirst);
             Assert.IsTrue(foundExisting);
             Assert.AreSame(firstSeg, foundFirst);
             foundExisting = table.TryGetValue(firstSeg.EndIndex, firstSeg.StartIndex, out foundFirst);
             Assert.IsTrue(foundExisting);
             Assert.AreSame(firstSeg, foundFirst);
             
-            bool foundMissing = table.TryGetValue(notAddedSeg.StartIndex, notAddedSeg.EndIndex, out BspSegment _);
+            bool foundMissing = table.TryGetValue(notAddedSeg.StartIndex, notAddedSeg.EndIndex, out _);
             Assert.IsFalse(foundMissing);
         }
     }

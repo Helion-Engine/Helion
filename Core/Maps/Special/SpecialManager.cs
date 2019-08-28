@@ -5,23 +5,24 @@ using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Maps.Special.Specials;
 using Helion.Util;
+using Helion.World;
 using Helion.World.Physics;
 
 namespace Helion.Maps.Special
 {
     public class SpecialManager
     {
-        public event EventHandler LevelExit;
+        public event EventHandler<LevelChangeEvent>? LevelExit;
 
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         private const double SpeedFactor = 0.125;
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISpecial> m_destroyedMoveSpecials = new List<ISpecial>();
-        private readonly PhysicsManager m_physicsManager;
-        private readonly IMap m_map;
         private readonly SwitchManager m_switchManager = new SwitchManager();
         private readonly DoomRandom m_random = new DoomRandom();
+        private readonly PhysicsManager m_physicsManager;
+        private readonly IMap m_map;
 
         public SpecialManager(PhysicsManager physicsManager, IMap map)
         {
@@ -81,7 +82,7 @@ namespace Helion.Maps.Special
                     if (node.Value.Sector != null)
                         m_destroyedMoveSpecials.Add(node.Value);
                     if (node.Value is ExitSpecial)
-                        LevelExit?.Invoke(this, new EventArgs());
+                        LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Next));
                 }
 
                 node = next;
@@ -200,6 +201,7 @@ namespace Helion.Maps.Special
         {
             if (negative > 0)
                 destZ = -destZ;
+            
             MoveDirection dir = destZ > flat.Z ? MoveDirection.Up : MoveDirection.Down;
             return new SectorMoveSpecial(m_physicsManager, sector, flat.Z, destZ, new SectorMoveData(moveType,
                 dir, MoveRepetition.None, speed, 0));
@@ -284,12 +286,12 @@ namespace Helion.Maps.Special
         {
             switch (special.LineSpecialType)
             {
-                case ZLineSpecialType.Teleport:
-                    AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
-                    return true;
-                case ZLineSpecialType.ExitNormal:
-                    AddSpecial(new ExitSpecial(15));
-                    return true;
+            case ZLineSpecialType.Teleport:
+                AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
+                return true;
+            case ZLineSpecialType.ExitNormal:
+                AddSpecial(new ExitSpecial(15));
+                return true;
             }
 
             return false;

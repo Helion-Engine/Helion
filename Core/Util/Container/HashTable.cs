@@ -49,7 +49,7 @@ namespace Helion.Util.Container
         /// <param name="value">The value for the key mappings.</param>
         public void Insert(K1 firstKey, K2 secondKey, V value)
         {
-            if (m_table.TryGetValue(firstKey, out Dictionary<K2, V> map))
+            if (m_table.TryGetValue(firstKey, out Dictionary<K2, V>? map))
                 map[secondKey] = value;
             else
                 m_table[firstKey] = new Dictionary<K2, V>() { [secondKey] = value };
@@ -64,7 +64,7 @@ namespace Helion.Util.Container
         /// keys provided (no element existed).</returns>
         public bool Remove(K1 firstKey, K2 secondKey)
         {
-            return m_table.TryGetValue(firstKey, out Dictionary<K2, V> map) && map.Remove(secondKey);
+            return m_table.TryGetValue(firstKey, out Dictionary<K2, V>? map) && map.Remove(secondKey);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Helion.Util.Container
         public V? Get(K1 firstKey, K2 secondKey)
         {
             if (m_table.TryGetValue(firstKey, out var map))
-                if (map.TryGetValue(secondKey, out V value))
+                if (map.TryGetValue(secondKey, out V? value))
                     return value;
             return null;
         }

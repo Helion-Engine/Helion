@@ -20,7 +20,7 @@ namespace Helion.Bsp.Geometry
         /// <param name="firstIndex">The first vertex index.</param>
         /// <param name="secondIndex">The second vertex index.</param>
         /// <returns>The segment if one exists, or null if not.</returns>
-        public BspSegment? this[int firstIndex, int secondIndex] => TryGetValue(firstIndex, secondIndex, out BspSegment seg) ? seg : null;
+        public BspSegment? this[int firstIndex, int secondIndex] => TryGetValue(firstIndex, secondIndex, out BspSegment? seg) ? seg : null;
 
         /// <summary>
         /// Clears the table of all segments.
@@ -39,7 +39,7 @@ namespace Helion.Bsp.Geometry
         {
             (int minIndex, int maxIndex) = MathHelper.MinMax(segment.StartIndex, segment.EndIndex);
 
-            if (m_table.TryGetValue(minIndex, out VertexSegmentPairList vertexSegPairs))
+            if (m_table.TryGetValue(minIndex, out VertexSegmentPairList? vertexSegPairs))
             {
                 vertexSegPairs.Add(maxIndex, segment);
                 return;
@@ -61,7 +61,7 @@ namespace Helion.Bsp.Geometry
         {
             (int minIndex, int maxIndex) = MathHelper.MinMax(firstVertexIndex, secondVertexIndex);
 
-            if (m_table.TryGetValue(minIndex, out VertexSegmentPairList vertexSegPairs))
+            if (m_table.TryGetValue(minIndex, out VertexSegmentPairList? vertexSegPairs))
                 return vertexSegPairs.Contains(maxIndex);
             return false;
         }
@@ -80,9 +80,9 @@ namespace Helion.Bsp.Geometry
         {
             (int minIndex, int maxIndex) = MathHelper.MinMax(firstVertexIndex, secondVertexIndex);
 
-            if (m_table.TryGetValue(minIndex, out VertexSegmentPairList vertexSegPairs))
+            if (m_table.TryGetValue(minIndex, out VertexSegmentPairList? vertexSegPairs))
             {
-                if (vertexSegPairs.TryGetSegIndex(maxIndex, out BspSegment foundSeg))
+                if (vertexSegPairs.TryGetSegIndex(maxIndex, out BspSegment? foundSeg))
                 {
                     segment = foundSeg;
                     return true;

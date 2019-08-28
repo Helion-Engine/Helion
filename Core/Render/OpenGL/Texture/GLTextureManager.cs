@@ -133,7 +133,7 @@ namespace Helion.Render.OpenGL.Texture
         /// missing texture image).</returns>
         public GLFontTexture<GLTextureType> GetFont(CIString name)
         {
-            if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType> existingFontTexture))
+            if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? existingFontTexture))
                 return existingFontTexture;
 
             Font? font = ArchiveCollection.CompileFont(name);
@@ -241,7 +241,7 @@ namespace Helion.Render.OpenGL.Texture
 
         private void DeleteOldFontIfAny(CIString name)
         {
-            if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType> texture))
+            if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? texture))
             {
                 texture.Dispose();
                 m_fonts.Remove(name);

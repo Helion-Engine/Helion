@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Helion.Cheats;
 using Helion.Client.OpenTK;
 using Helion.Input;
 using Helion.Layer;
@@ -10,7 +9,6 @@ using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Util;
 using Helion.Util.Configuration;
-using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
@@ -20,7 +18,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client
 {
-    public class Client : IDisposable
+    public partial class Client : IDisposable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -31,8 +29,6 @@ namespace Helion.Client
         private readonly OpenTKWindow m_window;
         private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
         private readonly GameLayerManager m_layerManager;
-        private int m_currentLevel;
-        private bool m_mapFormat;
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
@@ -46,7 +42,6 @@ namespace Helion.Client
             m_layerManager = new GameLayerManager(config, m_console);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
-            CheatManager.Instance.CheatActivationChanged += CheatManager_CheatActivationChanged;
         }
 
         ~Client()
@@ -54,41 +49,15 @@ namespace Helion.Client
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         }
 
-        private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
+        public void Dispose()
         {
-            // TODO: This function will get ugly and bloated *very* quickly...
-            switch (ccmdArgs.Command)
-            {
-            case "EXIT":
-                m_window.Close();
-                break;
+            m_console.OnConsoleCommandEvent -= Console_OnCommand;
 
-            case "MAP":
-                if (ccmdArgs.Args.Empty())
-                    Log.Info("Usage: map <mapName>");
-                else
-                    ChangeLevel(ccmdArgs.Args[0]);
-                break;
-            
-            default:
-                Log.Info($"Unknown command: {ccmdArgs.Command}");
-                break;
-            }
-        }
+            m_layerManager.Dispose();
+            m_window.Dispose();
+            m_console.Dispose();
 
-        private void Layer_LevelExit(object? sender, EventArgs e)
-        {
-            m_currentLevel++;
-            ChangeLevel(GetMapFormat(m_currentLevel));
-        }
-
-        private void CheatManager_CheatActivationChanged(object? sender, ICheat e)
-        {
-            if (e.CheatType == CheatType.ChangeLevel)
-            {
-                m_currentLevel = Convert.ToInt32(((ChangeLevelCheat)e).LevelDigits);
-                ChangeLevel(GetMapFormat(m_currentLevel));
-            }
+            GC.SuppressFinalize(this);
         }
         
         private void LogClientInformation()
@@ -106,58 +75,29 @@ namespace Helion.Client
             }
         }
 
-        private void ChangeLevel(string map)
-        {
-            var spWorld = m_layerManager.GetGameLayer(typeof(SinglePlayerWorldLayer));
-            if (spWorld is SinglePlayerWorldLayer worldLayer)
-            {
-                if (worldLayer.LoadMap(map, m_archiveCollection))
-                    m_window.ClearMapResources();
-            }
-            else
-            {
-                SinglePlayerWorldLayer layer = new SinglePlayerWorldLayer(m_config, m_console);
-                if (layer.LoadMap(map, m_archiveCollection))
-                {
-                    m_layerManager.Add(layer);
-                    layer.LevelExit += Layer_LevelExit;
-                }
-                else
-                    layer.Dispose();
-            }
-        }
-
         private void HandleCommandLineArgs()
         {
             if (!m_archiveCollection.Load(m_commandLineArgs.Files))
                 Log.Error("Unable to load files at startup");
 
-            SetMapFormatAndStartMap();
-
             if (m_commandLineArgs.Warp != null)
             {
-                m_currentLevel = m_commandLineArgs.Warp.Value;
-                m_console.AddInput($"map {GetMapFormat(m_commandLineArgs.Warp.Value)}\n");
+                string mapName = GetWarpMapFormat(m_commandLineArgs.Warp.Value);
+                m_console.AddInput($"map {mapName}\n");
             }
             else
             {
-                ChangeLevel(GetMapFormat(m_currentLevel));
+                // If we're not warping to a map, bring up the console.
+                if (!m_layerManager.Contains(typeof(ConsoleLayer)))
+                    m_layerManager.Add(new ConsoleLayer(m_console));
             }
         }
 
-        private void SetMapFormatAndStartMap()
+        private string GetWarpMapFormat(int level)
         {
-            // If we find MAP01 then use MAPxx format, else use ExMx format
-            m_mapFormat = m_archiveCollection.FindMap("MAP01").Map != null;
-            m_currentLevel = m_mapFormat ? 1 : 11;
-        }
-
-        private string GetMapFormat(int level)
-        {
+            bool usesMap = m_archiveCollection.FindMap("MAP01").Map != null;
             string levelDigits = level.ToString().PadLeft(2, '0');
-            if (m_mapFormat)
-                return $"MAP{levelDigits}";
-            return $"E{levelDigits[0]}M{levelDigits[1]}";
+            return usesMap ? $"MAP{levelDigits}" : $"E{levelDigits[0]}M{levelDigits[1]}";
         }
 
         private void HandleInput()
@@ -212,17 +152,6 @@ namespace Helion.Client
             // we hopefully don't have to change away and do minimal changes
             // for multi-window support.
             m_window.Run();
-        }
-
-        public void Dispose()
-        {
-            m_console.OnConsoleCommandEvent -= Console_OnCommand;
-
-            m_layerManager.Dispose();
-            m_window.Dispose();
-            m_console.Dispose();
-
-            GC.SuppressFinalize(this);
         }
 
         public static void Main(string[] args)
