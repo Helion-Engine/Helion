@@ -10,6 +10,10 @@ namespace Helion.Graphics.Fonts
         /// A native font reading subsystem that leverages the standard library to
         /// read fonts.
         /// </summary>
+        /// <param name="data">The data to read.</param>
+        /// <param name="alphaCutoff">The cutoff to which anything under it is
+        /// made transparent.</param>
+        /// <returns>The font, or null on failure.</returns>
         public static Font? Read(byte[] data, float alphaCutoff)
         {
             // TODO: Is there a better way than this? I don't like using unsafe
@@ -33,7 +37,7 @@ namespace Helion.Graphics.Fonts
                 }
                 catch
                 {
-                    
+                    // TODO
                 }
             }
 

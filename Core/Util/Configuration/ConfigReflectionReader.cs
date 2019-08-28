@@ -1,30 +1,49 @@
-using Helion.Util.Extensions;
-using IniParser;
-using IniParser.Model;
-using MoreLinq;
-using NLog;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using IniParser;
+using IniParser.Model;
+using MoreLinq;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Configuration
 {
     public static class ConfigReflectionReader
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        public static void ReadIntoFieldsRecursively(object root, string path)
+        {
+            if (!File.Exists(path))
+            {
+                Log.Info("Config file not found, generating new config file");
+                return;
+            }
+            
+            try
+            {
+                FileIniDataParser parser = new FileIniDataParser();
+                IniData data = parser.ReadFile(path);
+                ReadSections(root, data);
+            }
+            catch
+            {
+                Log.Error("Unable to read config at path: {0}", path);
+            }
+        }
 
         internal static bool HasConfigSectionAttribute(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType.IsDefined(typeof(ConfigSection), true);
         }
-        
+
         internal static bool HasConfigComponentAttribute(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType.IsDefined(typeof(ConfigComponent), true);
         }
-        
+
         internal static bool HasConfigValueAttribute(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType.IsDefined(typeof(ConfigValueComponent), true);
@@ -64,8 +83,9 @@ namespace Helion.Util.Configuration
             enumType = null;
             return false;
         }
-        
-        private static void SetConfigFieldWithEnum(object configValueNode, string lowerKeyName, string value, Type? enumType)
+
+        private static void SetConfigFieldWithEnum(object configValueNode, string lowerKeyName, string value, 
+            Type? enumType)
         {
             if (enumType == null || !enumType.IsEnum)
             {
@@ -87,16 +107,16 @@ namespace Helion.Util.Configuration
                     if (methodInfo.Name != "Set") 
                         continue;
                     
-                    methodInfo.Invoke(configValueNode, new[] {enumValues.GetValue(i)});
+                    methodInfo.Invoke(configValueNode, new[] { enumValues.GetValue(i) });
                     return;
                 }
 
                 Fail("Unable to find .Set() method on ConfigValue<Enum>");
             }
             
-            log.Error($"Unable to find enumeration '{value}' type for field {lowerKeyName}, setting to default value '{configValueNode}'");
+            Log.Error($"Unable to find enumeration '{value}' type for field {lowerKeyName}, setting to default value '{configValueNode}'");
         }
-        
+
         private static void SetConfigFieldWithValue(object configValueNode, string lowerKeyName, string value)
         {
             bool fail = false;
@@ -132,19 +152,19 @@ namespace Helion.Util.Configuration
                 break;
 
             default:
-                log.Warn("Unknown config field type: '{0}'", lowerKeyName);
+                Log.Warn("Unknown config field type: '{0}'", lowerKeyName);
                 break;
             }
 
             if (fail)
-                log.Warn($"Unable to set {lowerKeyName} to value '{value}', setting to default value '{configValueNode}'");
+                Log.Warn($"Unable to set {lowerKeyName} to value '{value}', setting to default value '{configValueNode}'");
         }
 
         private static void ReadKeyValueIntoConfigNode(object element, string lowerKeyName, string value)
         {
             if (string.IsNullOrEmpty(lowerKeyName))
             {
-                log.Warn("Malformed config key/value pair detected (empty key)");
+                Log.Warn("Malformed config key/value pair detected (empty key)");
                 return;
             }
             
@@ -160,7 +180,7 @@ namespace Helion.Util.Configuration
             object? configValueNode = RecursivelyFindField(element, lowerKeyName.Split('.'));
             if (configValueNode == null)
             {
-                log.Warn("Unable to find config entry '{0}', value will be ignored", lowerKeyName);
+                Log.Warn("Unable to find config entry '{0}', value will be ignored", lowerKeyName);
                 return;
             }
 
@@ -182,26 +202,6 @@ namespace Helion.Util.Configuration
                     foreach (KeyData keyValue in data[pair.lowerFieldName])
                         ReadKeyValueIntoConfigNode(pair.fieldValue, keyValue.KeyName, keyValue.Value);
                 });
-        }
-        
-        public static void ReadIntoFieldsRecursively(object root, string path)
-        {
-            if (!File.Exists(path))
-            {
-                log.Info("Config file not found, generating new config file");
-                return;
-            }
-            
-            try
-            {
-                FileIniDataParser parser = new FileIniDataParser();
-                IniData data = parser.ReadFile(path);
-                ReadSections(root, data);
-            }
-            catch
-            {
-                log.Error("Unable to read config at path: {0}", path);
-            }
         }
     }
 }

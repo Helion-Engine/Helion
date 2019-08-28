@@ -11,28 +11,24 @@ namespace Helion.World.Entities.Players
         public const double ForwardMovementSpeed = 1.5625;
         public const double SideMovementSpeed = 1.25;
         public const double MaxMovement = 30.0;
+        private const double PlayerViewHeight = 42.0;
+        private const double HalfPlayerViewHeight = PlayerViewHeight / 2.0;
+        private const double PlayerViewDivider = 8.0;
+        private const int JumpDelayTicks = 7;
+        private const double JumpZ = 8.0;
         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
         public readonly int PlayerNumber;
         public Entity Entity;
         public double Pitch;
-
-        private const double PlayerViewHeight = 42.0;
-        private const double HalfPlayerViewHeight = PlayerViewHeight / 2.0;
-        private const double PlayerViewDivider = 8.0;
-        private const int JumpDelayTicks = 7;
-        private const double JumpZ = 8.0;
-
         private bool m_isJumping;
         private int m_jumpTics;
-
         private double m_prevAngle;
         private double m_prevPitch;
-
         private double m_viewHeight = PlayerViewHeight;
         private double m_prevViewHeight = PlayerViewHeight;
-        private double m_deltaViewHeight = 0.0;
+        private double m_deltaViewHeight;
 
         public Player(int playerNumber, Entity entity)
         {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Helion.Resources.Archives.Entries
+﻿namespace Helion.Resources.Archives.Entries
 {
     public interface IEntryPath
     {

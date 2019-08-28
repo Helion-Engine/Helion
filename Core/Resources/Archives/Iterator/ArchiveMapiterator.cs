@@ -21,7 +21,7 @@ namespace Helion.Resources.Archives.Iterator
             "GL_SEGS", "GL_SSECT", "GL_NODES", "GL_PVS",
         };
 
-        private static Dictionary<CIString, PropertyInfo> MapEntryLookup = new Dictionary<CIString, PropertyInfo>
+        private static readonly Dictionary<CIString, PropertyInfo> MapEntryLookup = new Dictionary<CIString, PropertyInfo>
         {
             { "BEHAVIOR", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Behavior)) },
             { "BLOCKMAP", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Blockmap)) },
@@ -49,45 +49,12 @@ namespace Helion.Resources.Archives.Iterator
 
         private Archive m_archive;
         private MapEntryCollection m_currentMap = new MapEntryCollection();
-        private bool m_makingMap = false;
         private CIString m_lastEntryName = "";
+        private bool m_makingMap;
 
         public ArchiveMapIterator(Archive archive)
         {
             m_archive = archive;
-        }
-
-        private bool IsGLBSPMapHeader(CIString entryName)
-        {
-            // Unfortunately GLBSP decided it'd allow things like GL_XXXXX
-            // where the X's are the map name if it's less/equal to 5 letters.
-            return m_currentMap.Name.Length <= 5 && (entryName == "GL_" + m_currentMap.Name);
-        }
-
-        private bool IsMapEntry(CIString entryName)
-        {
-            return IsGLBSPMapHeader(entryName) || MapEntryNames.Contains(entryName);
-        }
-
-        private void ResetMapTrackingData()
-        {
-            m_currentMap = new MapEntryCollection();
-            m_makingMap = false;
-            m_lastEntryName = "";
-        }
-
-        private void TrackMapEntry(CIString entryName, Entry entry)
-        {
-            if (IsGLBSPMapHeader(entryName))
-            {
-                m_currentMap.GLMap = entry.ReadData();
-                return;
-            }
-
-            if (MapEntryLookup.ContainsKey(entryName))
-                MapEntryLookup[entryName].SetValue(m_currentMap, entry.ReadData());
-            else
-                Fail($"Unexpected map entry name: {entry.Path.Name}");         
         }
 
         public IEnumerator<MapEntryCollection> GetEnumerator()
@@ -126,5 +93,39 @@ namespace Helion.Resources.Archives.Iterator
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private bool IsGLBSPMapHeader(CIString entryName)
+        {
+            // Unfortunately GLBSP decided it'd allow things like GL_XXXXX
+            // where the X's are the map name if it's less/equal to 5 letters.
+            return m_currentMap.Name.Length <= 5 && (entryName == "GL_" + m_currentMap.Name);
+        }
+
+        private bool IsMapEntry(CIString entryName)
+        {
+            return IsGLBSPMapHeader(entryName) || MapEntryNames.Contains(entryName);
+        }
+
+        private void ResetMapTrackingData()
+        {
+            m_currentMap = new MapEntryCollection();
+            m_makingMap = false;
+            m_lastEntryName = "";
+        }
+
+        private void TrackMapEntry(CIString entryName, Entry entry)
+        {
+            if (IsGLBSPMapHeader(entryName))
+            {
+                m_currentMap.GLMap = entry.ReadData();
+                return;
+            }
+
+            if (MapEntryLookup.ContainsKey(entryName))
+                MapEntryLookup[entryName].SetValue(m_currentMap, entry.ReadData());
+            else
+                Fail($"Unexpected map entry name: {entry.Path.Name}");         
+        }
+
     }
 }

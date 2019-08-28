@@ -16,13 +16,6 @@ namespace Helion.Util.Geometry
         }
 
         /// <summary>
-        /// Quantizes a double to an integral grid.
-        /// </summary>
-        /// <param name="value">The value to quantize.</param>
-        /// <returns>The quantized value.</returns>
-        private int Quantize(double value) => (int)(value * quantizationMultiplier);
-
-        /// <summary>
         /// Checks if there exists some value in range of the coordinates 
         /// provided.
         /// </summary>
@@ -109,5 +102,14 @@ namespace Helion.Util.Geometry
                             return true;
             return false;
         }
+
+
+        /// <summary>
+        /// Quantizes a double to an integral grid.
+        /// </summary>
+        /// <param name="value">The value to quantize.</param>
+        /// <returns>The quantized value.</returns>
+        private int Quantize(double value) => (int)(value * quantizationMultiplier);
+
     }
 }

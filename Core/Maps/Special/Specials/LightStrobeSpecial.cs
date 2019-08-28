@@ -1,12 +1,10 @@
-﻿using System;
-using Helion.Maps.Geometry;
-using Helion.Util;
+﻿using Helion.Maps.Geometry;
 
 namespace Helion.Maps.Special.Specials
 {
     public class LightStrobeSpecial : ISpecial
     {
-        public Sector? Sector { get; private set; }
+        public Sector? Sector { get; }
 
         private short m_maxBright;
         private short m_minBright;

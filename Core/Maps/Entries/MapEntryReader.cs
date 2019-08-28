@@ -1,7 +1,9 @@
 ﻿using Helion.Maps.Actions;
+using Helion.Maps.Enums;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Maps.Special;
+using Helion.Maps.Special.Vanilla;
 using Helion.Maps.Things;
 using Helion.Util;
 using Helion.Util.Geometry;
@@ -15,9 +17,38 @@ namespace Helion.Maps.Entries
     /// </summary>
     public static class MapEntryReader
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private static bool ReadVertices(Map map, MapEntryCollection mapEntries)
+        public static bool ReadInto(MapEntryCollection mapEntries, Map map)
+        {
+            if (!mapEntries.IsValid())
+            {
+                Log.Error("Invalid map entries for collection with name '{0}', cannot make map", mapEntries.Name);
+                return false;
+            }
+
+            if (mapEntries.IsUDMFMap)
+            {
+                Log.Error("UDMF not currently supported");
+                return false;
+            }
+
+            // Note that this order is required, since the later reading 
+            // functions require results from the earlier ones.
+            if (!ReadVertices(map, mapEntries) ||
+                !ReadSectors(map, mapEntries) ||
+                !ReadSides(map, mapEntries) ||
+                !ReadLines(map, mapEntries) ||
+                !ReadThings(map, mapEntries))
+            {
+                Log.Error("Unable to read map collection named '{0}', data is corrupt", mapEntries.Name);
+                return false;
+            }
+
+            return HasGeometry(map);
+        }
+
+        private static bool ReadVertices(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Vertices == null)
                 return false;
@@ -37,7 +68,7 @@ namespace Helion.Maps.Entries
             return true;
         }
 
-        private static bool ReadSectors(Map map, MapEntryCollection mapEntries)
+        private static bool ReadSectors(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Sectors == null)
                 return false;
@@ -76,7 +107,7 @@ namespace Helion.Maps.Entries
             return true;
         }
 
-        private static bool ReadSides(Map map, MapEntryCollection mapEntries)
+        private static bool ReadSides(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Sidedefs == null)
                 return false;
@@ -152,7 +183,7 @@ namespace Helion.Maps.Entries
             return lineFlags;
         }
 
-        private static bool ReadDoomLines(Map map, MapEntryCollection mapEntries)
+        private static bool ReadDoomLines(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Linedefs == null)
                 return false;
@@ -194,7 +225,7 @@ namespace Helion.Maps.Entries
             return true;
         }
 
-        private static bool ReadHexenLines(Map map, MapEntryCollection mapEntries)
+        private static bool ReadHexenLines(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Linedefs == null)
                 return false;
@@ -235,12 +266,12 @@ namespace Helion.Maps.Entries
             return true;
         }
 
-        private static bool ReadLines(Map map, MapEntryCollection mapEntries)
+        private static bool ReadLines(IMap map, MapEntryCollection mapEntries)
         {
             return mapEntries.IsHexenMap ? ReadHexenLines(map, mapEntries) : ReadDoomLines(map, mapEntries);
         }
-        
-        private static bool ReadDoomThings(Map map, MapEntryCollection mapEntries)
+
+        private static bool ReadDoomThings(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Things == null)
                 return false;
@@ -263,8 +294,8 @@ namespace Helion.Maps.Entries
 
             return true;
         }
-        
-        private static bool ReadHexenThings(Map map, MapEntryCollection mapEntries)
+
+        private static bool ReadHexenThings(IMap map, MapEntryCollection mapEntries)
         {
             if (mapEntries.Things == null)
                 return false;
@@ -291,44 +322,15 @@ namespace Helion.Maps.Entries
 
             return true;
         }
-        
-        private static bool ReadThings(Map map, MapEntryCollection mapEntries)
+
+        private static bool ReadThings(IMap map, MapEntryCollection mapEntries)
         {
             return mapEntries.IsHexenMap ? ReadHexenThings(map, mapEntries) : ReadDoomThings(map, mapEntries);
         }
 
-        private static bool HasGeometry(Map map)
+        private static bool HasGeometry(IMap map)
         {
             return map.Vertices.Count > 0 && map.Lines.Count > 0 && map.Sides.Count > 0 && map.Sectors.Count > 0;
-        }
-
-        public static bool ReadInto(MapEntryCollection mapEntries, Map map)
-        {
-            if (!mapEntries.IsValid())
-            {
-                log.Error("Invalid map entries for collection with name '{0}', cannot make map", mapEntries.Name);
-                return false;
-            }
-
-            if (mapEntries.IsUDMFMap)
-            {
-                log.Error("UDMF not currently supported");
-                return false;
-            }
-
-            // Note that this order is required, since the later reading 
-            // functions require results from the earlier ones.
-            if (!ReadVertices(map, mapEntries) ||
-                !ReadSectors(map, mapEntries) ||
-                !ReadSides(map, mapEntries) ||
-                !ReadLines(map, mapEntries) ||
-                !ReadThings(map, mapEntries))
-            {
-                log.Error("Unable to read map collection named '{0}', data is corrupt", mapEntries.Name);
-                return false;
-            }
-
-            return HasGeometry(map);
         }
     }
 }

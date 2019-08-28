@@ -17,6 +17,6 @@
         Music,
         Sounds,
         Sprites,
-        Textures
+        Textures,
     }
 }

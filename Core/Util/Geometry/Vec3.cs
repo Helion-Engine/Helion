@@ -98,12 +98,12 @@ namespace Helion.Util.Geometry
             return MathHelper.AreEqual(X, other.X, epsilon) && MathHelper.AreEqual(Y, other.Y, epsilon) && MathHelper.AreEqual(Z, other.Z, epsilon);
         }
 
-        public double this[int index] {
+        public double this[int index] 
+        {
             get
             {
                 switch (index)
                 {
-                case 0:
                 default:
                     return X;
                 case 1:
@@ -155,17 +155,18 @@ namespace Helion.Util.Geometry
         public static Vec3Fixed operator /(Vec3Fixed self, Vec3Fixed other) => new Vec3Fixed(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3Fixed operator /(Vec3Fixed self, Fixed value) => new Vec3Fixed(self.X / value, self.Y / value, self.Z / value);
         public static Vec3Fixed operator /(Fixed value, Vec3Fixed self) => new Vec3Fixed(self.X / value, self.Y / value, self.Z / value);
+        public static bool operator !=(Vec3Fixed self, Vec3Fixed other) => !(self == other);
         public static bool operator ==(Vec3Fixed self, Vec3Fixed other)
         {
             return MathHelper.AreEqual(self.X, other.X) && MathHelper.AreEqual(self.Y, other.Y) && MathHelper.AreEqual(self.Z, other.Z);
         }
-        public static bool operator !=(Vec3Fixed self, Vec3Fixed other) => !(self == other);
-        public Fixed this[int index] {
+        
+        public Fixed this[int index] 
+        {
             get 
             {
                 switch (index)
                 {
-                case 0:
                 default:
                     return X;
                 case 1:

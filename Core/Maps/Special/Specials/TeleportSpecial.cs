@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
 using Helion.World.Physics;
@@ -14,9 +13,9 @@ namespace Helion.Maps.Special.Specials
 
         private const int TeleportFreezeTicks = 18;
 
-        private EntityActivateSpecialEventArgs m_args;
-        private PhysicsManager m_physicsManager;
-        private IMap m_map;
+        private readonly EntityActivateSpecialEventArgs m_args;
+        private readonly PhysicsManager m_physicsManager;
+        private readonly IMap m_map;
 
         public TeleportSpecial(EntityActivateSpecialEventArgs args, PhysicsManager physicsManager, IMap map)
         {
@@ -33,12 +32,15 @@ namespace Helion.Maps.Special.Specials
             if (GetTeleportPosition(out position))
             {
                 entity.UnlinkFromWorld();
+
                 entity.FrozenTics = TeleportFreezeTicks;
                 entity.Velocity = Vec3D.Zero;
                 entity.SetXY(position);
                 if (entity.Player != null)
                     entity.Player.Pitch = 0;
+
                 m_physicsManager.LinkToWorld(entity);
+
                 entity.SetZ(entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position), false);
                 entity.ResetInterpolation();
                 entity.OnGround = true;

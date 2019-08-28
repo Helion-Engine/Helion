@@ -9,7 +9,10 @@ namespace Helion.Util.Container
     /// <typeparam name="K1">The first key.</typeparam>
     /// <typeparam name="K2">The second key.</typeparam>
     /// <typeparam name="V">The value.</typeparam>
-    public class HashTable<K1, K2, V> where V : class
+    public class HashTable<K1, K2, V>
+        where V : class
+        where K1 : notnull
+        where K2 : notnull
     {
         private readonly Dictionary<K1, Dictionary<K2, V>> m_table = new Dictionary<K1, Dictionary<K2, V>>();
 
@@ -23,10 +26,14 @@ namespace Helion.Util.Container
         /// <param name="k2">The second key.</param>
         /// <returns>The value mapped for the keys, or null if it does not
         /// exist.</returns>
-        public V? this[K1 k1, K2 k2]
+        public V? this[K1 k1, K2 k2] 
         {
             get => Get(k1, k2);
-            set => Insert(k1, k2, value);
+            set 
+            {
+                if (value != null) 
+                    Insert(k1, k2, value); 
+            }
         }
 
         /// <summary>

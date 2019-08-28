@@ -30,7 +30,7 @@ namespace Helion.World.Physics
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
-        private EntityActivateSpecialEventArgs m_entityActivatedSpecialArgs = new EntityActivateSpecialEventArgs();
+        private readonly EntityActivateSpecialEventArgs m_entityActivatedSpecialArgs = new EntityActivateSpecialEventArgs();
 
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
@@ -132,13 +132,17 @@ namespace Helion.World.Physics
         private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush) => crush != null && status == SectorMoveStatus.Crush && crush.CrushMode == ZCrushMode.DoomWithSlowDown;
 
         /// <summary>
-        /// Executes use logic on the entity. 
-        /// EntityUseActivated event will fire if the entity activates a line special or is in range to hit a blocking line.
-        /// PlayerUseFail will fire if the entity is a player and we hit a block line but didn't activate a special.
+        /// Executes use logic on the entity. EntityUseActivated event will
+        /// fire if the entity activates a line special or is in range to hit
+        /// a blocking line. PlayerUseFail will fire if the entity is a player
+        /// and we hit a block line but didn't activate a special.
         /// </summary>
         /// <remarks>
-        /// If the line has a special and we are hitting the front then we can use it (player Z does not apply here).
-        /// If there is a LineOpening with OpeningHeight <= 0, it's a closed sector. The special line behind it cannot activate until the sector has an opening.
+        /// If the line has a special and we are hitting the front then we
+        /// can use it (player Z does not apply here). If there's a LineOpening
+        /// with OpeningHeight less than or equal to 0, it's a closed sector.
+        /// The special line behind it cannot activate until the sector has an
+        /// opening.
         /// </remarks>
         /// <param name="entity">The entity to execute use.</param>
         public void EntityUse(Entity entity)
@@ -147,7 +151,6 @@ namespace Helion.World.Physics
             Line? currentActivateLine = null;
             bool hitBlockLine = false;
             double closetDist = double.MaxValue;
-            double currentClosestDist;
 
             Vec2D start = entity.Position.To2D();
             Vec2D end = new Vec2D(start.X + (Math.Cos(entity.Angle) * EntityUseDistance), start.Y + (Math.Sin(entity.Angle) * EntityUseDistance));
@@ -180,7 +183,7 @@ namespace Helion.World.Physics
 
                         if (!canActivateThrough || line.HasSpecial)
                         {
-                            currentClosestDist = line.Segment.ClosestDistance(start);
+                            var currentClosestDist = line.Segment.ClosestDistance(start);
                             if (currentClosestDist < closetDist)
                             {
                                 activateLine = currentActivateLine;

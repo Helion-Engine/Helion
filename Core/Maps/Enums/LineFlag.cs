@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.Maps
+namespace Helion.Maps.Enums
 {
     /// <summary>
     /// An enumeration of all the linedef flags.
@@ -33,5 +33,5 @@ namespace Helion.Maps
         MonsterCanActivate = 0x2000U,
         PhysicsBlockPlayer = 0x4000U,
         PhysicsBlockEverything = 0x8000U,
-    };
+    }
 }

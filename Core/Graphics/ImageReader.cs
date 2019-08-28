@@ -1,7 +1,7 @@
-﻿using Helion.Resources;
-using Helion.Util.Geometry;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
+using Helion.Resources;
+using Helion.Util.Geometry;
 
 namespace Helion.Graphics
 {

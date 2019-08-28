@@ -7,11 +7,11 @@ namespace Helion.Maps.Geometry
     public class Side
     {
         public readonly int Id;
+        public readonly Sector Sector;
         public Vec2I Offset;
         public CIString LowerTexture;
         public CIString MiddleTexture;
         public CIString UpperTexture;
-        public readonly Sector Sector;
         public Line? Line;
 
         public bool IsFront => ReferenceEquals(this, Line.Front);

@@ -1,4 +1,4 @@
-namespace Helion.Maps
+namespace Helion.Maps.Enums
 {
     /// <summary>
     /// Whether the sector flat is facing up (floor) or down (ceiling).
@@ -6,6 +6,6 @@ namespace Helion.Maps
     public enum SectorFlatFace
     {
         Floor,
-        Ceiling
+        Ceiling,
     }
 }

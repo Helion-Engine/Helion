@@ -37,7 +37,8 @@ namespace Helion.Util.Geometry
         {
         }
 
-        private static uint BitsFromRadians(double radians) {
+        private static uint BitsFromRadians(double radians) 
+        {
             double unit = radians / (2 * Math.PI);
             return (uint)(unit * uint.MaxValue);
         }

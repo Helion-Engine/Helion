@@ -9,11 +9,10 @@ namespace Helion.Maps.Special.Specials
     {
         public Sector? Sector { get; protected set; }
 
-        protected SectorMoveData m_data;
-        protected double m_destZ;
-        protected SectorFlat m_flat;
-        protected int m_delayTics;
-
+        protected readonly SectorMoveData MoveData;
+        protected double DestZ;
+        protected SectorFlat Flat;
+        protected int DelayTics;
         private PhysicsManager m_physicsManager;
         private MoveDirection m_direction;
         private double m_speed;
@@ -26,63 +25,63 @@ namespace Helion.Maps.Special.Specials
         {
             Sector = sector;
             m_physicsManager = physicsManager;
-            m_data = specialData;
-            m_flat = m_data.SectorMoveType == SectorMoveType.Floor ? sector.Floor : sector.Ceiling;
+            MoveData = specialData;
+            Flat = MoveData.SectorMoveType == SectorMoveType.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = start;
-            m_destZ = dest;
+            DestZ = dest;
 
-            m_direction = m_data.StartDirection;
-            m_speed = m_data.StartDirection == MoveDirection.Down ? -m_data.Speed : m_data.Speed;
+            m_direction = MoveData.StartDirection;
+            m_speed = MoveData.StartDirection == MoveDirection.Down ? -MoveData.Speed : MoveData.Speed;
 
-            m_minZ = Math.Min(m_startZ, m_destZ);
-            m_maxZ = Math.Max(m_startZ, m_destZ);
+            m_minZ = Math.Min(m_startZ, DestZ);
+            m_maxZ = Math.Max(m_startZ, DestZ);
 
             // Doom starts with the delay on perpetual movement
-            if (m_data.MoveRepetition == MoveRepetition.Perpetual)
-                m_delayTics = m_data.Delay;
+            if (MoveData.MoveRepetition == MoveRepetition.Perpetual)
+                DelayTics = MoveData.Delay;
 
             Sector.ActiveMoveSpecial = this;
         }
 
         public virtual SpecialTickStatus Tick(long gametic)
         {
-            if (m_delayTics > 0)
+            if (DelayTics > 0)
             {
-                m_flat.PrevZ = m_flat.Z;
-                m_delayTics--;
+                Flat.PrevZ = Flat.Z;
+                DelayTics--;
                 return SpecialTickStatus.Continue;
             }
 
-            double destZ = m_flat.Z + m_speed;
-            if (m_direction == MoveDirection.Down && destZ < m_destZ)
-                destZ = m_destZ;
-            else if (m_direction == MoveDirection.Up && destZ > m_destZ)
-                destZ = m_destZ;
+            double destZ = Flat.Z + m_speed;
+            if (m_direction == MoveDirection.Down && destZ < DestZ)
+                destZ = DestZ;
+            else if (m_direction == MoveDirection.Up && destZ > DestZ)
+                destZ = DestZ;
 
-            SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, m_flat, m_data.SectorMoveType, m_direction, m_speed, destZ, m_data.Crush);
+            SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, Flat, MoveData.SectorMoveType, m_direction, m_speed, destZ, MoveData.Crush);
 
             if (status == SectorMoveStatus.Blocked)
             {
-                if (m_data.MoveRepetition != MoveRepetition.None)
+                if (MoveData.MoveRepetition != MoveRepetition.None)
                     FlipMovementDirection();
             }
             else if (status == SectorMoveStatus.Crush && IsInitCrush)
             {
                 m_crushing = true;
-                if (m_data.Crush.CrushMode == ZCrushMode.DoomWithSlowDown)
+                if (MoveData.Crush.CrushMode == ZCrushMode.DoomWithSlowDown)
                     m_speed = m_speed < 0 ? -0.1 : 0.1;
             }
 
             if (m_crushing && status == SectorMoveStatus.Success)
                 m_crushing = false;
 
-            if (m_flat.Z == m_destZ)
+            if (Flat.Z == DestZ)
             {
                 if (IsNonRepeat)
                 {
                     // TODO fix issue with CIString for m_data.FloorChangeTexture != null
-                    if (!ReferenceEquals(m_data.FloorChangeTexture, null))
-                        Sector.Floor.Texture = m_data.FloorChangeTexture;
+                    if (!ReferenceEquals(MoveData.FloorChangeTexture, null))
+                        Sector.Floor.Texture = MoveData.FloorChangeTexture;
 
                     Sector.ActiveMoveSpecial = null;
                     return SpecialTickStatus.Destroy;
@@ -91,7 +90,7 @@ namespace Helion.Maps.Special.Specials
                 FlipMovementDirection();
             }
 
-            if (IsDelayReturn && m_flat.Z == m_startZ)
+            if (IsDelayReturn && Flat.Z == m_startZ)
             {
                 Sector.ActiveMoveSpecial = null;
                 return SpecialTickStatus.Destroy;
@@ -106,15 +105,15 @@ namespace Helion.Maps.Special.Specials
 
         protected void FlipMovementDirection()
         {
-            if (m_data.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == m_data.StartDirection))
-                m_delayTics = m_data.Delay;
+            if (MoveData.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == MoveData.StartDirection))
+                DelayTics = MoveData.Delay;
                 
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
-            m_destZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
+            DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
 
             if (m_crushing)
             {
-                m_speed = m_data.Speed;
+                m_speed = MoveData.Speed;
                 m_crushing = false;
             }
             else
@@ -123,8 +122,8 @@ namespace Helion.Maps.Special.Specials
             }
         }
 
-        private bool IsNonRepeat => m_data.MoveRepetition == MoveRepetition.None || m_data.MoveRepetition == MoveRepetition.ReturnOnBlock;
-        private bool IsDelayReturn => m_data.MoveRepetition == MoveRepetition.DelayReturn;
-        private bool IsInitCrush => m_data.Crush != null && m_direction == m_data.StartDirection && !m_crushing;
+        private bool IsNonRepeat => MoveData.MoveRepetition == MoveRepetition.None || MoveData.MoveRepetition == MoveRepetition.ReturnOnBlock;
+        private bool IsDelayReturn => MoveData.MoveRepetition == MoveRepetition.DelayReturn;
+        private bool IsInitCrush => MoveData.Crush != null && m_direction == MoveData.StartDirection && !m_crushing;
     }
 }

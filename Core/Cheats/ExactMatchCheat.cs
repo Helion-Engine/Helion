@@ -4,10 +4,9 @@
     {
         private readonly string m_code;
 
-        public ExactMatchCheat(string name, string code, CheatType cheatType)
-            : this(name, code, null, cheatType)
+        public ExactMatchCheat(string name, string code, CheatType cheatType) : 
+            this(name, code, null, cheatType)
         {
-
         }
 
         public ExactMatchCheat(string name, string code, string consoleCommand, CheatType cheatType)
@@ -32,5 +31,4 @@
 
         public bool PartialMatch(string str) => m_code.StartsWith(str);
     }
-
 }

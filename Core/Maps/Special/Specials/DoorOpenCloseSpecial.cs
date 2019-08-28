@@ -15,9 +15,9 @@ namespace Helion.Maps.Special.Specials
             // If the delay is zero then flip the door direction
             // Otherwise we are in the wait delay and setting the delay back to 0 will immediately bring it back down
             // Either way we need to set delay to 0, because this effect needs to work immediately
-            if (m_delayTics == 0)
+            if (DelayTics == 0)
                 FlipMovementDirection();
-            m_delayTics = 0;
+            DelayTics = 0;
         }
     }
 }

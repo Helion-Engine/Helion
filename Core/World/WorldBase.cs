@@ -42,11 +42,6 @@ namespace Helion.World
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
 
-        private void SpecialManager_LevelExit(object sender, EventArgs e)
-        {
-            LevelExit?.Invoke(this, e);
-        }
-
         public void Tick(long gametic)
         {
             EntityManager.Players.Values.ForEach(player => player.Tick());
@@ -60,6 +55,11 @@ namespace Helion.World
             SpecialManager.Tick(gametic);
 
             Gametick++;
+        }
+
+        private void SpecialManager_LevelExit(object sender, EventArgs e)
+        {
+            LevelExit?.Invoke(this, e);
         }
     }
 }

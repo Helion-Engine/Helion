@@ -1,4 +1,5 @@
 ﻿using Helion.Util.Geometry;
+using NLog;
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -58,6 +59,8 @@ namespace Helion.Client.WinMouse
 
     public static class NativeMethods
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public static bool RegisterRawMouseInput(IntPtr handle)
         {
             RAWINPUTDEVICE[] rid = new RAWINPUTDEVICE[1];
@@ -78,7 +81,16 @@ namespace Helion.Client.WinMouse
             if (GetRawInputData(message.LParam, WinMouseConstants.RID_INPUT, rawData, ref dwSize, headerSize) != -1)
             {
                 // In the future if we register for any other form of input we would need to check for header.dwType == RIM_TYPEMOUSE
-                RAWINPUT rawInput = (RAWINPUT)Marshal.PtrToStructure(rawData, typeof(RAWINPUT));
+                object? rawInputObj = Marshal.PtrToStructure(rawData, typeof(RAWINPUT));
+                if (rawInputObj == null)
+                {
+                    Log.Error("Reading raw input returns a null value, should never happen");
+                    x = 0;
+                    y = 0;
+                    return;
+                }
+                
+                RAWINPUT rawInput = (RAWINPUT)rawInputObj;
                 x = rawInput.mouse.lLastX;
                 y = rawInput.mouse.lLastY;
                 // TODO: Mask `rawInput.mouse.ulButtons` with Constants for button presses.

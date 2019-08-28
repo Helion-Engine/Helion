@@ -1,11 +1,10 @@
-﻿using Helion.Maps.Geometry.Lines;
+﻿using System.Collections.Generic;
+using Helion.Maps.Geometry.Lines;
 using Helion.Util;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.Maps.Special
 {
-    class SwitchData
+    public class SwitchData
     {
         public SwitchData(CIString switch1, CIString switch2)
         {
@@ -18,13 +17,6 @@ namespace Helion.Maps.Special
 
         public CIString SwitchTexture1;
         public CIString SwitchTexture2;
-    }
-
-    enum TexturePlacement
-    {
-        Upper,
-        Middle,
-        Lower,
     }
 
     public class SwitchManager

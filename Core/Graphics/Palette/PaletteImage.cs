@@ -1,6 +1,6 @@
-﻿using Helion.Util;
+﻿using System;
+using System.Drawing;
 using Helion.Util.Extensions;
-using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Palette
@@ -21,7 +21,7 @@ namespace Helion.Graphics.Palette
         /// <summary>
         /// The index used to represent transparency.
         /// </summary>
-        public const ushort TRANSPARENT_INDEX = 0XFFFF;
+        public const ushort TransparentIndex = 0XFFFF;
 
         /// <summary>
         /// The width of the image.
@@ -51,7 +51,7 @@ namespace Helion.Graphics.Palette
         /// <param name="width">The image width. Should be positive.</param>
         /// <param name="height">The image height, should be positive.</param>
         /// <param name="fillIndex">The index to fill the image with.</param>
-        public PaletteImage(int width, int height, ushort fillIndex = TRANSPARENT_INDEX) :
+        public PaletteImage(int width, int height, ushort fillIndex = TransparentIndex) :
             this(width, height, fillIndex, new ImageMetadata())
         {
         }
@@ -110,7 +110,7 @@ namespace Helion.Graphics.Palette
             else
             {
                 ushort[] newIndices = new ushort[Width * Height];
-                newIndices.Fill(TRANSPARENT_INDEX); ;
+                newIndices.Fill(TransparentIndex);
                 Indices = newIndices;
             }
         }
@@ -137,7 +137,7 @@ namespace Helion.Graphics.Palette
         public Image ToImage(Palette palette)
         {
             byte[] argb = new byte[Width * Height * 4];
-            PaletteColor[] paletteLayer = palette[0];
+            Color[] paletteLayer = palette[0];
 
             // OPTIMIZE: Unsafe code with pointers is probably worth doing!
             int argbOffset = 0;
@@ -155,7 +155,7 @@ namespace Helion.Graphics.Palette
                     }
                     else
                     {
-                        PaletteColor color = paletteLayer[index];
+                        Color color = paletteLayer[index];
                         argb[argbOffset] = color.B;
                         argb[argbOffset + 1] = color.G;
                         argb[argbOffset + 2] = color.R;

@@ -28,8 +28,7 @@ namespace Helion.Maps.Special.Specials
             {
                 if (sector.Lines[0].Front.Sector == sector)
                     return sector.Lines[0].Back.Sector;
-                else
-                    return sector.Lines[0].Front.Sector;
+                return sector.Lines[0].Front.Sector;
             }
 
             return null;

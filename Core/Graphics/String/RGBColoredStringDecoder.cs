@@ -85,7 +85,25 @@ namespace Helion.Graphics.String
     /// </example>
     public class RGBColoredStringDecoder
     {
-        private static readonly Regex COLOR_REGEX = new Regex(@"(\\c\[\d{1,3},\d{1,3},\d{1,3}\])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex ColorRegex = new Regex(@"(\\c\[\d{1,3},\d{1,3},\d{1,3}\])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        /// <summary>
+        /// Decodes the string by looking for any "\c[rrr,ggg,bbb] color codes
+        /// and turning them into the appropriate colored string.
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>The colored string for the text provided.</returns>
+        public static ColoredString Decode(string str)
+        {
+            List<ColoredChar> coloredChars = new List<ColoredChar>();
+
+            // TODO: Convert second foreach Substring to hat notation in C# 8.
+            foreach (ColorRange range in GetColorRanges(str))
+            foreach (char c in str.Substring(range.StartIndex, range.EndIndex - range.StartIndex))
+                coloredChars.Add(new ColoredChar(c, range.Color));
+
+            return new ColoredString(coloredChars);
+        }
 
         private static Color ColorDefinitionToColor(string rgbColorCode)
         {
@@ -120,7 +138,7 @@ namespace Helion.Graphics.String
                 new ColorRange(0, ColoredString.DefaultColor),
             };
 
-            MatchCollection matches = COLOR_REGEX.Matches(str);
+            MatchCollection matches = ColorRegex.Matches(str);
             foreach (Match match in matches)
             {
                 ColorRange currentColorInfo = colorRanges.Last();
@@ -141,24 +159,6 @@ namespace Helion.Graphics.String
                 colorRanges.RemoveAt(colorRanges.Count - 1);
 
             return colorRanges;
-        }
-
-        /// <summary>
-        /// Decodes the string by looking for any "\c[rrr,ggg,bbb] color codes
-        /// and turning them into the appropriate colored string.
-        /// </summary>
-        /// <param name="str">The string to convert.</param>
-        /// <returns>The colored string for the text provided.</returns>
-        public static ColoredString Decode(string str)
-        {
-            List<ColoredChar> coloredChars = new List<ColoredChar>();
-
-            // TODO: Convert second foreach Substring to hat notation in C# 8.
-            foreach (ColorRange range in GetColorRanges(str))
-                foreach (char c in str.Substring(range.StartIndex, range.EndIndex - range.StartIndex))
-                    coloredChars.Add(new ColoredChar(c, range.Color));
-
-            return new ColoredString(coloredChars);
         }
     }
 }

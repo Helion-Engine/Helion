@@ -4,9 +4,9 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Vertex.IntegralAttribute
 {
-    public abstract class VertexIntegralAttribute : VertexArrayAttribute
+    public abstract class VertexIntAttribute : VertexArrayAttribute
     {
-        public VertexIntegralAttribute(string name, int index, int size) : base(name, index, size)
+        public VertexIntAttribute(string name, int index, int size) : base(name, index, size)
         {
         }
 

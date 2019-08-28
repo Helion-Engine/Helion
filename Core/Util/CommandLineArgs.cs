@@ -29,13 +29,6 @@ namespace Helion.Util
         [Option("warp", Required = false, HelpText = "The level to warp to")]
         public int? Warp { get; set; }
 
-        private static void HandleParsingError(CommandLineArgs result)
-        {
-            result.ErrorWhileParsing = true;
-            System.Console.WriteLine("Unable to parse command line args.");
-            System.Console.WriteLine("Values that would be set by the command line args will be defaulted values!");
-        }
-
         /// <summary>
         /// Parses the command line arguments and returns an object with the
         /// parsed results.
@@ -59,6 +52,13 @@ namespace Helion.Util
             }
 
             return result;
+        }
+
+        private static void HandleParsingError(CommandLineArgs result)
+        {
+            result.ErrorWhileParsing = true;
+            System.Console.WriteLine("Unable to parse command line args.");
+            System.Console.WriteLine("Values that would be set by the command line args will be defaulted values!");
         }
     }
 }

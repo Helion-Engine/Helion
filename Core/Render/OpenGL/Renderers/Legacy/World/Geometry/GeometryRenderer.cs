@@ -77,21 +77,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             PreloadAllTextures(world);
         }
 
-        private void PreloadAllTextures(WorldBase world)
-        {
-            world.Map.Lines.SelectMany(GetSides)
-                .SelectMany(side => new[] { side.UpperTexture.ToString(), side.MiddleTexture.ToString(), side.LowerTexture.ToString() })
-                .Distinct()
-                .ForEach(texName => m_textureManager.GetWall(texName));
-
-            world.Map.Sectors.SelectMany(sector => new[] {sector.Ceiling, sector.Floor})
-                .Select(flat => flat.Texture.ToString())
-                .Distinct()
-                .ForEach(texName => m_textureManager.GetFlat(texName));
-
-            Side[] GetSides(Line line) => line.Back != null ? new[] { line.Front, line.Back } : new[] { line.Front };
-        }
-
         public void Render(WorldBase world, RenderInfo renderInfo)
         {
             ClearStates();
@@ -107,7 +92,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-        
+
+        private void PreloadAllTextures(WorldBase world)
+        {
+            world.Map.Lines.SelectMany(GetSides)
+                .SelectMany(side => new[] { side.UpperTexture.ToString(), side.MiddleTexture.ToString(), side.LowerTexture.ToString() })
+                .Distinct()
+                .ForEach(texName => m_textureManager.GetWall(texName));
+
+            world.Map.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
+                .Select(flat => flat.Texture.ToString())
+                .Distinct()
+                .ForEach(texName => m_textureManager.GetFlat(texName));
+
+            Side[] GetSides(Line line) => line.Back != null ? new[] { line.Front, line.Back } : new[] { line.Front };
+        }
+
         private void ClearStates()
         {
             m_viewClipper.Clear();

@@ -11,6 +11,138 @@ namespace Helion.Graphics.Palette
     public static class PaletteReaders
     {
         /// <summary>
+        /// Checks if the data provided is likely a flat palette image.
+        /// </summary>
+        /// <param name="data">The data to check.</param>
+        /// <returns>True if it's likely a flat, false otherwise.</returns>
+        public static bool LikelyFlat(byte[] data)
+        {
+            switch (data.Length)
+            {
+            case 64 * 64:
+            case 128 * 128:
+            case 256 * 256:
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the data provided is likely a column palette image.
+        /// </summary>
+        /// <param name="data">The data to check.</param>
+        /// <returns>True if it's likely a column, false otherwise.</returns>
+        public static bool LikelyColumn(byte[] data)
+        {
+            if (data.Length < 16)
+                return false;
+
+            ByteReader reader = new ByteReader(data);
+
+            int width = reader.ReadInt16();
+            int height = reader.ReadInt16();
+            int offsetX = reader.ReadInt16();
+            int offsetY = reader.ReadInt16();
+
+            if (InvalidColumnImageDimensions(data, width, height, offsetX, offsetY))
+                return false;
+
+            return LastColumnValid(reader, width);
+        }
+
+        /// <summary>
+        /// Reads the flat palette image from the data provided.
+        /// </summary>
+        /// <param name="data">The data for the flat palette image.</param>
+        /// <param name="resourceNamespace">The resource namespace for this
+        /// palette image to be created.</param>
+        /// <returns>A palette image, or an empty optional if the data is not a
+        /// flat palette image.</returns>
+        public static PaletteImage? ReadFlat(byte[] data, ResourceNamespace resourceNamespace)
+        {
+            int dimension = FlatDimension(data.Length);
+            if (dimension == 0)
+                return null;
+
+            ushort[] indices = new ushort[dimension * dimension];
+
+            int offset = 0;
+            for (int y = 0; y < dimension; y++)
+            {
+                for (int x = 0; x < dimension; x++)
+                {
+                    indices[offset] = data[offset];
+                    offset++;
+                }
+            }
+
+            ImageMetadata metadata = new ImageMetadata(resourceNamespace);
+            return new PaletteImage(dimension, dimension, indices, metadata);
+        }
+
+        /// <summary>
+        /// Reads the column palette image from the data provided.
+        /// </summary>
+        /// <param name="data">The data for the column palette image.</param>
+        /// <param name="resourceNamespace">The resource namespace for this
+        /// palette image to be created.</param>
+        /// <returns>A palette image, or an empty optional if the data is not a
+        /// column palette image.</returns>
+        public static PaletteImage? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
+        {
+            // TODO: This could be improved probably dramatically if we:
+            //       1) Read it into a column-major image and then rotated
+            //       2) Use native/unsafe code 
+            try
+            {
+                ByteReader reader = new ByteReader(data);
+
+                int width = reader.ReadInt16();
+                int height = reader.ReadInt16();
+                Vec2I imageOffsets = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
+
+                int[] offsets = new int[width];
+                for (int i = 0; i < width; i++)
+                    offsets[i] = reader.ReadInt32();
+
+                ushort[] indices = new ushort[width * height];
+                indices.Fill(PaletteImage.TransparentIndex);
+
+                for (int col = 0; col < width; col++)
+                {
+                    reader.Offset(offsets[col]);
+
+                    while (true)
+                    {
+                        int rowStart = reader.ReadByte();
+                        if (rowStart == 0xFF)
+                            break;
+
+                        int indicesCount = reader.ReadByte();
+                        reader.Advance(1); // Skip dummy.
+                        byte[] paletteIndices = reader.ReadBytes(indicesCount);
+                        reader.Advance(1); // Skip dummy.
+
+                        int indicesOffset = (rowStart * width) + col;
+                        for (int i = 0; i < paletteIndices.Length; i++)
+                        {
+                            indices[indicesOffset] = paletteIndices[i];
+                            indicesOffset += width;
+                        }
+                    }
+                }
+
+                ImageMetadata metadata = new ImageMetadata(imageOffsets, resourceNamespace);
+                return new PaletteImage(width, height, indices, metadata);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        
+        /// <summary>
         /// Gets the flat dimension from the full length of the data provided.
         /// </summary>
         /// <param name="length">The length of the palette entry bytes.</param>
@@ -84,138 +216,6 @@ namespace Helion.Graphics.Palette
             // however this seems to be doing the job thus far. Nothing
             // wrong with more checks though!
             return reader.HasBytesRemaining(1);
-        }
-
-        /// <summary>
-        /// Checks if the data provided is likely a flat palette image.
-        /// </summary>
-        /// <param name="data">The data to check.</param>
-        /// <returns>True if it's likely a flat, false otherwise.</returns>
-        public static bool LikelyFlat(byte[] data)
-        {
-            switch (data.Length)
-            {
-            case 64 * 64:
-            case 128 * 128:
-            case 256 * 256:
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if the data provided is likely a column palette image.
-        /// </summary>
-        /// <param name="data">The data to check.</param>
-        /// <returns>True if it's likely a column, false otherwise.</returns>
-        public static bool LikelyColumn(byte[] data)
-        {
-            if (data.Length < 16)
-                return false;
-
-            ByteReader reader = new ByteReader(data);
-
-            int width = reader.ReadInt16();
-            int height = reader.ReadInt16();
-            int offsetX = reader.ReadInt16();
-            int offsetY = reader.ReadInt16();
-
-            if (InvalidColumnImageDimensions(data, width, height, offsetX, offsetY))
-                return false;
-
-            return LastColumnValid(reader, width);
-        }
-
-        /// <summary>
-        /// Reads the flat palette image from the data provided.
-        /// </summary>
-        /// <param name="data">The data for the flat palette image.</param>
-        /// <param name="resourceNamespace">The resource namespace for this
-        /// palette image to be created.</param>
-        /// <returns>A palette image, or an empty optional if the data is not a
-        /// flat palette image</returns>
-        public static PaletteImage? ReadFlat(byte[] data, ResourceNamespace resourceNamespace)
-        {
-            int dimension = FlatDimension(data.Length);
-            if (dimension == 0)
-                return null;
-
-            ushort[] indices = new ushort[dimension * dimension];
-
-            int offset = 0;
-            for (int y = 0; y < dimension; y++)
-            {
-                for (int x = 0; x < dimension; x++)
-                {
-                    indices[offset] = data[offset];
-                    offset++;
-                }
-            }
-
-            ImageMetadata metadata = new ImageMetadata(resourceNamespace);
-            return new PaletteImage(dimension, dimension, indices, metadata);
-        }
-
-        /// <summary>
-        /// Reads the column palette image from the data provided.
-        /// </summary>
-        /// <param name="data">The data for the column palette image.</param>
-        /// <param name="resourceNamespace">The resource namespace for this
-        /// palette image to be created.</param>
-        /// <returns>A palette image, or an empty optional if the data is not a
-        /// column palette image.</returns>
-        public static PaletteImage? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
-        {
-            // TODO: This could be improved probably dramatically if we:
-            //       1) Read it into a column-major image and then rotated
-            //       2) Use native/unsafe code 
-            try
-            {
-                ByteReader reader = new ByteReader(data);
-
-                int width = reader.ReadInt16();
-                int height = reader.ReadInt16();
-                Vec2I imageOffsets = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
-
-                int[] offsets = new int[width];
-                for (int i = 0; i < width; i++)
-                    offsets[i] = reader.ReadInt32();
-
-                ushort[] indices = new ushort[width * height];
-                indices.Fill(PaletteImage.TRANSPARENT_INDEX);
-
-                for (int col = 0; col < width; col++)
-                {
-                    reader.Offset(offsets[col]);
-
-                    while (true)
-                    {
-                        int rowStart = reader.ReadByte();
-                        if (rowStart == 0xFF)
-                            break;
-
-                        int indicesCount = reader.ReadByte();
-                        reader.Advance(1); // Skip dummy.
-                        byte[] paletteIndices = reader.ReadBytes(indicesCount);
-                        reader.Advance(1); // Skip dummy.
-
-                        int indicesOffset = (rowStart * width) + col;
-                        for (int i = 0; i < paletteIndices.Length; i++)
-                        {
-                            indices[indicesOffset] = paletteIndices[i];
-                            indicesOffset += width;
-                        }
-                    }
-                }
-
-                ImageMetadata metadata = new ImageMetadata(imageOffsets, resourceNamespace);
-                return new PaletteImage(width, height, indices, metadata);
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

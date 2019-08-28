@@ -5,14 +5,14 @@ namespace Helion.Maps.Special.Specials
 {
     public class LightPulsateSpecial : ISpecial
     {
-        public Sector? Sector { get; private set; }
-
         private const int DoomPulsateValue = 8;
 
-        private short m_maxBright;
-        private short m_minBright;
+        private readonly short m_maxBright;
+        private readonly short m_minBright;
         private int m_inc;
 
+        public Sector Sector { get; }
+        
         public LightPulsateSpecial(Sector sector, short minLightLevel)
         {
             Sector = sector;

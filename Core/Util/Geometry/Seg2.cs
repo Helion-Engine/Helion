@@ -257,7 +257,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="other">The other segment to check.</param>
         /// <returns>True if an intersection exists, false if not.</returns>
-        public bool Intersects(Seg2FBase other) => Intersection(other, out float t) ? (0 <= t && t <= 1) : false;
+        public bool Intersects(Seg2FBase other) => Intersection(other, out float t) && (t >= 0 && t <= 1);
 
         /// <summary>
         /// Gets the intersection with a segment. This is not intended for line
@@ -405,23 +405,6 @@ namespace Helion.Util.Geometry
             Direction = CalculateDirection(Delta);
         }
 
-        private static Box2F MakeBox(Vector2 start, Vector2 end)
-        {
-            return new Box2F(
-                new Vector2(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
-                new Vector2(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y))
-            );
-        }
-
-        private static SegmentDirection CalculateDirection(Vector2 delta)
-        {
-            if (MathHelper.IsZero(delta.X))
-                return SegmentDirection.Vertical;
-            if (MathHelper.IsZero(delta.Y))
-                return SegmentDirection.Horizontal;
-            return MathHelper.DifferentSign(delta.X, delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
-        }
-
         /// <summary>
         /// Gets the rotation from a point with respect to another two points
         /// that make a line.
@@ -518,6 +501,21 @@ namespace Helion.Util.Geometry
             Vector2 midpoint = (seg.Start + seg.End) / 2;
             Vector2 expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
+        }
+        
+        private static Box2F MakeBox(Vector2 start, Vector2 end)
+        {
+            return new Box2F(new Vector2(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
+                new Vector2(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y)));
+        }
+
+        private static SegmentDirection CalculateDirection(Vector2 delta)
+        {
+            if (MathHelper.IsZero(delta.X))
+                return SegmentDirection.Vertical;
+            if (MathHelper.IsZero(delta.Y))
+                return SegmentDirection.Horizontal;
+            return MathHelper.DifferentSign(delta.X, delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
         }
     }
 
@@ -889,23 +887,6 @@ namespace Helion.Util.Geometry
             Direction = CalculateDirection(Delta);
         }
 
-        private static Box2D MakeBox(Vec2D start, Vec2D end)
-        {
-            return new Box2D(
-                new Vec2D(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
-                new Vec2D(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y))
-            );
-        }
-
-        private static SegmentDirection CalculateDirection(Vec2D delta)
-        {
-            if (MathHelper.IsZero(delta.X))
-                return SegmentDirection.Vertical;
-            if (MathHelper.IsZero(delta.Y))
-                return SegmentDirection.Horizontal;
-            return MathHelper.DifferentSign(delta.X, delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
-        }
-
         /// <summary>
         /// Gets the rotation from a point with respect to another two points
         /// that make a line.
@@ -941,7 +922,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <remarks>
         /// If the point is not on the segment, then the result will be wrong.
-        /// A corollary to this is that <code>Start + t*Delta = point</code>.
+        /// A corollary to this is that `Start + t*Delta = point`.
         /// </remarks>
         /// <param name="point">The point to get the time for.</param>
         /// <returns>The time the point is on this segment.</returns>
@@ -1002,6 +983,23 @@ namespace Helion.Util.Geometry
             Vec2D midpoint = (seg.Start + seg.End) / 2;
             Vec2D expectedMidpoint = FromTime(ToTime(midpoint));
             return midpoint.EqualTo(expectedMidpoint, epsilon);
+        }
+        
+        private static Box2D MakeBox(Vec2D start, Vec2D end)
+        {
+            return new Box2D(
+                new Vec2D(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
+                new Vec2D(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y))
+            );
+        }
+
+        private static SegmentDirection CalculateDirection(Vec2D delta)
+        {
+            if (MathHelper.IsZero(delta.X))
+                return SegmentDirection.Vertical;
+            if (MathHelper.IsZero(delta.Y))
+                return SegmentDirection.Horizontal;
+            return MathHelper.DifferentSign(delta.X, delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
         }
     }
 
@@ -1367,29 +1365,6 @@ namespace Helion.Util.Geometry
             Direction = CalculateDirection(Delta);
         }
 
-        private static Box2Fixed MakeBox(Vec2Fixed start, Vec2Fixed end)
-        {
-            return new Box2Fixed(
-                new Vec2Fixed(
-                    new Fixed(Math.Min(start.X.Bits, end.X.Bits)), 
-                    new Fixed(Math.Min(start.Y.Bits, end.Y.Bits))
-                ),
-                new Vec2Fixed(
-                    new Fixed(Math.Max(start.X.Bits, end.X.Bits)), 
-                    new Fixed(Math.Max(start.Y.Bits, end.Y.Bits))
-                )
-            );
-        }
-
-        private static SegmentDirection CalculateDirection(Vec2Fixed delta)
-        {
-            if (MathHelper.IsZero(delta.X))
-                return SegmentDirection.Vertical;
-            if (MathHelper.IsZero(delta.Y))
-                return SegmentDirection.Horizontal;
-            return MathHelper.DifferentSign(delta.X, delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
-        }
-
         /// <summary>
         /// Gets the rotation from a point with respect to another two points
         /// that make a line.
@@ -1425,7 +1400,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <remarks>
         /// If the point is not on the segment, then the result will be wrong.
-        /// A corollary to this is that <code>Start + t*Delta = point</code>.
+        /// A corollary to this is that `Start + t*Delta = point`.
         /// </remarks>
         /// <param name="point">The point to get the time for.</param>
         /// <returns>The time the point is on this segment.</returns>
@@ -1490,5 +1465,23 @@ namespace Helion.Util.Geometry
         
         /// <inheritdoc/>
         public override string ToString() => $"({Start}), ({End})";
+        
+        private static Box2Fixed MakeBox(Vec2Fixed start, Vec2Fixed end)
+        {
+            return new Box2Fixed(
+                new Vec2Fixed(new Fixed(Math.Min(start.X.Bits, end.X.Bits)), 
+                    new Fixed(Math.Min(start.Y.Bits, end.Y.Bits))),
+                new Vec2Fixed(new Fixed(Math.Max(start.X.Bits, end.X.Bits)), 
+                    new Fixed(Math.Max(start.Y.Bits, end.Y.Bits))));
+        }
+
+        private static SegmentDirection CalculateDirection(Vec2Fixed delta)
+        {
+            if (MathHelper.IsZero(delta.X))
+                return SegmentDirection.Vertical;
+            if (MathHelper.IsZero(delta.Y))
+                return SegmentDirection.Horizontal;
+            return MathHelper.DifferentSign(delta.X, delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
+        }
     }
 }

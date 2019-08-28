@@ -11,12 +11,12 @@ namespace Helion.World.Entities.Players
         Attack,
         Jump,
         Crouch,
-        Use
+        Use,
     }
 
     public class TickCommand
     {
-        private HashSet<TickCommands> m_commands = new HashSet<TickCommands>();
+        private readonly HashSet<TickCommands> m_commands = new HashSet<TickCommands>();
 
         public void Add(TickCommands command)
         {

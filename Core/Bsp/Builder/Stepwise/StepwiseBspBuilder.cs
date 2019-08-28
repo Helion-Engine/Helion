@@ -36,7 +36,7 @@ namespace Helion.Bsp.Builder.Stepwise
         /// <summary>
         /// Gets the current work item.
         /// </summary>
-        public WorkItem? CurrentWorkItem => WorkItems.TryPeek(out WorkItem result) ? result : null;
+        public WorkItem? CurrentWorkItem => WorkItems.TryPeek(out WorkItem? result) ? result : null;
         
         /// <summary>
         /// Creates a stepwise BSP builder from a map with a default config.

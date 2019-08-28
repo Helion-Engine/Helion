@@ -10,13 +10,12 @@ namespace Helion.Maps.Special.Specials
         private int m_stairHeight;
         private int m_stairDelayTics;
         private int m_stairDelay;
-        private double m_startZ;
-
-        private List<Sector> m_sectors = new List<Sector>();
         private int m_destroyCount;
+        private double m_startZ;
+        private List<Sector> m_sectors = new List<Sector>();
 
-        public StairSpecial(PhysicsManager physicsManager, Sector sector, double speed, int height, int delay, bool crush)
-            : base(physicsManager, sector, 0, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
+        public StairSpecial(PhysicsManager physicsManager, Sector sector, double speed, int height, int delay, bool crush) : 
+            base(physicsManager, sector, 0, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
         {
             m_stairHeight = height;
             m_stairDelay = 35; 
@@ -48,8 +47,8 @@ namespace Helion.Maps.Special.Specials
             for (int i = 0; i < m_sectors.Count; i++)
             {
                 Sector = m_sectors[i];
-                m_flat = Sector.Floor;
-                m_destZ = m_startZ + (m_stairHeight * (i + 1));
+                Flat = Sector.Floor;
+                DestZ = m_startZ + (m_stairHeight * (i + 1));
                 if (Sector.IsMoving)
                     currentStatus = base.Tick(gametic);
 

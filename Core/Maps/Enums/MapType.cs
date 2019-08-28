@@ -1,4 +1,4 @@
-﻿namespace Helion.Maps
+﻿namespace Helion.Maps.Enums
 {
     /// <summary>
     /// The different supported map types.
@@ -7,6 +7,6 @@
     {
         Doom,
         Hexen,
-        UDMF
+        UDMF,
     }
 }

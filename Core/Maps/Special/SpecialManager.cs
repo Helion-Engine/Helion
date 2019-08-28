@@ -16,13 +16,12 @@ namespace Helion.Maps.Special
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         private const double SpeedFactor = 0.125;
 
-        private LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
-        private List<ISpecial> m_destroyedMoveSpecials = new List<ISpecial>();
-        private PhysicsManager m_physicsManager;
-        private IMap m_map;
-
-        private SwitchManager m_switchManager = new SwitchManager();
-        private DoomRandom m_random = new DoomRandom();
+        private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
+        private readonly List<ISpecial> m_destroyedMoveSpecials = new List<ISpecial>();
+        private readonly PhysicsManager m_physicsManager;
+        private readonly IMap m_map;
+        private readonly SwitchManager m_switchManager = new SwitchManager();
+        private readonly DoomRandom m_random = new DoomRandom();
 
         public SpecialManager(PhysicsManager physicsManager, IMap map)
         {
@@ -51,305 +50,13 @@ namespace Helion.Maps.Special
             return specialActivateSuccess;
         }
 
-        private void StartInitSpecials()
-        {
-            var lines = m_map.Lines.Where(x => x.Special != null && x.Flags.ActivationType == ActivationType.LevelStart);
-            foreach (var line in lines)
-                HandleLineInitSpecial(line);
-
-            var sectors = m_map.Sectors.Where(x => x.SectorSpecialType != ZSectorSpecialType.None);
-            foreach (var sector in sectors)
-                HandleSectorSpecial(sector);
-        }
-
-        private void HandleLineInitSpecial(Line line)
-        {
-            switch (line.Special.LineSpecialType)
-            {
-                case ZLineSpecialType.ScrollTextureLeft:
-                    AddSpecial(new LineScrollSpecial(line, line.Args[0] / 32, (ZLineScroll)line.Args[1]));
-                    break;
-            }
-        }
-
-        private void HandleSectorSpecial(Sector sector)
-        {
-            switch (sector.SectorSpecialType)
-            {
-                case ZSectorSpecialType.LightFlickerDoom:
-                    AddSpecial(new LightFlickerDoomSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector)));
-                    break;
-
-                case ZSectorSpecialType.LightStrobeFastDoom:
-                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.FastDarkTime, false));
-                    break;
-
-                case ZSectorSpecialType.LightStrobeSlowDoom:
-                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, false));
-                    break;
-
-                case ZSectorSpecialType.LightStrobeHurtDoom:
-                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, false));
-                    break;
-
-                case ZSectorSpecialType.LightGlow:
-                    AddSpecial(new LightPulsateSpecial(sector, m_map.GetMinLightLevelNeighbor(sector)));
-                    break;
-
-                case ZSectorSpecialType.SectorDoorClose30Seconds:
-                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, VConstants.DoorSlowSpeed * SpeedFactor), 35 * 30));
-                    break;
-
-                case ZSectorSpecialType.DamageEnd:
-                    break;
-
-                case ZSectorSpecialType.LightStrobeSlowSync:
-                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, true));
-                    break;
-
-                case ZSectorSpecialType.LightStrobeFastSync:
-                    AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.FastDarkTime, true));
-                    break;
-
-                case ZSectorSpecialType.DoorRaiseIn5Minutes:
-                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, VConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5));
-                    break;
-
-                case ZSectorSpecialType.LightFireFlicker:
-                    AddSpecial(new LightFireFlickerDoom(sector, m_random, m_map.GetMinLightLevelNeighbor(sector)));
-                    break;
-            }
-        }
-
-        private bool HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special)
-        {
-            switch (special.LineSpecialType)
-            {
-                case ZLineSpecialType.Teleport:
-                    AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
-                    return true;
-                case ZLineSpecialType.ExitNormal:
-                    AddSpecial(new ExitSpecial(15));
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool HandleSectorLineSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
-        {
-            bool success = false;
-
-            List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
-            var lineSpecial = args.ActivateLineSpecial.Special;
-            foreach (var sector in sectors)
-            {
-                if ((lineSpecial.IsSectorMoveSpecial() && !sector.IsMoving) || lineSpecial.IsSectorLightSpecial())
-                {
-                    ISpecial? sectorSpecial = CreateSectorSpecial(args, special, sector);
-                    if (sectorSpecial != null)
-                    {
-                        success = true;
-                        AddSpecial(sectorSpecial);
-                    }
-                }
-                else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
-                    args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
-                {
-                    sector.ActiveMoveSpecial.Use();
-                }
-            }
-
-            return success;
-        }
-
-        private ISpecial? CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
-        {
-            Line line = args.ActivateLineSpecial;
-
-            switch (special.LineSpecialType)
-            {
-                case ZLineSpecialType.Teleport:
-                    return new TeleportSpecial(args, m_physicsManager, m_map);
-
-                case ZLineSpecialType.DoorOpenClose:
-                    return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
-
-                case ZLineSpecialType.DoorOpenStay:
-                    return CreateDoorOpenStaySpecial(sector, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.DoorClose:
-                    return CreateDoorCloseSpecial(sector, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.DoorCloseWaitOpen:
-                    return CreateDoorCloseOpenSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
-
-                case ZLineSpecialType.DoorLockedRaise:
-                    return CreateDoorLockedSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args[3]);
-
-                case ZLineSpecialType.LiftDownWaitUpStay:
-                    return CreateLiftSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
-
-                case ZLineSpecialType.FloorLowerToLowest:
-                    return CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorLowerToHighest:
-                    return CreateFloorLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor, line.Args[2]);
-
-                case ZLineSpecialType.FloorLowerToNearest:
-                    return CreateFloorLowerSpecial(sector, SectorDest.NextLowestFloor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorLowerByValue:
-                    return CreateFloorLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorLowerByValueTimes8:
-                    return CreateFloorLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorRaiseToLowest:
-                    return CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorRaiseToHighest:
-                    return CreateFloorRaiseSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorRaiseToLowestCeiling:
-                    return CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorRaiseToNearset:
-                    return CreateFloorRaiseSpecial(sector, SectorDest.NextHighestFloor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorRaiseByValue:
-                    return CreateFloorRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorRaiseByValueTimes8:
-                    return CreateFloorRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.FloorMoveToValue:
-                    return CreateSectorMoveSpecial(sector, sector.Floor, SectorMoveType.Floor, line.SpeedArg * SpeedFactor,
-                        line.AmountArg, line.Args[3]);
-
-                case ZLineSpecialType.FloorMoveToValueTimes8:
-                    return CreateSectorMoveSpecial(sector, sector.Floor, SectorMoveType.Floor, line.SpeedArg * SpeedFactor, 
-                        line.AmountArg * 8, line.Args[3]);
-
-                case ZLineSpecialType.CeilingLowerToLowest:
-                    return CreateCeilingLowerSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingLowerToHighestFloor:
-                    return CreateCeilingLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingLowerToFloor:
-                    return CreateCeilingLowerSpecial(sector, SectorDest.Floor, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingLowerByValue:
-                    return CreateCeilingLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingLowerByValueTimes8:
-                    return CreateCeilingLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingRaiseToNearest:
-                    return CreateCeilingRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingRaiseByValue:
-                    return CreateCeilingRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingRaiseByValueTimes8:
-                    return CreateCeilingRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.CeilingMoveToValue:
-                    return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorMoveType.Ceiling, line.SpeedArg * SpeedFactor,
-                        line.AmountArg, line.Args[3]);
-
-                case ZLineSpecialType.CeilingMoveToValueTimes8:
-                    return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorMoveType.Ceiling, line.SpeedArg * SpeedFactor,
-                        line.AmountArg * 8, line.Args[3]);
-
-                case ZLineSpecialType.PlatPerpetualRaiseLip:
-                    return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args[3]);
-
-                case ZLineSpecialType.StairsBuildUpDoom:
-                    return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], false);
-
-                case ZLineSpecialType.StairsBuildUpDoomCrush:
-                    return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], true);
-
-                case ZLineSpecialType.CeilingCrushAndRaiseDist:
-                    return CreateCeilingCrusherSpecial(sector, line.Args[1], line.Args[2] * SpeedFactor, line.Args[3], (ZCrushMode)line.Args[4]);
-
-                case ZLineSpecialType.FloorRaiseAndCrushDoom:
-                    return CreateFloorCrusherSpecial(sector, line.Args[1] * SpeedFactor, line.Args[2], (ZCrushMode)line.Args[3]);
-
-                case ZLineSpecialType.FloorRaiseByValueTxTy:
-                    return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
-
-                case ZLineSpecialType.PlatRaiseAndStay:
-                    return CreateRaisePlatTxSpecial(sector, line, line.Args[1] * SpeedFactor, line.Args[2]);
-
-                case ZLineSpecialType.LightChangeToValue:
-                    return CreateLightChangeSpecial(sector, line.Args[1]);
-
-                case ZLineSpecialType.LightMinNeighbor:
-                    return CreateLightChangeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector));
-
-                case ZLineSpecialType.LightMaxNeighor:
-                    return CreateLightChangeSpecial(sector, m_map.GetMaxLightLevelNeighbor(sector));
-
-                case ZLineSpecialType.FloorDonut:
-                    HandleFloorDonut(line, sector);
-                    return null;
-            }
-
-            return null;
-        }
-
-        private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)
-        {
-            return new LightChangeSpecial(sector, lightLevel, fadeTics);
-        }
-
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
         {
             sector.Floor.Texture = line.Front.Sector.Floor.Texture;
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
-
-        private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, byte lockout)
-        {
-            // TODO clear sector special when implemented
-            double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
-            sector.Floor.Texture = line.Front.Sector.Floor.Texture;
-            //sector.Special = null;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
-                MoveDirection.Up, MoveRepetition.None, speed, 0, null));
-        }
-
-        private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZCrushMode crushMode)
-        {
-            double destZ = sector.Floor.Z + dist;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
-        }
-
-        private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZCrushMode crushMode)
-        {
-            double destZ = sector.Ceiling.Z - 8;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
-        }
-
-        private void HandleFloorDonut(Line line, Sector sector)
-        {
-            var donutSectors = DonutSpecial.GetDonutSectors(sector);
-
-            if (donutSectors != null)
-            {
-                var lowerSector = donutSectors[0];
-                var raiseSector = donutSectors[1];
-                var destSector = donutSectors[2];
-
-                AddSpecial(CreateFloorLowerSpecial(lowerSector, lowerSector.Floor.Z - destSector.Floor.Z, line.Args[1] * SpeedFactor));
-                AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args[2] * SpeedFactor, destSector.Floor.Texture));
-            }
-        }
-
+        
         public void Tick(long gametic)
         {
             if (m_destroyedMoveSpecials.Count > 0)
@@ -503,40 +210,332 @@ namespace Helion.Maps.Special
             return new StairSpecial(m_physicsManager, sector, speed, height, delay, crush);
         }
 
+        private void StartInitSpecials()
+        {
+            var lines = m_map.Lines.Where(x => x.Special != null && x.Flags.ActivationType == ActivationType.LevelStart);
+            foreach (var line in lines)
+                HandleLineInitSpecial(line);
+
+            var sectors = m_map.Sectors.Where(x => x.SectorSpecialType != ZSectorSpecialType.None);
+            foreach (var sector in sectors)
+                HandleSectorSpecial(sector);
+        }
+
+        private void HandleLineInitSpecial(Line line)
+        {
+            switch (line.Special.LineSpecialType)
+            {
+            case ZLineSpecialType.ScrollTextureLeft:
+                AddSpecial(new LineScrollSpecial(line, line.Args[0] / 32, (ZLineScroll)line.Args[1]));
+                break;
+            }
+        }
+
+        private void HandleSectorSpecial(Sector sector)
+        {
+            switch (sector.SectorSpecialType)
+            {
+            case ZSectorSpecialType.LightFlickerDoom:
+                AddSpecial(new LightFlickerDoomSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector)));
+                break;
+
+            case ZSectorSpecialType.LightStrobeFastDoom:
+                AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.FastDarkTime, false));
+                break;
+
+            case ZSectorSpecialType.LightStrobeSlowDoom:
+                AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, false));
+                break;
+
+            case ZSectorSpecialType.LightStrobeHurtDoom:
+                AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, false));
+                break;
+
+            case ZSectorSpecialType.LightGlow:
+                AddSpecial(new LightPulsateSpecial(sector, m_map.GetMinLightLevelNeighbor(sector)));
+                break;
+
+            case ZSectorSpecialType.SectorDoorClose30Seconds:
+                AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, VConstants.DoorSlowSpeed * SpeedFactor), 35 * 30));
+                break;
+
+            case ZSectorSpecialType.DamageEnd:
+                break;
+
+            case ZSectorSpecialType.LightStrobeSlowSync:
+                AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.SlowDarkTime, true));
+                break;
+
+            case ZSectorSpecialType.LightStrobeFastSync:
+                AddSpecial(new LightStrobeSpecial(sector, m_random, m_map.GetMinLightLevelNeighbor(sector), VConstants.BrightTime, VConstants.FastDarkTime, true));
+                break;
+
+            case ZSectorSpecialType.DoorRaiseIn5Minutes:
+                AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, VConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5));
+                break;
+
+            case ZSectorSpecialType.LightFireFlicker:
+                AddSpecial(new LightFireFlickerDoom(sector, m_random, m_map.GetMinLightLevelNeighbor(sector)));
+                break;
+            }
+        }
+
+        private bool HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special)
+        {
+            switch (special.LineSpecialType)
+            {
+                case ZLineSpecialType.Teleport:
+                    AddSpecial(new TeleportSpecial(args, m_physicsManager, m_map));
+                    return true;
+                case ZLineSpecialType.ExitNormal:
+                    AddSpecial(new ExitSpecial(15));
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool HandleSectorLineSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
+        {
+            bool success = false;
+
+            List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
+            var lineSpecial = args.ActivateLineSpecial.Special;
+            foreach (var sector in sectors)
+            {
+                if ((lineSpecial.IsSectorMoveSpecial() && !sector.IsMoving) || lineSpecial.IsSectorLightSpecial())
+                {
+                    ISpecial? sectorSpecial = CreateSectorSpecial(args, special, sector);
+                    if (sectorSpecial != null)
+                    {
+                        success = true;
+                        AddSpecial(sectorSpecial);
+                    }
+                }
+                else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
+                    args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
+                {
+                    sector.ActiveMoveSpecial.Use();
+                }
+            }
+
+            return success;
+        }
+
+        private ISpecial? CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
+        {
+            Line line = args.ActivateLineSpecial;
+
+            switch (special.LineSpecialType)
+            {
+            case ZLineSpecialType.Teleport:
+                return new TeleportSpecial(args, m_physicsManager, m_map);
+
+            case ZLineSpecialType.DoorOpenClose:
+                return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+
+            case ZLineSpecialType.DoorOpenStay:
+                return CreateDoorOpenStaySpecial(sector, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.DoorClose:
+                return CreateDoorCloseSpecial(sector, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.DoorCloseWaitOpen:
+                return CreateDoorCloseOpenSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+
+            case ZLineSpecialType.DoorLockedRaise:
+                return CreateDoorLockedSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args[3]);
+
+            case ZLineSpecialType.LiftDownWaitUpStay:
+                return CreateLiftSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+
+            case ZLineSpecialType.FloorLowerToLowest:
+                return CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorLowerToHighest:
+                return CreateFloorLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor, line.Args[2]);
+
+            case ZLineSpecialType.FloorLowerToNearest:
+                return CreateFloorLowerSpecial(sector, SectorDest.NextLowestFloor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorLowerByValue:
+                return CreateFloorLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorLowerByValueTimes8:
+                return CreateFloorLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorRaiseToLowest:
+                return CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorRaiseToHighest:
+                return CreateFloorRaiseSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorRaiseToLowestCeiling:
+                return CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorRaiseToNearset:
+                return CreateFloorRaiseSpecial(sector, SectorDest.NextHighestFloor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorRaiseByValue:
+                return CreateFloorRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorRaiseByValueTimes8:
+                return CreateFloorRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.FloorMoveToValue:
+                return CreateSectorMoveSpecial(sector, sector.Floor, SectorMoveType.Floor, line.SpeedArg * SpeedFactor,
+                    line.AmountArg, line.Args[3]);
+
+            case ZLineSpecialType.FloorMoveToValueTimes8:
+                return CreateSectorMoveSpecial(sector, sector.Floor, SectorMoveType.Floor, line.SpeedArg * SpeedFactor, 
+                    line.AmountArg * 8, line.Args[3]);
+
+            case ZLineSpecialType.CeilingLowerToLowest:
+                return CreateCeilingLowerSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingLowerToHighestFloor:
+                return CreateCeilingLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingLowerToFloor:
+                return CreateCeilingLowerSpecial(sector, SectorDest.Floor, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingLowerByValue:
+                return CreateCeilingLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingLowerByValueTimes8:
+                return CreateCeilingLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingRaiseToNearest:
+                return CreateCeilingRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingRaiseByValue:
+                return CreateCeilingRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingRaiseByValueTimes8:
+                return CreateCeilingRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.CeilingMoveToValue:
+                return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorMoveType.Ceiling, line.SpeedArg * SpeedFactor,
+                    line.AmountArg, line.Args[3]);
+
+            case ZLineSpecialType.CeilingMoveToValueTimes8:
+                return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorMoveType.Ceiling, line.SpeedArg * SpeedFactor,
+                    line.AmountArg * 8, line.Args[3]);
+
+            case ZLineSpecialType.PlatPerpetualRaiseLip:
+                return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args[3]);
+
+            case ZLineSpecialType.StairsBuildUpDoom:
+                return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], false);
+
+            case ZLineSpecialType.StairsBuildUpDoomCrush:
+                return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args[2], line.Args[3], true);
+
+            case ZLineSpecialType.CeilingCrushAndRaiseDist:
+                return CreateCeilingCrusherSpecial(sector, line.Args[1], line.Args[2] * SpeedFactor, line.Args[3], (ZCrushMode)line.Args[4]);
+
+            case ZLineSpecialType.FloorRaiseAndCrushDoom:
+                return CreateFloorCrusherSpecial(sector, line.Args[1] * SpeedFactor, line.Args[2], (ZCrushMode)line.Args[3]);
+
+            case ZLineSpecialType.FloorRaiseByValueTxTy:
+                return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+
+            case ZLineSpecialType.PlatRaiseAndStay:
+                return CreateRaisePlatTxSpecial(sector, line, line.Args[1] * SpeedFactor, line.Args[2]);
+
+            case ZLineSpecialType.LightChangeToValue:
+                return CreateLightChangeSpecial(sector, line.Args[1]);
+
+            case ZLineSpecialType.LightMinNeighbor:
+                return CreateLightChangeSpecial(sector, m_map.GetMinLightLevelNeighbor(sector));
+
+            case ZLineSpecialType.LightMaxNeighor:
+                return CreateLightChangeSpecial(sector, m_map.GetMaxLightLevelNeighbor(sector));
+
+            case ZLineSpecialType.FloorDonut:
+                HandleFloorDonut(line, sector);
+                return null;
+            }
+
+            return null;
+        }
+
+        private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)
+        {
+            return new LightChangeSpecial(sector, lightLevel, fadeTics);
+        }
+
+        private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, byte lockout)
+        {
+            // TODO clear sector special when implemented
+            double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
+            sector.Floor.Texture = line.Front.Sector.Floor.Texture;
+
+            SectorMoveData moveData = new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, moveData);
+        }
+
+        private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZCrushMode crushMode)
+        {
+            double destZ = sector.Floor.Z + dist;
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
+        }
+
+        private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZCrushMode crushMode)
+        {
+            double destZ = sector.Ceiling.Z - 8;
+            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
+        }
+
+        private void HandleFloorDonut(Line line, Sector sector)
+        {
+            var donutSectors = DonutSpecial.GetDonutSectors(sector);
+
+            if (donutSectors == null) 
+                return;
+            
+            var lowerSector = donutSectors[0];
+            var raiseSector = donutSectors[1];
+            var destSector = donutSectors[2];
+
+            AddSpecial(CreateFloorLowerSpecial(lowerSector, lowerSector.Floor.Z - destSector.Floor.Z, line.Args[1] * SpeedFactor));
+            AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args[2] * SpeedFactor, destSector.Floor.Texture));
+        }
+
         private List<Sector> GetSectorsFromSpecialLine(Line line)
         {
             if (line.HasSectorTag)
                 return m_map.Sectors.Where(x => x.Tag == line.SectorTag).ToList();
-            else if (line.Back != null)
+            if (line.Back != null)
                 return new List<Sector> { line.Back.Sector };
 
-            return new List<Sector> { };
+            return new List<Sector>();
         }
 
         private double GetDestZ(Sector sector, SectorDest destination)
         {
             switch (destination)
             {
-                case SectorDest.LowestAdjacentFloor:
-                    return GetLowestFloorDestZ(sector);
-                case SectorDest.HighestAdjacentFloor:
-                    return GetHighestFloorDestZ(sector);
-                case SectorDest.LowestAdjacentCeiling:
-                    return GetLowestCeilingDestZ(sector);
-                case SectorDest.HighestAdjacentCeiling:
-                    return GetHighestCeilingDestZ(sector);
-                case SectorDest.NextLowestFloor:
-                    return GetNextLowestFloorDestZ(sector);
-                case SectorDest.NextLowestCeiling:
-                    return GetNextLowestCeilingDestZ(sector);
-                case SectorDest.NextHighestFloor:
-                    return GetNextHighestFloorDestZ(sector);
-                case SectorDest.NextHighestCeiling:
-                    return GetNextHighestCeilingDestZ(sector);
-                case SectorDest.Floor:
-                    return sector.Floor.Z;
-                case SectorDest.Ceiling:
-                    return sector.Ceiling.Z;
+            case SectorDest.LowestAdjacentFloor:
+                return GetLowestFloorDestZ(sector);
+            case SectorDest.HighestAdjacentFloor:
+                return GetHighestFloorDestZ(sector);
+            case SectorDest.LowestAdjacentCeiling:
+                return GetLowestCeilingDestZ(sector);
+            case SectorDest.HighestAdjacentCeiling:
+                return GetHighestCeilingDestZ(sector);
+            case SectorDest.NextLowestFloor:
+                return GetNextLowestFloorDestZ(sector);
+            case SectorDest.NextLowestCeiling:
+                return GetNextLowestCeilingDestZ(sector);
+            case SectorDest.NextHighestFloor:
+                return GetNextHighestFloorDestZ(sector);
+            case SectorDest.NextHighestCeiling:
+                return GetNextHighestCeilingDestZ(sector);
+            case SectorDest.Floor:
+                return sector.Floor.Z;
+            case SectorDest.Ceiling:
+                return sector.Ceiling.Z;
             }
 
             return 0;
@@ -545,37 +544,37 @@ namespace Helion.Maps.Special
         private double GetNextLowestFloorDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetNextLowestFloor(sector);
-            return destSector == null ? sector.Floor.Z : destSector.Floor.Z;
+            return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
         private double GetNextLowestCeilingDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetNextLowestCeiling(sector);
-            return destSector == null ? sector.Floor.Z : destSector.Ceiling.Z;
+            return destSector?.Ceiling.Z ?? sector.Floor.Z;
         }
 
         private double GetNextHighestFloorDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetNextHighestFloor(sector);
-            return destSector == null ? sector.Floor.Z : destSector.Floor.Z;
+            return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
         private double GetNextHighestCeilingDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetNextHighestCeiling(sector);
-            return destSector == null ? sector.Ceiling.Z : destSector.Ceiling.Z;
+            return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
         }
 
         private double GetLowestFloorDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetLowestAdjacentFloor(sector);
-            return destSector == null ? sector.Floor.Z : destSector.Floor.Z;
+            return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
         private double GetHighestFloorDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetHighestAdjacentFloor(sector);
-            return destSector == null ? sector.Floor.Z : destSector.Floor.Z;
+            return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
         private double GetLowestCeilingDestZ(Sector sector)
@@ -587,7 +586,7 @@ namespace Helion.Maps.Special
         private double GetHighestCeilingDestZ(Sector sector)
         {
             Sector? destSector = m_map.GetHighestAdjacentCeiling(sector);
-            return destSector == null ? sector.Ceiling.Z : destSector.Ceiling.Z;
+            return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
         }
     }
 }

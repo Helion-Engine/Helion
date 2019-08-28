@@ -1,15 +1,29 @@
-using Helion.Util.Extensions;
+using System;
+using System.Reflection;
 using IniParser;
 using IniParser.Model;
 using NLog;
-using System;
-using System.Reflection;
 
 namespace Helion.Util.Configuration
 {
     public static class ConfigReflectionWriter
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        public static void WriteFieldsRecursively(object config, string path)
+        {
+            try
+            {
+                FileIniDataParser parser = new FileIniDataParser();
+                IniData data = new IniData();
+                PopulateIniSections(config, data);
+                parser.WriteFile(path, data);
+            }
+            catch
+            {
+                Log.Error("Failure to write config file to: {0}", path);
+            }
+        }
 
         private static string ConfigValueToString(object configValue, Type fieldType)
         {
@@ -26,7 +40,7 @@ namespace Helion.Util.Configuration
             
             return configValue.ToString().ToLower();
         }
-        
+
         private static void PopulateIniKeysRecursively(object configNode, KeyDataCollection keyData, string keySoFar = "")
         {
             foreach (FieldInfo field in configNode.GetType().GetFields())
@@ -55,21 +69,6 @@ namespace Helion.Util.Configuration
                 string lowerName = field.Name.ToLower();
                 data.Sections.AddSection(lowerName);
                 PopulateIniKeysRecursively(field.GetValue(config), data[lowerName]);
-            }
-        }
-
-        public static void WriteFieldsRecursively(object config, string path)
-        {
-            try
-            {
-                FileIniDataParser parser = new FileIniDataParser();
-                IniData data = new IniData();
-                PopulateIniSections(config, data);
-                parser.WriteFile(path, data);
-            }
-            catch
-            {
-                log.Error("Failure to write config file to: {0}", path);
             }
         }
     }

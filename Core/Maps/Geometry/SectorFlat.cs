@@ -1,4 +1,5 @@
 ﻿using System;
+using Helion.Maps.Enums;
 using Helion.Util;
 using Helion.Util.Geometry;
 

@@ -11,11 +11,11 @@ namespace Helion.Util.Time
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public long GameTic;
         private readonly long m_stopwatchTicksPerGametick;
         private readonly Stopwatch m_stopwatch = new Stopwatch();
         private long m_lastTickSeen;
-        private long m_tickAccumulation = 0;
-        public long GameTic = 0;
+        private long m_tickAccumulation;
 
         /// <summary>
         /// Creates a new ticker that creates the following ticks per second.

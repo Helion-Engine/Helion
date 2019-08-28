@@ -101,7 +101,7 @@
         }
     }
 
-    struct LinedefHexen
+    public struct LinedefHexen
     {
         public static readonly int Bytes = 16;
 
@@ -231,7 +231,7 @@
         public ushort FromDegreesToFullRange() => (ushort)(Angle * Constants.AngleToFullRangeFactor);
     }
 
-    struct ThingHexen
+    public struct ThingHexen
     {
         public static readonly int Bytes = 20;
 

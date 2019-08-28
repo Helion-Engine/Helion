@@ -1,4 +1,5 @@
-﻿using Helion.Util;
+﻿using Helion.Maps.Enums;
+using Helion.Util;
 
 namespace Helion.Maps
 {

@@ -36,7 +36,6 @@ namespace Helion.World.Bsp
         /// The splitter that made this line, which is also used for finding
         /// out which side of the line a point is on.
         /// </summary>
-        // TODO: Do we want a customized BspSplitter type that is a struct as well?
         public readonly Seg2D Splitter;
 
         /// <summary>
@@ -55,13 +54,13 @@ namespace Helion.World.Bsp
         public bool IsRightSubsector => (RightChild & IsSubsectorBit) == IsSubsectorBit;
 
         /// <summary>
-        /// Gets the left childs index as if it were a subsector (without the
+        /// Gets the left child's index as if it were a subsector (without the
         /// subsector bit set).
         /// </summary>
         public uint LeftChildAsSubsector => LeftChild & SubsectorMask;
 
         /// <summary>
-        /// Gets the right childs index as if it were a subsector (without the
+        /// Gets the right child's index as if it were a subsector (without the
         /// subsector bit set).
         /// </summary>
         public uint RightChildAsSubsector => RightChild & SubsectorMask;
@@ -82,13 +81,5 @@ namespace Helion.World.Bsp
             Splitter = splitter;
             BoundingBox = boundingBox;
         }
-
-        /// <summary>
-        /// Checks if the index is a subsector.
-        /// </summary>
-        /// <param name="index">The subsector index.</param>
-        /// <returns>True if it's a subsector index, false if it's a node 
-        /// index.</returns>
-        public static bool IsSubsectorIndex(ushort index) => (index & IsSubsectorBit) > 0;
     }
 }

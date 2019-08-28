@@ -1,5 +1,4 @@
-﻿using Helion.Util.Extensions;
-using System.IO;
+﻿using System.IO;
 
 namespace Helion.Resources.Archives.Entries
 {
@@ -8,9 +7,9 @@ namespace Helion.Resources.Archives.Entries
     /// </summary>
     public class EntryPath : IEntryPath
     {
-        public string FullPath { get; protected set; }
-        public string Name { get; protected set; }
-        public string Extension { get; protected set; }
+        public string FullPath { get; }
+        public string Name { get; }
+        public string Extension { get; }
         public bool HasExtension => !string.IsNullOrEmpty(Extension);
         public bool IsDirectory => string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(Extension);
 
@@ -21,9 +20,6 @@ namespace Helion.Resources.Archives.Entries
             Extension = Path.GetExtension(FullPath);
         }
 
-        public override string ToString()
-        {
-            return FullPath;
-        }
+        public override string ToString() => FullPath;
     }
 }

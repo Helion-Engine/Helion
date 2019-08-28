@@ -31,5 +31,12 @@ namespace Helion.World.Physics
         /// The line that activated the special if applicable.
         /// </summary>
         public Line ActivateLineSpecial;
+
+        public EntityActivateSpecialEventArgs(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
+        {
+            ActivationContext = activationContext;
+            Entity = entity;
+            ActivateLineSpecial = activateLineSpecial;
+        }
     }
 }

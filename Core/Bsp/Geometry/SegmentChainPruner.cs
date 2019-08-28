@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.Extensions;
@@ -152,8 +153,11 @@ namespace Helion.Bsp.Geometry
         private void PruneSegment(int currentIndex, int nextIndex)
         {
             BspSegment? segment = m_segmentTable[currentIndex, nextIndex];
-            Precondition(segment != null, "Cannot prune a segment that doesn't exist");
+            
+            if (segment == null)
+                throw new NullReferenceException("Cannot prune a segment that doesn't exist");
             Invariant(!PrunedSegments.Contains(segment), "Trying to prune a segment we already pruned");
+            
             PrunedSegments.Add(segment);
 
             RemoveFromAdjacencyList(currentIndex, nextIndex);
