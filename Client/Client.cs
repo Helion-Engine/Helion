@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Helion.Client.OpenTK;
 using Helion.Input;
 using Helion.Layer;
+using Helion.Layer.WorldLayers;
 using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Util;
@@ -81,16 +82,23 @@ namespace Helion.Client
                 Log.Error("Unable to load files at startup");
 
             if (m_commandLineArgs.Warp != null)
-            {
-                string mapName = GetWarpMapFormat(m_commandLineArgs.Warp.Value);
-                m_console.AddInput($"map {mapName}\n");
-            }
+                HandleWarp(m_commandLineArgs.Warp.Value);
             else
             {
                 // If we're not warping to a map, bring up the console.
                 if (!m_layerManager.Contains(typeof(ConsoleLayer)))
                     m_layerManager.Add(new ConsoleLayer(m_console));
             }
+        }
+
+        private void HandleWarp(int warpNumber)
+        {
+            string mapName = GetWarpMapFormat(warpNumber);
+            m_console.AddInput($"map {mapName}\n");
+                
+            // If the map is corrupt, go to the console.
+            if (!m_layerManager.Contains(typeof(WorldLayer)))
+                m_layerManager.Add(new ConsoleLayer(m_console));
         }
 
         private string GetWarpMapFormat(int level)

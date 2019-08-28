@@ -57,8 +57,6 @@ namespace Helion.Layer.WorldLayers
 
         public bool LoadMap(string mapName)
         {
-            m_ticker.Stop();
-
             (IMap? map, MapEntryCollection? collection) = ArchiveCollection.FindMap(mapName);
             if (map == null || collection == null)
             {
@@ -69,9 +67,11 @@ namespace Helion.Layer.WorldLayers
             SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, map, collection);
             if (world == null)
             {
-                Log.Warn("Map is corrupt, unable to create map {0}", mapName);
+                Log.Error("Unable to load map {0}", mapName);
                 return false;
             }
+
+            m_ticker.Stop();
 
             if (m_world != null)
             {

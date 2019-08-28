@@ -67,7 +67,7 @@ namespace Helion.Layer
         /// </summary>
         /// <param name="type">The layer type.</param>
         /// <returns>True if so, false otherwise.</returns>
-        public bool Contains(Type type) => m_layers.Any(layer => layer.GetType() == type);
+        public bool Contains(Type type) => m_layers.Any(layer => layer.GetType() == type || layer.GetType().IsSubclassOf(type));
         
         /// <summary>
         /// Removes all layers with a matching name.
