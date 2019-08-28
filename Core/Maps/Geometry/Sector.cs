@@ -59,7 +59,7 @@ namespace Helion.Maps.Geometry
             Ceiling.LightLevel = lightLevel;
         }
 
-        public override bool Equals(object obj) => obj is Sector sector && Id == sector.Id;
+        public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
 
         public override int GetHashCode() => Id.GetHashCode();
     }

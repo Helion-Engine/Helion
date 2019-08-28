@@ -126,6 +126,5 @@ namespace Helion.Resources.Archives.Iterator
             else
                 Fail($"Unexpected map entry name: {entry.Path.Name}");         
         }
-
     }
 }

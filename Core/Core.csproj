@@ -15,7 +15,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile></DocumentationFile>
     <OutputPath></OutputPath>
-    <NoWarn>1701;1702;NU1701</NoWarn>
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+    <NoWarn>1701;1702;NU1701;CS1591;CS8600;CS8714</NoWarn>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>

@@ -216,7 +216,7 @@ namespace Helion.Maps.Entries
                 Side? back = (leftSidedef != 0xFFFFU ? map.Sides[leftSidedef] : null);
                 LineFlags lineFlags = MakeLineFlags(flags, false);
                 
-                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, null, new byte[ActionSpecial.ArgCount]);
+                Line line = new Line(id, startVertex, endVertex, front, back, lineFlags, new LineSpecial(ZLineSpecialType.None), new byte[ActionSpecial.ArgCount]);
                 line.Special = new LineSpecial(VanillaLineSpecTranslator.Translate(line, (VLineSpecialType)lineType, (byte)sectorTag));
 
                 map.Lines.Add(line);

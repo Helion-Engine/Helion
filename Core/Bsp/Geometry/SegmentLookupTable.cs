@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
@@ -75,7 +76,7 @@ namespace Helion.Bsp.Geometry
         /// does exist.</param>
         /// <returns>True if it does exist, false if not (and is unsafe to
         /// use the out value).</returns>
-        public bool TryGetValue(int firstVertexIndex, int secondVertexIndex, out BspSegment segment)
+        public bool TryGetValue(int firstVertexIndex, int secondVertexIndex, [MaybeNullWhen(false)] out BspSegment segment)
         {
             (int minIndex, int maxIndex) = MathHelper.MinMax(firstVertexIndex, secondVertexIndex);
 
@@ -87,8 +88,11 @@ namespace Helion.Bsp.Geometry
                     return true;
                 }
             }
-  
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             segment = default;
+#pragma warning restore CS8625
+
             return false;
         }
 
@@ -108,7 +112,7 @@ namespace Helion.Bsp.Geometry
                 m_pairs.Add((maxIndex, segment));
             }
 
-            internal bool TryGetSegIndex(int maxIndex, out BspSegment segment)
+            internal bool TryGetSegIndex(int maxIndex, [MaybeNullWhen(false)] out BspSegment segment)
             {
                 for (int i = 0; i < m_pairs.Count; i++)
                 {
@@ -120,7 +124,10 @@ namespace Helion.Bsp.Geometry
                     }
                 }
 
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                 segment = default;
+#pragma warning restore CS8625
+
                 return false;
             }
         }

@@ -9,10 +9,7 @@ namespace Helion.Util.Container
     /// <typeparam name="K1">The first key.</typeparam>
     /// <typeparam name="K2">The second key.</typeparam>
     /// <typeparam name="V">The value.</typeparam>
-    public class HashTable<K1, K2, V>
-        where V : class
-        where K1 : notnull
-        where K2 : notnull
+    public class HashTable<K1, K2, V> where V : class
     {
         private readonly Dictionary<K1, Dictionary<K2, V>> m_table = new Dictionary<K1, Dictionary<K2, V>>();
 

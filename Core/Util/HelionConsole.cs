@@ -36,12 +36,8 @@ namespace Helion.Util
 
         /// <summary>
         /// The current location of the input caret. This will be between the
-        /// range of [0, length]. Note that the upper bound is inclusive!
+        /// range of [0, length]. Note that the upper bound is inclusive.
         /// </summary>
-        /// <remarks>
-        /// Because the upper bound is inclusive, it is unsafe to use this as a
-        /// direct index into the 
-        /// </remarks>
         public int InputCaretPosition { get; private set; }
 
         /// <summary>
@@ -219,7 +215,7 @@ namespace Helion.Util
             default:
                 if (logEvent.Level.Ordinal < 0 || logEvent.Level.Ordinal > 6)
                     Fail("Unexpected log level detected, outside of NLog ordinal range");
-                AddMessage(RGBColoredString.Create(Color.Red, logEvent.FormattedMessage));
+                AddMessage(ColoredStringBuilder.From(Color.Red, logEvent.FormattedMessage));
                 break;
             }
         }

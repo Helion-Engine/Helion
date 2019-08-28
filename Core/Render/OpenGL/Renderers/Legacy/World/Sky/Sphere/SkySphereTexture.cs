@@ -210,7 +210,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             m_allocatedNewTexture = true;
         }
 
-        private Image GetSkyImage()
+        private Image? GetSkyImage()
         {
             ArchiveImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
             return imageRetriever.Get(DefaultSky, ResourceNamespace.Textures);

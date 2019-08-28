@@ -14,7 +14,7 @@ namespace Helion.Bsp.Geometry
     /// Intended to make it so we skip looking at lines that are collinear to
     /// another when we've already determined the splitting cost, as it will
     /// be wasted work to check a collinear line since it'd yield the same
-    /// split cost. This reduces the work done at the bulky O(n^2) step
+    /// split cost. This reduces the work done at the bulky O(n^2) step.
     /// </remarks>
     public class CollinearTracker
     {

@@ -1,6 +1,6 @@
 ﻿namespace Helion.Resources.Archives.Entries
 {
-    class WadEntryPath : IEntryPath
+    public class WadEntryPath : IEntryPath
     {
         public string FullPath { get; }
         public string Name => FullPath;

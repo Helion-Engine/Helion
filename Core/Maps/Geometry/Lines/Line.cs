@@ -28,11 +28,12 @@ namespace Helion.Maps.Geometry.Lines
         public byte AmountArg => Args[2];
 
         public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back = null) : 
-            this(id, startVertex, endVertex, front, back, default, new LineSpecial(ZLineSpecialType.None), null)
+            this(id, startVertex, endVertex, front, back, default, new LineSpecial(ZLineSpecialType.None), new byte[5] { 0, 0, 0, 0, 0 })
         {
         }
 
-        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, LineSpecial special, byte[] args)
+        public Line(int id, Vertex startVertex, Vertex endVertex, Side front, Side? back, LineFlags lineFlags, 
+            LineSpecial special, byte[] args)
         {
             Id = id;
             StartVertex = startVertex;

@@ -33,7 +33,7 @@ namespace Helion.Util
         
         public static bool operator !=(CIString self, string other) => !self.str.Equals(other, StringComparison.OrdinalIgnoreCase);
 
-        public override bool Equals(object obj) => obj is CIString s && str.Equals(s.str, StringComparison.OrdinalIgnoreCase);
+        public override bool Equals(object? obj) => obj is CIString s && str.Equals(s.str, StringComparison.OrdinalIgnoreCase);
         
         public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(str);
 

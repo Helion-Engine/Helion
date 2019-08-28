@@ -5,7 +5,7 @@
         private readonly string m_code;
 
         public ExactMatchCheat(string name, string code, CheatType cheatType) : 
-            this(name, code, null, cheatType)
+            this(name, code, "", cheatType)
         {
         }
 

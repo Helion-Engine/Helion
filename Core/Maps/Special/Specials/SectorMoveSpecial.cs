@@ -1,6 +1,5 @@
 ﻿using System;
 using Helion.Maps.Geometry;
-using Helion.Util;
 using Helion.World.Physics;
 
 namespace Helion.Maps.Special.Specials

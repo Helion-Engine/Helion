@@ -67,13 +67,17 @@ namespace Helion.Util.Geometry
         /// Creates a fixed point value from the number provided.
         /// </summary>
         /// <param name="f">The floating point value to convert.</param>
-        public Fixed(float f) : this((int)(f * 65536.0f)) { }
+        public Fixed(float f) : this((int)(f * 65536.0f)) 
+        {
+        }
 
         /// <summary>
         /// Creates a fixed point value from the number provided.
         /// </summary>
         /// <param name="d">The double to convert.</param>
-        public Fixed(double d) : this((int)(d * 65536.0)) { }
+        public Fixed(double d) : this((int)(d * 65536.0)) 
+        { 
+        }
 
         /// <summary>
         /// Creates a fixed point value from and upper 16 and lower 16 bit set 
@@ -81,7 +85,9 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="upper">The upper 16 bits.</param>
         /// <param name="lower">The lower 16 bits.</param>
-        public Fixed(short upper, ushort lower) : this(BitsFromUpperAndLower(upper, lower)) { }
+        public Fixed(short upper, ushort lower) : this(BitsFromUpperAndLower(upper, lower)) 
+        {
+        }
 
         /// <summary>
         /// Takes an integer and turns it into fixed point. This means a value
@@ -147,7 +153,7 @@ namespace Helion.Util.Geometry
         public double ToDouble() => Bits / 65536.0;
 
         public override string ToString() => $"{(float)Bits}";
-        public override bool Equals(object obj) => obj is Fixed f && Bits == f.Bits;
+        public override bool Equals(object? obj) => obj is Fixed f && Bits == f.Bits;
         public override int GetHashCode() => Bits.GetHashCode();
     }
 }

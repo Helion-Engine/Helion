@@ -118,7 +118,7 @@ namespace Helion.Util.Geometry
         /// Gets a point from the time provided. This will also work even if
         /// the time is not in the [0.0, 1.0] range.
         /// </summary>
-        /// <param name="t">The time (where 0.0 = start and 1.0 = end)</param>
+        /// <param name="t">The time (where 0.0 = start and 1.0 = end).</param>
         /// <returns>The point from the time provided.</returns>
         public Vector2 FromTime(float t) => Start + (Delta * t);
 
@@ -347,13 +347,13 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// Gets the length of the segment.
         /// </summary>
-        /// <returns>The length of the segment</returns>
+        /// <returns>The length of the segment.</returns>
         public float Length() => Delta.Length();
 
         /// <summary>
         /// Gets the squared length of the segment.
         /// </summary>
-        /// <returns>The squared length of the segment</returns>
+        /// <returns>The squared length of the segment.</returns>
         public float LengthSquared() => Delta.LengthSquared();
         
         /// <summary>
@@ -440,7 +440,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <remarks>
         /// If the point is not on the segment, then the result will be wrong.
-        /// A corollary to this is that <code>Start + t*Delta = point</code>.
+        /// A corollary to this is that `Start + t*Delta = point`.
         /// </remarks>
         /// <param name="point">The point to get the time for.</param>
         /// <returns>The time the point is on this segment.</returns>
@@ -599,7 +599,7 @@ namespace Helion.Util.Geometry
         /// Gets a point from the time provided. This will also work even if
         /// the time is not in the [0.0, 1.0] range.
         /// </summary>
-        /// <param name="t">The time (where 0.0 = start and 1.0 = end)</param>
+        /// <param name="t">The time (where 0.0 = start and 1.0 = end).</param>
         /// <returns>The point from the time provided.</returns>
         public Vec2D FromTime(double t) => Start + (Delta * t);
 
@@ -738,7 +738,7 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="other">The other segment to check.</param>
         /// <returns>True if an intersection exists, false if not.</returns>
-        public bool Intersects(Seg2DBase other) => Intersection(other, out double t) ? (0 <= t && t <= 1) : false;
+        public bool Intersects(Seg2DBase other) => Intersection(other, out double t) ? (t >= 0 && t <= 1) : false;
 
         /// <summary>
         /// Gets the intersection with a segment. This is not intended for line
@@ -989,8 +989,7 @@ namespace Helion.Util.Geometry
         {
             return new Box2D(
                 new Vec2D(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
-                new Vec2D(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y))
-            );
+                new Vec2D(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y)));
         }
 
         private static SegmentDirection CalculateDirection(Vec2D delta)
@@ -1083,7 +1082,7 @@ namespace Helion.Util.Geometry
         /// Gets a point from the time provided. This will also work even if
         /// the time is not in the [0.0, 1.0] range.
         /// </summary>
-        /// <param name="t">The time (where 0.0 = start and 1.0 = end)</param>
+        /// <param name="t">The time (where 0.0 = start and 1.0 = end).</param>
         /// <returns>The point from the time provided.</returns>
         public Vec2Fixed FromTime(Fixed t) => Start + (Delta * t);
 
@@ -1310,13 +1309,13 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// Gets the length of the segment.
         /// </summary>
-        /// <returns>The length of the segment</returns>
+        /// <returns>The length of the segment.</returns>
         public Fixed Length() => Delta.Length();
 
         /// <summary>
         /// Gets the squared length of the segment.
         /// </summary>
-        /// <returns>The squared length of the segment</returns>
+        /// <returns>The squared length of the segment.</returns>
         public Fixed LengthSquared() => Delta.LengthSquared();
         
         /// <summary>
@@ -1386,7 +1385,6 @@ namespace Helion.Util.Geometry
         /// <param name="first">The first point.</param>
         /// <param name="second">The second point between first/third.</param>
         /// <param name="third">The third point.</param>
-        /// <param name="epsilon">An optional comparison value.</param>
         /// <returns>The side the third point is on relative to the first and
         /// the second point.</returns>
         public static Rotation Rotation(Vec2Fixed first, Vec2Fixed second, Vec2Fixed third)
@@ -1452,7 +1450,6 @@ namespace Helion.Util.Geometry
         /// Checks if the segments are collinear to each other.
         /// </summary>
         /// <param name="seg">The segment to check.</param>
-        /// <param name="epsilon">The optional epsilon for comparisons.</param>
         /// <returns>True if collinear, false if not.</returns>
         public bool Collinear(Seg2FixedBase seg)
         {

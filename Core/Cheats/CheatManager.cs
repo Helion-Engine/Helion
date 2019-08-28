@@ -7,7 +7,7 @@ namespace Helion.Cheats
 {
     public class CheatManager
     {
-        private readonly ICheat[] m_cheats = new ICheat[]
+        private readonly ICheat[] m_cheats = 
         {
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
             new ChangeLevelCheat(),
@@ -15,8 +15,8 @@ namespace Helion.Cheats
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
         };
 
-        private readonly Dictionary<CheatType, ICheat> m_cheatLookup = new Dictionary<CheatType, ICheat>();
-        private string m_currentCheat = string.Empty;
+        private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
+        private string m_currentCheat = "";
 
         public event EventHandler<ICheat> CheatActivationChanged;
 

@@ -25,7 +25,11 @@ namespace Helion.World.Impl.SinglePlayer
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree) : 
             base(config, archiveCollection, map, bspTree)
         {
-            Player = EntityManager.CreatePlayer(1);
+            Player? player = EntityManager.CreatePlayer(1);
+            if (player == null)
+                throw new NullReferenceException("TODO: Should not allow this, maybe spawn player forcefully?");
+
+            Player = player;
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             CheatManager.Instance.ActivateToggleCheats();
 

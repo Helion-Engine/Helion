@@ -3,7 +3,7 @@
 namespace Helion.Bsp
 {
     /// <summary>
-    /// A simple configuration class that holds tunable parameters
+    /// A simple configuration class that holds tunable parameters.
     /// </summary>
     public class BspConfig
     {

@@ -51,7 +51,7 @@ namespace Helion.Util.Geometry
         public Vec2I ToVector() => new Vec2I(Width, Height);
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) => obj is Dimension other && Equals(other);
+        public override bool Equals(object? obj) => obj is Dimension other && Equals(other);
 
         /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(Width, Height);

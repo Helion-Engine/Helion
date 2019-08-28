@@ -40,8 +40,8 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// is similar to degrees or radians, and has absolute ordering.
         /// </summary>
         /// <remarks>
-        /// Learned this optimization from:
         /// https://stackoverflow.com/questions/1427422/cheap-algorithm-to-find-measure-of-angle-between-vectors
+        /// is where the optimization was learned from.
         /// </remarks>
         /// <param name="vertex">The vertex to convert to a diamond angle.</param>
         /// <returns>The diamond angle for the vertex. This will be zero if it

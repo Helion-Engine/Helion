@@ -30,7 +30,6 @@ namespace Helion.World.Physics
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
-        private readonly EntityActivateSpecialEventArgs m_entityActivatedSpecialArgs = new EntityActivateSpecialEventArgs();
 
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
@@ -205,10 +204,9 @@ namespace Helion.World.Physics
 
             if (activateLine != null)
             {
-                m_entityActivatedSpecialArgs.ActivationContext = ActivationContext.UseLine;
-                m_entityActivatedSpecialArgs.Entity = entity;
-                m_entityActivatedSpecialArgs.ActivateLineSpecial = activateLine;
-                EntityActivatedSpecial?.Invoke(this, m_entityActivatedSpecialArgs);
+                EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(
+                    ActivationContext.UseLine, entity, activateLine);
+                EntityActivatedSpecial?.Invoke(this, args);
             }
             else if (hitBlockLine && entity.Player != null)
             {
@@ -507,10 +505,9 @@ namespace Helion.World.Physics
                 if (line.Special.IsTeleport() && !fromFront)
                     return;
 
-                m_entityActivatedSpecialArgs.ActivationContext = ActivationContext.CrossLine;
-                m_entityActivatedSpecialArgs.Entity = entity;
-                m_entityActivatedSpecialArgs.ActivateLineSpecial = line;
-                EntityActivatedSpecial?.Invoke(this, m_entityActivatedSpecialArgs);
+                EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(
+                    ActivationContext.CrossLine, entity, line);
+                EntityActivatedSpecial?.Invoke(this, args);
             }
         }
 

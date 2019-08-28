@@ -23,7 +23,8 @@ namespace Helion.Util.Atlas
         public Box2I Location;
         
         /// <summary>
-        /// The parent owner of this node, if any. Used in recursive
+        /// The parent owner of this node, if any. Used in recursive ascent 
+        /// when setting parent values.
         /// </summary>
         private readonly AtlasNode? m_parent;
         

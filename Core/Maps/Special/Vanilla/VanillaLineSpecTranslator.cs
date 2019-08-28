@@ -2,7 +2,7 @@
 
 namespace Helion.Maps.Special.Vanilla
 {
-    class VanillaLineSpecTranslator
+    public class VanillaLineSpecTranslator
     {
         public static ZLineSpecialType Translate(Line line, VLineSpecialType type, byte tag)
         {

@@ -7,7 +7,7 @@ namespace Helion.Graphics.Palette
     /// </summary>
     public static class Palettes
     {
-        private static Palette DefaultPalette;
+        private static Palette? DefaultPalette;
 
         /// <summary>
         /// Gets a default palette if one doesn't exist.
@@ -32,7 +32,7 @@ namespace Helion.Graphics.Palette
                 throw new NullReferenceException("Failed to create the default palette, shouldn't be possible");
 
             DefaultPalette = palette;
-            return DefaultPalette;
+            return palette;
         }
     }
 }

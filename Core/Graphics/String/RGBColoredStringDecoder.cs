@@ -1,71 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Helion.Util;
 
 namespace Helion.Graphics.String
 {
-    /// <summary>
-    /// A range for a color in a string.
-    /// </summary>
-    internal class ColorRange
-    {
-        /// <summary>
-        /// The start index.
-        /// </summary>
-        public int StartIndex;
-
-        /// <summary>
-        /// The end index.
-        /// </summary>
-        public int EndIndex;
-
-        /// <summary>
-        /// The color for the range.
-        /// </summary>
-        public Color Color;
-
-        public ColorRange(int index, Color color)
-        {
-            StartIndex = index;
-            EndIndex = index;
-            Color = color;
-        }
-    }
-
-    /// <summary>
-    /// A helper class for providing coloring methods.
-    /// </summary>
-    public static class RGBColoredString
-    {
-        /// <summary>
-        /// Takes a list of objects and creates a colored string. Supports any
-        /// color objects being converted to a color string.
-        /// </summary>
-        /// <param name="args">The different argument types.</param>
-        /// <returns>The colored string.</returns>
-        public static string Create(params object[] args)
-        {
-            StringBuilder builder = new StringBuilder();
-
-            Color defaultColor = ColoredString.DefaultColor;
-            builder.Append($"\\c[{defaultColor.R},{defaultColor.G},{defaultColor.B}]");
-
-            Array.ForEach(args, obj =>
-            {
-                if (obj is Color color)
-                    builder.Append($"\\c[{color.R},{color.G},{color.B}]");
-                else
-                    builder.Append(obj);
-            });
-
-            return builder.ToString();
-        }
-    }
-
     /// <summary>
     /// Provides a method that is able to convert a raw string with color codes
     /// into a colored string. A color code is in the form "\C[rrr,ggg,bbb]".
@@ -139,8 +79,11 @@ namespace Helion.Graphics.String
             };
 
             MatchCollection matches = ColorRegex.Matches(str);
-            foreach (Match match in matches)
+            foreach (Match? match in matches)
             {
+                if (match == null)
+                    continue;
+
                 ColorRange currentColorInfo = colorRanges.Last();
                 currentColorInfo.EndIndex = match.Index;
 
@@ -159,6 +102,34 @@ namespace Helion.Graphics.String
                 colorRanges.RemoveAt(colorRanges.Count - 1);
 
             return colorRanges;
+        }
+    }
+
+    /// <summary>
+    /// A range for a color in a string.
+    /// </summary>
+    internal class ColorRange
+    {
+        /// <summary>
+        /// The start index.
+        /// </summary>
+        public int StartIndex;
+
+        /// <summary>
+        /// The end index.
+        /// </summary>
+        public int EndIndex;
+
+        /// <summary>
+        /// The color for the range.
+        /// </summary>
+        public Color Color;
+
+        public ColorRange(int index, Color color)
+        {
+            StartIndex = index;
+            EndIndex = index;
+            Color = color;
         }
     }
 }
