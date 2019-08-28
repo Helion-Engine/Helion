@@ -233,17 +233,17 @@ namespace Helion.Client.OpenTK
             // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
         }
 
-        private void OnMouseFocusChanged(object sender, ConfigValueEvent<bool> mouseFocusEvent)
+        private void OnMouseFocusChanged(object? sender, ConfigValueEvent<bool> mouseFocusEvent)
         {
             CursorVisible = !mouseFocusEvent.NewValue;
         }
 
-        private void OnVSyncChanged(object sender, ConfigValueEvent<VerticalSync> vsyncEvent)
+        private void OnVSyncChanged(object? sender, ConfigValueEvent<VerticalSync> vsyncEvent)
         {
             VSync = vsyncEvent.NewValue.ToOpenTKVSync();
         }
 
-        private void OnWindowStateChanged(object sender, ConfigValueEvent<WindowStatus> stateEvent)
+        private void OnWindowStateChanged(object? sender, ConfigValueEvent<WindowStatus> stateEvent)
         {
             WindowState = stateEvent.NewValue.ToOpenTKWindowState();
         }

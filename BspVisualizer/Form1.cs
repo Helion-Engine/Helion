@@ -52,12 +52,12 @@ namespace BspVisualizer
             return segments;
         }
 
-        private void Form1_Resize(object sender, EventArgs e)
+        private void Form1_Resize(object? sender, EventArgs e)
         {
             canvasPanel.Invalidate();
         }
 
-        private void Panel1_Paint(object sender, PaintEventArgs e)
+        private void Panel1_Paint(object? sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             Rectangle windowBounds = e.ClipRectangle;
@@ -72,7 +72,7 @@ namespace BspVisualizer
             PaintTextInfo(g, windowBounds);
         }
 
-        void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        void Form1_KeyPress(object? sender, KeyPressEventArgs e)
         {
             bool consumedKey = true;
             bool needsRepaint = true;

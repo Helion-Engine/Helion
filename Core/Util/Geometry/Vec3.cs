@@ -59,7 +59,7 @@ namespace Helion.Util.Geometry
         public Vec3D ToDouble() => new Vec3D(X, Y, Z);
 
         public override string ToString() => $"{X}, {Y}, {Z}";
-        public override bool Equals(object obj) => obj is Vec3I i && X == i.X && Y == i.Y && Z == i.Z;
+        public override bool Equals(object? obj) => obj is Vec3I i && X == i.X && Y == i.Y && Z == i.Z;
         public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     }
 
@@ -130,7 +130,7 @@ namespace Helion.Util.Geometry
         public Vec3I ToInt() => new Vec3I((int)X, (int)Y, (int)Z);
 
         public override string ToString() => $"{X}, {Y}, {Z}";
-        public override bool Equals(object obj) => obj is Vec3D v && X == v.X && Y == v.Y && Z == v.Z;
+        public override bool Equals(object? obj) => obj is Vec3D v && X == v.X && Y == v.Y && Z == v.Z;
         public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     }
 
@@ -193,7 +193,7 @@ namespace Helion.Util.Geometry
         public Vec3I ToInt() => new Vec3I(X.ToInt(), Y.ToInt(), Z.ToInt());
 
         public override string ToString() => $"{X}, {Y}, {Z}";
-        public override bool Equals(object obj) => obj is Vec3Fixed v && X == v.X && Y == v.Y && Z == v.Z;
+        public override bool Equals(object? obj) => obj is Vec3Fixed v && X == v.X && Y == v.Y && Z == v.Z;
         public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     }
 

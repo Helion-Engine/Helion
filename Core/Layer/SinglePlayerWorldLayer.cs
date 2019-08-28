@@ -125,7 +125,7 @@ namespace Helion.Layer
             WorldHudDrawer.Draw(m_world, m_console, renderCommands.WindowDimension, renderCommands);
         }
         
-        private void World_LevelExit(object sender, EventArgs e)
+        private void World_LevelExit(object? sender, EventArgs e)
         {
             LevelExit?.Invoke(this, e);
         }

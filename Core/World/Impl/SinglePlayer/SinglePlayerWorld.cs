@@ -126,7 +126,7 @@ namespace Helion.World.Impl.SinglePlayer
             return new Vec3D(x, y, 0);
         }
 
-        private void PhysicsManager_EntityActivatedSpecial(object sender, EntityActivateSpecialEventArgs e)
+        private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)
         {
             if (e.ActivateLineSpecial != null)
             {
@@ -136,12 +136,12 @@ namespace Helion.World.Impl.SinglePlayer
             }
         }
 
-        private void PhysicsManager_PlayerUseFail(object sender, Entity e)
+        private void PhysicsManager_PlayerUseFail(object? sender, Entity e)
         {
             Log.Debug("Player - 'oof'");
         }
 
-        private void Instance_CheatActivationChanged(object sender, ICheat e)
+        private void Instance_CheatActivationChanged(object? sender, ICheat e)
         {
             if (e.CheatType == CheatType.NoClip)
                 Player.Entity.NoClip = e.Activated;

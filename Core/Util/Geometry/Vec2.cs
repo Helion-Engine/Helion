@@ -55,7 +55,7 @@ namespace Helion.Util.Geometry
         public Vec2D ToDouble() => new Vec2D(X, Y);
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
+        public override bool Equals(object? obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
@@ -117,7 +117,7 @@ namespace Helion.Util.Geometry
         }
 
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2I v && X == v.X && Y == v.Y;
+        public override bool Equals(object? obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
@@ -176,7 +176,7 @@ namespace Helion.Util.Geometry
 
         public bool EqualTo(Vec2Fixed other) => Equals(other);
         public override string ToString() => $"{X}, {Y}";
-        public override bool Equals(object obj) => obj is Vec2Fixed v && X == v.X && Y == v.Y;
+        public override bool Equals(object? obj) => obj is Vec2Fixed v && X == v.X && Y == v.Y;
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 

@@ -226,7 +226,7 @@ namespace Helion.Util
         
         private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
 
-        private void OnMaxMessagesChanged(object sender, ConfigValueEvent<int> maxMsgEvent)
+        private void OnMaxMessagesChanged(object? sender, ConfigValueEvent<int> maxMsgEvent)
         {
             Capacity = Math.Max(1, maxMsgEvent.NewValue);
             RemoveExcessMessagesIfAny();

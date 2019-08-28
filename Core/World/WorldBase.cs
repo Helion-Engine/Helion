@@ -57,7 +57,7 @@ namespace Helion.World
             Gametick++;
         }
 
-        private void SpecialManager_LevelExit(object sender, EventArgs e)
+        private void SpecialManager_LevelExit(object? sender, EventArgs e)
         {
             LevelExit?.Invoke(this, e);
         }

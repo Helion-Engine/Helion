@@ -54,7 +54,7 @@ namespace Helion.Client
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         }
 
-        private void Console_OnCommand(object sender, ConsoleCommandEventArgs ccmdArgs)
+        private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
         {
             // TODO: This function will get ugly and bloated *very* quickly...
             switch (ccmdArgs.Command)
@@ -76,13 +76,13 @@ namespace Helion.Client
             }
         }
 
-        private void Layer_LevelExit(object sender, EventArgs e)
+        private void Layer_LevelExit(object? sender, EventArgs e)
         {
             m_currentLevel++;
             ChangeLevel(GetMapFormat(m_currentLevel));
         }
 
-        private void CheatManager_CheatActivationChanged(object sender, ICheat e)
+        private void CheatManager_CheatActivationChanged(object? sender, ICheat e)
         {
             if (e.CheatType == CheatType.ChangeLevel)
             {
