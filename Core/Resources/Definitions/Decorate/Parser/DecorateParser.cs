@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Parser;
 

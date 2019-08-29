@@ -25,13 +25,33 @@ namespace Helion.Util
 
         public char this[int index] => str[index];
         
-        public static bool operator ==(CIString self, CIString other) => self.str.Equals(other.str, StringComparison.OrdinalIgnoreCase);
+        public static bool operator ==(CIString? self, CIString? other)
+        {
+            if (ReferenceEquals(self, null) && ReferenceEquals(other, null))
+                return true;
+            if (ReferenceEquals(self, null) || ReferenceEquals(other, null))
+                return false;
+            return self.str.Equals(other.str, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool operator !=(CIString self, CIString? other)
+        {
+            return !(self == other);
+        }
         
-        public static bool operator !=(CIString self, CIString other) => !self.str.Equals(other.str, StringComparison.OrdinalIgnoreCase);
+        public static bool operator ==(CIString self, string other)
+        {
+            if (ReferenceEquals(self, null) && ReferenceEquals(other, null))
+                return true;
+            if (ReferenceEquals(self, null) || ReferenceEquals(other, null))
+                return false;
+            return self.str.Equals(other, StringComparison.OrdinalIgnoreCase);      
+        }
         
-        public static bool operator ==(CIString self, string other) => self.str.Equals(other, StringComparison.OrdinalIgnoreCase);
-        
-        public static bool operator !=(CIString self, string other) => !self.str.Equals(other, StringComparison.OrdinalIgnoreCase);
+        public static bool operator !=(CIString? self, string other)
+        {
+            return !(self == other);
+        }
 
         public override bool Equals(object? obj) => obj is CIString s && str.Equals(s.str, StringComparison.OrdinalIgnoreCase);
         

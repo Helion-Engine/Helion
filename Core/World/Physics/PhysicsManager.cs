@@ -79,10 +79,9 @@ namespace Helion.World.Physics
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
-            // TODO handle plane Z
-            double startZ = flat.Z;
-            double thingZ;
+            // TODO: Handle plane Z soon[tm].
             SectorMoveStatus status = SectorMoveStatus.Success;
+            double startZ = flat.Z;
             flat.PrevZ = startZ;
             flat.Z = destZ;
             flat.Plane.MoveZ(destZ - startZ);
@@ -100,7 +99,9 @@ namespace Helion.World.Physics
                 entity.UnlinkFromWorld();
                 LinkToWorld(entity);
 
-                thingZ = entity.OnGround ? entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position.To2D()) : entity.Position.Z;
+                double thingZ = entity.OnGround ? 
+                    entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position.To2D()) : 
+                    entity.Position.Z;
 
                 if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
                 {
@@ -149,7 +150,7 @@ namespace Helion.World.Physics
             Line? activateLine = null;
             Line? currentActivateLine = null;
             bool hitBlockLine = false;
-            double closetDist = double.MaxValue;
+            double closestDist = double.MaxValue;
 
             Vec2D start = entity.Position.To2D();
             Vec2D end = new Vec2D(start.X + (Math.Cos(entity.Angle) * EntityUseDistance), start.Y + (Math.Sin(entity.Angle) * EntityUseDistance));
@@ -183,10 +184,10 @@ namespace Helion.World.Physics
                         if (!canActivateThrough || line.HasSpecial)
                         {
                             var currentClosestDist = line.Segment.ClosestDistance(start);
-                            if (currentClosestDist < closetDist)
+                            if (currentClosestDist < closestDist)
                             {
                                 activateLine = currentActivateLine;
-                                closetDist = currentClosestDist;
+                                closestDist = currentClosestDist;
                             }
                         }
                     }
@@ -198,7 +199,7 @@ namespace Helion.World.Physics
             if (activateLine != null)
             {
                 // The use line was blocked by a blocking line
-                if (activateLine.Segment.ClosestDistance(start) != closetDist)
+                if (activateLine.Segment.ClosestDistance(start) != closestDist)
                     activateLine = null;
             }
 
@@ -247,14 +248,11 @@ namespace Helion.World.Physics
         {
             if (line.BlocksEntity(entity))
                 return true;
-
-            if (line.Back != null)
-            {
-                LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
-                return !opening.CanPassOrStepThrough(entity);
-            }
-
-            return false;
+            if (line.Back == null) 
+                return false;
+            
+            LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
+            return !opening.CanPassOrStepThrough(entity);
         }
 
         private static bool EntityBlocksEntity(Entity entity, Entity other)
@@ -279,7 +277,7 @@ namespace Helion.World.Physics
             entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
 
-        // TODO take sector gravity into account when implemented
+        // TODO: Take sector gravity into account when implemented!
         private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
         private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ)
@@ -394,7 +392,7 @@ namespace Helion.World.Physics
                 return;
             }
 
-            // TODO temporary until we know how this actually works
+            // TODO: Temporary until we know how this actually works.
             if (entity.IsCrushing())
                 return;
 
@@ -417,7 +415,7 @@ namespace Helion.World.Physics
                     continue;
                 }
 
-                if (entity.Definition.Flags.SlidesOnWalls && slidesLeft > 0)
+                if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
                 {
                     HandleSlide(entity, ref stepDelta, ref movesLeft);
                     slidesLeft--;
@@ -474,7 +472,7 @@ namespace Helion.World.Physics
             if (!entity.Box.Overlaps(other.Box)) 
                 return;
             
-            Precondition(entity.Box.Bottom >= other.Box.Top - entity.Definition.Properties.StepHeight, "Entity too high to step up onto");
+            Precondition(entity.Box.Bottom >= other.Box.Top - entity.Properties.MaxStepHeight, "Entity too high to step up onto");
             SetEntityOnFloorOrEntity(entity, other.Box.Top, true);
         }
 

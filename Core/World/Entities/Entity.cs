@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Resources.Definitions.Decorate;
+using Helion.Resources.Definitions.Decorate.Flags;
+using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Players;
@@ -14,100 +16,32 @@ namespace Helion.World.Entities
     /// </summary>
     public class Entity : IDisposable
     {
-        /// <summary>
-        /// A unique identifier for this entity.
-        /// </summary>
         public readonly int Id;
-
-        /// <summary>
-        /// The definition that makes up this entity.
-        /// </summary>
         public readonly ActorDefinition Definition;
-
-        /// <summary>
-        /// The bounding box of the entity.
-        /// </summary>
+        public readonly double Height;
+        public readonly double Radius;
+        public double Angle;
         public EntityBox Box;
-
-        /// <summary>
-        /// The last position of this entity, used for interpolation.
-        /// </summary>
         public Vec3D PrevPosition;
-
-        /// <summary>
-        /// The center bottom position (the center of the body at the feet).
-        /// </summary>
         public Vec3D Position => Box.Position;
-
-        /// <summary>
-        /// The angle in radians the entity is facing.
-        /// </summary>
-        public double Angle { get; internal set; }
-
-        /// <summary>
-        /// The movement of the entity.
-        /// </summary>
         public Vec3D Velocity = Vec3D.Zero;
         public Player? Player;
-
-        // TODO should use state enum flags when they exist
-        public bool IsFlying { get; set; }
-        public bool NoClip { get; set; }
         public int FrozenTics;
-        public bool IsFrozen => FrozenTics > 0;
-
-        /// <summary>
-        /// A cached value to tell whether we are on the ground or not.
-        /// </summary>
-        public bool OnGround { get; internal set; }
-
-        /// <summary>
-        /// The sector that is at the center of the entity.
-        /// </summary>
+        public bool IsFlying;
+        public bool NoClip;
+        public bool OnGround;
         public Sector Sector;
-
-        /// <summary>
-        /// The sector that is at the center of the entity.
-        /// </summary>
         public Sector LowestCeilingSector;
-
-        /// <summary>
-        /// The sector that is at the center of the entity.
-        /// </summary>
         public Sector HighestFloorSector;
-
         public List<Line> IntersectSpecialLines = new List<Line>();
         public List<Entity> IntersectEntities = new List<Entity>();
-
-        /// <summary>
-        /// The node in the linked list of entities.
-        /// </summary>
         internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
-
-        /// <summary>
-        /// All the linked list nodes for blocks that this entity belongs to.
-        /// </summary>
         internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
-
-        /// <summary>
-        /// All the linked list nodes for sectors that this entity belongs to.
-        /// </summary>
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
 
-        /// <summary>
-        /// A (shorter to type) reference to the definition's height value.
-        /// </summary>
-        public double Height => Definition.Properties.Height;
-
-        /// <summary>
-        /// A (shorter to type) reference to the definition's radius value.
-        /// </summary>
-        public double Radius => Definition.Properties.Radius;
-
-        /// <summary>
-        /// A (shorter to type) reference to the definition's flags.
-        /// </summary>
+        public bool IsFrozen => FrozenTics > 0;
         public ActorFlags Flags => Definition.Flags;
+        public ActorProperties Properties => Definition.Properties;
 
         /// <summary>
         /// Creates an entity with the following information.
@@ -123,14 +57,16 @@ namespace Helion.World.Entities
             Id = id;
             Definition = definition;
             Angle = angleRadians;
-            Box = new EntityBox(position, definition.Properties.Radius, definition.Properties.Height);
+            Radius = definition.Properties.Radius ?? 16;
+            Height = definition.Properties.Height ?? 16;
+            Box = new EntityBox(position, Radius, Height);
             PrevPosition = Box.Position;
             Sector = sector;
             LowestCeilingSector = sector;
             HighestFloorSector = sector;
             OnGround = CheckIfOnGround();
 
-            // TODO: Link to sector
+            // TODO: Link to sector?
         }
 
         /// <summary>
@@ -167,8 +103,7 @@ namespace Helion.World.Entities
         public void ResetInterpolation()
         {
             PrevPosition = Position;
-            if (Player != null)
-                Player.ResetInterpolation();
+            Player?.ResetInterpolation();
         }
 
         /// <summary>
@@ -214,16 +149,16 @@ namespace Helion.World.Entities
                 FrozenTics--;
         }
 
+        public bool IsCrushing()
+        {
+            return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
             UnlinkFromWorld();
             EntityListNode.Unlink();
-        }
-
-        public bool IsCrushing()
-        {
-            return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
         }
 
         private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
