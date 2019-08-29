@@ -25,7 +25,7 @@ namespace Helion.Resources.Definitions.Fonts
             return m_definitions.TryGetValue(name, out FontDefinition? definition) ? definition : null;
         }
 
-        internal void AddFontDefinition(Entry entry)
+        internal void AddFontDefinitions(Entry entry)
         {
             FontDefinitionParser parser = new FontDefinitionParser();
             if (!parser.Parse(entry))

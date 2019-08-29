@@ -30,7 +30,8 @@ namespace Helion.Resources.Definitions
         /// </summary>
         public DefinitionEntries()
         {
-            m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinition(entry);
+            m_entryNameToAction["DECORATE"] = entry => Decorate.AddDecorateDefinitions(entry);
+            m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));
             m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));

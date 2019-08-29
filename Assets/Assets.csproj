@@ -39,6 +39,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Assets\decorate.txt" />
     <Content Include="Assets\fonts.txt" />
     <Content Include="Assets\Fonts\console.ttf" />
     <Content Include="Assets\Graphics\cursor.png" />

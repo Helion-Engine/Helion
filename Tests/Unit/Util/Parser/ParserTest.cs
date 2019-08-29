@@ -608,7 +608,7 @@ namespace Helion.Test.Unit.Util.Parser
         public new double ConsumeFloat() => base.ConsumeFloat();
         public new double ConsumeSignedFloat() => base.ConsumeSignedFloat();
         public new string ConsumeString() => base.ConsumeString();
-        public new void ConsumeString(string str) => base.ConsumeString(str);
+        public new void ConsumeString(string str) => base.Consume(str);
         public new bool ConsumeBoolean() => base.ConsumeBoolean();
         public new bool ConsumeIf(string str) => base.ConsumeIf(str);
         public new bool ConsumeIf(char c) => base.ConsumeIf(c);

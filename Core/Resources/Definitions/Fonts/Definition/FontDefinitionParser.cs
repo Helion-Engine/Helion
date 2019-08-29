@@ -137,7 +137,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
 
         private void ParseFontDefinitions()
         {
-            ConsumeString("font");
+            Consume("font");
 
             string fontName = ConsumeString();
             if (fontName.Empty())

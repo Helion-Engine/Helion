@@ -233,6 +233,19 @@ namespace Helion.Util.Parser
 
             return false;
         }
+        
+        /// <summary>
+        /// Checks to see if the next token is an identifier or not. This means
+        /// it is a string, and not a quoted string.
+        /// </summary>
+        /// <returns>True if so, false if we ran out of tokens or it is not a
+        /// string.</returns>
+        protected bool PeekIdentifier()
+        {
+            if (CurrentTokenIndex >= Tokens.Count) 
+                return false;
+            return Tokens[CurrentTokenIndex].Type == TokenType.String;
+        }
 
         /// <summary>
         /// Checks to see if the next token is a string or not.
@@ -246,6 +259,17 @@ namespace Helion.Util.Parser
             
             TokenType type = Tokens[CurrentTokenIndex].Type;
             return type == TokenType.String || type == TokenType.QuotedString;
+        }
+        
+        /// <summary>
+        /// Gets the next tokens text after the one we are currently pointing
+        /// at.
+        /// </summary>
+        /// <returns>A string for the text of the next token, or null if there
+        /// is no next token.</returns>
+        protected string? PeekNextText()
+        {
+            return CurrentTokenIndex + 1 >= Tokens.Count ? null : Tokens[CurrentTokenIndex + 1].Text;
         }
         
         /// <summary>
@@ -293,6 +317,29 @@ namespace Helion.Util.Parser
         }
 
         /// <summary>
+        /// Consumes text, which is case-insensitive. Throws if it cannot.
+        /// </summary>
+        /// <remarks>
+        /// Does not return the string because you know what string you are
+        /// getting by what you provided.
+        /// </remarks>
+        /// <param name="str">The string characters to consume.</param>
+        /// <exception cref="ParserException">If the string does not match, or
+        /// if we ran out of tokens, or if the token is not a string value.
+        /// </exception>
+        protected void Consume(string str)
+        {
+            if (string.Equals(str, Tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase))
+            {
+                CurrentTokenIndex++;
+                return;
+            }
+
+            Token token = Tokens[CurrentTokenIndex];
+            throw new ParserException(token, $"Expecting to find \"{str}\", got \"{token.Text}\" instead");
+        }
+
+        /// <summary>
         /// Consumes a boolean and parses it. Throws if it cannot. This only
         /// works for the values 'true' and 'false' (not case sensitive).
         /// </summary>
@@ -314,7 +361,7 @@ namespace Helion.Util.Parser
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Consumes an integer and parses it. Throws if it cannot.
         /// </summary>
@@ -336,7 +383,7 @@ namespace Helion.Util.Parser
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
-        
+
         /// <summary>
         /// Consumes a signed integer and parses it. Throws if it cannot.
         /// </summary>
@@ -358,7 +405,7 @@ namespace Helion.Util.Parser
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
-        
+
         /// <summary>
         /// Consumes an float (or integer) and parses it. Throws if it cannot.
         /// </summary>
@@ -374,7 +421,7 @@ namespace Helion.Util.Parser
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a decimal number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
-        
+
         /// <summary>
         /// Consumes a signed float and parses it. Throws if it cannot.
         /// </summary>
@@ -406,6 +453,22 @@ namespace Helion.Util.Parser
         /// <exception cref="ParserException">If there is no match or we ran
         /// out of tokens.
         /// </exception>
+        protected string ConsumeIdentifier()
+        {
+            if (PeekIdentifier())
+                return Tokens[CurrentTokenIndex++].Text;
+
+            Token token = Tokens[CurrentTokenIndex];
+            throw new ParserException(token, $"Expected identifier, got a '{token.Type}' instead");
+        }
+        
+        /// <summary>
+        /// Consumes a string. Throws if it cannot.
+        /// </summary>
+        /// <returns>The string value (if it doesn't throw).</returns>
+        /// <exception cref="ParserException">If there is no match or we ran
+        /// out of tokens.
+        /// </exception>
         protected string ConsumeString()
         {
             if (PeekString())
@@ -413,29 +476,6 @@ namespace Helion.Util.Parser
 
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected text, got a '{token.Type}' instead");
-        }
-
-        /// <summary>
-        /// Consumes text if it is a match, which is case-insensitive.
-        /// </summary>
-        /// <remarks>
-        /// Does not return the string because you know what string you are
-        /// getting by what you provided.
-        /// </remarks>
-        /// <param name="str">The string characters to consume.</param>
-        /// <exception cref="ParserException">If the string does not match, or
-        /// if we ran out of tokens, or if the token is not a string value.
-        /// </exception>
-        protected void ConsumeString(string str)
-        {
-            if (string.Equals(str, Tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase))
-            {
-                CurrentTokenIndex++;
-                return;
-            }
-
-            Token token = Tokens[CurrentTokenIndex];
-            throw new ParserException(token, $"Expecting to find \"{str}\", got \"{token.Text}\" instead");
         }
 
         /// <summary>
@@ -466,8 +506,21 @@ namespace Helion.Util.Parser
             if (!Peek(str))
                 return false;
             
-            ConsumeString(str);
+            Consume(str);
             return true;
+        }
+
+        /// <summary>
+        /// Checks if the next token is an integer, and if so consumes it. This
+        /// does not work for signed integers.
+        /// </summary>
+        /// <returns>The integer value if an integer is next, or null if not.
+        /// </returns>
+        protected int? ConsumeIfInt()
+        {
+            if (!PeekInteger())
+                return null;
+            return ConsumeSignedInteger();
         }
 
         /// <summary>
@@ -509,7 +562,7 @@ namespace Helion.Util.Parser
                     throw new ParserException(Tokens[beforeIndex], "Infinite parsing loop detected, InvokeUntilAndConsume(char) usage incorrect (report to a developer)");
             }
             
-            ConsumeString(str);
+            Consume(str);
         }
 
         /// <summary>
