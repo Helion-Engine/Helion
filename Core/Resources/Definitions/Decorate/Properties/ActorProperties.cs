@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using Helion.Maps.Special;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
@@ -15,18 +16,18 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public ArmorBonusProperty ArmorBonus;
         public ArmorPickupProperty ArmorPickup;
         public string? AttackSound;
-        public string? BloodColor;
+        public Color? BloodColor;
         public string? BloodType;
         public int? BounceCount;
         public double? BounceFactor;
         public string? BounceSound;
         public DecorateBounceType? BounceType;
         public double? BurnHeight;
-        public int? CameraHeight;
+        public double? CameraHeight;
         public int? ConversationID;
         public string? CrushPainSound;
         public DamageRangeProperty Damage;
-        public double? DamageFactor;
+        public DamageFactorProperty DamageFactor;
         public string? DamageType;
         public double? DeathHeight;
         public string? DeathSound;
@@ -35,17 +36,16 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? DefThreshold;
         public int? DesignatedTeam;
         public string? DistanceCheck;
-        public int? DontHurtShooter;
         public DropItemProperty DropItem;
         public int? ExplosionDamage;
         public int? ExplosionRadius;
-        public int? FastSpeed;
+        public double? FastSpeed;
         public double? FloatBobPhase;
         public double? FloatBobStrength;
-        public int? FloatSpeed;
+        public double? FloatSpeed;
         public double? Friction;
         public int? FriendlySeeBlocks;
-        public string? GameName;
+        public string? Game;
         public int? GibHealth;
         public double? Gravity;
         public int? Health;
@@ -67,7 +67,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? MissileType;
         public MorphProjectileProperty MorphProjectile;
         public string? Obituary;
-        public int? PainChance;
+        public PainChanceProperty PainChance;
         public string? PainSound;
         public int? PainThreshold;
         public string? PainType;
@@ -92,7 +92,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public double? SelfDamageFactor;
         public int? SpawnId;
         public string? Species;
-        public int? Speed;
+        public double? Speed;
         public int? SpriteAngle;
         public int? SpriteRotation;
         public int? Stamina;
@@ -106,6 +106,8 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? VSpeed;
         public Range? VisibleAngles;
         public Range? VisiblePitch;
+        public int? VisibleToTeam;
+        public List<string>? VisibleToPlayerClass;
         public double? WallBounceFactor;
         public string? WallBounceSound;
         public WeaponPiecesProperty WeaponPieces;

@@ -5,7 +5,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public PowerupColor? Color;
         public PowerupColorMap? Colormap;
         public int? Duration;
-        public string? Mode;
+        public PowerupModeType? Mode;
         public int? Strength;
         public string? Type;
     }

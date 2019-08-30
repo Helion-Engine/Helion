@@ -1,21 +1,25 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util.Extensions;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
 {
     public class PlayerColorSetProperty
     {
-        public readonly string Name;
         public readonly int Number;
+        public readonly string Name;
         public readonly Range Range;
-        public readonly List<string> Color;
+        public readonly List<string> Colors;
 
-        public PlayerColorSetProperty(string name, int number, Range range, params string[] colors)
+        public PlayerColorSetProperty(int number, string name, Range range, List<string> colors)
         {
+            Precondition(!colors.Empty(), "Player color set property cannot have no colors");
+            
             Name = name;
             Number = number;
             Range = range;
-            Color = new List<string>(colors);
+            Colors = colors;
         }
     }
 }

@@ -4,13 +4,18 @@ namespace Helion.Resources.Definitions.Decorate.Properties
 {
     public class PowerupColorMap
     {
-        public Color Start;
-        public Color End;
+        public Color? Source;
+        public Color Destination;
 
-        public PowerupColorMap(Color start, Color end)
+        public PowerupColorMap(Color destination)
         {
-            Start = start;
-            End = end;
+            Destination = destination;
+        }
+        
+        public PowerupColorMap(Color source, Color destination)
+        {
+            Source = source;
+            Destination = destination;
         }
     }
 }

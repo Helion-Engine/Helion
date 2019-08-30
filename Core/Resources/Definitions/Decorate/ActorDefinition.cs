@@ -14,6 +14,7 @@ namespace Helion.Resources.Definitions.Decorate
         public readonly int? EditorNumber;
         public readonly ActorFlags Flags = new ActorFlags();
         public readonly ActorProperties Properties = new ActorProperties();
+        public readonly ActorFlagProperty FlagProperties = new ActorFlagProperty();
         public readonly ActorStates States = new ActorStates();
 
         public ActorDefinition(CIString name, CIString? parent, CIString? replaces, int? editorNumber)

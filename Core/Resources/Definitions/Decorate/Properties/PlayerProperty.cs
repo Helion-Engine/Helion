@@ -15,7 +15,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public PlayerDamageScreenProperty? DamageScreenColor;
         public string? DisplayName;
         public string? Face;
-        public Range FallingScreamSpeed;
+        public PlayerFallingScreamSpeed? FallingScreamSpeed;
         public string? FlechetteType;
         public PlayerMoveProperty? ForwardMove;
         public double? GruntSpeed;
@@ -33,6 +33,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public string? SoundClass;
         public string? SpawnClass;
         public List<PlayerStartItem> StartItem;
+        public int? TeleportFreezeTime;
         public double? UseRange;
         public List<PlayerWeaponSlot>? WeaponSlot;
         public double? ViewBob;

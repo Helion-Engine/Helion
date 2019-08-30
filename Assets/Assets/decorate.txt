@@ -5,8 +5,18 @@ actor PlayerPawn
     Mass 100
     PainChance 255
     Speed 1
-    // TODO: Get all the other player properties!
+    Player.AirCapacity 1
+    Player.AttackZOffset 8
+    Player.ColorRange 0, 0
+    Player.DamageScreenColor "FF 00 00"
+    Player.FallingScreamSpeed 35, 40
+    Player.FlechetteType "ArtiPoisonBag3"
+    Player.ForwardMove 1, 1
+    Player.GruntSpeed 12
     Player.JumpZ 8
+    Player.MugShotMaxHealth 0
+    Player.SideMove 1, 1
+    Player.SoundClass "player"
     Player.UseRange 64
     Player.ViewHeight 41
     
@@ -27,7 +37,18 @@ actor PlayerPawn
 
 actor DoomPlayer : PlayerPawn
 {
-    // TODO: Get all the other player properties!
+    Player.DisplayName "Marine"
+    Player.StartItem "Pistol"
+    Player.StartItem "Fist"
+    Player.StartItem "Clip", 50
+    Player.WeaponSlot 1, Fist, Chainsaw
+    Player.WeaponSlot 2, Pistol
+    Player.WeaponSlot 3, Shotgun, SuperShotgun
+    Player.WeaponSlot 4, Chaingun
+    Player.WeaponSlot 5, RocketLauncher
+    Player.WeaponSlot 6, PlasmaRifle
+    Player.WeaponSlot 7, BFG9000
+
     States
     {
     Spawn:

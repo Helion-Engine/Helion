@@ -1,9 +1,86 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using Helion.Maps.Special;
 using Helion.Resources.Definitions.Decorate.Properties;
+using Helion.Util;
 
 namespace Helion.Resources.Definitions.Decorate.Parser
 {
+    /// <summary>
+    /// Responsible for parsing all the property data.
+    /// </summary>
     public partial class DecorateParser
     {
+        private Color ConvertStringToColor(string colorString)
+        {
+            switch (colorString.ToUpper())
+            {
+            case "BLACK":
+                return Color.Black;
+            case "BLUE":
+                return Color.Blue;
+            case "BRICK":
+                return Color.Firebrick;
+            case "BROWN":
+                return Color.Brown;
+            case "CREAM":
+                return Color.PeachPuff;
+            case "CYAN":
+                return Color.Cyan;
+            case "DARKBROWN":
+                return Color.FromArgb(64, 16, 16);
+            case "DARKGRAY":
+            case "DARKGREY":
+                return Color.DarkGray;
+            case "DARKGREEN":
+                return Color.DarkGreen;
+            case "DARKRED":
+                return Color.DarkRed;
+            case "GOLD":
+                return Color.Gold;
+            case "GRAY":
+            case "GREY":
+                return Color.Gray;
+            case "GREEN":
+                return Color.FromArgb(0, 255, 0);
+            case "LIGHTBLUE":
+                return Color.LightBlue;
+            case "OLIVE":
+                return Color.Olive;
+            case "ORANGE":
+                return Color.Orange;
+            case "PURPLE":
+                return Color.Purple;
+            case "RED":
+                return Color.Red;
+            case "TAN":
+                return Color.Tan;
+            case "WHITE":
+                return Color.White;
+            case "YELLOW":
+                return Color.Yellow;
+            }
+            
+            if (colorString.Length != 8)
+                ThrowException($"Expecting 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+
+            string redStr = colorString.Substring(0, 2);
+            if (int.TryParse(redStr, out int r))
+                ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+            
+            string greenStr = colorString.Substring(3, 5);
+            if (int.TryParse(greenStr, out int g))
+                ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+            
+            string blueStr = colorString.Substring(6, 8);
+            if (int.TryParse(blueStr, out int b))
+                ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+            
+            return Color.FromArgb(r, g, b);
+        }
+        
         private WeaponBob ConsumeBobStyleProperty()
         {
             string bobStyleText = ConsumeString();
@@ -25,6 +102,211 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 ThrowException($"Unknown weapon bob type '{bobStyleText}' on actor '{m_currentDefinition.Name}'");
                 return WeaponBob.Normal;
             }
+        }
+        
+        private PowerupModeType ConsumePowerupMode()
+        {
+            // TODO: This supports combinations, but gives no example of how...
+            string mode = ConsumeString();
+            switch (mode.ToUpper())
+            {
+            case "NONE":
+                return PowerupModeType.None;                    
+            case "CUMULATIVE":
+                return PowerupModeType.Cumulative;                    
+            case "FUZZY":
+                return PowerupModeType.Fuzzy;                    
+            case "OPAQUE":
+                return PowerupModeType.Opaque;                    
+            case "REFLECTIVE":
+                return PowerupModeType.Reflective;                    
+            case "STENCIL":
+                return PowerupModeType.Stencil;                    
+            case "TRANSLUCENT":
+                return PowerupModeType.Translucent;
+            default:
+                ThrowException($"Unknown powerup mode type '{mode}' on actor '{m_currentDefinition.Name}'");
+                return PowerupModeType.None;
+            }
+        }
+        
+        private Range ConsumePlayerColorRange()
+        {
+            int translationIndexStart = ConsumeInteger();
+            if (translationIndexStart < 0 || translationIndexStart > 255)
+                ThrowException("Property Player.ColorRange start index is out of range (0 - 255 only)");
+            
+            int translationIndexEnd = ConsumeInteger();
+            if (translationIndexEnd < 0 || translationIndexEnd > 255)
+                ThrowException("Property Player.ColorRange start index is out of range (0 - 255 only)");
+            
+            if (translationIndexEnd < translationIndexStart)
+                ThrowException("Property Player.ColorRange start index larger than the end index");
+                
+            return new Range(translationIndexStart, translationIndexEnd);
+        }
+        
+        private PlayerColorSetProperty ConsumePlayerColorSet()
+        {
+            int number = ConsumeInteger();
+            Consume(',');
+            
+            string name = ConsumeString();
+            Consume(',');
+            
+            int start = ConsumeInteger();
+            Consume(',');
+            int end = ConsumeInteger();
+            Consume(',');
+            if (start < 0 || start > 255)
+                ThrowException("Player color set property has a starting index that is out of the (0 - 255) range");
+            if (end < 0 || end > 255)
+                ThrowException("Player color set property has a ending index that is out of the (0 - 255) range");
+            if (start > end)
+                ThrowException("Player color set property has a starting index larger than the ending index");
+            
+            List<string> colors = new List<string> { ConsumeString() };
+            while (ConsumeIf(','))
+                colors.Add(ConsumeString());
+            
+            return new PlayerColorSetProperty(number, name, new Range(start, end), colors);
+        }
+        
+        private PlayerColorSetFileProperty ConsumePlayerColorSetFile()
+        {
+            int number = ConsumeInteger();
+            Consume(',');
+            string name = ConsumeString();
+            Consume(',');
+            // TODO: No idea if table number is right; bad documentation sucks.
+            int tableNumber = ConsumeInteger();
+            Consume(',');
+            string color = ConsumeString();
+            
+            return new PlayerColorSetFileProperty(number, name, tableNumber, color);
+        }
+
+        private HexenArmorProperty ConsumePlayerHexenArmor()
+        {
+            int baseValue = ConsumeInteger();
+            if (baseValue % 5 != 0)
+                ThrowException("Base value for player hexen armor property must be divisible by 5");
+            
+            int armorValue = ConsumeInteger();
+            if (armorValue % 5 != 0)
+                ThrowException(" value for player hexen armor property must be divisible by 5");
+            
+            int shieldValue = ConsumeInteger();
+            if (shieldValue % 5 != 0)
+                ThrowException(" value for player hexen armor property must be divisible by 5");
+            
+            int helmValue = ConsumeInteger();
+            if (helmValue % 5 != 0)
+                ThrowException(" value for player hexen armor property must be divisible by 5");
+            
+            int amuletValue = ConsumeInteger();
+            if (amuletValue % 5 != 0)
+                ThrowException(" value for player hexen armor property must be divisible by 5");
+            
+            return new HexenArmorProperty(baseValue, armorValue, shieldValue, helmValue, amuletValue);
+        }
+
+        private PlayerDamageScreenProperty ConsumePlayerDamageScreenColor()
+        {
+            if (PeekInteger())
+                ThrowException("Player damage color integer support");
+
+            Color color = ConvertStringToColor(ConsumeString());
+            double? intensity = null;
+            string? damageType = null;
+
+            if (ConsumeIf(','))
+            {
+                intensity = ConsumeFloat();
+                if (intensity > 1.0)
+                    ThrowException("Player damage screen color intensity out of the 0.0 - 1.0 range");
+            }
+
+            if (ConsumeIf(','))
+                damageType = ConsumeString();
+            
+            return new PlayerDamageScreenProperty(color, intensity, damageType);
+        }
+        
+        private DecorateHealRadius? ConsumePlayerHealRadiusType()
+        {
+            string mode = ConsumeString();
+            switch (mode.ToUpper())
+            {
+            case "ARMOR":
+                return DecorateHealRadius.Armor;                    
+            case "HEALTH":
+                return DecorateHealRadius.Health;                    
+            case "MANA":
+                return DecorateHealRadius.Mana;                    
+            default:
+                ThrowException($"Unknown heal radius type '{mode}' on actor '{m_currentDefinition.Name}'");
+                return DecorateHealRadius.Health;
+            }
+        }
+        
+        private void ConsumeAndHandlePlayerStartItem()
+        {
+            string className = ConsumeString();
+            int? amount = null;
+            if (PeekInteger())
+                amount = ConsumeInteger();
+            
+            PlayerStartItem newStartItem = new PlayerStartItem(className, amount);
+            if (m_currentDefinition.Properties.Player.StartItem == null)
+                m_currentDefinition.Properties.Player.StartItem = new List<PlayerStartItem> { newStartItem };
+            else
+                m_currentDefinition.Properties.Player.StartItem.Add(newStartItem);
+        }
+
+        private List<PlayerWeaponSlot> ConsumePlayerWeaponSlot()
+        {
+            throw new NotImplementedException();
+        }
+        
+        private DecorateSpecialActivationType? ConsumeDecorateSpecialActivationType()
+        {
+            throw new NotImplementedException();
+        }
+
+        private SpecialArgs ConsumeSpecialArgs()
+        {
+            throw new NotImplementedException();
+        }
+
+        private DecorateBounceType? ConsumeDecorateBounceType()
+        {
+            throw new NotImplementedException();
+        }
+
+        private DamageFactorProperty ConsumeDamageFactor()
+        {
+            throw new NotImplementedException();
+        }
+
+        private PainChanceProperty ConsumePainChance()
+        {
+            throw new NotImplementedException();
+        }
+
+        private RenderStyle? ConsumeRenderStyle()
+        {
+            throw new NotImplementedException();
+        }
+
+        private Range? ConsumeVisibleAngles()
+        {
+            throw new NotImplementedException();
+        }
+
+        private Range? ConsumeVisiblePitch()
+        {
+            throw new NotImplementedException();
         }
         
         private void ConsumeActorPropertyOrCombo()
@@ -78,6 +360,250 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             }
             else
                 ConsumeTopLevelPropertyOrCombo(property);
+        }
+
+        private void ConsumeAmmoProperty()
+        {
+            ThrowException("Decorate: Ammo properties are on the TODO list!");
+        }
+
+        private void ConsumeArmorProperty()
+        {
+            ThrowException("Decorate: Armor properties are on the TODO list!");
+        }
+
+        private void ConsumeFakeInventoryProperty()
+        {
+            ThrowException("Decorate: Fake inventory properties are on the TODO list!");
+        }
+
+        private void ConsumeHealthProperty()
+        {
+            ThrowException("Decorate: Health properties are on the TODO list!");
+        }
+
+        private void ConsumeHealthPickupProperty()
+        {
+            ThrowException("Decorate: Health pickup properties are on the TODO list!");
+        }
+
+        private void ConsumeInventoryProperty()
+        {
+            ThrowException("Decorate: Inventory properties are on the TODO list!");
+        }
+
+        private void ConsumeMorphProjectileProperty()
+        {
+            ThrowException("Decorate: Morph projectiles properties are on the TODO list!");
+        }
+        
+        private List<string> ConsumeTranslationProperties()
+        {
+            List<string> translations = new List<string> { ConsumeString() };
+            
+            if (translations.First().ToUpper() != "ICE")
+                while (ConsumeIf(','))
+                    translations.Add(ConsumeString());
+
+            return translations;
+        }
+        
+        private List<string> ConsumeVisibleToPlayerClass()
+        {
+            List<string> translations = new List<string> { ConsumeString() };
+            
+            while (ConsumeIf(','))
+                translations.Add(ConsumeString());
+
+            return translations;
+        }
+
+        private void ConsumePlayerProperty()
+        {
+            string property = ConsumeIdentifier();
+            switch (property.ToUpper())
+            {
+            case "AIRCAPACITY":
+                m_currentDefinition.Properties.Player.AirCapacity = ConsumeFloat();
+                break;
+            case "ATTACKZOFFSET":
+                m_currentDefinition.Properties.Player.AttackZOffset = ConsumeSignedInteger();
+                break;
+            case "COLORRANGE":
+                m_currentDefinition.Properties.Player.ColorRange = ConsumePlayerColorRange();
+                break;
+            case "COLORSET":
+                m_currentDefinition.Properties.Player.ColorSet = ConsumePlayerColorSet();
+                break;
+            case "COLORSETFILE":
+                m_currentDefinition.Properties.Player.ColorSetFile = ConsumePlayerColorSetFile();
+                break;
+            case "CLEARCOLORSET":
+                m_currentDefinition.Properties.Player.ClearColorSet = ConsumeInteger();
+                break;
+            case "CROUCHSPRITE":
+                m_currentDefinition.Properties.Player.CrouchSprite = ConsumeString();
+                break;
+            case "DAMAGESCREENCOLOR":
+                m_currentDefinition.Properties.Player.DamageScreenColor = ConsumePlayerDamageScreenColor();
+                break;
+            case "DISPLAYNAME":
+                m_currentDefinition.Properties.Player.DisplayName = ConsumeString();
+                break;
+            case "FACE":
+                m_currentDefinition.Properties.Player.Face = ConsumeString();
+                break;
+            case "FALLINGSCREAMSPEED":
+                double minFallingSpeed = ConsumeFloat();
+                double maxFallingSpeed = ConsumeFloat();
+                if (maxFallingSpeed < minFallingSpeed)
+                    ThrowException("Player falling scream speed has the min value being larger than the max value");
+                m_currentDefinition.Properties.Player.FallingScreamSpeed = new PlayerFallingScreamSpeed(minFallingSpeed, maxFallingSpeed);
+                break;
+            case "FLECHETTETYPE":
+                m_currentDefinition.Properties.Player.FlechetteType = ConsumeString();
+                break;
+            case "FORWARDMOVE":
+                double forwardMoveWalk = ConsumeFloat();
+                double forwardMoveRun = 1.0;
+                if (ConsumeIf(','))
+                    forwardMoveRun = ConsumeFloat();
+                m_currentDefinition.Properties.Player.ForwardMove = new PlayerMoveProperty(forwardMoveWalk, forwardMoveRun);
+                break;
+            case "GRUNTSPEED":
+                m_currentDefinition.Properties.Player.GruntSpeed = ConsumeFloat();
+                break;
+            case "HEALRADIUSTYPE":
+                m_currentDefinition.Properties.Player.HealRadiusType = ConsumePlayerHealRadiusType();
+                break;
+            case "HEXENARMOR":
+                m_currentDefinition.Properties.Player.HexenArmor = ConsumePlayerHexenArmor();
+                break;
+            case "INVULNERABILITYMODE":
+                m_currentDefinition.Properties.Player.InvulnerabilityMode = ConsumeString();
+                break;
+            case "JUMPZ":
+                m_currentDefinition.Properties.Player.JumpZ = ConsumeFloat();
+                break;
+            case "MAXHEALTH":
+                m_currentDefinition.Properties.Player.MaxHealth = ConsumeInteger();
+                break;
+            case "MORPHWEAPON":
+                m_currentDefinition.Properties.Player.MorphWeapon = ConsumeString();
+                break;
+            case "MUGSHOTMAXHEALTH":
+                m_currentDefinition.Properties.Player.MugShotMaxHealth = ConsumeInteger();
+                break;
+            case "PORTRAIT":
+                m_currentDefinition.Properties.Player.Portrait = ConsumeString();
+                break;
+            case "RUNHEALTH":
+                m_currentDefinition.Properties.Player.RunHealth = ConsumeInteger();
+                break;
+            case "SCOREICON":
+                m_currentDefinition.Properties.Player.ScoreIcon = ConsumeString();
+                break;
+            case "SIDEMOVE":
+                double sideMoveWalk = ConsumeFloat();
+                double sideMoveRun = 1.0;
+                if (ConsumeIf(',')) 
+                    sideMoveRun = ConsumeFloat();
+                m_currentDefinition.Properties.Player.SideMove = new PlayerMoveProperty(sideMoveWalk, sideMoveRun);
+                break;
+            case "SOUNDCLASS":
+                m_currentDefinition.Properties.Player.SoundClass = ConsumeString();
+                break;
+            case "SPAWNCLASS":
+                m_currentDefinition.Properties.Player.SpawnClass = ConsumeString();
+                break;
+            case "STARTITEM":
+                ConsumeAndHandlePlayerStartItem();
+                break;
+            case "TELEPORTFREEZETIME":
+                m_currentDefinition.Properties.Player.TeleportFreezeTime = ConsumeInteger();
+                break;
+            case "USERANGE":
+                m_currentDefinition.Properties.Player.UseRange = ConsumeFloat();
+                break;
+            case "WEAPONSLOT":
+                m_currentDefinition.Properties.Player.WeaponSlot = ConsumePlayerWeaponSlot();
+                break;
+            case "VIEWBOB":
+                m_currentDefinition.Properties.Player.ViewBob = ConsumeSignedFloat();
+                break;
+            case "VIEWHEIGHT":
+                m_currentDefinition.Properties.Player.ViewHeight = ConsumeSignedFloat();
+                break;
+            default:
+                ThrowException($"Unknown PLAYER property '{property}' on actor '{m_currentDefinition.Name}'");
+                return;
+            }
+        }
+
+        private void ConsumePowerupProperty()
+        {
+            string nestedProperty = ConsumeIdentifier();
+            switch (nestedProperty.ToUpper())
+            {
+            case "COLOR":
+                m_currentDefinition.Properties.Powerup.Color.Color = ConsumeString();
+                if (ConsumeIf(','))
+                    m_currentDefinition.Properties.Powerup.Color.Alpha = ConsumeFloat();
+                break;
+            
+            case "COLORMAP":
+                double r = ConsumeFloat();
+                if (!MathHelper.InNormalRange(r))
+                    ThrowException("Powerup colormap destination R value is not in the 0.0 - 1.0 range");
+                Consume(',');
+                double g = ConsumeFloat();
+                if (!MathHelper.InNormalRange(r))
+                    ThrowException("Powerup colormap destination G value is not in the 0.0 - 1.0 range");
+                Consume(',');
+                double b = ConsumeFloat();
+                if (!MathHelper.InNormalRange(r))
+                    ThrowException("Powerup colormap destination B value is not in the 0.0 - 1.0 range");
+                    
+                Color dest = Color.FromArgb(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
+                if (ConsumeIf(','))
+                {
+                    double sourceR = ConsumeFloat();
+                    if (!MathHelper.InNormalRange(r))
+                        ThrowException("Powerup colormap source R value is not in the 0.0 - 1.0 range");
+                    
+                    Consume(',');
+                    double sourceG = ConsumeFloat();
+                    if (!MathHelper.InNormalRange(r))
+                        ThrowException("Powerup colormap source G value is not in the 0.0 - 1.0 range");
+                    
+                    Consume(',');
+                    double sourceB = ConsumeFloat();
+                    if (!MathHelper.InNormalRange(r))
+                        ThrowException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
+                    
+                    Color source = Color.FromArgb(255, (int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255));
+                    m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(source, dest);
+                }
+                else
+                    m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(dest);
+                break;
+                
+            case "DURATION":
+                m_currentDefinition.Properties.Powerup.Duration = ConsumeSignedInteger();
+                break;
+            
+            case "MODE":
+                m_currentDefinition.Properties.Powerup.Mode = ConsumePowerupMode();
+                break;
+            
+            case "STRENGTH":
+                m_currentDefinition.Properties.Powerup.Strength = ConsumeSignedInteger();
+                break;
+            
+            default:
+                Log.Warn("Unknown powerup property suffix '{0}' for actor {1} (in particular, PUZZLEITEM.{2})", nestedProperty, m_currentDefinition.Name);
+                break;
+            }
         }
 
         private void ConsumePuzzleItemProperty()
@@ -204,16 +730,319 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             switch (property.ToUpper())
             {
-            // To reduce logic and be efficient, we do combos with the top
-            // level properties.
+            // To reduce logic and be efficient, we do combos in this switch
+            // statement as well since the property reader is the 'catch-all'.
             case "MONSTER":
                 m_currentDefinition.Flags.Monster = true;
                 break;
             case "PROJECTILE":
                 m_currentDefinition.Flags.Projectile = true;
                 break;
+            // These are 'flag' properties.
+            case "CLEARFLAGS":
+                m_currentDefinition.FlagProperties.ClearFlags = true;
+                break;
+            case "DEFAULTALPHA":
+                m_currentDefinition.FlagProperties.DefaultAlpha = true;
+                break;
+            case "SKIP_SUPER":
+                m_currentDefinition.FlagProperties.SkipSuper = true;
+                break;
             // The rest are all properties now.
-            // TODO
+            case "ACCURACY":
+                m_currentDefinition.Properties.Accuracy = ConsumeInteger();
+                break;
+            case "ACTIVATION":
+                m_currentDefinition.Properties.Activation = ConsumeDecorateSpecialActivationType();
+                break;
+            case "ACTIVESOUND":
+                m_currentDefinition.Properties.ActiveSound = ConsumeString();
+                break;
+            case "ALPHA":
+                m_currentDefinition.Properties.Alpha = ConsumeFloat();
+                break;
+            case "ARGS":
+                m_currentDefinition.Properties.Args = ConsumeSpecialArgs();
+                break;
+            case "ATTACKSOUND":
+                m_currentDefinition.Properties.AttackSound = ConsumeString();
+                break;
+            case "BLOODCOLOR":
+                m_currentDefinition.Properties.BloodColor = ConvertStringToColor(ConsumeString());
+                break;
+            case "BLOODTYPE":
+                m_currentDefinition.Properties.BloodType = ConsumeString();
+                break;
+            case "BOUNCECOUNT":
+                m_currentDefinition.Properties.BounceCount = ConsumeInteger();
+                break;
+            case "BOUNCEFACTOR":
+                m_currentDefinition.Properties.BounceFactor = ConsumeFloat();
+                break;
+            case "BOUNCESOUND":
+                m_currentDefinition.Properties.BounceSound = ConsumeString();
+                break;
+            case "BOUNCETYPE":
+                m_currentDefinition.Properties.BounceType = ConsumeDecorateBounceType();
+                break;
+            case "BURNHEIGHT":
+                m_currentDefinition.Properties.BurnHeight = ConsumeFloat();
+                break;
+            case "CAMERAHEIGHT":
+                m_currentDefinition.Properties.CameraHeight = ConsumeFloat();
+                break;
+            case "CONVERSATIONID":
+                m_currentDefinition.Properties.ConversationID = ConsumeInteger();
+                break;
+            case "CRUSHPAINSOUND":
+                m_currentDefinition.Properties.CrushPainSound = ConsumeString();
+                break;
+            case "DAMAGEFACTOR":
+                m_currentDefinition.Properties.DamageFactor = ConsumeDamageFactor();
+                break;
+            case "DAMAGETYPE":
+                m_currentDefinition.Properties.DamageType = ConsumeString();
+                break;
+            case "DEATHHEIGHT":
+                m_currentDefinition.Properties.DeathHeight = ConsumeFloat();
+                break;
+            case "DEATHSOUND":
+                m_currentDefinition.Properties.DeathSound = ConsumeString();
+                break;
+            case "DEATHTYPE":
+                m_currentDefinition.Properties.DeathType = ConsumeString();
+                break;
+            case "DECAL":
+                m_currentDefinition.Properties.Decal = ConsumeString();
+                break;
+            case "DEFTHRESHOLD":
+                m_currentDefinition.Properties.DefThreshold = ConsumeInteger();
+                break;
+            case "DESIGNATEDTEAM":
+                m_currentDefinition.Properties.DesignatedTeam = ConsumeInteger();
+                break;
+            case "DISTANCECHECK":
+                m_currentDefinition.Properties.DistanceCheck = ConsumeString();
+                break;
+            case "EXPLOSIONDAMAGE":
+                m_currentDefinition.Properties.ExplosionDamage = ConsumeInteger();
+                break;
+            case "EXPLOSIONRADIUS":
+                m_currentDefinition.Properties.ExplosionRadius = ConsumeInteger();
+                break;
+            case "FASTSPEED":
+                m_currentDefinition.Properties.FastSpeed = ConsumeFloat();
+                break;
+            case "FLOATBOBPHASE":
+                m_currentDefinition.Properties.FloatBobPhase = ConsumeSignedFloat();
+                break;
+            case "FLOATBOBSTRENGTH":
+                m_currentDefinition.Properties.FloatBobStrength = ConsumeSignedFloat();
+                break;
+            case "FLOATSPEED":
+                m_currentDefinition.Properties.FloatSpeed = ConsumeFloat();
+                break;
+            case "FRICTION":
+                m_currentDefinition.Properties.Friction = ConsumeFloat();
+                break;
+            case "FRIENDLYSEEBLOCKS":
+                m_currentDefinition.Properties.FriendlySeeBlocks = ConsumeInteger();
+                break;
+            case "GAME":
+                m_currentDefinition.Properties.Game = ConsumeString();
+                break;
+            case "GIBHEALTH":
+                m_currentDefinition.Properties.GibHealth = ConsumeInteger();
+                break;
+            case "GRAVITY":
+                m_currentDefinition.Properties.Gravity = ConsumeFloat();
+                break;
+            case "HEALTH":
+                m_currentDefinition.Properties.Health = ConsumeInteger();
+                break;
+            case "HEIGHT":
+                m_currentDefinition.Properties.Height = ConsumeFloat();
+                break;
+            case "HITOBITUARY":
+                m_currentDefinition.Properties.HitObituary = ConsumeString();
+                break;
+            case "HOWLSOUND":
+                m_currentDefinition.Properties.HowlSound = ConsumeString();
+                break;
+            case "MASS":
+                m_currentDefinition.Properties.Mass = ConsumeFloat();
+                break;
+            case "MAXDROPOFFHEIGHT":
+                m_currentDefinition.Properties.MaxDropOffHeight = ConsumeFloat();
+                break;
+            case "MAXSTEPHEIGHT":
+                m_currentDefinition.Properties.MaxStepHeight = ConsumeFloat();
+                break;
+            case "MAXTARGETRANGE":
+                m_currentDefinition.Properties.MaxTargetRange = ConsumeInteger();
+                break;
+            case "MELEEDAMAGE":
+                m_currentDefinition.Properties.MeleeDamage = ConsumeInteger();
+                break;
+            case "MELEERANGE":
+                m_currentDefinition.Properties.MeleeRange = ConsumeInteger();
+                break;
+            case "MELEESOUND":
+                m_currentDefinition.Properties.MeleeSound = ConsumeInteger();
+                break;
+            case "MELEETHRESHOLD":
+                m_currentDefinition.Properties.MeleeThreshold = ConsumeInteger();
+                break;
+            case "MINMISSILECHANCE":
+                m_currentDefinition.Properties.MinMissileChance = ConsumeInteger();
+                break;
+            case "MISSILEHEIGHT":
+                m_currentDefinition.Properties.MissileHeight = ConsumeInteger();
+                break;
+            case "MISSILETYPE":
+                m_currentDefinition.Properties.MissileType = ConsumeInteger();
+                break;
+            case "OBITUARY":
+                m_currentDefinition.Properties.Obituary = ConsumeString();
+                break;
+            case "PAINCHANCE":
+                m_currentDefinition.Properties.PainChance = ConsumePainChance();
+                break;
+            case "PAINSOUND":
+                m_currentDefinition.Properties.PainSound = ConsumeString();
+                break;
+            case "PAINTHRESHOLD":
+                m_currentDefinition.Properties.PainThreshold = ConsumeInteger();
+                break;
+            case "PAINTYPE":
+                m_currentDefinition.Properties.PainType = ConsumeString();
+                break;
+            case "POISONDAMAGETYPE":
+                m_currentDefinition.Properties.PoisonDamageType = ConsumeString();
+                break;
+            case "PROJECTILEKICKBACK":
+                m_currentDefinition.Properties.ProjectileKickBack = ConsumeInteger();
+                break;
+            case "PROJECTILEPASSHEIGHT":
+                m_currentDefinition.Properties.ProjectilePassHeight = ConsumeInteger();
+                break;
+            case "PUSHFACTOR":
+                m_currentDefinition.Properties.PushFactor = ConsumeFloat();
+                break;
+            case "RADIUS":
+                m_currentDefinition.Properties.Radius = ConsumeFloat();
+                break;
+            case "RADIUSDAMAGEFACTOR":
+                m_currentDefinition.Properties.RadiusDamageFactor = ConsumeFloat();
+                break;
+            case "REACTIONTIME":
+                m_currentDefinition.Properties.ReactionTime = ConsumeInteger();
+                break;
+            case "RENDERRADIUS":
+                m_currentDefinition.Properties.RenderRadius = ConsumeFloat();
+                break;
+            case "RENDERSTYLE":
+                m_currentDefinition.Properties.RenderStyle = ConsumeRenderStyle();
+                break;
+            case "RIPLEVELMAX":
+                m_currentDefinition.Properties.RipLevelMax = ConsumeInteger();
+                break;
+            case "RIPLEVELMIN":
+                m_currentDefinition.Properties.RipLevelMin = ConsumeInteger();
+                break;
+            case "RIPPERLEVEL":
+                m_currentDefinition.Properties.RipperLevel = ConsumeInteger();
+                break;
+            case "SCALE":
+                m_currentDefinition.Properties.Scale = ConsumeFloat();
+                break;
+            case "SEESOUND":
+                m_currentDefinition.Properties.SeeSound = ConsumeString();
+                break;
+            case "SELFDAMAGEFACTOR":
+                m_currentDefinition.Properties.SelfDamageFactor = ConsumeFloat();
+                break;
+            case "SPAWNID":
+                m_currentDefinition.Properties.SpawnId = ConsumeInteger();
+                break;
+            case "SPECIES":
+                m_currentDefinition.Properties.Species = ConsumeString();
+                break;
+            case "SPEED":
+                m_currentDefinition.Properties.Speed = ConsumeFloat();
+                break;
+            case "SPRITEANGLE":
+                m_currentDefinition.Properties.SpriteAngle = ConsumeInteger();
+                break;
+            case "SPRITEROTATION":
+                m_currentDefinition.Properties.SpriteRotation = ConsumeInteger();
+                break;
+            case "STAMINA":
+                m_currentDefinition.Properties.Stamina = ConsumeInteger();
+                break;
+            case "STEALTHALPHA":
+                m_currentDefinition.Properties.StealthAlpha = ConsumeFloat();
+                break;
+            case "STENCILCOLOR":
+                m_currentDefinition.Properties.StencilColor = ConsumeInteger();
+                break;
+            case "TAG":
+                m_currentDefinition.Properties.Tag = ConsumeString();
+                break;
+            case "TELEFOGDESTTYPE":
+                m_currentDefinition.Properties.TeleFogDestType = ConsumeString();
+                break;
+            case "TELEFOGSOURCETYPE":
+                m_currentDefinition.Properties.TeleFogSourceType = ConsumeString();
+                break;
+            case "THRESHOLD":
+                m_currentDefinition.Properties.Threshold = ConsumeInteger();
+                break;
+            case "TRANSLATION":
+                m_currentDefinition.Properties.Translation = ConsumeTranslationProperties();
+                break;
+            case "VSPEED":
+                m_currentDefinition.Properties.VSpeed = ConsumeInteger();
+                break;
+            case "VISIBLEANGLES":
+                m_currentDefinition.Properties.VisibleAngles = ConsumeVisibleAngles();
+                break;
+            case "VISIBLEPITCH":
+                m_currentDefinition.Properties.VisiblePitch = ConsumeVisiblePitch();
+                break;
+            case "VISIBLETOTEAM":
+                m_currentDefinition.Properties.VisibleToTeam = ConsumeInteger();
+                break;
+            case "VISIBLETOPLAYERCLASS":
+                m_currentDefinition.Properties.VisibleToPlayerClass = ConsumeVisibleToPlayerClass();
+                break;
+            case "WALLBOUNCEFACTOR":
+                m_currentDefinition.Properties.WallBounceFactor = ConsumeFloat();
+                break;
+            case "WALLBOUNCESOUND":
+                m_currentDefinition.Properties.WallBounceSound = ConsumeString();
+                break;
+            case "WEAVEINDEXXY":
+                int weaveXY = ConsumeInteger();
+                if (weaveXY < 0 || weaveXY >= 64)
+                    ThrowException($"Actor property WeaveIndexXY must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
+                m_currentDefinition.Properties.WeaveIndexXY = weaveXY;
+                break;
+            case "WEAVEINDEXZ":
+                int weaveZ = ConsumeInteger();
+                if (weaveZ < 0 || weaveZ >= 64)
+                    ThrowException($"Actor property WeaveIndexZ must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
+                m_currentDefinition.Properties.WeaveIndexZ = ConsumeInteger();
+                break;
+            case "WOUNDHEALTH":
+                m_currentDefinition.Properties.WoundHealth = ConsumeInteger();
+                break;
+            case "XSCALE":
+                m_currentDefinition.Properties.XScale = ConsumeFloat();
+                break;
+            case "YSCALE":
+                m_currentDefinition.Properties.YScale = ConsumeFloat();
+                break;
             default:
                 ThrowException($"Unknown property '{property}' on actor '{m_currentDefinition.Name}'");
                 return;

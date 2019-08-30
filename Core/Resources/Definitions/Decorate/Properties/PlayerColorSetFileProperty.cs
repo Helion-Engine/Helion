@@ -4,10 +4,10 @@ namespace Helion.Resources.Definitions.Decorate.Properties
     {
         public int Number;
         public string Name;
-        public string Table;
+        public int Table;
         public string Color;
 
-        public PlayerColorSetFileProperty(int number, string name, string table, string color)
+        public PlayerColorSetFileProperty(int number, string name, int table, string color)
         {
             Number = number;
             Name = name;
