@@ -15,14 +15,16 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public double? BobRangeY;
         public double? BobSpeed;
         public WeaponBob? BobStyle;
+        public bool? DefaultKickBack;
         public int? KickBack;
+        public double? LookScale;
         public int? MinSelectionAmmo1;
         public int? MinSelectionAmmo2;
         public string? ReadySound;
         public int? SelectionOrder;
         public string? SisterWeapon;
         public int? SlotNumber;
-        public int? SlotPriority;
+        public double? SlotPriority;
         public string? UpSound;
         public int? YAdjust;
     }

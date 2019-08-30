@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
-using Helion.Resources.Definitions.Decorate;
-using Helion.Resources.Definitions.Decorate.Flags;
-using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
+using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Players;
 
 namespace Helion.World.Entities
@@ -17,9 +17,7 @@ namespace Helion.World.Entities
     public class Entity : IDisposable
     {
         public readonly int Id;
-        public readonly ActorDefinition Definition;
-        public readonly double Height;
-        public readonly double Radius;
+        public readonly EntityDefinition Definition;
         public double Angle;
         public EntityBox Box;
         public Vec3D PrevPosition;
@@ -39,9 +37,11 @@ namespace Helion.World.Entities
         internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
 
+        public double Height => Definition.Properties.Height;
+        public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
-        public ActorFlags Flags => Definition.Flags;
-        public ActorProperties Properties => Definition.Properties;
+        public EntityFlags Flags => Definition.Flags;
+        public EntityProperties Properties => Definition.Properties;
 
         /// <summary>
         /// Creates an entity with the following information.
@@ -52,13 +52,11 @@ namespace Helion.World.Entities
         /// <param name="angleRadians">The angle in radians.</param>
         /// <param name="sector">The sector that the center of the entity is on.
         /// </param>
-        public Entity(int id, ActorDefinition definition, Vec3D position, double angleRadians, Sector sector)
+        public Entity(int id, EntityDefinition definition, Vec3D position, double angleRadians, Sector sector)
         {
             Id = id;
             Definition = definition;
             Angle = angleRadians;
-            Radius = definition.Properties.Radius ?? 16;
-            Height = definition.Properties.Height ?? 16;
             Box = new EntityBox(position, Radius, Height);
             PrevPosition = Box.Position;
             Sector = sector;
@@ -149,12 +147,8 @@ namespace Helion.World.Entities
                 FrozenTics--;
         }
 
-        public bool IsCrushing()
-        {
-            return LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
-        }
+        public bool IsCrushing() => LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
 
-        /// <inheritdoc/>
         public void Dispose()
         {
             UnlinkFromWorld();

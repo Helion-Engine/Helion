@@ -1,13 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
+using NLog;
 
 namespace Helion.Resources.Definitions.Decorate.Parser
 {
-    public class DecorateParser : ParserBase
+    public partial class DecorateParser : ParserBase
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public readonly IList<ActorDefinition> ActorDefinitions = new List<ActorDefinition>();
         private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
         private int m_frameIndex;
@@ -29,13 +34,38 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         
         private static bool IsValidFrameLetter(char frame)
         {
-            return frame == '#' || frame == '_' || frame == '\\' ||
+            return frame == '#' || frame == '-' || frame == '_' || frame == '\\' ||
                    (frame >= '[' && frame <= ']') ||
                    (frame >= '0' && frame <= '9') ||
                    (frame >= 'A' && frame <= 'Z') ||
                    (frame >= 'a' && frame <= 'z');
         }
 
+        private static bool TryGetStateBranch(string text, out ActorStateBranch branchType)
+        {
+            switch (text.ToUpper())
+            {
+            case "FAIL":
+                branchType = ActorStateBranch.Fail;
+                return true;
+            case "GOTO":
+                branchType = ActorStateBranch.Goto;
+                return true;
+            case "LOOP":
+                branchType = ActorStateBranch.Loop;
+                return true;
+            case "STOP":
+                branchType = ActorStateBranch.Stop;
+                return true;
+            case "WAIT":
+                branchType = ActorStateBranch.Wait;
+                return true;
+            }
+
+            branchType = ActorStateBranch.None;
+            return false;
+        }
+        
         private void ConsumeVariable()
         {
             ThrowException("Variables not supported in decorate currently");
@@ -86,25 +116,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             else if (ConsumeIf("states"))
                 ConsumeActorStates();
             else
-                ConsumeActorProperty();
-        }
-
-        private void ConsumeActorFlag()
-        {
-            bool setFlag = false;
-            if (ConsumeIf('+'))
-                setFlag = true;
-            else
-                Consume('-');
-
-            string flagName = ConsumeIdentifier();
-            // TODO: Set the flag.
-        }
-
-        private void ConsumeActorProperty()
-        {
-            // TODO
-            ThrowException("Actor property parser not supported");
+                ConsumeActorPropertyOrCombo();
         }
 
         private void CreateActorStateLabel(string label)
@@ -116,6 +128,8 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             if (ConsumeIf("random"))
             {
+                // We don't check for negative numbers because it's probably
+                // not allowed.
                 Consume('(');
                 int low = ConsumeInteger();
                 Consume(',');
@@ -130,12 +144,19 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 return (min + max) / 2;
             }
                 
-            return ConsumeInteger();
+            int tickAmount = ConsumeSignedInteger();
+            if (tickAmount < -1)
+                ThrowException("No negative tick durations allowed (unless it is -1)");
+            return tickAmount;
         }
 
         private ActorFrameProperties ConsumeActorFrameKeywordsIfAny()
         {
             ActorFrameProperties properties = new ActorFrameProperties();
+            
+            // These can probably come in any order, so we'll need a looping
+            // dictionary. Apparently we have to watch out for new lines when
+            // dealing with `fast` and `slow`.
             // TODO: Bright
             // TODO: CanRaise
             // TODO: Fast
@@ -143,6 +164,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             // TODO: NoDelay
             // TODO: Offset(x, y)
             // TODO: Slow
+            
             return properties;
         }
 
@@ -181,10 +203,42 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             return new ActionFunction(functionName);
         }
 
+        private void ApplyStateBranch(ActorStateBranch branchType)
+        {
+            if (m_currentDefinition.States.Frames.Empty())
+                ThrowException("Cannot have a flow control label when no frames were defined");
+
+            ActorFrame frame = m_currentDefinition.States.Frames.Last();
+            
+            if (branchType != ActorStateBranch.Goto)
+            {
+                frame.FlowControl = new ActorFlowControl(branchType);
+                return;
+            }
+
+            string parent = "";
+            string label = ConsumeIdentifier();
+            int offset = 0;
+
+            if (ConsumeIf(':'))
+            {
+                Consume(':');
+                parent = label;
+                label = ConsumeString();
+            }
+
+            if (ConsumeIf('+'))
+                offset = ConsumeInteger();
+
+            frame.FlowControl = new ActorFlowControl(branchType, parent, label, offset);
+        }
+
         private void ConsumeActorStateElement()
         {
             string text = ConsumeString();
-            if (ConsumeIf(':'))
+            if (TryGetStateBranch(text, out ActorStateBranch branchType))
+                ApplyStateBranch(branchType);
+            else if (ConsumeIf(':'))
                 CreateActorStateLabel(text);
             else
                 ConsumeActorStateFrames(text);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Maps.Special;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
 {
@@ -9,10 +10,10 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public DecorateSpecialActivationType? Activation;
         public string? ActiveSound;
         public double? Alpha;
-        public AmmoProperty? Ammo;
-        public byte[]? Args;
-        public ArmorBonusProperty? ArmorBonus;
-        public ArmorPickupProperty? ArmorPickup;
+        public AmmoProperty Ammo;
+        public SpecialArgs? Args;
+        public ArmorBonusProperty ArmorBonus;
+        public ArmorPickupProperty ArmorPickup;
         public string? AttackSound;
         public string? BloodColor;
         public string? BloodType;
@@ -20,14 +21,14 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public double? BounceFactor;
         public string? BounceSound;
         public DecorateBounceType? BounceType;
-        public int? BurnHeight;
+        public double? BurnHeight;
         public int? CameraHeight;
         public int? ConversationID;
         public string? CrushPainSound;
-        public DamageRangeProperty? Damage;
+        public DamageRangeProperty Damage;
         public double? DamageFactor;
         public string? DamageType;
-        public int? DeathHeight;
+        public double? DeathHeight;
         public string? DeathSound;
         public string? DeathType;
         public string? Decal;
@@ -35,11 +36,11 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? DesignatedTeam;
         public string? DistanceCheck;
         public int? DontHurtShooter;
-        public DropItemProperty? DropItem;
+        public DropItemProperty DropItem;
         public int? ExplosionDamage;
         public int? ExplosionRadius;
         public int? FastSpeed;
-        public int? FloatBobPhase;
+        public double? FloatBobPhase;
         public double? FloatBobStrength;
         public int? FloatSpeed;
         public double? Friction;
@@ -48,11 +49,11 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? GibHealth;
         public double? Gravity;
         public int? Health;
-        public HealthPickupProperty? HealthPickup;
+        public HealthPickupProperty HealthPickup;
         public double? Height;
         public string? HitObituary;
         public string? HowlSound;
-        public InventoryProperty? Inventory;
+        public InventoryProperty Inventory;
         public double? Mass;
         public double? MaxDropOffHeight;
         public double? MaxStepHeight;
@@ -64,20 +65,20 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? MinMissileChance;
         public int? MissileHeight;
         public int? MissileType;
-        public MorphProjectileProperty? MorphProjectile;
+        public MorphProjectileProperty MorphProjectile;
         public string? Obituary;
         public int? PainChance;
         public string? PainSound;
         public int? PainThreshold;
         public string? PainType;
-        public PlayerProperty? Player;
-        public PoisonDamageProperty? PoisonDamage;
+        public PlayerProperty Player;
+        public PoisonDamageProperty PoisonDamage;
         public string? PoisonDamageType;
-        public PowerupProperty? Powerup;
+        public PowerupProperty Powerup;
         public int? ProjectileKickBack;
         public int? ProjectilePassHeight;
         public double? PushFactor;
-        public PuzzleItemProperty? PuzzleItem;
+        public PuzzleItemProperty PuzzleItem;
         public double? Radius;
         public double? RadiusDamageFactor;
         public int? ReactionTime;
@@ -107,8 +108,8 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public Range? VisiblePitch;
         public double? WallBounceFactor;
         public string? WallBounceSound;
-        public WeaponPiecesProperty? WeaponPieces;
-        public WeaponProperty? Weapons;
+        public WeaponPiecesProperty WeaponPieces;
+        public WeaponProperty Weapons;
         public int? WeaveIndexXY;
         public int? WeaveIndexZ;
         public int? WoundHealth;

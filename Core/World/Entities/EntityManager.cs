@@ -3,13 +3,14 @@ using Helion.Maps;
 using Helion.Maps.Geometry;
 using Helion.Maps.Things;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Decorate;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
+using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
 using Helion.World.Physics;
 using NLog;
@@ -29,7 +30,8 @@ namespace Helion.World.Entities
         private readonly IMap m_map;
         private readonly PhysicsManager m_physicsManager;
         private readonly WorldBase m_world;
-        private AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
+        private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
+        private readonly EntityDefinitionComposer m_definitionComposer;
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, BspTree bspTree,
             Blockmap blockmap, PhysicsManager physicsManager, IMap map)
@@ -40,9 +42,10 @@ namespace Helion.World.Entities
             m_map = map;
             m_physicsManager = physicsManager;
             m_world = world;
+            m_definitionComposer = new EntityDefinitionComposer(archiveCollection);
         }
 
-        public Entity Create(ActorDefinition definition, Vec3D position, double angle)
+        public Entity Create(EntityDefinition definition, Vec3D position, double angle)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = m_bspTree.ToSector(position);
@@ -58,7 +61,7 @@ namespace Helion.World.Entities
             return entity;
         }
         
-        public Player CreatePlayer(int playerNumber, ActorDefinition definition, Vec3D position, double angle)
+        public Player CreatePlayer(int playerNumber, EntityDefinition definition, Vec3D position, double angle)
         {
             Precondition(!Players.ContainsKey(playerNumber), $"Trying to create player {playerNumber} twice");
             
@@ -77,7 +80,7 @@ namespace Helion.World.Entities
                 return existingPlayer;
             }
                 
-            ActorDefinition? playerDefinition = m_archiveCollection.Definitions.Decorate[Constants.PlayerClass];
+            EntityDefinition? playerDefinition = m_definitionComposer.Get(Constants.PlayerClass);
             if (playerDefinition == null)
             {
                 Log.Error("Missing player definition class, cannot create player");

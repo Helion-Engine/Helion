@@ -1,3 +1,64 @@
 actor PlayerPawn
 {
+    Radius 16
+    Height 56
+    Mass 100
+    PainChance 255
+    Speed 1
+    // TODO: Get all the other player properties!
+    Player.JumpZ 8
+    Player.UseRange 64
+    Player.ViewHeight 41
+    
+    +CANPASS
+    +CANPUSHWALLS
+    +DROPOFF
+    +FLOORCLIP
+    +FRIENDLY
+    +NOBLOCKMONST
+    +NOTDMATCH
+    +PICKUP
+    +SHOOTABLE
+    +SLIDESONWALLS
+    +SOLID
+    +TELESTOMP
+    +WINDTHRUST
+}
+
+actor DoomPlayer : PlayerPawn
+{
+    // TODO: Get all the other player properties!
+    States
+    {
+    Spawn:
+        PLAY A -1
+        Loop
+    See:
+        PLAY ABCD 4
+        Loop
+    Missile:
+        PLAY E 12
+        Goto Spawn
+    Melee:
+        PLAY F 6 BRIGHT
+        Goto Missile
+    Pain:
+        PLAY G 4
+        PLAY G 4 A_Pain
+        Goto Spawn
+    Death:
+        PLAY H 10
+        PLAY I 10 A_PlayerScream
+        PLAY J 10 A_NoBlocking
+        PLAY KLM 10
+        PLAY N -1
+        Stop
+    XDeath:
+        PLAY O 5
+        PLAY P 5 A_XScream
+        PLAY Q 5 A_NoBlocking
+        PLAY RSTUV 5
+        PLAY W -1
+        Stop
+    }
 }

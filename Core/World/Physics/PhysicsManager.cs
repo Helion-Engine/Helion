@@ -25,7 +25,7 @@ namespace Helion.World.Physics
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
-        private const double EntityUseDistance = 64.0;
+        private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
         private const double SetEntityToFloorSpeedMax = 9;
 
         private readonly BspTree m_bspTree;

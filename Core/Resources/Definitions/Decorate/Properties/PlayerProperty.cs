@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
 {
-    public class PlayerProperty
+    public struct PlayerProperty
     {
         public double? AirCapacity;
         public int? AttackZOffset;
