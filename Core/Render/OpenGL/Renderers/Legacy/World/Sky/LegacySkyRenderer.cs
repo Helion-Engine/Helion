@@ -23,7 +23,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
             gl = functions;
-            
             DefaultSky = new SkySphereComponent(config, archiveCollection, capabilities, functions, textureManager);
             m_skyComponents = new List<ISkyComponent> { DefaultSky };
         }

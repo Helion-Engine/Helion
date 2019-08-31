@@ -7,20 +7,20 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 {
-    public class RenderGeometryData : IDisposable
+    public class RenderWorldData : IDisposable
     {
         public readonly GLLegacyTexture Texture;
         public readonly StreamVertexBuffer<LegacyVertex> Vbo;
         public readonly VertexArrayObject Vao;
 
-        public RenderGeometryData(GLCapabilities capabilities, IGLFunctions functions, GLLegacyTexture texture)
+        public RenderWorldData(GLCapabilities capabilities, IGLFunctions functions, GLLegacyTexture texture)
         {
             Texture = texture;
-            Vao = new VertexArrayObject(capabilities, functions, GeometryRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
+            Vao = new VertexArrayObject(capabilities, functions, LegacyWorldRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
             Vbo = new StreamVertexBuffer<LegacyVertex>(capabilities, functions, Vao, $"VBO: Geometry for {texture.Name}");
         }
 
-        ~RenderGeometryData()
+        ~RenderWorldData()
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();

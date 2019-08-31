@@ -1,5 +1,7 @@
 using System;
+using Helion.Util.Geometry;
 using Helion.World;
+using Helion.World.Bsp;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
@@ -14,11 +16,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             PerformDispose();
         }
 
-        public void Reset(WorldBase world)
+        public void Clear(WorldBase world)
         {
             m_EntityDrawnTracker.Reset(world);
         }
-        
+
+        public void RenderSubsector(Subsector subsector, Vec2D position)
+        {
+            // TODO
+        }
+
         public void Dispose()
         {
             PerformDispose();
