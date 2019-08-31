@@ -3,6 +3,7 @@ using Helion.Maps;
 using Helion.Maps.Special;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
+using Helion.Util.Container.Linkable;
 using Helion.Util.Time;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
@@ -27,6 +28,8 @@ namespace Helion.World
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly SpecialManager SpecialManager;
+
+        public LinkableList<Entity> Entities => EntityManager.Entities;
         
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree)
         {
