@@ -41,6 +41,6 @@ namespace Helion.Util
         /// <summary>
         /// The name of the decorate player class.
         /// </summary>
-        public static readonly CIString PlayerClass = "PLAYER";
+        public static readonly CIString PlayerClass = "DoomPlayer";
     }
 }

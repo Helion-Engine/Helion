@@ -264,49 +264,175 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Player.StartItem.Add(newStartItem);
         }
 
-        private List<PlayerWeaponSlot> ConsumePlayerWeaponSlot()
+        private void ConsumeAndHandlePlayerWeaponSlot()
         {
-            throw new NotImplementedException();
+            int slot = ConsumeInteger();
+            
+            HashSet<string> weapons = new HashSet<string> { ConsumeString() };
+            while (ConsumeIf(','))
+                weapons.Add(ConsumeString());
+
+            if (m_currentDefinition.Properties.WeaponSlot != null)
+            {
+                if (m_currentDefinition.Properties.WeaponSlot.TryGetValue(slot, out var weaponList))
+                    weaponList.UnionWith(weapons);
+                else
+                    m_currentDefinition.Properties.WeaponSlot[slot] = weapons;
+            }
+            else
+                m_currentDefinition.Properties.WeaponSlot = new Dictionary<int, HashSet<string>> { [slot] = weapons };
         }
         
         private DecorateSpecialActivationType? ConsumeDecorateSpecialActivationType()
         {
-            throw new NotImplementedException();
+            string value = ConsumeString();
+            switch (value.ToUpper())
+            {
+            case "THINGSPEC_DEFAULT":
+                return DecorateSpecialActivationType.Default;
+            case "THINGSPEC_THINGACTS":
+                return DecorateSpecialActivationType.ThingActs;
+            case "THINGSPEC_TRIGGERACTS":
+                return DecorateSpecialActivationType.TriggerActs;
+            case "THINGSPEC_THINGTARGETS":
+                return DecorateSpecialActivationType.ThingTargets;
+            case "THINGSPEC_TRIGGERTARGETS":
+                return DecorateSpecialActivationType.TriggerTargets;
+            case "THINGSPEC_MONSTERTRIGGER":
+                return DecorateSpecialActivationType.MonsterTrigger;
+            case "THINGSPEC_MISSILETRIGGER":
+                return DecorateSpecialActivationType.MissileTrigger;
+            case "THINGSPEC_CLEARSPECIAL":
+                return DecorateSpecialActivationType.ClearSpecial;
+            case "THINGSPEC_NODEATHSPECIAL":
+                return DecorateSpecialActivationType.NoDeathSpecial;
+            case "THINGSPEC_ACTIVATE":
+                return DecorateSpecialActivationType.Activate;
+            case "THINGSPEC_DEACTIVATE":
+                return DecorateSpecialActivationType.Deactivate;
+            case "THINGSPEC_SWITCH":
+                return DecorateSpecialActivationType.Switch;
+            default:
+                ThrowException($"Unknown special activation type '{value}' on actor '{m_currentDefinition.Name}'");
+                return DecorateSpecialActivationType.Default;
+            }
         }
 
         private SpecialArgs ConsumeSpecialArgs()
         {
-            throw new NotImplementedException();
+            int arg0 = ConsumeInteger();
+            if (arg0 < 0 || arg0 > 255)
+                ThrowException($"Actor arg0 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+            
+            int arg1 = ConsumeIf(',') ? ConsumeInteger() : 0;
+            if (arg1 < 0 || arg1 > 255)
+                ThrowException($"Actor arg1 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+            
+            int arg2 = ConsumeIf(',') ? ConsumeInteger() : 0;
+            if (arg2 < 0 || arg2 > 255)
+                ThrowException($"Actor arg2 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+            
+            int arg3 = ConsumeIf(',') ? ConsumeInteger() : 0;
+            if (arg3 < 0 || arg3 > 255)
+                ThrowException($"Actor arg3 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+            
+            int arg4 = ConsumeIf(',') ? ConsumeInteger() : 0;
+            if (arg4 < 0 || arg4 > 255)
+                ThrowException($"Actor arg4 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+            
+            return new SpecialArgs((byte)arg0, (byte)arg1, (byte)arg2, (byte)arg3, (byte)arg4);
         }
 
         private DecorateBounceType? ConsumeDecorateBounceType()
         {
-            throw new NotImplementedException();
-        }
-
-        private DamageFactorProperty ConsumeDamageFactor()
-        {
-            throw new NotImplementedException();
-        }
-
-        private PainChanceProperty ConsumePainChance()
-        {
-            throw new NotImplementedException();
+            string bounce = ConsumeString();
+            switch (bounce.ToUpper())
+            {
+            case "NONE":    
+                return DecorateBounceType.None;
+            case "DOOM":    
+                return DecorateBounceType.Doom;
+            case "HERETIC":    
+                return DecorateBounceType.Heretic;
+            case "HEXEN":    
+                return DecorateBounceType.Hexen;
+            case "CLASSIC":    
+                return DecorateBounceType.Classic;
+            case "GRENADE":    
+                return DecorateBounceType.Grenade;
+            case "DOOMCOMPAT":    
+                return DecorateBounceType.DoomCompat;
+            case "HERETICCOMPAT":    
+                return DecorateBounceType.HereticCompat;
+            case "HEXENCOMPAT":    
+                return DecorateBounceType.HexenCompat;
+            default:
+                ThrowException($"Unknown heal radius type '{bounce}' on actor '{m_currentDefinition.Name}'");
+                return DecorateBounceType.None;
+            }
         }
 
         private RenderStyle? ConsumeRenderStyle()
         {
-            throw new NotImplementedException();
+            string style = ConsumeString();
+            switch (style.ToUpper())
+            {
+            case "NONE":    
+                return RenderStyle.None;
+            case "NORMAL":    
+                return RenderStyle.Normal;
+            case "FUZZY":    
+                return RenderStyle.Fuzzy;
+            case "SOULTRANS":    
+                return RenderStyle.SoulTrans;
+            case "OPTFUZZY":    
+                return RenderStyle.OptFuzzy;
+            case "STENCIL":    
+                return RenderStyle.Stencil;
+            case "ADDSTENCIL":    
+                return RenderStyle.AddStencil;
+            case "TRANSLUCENT":    
+                return RenderStyle.Translucent;
+            case "ADD":    
+                return RenderStyle.Add;
+            case "SUBTRACT":    
+                return RenderStyle.Subtract;
+            case "SHADED":    
+                return RenderStyle.Shaded;
+            case "ADDSHADED":    
+                return RenderStyle.AddShaded;
+            case "SHADOW":    
+                return RenderStyle.Shadow;
+            default:
+                ThrowException($"Unknown heal radius type '{style}' on actor '{m_currentDefinition.Name}'");
+                return RenderStyle.Normal;
+            }
         }
 
-        private Range? ConsumeVisibleAngles()
+        private Range ConsumeVisibleAngles()
         {
-            throw new NotImplementedException();
+            int start = ConsumeInteger();
+            if (start < 0 || start > 360)
+                ThrowException($"Visible start angle out of range [0, 360] on actor '{m_currentDefinition.Name}'");
+            
+            int end = ConsumeInteger();
+            if (end < 0 || end > 360)
+                ThrowException($"Visible end angle out of range [0, 360] on actor '{m_currentDefinition.Name}'");
+            
+            return new Range(start, end);
         }
 
-        private Range? ConsumeVisiblePitch()
+        private Range ConsumeVisiblePitch()
         {
-            throw new NotImplementedException();
+            int start = ConsumeInteger();
+            if (start < -180 || start > 180)
+                ThrowException($"Visible start pitch out of range [-180, 180] on actor '{m_currentDefinition.Name}'");
+            
+            int end = ConsumeInteger();
+            if (end < -180 || end > 180)
+                ThrowException($"Visible end pitch out of range [-180, 180] on actor '{m_currentDefinition.Name}'");
+            
+            return new Range(start, end);
         }
         
         private void ConsumeActorPropertyOrCombo()
@@ -526,7 +652,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Player.UseRange = ConsumeFloat();
                 break;
             case "WEAPONSLOT":
-                m_currentDefinition.Properties.Player.WeaponSlot = ConsumePlayerWeaponSlot();
+                ConsumeAndHandlePlayerWeaponSlot();
                 break;
             case "VIEWBOB":
                 m_currentDefinition.Properties.Player.ViewBob = ConsumeSignedFloat();
@@ -798,7 +924,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.CrushPainSound = ConsumeString();
                 break;
             case "DAMAGEFACTOR":
-                m_currentDefinition.Properties.DamageFactor = ConsumeDamageFactor();
+                m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeString(), ConsumeFloat());
                 break;
             case "DAMAGETYPE":
                 m_currentDefinition.Properties.DamageType = ConsumeString();
@@ -906,7 +1032,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Obituary = ConsumeString();
                 break;
             case "PAINCHANCE":
-                m_currentDefinition.Properties.PainChance = ConsumePainChance();
+                m_currentDefinition.Properties.PainChance = new PainChance(ConsumeString(), ConsumeFloat());
                 break;
             case "PAINSOUND":
                 m_currentDefinition.Properties.PainSound = ConsumeString();

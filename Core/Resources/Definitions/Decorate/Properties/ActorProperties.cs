@@ -27,7 +27,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? ConversationID;
         public string? CrushPainSound;
         public DamageRangeProperty Damage;
-        public DamageFactorProperty DamageFactor;
+        public DamageFactor DamageFactor;
         public string? DamageType;
         public double? DeathHeight;
         public string? DeathSound;
@@ -67,7 +67,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? MissileType;
         public MorphProjectileProperty MorphProjectile;
         public string? Obituary;
-        public PainChanceProperty PainChance;
+        public PainChance? PainChance;
         public string? PainSound;
         public int? PainThreshold;
         public string? PainType;
@@ -112,6 +112,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public string? WallBounceSound;
         public WeaponPiecesProperty WeaponPieces;
         public WeaponProperty Weapons;
+        public Dictionary<int, HashSet<string>>? WeaponSlot;
         public int? WeaveIndexXY;
         public int? WeaveIndexZ;
         public int? WoundHealth;
