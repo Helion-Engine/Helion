@@ -368,8 +368,7 @@ namespace Helion.Util.Parser
             case "FALSE":
                 return false;
             default:
-                ThrowException($"Expecting boolean value of 'true' or 'false', got {str} instead");
-                return false;
+                throw MakeException($"Expecting boolean value of 'true' or 'false', got {str} instead");
             }
         }
 
@@ -582,13 +581,13 @@ namespace Helion.Util.Parser
         /// </summary>
         /// <param name="reason">The reason for throwing.</param>
         /// <exception cref="ParserException">The exception.</exception>
-        protected void ThrowException(string reason)
+        protected ParserException MakeException(string reason)
         {
             // If we get an index out of bounds, that is also handled. This can
             // occur when there are zero tokens in the stream, but it is all
             // handled.
             int index = (CurrentTokenIndex >= Tokens.Count ? Tokens.Count - 1 : CurrentTokenIndex);
-            throw new ParserException(Tokens[index], reason);
+            return new ParserException(Tokens[index], reason);
         }
 
         /// <summary>

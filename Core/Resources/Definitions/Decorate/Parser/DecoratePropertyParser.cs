@@ -65,19 +65,19 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             }
             
             if (colorString.Length != 8)
-                ThrowException($"Expecting 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+                throw MakeException($"Expecting 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
 
             string redStr = colorString.Substring(0, 2);
             if (!int.TryParse(redStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int r))
-                ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+                throw MakeException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
             
             string greenStr = colorString.Substring(3, 2);
             if (!int.TryParse(greenStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int g))
-                ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+                throw MakeException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
             
             string blueStr = colorString.Substring(6, 2);
             if (!int.TryParse(blueStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int b))
-                ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
+                throw MakeException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
             
             return Color.FromArgb(r, g, b);
         }
@@ -100,8 +100,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "SMOOTH":
                 return WeaponBob.Smooth;
             default:
-                ThrowException($"Unknown weapon bob type '{bobStyleText}' on actor '{m_currentDefinition.Name}'");
-                return WeaponBob.Normal;
+                throw MakeException($"Unknown weapon bob type '{bobStyleText}' on actor '{m_currentDefinition.Name}'");
             }
         }
         
@@ -126,8 +125,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "TRANSLUCENT":
                 return PowerupModeType.Translucent;
             default:
-                ThrowException($"Unknown powerup mode type '{mode}' on actor '{m_currentDefinition.Name}'");
-                return PowerupModeType.None;
+                throw MakeException($"Unknown powerup mode type '{mode}' on actor '{m_currentDefinition.Name}'");
             }
         }
         
@@ -135,16 +133,16 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             int translationIndexStart = ConsumeInteger();
             if (translationIndexStart < 0 || translationIndexStart > 255)
-                ThrowException("Property Player.ColorRange start index is out of range (0 - 255 only)");
+                throw MakeException("Property Player.ColorRange start index is out of range (0 - 255 only)");
             
             Consume(',');
             
             int translationIndexEnd = ConsumeInteger();
             if (translationIndexEnd < 0 || translationIndexEnd > 255)
-                ThrowException("Property Player.ColorRange start index is out of range (0 - 255 only)");
+                throw MakeException("Property Player.ColorRange start index is out of range (0 - 255 only)");
             
             if (translationIndexEnd < translationIndexStart)
-                ThrowException("Property Player.ColorRange start index larger than the end index");
+                throw MakeException("Property Player.ColorRange start index larger than the end index");
                 
             return new Range(translationIndexStart, translationIndexEnd);
         }
@@ -162,11 +160,11 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             int end = ConsumeInteger();
             Consume(',');
             if (start < 0 || start > 255)
-                ThrowException("Player color set property has a starting index that is out of the (0 - 255) range");
+                throw MakeException("Player color set property has a starting index that is out of the (0 - 255) range");
             if (end < 0 || end > 255)
-                ThrowException("Player color set property has a ending index that is out of the (0 - 255) range");
+                throw MakeException("Player color set property has a ending index that is out of the (0 - 255) range");
             if (start > end)
-                ThrowException("Player color set property has a starting index larger than the ending index");
+                throw MakeException("Player color set property has a starting index larger than the ending index");
             
             List<string> colors = new List<string> { ConsumeString() };
             while (ConsumeIf(','))
@@ -193,23 +191,23 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             int baseValue = ConsumeInteger();
             if (baseValue % 5 != 0)
-                ThrowException("Base value for player hexen armor property must be divisible by 5");
+                throw MakeException("Base value for player hexen armor property must be divisible by 5");
             
             int armorValue = ConsumeInteger();
             if (armorValue % 5 != 0)
-                ThrowException(" value for player hexen armor property must be divisible by 5");
+                throw MakeException(" value for player hexen armor property must be divisible by 5");
             
             int shieldValue = ConsumeInteger();
             if (shieldValue % 5 != 0)
-                ThrowException(" value for player hexen armor property must be divisible by 5");
+                throw MakeException(" value for player hexen armor property must be divisible by 5");
             
             int helmValue = ConsumeInteger();
             if (helmValue % 5 != 0)
-                ThrowException(" value for player hexen armor property must be divisible by 5");
+                throw MakeException(" value for player hexen armor property must be divisible by 5");
             
             int amuletValue = ConsumeInteger();
             if (amuletValue % 5 != 0)
-                ThrowException(" value for player hexen armor property must be divisible by 5");
+                throw MakeException(" value for player hexen armor property must be divisible by 5");
             
             return new HexenArmorProperty(baseValue, armorValue, shieldValue, helmValue, amuletValue);
         }
@@ -217,7 +215,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private PlayerDamageScreenProperty ConsumePlayerDamageScreenColor()
         {
             if (PeekInteger())
-                ThrowException("Player damage color integer support");
+                throw MakeException("Player damage color integer support");
 
             Color color = ConvertStringToColor(ConsumeString());
             double? intensity = null;
@@ -227,7 +225,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             {
                 intensity = ConsumeFloat();
                 if (intensity > 1.0)
-                    ThrowException("Player damage screen color intensity out of the 0.0 - 1.0 range");
+                    throw MakeException("Player damage screen color intensity out of the 0.0 - 1.0 range");
             }
 
             if (ConsumeIf(','))
@@ -248,8 +246,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "MANA":
                 return DecorateHealRadius.Mana;                    
             default:
-                ThrowException($"Unknown heal radius type '{mode}' on actor '{m_currentDefinition.Name}'");
-                return DecorateHealRadius.Health;
+                throw MakeException($"Unknown heal radius type '{mode}' on actor '{m_currentDefinition.Name}'");
             }
         }
         
@@ -317,8 +314,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "THINGSPEC_SWITCH":
                 return DecorateSpecialActivationType.Switch;
             default:
-                ThrowException($"Unknown special activation type '{value}' on actor '{m_currentDefinition.Name}'");
-                return DecorateSpecialActivationType.Default;
+                throw MakeException($"Unknown special activation type '{value}' on actor '{m_currentDefinition.Name}'");
             }
         }
 
@@ -326,23 +322,23 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             int arg0 = ConsumeInteger();
             if (arg0 < 0 || arg0 > 255)
-                ThrowException($"Actor arg0 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Actor arg0 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
             
             int arg1 = ConsumeIf(',') ? ConsumeInteger() : 0;
             if (arg1 < 0 || arg1 > 255)
-                ThrowException($"Actor arg1 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Actor arg1 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
             
             int arg2 = ConsumeIf(',') ? ConsumeInteger() : 0;
             if (arg2 < 0 || arg2 > 255)
-                ThrowException($"Actor arg2 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Actor arg2 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
             
             int arg3 = ConsumeIf(',') ? ConsumeInteger() : 0;
             if (arg3 < 0 || arg3 > 255)
-                ThrowException($"Actor arg3 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Actor arg3 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
             
             int arg4 = ConsumeIf(',') ? ConsumeInteger() : 0;
             if (arg4 < 0 || arg4 > 255)
-                ThrowException($"Actor arg4 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Actor arg4 must be in the range [0, 255] on actor '{m_currentDefinition.Name}'");
             
             return new SpecialArgs((byte)arg0, (byte)arg1, (byte)arg2, (byte)arg3, (byte)arg4);
         }
@@ -371,8 +367,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "HEXENCOMPAT":    
                 return DecorateBounceType.HexenCompat;
             default:
-                ThrowException($"Unknown heal radius type '{bounce}' on actor '{m_currentDefinition.Name}'");
-                return DecorateBounceType.None;
+                throw MakeException($"Unknown heal radius type '{bounce}' on actor '{m_currentDefinition.Name}'");
             }
         }
 
@@ -408,8 +403,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "SHADOW":    
                 return RenderStyle.Shadow;
             default:
-                ThrowException($"Unknown heal radius type '{style}' on actor '{m_currentDefinition.Name}'");
-                return RenderStyle.Normal;
+                throw MakeException($"Unknown heal radius type '{style}' on actor '{m_currentDefinition.Name}'");
             }
         }
 
@@ -417,11 +411,11 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             int start = ConsumeInteger();
             if (start < 0 || start > 360)
-                ThrowException($"Visible start angle out of range [0, 360] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Visible start angle out of range [0, 360] on actor '{m_currentDefinition.Name}'");
             
             int end = ConsumeInteger();
             if (end < 0 || end > 360)
-                ThrowException($"Visible end angle out of range [0, 360] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Visible end angle out of range [0, 360] on actor '{m_currentDefinition.Name}'");
             
             return new Range(start, end);
         }
@@ -430,11 +424,11 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             int start = ConsumeInteger();
             if (start < -180 || start > 180)
-                ThrowException($"Visible start pitch out of range [-180, 180] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Visible start pitch out of range [-180, 180] on actor '{m_currentDefinition.Name}'");
             
             int end = ConsumeInteger();
             if (end < -180 || end > 180)
-                ThrowException($"Visible end pitch out of range [-180, 180] on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"Visible end pitch out of range [-180, 180] on actor '{m_currentDefinition.Name}'");
             
             return new Range(start, end);
         }
@@ -484,8 +478,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                     ConsumeWeaponPieceProperty();
                     break;
                 default:
-                    ThrowException($"Unknown prefix property '{property}' on actor '{m_currentDefinition.Name}'");
-                    return;
+                    throw MakeException($"Unknown prefix property '{property}' on actor '{m_currentDefinition.Name}'");
                 }
             }
             else
@@ -494,37 +487,37 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void ConsumeAmmoProperty()
         {
-            ThrowException("Decorate: Ammo properties are on the TODO list!");
+            throw MakeException("Decorate: Ammo properties are on the TODO list!");
         }
 
         private void ConsumeArmorProperty()
         {
-            ThrowException("Decorate: Armor properties are on the TODO list!");
+            throw MakeException("Decorate: Armor properties are on the TODO list!");
         }
 
         private void ConsumeFakeInventoryProperty()
         {
-            ThrowException("Decorate: Fake inventory properties are on the TODO list!");
+            throw MakeException("Decorate: Fake inventory properties are on the TODO list!");
         }
 
         private void ConsumeHealthProperty()
         {
-            ThrowException("Decorate: Health properties are on the TODO list!");
+            throw MakeException("Decorate: Health properties are on the TODO list!");
         }
 
         private void ConsumeHealthPickupProperty()
         {
-            ThrowException("Decorate: Health pickup properties are on the TODO list!");
+            throw MakeException("Decorate: Health pickup properties are on the TODO list!");
         }
 
         private void ConsumeInventoryProperty()
         {
-            ThrowException("Decorate: Inventory properties are on the TODO list!");
+            throw MakeException("Decorate: Inventory properties are on the TODO list!");
         }
 
         private void ConsumeMorphProjectileProperty()
         {
-            ThrowException("Decorate: Morph projectiles properties are on the TODO list!");
+            throw MakeException("Decorate: Morph projectiles properties are on the TODO list!");
         }
         
         private List<string> ConsumeTranslationProperties()
@@ -588,7 +581,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 Consume(',');
                 double maxFallingSpeed = ConsumeFloat();
                 if (maxFallingSpeed < minFallingSpeed)
-                    ThrowException("Player falling scream speed has the min value being larger than the max value");
+                    throw MakeException("Player falling scream speed has the min value being larger than the max value");
                 m_currentDefinition.Properties.Player.FallingScreamSpeed = new PlayerFallingScreamSpeed(minFallingSpeed, maxFallingSpeed);
                 break;
             case "FLECHETTETYPE":
@@ -666,8 +659,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Player.ViewHeight = ConsumeSignedFloat();
                 break;
             default:
-                ThrowException($"Unknown PLAYER property '{property}' on actor '{m_currentDefinition.Name}'");
-                return;
+                throw MakeException($"Unknown PLAYER property '{property}' on actor '{m_currentDefinition.Name}'");
             }
         }
 
@@ -685,32 +677,32 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "COLORMAP":
                 double r = ConsumeFloat();
                 if (!MathHelper.InNormalRange(r))
-                    ThrowException("Powerup colormap destination R value is not in the 0.0 - 1.0 range");
+                    throw MakeException("Powerup colormap destination R value is not in the 0.0 - 1.0 range");
                 Consume(',');
                 double g = ConsumeFloat();
                 if (!MathHelper.InNormalRange(r))
-                    ThrowException("Powerup colormap destination G value is not in the 0.0 - 1.0 range");
+                    throw MakeException("Powerup colormap destination G value is not in the 0.0 - 1.0 range");
                 Consume(',');
                 double b = ConsumeFloat();
                 if (!MathHelper.InNormalRange(r))
-                    ThrowException("Powerup colormap destination B value is not in the 0.0 - 1.0 range");
+                    throw MakeException("Powerup colormap destination B value is not in the 0.0 - 1.0 range");
                     
                 Color dest = Color.FromArgb(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
                 if (ConsumeIf(','))
                 {
                     double sourceR = ConsumeFloat();
                     if (!MathHelper.InNormalRange(r))
-                        ThrowException("Powerup colormap source R value is not in the 0.0 - 1.0 range");
+                        throw MakeException("Powerup colormap source R value is not in the 0.0 - 1.0 range");
                     
                     Consume(',');
                     double sourceG = ConsumeFloat();
                     if (!MathHelper.InNormalRange(r))
-                        ThrowException("Powerup colormap source G value is not in the 0.0 - 1.0 range");
+                        throw MakeException("Powerup colormap source G value is not in the 0.0 - 1.0 range");
                     
                     Consume(',');
                     double sourceB = ConsumeFloat();
                     if (!MathHelper.InNormalRange(r))
-                        ThrowException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
+                        throw MakeException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
                     
                     Color source = Color.FromArgb(255, (int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255));
                     m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(source, dest);
@@ -1162,13 +1154,13 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "WEAVEINDEXXY":
                 int weaveXY = ConsumeInteger();
                 if (weaveXY < 0 || weaveXY >= 64)
-                    ThrowException($"Actor property WeaveIndexXY must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
+                    throw MakeException($"Actor property WeaveIndexXY must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
                 m_currentDefinition.Properties.WeaveIndexXY = weaveXY;
                 break;
             case "WEAVEINDEXZ":
                 int weaveZ = ConsumeInteger();
                 if (weaveZ < 0 || weaveZ >= 64)
-                    ThrowException($"Actor property WeaveIndexZ must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
+                    throw MakeException($"Actor property WeaveIndexZ must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
                 m_currentDefinition.Properties.WeaveIndexZ = ConsumeInteger();
                 break;
             case "WOUNDHEALTH":
@@ -1181,8 +1173,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.YScale = ConsumeFloat();
                 break;
             default:
-                ThrowException($"Unknown property '{property}' on actor '{m_currentDefinition.Name}'");
-                return;
+                throw MakeException($"Unknown property '{property}' on actor '{m_currentDefinition.Name}'");
             }
         }
     }

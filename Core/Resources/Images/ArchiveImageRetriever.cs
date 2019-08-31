@@ -41,7 +41,7 @@ namespace Helion.Resources.Images
             if (definition != null)
                 return ImageFromDefinition(definition);
             
-            Entry? entry = m_archiveCollection.GetEntry(name, priorityNamespace);
+            Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, priorityNamespace);
             return entry != null ? ImageFromEntry(entry) : null;
         }
         
@@ -56,7 +56,7 @@ namespace Helion.Resources.Images
             if (definition != null)
                 return ImageFromDefinition(definition);
             
-            Entry? entry = m_archiveCollection.GetEntry(name, targetNamespace);
+            Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, targetNamespace);
             return entry != null ? ImageFromEntry(entry) : null;
         }
 
@@ -77,7 +77,7 @@ namespace Helion.Resources.Images
                     // wads do this unfortunately...
                     if (component.Name == definition.Name)
                     {
-                        Entry? entry = m_archiveCollection.GetEntry(component.Name, definition.Namespace);
+                        Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
                         if (entry != null)
                             subImage = ImageFromEntry(entry);
                     }

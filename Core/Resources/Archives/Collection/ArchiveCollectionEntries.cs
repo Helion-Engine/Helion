@@ -14,6 +14,12 @@ namespace Helion.Resources.Archives.Collection
         /// A mapping of an upper case string to the most recently loaded
         /// entry.
         /// </summary>
+        private readonly Dictionary<CIString, Entry> m_pathToEntry = new Dictionary<CIString, Entry>();
+        
+        /// <summary>
+        /// A mapping of an upper case string to the most recently loaded
+        /// entry.
+        /// </summary>
         private readonly Dictionary<CIString, Entry> m_nameToEntries = new Dictionary<CIString, Entry>();
         
         /// <summary>
@@ -30,6 +36,7 @@ namespace Helion.Resources.Archives.Collection
         /// <param name="entry">The entry to track.</param>
         public void Track(Entry entry)
         {
+            m_pathToEntry[entry.Path.FullPath] = entry;
             m_nameToEntries[entry.Path.Name] = entry;
             m_namespaceNameEntries.Insert(entry.Path.Name, entry.Namespace, entry);
         }
@@ -40,9 +47,21 @@ namespace Helion.Resources.Archives.Collection
         /// <param name="name">The entry name.</param>
         /// <returns>The most recently loaded entry with the name provided, or
         /// null if it does not exist.</returns>
-        public Entry? Find(CIString name)
+        public Entry? FindByName(CIString name)
         {
             return m_nameToEntries.TryGetValue(name, out Entry? entry) ? entry : null;
+        }
+        
+        /// <summary>
+        /// Finds the entry by path. This is case insensitive.
+        /// </summary>
+        /// <param name="path">The path to the entry, such as "FILE.txt" or
+        /// "my/folder/path.txt".</param>
+        /// <returns>The most recently loaded entry with the name provided, or
+        /// null if it does not exist.</returns>
+        public Entry? FindByPath(CIString path)
+        {
+            return m_pathToEntry.TryGetValue(path, out Entry? entry) ? entry : null;
         }
         
         /// <summary>
@@ -53,7 +72,7 @@ namespace Helion.Resources.Archives.Collection
         /// <param name="priorityNamespace">The namespace to look in first
         /// before any other namespaces.</param>
         /// <returns>The entry if it exists, null if not.</returns>
-        public Entry? Find(CIString name, ResourceNamespace priorityNamespace)
+        public Entry? FindByNamespace(CIString name, ResourceNamespace priorityNamespace)
         {
             return m_namespaceNameEntries.Get(name, priorityNamespace);
         }

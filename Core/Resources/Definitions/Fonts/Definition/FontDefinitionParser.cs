@@ -46,8 +46,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
             case "TOP":
                 return FontAlignment.Top;
             default:
-                ThrowException($"Expected alignment to be bottom/center/top, got {alignName} instead");
-                return FontAlignment.Bottom;
+                throw MakeException($"Expected alignment to be bottom/center/top, got {alignName} instead");
             }
         }
 
@@ -62,11 +61,11 @@ namespace Helion.Resources.Definitions.Fonts.Definition
         {
             string character = ConsumeString();
             if (character.Length != 1)
-                ThrowException($"Expected printable font character, got \"{character}\" instead");
+                throw MakeException($"Expected printable font character, got \"{character}\" instead");
             
             char c = character[0];
             if (c < 32 || c >= 127)
-                ThrowException($"Unexpected font character index \"{(int)c}\", required to be in the range 32 - 126 inclusive");
+                throw MakeException($"Unexpected font character index \"{(int)c}\", required to be in the range 32 - 126 inclusive");
 
             return c;
         }
@@ -90,7 +89,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
         private void ConsumeCharactersDefinition()
         {
             if (!CurrentDefinition.CharDefinitions.Empty())
-                ThrowException("Multiple 'characters' definitions in font, should only be one");
+                throw MakeException("Multiple 'characters' definitions in font, should only be one");
             
             Consume('{');
             while (!Peek('}'))
@@ -130,8 +129,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
                 ConsumeSpaceDefinition();
                 break;
             default:
-                ThrowException($"Expecting font definition (ex: 'characters', 'space', ...etc), got {identifier} instead");
-                return;
+                throw MakeException($"Expecting font definition (ex: 'characters', 'space', ...etc), got {identifier} instead");
             }
         }
 
@@ -141,7 +139,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
 
             string fontName = ConsumeString();
             if (fontName.Empty())
-                ThrowException("Should not be getting an empty font definition name");
+                throw MakeException("Should not be getting an empty font definition name");
             
             CurrentDefinition = new FontDefinition(fontName);
             

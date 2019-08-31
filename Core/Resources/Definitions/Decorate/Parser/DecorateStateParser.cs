@@ -79,7 +79,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 
             int tickAmount = ConsumeSignedInteger();
             if (tickAmount < -1)
-                ThrowException($"No negative tick durations allowed (unless it is -1) on actor '{m_currentDefinition.Name}'");
+                throw MakeException($"No negative tick durations allowed (unless it is -1) on actor '{m_currentDefinition.Name}'");
             return tickAmount;
         }
 
@@ -94,10 +94,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             {
                 string? value = PeekCurrentText();
                 if (value == null)
-                {
-                    ThrowException($"Ran out of tokens when reading actor frame properties on actor '{m_currentDefinition.Name}'");
-                    return properties;
-                }
+                    throw MakeException($"Ran out of tokens when reading actor frame properties on actor '{m_currentDefinition.Name}'");
 
                 string upperKeyword = value.ToUpper();
                 if (!FramePropertyKeywords.Contains(upperKeyword))
@@ -163,7 +160,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             foreach (char frame in frames)
             {
                 if (!IsValidFrameLetter(frame))
-                    ThrowException($"Invalid actor frame letter: {frame} (ascii ordinal {(int)frame})");
+                    throw MakeException($"Invalid actor frame letter: {frame} (ascii ordinal {(int)frame})");
                 
                 ActorFrame actorFrame = new ActorFrame(sprite, frame, ticks, properties, actionFunction);
                 m_currentDefinition.States.Frames.Add(actorFrame);
@@ -175,10 +172,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             string? text = PeekCurrentText();
             if (text == null)
-            {
-                ThrowException($"Ran out of tokens when reading an actor frame action function on actor '{m_currentDefinition.Name}'");
-                return null;
-            }
+                throw MakeException($"Ran out of tokens when reading an actor frame action function on actor '{m_currentDefinition.Name}'");
             
             // It is possible that no such action function exists and we would
             // be reading a label or frame.
@@ -194,7 +188,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void ApplyStateBranch(ActorStateBranch branchType)
         {
             if (m_currentDefinition.States.Frames.Empty())
-                ThrowException("Cannot have a flow control label when no frames were defined");
+                throw MakeException("Cannot have a flow control label when no frames were defined");
 
             ActorFrame frame = m_currentDefinition.States.Frames.Last();
             

@@ -417,11 +417,11 @@ namespace Helion.Test.Unit.Util.Parser
         public void CanConsumeStringText()
         {
             ParserTestImpl parser = new ParserTestImpl("hi \"yes\" \"\"");
-            parser.ConsumeString("hi");
+            parser.Consume("hi");
             Assert.AreEqual(1, parser.CurrentTokenIndex);
-            parser.ConsumeString("yes");
+            parser.Consume("yes");
             Assert.AreEqual(2, parser.CurrentTokenIndex);
-            parser.ConsumeString("");
+            parser.Consume("");
             Assert.AreEqual(3, parser.CurrentTokenIndex);
         }
         
@@ -430,7 +430,7 @@ namespace Helion.Test.Unit.Util.Parser
         public void ConsumeWrongStringTextThrows()
         {
             ParserTestImpl parser = new ParserTestImpl(";-");
-            parser.ConsumeString("stuff");
+            parser.Consume("stuff");
         }
         
         [TestMethod]
@@ -438,17 +438,9 @@ namespace Helion.Test.Unit.Util.Parser
         public void ConsumeStringTextPastEndThrows()
         {
             ParserTestImpl parser = new ParserTestImpl("");
-            parser.ConsumeString("stuff");
+            parser.Consume("stuff");
         }
-        
-        [TestMethod]
-        [ExpectedException(typeof(ParserException))]
-        public void InvokingThrowWillPerformThrowing()
-        {
-            ParserTestImpl parser = new ParserTestImpl(";-");
-            parser.ThrowException("msg");
-        }
-        
+
         [TestMethod]
         public void ConsumesBooleans()
         {
@@ -603,18 +595,18 @@ namespace Helion.Test.Unit.Util.Parser
         public new bool PeekString() => base.PeekString();
         public new void Consume(TokenType type) => base.Consume(type);
         public new void Consume(char c) => base.Consume(c);
+        public new void Consume(string str) => base.Consume(str);
         public new int ConsumeInteger() => base.ConsumeInteger();
         public new int ConsumeSignedInteger() => base.ConsumeSignedInteger();
         public new double ConsumeFloat() => base.ConsumeFloat();
         public new double ConsumeSignedFloat() => base.ConsumeSignedFloat();
         public new string ConsumeString() => base.ConsumeString();
-        public new void ConsumeString(string str) => base.Consume(str);
         public new bool ConsumeBoolean() => base.ConsumeBoolean();
         public new bool ConsumeIf(string str) => base.ConsumeIf(str);
         public new bool ConsumeIf(char c) => base.ConsumeIf(c);
         public new void InvokeUntilAndConsume(char c, Action action) => base.InvokeUntilAndConsume(c, action);
         public new void InvokeUntilAndConsume(string str, Action action) => base.InvokeUntilAndConsume(str, action);
-        public new void ThrowException(string msg) => base.ThrowException(msg);
+        public new void MakeException(string msg) => base.MakeException(msg);
         
         protected override void PerformParsing()
         {

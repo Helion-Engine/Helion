@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Parser;
+using MoreLinq;
 using NLog;
 
 namespace Helion.Resources.Definitions.Decorate.Parser
@@ -14,14 +15,22 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly IList<ActorDefinition> ActorDefinitions = new List<ActorDefinition>();
+        protected readonly string Path;
+        protected readonly Func<string, string?> IncludeResolver;
         private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
         private int m_frameIndex;
+
+        public DecorateParser(string path, Func<string, string?> includeResolver)
+        {
+            Path = path;
+            IncludeResolver = includeResolver;
+        }
         
         protected override void PerformParsing()
         {
             while (!Done)
             {
-                if (Peek('#'))
+                if (ConsumeIf('#'))
                     ConsumeInclude();
                 else if (Peek("const"))
                     ConsumeVariable();
@@ -30,22 +39,39 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 else
                     ConsumeActorDefinition();
             }
+            
+            // TODO: Should remove duplicate definitions (same name).
         }
 
         private void ConsumeVariable()
         {
-            ThrowException("Variables not supported in decorate currently");
+            throw MakeException("Variables not supported in decorate currently");
         }
 
         private void ConsumeEnum()
         {
-            ThrowException("Enums not supported in decorate currently");
+            throw MakeException("Enums not supported in decorate currently");
+        }
+
+        private void MergeWithParsedData(DecorateParser parser)
+        {
+            parser.ActorDefinitions.ForEach(ActorDefinitions.Add);
         }
 
         private void ConsumeInclude()
         {
-            // TODO: We need to do preprocessing instead
-            ThrowException("Enums not supported in decorate currently");
+            Consume("include");
+            string includePath = ConsumeString();
+
+            string? includeText = IncludeResolver.Invoke(includePath);
+            if (includeText == null)
+                throw MakeException($"Could not locate include at {includePath}");
+            
+            DecorateParser parser = new DecorateParser(includePath, IncludeResolver);
+            if (!parser.Parse(includeText))
+                throw MakeException($"Failed to parse include path at {includePath}");
+
+            MergeWithParsedData(parser);
         }
 
         private void ConsumeActorDefinition()

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Fonts;
@@ -18,7 +19,7 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
-        public readonly DecorateDefinitions Decorate = new DecorateDefinitions();
+        public readonly DecorateDefinitions Decorate;
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
@@ -28,8 +29,10 @@ namespace Helion.Resources.Definitions
         /// Creates a definition entries data structure which has no tracked
         /// data.
         /// </summary>
-        public DefinitionEntries()
+        public DefinitionEntries(ArchiveCollection archiveCollection)
         {
+            Decorate = new DecorateDefinitions(archiveCollection);
+            
             m_entryNameToAction["DECORATE"] = entry => Decorate.AddDecorateDefinitions(entry);
             m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));

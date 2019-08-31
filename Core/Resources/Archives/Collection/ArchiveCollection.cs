@@ -22,15 +22,16 @@ namespace Helion.Resources.Archives.Collection
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly DefinitionEntries Definitions = new DefinitionEntries();
+        public readonly ArchiveCollectionEntries Entries = new ArchiveCollectionEntries();
         public readonly DataEntries Data = new DataEntries();
+        public readonly DefinitionEntries Definitions;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new List<Archive>();
-        private readonly ArchiveCollectionEntries m_entries = new ArchiveCollectionEntries();
 
         public ArchiveCollection(IArchiveLocator archiveLocator)
         {
             m_archiveLocator = archiveLocator;
+            Definitions = new DefinitionEntries(this);
         }
 
         public bool Load(IEnumerable<string> files)
@@ -66,11 +67,6 @@ namespace Helion.Resources.Archives.Collection
             return true;
         }
 
-        public Entry? GetEntry(CIString entryName, ResourceNamespace resourceNamespace)
-        {
-            return m_entries.Find(entryName, resourceNamespace);
-        }
-        
         public (IMap? Map, MapEntryCollection? EntryCollection) FindMap(string mapName)
         {
             string upperName = mapName.ToUpper();
@@ -116,7 +112,7 @@ namespace Helion.Resources.Archives.Collection
             {
                 foreach (Entry entry in archive.Entries)
                 {
-                    m_entries.Track(entry);
+                    Entries.Track(entry);
                     Data.Read(entry);
                 }
                 

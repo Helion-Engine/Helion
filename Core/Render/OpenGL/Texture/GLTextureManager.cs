@@ -140,7 +140,7 @@ namespace Helion.Render.OpenGL.Texture
             if (font != null)
                 return CreateNewFont(font, name);
 
-            Entry? entry = ArchiveCollection.GetEntry(name, ResourceNamespace.Fonts);
+            Entry? entry = ArchiveCollection.Entries.FindByNamespace(name, ResourceNamespace.Fonts);
             if (entry == null)
                 return NullFont;
 
