@@ -24,12 +24,14 @@ namespace Helion.Resources.Definitions.Decorate.States
         {
             Precondition(type == ActorStateBranch.Goto, "Using wrong actor flow control constructor (should be goto)");
             Precondition(!label.Empty(), "Should not be using an label on a goto statement");
-            Precondition(offset > 0, "Should not be using a zero or negative actor goto offset");
+            Precondition(offset >= 0, "Should not be using a zero or negative actor goto offset");
             
             Type = type;
             Parent = parent;
             Label = label;
             Offset = offset;
         }
+
+        public override string ToString() => $"{Type} (parent={Parent} label={Label} offset={Offset})";
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using Helion.Maps.Special;
 using Helion.Resources.Definitions.Decorate.Properties;
@@ -67,15 +68,15 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 ThrowException($"Expecting 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
 
             string redStr = colorString.Substring(0, 2);
-            if (int.TryParse(redStr, out int r))
+            if (!int.TryParse(redStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int r))
                 ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
             
-            string greenStr = colorString.Substring(3, 5);
-            if (int.TryParse(greenStr, out int g))
+            string greenStr = colorString.Substring(3, 2);
+            if (!int.TryParse(greenStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int g))
                 ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
             
-            string blueStr = colorString.Substring(6, 8);
-            if (int.TryParse(blueStr, out int b))
+            string blueStr = colorString.Substring(6, 2);
+            if (!int.TryParse(blueStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int b))
                 ThrowException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
             
             return Color.FromArgb(r, g, b);
@@ -135,6 +136,8 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             int translationIndexStart = ConsumeInteger();
             if (translationIndexStart < 0 || translationIndexStart > 255)
                 ThrowException("Property Player.ColorRange start index is out of range (0 - 255 only)");
+            
+            Consume(',');
             
             int translationIndexEnd = ConsumeInteger();
             if (translationIndexEnd < 0 || translationIndexEnd > 255)
@@ -254,7 +257,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             string className = ConsumeString();
             int? amount = null;
-            if (PeekInteger())
+            if (ConsumeIf(','))
                 amount = ConsumeInteger();
             
             PlayerStartItem newStartItem = new PlayerStartItem(className, amount);
@@ -267,6 +270,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void ConsumeAndHandlePlayerWeaponSlot()
         {
             int slot = ConsumeInteger();
+            Consume(',');
             
             HashSet<string> weapons = new HashSet<string> { ConsumeString() };
             while (ConsumeIf(','))
@@ -581,6 +585,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 break;
             case "FALLINGSCREAMSPEED":
                 double minFallingSpeed = ConsumeFloat();
+                Consume(',');
                 double maxFallingSpeed = ConsumeFloat();
                 if (maxFallingSpeed < minFallingSpeed)
                     ThrowException("Player falling scream speed has the min value being larger than the max value");
@@ -924,7 +929,10 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.CrushPainSound = ConsumeString();
                 break;
             case "DAMAGEFACTOR":
-                m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeString(), ConsumeFloat());
+                if (PeekFloat())
+                    m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeFloat());
+                else
+                    m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeString(), ConsumeFloat());
                 break;
             case "DAMAGETYPE":
                 m_currentDefinition.Properties.DamageType = ConsumeString();
@@ -1032,7 +1040,10 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Obituary = ConsumeString();
                 break;
             case "PAINCHANCE":
-                m_currentDefinition.Properties.PainChance = new PainChance(ConsumeString(), ConsumeFloat());
+                if (PeekFloat())
+                    m_currentDefinition.Properties.PainChance = new PainChance(ConsumeFloat());
+                else
+                    m_currentDefinition.Properties.PainChance = new PainChance(ConsumeString(), ConsumeFloat());
                 break;
             case "PAINSOUND":
                 m_currentDefinition.Properties.PainSound = ConsumeString();

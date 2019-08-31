@@ -8,5 +8,7 @@ namespace Helion.Resources.Definitions.Decorate.States
         {
             FunctionName = functionName.ToUpper();
         }
+
+        public override string ToString() => FunctionName;
     }
 }

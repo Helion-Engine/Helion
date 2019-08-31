@@ -18,5 +18,7 @@ namespace Helion.Resources.Definitions.Decorate.States
             Properties = properties;
             ActionFunction = actionFunction;
         }
+
+        public override string ToString() =>$"{Sprite} {Frame} {Ticks} action={ActionFunction} flow={FlowControl}]";
     }
 }

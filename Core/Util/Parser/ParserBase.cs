@@ -77,7 +77,7 @@ namespace Helion.Util.Parser
             {
                 if (Tokens.Empty())
                 {
-                    Log.Error("No tokens to parse, cannot read definition");
+                    Log.Error("No tokens to parse, cannot read definition file");
                     return false;
                 }
 
@@ -259,6 +259,17 @@ namespace Helion.Util.Parser
             
             TokenType type = Tokens[CurrentTokenIndex].Type;
             return type == TokenType.String || type == TokenType.QuotedString;
+        }
+
+        /// <summary>
+        /// Peeks at the current token's text, or returns null if there are no
+        /// more tokens.
+        /// </summary>
+        /// <returns>The text of the current token, or null if no token is
+        /// available.</returns>
+        protected string? PeekCurrentText()
+        {
+            return CurrentTokenIndex >= Tokens.Count ? null : Tokens[CurrentTokenIndex].Text;
         }
         
         /// <summary>
