@@ -5,7 +5,7 @@ namespace Helion.Resources.Definitions.Decorate.States
 {
     public struct ActorFlowControl
     {
-        public readonly ActorStateBranch Type;
+        public readonly ActorStateBranch FlowType;
         public readonly string Label;
         public readonly string Parent;
         public readonly int Offset;
@@ -14,7 +14,7 @@ namespace Helion.Resources.Definitions.Decorate.States
         {
             Precondition(type != ActorStateBranch.Goto, "Using wrong actor flow control constructor");
             
-            Type = type;
+            FlowType = type;
             Label = "";
             Parent = "";
             Offset = 0;
@@ -26,12 +26,12 @@ namespace Helion.Resources.Definitions.Decorate.States
             Precondition(!label.Empty(), "Should not be using an label on a goto statement");
             Precondition(offset >= 0, "Should not be using a zero or negative actor goto offset");
             
-            Type = type;
+            FlowType = type;
             Parent = parent;
             Label = label;
             Offset = offset;
         }
 
-        public override string ToString() => $"{Type} (parent={Parent} label={Label} offset={Offset})";
+        public override string ToString() => $"{FlowType} (parent={Parent} label={Label} offset={Offset})";
     }
 }
