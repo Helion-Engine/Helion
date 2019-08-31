@@ -15,6 +15,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly IList<ActorDefinition> ActorDefinitions = new List<ActorDefinition>();
+        public readonly IDictionary<CIString, double> Variables = new Dictionary<CIString, double>();
         protected readonly string Path;
         protected readonly Func<string, string?> IncludeResolver;
         private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
@@ -56,6 +57,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void MergeWithParsedData(DecorateParser parser)
         {
             parser.ActorDefinitions.ForEach(ActorDefinitions.Add);
+            parser.Variables.ForEach(pair => Variables[pair.Key] = pair.Value);
         }
 
         private void ConsumeInclude()
