@@ -60,7 +60,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? MaxTargetRange;
         public int? MeleeDamage;
         public int? MeleeRange;
-        public int? MeleeSound;
+        public string? MeleeSound;
         public int? MeleeThreshold;
         public int? MinMissileChance;
         public int? MissileHeight;

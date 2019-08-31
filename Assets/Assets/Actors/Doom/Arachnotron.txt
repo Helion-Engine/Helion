@@ -1,0 +1,79 @@
+actor Arachnotron 68
+{
+    ActiveSound "baby/active"
+    DeathSound "baby/death"
+    Health 500
+    Height 64
+    Mass 600
+    Obituary "$OB_BABY"
+    PainChance 128
+    PainSound "baby/pain"
+    Radius 64
+    SeeSound "baby/sight"
+    SpawnID 6
+    Speed 12
+    
+    MONSTER
+    +FLOORCLIP
+    +BOSSDEATH
+    
+    States
+    {
+    Spawn:
+        BSPI AB 10 A_Look
+        Loop
+    See:
+        BSPI A 20
+        BSPI A 3 A_BabyMetal
+        BSPI ABBCC 3 A_Chase
+        BSPI D 3 A_BabyMetal
+        BSPI DEEFF 3 A_Chase
+        Goto See+1
+    Missile:
+        BSPI A 20 Bright A_FaceTarget
+        BSPI G 4 Bright A_BspiAttack
+        BSPI H 4 Bright
+        BSPI H 1 Bright A_SpidRefire
+        Goto Missile+1
+    Pain:
+        BSPI I 3
+        BSPI I 3 A_Pain
+        Goto See+1
+    Death:
+        BSPI J 20 A_Scream
+        BSPI K 7 A_NoBlocking
+        BSPI LMNO 7
+        BSPI P -1 A_BossDeath
+        Stop
+    Raise:
+        BSPI P 5
+        BSPI ONMLKJ 5
+        Goto See+1
+    }
+}
+
+actor ArachnotronPlasma
+{
+    Alpha 0.75
+    Damage 5
+    DeathSound "baby/shotx"
+    Height 8
+    Radius 13
+    RenderStyle Add 
+    SeeSound "baby/attack"
+    SpawnID 129
+    Speed 25
+	
+	PROJECTILE 
+	+RANDOMIZE
+	
+	States
+	{
+	Spawn:
+		APLS AB 5 Bright
+		Loop
+	Death:
+		APBX ABCDE 5 Bright
+		Stop
+	}
+}

@@ -1,0 +1,16 @@
+actor Unknown
+{
+    Radius 16
+    Height 32
+    
+    +DONTSPLASH
+    +NOBLOCKMAP
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        UNKN A -1
+        Stop
+    }
+}

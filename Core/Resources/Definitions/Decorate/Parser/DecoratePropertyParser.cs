@@ -317,6 +317,22 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 throw MakeException($"Unknown special activation type '{value}' on actor '{m_currentDefinition.Name}'");
             }
         }
+        
+        private DamageRangeProperty ConsumeDamageProperty()
+        {
+            if (ConsumeIf('('))
+            {
+                int exactDamage = ConsumeInteger();
+                if (!Peek(')'))
+                    throw MakeException("Currently do not support damage expressions yet");
+                Consume(')');
+                
+                return new DamageRangeProperty(exactDamage);
+            }
+            
+            int varyingDamage = ConsumeInteger();
+            return new DamageRangeProperty(varyingDamage, varyingDamage * 8);
+        }
 
         private SpecialArgs ConsumeSpecialArgs()
         {
@@ -920,6 +936,9 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "CRUSHPAINSOUND":
                 m_currentDefinition.Properties.CrushPainSound = ConsumeString();
                 break;
+            case "DAMAGE":
+                m_currentDefinition.Properties.Damage = ConsumeDamageProperty();
+                break;
             case "DAMAGEFACTOR":
                 if (PeekFloat())
                     m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeFloat());
@@ -1014,7 +1033,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.MeleeRange = ConsumeInteger();
                 break;
             case "MELEESOUND":
-                m_currentDefinition.Properties.MeleeSound = ConsumeInteger();
+                m_currentDefinition.Properties.MeleeSound = ConsumeString();
                 break;
             case "MELEETHRESHOLD":
                 m_currentDefinition.Properties.MeleeThreshold = ConsumeInteger();

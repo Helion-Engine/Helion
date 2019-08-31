@@ -1,0 +1,76 @@
+actor Archvile 64
+{
+    ActiveSound "vile/active"
+    DeathSound "vile/death"
+    Health 700
+    Height 56
+    Mass 500
+    MaxTargetRange 896
+    MeleeSound "vile/stop"
+    Obituary "$OB_VILE"
+    PainChance 10
+    PainSound "vile/pain"
+    Radius 20
+    SeeSound "vile/sight"
+    SpawnID 111
+    Speed 15
+    
+    MONSTER
+    +QUICKTORETALIATE 
+    +FLOORCLIP 
+    +NOTARGET
+    
+    States
+    {
+    Spawn:
+        VILE AB 10 A_Look
+        Loop
+    See:
+        VILE AABBCCDDEEFF 2 A_VileChase
+        Loop
+    Missile:
+        VILE G 0 Bright A_VileStart
+        VILE G 10 Bright A_FaceTarget 
+        VILE H 8 Bright A_VileTarget
+        VILE IJKLMN 8 Bright A_FaceTarget 
+        VILE O 8 Bright A_VileAttack
+        VILE P 20 Bright
+        Goto See
+    Heal:
+        VILE "[\\]" 10 Bright
+        Goto See
+    Pain:
+        VILE Q 5   
+        VILE Q 5 A_Pain
+        Goto See
+    Death:
+        VILE Q 7
+        VILE R 7 A_Scream
+        VILE S 7 A_NoBlocking
+        VILE TUVWXY 7
+        VILE Z -1
+        Stop
+    }
+}
+
+actor ArchvileFire
+{
+    Alpha 1
+    RenderStyle Add
+    SpawnID 98
+    
+    +NOBLOCKMAP
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        FIRE A 2 Bright A_StartFire
+        FIRE BAB 2 Bright A_Fire
+        FIRE C 2 Bright A_FireCrackle
+        FIRE BCBCDCDCDEDED 2 Bright A_Fire
+        FIRE E 2 Bright A_FireCrackle
+        FIRE FEFEFGHGHGH 2 Bright A_Fire
+        Stop
+    }
+}

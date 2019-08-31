@@ -1,0 +1,22 @@
+// The engine will use this as a base of everything. This has to come first as
+// well since someone may have inherited from it (which would be bad but there
+// is nothing we can do).
+actor Actor
+{
+    States
+    {
+    Spawn:
+        TNT1 A -1
+        Stop
+    Null:
+        TNT1 A 1
+        Stop
+    GenericFreezeDeath:
+        "####" "#" 5 A_GenericFreezeDeath
+        "----" A 1 A_FreezeDeathChunks
+        Wait
+    GenericCrush:
+        POL5 A -1
+        Stop
+    }
+}

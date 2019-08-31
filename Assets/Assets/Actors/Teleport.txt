@@ -1,0 +1,22 @@
+actor TeleportFog
+{
+    RenderStyle Add
+    
+    +NOBLOCKMAP
+    +NOGRAVITY
+    +NOTELEPORT
+    
+    States
+    {
+    Spawn:
+        TFOG ABABCDEFGHIJ 6 Bright
+        Stop
+    }
+}
+
+actor TeleportDest 14
+{
+    +DONTSPLASH
+    +NOBLOCKMAP
+    +NOSECTOR
+}

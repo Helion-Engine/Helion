@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using NLog;
 
 namespace Helion.World.Entities.Definition.States
 {
     public static class EntityActionFunctions
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private static readonly Dictionary<string, Action<Entity>> ActionFunctions = new Dictionary<string, Action<Entity>>
         {
             ["ACS_NAMEDEXECUTE"] = ACS_NamedExecute,
@@ -333,8 +336,12 @@ namespace Helion.World.Entities.Definition.States
         public static Action<Entity>? Find(string? actionFuncName)
         {
              if (actionFuncName != null)
+             {
                   if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out Action<Entity> func)) 
                        return func;
+                  Log.Warn("Unable to find action function: {0}", actionFuncName);
+             }
+                  
              return null;
         }
         

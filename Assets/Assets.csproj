@@ -39,7 +39,13 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Assets\Actors\Base.txt" />
+    <Content Include="Assets\Actors\Doom\Arachnotron.txt" />
+    <Content Include="Assets\Actors\Doom\Archvile.txt" />
+    <Content Include="Assets\Actors\Doom\BossBrain.txt" />
+    <Content Include="Assets\Actors\Missing.txt" />
     <Content Include="Assets\Actors\Player.txt" />
+    <Content Include="Assets\Actors\Teleport.txt" />
     <Content Include="Assets\Decorate.txt" />
     <Content Include="Assets\Fonts.txt" />
     <Content Include="Assets\Fonts\console.ttf" />

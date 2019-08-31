@@ -1,1 +1,7 @@
+#include "Actors/Base.txt"
+#include "Actors/Missing.txt"
 #include "Actors/Player.txt"
+#include "Actors/Teleport.txt"
+#include "Actors/Doom/Arachnotron.txt"
+#include "Actors/Doom/Archvile.txt"
+#include "Actors/Doom/BossBrain.txt"
