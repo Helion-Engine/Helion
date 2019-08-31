@@ -68,9 +68,10 @@ namespace Helion.World.Entities
             Sector = sector;
             LowestCeilingSector = sector;
             HighestFloorSector = sector;
-            OnGround = CheckIfOnGround();
-
             // TODO: Link to sector?
+            OnGround = CheckIfOnGround();
+            
+            FindInitialFrameIndex();
         }
 
         /// <summary>
@@ -155,12 +156,24 @@ namespace Helion.World.Entities
             TickFrame();
         }
 
-        public void SetStateToLabel(string label)
+        private void FindInitialFrameIndex()
+        {
+            // Every actor must have at least one frame, so if we can't find
+            // the spawn frame somehow, we'll assume we start at index zero.
+            if (!SetStateToLabel("SPAWN"))
+                FrameIndex = 0;
+        }
+        
+        public bool SetStateToLabel(string label)
         {
             if (Definition.States.Labels.TryGetValue(label, out int index))
+            {
                 FrameIndex = index;
-            else
-                Log.Warn("Unable to find state label '{0}' for actor {1}", label, Definition.Name);
+                return true;
+            }
+                
+            Log.Warn("Unable to find state label '{0}' for actor {1}", label, Definition.Name);
+            return false;
         }
         
         public bool IsCrushing() => LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
