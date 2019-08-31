@@ -188,8 +188,6 @@ namespace Helion.World.Entities
                 FrameIndex = frame.NextFrameIndex;
                 TicksInFrame = 0;
             }
-            
-            Log.Info($"In frame: {Definition.States.Frames[FrameIndex].FullSpriteFrame} [{TicksInFrame + 1} of {Definition.States.Frames[FrameIndex].Ticks}]");
         }
     }
 }

@@ -34,6 +34,8 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.States.Frames.Add(entityFrame);
             }
             
+            // TODO: Do some kind of mitigation of frames that run off the end of the list.
+            
             // TODO: Do sanity check on offsets and labels.
         }
 
