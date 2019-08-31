@@ -43,6 +43,8 @@ namespace Helion.World.Entities
             m_physicsManager = physicsManager;
             m_world = world;
             m_definitionComposer = new EntityDefinitionComposer(archiveCollection);
+
+            PopulateFrom(map);
         }
 
         public Entity Create(EntityDefinition definition, Vec3D position, double angle)
@@ -80,10 +82,10 @@ namespace Helion.World.Entities
                 return existingPlayer;
             }
                 
-            EntityDefinition? playerDefinition = m_definitionComposer.Get(Constants.PlayerClass);
+            EntityDefinition? playerDefinition = m_definitionComposer[Constants.PlayerClass];
             if (playerDefinition == null)
             {
-                Log.Error("Missing player definition class, cannot create player");
+                Log.Error("Missing player definition class {0}, cannot create player", Constants.PlayerClass);
                 return null;
             }
 
@@ -99,6 +101,22 @@ namespace Helion.World.Entities
             
             Log.Warn($"No player 1 spawns in map {m_map.Name}");
             return null;
+        }
+        
+        private void PopulateFrom(IMap map)
+        {
+            foreach (Thing thing in map.Things)
+            {
+                EntityDefinition? definition = m_definitionComposer[thing.EditorNumber];
+                if (definition == null)
+                {
+                    Log.Warn("Cannot find entity by editor number at {1}", thing.EditorNumber, thing.Position.To2D());
+                    continue;
+                }
+
+                Entity entity = Create(definition, thing.Position, thing.AngleRadians);
+                Log.Info("Made entity {0}", entity.Definition.Name);
+            }
         }
     }
 }

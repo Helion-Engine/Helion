@@ -146,21 +146,6 @@ namespace Helion.World.Impl.SinglePlayer
             return new Vec3D(x, y, 0);
         }
 
-        private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)
-        {
-            if (e.ActivateLineSpecial != null)
-            {
-                var special = e.ActivateLineSpecial.Special;
-                if (SpecialManager.TryAddActivatedLineSpecial(e))
-                    Log.Debug($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{e.ActivateLineSpecial.Flags.Repeat}]");
-            }
-        }
-
-        private void PhysicsManager_PlayerUseFail(object? sender, Entity e)
-        {
-            Log.Debug("Player - 'oof'");
-        }
-
         private void Instance_CheatActivationChanged(object? sender, ICheat cheatEvent)
         {
             if (cheatEvent is ChangeLevelCheat changeLevel)
@@ -179,7 +164,22 @@ namespace Helion.World.Impl.SinglePlayer
                 break;
             }
         }
-        
+
+        private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)
+        {
+            if (e.ActivateLineSpecial != null)
+            {
+                var special = e.ActivateLineSpecial.Special;
+                if (SpecialManager.TryAddActivatedLineSpecial(e))
+                    Log.Debug($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{e.ActivateLineSpecial.Flags.Repeat}]");
+            }
+        }
+
+        private void PhysicsManager_PlayerUseFail(object? sender, Entity e)
+        {
+            Log.Debug("Player - 'oof'");
+        }
+
         private void HandleMouseLook(ConsumableInput frameInput)
         {
             if (Player.Entity.IsFrozen)

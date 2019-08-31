@@ -155,6 +155,14 @@ namespace Helion.World.Entities
             TickFrame();
         }
 
+        public void SetStateToLabel(string label)
+        {
+            if (Definition.States.Labels.TryGetValue(label, out int index))
+                FrameIndex = index;
+            else
+                Log.Warn("Unable to find state label '{0}' for actor {1}", label, Definition.Name);
+        }
+        
         public bool IsCrushing() => LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
 
         public void Dispose()
