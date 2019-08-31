@@ -1,0 +1,44 @@
+actor HellKnight : BaronOfHell 69
+{
+    ActiveSound "knight/active"
+    DeathSound "knight/death"
+    Health 500
+    HitObituary "$OB_KNIGHTHIT"
+    Obituary "$OB_KNIGHT"
+    PainSound "knight/pain"
+    SeeSound "knight/sight"
+    SpawnID 113
+
+    -BOSSDEATH
+    
+    States
+    {
+    Spawn:
+        BOS2 AB 10 A_Look 
+        Loop
+    See:
+        BOS2 AABBCCDD 3 A_Chase
+        Loop
+    Melee:
+    Missile:
+        BOS2 EF 8 A_FaceTarget
+        BOS2 G 8 A_BruisAttack
+        Goto See
+    Pain:
+        BOS2 H 2
+        BOS2 H 2 A_Pain
+        Goto See
+    Death:
+        BOS2 I 8
+        BOS2 J 8 A_Scream
+        BOS2 K 8
+        BOS2 L 8 A_NoBlocking
+        BOS2 MN 8
+        BOS2 O -1
+        Stop
+    Raise:
+        BOS2 O 8
+        BOS2 NMLKJI 8
+        Goto See
+    }
+}

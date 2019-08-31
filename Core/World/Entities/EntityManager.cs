@@ -115,7 +115,7 @@ namespace Helion.World.Entities
                 }
 
                 Entity entity = Create(definition, thing.Position, thing.AngleRadians);
-                Log.Info("Made entity {0}", entity.Definition.Name);
+                Log.Debug("Made entity {0}", entity.Definition.Name);
             }
         }
     }

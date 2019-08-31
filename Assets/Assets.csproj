@@ -40,9 +40,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\Actors\Base.txt" />
-    <Content Include="Assets\Actors\Doom\Arachnotron.txt" />
-    <Content Include="Assets\Actors\Doom\Archvile.txt" />
-    <Content Include="Assets\Actors\Doom\BossBrain.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Arachnotron.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Archvile.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Baron.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\BossBrain.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Cacodemon.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\CommanderKeen.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Cyberdemon.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Demon.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\HellKnight.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Imp.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\LostSoul.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Mancubus.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Spectre.txt" />
     <Content Include="Assets\Actors\Missing.txt" />
     <Content Include="Assets\Actors\Player.txt" />
     <Content Include="Assets\Actors\Teleport.txt" />

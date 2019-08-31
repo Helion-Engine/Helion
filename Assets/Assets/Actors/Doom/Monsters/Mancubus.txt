@@ -1,0 +1,81 @@
+actor Fatso 67
+{
+    ActiveSound "fatso/active"
+    DeathSound "fatso/death"
+    Health 600
+    Height 64
+    Mass 1000
+    Obituary "$OB_FATSO"
+    PainChance 80
+    PainSound "fatso/pain"
+    Radius 48
+    SeeSound "fatso/sight"
+    SpawnID 112
+    Speed 8
+    
+    MONSTER
+    +BOSSDEATH
+    +FLOORCLIP
+    
+    States
+    {
+    Spawn:
+        FATT AB 15 A_Look
+        Loop
+    See:
+        FATT AABBCCDDEEFF 4 A_Chase
+        Loop
+    Missile:
+        FATT G 20 A_FatRaise
+        FATT H 10 BRIGHT A_FatAttack1
+        FATT IG 5
+        FATT H 10 BRIGHT A_FatAttack2
+        FATT IG 5
+        FATT H 10 BRIGHT A_FatAttack3
+        FATT IG 5
+        Goto See
+    Pain:
+        FATT J 3
+        FATT J 3 A_Pain
+        Goto See
+    Death:
+        FATT K 6
+        FATT L 6 A_Scream
+        FATT M 6 A_NoBlocking
+        FATT NOPQRS 6
+        FATT T -1 A_BossDeath    
+        Stop
+    Raise:
+        FATT R 5
+        FATT QPONMLK 5
+        Goto See
+    }
+}
+
+actor FatShot
+{
+    Alpha 1
+    Damage 8
+    DeathSound "fatso/shotx"
+    Height 8
+    Radius 6
+    RenderStyle Add
+    SeeSound "fatso/attack"
+    SpawnID 153
+    Speed 20
+    
+    PROJECTILE
+    +RANDOMIZE
+
+    States
+    {
+    Spawn:
+        MANF AB 4 BRIGHT
+        Loop
+    Death:
+        MISL B 8 BRIGHT
+        MISL C 6 BRIGHT
+        MISL D 4 BRIGHT
+        Stop
+    }
+}

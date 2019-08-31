@@ -1,0 +1,79 @@
+actor Cacodemon 3005
+{
+    ActiveSound "caco/active"
+    DeathSound "caco/death"
+    Health 400
+    Height 56
+    HitObituary "$OB_CACOHIT"
+    Mass 400
+    Obituary "$OB_CACO"
+    PainChance 128
+    PainSound "caco/pain"
+    Radius 31
+    SeeSound "caco/sight"
+    SpawnID 19
+    Speed 8
+    
+    MONSTER
+    +FLOAT 
+    +NOGRAVITY
+
+    States
+    {
+    Spawn:
+        HEAD A 10 A_Look
+        Loop
+    See:
+        HEAD A 3 A_Chase
+        Loop
+    Missile:
+        HEAD B 5 A_FaceTarget
+        HEAD C 5 A_FaceTarget
+        HEAD D 5 Bright A_HeadAttack
+        Goto See
+    Pain:
+        HEAD E 3
+        HEAD E 3 A_Pain
+        HEAD F 6
+        Goto See
+    Death:
+        HEAD G 8 A_NoBlocking  // For online compatibility
+        HEAD H 8 A_Scream
+        HEAD I 8
+        HEAD J 8
+        HEAD K 8
+        HEAD L -1 A_SetFloorClip
+        Stop
+    Raise:
+        HEAD L 8 A_UnSetFloorClip
+        HEAD KJIHG 8
+        Goto See
+    }
+}
+
+actor CacodemonBall
+{
+    Alpha 1
+    Damage 5
+    DeathSound "caco/shotx"
+    FastSpeed 20
+    Height 8
+    Radius 6
+    RenderStyle Add
+    SeeSound "caco/attack"
+    SpawnID 126
+    Speed 10
+
+    PROJECTILE
+    +RANDOMIZE
+
+    States
+    {
+    Spawn:
+        BAL2 AB 4 Bright
+        Loop
+    Death:
+        BAL2 CDE 6 Bright
+        Stop
+    }
+}

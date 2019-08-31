@@ -1,0 +1,83 @@
+actor DoomImp 3001
+{
+    ActiveSound "imp/active"
+    DeathSound "imp/death"
+    Health 60
+    Height 56
+    HitObituary "$OB_IMPHIT"
+    Mass 100
+    Obituary "$OB_IMP"
+    PainChance 200
+    PainSound "imp/pain"
+    Radius 20
+    SeeSound "imp/sight"
+    SpawnID 5
+    Speed 8
+    
+    MONSTER
+    +FLOORCLIP
+    
+    States
+    {
+    Spawn:
+        TROO AB 10 A_Look
+        Loop
+    See:
+        TROO AABBCCDD 3 A_Chase
+        Loop
+    Melee:
+    Missile:
+        TROO EF 8 A_FaceTarget
+        TROO G 6 A_TroopAttack 
+        Goto See
+    Pain:
+        TROO H 2
+        TROO H 2 A_Pain
+        Goto See
+    Death:
+        TROO I 8
+        TROO J 8 A_Scream
+        TROO K 6
+        TROO L 6 A_NoBlocking
+        TROO M -1
+        Stop
+    XDeath:
+        TROO N 5
+        TROO O 5 A_XScream
+        TROO P 5
+        TROO Q 5 A_NoBlocking
+        TROO RST 5
+        TROO U -1
+        Stop
+    Raise:
+        TROO MLKJI 8
+        Goto See
+    }
+}
+
+actor DoomImpBall
+{
+    Alpha 1
+    Damage 3
+    DeathSound "imp/shotx"
+    FastSpeed 20
+    Height 8
+    Radius 6
+    RenderStyle Add
+    SeeSound "imp/attack"
+    SpawnID 10
+    Speed 10
+    
+    PROJECTILE
+    +RANDOMIZE
+    
+    States
+    {
+    Spawn:
+        BAL1 AB 4 BRIGHT
+        Loop
+    Death:
+        BAL1 CDE 6 BRIGHT
+        Stop
+    }
+}

@@ -1,0 +1,79 @@
+actor BaronOfHell 3003
+{
+    ActiveSound "baron/active"
+    DeathSound "baron/death"
+    Health 1000
+    Height 64
+    HitObituary "$OB_BARONHIT"
+    Mass 1000
+    Obituary "$OB_BARON"
+    PainChance 50
+    PainSound "baron/pain"
+    Radius 24
+    SeeSound "baron/sight"
+    SpawnID 3
+    Speed 8
+    
+    MONSTER
+    +BOSSDEATH
+    +FLOORCLIP
+    
+    States
+    {
+    Spawn:
+        BOSS AB 10 A_Look 
+        Loop
+    See:
+        BOSS AABBCCDD 3 A_Chase
+        Loop
+    Melee:
+    Missile:
+        BOSS EF 8 A_FaceTarget
+        BOSS G 8 A_BruisAttack
+        Goto See
+    Pain:
+        BOSS H 2
+        BOSS H 2 A_Pain
+        Goto See
+    Death:
+        BOSS I 8
+        BOSS J 8 A_Scream
+        BOSS K 8
+        BOSS L 8 A_NoBlocking
+        BOSS MN 8
+        BOSS O -1 A_BossDeath   
+        Stop
+    Raise:
+        BOSS O 8
+        BOSS NMLKJI 8
+        Goto See
+    }
+}
+
+actor BaronBall
+{
+    Alpha 1
+    Damage 8
+    DeathSound "baron/shotx"
+    Decal "BaronScorch"
+    FastSpeed 20
+    Height 16
+    Radius 6
+    RenderStyle Add
+    SeeSound "baron/attack"
+    SpawnID 154
+    Speed 15
+    
+    PROJECTILE 
+    +RANDOMIZE
+        
+    States
+    {
+    Spawn:
+        BAL7 AB 4 Bright
+        Loop
+    Death:
+        BAL7 CDE 6 Bright
+        Stop
+    }
+}

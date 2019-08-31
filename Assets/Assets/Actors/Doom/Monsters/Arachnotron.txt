@@ -63,17 +63,17 @@ actor ArachnotronPlasma
     SeeSound "baby/attack"
     SpawnID 129
     Speed 25
-	
-	PROJECTILE 
-	+RANDOMIZE
-	
-	States
-	{
-	Spawn:
-		APLS AB 5 Bright
-		Loop
-	Death:
-		APBX ABCDE 5 Bright
-		Stop
-	}
+    
+    PROJECTILE 
+    +RANDOMIZE
+    
+    States
+    {
+    Spawn:
+        APLS AB 5 Bright
+        Loop
+    Death:
+        APBX ABCDE 5 Bright
+        Stop
+    }
 }

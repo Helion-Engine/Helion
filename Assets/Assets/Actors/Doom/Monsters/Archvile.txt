@@ -16,9 +16,9 @@ actor Archvile 64
     Speed 15
     
     MONSTER
-    +QUICKTORETALIATE 
     +FLOORCLIP 
     +NOTARGET
+    +QUICKTORETALIATE 
     
     States
     {

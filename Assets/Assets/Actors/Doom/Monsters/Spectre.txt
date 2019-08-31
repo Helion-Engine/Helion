@@ -1,0 +1,14 @@
+actor Spectre : Demon 58
+{
+    ActiveSound "spectre/active"
+    Alpha 0.5
+    AttackSound "spectre/melee"
+    DeathSound "spectre/death"
+    HitObituary "$OB_SPECTREHIT"
+    PainSound "spectre/pain"
+    RenderStyle OptFuzzy
+    SeeSound "spectre/sight"
+    SpawnID 9
+    
+    +SHADOW
+}
