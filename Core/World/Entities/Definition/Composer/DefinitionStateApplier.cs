@@ -33,6 +33,8 @@ namespace Helion.World.Entities.Definition.Composer
                 
                 definition.States.Frames.Add(entityFrame);
             }
+            
+            // TODO: Do sanity check on offsets and labels.
         }
 
         private static void AddActorLabelsToDefinition(ActorStates states, EntityDefinition definition)
