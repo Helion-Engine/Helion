@@ -1,0 +1,48 @@
+actor PainElemental 71
+{
+    ActiveSound "pain/active"
+    DeathSound "pain/death"
+    Health 400
+    Height 56
+    Mass 400
+    PainChance 128
+    PainSound "pain/pain"
+    Radius 31
+    SeeSound "pain/sight"
+    SpawnID 115
+    Speed 8
+    
+    MONSTER
+    +FLOAT
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        PAIN A 10 A_Look
+        Loop
+    See:
+        PAIN AABBCC 3 A_Chase
+        Loop
+    Missile:
+        PAIN D 5 A_FaceTarget
+        PAIN E 5 A_FaceTarget
+        PAIN F 4 Bright A_FaceTarget
+        PAIN F 1 Bright A_PainAttack
+        Goto See
+    Pain:
+        PAIN G 6
+        PAIN G 6 A_Pain
+        Goto See
+    Death:
+        PAIN H 8 Bright
+        PAIN I 8 Bright A_Scream
+        PAIN JK 8 Bright
+        PAIN L 8 Bright A_PainDie
+        PAIN M 8 Bright
+        Stop
+    Raise:
+        PAIN MLKJIH 8
+        Goto See
+    }
+}

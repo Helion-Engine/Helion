@@ -359,6 +359,23 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             return new SpecialArgs((byte)arg0, (byte)arg1, (byte)arg2, (byte)arg3, (byte)arg4);
         }
 
+        private void ConsumeAndHandleDropItem()
+        {
+            string name = ConsumeString();
+            
+            byte? probability = null;
+            if (ConsumeIf(','))
+                probability = (byte)ConsumeInteger();
+            
+            int? amount = null;
+            if (ConsumeIf(','))
+                amount = ConsumeInteger();
+
+            m_currentDefinition.Properties.DropItem.ClassName = name;
+            m_currentDefinition.Properties.DropItem.Probability = probability;
+            m_currentDefinition.Properties.DropItem.Amount = amount;
+        }
+
         private DecorateBounceType? ConsumeDecorateBounceType()
         {
             string bounce = ConsumeString();
@@ -962,6 +979,9 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 break;
             case "DEFTHRESHOLD":
                 m_currentDefinition.Properties.DefThreshold = ConsumeInteger();
+                break;
+            case "DROPITEM":
+                ConsumeAndHandleDropItem();
                 break;
             case "DESIGNATEDTEAM":
                 m_currentDefinition.Properties.DesignatedTeam = ConsumeInteger();

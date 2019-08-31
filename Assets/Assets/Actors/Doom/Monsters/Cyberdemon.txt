@@ -13,9 +13,9 @@ actor Cyberdemon 16
     SeeSound "cyber/sight"
     SpawnID 114
     Speed 16
-
+    
     MONSTER
-    +BOSS 
+    +BOSS
     +BOSSDEATH
     +DONTMORPH
     +FLOORCLIP

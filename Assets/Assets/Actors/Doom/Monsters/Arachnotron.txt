@@ -14,8 +14,8 @@ actor Arachnotron 68
     Speed 12
     
     MONSTER
-    +FLOORCLIP
     +BOSSDEATH
+    +FLOORCLIP
     
     States
     {

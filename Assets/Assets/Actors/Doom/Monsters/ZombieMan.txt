@@ -1,0 +1,56 @@
+actor ZombieMan 3004
+{
+    ActiveSound "grunt/active"
+    AttackSound "grunt/attack"
+    DeathSound "grunt/death"
+    DropItem "Clip"
+    Health 20
+    Height 56
+    Obituary "$OB_ZOMBIE"
+    PainChance 200
+    PainSound "grunt/pain"
+    Radius 20
+    SeeSound "grunt/sight"
+    SpawnID 4
+    Speed 8
+    
+    MONSTER
+    +FLOORCLIP
+    
+    States
+    {
+    Spawn:
+        POSS AB 10 A_Look
+        Loop
+    See:
+        POSS AABBCCDD 4 A_Chase
+        Loop
+    Missile:
+        POSS E 10 A_FaceTarget
+        POSS F 8 A_PosAttack
+        POSS E 8
+        Goto See
+    Pain:
+        POSS G 3
+        POSS G 3 A_Pain
+        Goto See
+    Death:
+        POSS H 5
+        POSS I 5 A_Scream
+        POSS J 5 A_NoBlocking
+        POSS K 5
+        POSS L -1
+        Stop
+    XDeath:
+        POSS M 5
+        POSS N 5 A_XScream
+        POSS O 5 A_NoBlocking
+        POSS PQRST 5
+        POSS U -1
+        Stop
+    Raise:
+        POSS K 5
+        POSS JIH 5
+        Goto See
+    }
+}

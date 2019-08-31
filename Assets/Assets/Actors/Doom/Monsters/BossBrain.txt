@@ -71,7 +71,7 @@ actor SpawnShot
     -ACTIVATEPCROSS
     +NOCLIP
     +RANDOMIZE
-
+    
     States
     {
     Spawn:

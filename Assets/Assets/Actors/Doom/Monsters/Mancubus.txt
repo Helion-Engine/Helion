@@ -43,7 +43,7 @@ actor Fatso 67
         FATT L 6 A_Scream
         FATT M 6 A_NoBlocking
         FATT NOPQRS 6
-        FATT T -1 A_BossDeath    
+        FATT T -1 A_BossDeath
         Stop
     Raise:
         FATT R 5
@@ -66,7 +66,7 @@ actor FatShot
     
     PROJECTILE
     +RANDOMIZE
-
+    
     States
     {
     Spawn:

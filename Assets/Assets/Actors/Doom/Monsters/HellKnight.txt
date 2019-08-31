@@ -8,7 +8,7 @@ actor HellKnight : BaronOfHell 69
     PainSound "knight/pain"
     SeeSound "knight/sight"
     SpawnID 113
-
+    
     -BOSSDEATH
     
     States

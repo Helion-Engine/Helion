@@ -17,7 +17,7 @@ actor Cacodemon 3005
     MONSTER
     +FLOAT 
     +NOGRAVITY
-
+    
     States
     {
     Spawn:

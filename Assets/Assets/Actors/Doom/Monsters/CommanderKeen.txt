@@ -7,7 +7,7 @@ actor CommanderKeen 72
     PainChance 256
     PainSound "keen/pain"
     Radius 16
-
+    
     +COUNTKILL
     +ISMONSTER
     +NOGRAVITY
@@ -15,7 +15,7 @@ actor CommanderKeen 72
     +SHOOTABLE
     +SOLID
     +SPAWNCEILING
-
+    
     States
     {
     Spawn:

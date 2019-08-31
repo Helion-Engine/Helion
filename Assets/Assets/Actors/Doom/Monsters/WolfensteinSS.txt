@@ -1,0 +1,59 @@
+actor WolfensteinSS 84
+{
+    ActiveSound "wolfss/active"
+    AttackSound "wolfss/attack"
+    DeathSound "wolfss/death"
+    DropItem "Clip"
+    Health 50
+    Height 56
+    Obituary "$OB_WOLFSS"
+    PainChance 170
+    PainSound "wolfss/pain"
+    Radius 20
+    SeeSound "wolfss/sight"
+    SpawnID 116
+    Speed 8
+    
+    MONSTER
+    +FLOORCLIP
+    
+    States
+    {
+    Spawn:
+        SSWV AB 10 A_Look
+        Loop
+    See:
+        SSWV AABBCCDD 3 A_Chase
+        Loop
+    Missile:
+        SSWV E 10 A_FaceTarget
+        SSWV F 10 A_FaceTarget
+        SSWV G 4 Bright A_CPosAttack
+        SSWV F 6 A_FaceTarget
+        SSWV G 4 Bright A_CPosAttack
+        SSWV F 1 A_CPosRefire
+        Goto Missile+1
+    Pain:
+        SSWV H 3
+        SSWV H 3 A_Pain
+        Goto See
+    Death:
+        SSWV I 5
+        SSWV J 5 A_Scream
+        SSWV K 5 A_NoBlocking
+        SSWV L 5
+        SSWV M -1
+        Stop
+    XDeath:
+        SSWV N 5
+        SSWV O 5 A_XScream
+        SSWV P 5 A_NoBlocking
+        SSWV QRSTU 5
+        SSWV V -1
+        Stop
+    Raise:
+        SSWV M 5
+        SSWV LKJI 5
+        Goto See
+    }
+}

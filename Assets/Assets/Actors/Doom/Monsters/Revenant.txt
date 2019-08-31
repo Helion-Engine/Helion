@@ -1,0 +1,104 @@
+actor Revenant 66
+{
+    ActiveSound "skeleton/active"
+    DeathSound "skeleton/death"
+    Health 300
+    Height 56
+    HitObituary "$OB_UNDEADHIT"
+    Mass 500
+    MeleeSound "skeleton/melee"
+    MeleeThreshold 196
+    Obituary "$OB_UNDEAD"
+    PainChance 100
+    PainSound "skeleton/pain"
+    Radius 20
+    SeeSound "skeleton/sight"
+    SpawnID 20
+    Speed 10
+    
+    MONSTER
+    +FLOORCLIP
+    +MISSILEMORE
+    
+    States
+    {
+    Spawn:
+        SKEL AB 10 A_Look
+        Loop
+    See:
+        SKEL AABBCCDDEEFF 2 A_Chase
+        Loop
+    Melee:
+        SKEL G 1 A_FaceTarget
+        SKEL G 6 A_SkelWhoosh
+        SKEL H 6 A_FaceTarget
+        SKEL I 6 A_SkelFist
+        Goto See
+    Missile:
+        SKEL J 1 Bright A_FaceTarget 
+        SKEL J 9 Bright A_FaceTarget
+        SKEL K 10 A_SkelMissile
+        SKEL K 10 A_FaceTarget
+        Goto See
+    Pain:
+        SKEL L 5
+        SKEL L 5 A_Pain
+        Goto See
+    Death:
+        SKEL LM 7
+        SKEL N 7 A_Scream
+        SKEL O 7 A_NoBlocking
+        SKEL P 7
+        SKEL Q -1
+        Stop
+    Raise:
+        SKEL Q 5
+        SKEL PONML 5
+        Goto See
+    }
+}
+
+actor RevenantTracer
+{
+    Damage 10
+    DeathSound "skeleton/tracex"
+    Height 8
+    Radius 11
+    RenderStyle Add
+    SeeSound "skeleton/attack"
+    SpawnID 53
+    Speed 10
+    
+    PROJECTILE
+    +RANDOMIZE
+    +SEEKERMISSILE 
+    
+    States
+    {
+    Spawn:
+        FATB AB 2 Bright A_Tracer
+        Loop
+    Death:
+        FBXP A 8 Bright
+        FBXP B 6 Bright
+        FBXP C 4 Bright
+        Stop
+    }
+}
+
+actor RevenantTracerSmoke
+{
+    Alpha 0.5
+    RenderStyle Translucent
+     
+    +NOBLOCKMAP
+    +NOGRAVITY
+    +NOTELEPORT
+    
+    States
+    {
+    Spawn:
+        PUFF ABABC 4
+        Stop
+    }
+}

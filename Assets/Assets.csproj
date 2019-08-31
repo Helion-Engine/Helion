@@ -45,6 +45,7 @@
     <Content Include="Assets\Actors\Doom\Monsters\Baron.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\BossBrain.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Cacodemon.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Chaingunner.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\CommanderKeen.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Cyberdemon.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Demon.txt" />
@@ -52,7 +53,13 @@
     <Content Include="Assets\Actors\Doom\Monsters\Imp.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\LostSoul.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Mancubus.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\PainElemental.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\Revenant.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\ShotgunGuy.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Spectre.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\SpiderMastermind.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\WolfensteinSS.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\ZombieMan.txt" />
     <Content Include="Assets\Actors\Missing.txt" />
     <Content Include="Assets\Actors\Player.txt" />
     <Content Include="Assets\Actors\Teleport.txt" />
