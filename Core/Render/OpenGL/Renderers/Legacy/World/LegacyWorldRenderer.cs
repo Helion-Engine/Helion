@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shader;
@@ -16,7 +16,6 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
-using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World
@@ -33,17 +32,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private readonly GeometryRenderer m_geometryRenderer;
         private readonly EntityRenderer m_entityRenderer;
         private readonly LegacyShader m_shaderProgram;
+        private readonly RenderWorldDataManager m_worldDataManager;
         private readonly ViewClipper m_viewClipper = new ViewClipper();
-        private readonly Dictionary<GLLegacyTexture, RenderWorldData> m_textureToWorldData = new Dictionary<GLLegacyTexture, RenderWorldData>();
 
         public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
             m_config = config;
             gl = functions;
-            m_entityRenderer = new EntityRenderer();
+            m_worldDataManager = new RenderWorldDataManager(capabilities, gl);
+            m_entityRenderer = new EntityRenderer(textureManager);
             m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions, 
-                textureManager, m_viewClipper, m_textureToWorldData);
+                textureManager, m_viewClipper, m_worldDataManager);
 
             using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
                 m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
@@ -64,6 +64,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         protected override void UpdateToNewWorld(WorldBase world)
         {
             m_geometryRenderer.UpdateTo(world);
+            m_entityRenderer.UpdateTo(world);
         }
 
         protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
@@ -79,11 +80,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private void Clear(WorldBase world, RenderInfo renderInfo)
         {
             m_viewClipper.Clear();
+            m_worldDataManager.Clear();
             
-            m_textureToWorldData.Values.ForEach(geometryData => geometryData.Clear());
-
             m_geometryRenderer.Clear(renderInfo.TickFraction);
-            m_entityRenderer.Clear(world);
+            m_entityRenderer.Clear(world, renderInfo.TickFraction);
         }
         
         private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
@@ -149,14 +149,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, fovX));
         }
         
-        // TODO: Rename this function away from geometry, it's more like render vertices...
         private void RenderWorldData(RenderInfo renderInfo)
         {
             m_shaderProgram.Bind();
             
             SetUniforms(renderInfo);
             gl.ActiveTexture(TextureUnitType.Zero);
-            m_textureToWorldData.Values.ForEach(geometryData => geometryData.Draw());
+            m_worldDataManager.Draw();
 
             m_shaderProgram.Unbind();
         }
@@ -164,9 +163,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private void ReleaseUnmanagedResources()
         {
             m_shaderProgram.Dispose();
-            m_entityRenderer.Dispose();
             m_geometryRenderer.Dispose();
-            m_textureToWorldData.Values.ForEach(geometryData => geometryData.Dispose());
+            m_worldDataManager.Dispose();
         }
     }
 }

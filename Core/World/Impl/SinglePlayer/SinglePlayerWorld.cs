@@ -127,8 +127,8 @@ namespace Helion.World.Impl.SinglePlayer
 
         private static Vec3D CalculateForwardMovement(Entity entity)
         {
-            double x = Math.Cos(entity.Angle) * Player.ForwardMovementSpeed;
-            double y = Math.Sin(entity.Angle) * Player.ForwardMovementSpeed;
+            double x = Math.Cos(entity.AngleRadians) * Player.ForwardMovementSpeed;
+            double y = Math.Sin(entity.AngleRadians) * Player.ForwardMovementSpeed;
             double z = 0;
 
             if (entity.Player != null && entity.IsFlying)
@@ -139,7 +139,7 @@ namespace Helion.World.Impl.SinglePlayer
         
         private static Vec3D CalculateStrafeRightMovement(Entity entity)
         {
-            double rightRotateAngle = entity.Angle - MathHelper.HalfPi;
+            double rightRotateAngle = entity.AngleRadians - MathHelper.HalfPi;
             double x = Math.Cos(rightRotateAngle) * Player.SideMovementSpeed;
             double y = Math.Sin(rightRotateAngle) * Player.SideMovementSpeed;
 

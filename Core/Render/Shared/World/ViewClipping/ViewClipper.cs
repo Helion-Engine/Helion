@@ -26,6 +26,7 @@ namespace Helion.Render.Shared.World.ViewClipping
     {
         private const uint DiamondScale = uint.MaxValue / 4;
         private const uint PiAngle = uint.MaxValue / 2;
+        private const double RadiansToDiamondAngleFactor = uint.MaxValue / MathHelper.TwoPi;
 
         private readonly LinkedList<ClipSpan> m_nodes = new LinkedList<ClipSpan>();
         
@@ -35,18 +36,22 @@ namespace Helion.Render.Shared.World.ViewClipping
         public Vec2D Center { private get; set; } = Vec2D.Zero;
 
         /// <summary>
-        /// Takes a position and gets the diamond angle value relative to the
-        /// last set center spot. The diamond angle is an ordered angle that
-        /// is similar to degrees or radians, and has absolute ordering.
+        /// Takes two positions and finds the diamond angle that exists from
+        /// start to end. This is also known as the vector angle, but the
+        /// calculations find it with respect to being a diamond. The diamond
+        /// angle is an ordered angle that is similar to degrees or radians,
+        /// and has absolute ordering.
         /// </summary>
         /// <remarks>
         /// https://stackoverflow.com/questions/1427422/cheap-algorithm-to-find-measure-of-angle-between-vectors
         /// is where the optimization was learned from.
         /// </remarks>
-        /// <param name="vertex">The vertex to convert to a diamond angle.</param>
-        /// <returns>The diamond angle for the vertex. This will be zero if it
-        /// is equal to the <see cref="Center"/>.</returns>
-        public uint ToDiamondAngle(Vec2D vertex)
+        /// <param name="start">The origin.</param>
+        /// <param name="end">The endpoint from the origin forming a vector.
+        /// </param>
+        /// <returns>The diamond angle for the vertex. This will be zero if the
+        /// start and end vertices are the same.</returns>
+        public static uint ToDiamondAngle(in Vec2D start, in Vec2D end)
         {
             // The code below takes some position and finds the vector from the
             // center to the position.
@@ -67,7 +72,7 @@ namespace Helion.Render.Shared.World.ViewClipping
             // out of the values, because this allows us to see what angles are
             // blocked or not by mapping every position onto a unit circle with
             // 2^32 precision.
-            Vec2D pos = vertex - Center;
+            Vec2D pos = end - start;
             if (pos == Vec2D.Zero)
                 return 0;
             
@@ -83,6 +88,24 @@ namespace Helion.Render.Shared.World.ViewClipping
                 return (uint)(DiamondScale * (2 - (pos.Y / (-pos.X - pos.Y))));
             return (uint)(DiamondScale * (3 + (pos.X / (pos.X - pos.Y))));
         }
+        
+        public static uint DiamondAngleFromRadians(double radians)
+        {
+            unchecked
+            {
+                return (uint)(radians * RadiansToDiamondAngleFactor);
+            }
+        }
+        
+        /// <summary>
+        /// Takes a position and gets the diamond angle value relative to the
+        /// last set center spot. The diamond angle is an ordered angle that
+        /// is similar to degrees or radians, and has absolute ordering.
+        /// </summary>
+        /// <param name="vertex">The vertex to convert to a diamond angle.</param>
+        /// <returns>The diamond angle for the vertex. This will be zero if it
+        /// is equal to the <see cref="Center"/>.</returns>
+        public uint GetDiamondAngle(Vec2D vertex) => ToDiamondAngle(Center, vertex);
         
         /// <summary>
         /// Clears all the clip ranges.
@@ -104,7 +127,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// <param name="second">The second vertex of a line segment.</param>
         public void AddLine(Vec2D first, Vec2D second)
         {
-            (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(first), ToDiamondAngle(second));
+            (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(GetDiamondAngle(first), GetDiamondAngle(second));
             
             if (AnglesSpanOriginVector(smallerAngle, largerAngle))
             {
@@ -126,7 +149,7 @@ namespace Helion.Render.Shared.World.ViewClipping
             if (m_nodes.Empty())
                 return false;
             
-            (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(first), ToDiamondAngle(second));
+            (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(GetDiamondAngle(first), GetDiamondAngle(second));
 
             if (AnglesSpanOriginVector(smallerAngle, largerAngle))
                 return InRange(0, smallerAngle) && InRange(largerAngle, uint.MaxValue);

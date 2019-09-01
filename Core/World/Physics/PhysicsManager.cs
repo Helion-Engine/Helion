@@ -153,7 +153,7 @@ namespace Helion.World.Physics
             double closestDist = double.MaxValue;
 
             Vec2D start = entity.Position.To2D();
-            Vec2D end = new Vec2D(start.X + (Math.Cos(entity.Angle) * EntityUseDistance), start.Y + (Math.Sin(entity.Angle) * EntityUseDistance));
+            Vec2D end = new Vec2D(start.X + (Math.Cos(entity.AngleRadians) * EntityUseDistance), start.Y + (Math.Sin(entity.AngleRadians) * EntityUseDistance));
             Seg2D useSeg = new Seg2D(start, end);
             m_blockmap.Iterate(useSeg, TraceLineFinder);
 

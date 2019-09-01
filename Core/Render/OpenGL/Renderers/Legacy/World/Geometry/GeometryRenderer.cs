@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared;
@@ -24,24 +25,20 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 {
     public class GeometryRenderer : IDisposable
     {
-        private readonly IGLFunctions gl;
-        private readonly GLCapabilities m_capabilities;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
         private readonly ViewClipper m_viewClipper;
-        private readonly Dictionary<GLLegacyTexture, RenderWorldData> m_textureToWorldData;
+        private readonly RenderWorldDataManager m_worldDataManager;
         private readonly LegacySkyRenderer m_skyRenderer;
         private double m_tickFraction;
         
         public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
-            Dictionary<GLLegacyTexture, RenderWorldData> worldData)
+            RenderWorldDataManager worldDataManager)
         {
-            m_capabilities = capabilities;
-            gl = functions;
             m_textureManager = textureManager;
-            m_textureToWorldData = worldData;
+            m_worldDataManager = worldDataManager;
             m_viewClipper = viewClipper;
             m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         }
@@ -143,7 +140,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             GLLegacyTexture texture = m_textureManager.GetWall(side.MiddleTexture);
             WallVertices wall = WorldTriangulator.HandleOneSided(line, side, texture.UVInverse, m_tickFraction);
             
-            RenderWorldData renderData = FindOrCreateRenderGeometryData(texture);
+            RenderWorldData renderData = m_worldDataManager[texture];
             
             // Our triangle is added like:
             //    0--2
@@ -195,7 +192,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             short lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.LowerTexture);
-            RenderWorldData renderData = FindOrCreateRenderGeometryData(texture);
+            RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
                 texture.UVInverse, isFrontSide, m_tickFraction);
@@ -227,7 +224,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             short lightLevel = facingSide.Sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.MiddleTexture);
-            RenderWorldData renderData = FindOrCreateRenderGeometryData(texture);
+            RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
                 texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible);
@@ -278,7 +275,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             short lightLevel = facingSide.Sector.LightLevel;
             
             GLLegacyTexture texture = m_textureManager.GetWall(facingSide.UpperTexture);
-            RenderWorldData renderData = FindOrCreateRenderGeometryData(texture);
+            RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
                 texture.UVInverse, isFrontSide, m_tickFraction);
@@ -314,12 +311,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             bool isSky = flat.Texture == Constants.SkyTexture;
 
-            // TODO: A lot of this stuff is not needed if we are doing sky
-            //       geometry. We don't care about UV coordinates or texture
-            //       stuff, only positional coordinates.
+            // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
             short lightLevel = flat.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetFlat(flat.Texture);
-            RenderWorldData renderData = FindOrCreateRenderGeometryData(texture);
+            RenderWorldData renderData = m_worldDataManager[texture];
             
             // Note that the subsector triangulator is supposed to realize when
             // we're passing it a floor or ceiling and order the vertices for
@@ -352,19 +347,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             }
         }
 
-        private RenderWorldData FindOrCreateRenderGeometryData(GLLegacyTexture texture)
-        {
-            if (m_textureToWorldData.TryGetValue(texture, out RenderWorldData? data))
-                return data;
-            
-            RenderWorldData newData = new RenderWorldData(m_capabilities, gl, texture);
-            m_textureToWorldData[texture] = newData;
-            return newData;
-        }
-
         private void ReleaseUnmanagedResources()
         {
-            m_textureToWorldData.Values.ForEach(geometryData => geometryData.Dispose());
             m_skyRenderer.Dispose();
         }
     }

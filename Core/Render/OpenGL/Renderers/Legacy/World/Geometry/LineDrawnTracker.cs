@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Helion.Maps.Geometry.Lines;
 using Helion.World;
 using static Helion.Util.Assertion.Assert;
@@ -12,8 +13,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         public void UpdateToWorld(WorldBase world)
         {
-            m_maxLineId = world.Map.Lines.Count;
-            m_lineWasDrawn = new BitArray(m_maxLineId);
+            m_maxLineId = world.Map.Lines.Max(line => line.Id);
+            m_lineWasDrawn = new BitArray(m_maxLineId + 1);
             ClearDrawnLines();
         }
 
@@ -24,14 +25,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         public bool HasDrawn(Line line)
         {
-            Precondition(line.Id < m_maxLineId, "Checking drawn line which is out of range");
+            Precondition(line.Id <= m_maxLineId, "Checking drawn line which is out of range");
             
             return m_lineWasDrawn.Get(line.Id);
         }
 
         public void MarkDrawn(Line line)
         {
-            Precondition(line.Id < m_maxLineId, "Marking line which is out of range");
+            Precondition(line.Id <= m_maxLineId, "Marking line which is out of range");
             
             m_lineWasDrawn.Set(line.Id, true);
         }

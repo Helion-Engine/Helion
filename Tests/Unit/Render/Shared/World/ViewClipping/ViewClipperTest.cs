@@ -51,8 +51,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
 
-            uint startAngle = clipper.ToDiamondAngle(Right);
-            uint endAngle = clipper.ToDiamondAngle(Top);
+            uint startAngle = clipper.GetDiamondAngle(Right);
+            uint endAngle = clipper.GetDiamondAngle(Top);
             Assert.AreEqual(0U, startAngle);
             Assert.AreEqual(uint.MaxValue / 4, endAngle);
             AssertSpanEquals(spans[0], startAngle, endAngle);
@@ -69,8 +69,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             Vec2D bottomRight = new Vec2D(5, -1);
             clipper.AddLine(topRight, bottomRight);
 
-            uint topRightAngle = clipper.ToDiamondAngle(topRight);
-            uint bottomRightAngle = clipper.ToDiamondAngle(bottomRight);
+            uint topRightAngle = clipper.GetDiamondAngle(topRight);
+            uint bottomRightAngle = clipper.GetDiamondAngle(bottomRight);
             Assert.IsTrue(bottomRightAngle > topRightAngle);
             Assert.IsTrue(topRightAngle < uint.MaxValue / 4);
             Assert.IsTrue(bottomRightAngle > (uint)(uint.MaxValue * 0.75));
@@ -110,10 +110,10 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(2, spans.Count);
 
-            uint rightAngle = clipper.ToDiamondAngle(Right);
-            uint topAngle = clipper.ToDiamondAngle(Top);
-            uint leftAngle = clipper.ToDiamondAngle(Left);
-            uint bottomAngle = clipper.ToDiamondAngle(Bottom);
+            uint rightAngle = clipper.GetDiamondAngle(Right);
+            uint topAngle = clipper.GetDiamondAngle(Top);
+            uint leftAngle = clipper.GetDiamondAngle(Left);
+            uint bottomAngle = clipper.GetDiamondAngle(Bottom);
             Assert.AreEqual(0U, rightAngle);
             Assert.AreEqual(uint.MaxValue / 4, topAngle);
             Assert.AreEqual((uint.MaxValue / 2) - 1, leftAngle);
@@ -140,8 +140,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
 
-            uint topAngle = clipper.ToDiamondAngle(Top);
-            uint bottomAngle = clipper.ToDiamondAngle(Bottom);
+            uint topAngle = clipper.GetDiamondAngle(Top);
+            uint bottomAngle = clipper.GetDiamondAngle(Bottom);
             AssertSpanEquals(spans[0], topAngle, bottomAngle);
         }
         
@@ -164,8 +164,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             
-            uint firstAngle = clipper.ToDiamondAngle(first);
-            uint secondAngle = clipper.ToDiamondAngle(fourth);
+            uint firstAngle = clipper.GetDiamondAngle(first);
+            uint secondAngle = clipper.GetDiamondAngle(fourth);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
         }
         
@@ -188,8 +188,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             
-            uint firstAngle = clipper.ToDiamondAngle(first);
-            uint secondAngle = clipper.ToDiamondAngle(fourth);
+            uint firstAngle = clipper.GetDiamondAngle(first);
+            uint secondAngle = clipper.GetDiamondAngle(fourth);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
         }
         
@@ -207,8 +207,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             
-            uint firstAngle = clipper.ToDiamondAngle(Top);
-            uint secondAngle = clipper.ToDiamondAngle(Bottom);
+            uint firstAngle = clipper.GetDiamondAngle(Top);
+            uint secondAngle = clipper.GetDiamondAngle(Bottom);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
         }
         
@@ -232,8 +232,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             
-            uint firstAngle = clipper.ToDiamondAngle(Right);
-            uint secondAngle = clipper.ToDiamondAngle(Bottom);
+            uint firstAngle = clipper.GetDiamondAngle(Right);
+            uint secondAngle = clipper.GetDiamondAngle(Bottom);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
         }
         
@@ -259,8 +259,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             
-            uint firstAngle = clipper.ToDiamondAngle(Right);
-            uint secondAngle = clipper.ToDiamondAngle(Bottom);
+            uint firstAngle = clipper.GetDiamondAngle(Right);
+            uint secondAngle = clipper.GetDiamondAngle(Bottom);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
         }
         
@@ -290,8 +290,8 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             
-            uint firstAngle = clipper.ToDiamondAngle(beginning);
-            uint secondAngle = clipper.ToDiamondAngle(end);
+            uint firstAngle = clipper.GetDiamondAngle(beginning);
+            uint secondAngle = clipper.GetDiamondAngle(end);
             AssertSpanEquals(spans[0], firstAngle, secondAngle);
         }
         
@@ -333,15 +333,15 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             
             ViewClipper clipper = new ViewClipper();
 
-            uint b = clipper.ToDiamondAngle(B);
-            uint c = clipper.ToDiamondAngle(C);
-            uint d = clipper.ToDiamondAngle(D);
-            uint f = clipper.ToDiamondAngle(F);
-            uint g = clipper.ToDiamondAngle(G);
-            uint i = clipper.ToDiamondAngle(I);
-            uint j = clipper.ToDiamondAngle(J);
-            uint k = clipper.ToDiamondAngle(K);
-            uint l = clipper.ToDiamondAngle(L);
+            uint b = clipper.GetDiamondAngle(B);
+            uint c = clipper.GetDiamondAngle(C);
+            uint d = clipper.GetDiamondAngle(D);
+            uint f = clipper.GetDiamondAngle(F);
+            uint g = clipper.GetDiamondAngle(G);
+            uint i = clipper.GetDiamondAngle(I);
+            uint j = clipper.GetDiamondAngle(J);
+            uint k = clipper.GetDiamondAngle(K);
+            uint l = clipper.GetDiamondAngle(L);
             
             //-----------------------------------------------------------------
             // Add everything in the forward direction

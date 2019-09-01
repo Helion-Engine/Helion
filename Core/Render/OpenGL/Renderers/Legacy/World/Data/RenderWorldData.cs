@@ -5,7 +5,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data
 {
     public class RenderWorldData : IDisposable
     {

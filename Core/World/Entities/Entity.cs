@@ -22,7 +22,7 @@ namespace Helion.World.Entities
 
         public readonly int Id;
         public readonly EntityDefinition Definition;
-        public double Angle;
+        public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
         public Vec3D Position => Box.Position;
@@ -48,6 +48,7 @@ namespace Helion.World.Entities
         public bool IsFrozen => FrozenTics > 0;
         public EntityFlags Flags => Definition.Flags;
         public EntityProperties Properties => Definition.Properties;
+        public EntityFrame Frame => Definition.States.Frames[FrameIndex];
 
         /// <summary>
         /// Creates an entity with the following information.
@@ -62,7 +63,7 @@ namespace Helion.World.Entities
         {
             Id = id;
             Definition = definition;
-            Angle = angleRadians;
+            AngleRadians = angleRadians;
             Box = new EntityBox(position, Radius, Height);
             PrevPosition = Box.Position;
             Sector = sector;

@@ -37,7 +37,7 @@ namespace Helion.World.Entities.Players
             PlayerNumber = playerNumber;
             Entity = entity;
             Entity.Player = this;
-            m_prevAngle = entity.Angle;
+            m_prevAngle = entity.AngleRadians;
         }
 
         public Vec3D GetViewPosition()
@@ -89,9 +89,9 @@ namespace Helion.World.Entities.Players
 
         public void AddToYaw(double delta)
         {
-            Entity.Angle = (Entity.Angle + delta) % MathHelper.TwoPi;
-            if (Entity.Angle < 0)
-                Entity.Angle += MathHelper.TwoPi;
+            Entity.AngleRadians = (Entity.AngleRadians + delta) % MathHelper.TwoPi;
+            if (Entity.AngleRadians < 0)
+                Entity.AngleRadians += MathHelper.TwoPi;
         }
         
         public void AddToPitch(double delta)
@@ -109,7 +109,7 @@ namespace Helion.World.Entities.Players
             // and would likely need to add more logic for wrapping around if
             // the player rotates from 359 degrees -> 2 degrees since that will
             // interpolate in the wrong direction.
-            float yaw = (float)Entity.Angle;
+            float yaw = (float)Entity.AngleRadians;
             float pitch = (float)Pitch;
 
             // TODO: This should be clamped to the floor/ceiling and use the
@@ -121,7 +121,7 @@ namespace Helion.World.Entities.Players
         
         public void Tick()
         {
-            m_prevAngle = Entity.Angle;
+            m_prevAngle = Entity.AngleRadians;
             m_prevPitch = Pitch;
 
             if (m_jumpTics > 0)

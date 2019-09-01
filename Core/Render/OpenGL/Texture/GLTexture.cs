@@ -42,6 +42,9 @@ namespace Helion.Render.OpenGL.Texture
         
         protected readonly IGLFunctions gl;
 
+        public int Width => Dimension.Width;
+        public int Height => Dimension.Height;
+
         protected GLTexture(int id, int textureId, string name, Dimension dimension, IGLFunctions functions, 
             TextureTargetType textureType)
         {
