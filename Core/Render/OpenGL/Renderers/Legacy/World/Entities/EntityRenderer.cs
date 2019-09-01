@@ -15,6 +15,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
     public class EntityRenderer
     {
+        /// <summary>
+        /// The rotation angle in diamond angle format. This is equal to 180
+        /// degrees + 22.5 degrees. See <see cref="CalculateRotation"/> docs
+        /// for more information.
+        /// </summary>
         private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
 
         private readonly LegacyGLTextureManager m_textureManager;
