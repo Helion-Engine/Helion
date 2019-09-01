@@ -7,6 +7,7 @@ using Helion.Render.Shared.Text;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World;
+using Helion.World.Entities;
 
 namespace Helion.Render.Commands
 {
@@ -126,9 +127,9 @@ namespace Helion.Render.Commands
             drawArea = m_textDrawCalculator.GetDrawArea(text, font, topLeft);
         }
 
-        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction)
+        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity)
         {
-            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction));
+            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity));
         }
 
         public void Viewport(Dimension dimension)

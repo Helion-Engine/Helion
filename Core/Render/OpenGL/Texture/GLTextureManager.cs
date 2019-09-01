@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
@@ -123,6 +124,12 @@ namespace Helion.Render.OpenGL.Texture
         /// found with the name provided.</returns>
         public GLTextureType GetFlat(CIString name) => Get(name, ResourceNamespace.Flats);
 
+        public bool TryGetSprite(CIString name, [MaybeNullWhen(false)] out GLTextureType? texture)
+        {
+            texture = Get(name, ResourceNamespace.Sprites);
+            return texture != null;
+        }
+        
         /// <summary>
         /// Gets the font for the name, or returns a default font that will
         /// contain null images.

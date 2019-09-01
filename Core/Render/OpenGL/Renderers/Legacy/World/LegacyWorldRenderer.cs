@@ -41,7 +41,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_config = config;
             gl = functions;
             m_worldDataManager = new RenderWorldDataManager(capabilities, gl);
-            m_entityRenderer = new EntityRenderer(textureManager);
+            m_entityRenderer = new EntityRenderer(textureManager, m_worldDataManager);
             m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions, 
                 textureManager, m_viewClipper, m_worldDataManager);
 
@@ -83,7 +83,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_worldDataManager.Clear();
             
             m_geometryRenderer.Clear(renderInfo.TickFraction);
-            m_entityRenderer.Clear(world, renderInfo.TickFraction);
+            m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);
         }
         
         private void TraverseBsp(WorldBase world, RenderInfo renderInfo)

@@ -291,7 +291,7 @@ namespace Helion.Render.OpenGL
         {
             DrawHudImagesIfAnyQueued(currentViewport);
             
-            RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport);
+            RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport, cmd.ViewerEntity);
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
 
