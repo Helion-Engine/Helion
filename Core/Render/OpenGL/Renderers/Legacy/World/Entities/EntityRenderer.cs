@@ -129,8 +129,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 string[] allPossibleFrames =
                 {
                     spriteFrame + '0', 
-                    spriteFrame + '1', spriteFrame + '2', spriteFrame + '3', spriteFrame + '4', 
-                    spriteFrame + '5', spriteFrame + '6', spriteFrame + '7', spriteFrame + '8',
+                    spriteFrame + '1', 
+                    spriteFrame + '2', 
+                    spriteFrame + '3', 
+                    spriteFrame + '4', 
+                    spriteFrame + '5', 
+                    spriteFrame + '6', 
+                    spriteFrame + '7', 
+                    spriteFrame + '8',
                     spriteFrame + '2' + frame + '8',
                     spriteFrame + '3' + frame + '7',
                     spriteFrame + '4' + frame + '6',
@@ -155,8 +161,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // non-rotation, and then rarely the octet rotation form.
             string rotationSprite = GetRotationSprite(fullFrame, rotation);
             if (m_textureManager.TryGetSprite(rotationSprite, out GLLegacyTexture? mirrorTexture))
-                return (mirrorTexture, rotation < 5);
-            
+            {
+                // Rotations 0 - 4 are normal, and 5 - 7 are the A2A8, A3A7, and
+                // A4A6 rotations which we do need to mirror.
+                bool isMirror = rotation >= 5;
+                return (mirrorTexture, isMirror);                
+            }
+
             if (m_textureManager.TryGetSprite(fullFrame + '0', out GLLegacyTexture? noRotationSprite))
                 return (noRotationSprite, false);
             
@@ -180,8 +191,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
             float bottomZ = (float)entityCenterBottom.Z;
             float topZ = bottomZ + texture.Height;
-            float leftU = mirror ? 0.0f : 1.0f;
-            float rightU = mirror ? 1.0f : 0.0f;
+            float leftU = mirror ? 1.0f : 0.0f;
+            float rightU = mirror ? 0.0f : 1.0f;
             short lightLevel = entity.Sector.LightLevel;
 
             LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, lightLevel);
