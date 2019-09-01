@@ -20,3 +20,191 @@ actor Actor
         Stop
     }
 }
+
+actor Inventory
+{
+    Inventory.Amount 1
+    Inventory.InterHubAmount 1
+    Inventory.MaxAmount 1
+    Inventory.PickupSound "misc/i_pkup"
+    Inventory.PickupMessage "$TXT_DEFAULTPICKUPMSG"
+    Inventory.UseSound "misc/invuse"
+}
+
+actor Ammo : Inventory
+{
+    Inventory.PickupSound "misc/ammo_pkup"
+    
+    +INVENTORY.KEEPDEPLETED
+}
+
+actor BackpackItem : Inventory
+{
+}
+
+actor Armor : Inventory
+{
+    Inventory.PickupSound "misc/armor_pkup"
+}
+
+actor BasicArmor : Armor
+{
+    +INVENTORY.KEEPDEPLETED
+}
+
+actor BasicArmorBonus : Armor
+{
+    Armor.SavePercent 0.333333
+    Inventory.MaxAmount 0
+    
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.AUTOACTIVATE
+}
+
+actor BasicArmorPickup : Armor
+{
+    Inventory.MaxAmount 0
+    
+    +INVENTORY.AUTOACTIVATE
+}
+
+actor Health : Inventory
+{
+    Inventory.Amount 1
+    Inventory.MaxAmount 0
+    Inventory.PickupSound "misc/health_pkup"
+}
+
+actor HealthPickup : Inventory
+{
+    Inventory.DefMaxAmount
+    
+    +INVENTORY.INVBAR
+}
+
+actor Key : Inventory
+{
+    Inventory.PickupSound "misc/k_pkup"
+    
+    +DONTGIB
+    +INVENTORY.INTERHUBSTRIP
+}
+
+actor PowerupGiver : Inventory
+{
+    Inventory.DefMaxAmount
+    Inventory.PickupSound "misc/p_pkup"
+    
+    +INVENTORY.FANCYPICKUPSOUND
+    +INVENTORY.INVBAR
+}
+
+actor PowerInvulnerable : Powerup
+{
+    Powerup.Duration -30
+    inventory.icon "SPSHLD0"
+}
+
+actor PowerStrength : Powerup
+{
+    Powerup.Color 255, 0, 0, 0.5
+    Powerup.Duration 1
+    
+    +INVENTORY.HUBPOWER
+}
+
+actor PowerInvisibility : Powerup
+{
+    Powerup.Duration -60
+    Powerup.Mode "Fuzzy"
+    Powerup.Strength 80
+    
+    +SHADOW
+}
+
+actor PowerIronFeet : Powerup
+{
+    Powerup.Color 0, 255, 0, 0.125
+    Powerup.Duration -60
+}
+
+actor PowerMask : PowerIronFeet
+{
+    Inventory.Icon "I_MASK"
+    Powerup.Color 0, 0, 0, 0
+    Powerup.Duration -80
+    
+    +INVENTORY.HUBPOWER
+}
+
+actor PowerLightAmp : Powerup
+{
+    Powerup.Duration -120
+}
+
+actor RuneGiver : PowerupGiver
+{
+    Inventory.DefMaxAmount
+    Inventory.PickupSound "misc/p_pkup"
+    
+    +INVENTORY.FANCYPICKUPSOUND
+    +INVENTORY.INVBAR
+}
+
+actor Weapon : Inventory
+{
+    Inventory.PickupSound "misc/w_pkup"
+    Weapon.BobRangeX 1.0
+    Weapon.BobRangeY 1.0
+    Weapon.BobSpeed 1.0
+    Weapon.DefaultKickback
+    
+    States
+    {
+    LightDone:
+        SHTG E 0 A_Light0
+        Stop
+    }
+}
+
+actor WeaponGiver : Weapon
+{
+    Weapon.AmmoGive1 -1
+    Weapon.AmmoGive2 -1
+}
+
+actor WeaponHolder : Inventory
+{
+    +NOBLOCKMAP
+    +NOSECTOR
+    +INVENTORY.UNDROPPABLE
+}
+
+actor PuzzleItem : Inventory
+{
+    Inventory.DefMaxAmount
+    Inventory.PickupSound "misc/i_pkup"
+    Inventory.UseSound "PuzzleSuccess"
+    
+    +INVENTORY.INVBAR
+    +NOGRAVITY
+}
+
+// For compatibility reasons as well, which is the 'missing' actor the game
+// will spawn when it can't find the type.
+actor Unknown
+{
+    Height 32
+    Radius 16
+    
+    +DONTSPLASH
+    +NOBLOCKMAP
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        UNKN A -1
+        Stop
+    }
+}

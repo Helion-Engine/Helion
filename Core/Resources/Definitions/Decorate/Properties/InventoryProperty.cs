@@ -6,7 +6,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
     {
         public string? AltHUDIcon;
         public int? Amount;
-        public int? DefMaxAmount;
+        public bool? DefMaxAmount;
         public List<string>? ForbiddenTo;
         public int? GiveQuest;
         public int? InterHubAmount;

@@ -512,6 +512,64 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             }
         }
         
+        private void ConsumeAndHandlePowerupColor()
+        {
+            if (PeekInteger())
+            {
+                string r = ((byte)ConsumeInteger()).ToString("X2");
+                Consume(',');
+                string g = ((byte)ConsumeInteger()).ToString("X2");
+                Consume(',');
+                string b = ((byte)ConsumeInteger()).ToString("X2");
+                m_currentDefinition.Properties.Powerup.Color = new PowerupColor($"{r} {g} {b}");
+            }
+            else if (PeekString())
+                m_currentDefinition.Properties.Powerup.Color = new PowerupColor(ConsumeString());
+            else
+                throw MakeException($"Expecting an rgb string or 3 comma-separated integers after powerup color on actor '{m_currentDefinition.Name}'");
+            
+            if (ConsumeIf(','))
+                m_currentDefinition.Properties.Powerup.Color.Alpha = ConsumeFloat();
+        }
+        
+        private void ConsumeAndHandlePowerupColormap()
+        {
+            double r = ConsumeFloat();
+            if (!MathHelper.InNormalRange(r))
+                throw MakeException("Powerup colormap destination R value is not in the 0.0 - 1.0 range");
+            Consume(',');
+            double g = ConsumeFloat();
+            if (!MathHelper.InNormalRange(r))
+                throw MakeException("Powerup colormap destination G value is not in the 0.0 - 1.0 range");
+            Consume(',');
+            double b = ConsumeFloat();
+            if (!MathHelper.InNormalRange(r))
+                throw MakeException("Powerup colormap destination B value is not in the 0.0 - 1.0 range");
+                
+            Color dest = Color.FromArgb(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
+            if (ConsumeIf(','))
+            {
+                double sourceR = ConsumeFloat();
+                if (!MathHelper.InNormalRange(r))
+                    throw MakeException("Powerup colormap source R value is not in the 0.0 - 1.0 range");
+                
+                Consume(',');
+                double sourceG = ConsumeFloat();
+                if (!MathHelper.InNormalRange(r))
+                    throw MakeException("Powerup colormap source G value is not in the 0.0 - 1.0 range");
+                
+                Consume(',');
+                double sourceB = ConsumeFloat();
+                if (!MathHelper.InNormalRange(r))
+                    throw MakeException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
+                
+                Color source = Color.FromArgb(255, (int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255));
+                m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(source, dest);
+            }
+            else
+                m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(dest);
+        }
+                
         private void ConsumeActorPropertyOrCombo()
         {
             string property = ConsumeString();
@@ -629,6 +687,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             if (healthProperty.ToUpper() == "LOWMESSAGE")
             {
                 m_currentDefinition.Properties.HealthProperty.LowMessageHealth = ConsumeInteger();
+                Consume(',');
                 m_currentDefinition.Properties.HealthProperty.LowMessage = ConsumeString();
             }
             else 
@@ -661,7 +720,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Inventory.Amount = ConsumeInteger();
                 break;
             case "DEFMAXAMOUNT":
-                m_currentDefinition.Properties.Inventory.DefMaxAmount = ConsumeInteger();
+                m_currentDefinition.Properties.Inventory.DefMaxAmount = true;
                 break;
             case "FORBIDDENTO":
                 m_currentDefinition.Properties.Inventory.ForbiddenTo = ConsumeStringListAtLeastOne();
@@ -707,7 +766,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             switch (morphProperty.ToUpper())
             {
             case "DURATION":
-                m_currentDefinition.Properties.MorphProjectile.Ticks = ConsumeInteger();
+                m_currentDefinition.Properties.MorphProjectile.Duration = ConsumeSignedInteger();
                 break;  
             case "MONSTERCLASS":
                 m_currentDefinition.Properties.MorphProjectile.MonsterClass = ConsumeString();
@@ -878,62 +937,25 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             switch (nestedProperty.ToUpper())
             {
             case "COLOR":
-                m_currentDefinition.Properties.Powerup.Color.Color = ConsumeString();
-                if (ConsumeIf(','))
-                    m_currentDefinition.Properties.Powerup.Color.Alpha = ConsumeFloat();
+                ConsumeAndHandlePowerupColor();
                 break;
-            
             case "COLORMAP":
-                double r = ConsumeFloat();
-                if (!MathHelper.InNormalRange(r))
-                    throw MakeException("Powerup colormap destination R value is not in the 0.0 - 1.0 range");
-                Consume(',');
-                double g = ConsumeFloat();
-                if (!MathHelper.InNormalRange(r))
-                    throw MakeException("Powerup colormap destination G value is not in the 0.0 - 1.0 range");
-                Consume(',');
-                double b = ConsumeFloat();
-                if (!MathHelper.InNormalRange(r))
-                    throw MakeException("Powerup colormap destination B value is not in the 0.0 - 1.0 range");
-                    
-                Color dest = Color.FromArgb(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
-                if (ConsumeIf(','))
-                {
-                    double sourceR = ConsumeFloat();
-                    if (!MathHelper.InNormalRange(r))
-                        throw MakeException("Powerup colormap source R value is not in the 0.0 - 1.0 range");
-                    
-                    Consume(',');
-                    double sourceG = ConsumeFloat();
-                    if (!MathHelper.InNormalRange(r))
-                        throw MakeException("Powerup colormap source G value is not in the 0.0 - 1.0 range");
-                    
-                    Consume(',');
-                    double sourceB = ConsumeFloat();
-                    if (!MathHelper.InNormalRange(r))
-                        throw MakeException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
-                    
-                    Color source = Color.FromArgb(255, (int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255));
-                    m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(source, dest);
-                }
-                else
-                    m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(dest);
+                ConsumeAndHandlePowerupColormap();
                 break;
-                
             case "DURATION":
                 m_currentDefinition.Properties.Powerup.Duration = ConsumeSignedInteger();
                 break;
-            
             case "MODE":
                 m_currentDefinition.Properties.Powerup.Mode = ConsumePowerupMode();
                 break;
-            
             case "STRENGTH":
                 m_currentDefinition.Properties.Powerup.Strength = ConsumeSignedInteger();
                 break;
-            
+            case "TYPE":
+                m_currentDefinition.Properties.Powerup.Type = ConsumeString();
+                break;
             default:
-                Log.Warn("Unknown powerup property suffix '{0}' for actor {1} (in particular, PUZZLEITEM.{2})", nestedProperty, m_currentDefinition.Name);
+                Log.Warn("Unknown powerup property suffix '{0}' for actor '{1}'", nestedProperty, m_currentDefinition.Name);
                 break;
             }
         }
@@ -950,7 +972,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.PuzzleItem.FailMessage = ConsumeString();
                 break;
             default:
-                Log.Warn("Unknown puzzle item property suffix '{0}' for actor {1} (in particular, PUZZLEITEM.{2})", nestedProperty, m_currentDefinition.Name);
+                Log.Warn("Unknown puzzle item property suffix '{0}' for actor '{1}'", nestedProperty, m_currentDefinition.Name);
                 break;
             }
         }
@@ -961,13 +983,13 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             switch (nestedProperty.ToUpper())
             {
             case "AMMOGIVE":
-                m_currentDefinition.Properties.Weapons.AmmoGive = ConsumeInteger();
+                m_currentDefinition.Properties.Weapons.AmmoGive = ConsumeSignedInteger();
                 break;
             case "AMMOGIVE1":
-                m_currentDefinition.Properties.Weapons.AmmoGive1 = ConsumeInteger();
+                m_currentDefinition.Properties.Weapons.AmmoGive1 = ConsumeSignedInteger();
                 break;
             case "AMMOGIVE2":
-                m_currentDefinition.Properties.Weapons.AmmoGive2 = ConsumeInteger();
+                m_currentDefinition.Properties.Weapons.AmmoGive2 = ConsumeSignedInteger();
                 break;
             case "AMMOTYPE":
                 m_currentDefinition.Properties.Weapons.AmmoType = ConsumeString();
@@ -1036,7 +1058,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Weapons.YAdjust = ConsumeInteger();
                 break;
             default:
-                Log.Warn("Unknown weapon property suffix '{0}' for actor {1} (in particular, WEAPON.{2})", nestedProperty, m_currentDefinition.Name);
+                Log.Warn("Unknown weapon property suffix '{0}' for actor '{1}'", nestedProperty, m_currentDefinition.Name);
                 break;
             }
         }
@@ -1053,7 +1075,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.WeaponPieces.Weapon = ConsumeString();
                 break;
             default:
-                Log.Warn("Unknown weapon piece property suffix '{0}' for actor {1} (in particular, WEAPONPIECE.{2})", nestedProperty, m_currentDefinition.Name);
+                Log.Warn("Unknown weapon piece property suffix '{0}' for actor '{1}'", nestedProperty, m_currentDefinition.Name);
                 break;
             }
         }
@@ -1268,7 +1290,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.ProjectileKickBack = ConsumeInteger();
                 break;
             case "PROJECTILEPASSHEIGHT":
-                m_currentDefinition.Properties.ProjectilePassHeight = ConsumeInteger();
+                m_currentDefinition.Properties.ProjectilePassHeight = ConsumeSignedInteger();
                 break;
             case "PUSHFACTOR":
                 m_currentDefinition.Properties.PushFactor = ConsumeFloat();

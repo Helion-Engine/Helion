@@ -20,6 +20,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         protected readonly Func<string, string?> IncludeResolver;
         private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
         private int m_frameIndex;
+        private string? m_immediatelySeenLabel;
 
         public DecorateParser(string path, Func<string, string?> includeResolver)
         {
@@ -62,16 +63,20 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void ConsumeInclude()
         {
+            Token? token = GetCurrentToken();
+            if (token == null)
+                throw MakeException("Expected value to follow preprocessor include symbol");
+            
             Consume("include");
             string includePath = ConsumeString();
 
             string? includeText = IncludeResolver.Invoke(includePath);
             if (includeText == null)
-                throw MakeException($"Could not locate include at {includePath}");
+                throw new ParserException(token.Value, $"Could not locate include at {includePath}");
             
             DecorateParser parser = new DecorateParser(includePath, IncludeResolver);
             if (!parser.Parse(includeText))
-                throw MakeException($"Failed to parse include path at {includePath}");
+                throw new ParserException(token.Value, $"Failed to parse include path at {includePath}");
 
             MergeWithParsedData(parser);
         }
@@ -116,6 +121,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void ConsumeActorStates()
         {
             m_frameIndex = 0;
+            m_immediatelySeenLabel = null;
             
             Consume('{');
             InvokeUntilAndConsume('}', ConsumeActorStateElement);

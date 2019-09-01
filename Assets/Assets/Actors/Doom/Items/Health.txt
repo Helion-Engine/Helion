@@ -1,0 +1,46 @@
+actor Stimpack : Health 2011
+{
+    SpawnID 23
+    Inventory.Amount 10
+    Inventory.PickupMessage "$GOTSTIM"
+    
+    States
+    {
+    Spawn:
+        STIM A -1
+        Stop
+    }
+}
+
+actor Medikit : Health 2012
+{
+    SpawnID 24
+    Health.LowMessage 25, "$GOTMEDINEED"
+    Inventory.Amount 25
+    Inventory.PickupMessage "$GOTMEDIKIT"
+    
+    States
+    {
+    Spawn:
+        MEDI A -1
+        Stop
+    }
+}
+
+actor HealthBonus : Health 2014
+{
+    SpawnID 152
+    Inventory.Amount 1
+    Inventory.MaxAmount 200
+    Inventory.PickupMessage "$GOTHTHBONUS"
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    
+    States
+    {
+    Spawn:
+        BON1 ABCDCB 6
+        Loop
+    }
+}

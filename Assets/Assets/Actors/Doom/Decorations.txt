@@ -1,0 +1,788 @@
+// Note: Skulltag/Zandronum have +USESPECIAL on all of the actors, so to make
+// sure we have mod compatibility we will add that as well.
+
+actor DeadStick 25
+{
+    Height 64
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        POL1 A -1
+        Stop
+    }
+}
+
+actor LiveStick 26
+{
+    Height 64
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        POL6 A 6
+        POL6 B 8
+        Loop
+    }
+}
+
+actor HeadOnAStick 27
+{
+    Height 56
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        POL4 A -1
+        Stop
+    }
+}
+
+actor HeadsOnAStick 28
+{
+    Height 64
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        POL2 A -1
+        Stop
+    }
+}
+
+actor HeadCandles 29
+{
+    Height 42
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        POL3 AB 6 Bright
+        Loop
+    }
+}
+
+actor TallGreenColumn 30
+{
+    Height 52
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        COL1 A -1
+        Stop
+    }
+}
+
+actor ShortGreenColumn 31
+{
+    Height 40
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        COL2 A -1
+        Stop
+    }
+}
+
+actor TallRedColumn 32
+{
+    Height 52
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        COL3 A -1
+        Stop
+    }
+}
+
+actor ShortRedColumn 33
+{
+    Height 40
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        COL4 A -1
+        Stop
+    }
+}
+
+
+actor Candlestick 34
+{
+    Height 14
+    ProjectilePassHeight -16
+    Radius 20
+    
+    States
+    {
+    Spawn:
+        CAND A -1 Bright
+        Stop
+    }
+}
+
+actor Candelabra 35
+{
+    Height 60
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        CBRA A -1 Bright
+        Stop
+    }
+}
+
+actor HeartColumn 36
+{
+    Height 40
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        COL5 AB 14
+        Loop
+    }
+}
+
+actor SkullColumn 37
+{
+    Height 40
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        COL6 A -1
+        Stop
+    }
+}
+
+actor EvilEye 41
+{
+    Height 54
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        CEYE ABCB 6 Bright
+        Loop
+    }
+}
+
+actor FloatingSkull 42
+{
+    Height 26
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        FSKU ABC 6 Bright
+        Loop
+    }
+}
+
+actor TorchTree 43
+{
+    Height 56
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TRE1 A -1
+        Stop
+    }
+}
+
+actor BlueTorch 44
+{
+    Height 68
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TBLU ABCD 4 Bright
+        Loop
+    }
+}
+
+actor GreenTorch 45
+{
+    Height 68
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TGRN ABCD 4 Bright
+        Loop
+    }
+}
+
+actor RedTorch 46
+{
+    Height 68
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TRED ABCD 4 Bright
+        Loop
+    }
+}
+
+actor Stalagtite 47
+{
+    Height 40
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        SMIT A -1
+        Stop
+    }
+}
+
+actor TechPillar 48
+{
+    Height 128
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        ELEC A -1
+        Stop
+    }
+}
+
+actor BloodyTwitch 49
+{
+    Height 68
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        GOR1 A 10
+        GOR1 B 15
+        GOR1 C 8
+        GOR1 B 6
+        Loop
+    }
+}
+
+actor Meat2 50
+{
+    Height 84
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        GOR2 A -1
+        Stop
+    }
+}
+
+actor Meat3 51
+{
+    Height 84
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        GOR3 A -1
+        Stop
+    }
+}
+
+actor Meat4 52
+{
+    Height 68
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        GOR4 A -1
+        Stop
+    }
+}
+
+actor Meat5 53
+{
+    Height 52
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        GOR5 A -1
+        Stop
+    }
+}
+
+actor BigTree 54
+{
+    Height 108
+    ProjectilePassHeight -16
+    Radius 32
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TRE2 A -1
+        Stop
+    }
+}
+
+actor ShortBlueTorch 55
+{
+    Height 37
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        SMBT ABCD 4 Bright
+        Loop
+    }
+}
+
+actor ShortGreenTorch 56
+{
+    Height 37
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        SMGT ABCD 4 Bright
+        Loop
+    }
+}
+
+actor ShortRedTorch 57
+{
+    Height 37
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        SMRT ABCD 4 Bright
+        Loop
+    }
+}
+
+actor NonSolidMeat2 : Meat2 59
+{
+    Radius 20
+    
+    -SOLID
+}
+
+actor NonSolidMeat3 : Meat3 61
+{
+    Radius 20
+    
+    -SOLID
+}
+
+actor NonSolidMeat4 : Meat4 60
+{
+    Radius 20
+    
+    -SOLID
+}
+
+actor NonSolidMeat5 : Meat5 62
+{
+    Radius 20
+    
+    -SOLID
+}
+
+actor NonSolidTwitch : BloodyTwitch 63
+{
+    Radius 20
+    
+    -SOLID
+}
+
+actor BurningBarrel 70
+{
+    Height 32
+    ProjectilePassHeight -16
+    Radius 16
+    SpawnID 149
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        FCAN ABC 4 Bright
+        Loop
+    }
+}
+
+actor HangNoGuts 73
+{
+    Height 88
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        HDB1 A -1
+        Stop
+    }
+}
+
+actor HangBNoBrain 74
+{
+    Height 88
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        HDB2 A -1
+        Stop
+    }
+}
+
+actor HangTLookingDown 75
+{
+    Height 64
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        HDB3 A -1
+        Stop
+    }
+}
+
+actor HangTSkull 76
+{
+    Height 64
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        HDB4 A -1
+        Stop
+    }
+}
+
+actor HangTLookingUp 77
+{
+    Height 64
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        HDB5 A -1
+        Stop
+    }
+}
+
+actor HangTNoBrain 78
+{
+    Height 64
+    Radius 16
+    
+    +NOGRAVITY
+    +SOLID
+    +SPAWNCEILING
+    
+    States
+    {
+    Spawn:
+        HDB6 A -1
+        Stop
+    }
+}
+
+actor ColonGibs 79
+{
+    Height 4
+    Radius 20
+    SpawnID 147
+    
+    +MOVEWITHSECTOR
+    +NOBLOCKMAP
+    
+    States
+    {
+    Spawn:
+        POB1 A -1
+        Stop
+    }
+}
+
+actor SmallBloodPool 80
+{
+    Height 1
+    Radius 20
+    SpawnID 148
+    
+    +MOVEWITHSECTOR
+    +NOBLOCKMAP
+    
+    States
+    {
+    Spawn:
+        POB2 A -1
+        Stop
+    }
+}
+
+actor BrainStem 81
+{
+    Height 4
+    Radius 20
+    SpawnID 150
+    
+    +MOVEWITHSECTOR
+    +NOBLOCKMAP
+    
+    States
+    {
+    Spawn:
+        BRS1 A -1
+        Stop
+    }
+}
+
+actor TechLamp 85
+{
+    Height 80
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TLMP ABCD 4 Bright
+        Loop
+    }
+}
+
+actor TechLamp2 86
+{
+    Height 60
+    ProjectilePassHeight -16
+    Radius 16
+    
+    +SOLID
+    +USESPECIAL
+    
+    States
+    {
+    Spawn:
+        TLP2 ABCD 4 Bright
+        Loop
+    }
+}
+
+actor ExplosiveBarrel 2035
+{
+    DeathSound "world/barrelx"
+    Health 20
+    Height 42
+    Obituary "$OB_BARREL"
+    Radius 10
+    SpawnID 125
+    
+    +ACTIVATEMCROSS
+    +DONTGIB
+    +NOBLOOD
+    +NOICEDEATH
+    +OLDRADIUSDMG
+    +SHOOTABLE
+    +SOLID
+    
+    States
+    {
+    Spawn:
+        BAR1 AB 6
+        Loop
+    Death:
+        BEXP A 5 Bright
+        BEXP B 5 Bright A_Scream
+        BEXP C 5 Bright
+        BEXP D 5 Bright A_Explode
+        BEXP E 10 Bright
+        TNT1 A 1050 Bright A_BarrelDestroy
+        TNT1 A 5 A_Respawn
+        Wait
+    }
+}

@@ -1,0 +1,24 @@
+actor ItemFog
+{
+    +NOBLOCKMAP
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        IFOG ABABCDE 6 Bright
+        Stop
+    }
+}
+
+actor PickupFlash
+{
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        ACLO DCDCBCBABA 3
+        Stop
+    }
+}

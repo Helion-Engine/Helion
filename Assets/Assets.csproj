@@ -40,6 +40,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\Actors\Base.txt" />
+    <Content Include="Assets\Actors\Constants.txt" />
+    <Content Include="Assets\Actors\Doom\Corpses.txt" />
+    <Content Include="Assets\Actors\Doom\Decorations.txt" />
+    <Content Include="Assets\Actors\Doom\Items\Ammo.txt" />
+    <Content Include="Assets\Actors\Doom\Items\Armor.txt" />
+    <Content Include="Assets\Actors\Doom\Items\Health.txt" />
+    <Content Include="Assets\Actors\Doom\Items\Powerups.txt" />
+    <Content Include="Assets\Actors\Doom\Keys.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Arachnotron.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Archvile.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Baron.txt" />
@@ -60,7 +68,9 @@
     <Content Include="Assets\Actors\Doom\Monsters\SpiderMastermind.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\WolfensteinSS.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\ZombieMan.txt" />
-    <Content Include="Assets\Actors\Missing.txt" />
+    <Content Include="Assets\Actors\Doom\Weapons.txt" />
+    <Content Include="Assets\Actors\Items.txt" />
+    <Content Include="Assets\Actors\Markers.txt" />
     <Content Include="Assets\Actors\Player.txt" />
     <Content Include="Assets\Actors\Teleport.txt" />
     <Content Include="Assets\Decorate.txt" />

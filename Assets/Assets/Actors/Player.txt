@@ -1,9 +1,9 @@
 actor PlayerPawn
 {
-    Radius 16
     Height 56
     Mass 100
     PainChance 255
+    Radius 16
     Speed 1
     Player.AirCapacity 1
     Player.AttackZOffset 8
@@ -38,9 +38,9 @@ actor PlayerPawn
 actor DoomPlayer : PlayerPawn
 {
     Player.DisplayName "Marine"
-    Player.StartItem "Pistol"
-    Player.StartItem "Fist"
     Player.StartItem "Clip", 50
+    Player.StartItem "Fist"
+    Player.StartItem "Pistol"
     Player.WeaponSlot 1, Fist, Chainsaw
     Player.WeaponSlot 2, Pistol
     Player.WeaponSlot 3, Shotgun, SuperShotgun
@@ -48,7 +48,7 @@ actor DoomPlayer : PlayerPawn
     Player.WeaponSlot 5, RocketLauncher
     Player.WeaponSlot 6, PlasmaRifle
     Player.WeaponSlot 7, BFG9000
-
+    
     States
     {
     Spawn:

@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Maps.Special;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -54,7 +54,9 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         
         private void CreateActorStateLabel(string label)
         {
-            m_currentDefinition.States.Labels[label] = m_frameIndex;
+            string upperLabel = label.ToUpper();
+            m_immediatelySeenLabel = upperLabel;
+            m_currentDefinition.States.Labels[upperLabel] = m_frameIndex;
         }
 
         private int ConsumeActorFrameTicks()
@@ -168,6 +170,32 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             }
         }
 
+        private void ConsumeActionFunctionArgumentsIfAny()
+        {
+            if (!ConsumeIf('('))
+                return;
+
+            // For now we're just going to consume everything, and will do an
+            // implementation later when we can make an AST.
+            int rightParenToFind = 1;
+            while (rightParenToFind > 0)
+            {
+                if (ConsumeIf(')'))
+                {
+                    rightParenToFind--;
+                    continue;
+                }
+
+                if (ConsumeIf('('))
+                {
+                    rightParenToFind++;
+                    continue;
+                }
+                
+                Consume();
+            }
+        }
+
         private ActionFunction? ConsumeActionFunctionIfAny()
         {
             string? text = PeekCurrentText();
@@ -176,28 +204,51 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             
             // It is possible that no such action function exists and we would
             // be reading a label or frame.
-            if (!text.StartsWith("A_", StringComparison.OrdinalIgnoreCase))
-                return null;
-
-            string functionName = ConsumeIdentifier();
-            // TODO: Support reading/processing arguments.
+            string upperText = text.ToUpper();
+            if (upperText.StartsWith("A_") || ActionSpecials.Exists(upperText))
+            {
+                string functionName = ConsumeIdentifier();
+                ConsumeActionFunctionArgumentsIfAny();
             
-            return new ActionFunction(functionName);
+                return new ActionFunction(functionName);
+            }
+            
+            return null;
         }
 
-        private void ApplyStateBranch(ActorStateBranch branchType)
+        private void HandleLabelOverride(ActorStateBranch branchType)
         {
-            if (m_currentDefinition.States.Frames.Empty())
-                throw MakeException("Cannot have a flow control label when no frames were defined");
-
-            ActorFrame frame = m_currentDefinition.States.Frames.Last();
+            string upperLabel = m_immediatelySeenLabel.ToUpper();
             
             if (branchType != ActorStateBranch.Goto)
             {
-                frame.FlowControl = new ActorFlowControl(branchType);
+                // This assumes no one will ever use Wait/Fail/Loop for flow
+                // overriding, and if they do then we will kill the state.
+                // No one should be doing that anyways.
+                m_currentDefinition.States.FlowOverrides[upperLabel] = new ActorFlowOverride();
                 return;
             }
 
+            string label = ConsumeIdentifier();
+            string? parent = null;
+            int? offset = null;
+
+            if (ConsumeIf(':'))
+            {
+                Consume(':');
+                parent = label;
+                label = ConsumeString();
+            }
+
+            if (ConsumeIf('+'))
+                offset = ConsumeInteger();
+            
+            ActorFlowOverride gotoOverride = new ActorFlowOverride(label, parent, offset);
+            m_currentDefinition.States.FlowOverrides[upperLabel] = gotoOverride;
+        }
+
+        private void HandleFrameGotoFlowControl(ActorFrame frame, ActorStateBranch branchType)
+        {
             string parent = "";
             string label = ConsumeIdentifier();
             int offset = 0;
@@ -215,15 +266,45 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             frame.FlowControl = new ActorFlowControl(branchType, parent, label, offset);
         }
 
+        private void ApplyStateBranch(ActorStateBranch branchType)
+        {
+            if (m_immediatelySeenLabel != null)
+            {
+                HandleLabelOverride(branchType);
+                return;
+            }
+            
+            if (m_currentDefinition.States.Frames.Empty())
+                throw MakeException("Cannot have a flow control label when no frames were defined");
+
+            ActorFrame frame = m_currentDefinition.States.Frames.Last();
+            
+            if (branchType != ActorStateBranch.Goto)
+            {
+                frame.FlowControl = new ActorFlowControl(branchType);
+                return;
+            }
+
+            HandleFrameGotoFlowControl(frame, branchType);
+        }
+
         private void ConsumeActorStateElement()
         {
+            // TODO: Need to eventually support periods like "Some.Label".
             string text = ConsumeString();
+
             if (TryGetStateBranch(text, out ActorStateBranch branchType))
+            {
                 ApplyStateBranch(branchType);
+                m_immediatelySeenLabel = null;
+            }
             else if (ConsumeIf(':'))
                 CreateActorStateLabel(text);
             else
+            {
                 ConsumeActorStateFrames(text);
+                m_immediatelySeenLabel = null;
+            }
         }
     }
 }

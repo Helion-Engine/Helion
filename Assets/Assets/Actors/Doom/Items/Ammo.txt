@@ -1,0 +1,141 @@
+actor Clip : Ammo 2007
+{
+    SpawnID 11
+    Ammo.BackpackAmount 10
+    Ammo.BackpackMaxAmount 400
+    Inventory.Amount 10
+    Inventory.Icon "CLIPA0"
+    Inventory.MaxAmount 200
+    Inventory.PickupMessage "$GOTCLIP"
+    
+    States
+    {
+    Spawn:
+        CLIP A -1
+        Stop
+    }
+}
+
+actor ClipBox : Clip 2048
+{
+    SpawnID 139
+    Inventory.Amount 50
+    Inventory.PickupMessage "$GOTCLIPBOX"
+    
+    States
+    {
+    Spawn:
+        AMMO A -1
+        Stop
+    }
+}
+
+actor RocketAmmo : Ammo 2010
+{
+    SpawnID 140
+    Ammo.BackpackAmount 1
+    Ammo.BackpackMaxAmount 100
+    Inventory.Amount 1
+    Inventory.Icon "ROCKA0"
+    Inventory.MaxAmount 50
+    Inventory.PickupMessage "$GOTROCKET"
+    
+    States
+    {
+    Spawn:
+        ROCK A -1
+        Stop
+    }
+}
+
+actor RocketBox : RocketAmmo 2046
+{
+    SpawnID 141
+    Inventory.Amount 5
+    Inventory.PickupMessage "$GOTROCKBOX"
+    
+    States
+    {
+    Spawn:
+        BROK A -1
+        Stop
+    }
+}
+
+actor Cell : Ammo 2047
+{
+    SpawnID 75
+    Ammo.BackpackAmount 20
+    Ammo.BackpackMaxAmount 600
+    Inventory.Amount 20
+    Inventory.Icon "CELLA0"
+    Inventory.MaxAmount 300
+    Inventory.PickupMessage "$GOTCELL"
+    
+    States
+    {
+    Spawn:
+        CELL A -1
+        Stop
+    }
+}
+
+actor CellPack : Cell 17
+{
+    SpawnID 142
+    Inventory.Amount 100
+    Inventory.PickupMessage "$GOTCELLBOX"
+    
+    States
+    {
+    Spawn:
+        CELP A -1
+        Stop
+    }
+}
+
+actor Shell : Ammo 2008
+{
+    SpawnID 12
+    Ammo.BackpackAmount 4
+    Ammo.BackpackMaxAmount 100
+    Inventory.Amount 4
+    Inventory.Icon "SHELA0"
+    Inventory.MaxAmount 50
+    Inventory.PickupMessage "$GOTSHELLS"
+    
+    States
+    {
+    Spawn:
+        SHEL A -1
+        Stop
+    }
+}
+
+actor ShellBox : Shell 2049
+{
+    SpawnID 143
+    Inventory.Amount 20
+    Inventory.PickupMessage "$GOTSHELLBOX"
+    
+    States
+    {
+    Spawn:
+        SBOX A -1
+        Stop
+    }
+}
+
+actor Backpack : BackpackItem 8
+{
+    Height 26
+    SpawnID 144
+    Inventory.PickupMessage "$GOTBACKPACK"
+    
+    States
+    {
+    Spawn:
+        BPAK A -1
+        Stop
+    }
+}

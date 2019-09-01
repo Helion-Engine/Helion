@@ -221,7 +221,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Flags.Weapon.Spawn = flagValue;
                 break;
             default:
-                Log.Warn("Unknown weapon flag suffix '{0}' for actor {1} (in particular, WEAPON.{2})", nestedFlag, m_currentDefinition.Name);
+                Log.Warn("Unknown weapon flag suffix '{0}' for actor '{1}'", nestedFlag, m_currentDefinition.Name);
                 break;
             }
         }

@@ -1,0 +1,564 @@
+actor BulletPuff
+{
+    Alpha 0.5
+    Mass 5
+    RenderStyle Translucent
+    SpawnID 131
+    VSpeed 1
+    
+    +ALLOWPARTICLES
+    +NOBLOCKMAP
+    +NOGRAVITY
+    +RANDOMIZE
+    
+    States
+    {
+    Spawn:
+        PUFF A 4 Bright
+        PUFF B 4
+    Melee:
+        PUFF CD 4
+        Stop
+    }
+}
+
+actor DoomWeapon : Weapon
+{
+    Weapon.Kickback 100
+}
+
+actor Fist : Weapon
+{
+    Obituary "$OB_MPFIST"
+    Tag "$TAG_FIST"
+    Weapon.Kickback 100
+    Weapon.SelectionOrder 3700
+    
+    +WEAPON.ALLOW_WITH_RESPAWN_INVUL
+    +WEAPON.MELEEWEAPON
+    +WEAPON.WIMPY_WEAPON
+    
+    States
+    {
+    Ready:
+        PUNG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        PUNG A 1 A_Lower
+        Loop
+    Select:
+        PUNG A 1 A_Raise
+        Loop
+    Fire:
+        PUNG B 4
+        PUNG C 4 A_Punch
+        PUNG D 5
+        PUNG C 4
+        PUNG B 5 A_ReFire
+        Goto Ready
+    }
+}
+
+actor Pistol : DoomWeapon 5010
+{
+    Height 16
+    Obituary "$OB_MPPISTOL"
+    Radius 20
+    Tag "$TAG_PISTOL"
+    Inventory.Pickupmessage "$PICKUP_PISTOL_DROPPED"
+    Weapon.AmmoGive 20
+    Weapon.AmmoType "Clip"
+    Weapon.AmmoUse 1
+    Weapon.SelectionOrder 1900
+    
+    +WEAPON.ALLOW_WITH_RESPAWN_INVUL
+    +WEAPON.WIMPY_WEAPON
+    
+    States
+    {
+    Ready:
+        PISG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        PISG A 1 A_Lower
+        Loop
+    Select:
+        PISG A 1 A_Raise
+        Loop
+    Fire:
+        PISG A 4
+        PISG B 6 A_FirePistol
+        PISG C 4
+        PISG B 5 A_ReFire
+        Goto Ready
+    Flash:
+        PISF A 7 Bright A_Light1
+        Goto LightDone
+        PISF A 7 Bright A_Light1
+        Goto LightDone
+    Spawn:
+        PIST A -1
+        Stop
+    }
+}
+
+actor Chainsaw : Weapon 2005
+{
+    Obituary "$OB_MPCHAINSAW"
+    SpawnID 32
+    Tag "$TAG_CHAINSAW"
+    Inventory.PickupMessage "$GOTCHAINSAW"
+    Weapon.Kickback 0
+    Weapon.ReadySound "weapons/sawidle"
+    Weapon.SelectionOrder 2200
+    Weapon.UpSound "weapons/sawup"
+    
+    +WEAPON.ALLOW_WITH_RESPAWN_INVUL
+    +WEAPON.MELEEWEAPON
+    
+    States
+    {
+    Ready:
+        SAWG CD 4 A_WeaponReady
+        Loop
+    Deselect:
+        SAWG C 1 A_Lower
+        Loop
+    Select:
+        SAWG C 1 A_Raise
+        Loop
+    Fire:
+        SAWG AB 4 A_Saw
+        SAWG B 0 A_ReFire
+        Goto Ready
+    Spawn:
+        CSAW A -1
+        Stop
+    }
+}
+
+actor Shotgun : DoomWeapon 2001
+{
+    Obituary "$OB_MPSHOTGUN"
+    SpawnID 27
+    Tag "$TAG_SHOTGUN"
+    Inventory.PickupMessage "$GOTSHOTGUN"
+    Weapon.AmmoGive 8
+    Weapon.AmmoType "Shell"
+    Weapon.AmmoUse 1
+    Weapon.SelectionOrder 1300
+    
+    States
+    {
+    Ready:
+        SHTG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        SHTG A 1 A_Lower
+        Loop
+    Select:
+        SHTG A 1 A_Raise
+        Loop
+    Fire:
+        SHTG A 3
+        SHTG A 7 A_FireShotgun
+        SHTG BC 5
+        SHTG D 4
+        SHTG CB 5
+        SHTG A 3
+        SHTG A 7 A_ReFire
+        Goto Ready
+    Flash:
+        SHTF A 4 Bright A_Light1
+        SHTF B 3 Bright A_Light2
+        Goto LightDone
+    Spawn:
+        SHOT A -1
+        Stop
+    }
+}
+
+actor SuperShotgun : DoomWeapon 82
+{
+    Obituary "$OB_MPSSHOTGUN"
+    SpawnID 33
+    Tag "$TAG_SUPERSHOTGUN"
+    Inventory.PickupMessage "$GOTSHOTGUN2"
+    Weapon.AmmoGive 8
+    Weapon.AmmoType "Shell"
+    Weapon.AmmoUse 2
+    Weapon.SelectionOrder 400
+    
+    States
+    {
+    Ready:
+        SHT2 A 1 A_WeaponReady
+        Loop
+    Deselect:
+        SHT2 A 1 A_Lower
+        Loop
+    Select:
+        SHT2 A 1 A_Raise
+        Loop
+    Fire:
+        SHT2 A 3
+        SHT2 A 7 A_FireShotgun2
+        SHT2 B 7
+        SHT2 C 7 A_CheckReload
+        SHT2 D 7 A_OpenShotgun2
+        SHT2 E 7
+        SHT2 F 7 A_LoadShotgun2
+        SHT2 G 6
+        SHT2 H 6 A_CloseShotgun2
+        SHT2 A 5 A_ReFire
+        Goto Ready
+        SHT2 B 7
+        SHT2 A 3
+        Goto Deselect
+    Flash:
+        SHT2 I 4 Bright A_Light1
+        SHT2 J 3 Bright A_Light2
+        Goto LightDone
+    Spawn:
+        SGN2 A -1
+        Stop
+    }
+}
+
+actor Chaingun : DoomWeapon 2002
+{
+    Obituary "$OB_MPCHAINGUN"
+    SpawnID 28
+    Tag "$TAG_CHAINGUN"
+    Inventory.PickupMessage "$GOTCHAINGUN"
+    Weapon.AmmoGive 20
+    Weapon.AmmoType "Clip"
+    Weapon.AmmoUse 1
+    Weapon.SelectionOrder 700
+    
+    States
+    {
+    Ready:
+        CHGG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        CHGG A 1 A_Lower
+        Loop
+    Select:
+        CHGG A 1 A_Raise
+        Loop
+    Fire:
+        CHGG AB 4 A_FireCGun
+        CHGG B 0 A_ReFire
+        Goto Ready
+    Flash:
+        CHGF A 5 Bright A_Light1
+        Goto LightDone
+        CHGF B 5 Bright A_Light2
+        Goto LightDone
+    Spawn:
+        MGUN A -1
+        Stop
+    }
+}
+
+actor RocketLauncher : DoomWeapon 2003
+{
+    SpawnID 29
+    Tag "$TAG_ROCKETLAUNCHER"
+    Inventory.PickupMessage "$GOTLAUNCHER"
+    Weapon.AmmoGive 2
+    Weapon.AmmoType "RocketAmmo"
+    Weapon.AmmoUse 1
+    Weapon.SelectionOrder 2500
+    
+    +WEAPON.NOAUTOFIRE
+    
+    States
+    {
+    Ready:
+        MISG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        MISG A 1 A_Lower
+        Loop
+    Select:
+        MISG A 1 A_Raise
+        Loop
+    Fire:
+        MISG B 8 A_GunFlash
+        MISG B 12 A_FireMissile
+        MISG B 0 A_ReFire
+        Goto Ready
+    Flash:
+        MISF A 3 Bright A_Light1
+        MISF B 4 Bright
+        MISF CD 4 Bright A_Light2
+        Goto LightDone
+    Spawn:
+        LAUN A -1
+        Stop
+    }
+}
+
+actor Rocket
+{
+    Damage 20
+    DamageType Fire
+    DeathSound "weapons/rocklx"
+    Height 8
+    Obituary "$OB_MPROCKET"
+    Radius 11
+    SeeSound "weapons/rocklf"
+    SpawnID 127
+    Speed 20
+    
+    PROJECTILE
+    +DEHEXPLOSION
+    +RANDOMIZE
+    +ROCKETTRAIL
+    
+    States
+    {
+    Spawn:
+        MISL A 1 Bright
+        Loop
+    Death:
+        MISL B 8 Bright A_Explode
+        MISL C 6 Bright
+        MISL D 4 Bright
+        Stop
+    }
+}
+
+// Skulltag/Zandronum compatibility
+actor Grenade
+{
+    Damage 20
+    DamageType Grenade
+    DeathSound "weapons/grenlx"
+    Height 8
+    Obituary "$OB_GRENADE"
+    Radius 8
+    ReactionTime 87
+    SeeSound "weapons/grenlf"
+    SpawnID 216
+    Speed 25
+    
+    PROJECTILE
+    +DEHEXPLOSION
+    +DOOMBOUNCE
+    +QUARTERGRAVITY
+    +RANDOMIZE
+    -NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        SGRN A 1 bright A_CountDown
+        Loop
+    Death:
+        MISL B 0 Bright A_ChangeFlag("NOGRAVITY", 1)
+        MISL B 8 bright A_Explode
+        MISL C 6 bright
+        MISL D 4 bright
+        Stop
+    Grenade:
+        MISL A 1000 A_Die
+        Wait
+    Detonate:
+        MISL B 4 A_Scream
+        MISL C 6 A_Detonate
+        MISL D 10
+        Stop
+    Mushroom:
+        MISL B 8 A_Mushroom
+        Goto Death+1
+    }
+}
+
+actor PlasmaRifle : DoomWeapon 2004
+{
+    SpawnID 30
+    Tag "$TAG_PLASMARIFLE"
+    Inventory.PickupMessage "$GOTPLASMA"
+    Weapon.AmmoGive 40
+    Weapon.AmmoType "Cell"
+    Weapon.AmmoUse 1
+    Weapon.SelectionOrder 100
+    
+    States
+    {
+    Ready:
+        PLSG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        PLSG A 1 A_Lower
+        Loop
+    Select:
+        PLSG A 1 A_Raise
+        Loop
+    Fire:
+        PLSG A 3 A_FirePlasma
+        PLSG B 20 A_ReFire
+        Goto Ready
+    Flash:
+        PLSF A 4 Bright A_Light1
+        Goto LightDone
+        PLSF B 4 Bright A_Light1
+        Goto LightDone
+    Spawn:
+        PLAS A -1
+        Stop
+    }
+}
+
+actor PlasmaBall
+{
+    Alpha 0.75
+    Damage 5
+    DeathSound "weapons/plasmax"
+    Height 8
+    Obituary "$OB_MPPLASMARIFLE"
+    Radius 13
+    RenderStyle Add
+    SeeSound "weapons/plasmaf"
+    SpawnID 51
+    Speed 25
+    
+    PROJECTILE
+    +RANDOMIZE
+    
+    States
+    {
+    Spawn:
+        PLSS AB 6 Bright
+        Loop
+    Death:
+        PLSE ABCDE 4 Bright
+        Stop
+    }
+}
+
+actor PlasmaBall1 : PlasmaBall
+{
+    BounceFactor 1.0
+    BounceType "Classic"
+    Damage 4
+    Obituary "$OB_MPBFG_MBF"
+    
+    States
+    {
+    Spawn:
+        PLS1 AB 6 Bright
+        Loop
+    Death:
+        PLS1 CDEFG 4 Bright
+        Stop
+    }
+}
+
+actor PlasmaBall2 : PlasmaBall1
+{
+    States
+    {
+    Spawn:
+        PLS2 AB 6 Bright
+        Loop
+    Death:
+        PLS2 CDE 4 Bright
+        Stop
+    }
+}
+
+actor BFG9000 : DoomWeapon 2006
+{
+    Height 20
+    SpawnID 31
+    Tag "$TAG_BFG9000"
+    Inventory.PickupMessage "$GOTBFG9000"
+    Weapon.AmmoGive 40
+    Weapon.AmmoType "Cell"
+    Weapon.AmmoUse 40
+    Weapon.SelectionOrder 2800
+    
+    +WEAPON.NOAUTOFIRE
+    +WEAPON.NOLMS
+    
+    States
+    {
+    Ready:
+        BFGG A 1 A_WeaponReady
+        Loop
+    Deselect:
+        BFGG A 1 A_Lower
+        Loop
+    Select:
+        BFGG A 1 A_Raise
+        Loop
+    Fire:
+        BFGG A 20 A_BFGsound
+        BFGG B 10 A_GunFlash
+        BFGG B 10 A_FireBFG
+        BFGG B 20 A_ReFire
+        Goto Ready
+    Flash:
+        BFGF A 11 Bright A_Light1
+        BFGF B 6 Bright A_Light2
+        Goto LightDone
+    Spawn:
+        BFUG A -1
+        Stop
+    OldFire:
+        BFGG A 10 A_BFGsound
+        BFGG BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 1 A_FireOldBFG
+        BFGG B 0 A_Light0
+        BFGG B 20 A_ReFire
+        Goto Ready
+    }
+}
+
+actor BFGBall
+{
+    Alpha 0.75
+    Damage 100
+    DeathSound "weapons/bfgx"
+    Height 8
+    Obituary "$OB_MPBFG_BOOM"
+    Radius 13
+    RenderStyle Add
+    SpawnID 128
+    Speed 25
+    
+    PROJECTILE
+    +RANDOMIZE
+    
+    States
+    {
+    Spawn:
+        BFS1 AB 4 Bright
+        Loop
+    Death:
+        BFE1 AB 8 Bright
+        BFE1 C 8 Bright A_BFGSpray
+        BFE1 DEF 8 Bright
+        Stop
+    }
+}
+
+actor BFGExtra
+{
+    Alpha 0.75
+    DamageType "BFGSplash"
+    RenderStyle Add
+    
+    +NOBLOCKMAP
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        BFE2 ABCD 8 Bright
+        Stop
+    }
+}

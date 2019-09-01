@@ -97,7 +97,7 @@ namespace Helion.Util.Parser
             }
             catch (Exception)
             {
-                Log.Error("Unexpected error parsing text around character offset {0} (report this to a developer!)", CurrentTokenIndex);
+                PrintUnexpectedErrorMessage();
                 return false;
             }
         }
@@ -106,6 +106,18 @@ namespace Helion.Util.Parser
         /// Checks if all the tokens have been all consumed.
         /// </summary>
         protected bool Done => CurrentTokenIndex >= Tokens.Count;
+
+        /// <summary>
+        /// Gets the current token or returns null if there are no tokens left.
+        /// </summary>
+        /// <returns>The token we are currently at, null if none are left.
+        /// </returns>
+        protected Token? GetCurrentToken()
+        {
+            if (Done)
+                return null;
+            return Tokens[CurrentTokenIndex];
+        }
 
         /// <summary>
         /// Peeks to the next token (if it exists) to check if it is the same
@@ -281,6 +293,18 @@ namespace Helion.Util.Parser
         protected string? PeekNextText()
         {
             return CurrentTokenIndex + 1 >= Tokens.Count ? null : Tokens[CurrentTokenIndex + 1].Text;
+        }
+
+        /// <summary>
+        /// Consumes any token, regardless of the type.
+        /// </summary>
+        /// <exception cref="ParserException">If we ran out of tokens.
+        /// </exception>
+        protected void Consume()
+        {
+            if (Done)
+                throw MakeException("Ran out of tokens to consume");
+            CurrentTokenIndex++;
         }
         
         /// <summary>
@@ -611,6 +635,17 @@ namespace Helion.Util.Parser
             Log.Error("Parsing error: {0}", e.Message);
             foreach (string logMessage in e.LogToReadableMessage(text))
                 Log.Error("{0}", logMessage);
+        }
+        
+        private void PrintUnexpectedErrorMessage()
+        {
+            if (CurrentTokenIndex >= 0 && CurrentTokenIndex < Tokens.Count)
+            {
+                Token token = Tokens[CurrentTokenIndex];
+                Log.Error("Critical parsing error occured at token {0} ({1}), report this to a developer!", CurrentTokenIndex, token);
+            }
+            else
+                Log.Error("Critical parsing error parsing text around character offset {0}, report this to a developer!)", CurrentTokenIndex);
         }
     }
 }

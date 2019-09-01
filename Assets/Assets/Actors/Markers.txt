@@ -1,16 +1,16 @@
-actor Unknown
+actor MapMarker 9040
 {
-    Radius 16
-    Height 32
+    Scale 0.5
     
     +DONTSPLASH
+    +INVISIBLE
     +NOBLOCKMAP
     +NOGRAVITY
     
     States
     {
     Spawn:
-        UNKN A -1
+        AMRK A -1
         Stop
     }
 }

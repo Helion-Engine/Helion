@@ -1,0 +1,178 @@
+actor InvulnerabilitySphere : PowerupGiver 2022
+{
+    SpawnID 133
+    Inventory.MaxAmount 0
+    Inventory.PickupMessage "$GOTINVUL"
+    Powerup.Color InverseMap
+    Powerup.Type Invulnerable
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.AUTOACTIVATE
+    +INVENTORY.BIGPOWERUP
+    
+    States
+    {
+    Spawn:
+        PINV ABCD 6 Bright
+        Loop
+    }
+}
+
+actor Soulsphere : Health 2013
+{
+    SpawnID 25
+    Inventory.Amount 100
+    Inventory.MaxAmount 200
+    Inventory.PickupMessage "$GOTSUPER"
+    Inventory.PickupSound "misc/p_pkup"
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.AUTOACTIVATE
+    +INVENTORY.FANCYPICKUPSOUND
+    
+    States
+    {
+    Spawn:
+        SOUL ABCDCB 6 Bright
+        Loop
+    }
+}
+
+actor MegasphereHealth : Health
+{
+    Inventory.Amount 200
+    Inventory.MaxAmount 200
+    
+    +INVENTORY.ALWAYSPICKUP
+}
+
+actor BlueArmorForMegasphere : BlueArmor
+{
+    Armor.SaveAmount 200
+    Armor.SavePercent 50
+}
+
+actor Megasphere : CustomInventory 83
+{
+    SpawnID 132
+    Inventory.PickupMessage "$GOTMSPHERE"
+    Inventory.PickupSound "misc/p_pkup"
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    
+    States
+    {
+    Spawn:
+        MEGA ABCD 6 Bright
+        Loop
+    Pickup:
+        TNT1 A 0 A_GiveInventory("BlueArmorForMegasphere", 1)
+        TNT1 A 0 A_GiveInventory("MegasphereHealth", 1)
+        Stop
+    }
+}
+
+actor BlurSphere : PowerupGiver 2024
+{
+    RenderStyle Translucent
+    SpawnID 135
+    Inventory.MaxAmount 0
+    Inventory.PickupMessage "$GOTINVIS"
+    Powerup.Type Invisibility
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.AUTOACTIVATE
+    +INVENTORY.BIGPOWERUP
+    +VISIBILITYPULSE
+    
+    States
+    {
+    Spawn:
+        PINS ABCD 6 Bright
+        Loop
+    }
+}
+
+actor RadSuit : PowerupGiver 2025
+{
+    Height 46
+    SpawnID 136
+    Inventory.MaxAmount 0
+    Inventory.PickupMessage "$GOTSUIT"
+    Powerup.Type IronFeet
+    
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.AUTOACTIVATE
+    
+    States
+    {
+    Spawn:
+        SUIT A -1 Bright
+        Stop
+    }
+}
+
+actor Infrared : PowerupGiver 2045
+{
+    SpawnID 138
+    Inventory.MaxAmount 0
+    Inventory.PickupMessage "$GOTVISOR"
+    Powerup.Type LightAmp
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.AUTOACTIVATE
+    
+    States
+    {
+    Spawn:
+        PVIS A 6 Bright
+        PVIS B 6
+        Loop
+    }
+}
+
+actor Allmap : MapRevealer 2026
+{
+    SpawnID 137
+    Inventory.MaxAmount 0
+    Inventory.PickupMessage "$GOTMAP"
+    Inventory.PickupSound "misc/p_pkup"
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    +INVENTORY.FANCYPICKUPSOUND
+    
+    States
+    {
+    Spawn:
+        PMAP ABCDCB 6 Bright
+        Loop
+    }
+}
+
+actor Berserk : CustomInventory 2023
+{
+    SpawnID 134
+    Inventory.PickupMessage "$GOTBERSERK"
+    Inventory.PickupSound "misc/p_pkup"
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    
+    States
+    {
+    Spawn:
+        PSTR A -1
+        Stop
+    Pickup:
+        TNT1 A 0 A_GiveInventory("PowerStrength")
+        TNT1 A 0 HealThing(100, 0)
+        TNT1 A 0 A_SelectWeapon("Fist")
+        Stop
+    }
+}

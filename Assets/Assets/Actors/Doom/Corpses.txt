@@ -1,0 +1,82 @@
+actor GibbedMarineExtra : GibbedMarine 12
+{
+}
+
+actor DeadMarine 15
+{
+    States
+    {
+    Spawn:
+        PLAY N -1
+        Stop
+    }
+}
+
+actor DeadZombieMan : ZombieMan 18
+{
+    DropItem None
+    Skip_Super
+    
+    States
+    {
+    Spawn:
+        Goto Super::Death+4
+    }
+}
+
+actor DeadShotgunGuy : ShotgunGuy 19
+{
+    DropItem None
+    Skip_Super
+    
+    States
+    {
+    Spawn:
+        Goto Super::Death+4
+    }
+}
+
+actor DeadDoomImp : DoomImp 20
+{
+    Skip_Super
+    
+    States
+    {
+    Spawn:
+        Goto Super::Death+4
+    }
+}
+
+actor DeadDemon : Demon 21
+{
+    Skip_Super
+    
+    States
+    {
+    Spawn:
+        Goto Super::Death+5
+    }
+}
+
+actor DeadCacodemon : Cacodemon 22
+{
+    Skip_Super
+    
+    States
+    {
+    Spawn:
+        Goto Super::Death+5
+    }
+}
+
+// Doing this because ZDoom does it...
+actor DeadLostSoul : LostSoul 23
+{
+    Skip_Super
+    
+    States
+    {
+    Spawn:
+        Goto Super::Death+5
+    }
+}

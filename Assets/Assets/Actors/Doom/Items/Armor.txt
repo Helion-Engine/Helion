@@ -1,0 +1,59 @@
+actor ArmorBonus : BasicArmorBonus 2015
+{
+    Height 16
+    Radius 20
+    SpawnID 22
+    Armor.MaxSaveAmount 200
+    Armor.SaveAmount 1
+    Armor.SavePercent 33.335
+    Inventory.Icon "BON2A0"
+    Inventory.PickupMessage "$GOTARMBONUS"
+    
+    +COUNTITEM
+    +INVENTORY.ALWAYSPICKUP
+    
+    States
+    {
+    Spawn:
+        BON2 ABCDCB 6
+        Loop
+    }
+}
+
+actor GreenArmor : BasicArmorPickup 2018
+{
+    Height 16
+    Radius 20
+    SpawnID 68
+    Armor.SaveAmount 100
+    Armor.SavePercent 33.335
+    Inventory.Icon "ARM1A0"
+    Inventory.PickupMessage "$GOTARMOR"
+    
+    States
+    {
+    Spawn:
+        ARM1 A 6
+        ARM1 B 7 bright
+        Loop
+    }
+}
+
+actor BlueArmor : BasicArmorPickup 2019
+{
+    Height 16
+    Radius 20
+    SpawnID 69
+    Armor.SaveAmount 200
+    Armor.SavePercent 50
+    Inventory.Icon "ARM2A0"
+    Inventory.PickupMessage "$GOTMEGA"
+    
+    States
+    {
+    Spawn:
+        ARM2 A 6
+        ARM2 B 6 bright
+        Loop
+    }
+}
