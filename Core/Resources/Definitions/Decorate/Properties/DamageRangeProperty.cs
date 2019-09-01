@@ -2,11 +2,11 @@ namespace Helion.Resources.Definitions.Decorate.Properties
 {
     public struct DamageRangeProperty
     {
-        public int Low;
-        public int High;
-        public bool Exact;
+        public int? Low;
+        public int? High;
+        public bool? Exact;
 
-        public int Value => High;
+        public int? Value => High;
 
         public DamageRangeProperty(int value) : this(value, value)
         {

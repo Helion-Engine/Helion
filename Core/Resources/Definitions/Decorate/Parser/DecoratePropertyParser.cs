@@ -14,6 +14,14 @@ namespace Helion.Resources.Definitions.Decorate.Parser
     /// </summary>
     public partial class DecorateParser
     {
+        private List<string> ConsumeStringListAtLeastOne()
+        {
+            List<string> elements = new List<string> { ConsumeString() };
+            while (ConsumeIf(','))
+                elements.Add(ConsumeString());
+            return elements;
+        }
+        
         private Color ConvertStringToColor(string colorString)
         {
             switch (colorString.ToUpper())
@@ -466,6 +474,44 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             return new Range(start, end);
         }
         
+        private MorphStyle? ConsumeMorphStyleProperty()
+        {
+            string style = ConsumeString();
+            switch (style.ToUpper())
+            {
+            case "MRF_ADDSTAMINA":
+                return MorphStyle.AddStamina;
+            case "MRF_FAILNOLAUGH":
+                return MorphStyle.FailNoLaugh;
+            case "MRF_FAILNOTELEFRAG":
+                return MorphStyle.FailNotTelefrag;
+            case "MRF_FULLHEALTH":
+                return MorphStyle.FullHealth;
+            case "MRF_LOSEACTUALWEAPON":
+                return MorphStyle.LoseActualWeapon;
+            case "MRF_NEWTIDBEHAVIOUR":
+                return MorphStyle.NewTidBehavior;
+            case "MRF_TRANSFERTRANSLATION":
+                return MorphStyle.TransferTranslation;
+            case "MRF_UNDOALWAYS":
+                return MorphStyle.UndoAlways;
+            case "MRF_UNDOBYTOMEOFPOWER":
+                return MorphStyle.UndoByTomeOfPower;
+            case "MRF_UNDOBYCHAOSDEVICE":
+                return MorphStyle.UndoByChaosDevice;
+            case "MRF_UNDOBYDEATH":
+                return MorphStyle.UndoByDeath;
+            case "MRF_UNDOBYDEATHFORCED":
+                return MorphStyle.UndoByDeathForced;
+            case "MRF_UNDOBYDEATHSAVES":
+                return MorphStyle.UndoByDeathSaves;
+            case "MRF_WHENINVULNERABLE":
+                return MorphStyle.WhenInvulnerable;
+            default:
+                throw MakeException($"Unknown morph style type '{style}' on actor '{m_currentDefinition.Name}'");
+            }
+        }
+        
         private void ConsumeActorPropertyOrCombo()
         {
             string property = ConsumeString();
@@ -520,39 +566,169 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void ConsumeAmmoProperty()
         {
-            throw MakeException("Decorate: Ammo properties are on the TODO list!");
+            string ammoProperty = ConsumeIdentifier();
+            switch (ammoProperty.ToUpper())
+            {
+            case "BACKPACKAMOUNT":
+                m_currentDefinition.Properties.Ammo.BackpackAmount = ConsumeInteger();
+                break;
+            case "BACKPACKMAXAMOUNT":
+                m_currentDefinition.Properties.Ammo.BackpackMaxAmount = ConsumeInteger();
+                break;
+            case "DROPAMOUNT":
+                m_currentDefinition.Properties.Ammo.DropAmount = ConsumeInteger();
+                break;
+            default:
+                throw MakeException($"Unknown ammo suffix property '{ammoProperty}' on actor '{m_currentDefinition.Name}'");
+            }
         }
 
         private void ConsumeArmorProperty()
         {
-            throw MakeException("Decorate: Armor properties are on the TODO list!");
+            string armorProperty = ConsumeIdentifier();
+            switch (armorProperty.ToUpper())
+            {
+            case "MAXABSORB":
+                m_currentDefinition.Properties.Armor.MaxAbsorb = ConsumeInteger();
+                break;
+            case "MAXBONUS":
+                m_currentDefinition.Properties.Armor.MaxBonus = ConsumeInteger();
+                break;
+            case "MAXBONUSMAX":
+                m_currentDefinition.Properties.Armor.MaxBonusMax = ConsumeInteger();
+                break;
+            case "MAXFULLABSORB":
+                m_currentDefinition.Properties.Armor.MaxFullAbsorb = ConsumeInteger();
+                break;
+            case "MAXSAVEAMOUNT":
+                m_currentDefinition.Properties.Armor.MaxSaveAmount = ConsumeInteger();
+                break;
+            case "SAVEAMOUNT":
+                m_currentDefinition.Properties.Armor.SaveAmount = ConsumeInteger();
+                break;
+            case "SAVEPERCENT":
+                m_currentDefinition.Properties.Armor.SavePercent = ConsumeFloat();
+                break;
+            default:
+                throw MakeException($"Unknown armor suffix property '{armorProperty}' on actor '{m_currentDefinition.Name}'");
+            }
         }
 
         private void ConsumeFakeInventoryProperty()
         {
-            throw MakeException("Decorate: Fake inventory properties are on the TODO list!");
+            string fakeInventoryProperty = ConsumeString();
+            if (fakeInventoryProperty.ToUpper() == "RESPAWNS")
+                m_currentDefinition.Properties.FakeInventoryProperty.Respawns = true;
+            else 
+                throw MakeException($"Unknown fake inventory property '{fakeInventoryProperty}' on actor '{m_currentDefinition.Name}'");
         }
 
         private void ConsumeHealthProperty()
         {
-            throw MakeException("Decorate: Health properties are on the TODO list!");
+            string healthProperty = ConsumeString();
+            if (healthProperty.ToUpper() == "LOWMESSAGE")
+            {
+                m_currentDefinition.Properties.HealthProperty.LowMessageHealth = ConsumeInteger();
+                m_currentDefinition.Properties.HealthProperty.LowMessage = ConsumeString();
+            }
+            else 
+                throw MakeException($"Unknown health property '{healthProperty}' on actor '{m_currentDefinition.Name}'");
         }
 
         private void ConsumeHealthPickupProperty()
         {
-            throw MakeException("Decorate: Health pickup properties are on the TODO list!");
+            string healthPickupProperty = ConsumeString();
+            if (healthPickupProperty.ToUpper() == "AUTOUSE")
+            {
+                int autoUseValue = ConsumeInteger();
+                if (autoUseValue < 0 || autoUseValue > 3)
+                    throw MakeException($"HealthPickup AutoUse property out of [0, 3] range, on actor '{m_currentDefinition.Name}'");
+                m_currentDefinition.Properties.HealthPickupAutoUse = (HealthPickupAutoUse)autoUseValue;
+            }
+            else 
+                throw MakeException($"Unknown health pickup property '{healthPickupProperty}' on actor '{m_currentDefinition.Name}'");
         }
 
         private void ConsumeInventoryProperty()
         {
-            throw MakeException("Decorate: Inventory properties are on the TODO list!");
+            string inventoryProperty = ConsumeIdentifier();
+            switch (inventoryProperty.ToUpper())
+            {
+            case "ALTHUDICON":
+                m_currentDefinition.Properties.Inventory.AltHUDIcon = ConsumeString();
+                break;
+            case "AMOUNT":
+                m_currentDefinition.Properties.Inventory.Amount = ConsumeInteger();
+                break;
+            case "DEFMAXAMOUNT":
+                m_currentDefinition.Properties.Inventory.DefMaxAmount = ConsumeInteger();
+                break;
+            case "FORBIDDENTO":
+                m_currentDefinition.Properties.Inventory.ForbiddenTo = ConsumeStringListAtLeastOne();
+                break;
+            case "GIVEQUEST":
+                m_currentDefinition.Properties.Inventory.GiveQuest = ConsumeInteger();
+                break;
+            case "INTERHUBAMOUNT":
+                m_currentDefinition.Properties.Inventory.InterHubAmount = ConsumeInteger();
+                break;
+            case "ICON":
+                m_currentDefinition.Properties.Inventory.Icon = ConsumeString();
+                break;
+            case "MAXAMOUNT":
+                m_currentDefinition.Properties.Inventory.MaxAmount = ConsumeInteger();
+                break;
+            case "PICKUPFLASH":
+                m_currentDefinition.Properties.Inventory.PickupFlash = ConsumeString();
+                break;
+            case "PICKUPMESSAGE":
+                m_currentDefinition.Properties.Inventory.PickupMessage = ConsumeString();
+                break;
+            case "PICKUPSOUND":
+                m_currentDefinition.Properties.Inventory.PickupSound = ConsumeString();
+                break;
+            case "RESPAWNTICS":
+                m_currentDefinition.Properties.Inventory.RespawnTics = ConsumeInteger();
+                break;
+            case "RESTRICTEDTO":
+                m_currentDefinition.Properties.Inventory.RestrictedTo = ConsumeStringListAtLeastOne();
+                break;
+            case "USESOUND":
+                m_currentDefinition.Properties.Inventory.UseSound = ConsumeString();
+                break;
+            default:
+                throw MakeException($"Unknown inventory suffix property '{inventoryProperty}' on actor '{m_currentDefinition.Name}'");
+            }
         }
 
         private void ConsumeMorphProjectileProperty()
         {
-            throw MakeException("Decorate: Morph projectiles properties are on the TODO list!");
+            string morphProperty = ConsumeIdentifier();
+            switch (morphProperty.ToUpper())
+            {
+            case "DURATION":
+                m_currentDefinition.Properties.MorphProjectile.Ticks = ConsumeInteger();
+                break;  
+            case "MONSTERCLASS":
+                m_currentDefinition.Properties.MorphProjectile.MonsterClass = ConsumeString();
+                break;
+            case "MORPHFLASH":
+                m_currentDefinition.Properties.MorphProjectile.MorphFlash = ConsumeString();
+                break;
+            case "MORPHSTYLE":
+                m_currentDefinition.Properties.MorphProjectile.MorphStyle = ConsumeMorphStyleProperty();
+                break;
+            case "PLAYERCLASS":
+                m_currentDefinition.Properties.MorphProjectile.PlayerClass = ConsumeString();
+                break;
+            case "UNMORPHFLASH":
+                m_currentDefinition.Properties.MorphProjectile.UnmorphFlash = ConsumeString();
+                break;
+            default:
+                throw MakeException($"Unknown morph suffix property '{morphProperty}' on actor '{m_currentDefinition.Name}'");
+            }
         }
-        
+
         private List<string> ConsumeTranslationProperties()
         {
             List<string> translations = new List<string> { ConsumeString() };

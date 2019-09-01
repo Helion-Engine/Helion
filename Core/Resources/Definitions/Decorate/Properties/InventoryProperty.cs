@@ -6,6 +6,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
     {
         public string? AltHUDIcon;
         public int? Amount;
+        public int? DefMaxAmount;
         public List<string>? ForbiddenTo;
         public int? GiveQuest;
         public int? InterHubAmount;
@@ -14,7 +15,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public string? PickupFlash;
         public string? PickupMessage;
         public string? PickupSound;
-        public int? RespawnTicks; // TODO: Spelling is wrong if we do dynamic writing...
+        public int? RespawnTics;
         public List<string>? RestrictedTo;
         public string? UseSound;
     }
