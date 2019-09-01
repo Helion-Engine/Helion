@@ -15,7 +15,7 @@ actor Cacodemon 3005
     Speed 8
     
     MONSTER
-    +FLOAT 
+    +FLOAT
     +NOGRAVITY
     
     States
@@ -37,7 +37,7 @@ actor Cacodemon 3005
         HEAD F 6
         Goto See
     Death:
-        HEAD G 8 A_NoBlocking  // For online compatibility
+        HEAD G 8 A_NoBlocking // For online compatibility
         HEAD H 8 A_Scream
         HEAD I 8
         HEAD J 8
@@ -63,10 +63,10 @@ actor CacodemonBall
     SeeSound "caco/attack"
     SpawnID 126
     Speed 10
-
+    
     PROJECTILE
     +RANDOMIZE
-
+    
     States
     {
     Spawn:

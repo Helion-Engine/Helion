@@ -21,7 +21,7 @@ actor BaronOfHell 3003
     States
     {
     Spawn:
-        BOSS AB 10 A_Look 
+        BOSS AB 10 A_Look
         Loop
     See:
         BOSS AABBCCDD 3 A_Chase
@@ -41,7 +41,7 @@ actor BaronOfHell 3003
         BOSS K 8
         BOSS L 8 A_NoBlocking
         BOSS MN 8
-        BOSS O -1 A_BossDeath   
+        BOSS O -1 A_BossDeath
         Stop
     Raise:
         BOSS O 8
@@ -64,9 +64,9 @@ actor BaronBall
     SpawnID 154
     Speed 15
     
-    PROJECTILE 
+    PROJECTILE
     +RANDOMIZE
-        
+    
     States
     {
     Spawn:

@@ -14,7 +14,7 @@ actor HellKnight : BaronOfHell 69
     States
     {
     Spawn:
-        BOS2 AB 10 A_Look 
+        BOS2 AB 10 A_Look
         Loop
     See:
         BOS2 AABBCCDD 3 A_Chase

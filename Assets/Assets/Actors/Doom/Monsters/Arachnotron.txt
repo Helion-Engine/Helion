@@ -59,12 +59,12 @@ actor ArachnotronPlasma
     DeathSound "baby/shotx"
     Height 8
     Radius 13
-    RenderStyle Add 
+    RenderStyle Add
     SeeSound "baby/attack"
     SpawnID 129
     Speed 25
     
-    PROJECTILE 
+    PROJECTILE
     +RANDOMIZE
     
     States

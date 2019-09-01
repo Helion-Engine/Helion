@@ -43,7 +43,7 @@ actor ChaingunGuy 65
         CPOS N -1
         Stop
     XDeath:
-        CPOS O 5 
+        CPOS O 5
         CPOS P 5 A_XScream
         CPOS Q 5 A_NoBlocking
         CPOS RS 5

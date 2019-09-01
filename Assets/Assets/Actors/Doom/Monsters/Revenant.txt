@@ -35,7 +35,7 @@ actor Revenant 66
         SKEL I 6 A_SkelFist
         Goto See
     Missile:
-        SKEL J 1 Bright A_FaceTarget 
+        SKEL J 1 Bright A_FaceTarget
         SKEL J 9 Bright A_FaceTarget
         SKEL K 10 A_SkelMissile
         SKEL K 10 A_FaceTarget
@@ -71,7 +71,7 @@ actor RevenantTracer
     
     PROJECTILE
     +RANDOMIZE
-    +SEEKERMISSILE 
+    +SEEKERMISSILE
     
     States
     {
@@ -90,7 +90,7 @@ actor RevenantTracerSmoke
 {
     Alpha 0.5
     RenderStyle Translucent
-     
+    
     +NOBLOCKMAP
     +NOGRAVITY
     +NOTELEPORT

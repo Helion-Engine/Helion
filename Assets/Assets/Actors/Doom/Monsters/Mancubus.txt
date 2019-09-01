@@ -27,11 +27,11 @@ actor Fatso 67
         Loop
     Missile:
         FATT G 20 A_FatRaise
-        FATT H 10 BRIGHT A_FatAttack1
+        FATT H 10 Bright A_FatAttack1
         FATT IG 5
-        FATT H 10 BRIGHT A_FatAttack2
+        FATT H 10 Bright A_FatAttack2
         FATT IG 5
-        FATT H 10 BRIGHT A_FatAttack3
+        FATT H 10 Bright A_FatAttack3
         FATT IG 5
         Goto See
     Pain:
@@ -70,12 +70,12 @@ actor FatShot
     States
     {
     Spawn:
-        MANF AB 4 BRIGHT
+        MANF AB 4 Bright
         Loop
     Death:
-        MISL B 8 BRIGHT
-        MISL C 6 BRIGHT
-        MISL D 4 BRIGHT
+        MISL B 8 Bright
+        MISL C 6 Bright
+        MISL D 4 Bright
         Stop
     }
 }

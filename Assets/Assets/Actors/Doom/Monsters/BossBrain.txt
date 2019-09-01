@@ -68,9 +68,9 @@ actor SpawnShot
     Speed 10
     
     PROJECTILE
-    -ACTIVATEPCROSS
     +NOCLIP
     +RANDOMIZE
+    -ACTIVATEPCROSS
     
     States
     {

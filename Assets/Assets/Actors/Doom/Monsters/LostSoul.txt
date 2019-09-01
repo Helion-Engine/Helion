@@ -49,3 +49,8 @@ actor LostSoul 3006
         Stop
     }
 }
+
+// For compatibility reasons...
+actor BetaSkull : LostSoul 9037
+{
+}

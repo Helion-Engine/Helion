@@ -28,7 +28,7 @@ actor DoomImp 3001
     Melee:
     Missile:
         TROO EF 8 A_FaceTarget
-        TROO G 6 A_TroopAttack 
+        TROO G 6 A_TroopAttack
         Goto See
     Pain:
         TROO H 2
@@ -74,10 +74,10 @@ actor DoomImpBall
     States
     {
     Spawn:
-        BAL1 AB 4 BRIGHT
+        BAL1 AB 4 Bright
         Loop
     Death:
-        BAL1 CDE 6 BRIGHT
+        BAL1 CDE 6 Bright
         Stop
     }
 }
