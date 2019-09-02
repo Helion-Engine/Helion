@@ -1,24 +1,25 @@
-using Helion.Util.Extensions;
-using static Helion.Util.Assertion.Assert;
+using System.Collections.Generic;
+using Helion.Util;
 
 namespace Helion.Resources.Definitions.Animdefs.Textures
 {
-    public class AnimatedTextureComponent
+    public class AnimatedTexture
     {
-        public readonly string Texture;
-        public readonly int MinTicks;
-        public readonly int MaxTicks;
+        public readonly CIString Name;
+        public readonly bool Optional;
+        public readonly ResourceNamespace Namespace;
+        public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
+        public bool AllowDecals;
+        public bool Oscillate;
+        public bool Random;
 
-        public AnimatedTextureComponent(string texture, int min, int max)
+        public AnimatedTexture(string name, bool optional, ResourceNamespace resourceNamespace)
         {
-            Precondition(!texture.Empty(), "Cannot have an empty texture component name");
-            Precondition(min >= 0 && min <= max, "Min must be positive and max must not be less than min");
-            
-            Texture = texture.ToUpper();
-            MinTicks = min;
-            MaxTicks = max;
+            Name = name.ToUpper();
+            Optional = optional;
+            Namespace = resourceNamespace;
         }
 
-        public override string ToString() => $"{Texture} (startTicks={MinTicks} endTicks={MaxTicks})";
+        public override string ToString() => $"{Name} (len={Components.Count})";
     }
 }

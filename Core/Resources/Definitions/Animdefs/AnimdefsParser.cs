@@ -13,6 +13,8 @@ namespace Helion.Resources.Definitions.Animdefs
     {
         public readonly IList<AnimatedTexture> AnimatedTextures = new List<AnimatedTexture>();
         public readonly IList<AnimatedSwitch> AnimatedSwitches = new List<AnimatedSwitch>();
+        public readonly IList<AnimatedWarpTexture> WarpTextures = new List<AnimatedWarpTexture>();
+        public readonly IList<AnimatedCameraTexture> CameraTextures = new List<AnimatedCameraTexture>();
 
         protected override void PerformParsing()
         {
@@ -22,17 +24,50 @@ namespace Helion.Resources.Definitions.Animdefs
         
         private void ConsumeAnimatedDoor()
         {
-            // TODO
+            throw MakeException("TODO: Animated doors are not supported in animdefs currently");
         }
 
         private void ConsumeCameraTexture()
         {
-            // TODO
+            string name = ConsumeString();
+            int width = ConsumeInteger();
+            int height = ConsumeInteger();
+            int? fitWidth = null;
+            int? fitHeight = null;
+            bool worldPanning = false;
+            
+            if (ConsumeIf("FIT"))
+            {
+                fitWidth = ConsumeInteger();
+                fitHeight = ConsumeInteger();
+                worldPanning = ConsumeIf("WORLDPANNING");
+            }
+            
+            CameraTextures.Add(new AnimatedCameraTexture(name, width, height, fitWidth, fitHeight, worldPanning));
         }
 
         private void ConsumeWarp(bool waterEffect)
         {
-            // TODO
+            string warpNamespace = ConsumeString();
+            
+            ResourceNamespace resourceNamespace;
+            switch (warpNamespace.ToUpper())
+            {
+            case "TEXTURE":
+                resourceNamespace = ResourceNamespace.Textures;
+                break;
+            case "FLAT":
+                resourceNamespace = ResourceNamespace.Flats;
+                break;
+            default:
+                throw MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
+            }
+
+            string upperName = ConsumeString().ToUpper();
+            int? speed = ConsumeIfInt();
+            bool allowDecals = ConsumeIf("ALLOWDECALS");
+
+            WarpTextures.Add(new AnimatedWarpTexture(upperName, resourceNamespace, speed, allowDecals, waterEffect));
         }
 
         private (string baseText, int endingNumberIndex) FindTextureRangeFrom(CIString textureName)

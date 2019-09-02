@@ -12,6 +12,8 @@ namespace Helion.Resources.Definitions.Animdefs
 
         public readonly List<AnimatedTexture> AnimatedTextures = new List<AnimatedTexture>();
         public readonly List<AnimatedSwitch> AnimatedSwitches = new List<AnimatedSwitch>();
+        public readonly List<AnimatedWarpTexture> WarpTextures = new List<AnimatedWarpTexture>();
+        public readonly List<AnimatedCameraTexture> CameraTextures = new List<AnimatedCameraTexture>();
             
         public void AddDefinitions(Entry entry)
         {
@@ -24,6 +26,8 @@ namespace Helion.Resources.Definitions.Animdefs
             
             AnimatedTextures.AddRange(parser.AnimatedTextures);
             AnimatedSwitches.AddRange(parser.AnimatedSwitches);
+            WarpTextures.AddRange(parser.WarpTextures);
+            CameraTextures.AddRange(parser.CameraTextures);
         }
     }
 }
