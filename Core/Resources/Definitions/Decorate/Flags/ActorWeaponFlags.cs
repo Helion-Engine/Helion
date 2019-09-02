@@ -22,7 +22,7 @@ namespace Helion.Resources.Definitions.Decorate.Flags
         public bool? PrimaryUsesBoth;
         public bool? ReadySndHalf;
         public bool? Staff2Kickback;
-        public bool? WimpyWeapon;
         public bool? Spawn;
+        public bool? WimpyWeapon;
     }
 }

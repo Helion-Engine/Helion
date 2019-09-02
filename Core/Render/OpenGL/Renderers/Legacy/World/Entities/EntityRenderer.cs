@@ -4,6 +4,7 @@ using Helion.Maps.Geometry;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
+using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
@@ -153,7 +154,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         private bool ShouldNotDraw(Entity entity)
         {
-            return m_EntityDrawnTracker.HasDrawn(entity) || ReferenceEquals(m_cameraEntity, entity);
+            return m_EntityDrawnTracker.HasDrawn(entity) || 
+                   ReferenceEquals(m_cameraEntity, entity) ||
+                   entity.Frame.Sprite == Constants.InvisibleSprite;
         }
 
         private (GLLegacyTexture, bool) FindSpriteTexture(Entity entity, uint rotation)

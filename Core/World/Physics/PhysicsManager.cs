@@ -115,7 +115,7 @@ namespace Helion.World.Physics
                     flat.Z = startZ;
                     flat.Plane.MoveZ(startZ - destZ);
 
-                    // Entity blocked movement, reset all entities in moving sector after restting sector Z
+                    // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in sector.Entities)
                     {
                         relinkEntity.UnlinkFromWorld();
@@ -205,8 +205,7 @@ namespace Helion.World.Physics
 
             if (activateLine != null)
             {
-                EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(
-                    ActivationContext.UseLine, entity, activateLine);
+                var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
                 EntityActivatedSpecial?.Invoke(this, args);
             }
             else if (hitBlockLine && entity.Player != null)
@@ -257,9 +256,9 @@ namespace Helion.World.Physics
 
         private static bool EntityBlocksEntity(Entity entity, Entity other)
         {
-            // Note: This is simple for right now, everything blocks everything
-            // else except running into itself.
-            return !ReferenceEquals(entity, other);
+            if (ReferenceEquals(entity, other))
+                return false;
+            return other.Flags.Solid;
         }
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
@@ -430,8 +429,10 @@ namespace Helion.World.Physics
         private void HandleNoClip(Entity entity, Vec2D velocity)
         {
             entity.UnlinkFromWorld();
+            
             var pos = entity.Position.To2D() + velocity;
             entity.SetXY(pos);
+            
             LinkToWorld(entity);
         }
 

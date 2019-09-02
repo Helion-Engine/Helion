@@ -214,11 +214,11 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "STAFF2KICKBACK":
                 m_currentDefinition.Flags.Weapon.Staff2Kickback = flagValue;
                 break;
-            case "WIMPYWEAPON":
-                m_currentDefinition.Flags.Weapon.WimpyWeapon = flagValue;
-                break;
             case "SPAWN":
                 m_currentDefinition.Flags.Weapon.Spawn = flagValue;
+                break;
+            case "WIMPY_WEAPON":
+                m_currentDefinition.Flags.Weapon.WimpyWeapon = flagValue;
                 break;
             default:
                 Log.Warn("Unknown weapon flag suffix '{0}' for actor '{1}'", nestedFlag, m_currentDefinition.Name);

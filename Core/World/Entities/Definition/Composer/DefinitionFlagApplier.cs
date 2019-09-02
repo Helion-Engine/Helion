@@ -6,6 +6,29 @@ namespace Helion.World.Entities.Definition.Composer
     {
         public static void Apply(EntityDefinition definition, ActorFlags flags)
         {
+            if (flags.Monster ?? false)
+            {
+                definition.Flags.ActivateMCross = true;
+                definition.Flags.CanPass = true;
+                definition.Flags.CanPushWalls = true;
+                definition.Flags.CanUseWalls = true;
+                definition.Flags.CountKill = true;
+                definition.Flags.IsMonster = true;
+                definition.Flags.Shootable = true;
+                definition.Flags.Solid = true;
+            }
+
+            if (flags.Projectile ?? false)
+            {
+                definition.Flags.ActivateImpact = true;
+                definition.Flags.ActivatePCross = true;
+                definition.Flags.Dropoff = true;
+                definition.Flags.Missile = true;
+                definition.Flags.NoBlockmap = true;
+                definition.Flags.NoGravity = true;
+                definition.Flags.NoTeleport = true;
+            }
+            
             if (flags.AbsMaskAngle != null)
                 definition.Flags.AbsMaskAngle = flags.AbsMaskAngle.Value;
             if (flags.AbsMaskPitch != null)

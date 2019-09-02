@@ -139,8 +139,8 @@ namespace Helion.World.Entities
             
             for (int i = 0; i < BlockmapNodes.Count; i++)
                 BlockmapNodes[i].Unlink();
-            
             BlockmapNodes.Clear();
+            
             IntersectSpecialLines.Clear();
             IntersectEntities.Clear();
         }

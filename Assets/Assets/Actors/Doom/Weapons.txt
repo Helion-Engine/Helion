@@ -33,8 +33,7 @@ actor Fist : Weapon
     Tag "$TAG_FIST"
     Weapon.Kickback 100
     Weapon.SelectionOrder 3700
-    
-    +WEAPON.ALLOW_WITH_RESPAWN_INVUL
+
     +WEAPON.MELEEWEAPON
     +WEAPON.WIMPY_WEAPON
     
@@ -70,8 +69,7 @@ actor Pistol : DoomWeapon 5010
     Weapon.AmmoType "Clip"
     Weapon.AmmoUse 1
     Weapon.SelectionOrder 1900
-    
-    +WEAPON.ALLOW_WITH_RESPAWN_INVUL
+
     +WEAPON.WIMPY_WEAPON
     
     States
@@ -113,7 +111,6 @@ actor Chainsaw : Weapon 2005
     Weapon.SelectionOrder 2200
     Weapon.UpSound "weapons/sawup"
     
-    +WEAPON.ALLOW_WITH_RESPAWN_INVUL
     +WEAPON.MELEEWEAPON
     
     States
@@ -483,7 +480,6 @@ actor BFG9000 : DoomWeapon 2006
     Weapon.SelectionOrder 2800
     
     +WEAPON.NOAUTOFIRE
-    +WEAPON.NOLMS
     
     States
     {

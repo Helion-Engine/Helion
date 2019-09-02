@@ -1,3 +1,31 @@
+actor SpawnPoint
+{
+    +DONTSPLASH
+    +INVISIBLE
+    +NOBLOCKMAP
+    +NOGRAVITY
+}
+
+actor Player1Spawn : SpawnPoint 1
+{
+}
+
+actor Player2Spawn : SpawnPoint 2
+{
+}
+
+actor Player3Spawn : SpawnPoint 3
+{
+}
+
+actor Player4Spawn : SpawnPoint 4
+{
+}
+
+actor DeathmatchSpawn : SpawnPoint 11
+{
+}
+
 actor MapMarker 9040
 {
     Scale 0.5

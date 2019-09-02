@@ -48,5 +48,11 @@ namespace Helion.Util
         /// inheritance hierarchies.
         /// </summary>
         public static readonly CIString BaseActorClass = "ACTOR";
+        
+        /// <summary>
+        /// The name of the 4 letter sprite that should not be drawn in the
+        /// renderer if encountered as a frame.
+        /// </summary>
+        public static readonly CIString InvisibleSprite = "TNT1";
     }
 }

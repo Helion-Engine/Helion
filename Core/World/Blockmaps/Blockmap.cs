@@ -82,6 +82,9 @@ namespace Helion.World.Blockmaps
         {
             Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
+            if (entity.Flags.NoBlockmap)
+                return;
+
             m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
             
             GridIterationStatus BlockLinkFunc(Block block)
