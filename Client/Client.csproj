@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Melanchall.DryWetMidi" Version="4.1.1" />
     <PackageReference Include="NLog" Version="4.6.7" />
     <PackageReference Include="OpenTK" Version="3.1.0" />
   </ItemGroup>
