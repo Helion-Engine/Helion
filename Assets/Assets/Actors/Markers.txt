@@ -42,3 +42,18 @@ actor MapMarker 9040
         Stop
     }
 }
+
+actor VisualModeCamera 32000
+{
+    +DONTSPLASH
+    +INVISIBLE
+    +NOBLOCKMAP
+    +NOGRAVITY
+    
+    States
+    {
+    Spawn:
+        TNT1 A 1
+        Stop
+    }
+}
