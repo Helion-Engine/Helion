@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Fonts;
 using Helion.Resources.Definitions.Texture;
@@ -19,6 +20,7 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
+        public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
         public readonly DecorateDefinitions Decorate;
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
@@ -32,7 +34,8 @@ namespace Helion.Resources.Definitions
         public DefinitionEntries(ArchiveCollection archiveCollection)
         {
             Decorate = new DecorateDefinitions(archiveCollection);
-            
+
+            m_entryNameToAction["ANIMDEFS"] = entry => Animdefs.AddDefinitions(entry);
             m_entryNameToAction["DECORATE"] = entry => Decorate.AddDecorateDefinitions(entry);
             m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));

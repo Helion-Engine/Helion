@@ -1,0 +1,63 @@
+flat BLOOD1 range BLOOD3 tics 8
+flat FWATER1 range FWATER4 tics 8
+flat LAVA1 range LAVA4 tics 8
+flat NUKAGE1 range NUKAGE3 tics 8
+flat SLIME01 range SLIME04 tics 8
+flat SLIME05 range SLIME08 tics 8
+flat SLIME09 range SLIME12 tics 8
+flat SWATER1 range SWATER4 tics 8
+
+switch SW1BLUE on pic SW2BLUE tics 0
+switch SW1BRCOM on pic SW2BRCOM tics 0
+switch SW1BRIK on pic SW2BRIK tics 0
+switch SW1BRN1 on pic SW2BRN1 tics 0
+switch SW1BRN2 on pic SW2BRN2 tics 0
+switch SW1BRNGN on pic SW2BRNGN tics 0
+switch SW1BROWN on pic SW2BROWN tics 0
+switch SW1CMT on pic SW2CMT tics 0
+switch SW1COMM on pic SW2COMM tics 0
+switch SW1COMP on pic SW2COMP tics 0
+switch SW1DIRT on pic SW2DIRT tics 0
+switch SW1EXIT on pic SW2EXIT tics 0
+switch SW1GARG on pic SW2GARG tics 0
+switch SW1GRAY on pic SW2GRAY tics 0
+switch SW1GRAY1 on pic SW2GRAY1 tics 0
+switch SW1GSTON on pic SW2GSTON tics 0
+switch SW1HOT on pic SW2HOT tics 0
+switch SW1LION on pic SW2LION tics 0
+switch SW1MARB on pic SW2MARB tics 0
+switch SW1MET2 on pic SW2MET2 tics 0
+switch SW1METAL on pic SW2METAL tics 0
+switch SW1MOD1 on pic SW2MOD1 tics 0
+switch SW1PANEL on pic SW2PANEL tics 0
+switch SW1PIPE on pic SW2PIPE tics 0
+switch SW1ROCK on pic SW2ROCK tics 0
+switch SW1SATYR on pic SW2SATYR tics 0
+switch SW1SKIN on pic SW2SKIN tics 0
+switch SW1SKULL on pic SW2SKULL tics 0
+switch SW1SLAD on pic SW2SLAD tics 0
+switch SW1STARG on pic SW2STARG tics 0
+switch SW1STON1 on pic SW2STON1 tics 0
+switch SW1STON2 on pic SW2STON2 tics 0
+switch SW1STON6 on pic SW2STON6 tics 0
+switch SW1STONE on pic SW2STONE tics 0
+switch SW1STRTN on pic SW2STRTN tics 0
+switch SW1TEK on pic SW2TEK tics 0
+switch SW1VINE on pic SW2VINE tics 0
+switch SW1WDMET on pic SW2WDMET tics 0
+switch SW1WOOD on pic SW2WOOD tics 0
+switch SW1ZIM on pic SW2ZIM tics 0
+
+texture BFALL1 range BFALL4 tics 8
+texture BLODGR1 range BLODGR4 tics 8
+texture BLODRIP1 range BLODRIP4 tics 8
+texture DBRAIN1 range DBRAIN4 tics 8
+texture FIREBLU1 range FIREBLU2 tics 8
+texture FIRELAV3 range FIRELAVA tics 8
+texture FIREMAG1 range FIREMAG3 tics 8
+texture FIREWALA range FIREWALL tics 8
+texture GSTFONT1 range GSTFONT3 tics 8
+texture ROCKRED1 range ROCKRED3 tics 8
+texture SFALL1 range SFALL4 tics 8
+texture SLADRIP1 range SLADRIP4 tics 8
+texture WFALL1 range WFALL4 tics 8
