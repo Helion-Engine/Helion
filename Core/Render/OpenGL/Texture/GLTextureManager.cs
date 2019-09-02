@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
@@ -60,23 +59,27 @@ namespace Helion.Render.OpenGL.Texture
         
         /// <summary>
         /// Gets the texture, with priority given to the namespace provided. If
-        /// it cannot be found, the null texture handle is returned.
+        /// it cannot be found, the null texture handle is used instead.
         /// </summary>
         /// <param name="name">The texture name.</param>
         /// <param name="priorityNamespace">The namespace to search first.
         /// </param>
-        /// <returns>The handle for the texture in the provided namespace, or
-        /// the texture in another namespace if the texture was not found in
-        /// the desired namespace, or the null texture if no such texture was
-        /// found with the name provided.</returns>
-        public GLTextureType Get(CIString name, ResourceNamespace priorityNamespace)
+        /// <param name="texture">The populated texture. This will either be
+        /// the texture you want, or it will be the null image texture.</param>
+        /// <returns>True if the texture was found, false if it was not found
+        /// and the out value is the null texture handle.</returns>
+        public bool TryGet(CIString name, ResourceNamespace priorityNamespace, out GLTextureType texture)
         {
+            texture = NullTexture;
             if (name == Constants.NoTexture)
-                return NullTexture;
+                return false;
             
             GLTextureType? textureForNamespace = m_textureTracker.GetOnly(name, priorityNamespace);
-            if (textureForNamespace != null) 
-                return textureForNamespace;
+            if (textureForNamespace != null)
+            {
+                texture = textureForNamespace;
+                return true;
+            }
 
             // The reason we do this check before checking other namespaces is
             // that we can end up missing the texture for the namespace in some
@@ -86,20 +89,30 @@ namespace Helion.Render.OpenGL.Texture
             // and miss the flat and then never know that there is a specific
             // flat that should have been used.
             Image? imageForNamespace = m_imageRetriever.GetOnly(name, priorityNamespace);
-            if (imageForNamespace != null) 
-                return CreateTexture(imageForNamespace, name, priorityNamespace);
+            if (imageForNamespace != null)
+            {
+                texture = CreateTexture(imageForNamespace, name, priorityNamespace);
+                return true;
+            }
 
             // Now that nothing in the desired namespace was found, we will
             // accept anything.
             GLTextureType? anyTexture = m_textureTracker.Get(name, priorityNamespace);
-            if (anyTexture != null) 
-                return anyTexture;
+            if (anyTexture != null)
+            {
+                texture = anyTexture;
+                return true;
+            }
             
             // Note that because we are getting any texture, we don't want to
             // use the provided namespace since if we ask for a flat, but get a
             // texture, and then index it as a flat... things probably go bad.
             Image? image = m_imageRetriever.Get(name, priorityNamespace);
-            return image != null ? CreateTexture(image, name, image.Metadata.Namespace) : NullTexture;
+            if (image == null)
+                return false;
+            
+            texture = CreateTexture(image, name, image.Metadata.Namespace);
+            return true;
         }
 
         /// <summary>
@@ -107,27 +120,42 @@ namespace Helion.Render.OpenGL.Texture
         /// it cannot be found, the null texture handle is returned.
         /// </summary>
         /// <param name="name">The texture name.</param>
-        /// <returns>The handle for the texture in the provided namespace, or
-        /// the texture in another namespace if the texture was not found in
-        /// the desired namespace, or the null texture if no such texture was
-        /// found with the name provided.</returns>
-        public GLTextureType GetWall(CIString name) => Get(name, ResourceNamespace.Textures);
+        /// <param name="texture">The populated texture. This will either be
+        /// the texture you want, or it will be the null image texture.</param>
+        /// <returns>True if the texture was found, false if it was not found
+        /// and the out value is the null texture handle.</returns>
+        public bool TryGetWall(CIString name, out GLTextureType texture)
+        {
+            return TryGet(name, ResourceNamespace.Textures, out texture);
+        } 
 
         /// <summary>
         /// Gets the texture, with priority given to the flat namespace. If it
         /// cannot be found, the null texture handle is returned.
         /// </summary>
         /// <param name="name">The flat texture name.</param>
-        /// <returns>The handle for the texture in the provided namespace, or
-        /// the texture in another namespace if the texture was not found in
-        /// the desired namespace, or the null texture if no such texture was
-        /// found with the name provided.</returns>
-        public GLTextureType GetFlat(CIString name) => Get(name, ResourceNamespace.Flats);
-
-        public bool TryGetSprite(CIString name, [MaybeNullWhen(false)] out GLTextureType? texture)
+        /// <param name="texture">The populated texture. This will either be
+        /// the texture you want, or it will be the null image texture.</param>
+        /// <returns>True if the texture was found, false if it was not found
+        /// and the out value is the null texture handle.</returns>
+        // TODO: Docs update...!
+        public bool TryGetFlat(CIString name, out GLTextureType texture)
         {
-            texture = Get(name, ResourceNamespace.Sprites);
-            return texture != null;
+            return TryGet(name, ResourceNamespace.Flats, out texture);
+        }
+
+        /// <summary>
+        /// Gets the texture, with priority given to the sprite namespace. If
+        /// it cannot be found, the null texture handle is returned.
+        /// </summary>
+        /// <param name="name">The flat texture name.</param>
+        /// <param name="texture">The populated texture. This will either be
+        /// the texture you want, or it will be the null image texture.</param>
+        /// <returns>True if the texture was found, false if it was not found
+        /// and the out value is the null texture handle.</returns>
+        public bool TryGetSprite(CIString name, out GLTextureType texture)
+        {
+            return TryGet(name, ResourceNamespace.Sprites, out texture);
         }
         
         /// <summary>

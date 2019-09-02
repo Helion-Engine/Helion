@@ -63,14 +63,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         public override void DrawImage(CIString textureName, Rectangle drawArea, Color mixColor, Color multiplyColor,
             float alpha)
         {
-            GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
+            m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
             AddImage(texture, drawArea, mixColor, multiplyColor, alpha);
         }
 
         public override void DrawImage(CIString textureName, Vec2I topLeft, Color mixColor, Color multiplyColor, 
             float alpha)
         {
-            GLLegacyTexture texture = m_textureManager.Get(textureName, ResourceNamespace.Graphics);
+            m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
             Dimension dimension = texture.Dimension;
             Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, dimension.Width, dimension.Height);
             AddImage(texture, drawArea, mixColor, multiplyColor, alpha);

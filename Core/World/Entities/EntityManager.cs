@@ -110,7 +110,7 @@ namespace Helion.World.Entities
                 EntityDefinition? definition = m_definitionComposer[thing.EditorNumber];
                 if (definition == null)
                 {
-                    Log.Warn("Cannot find entity by editor number at {1}", thing.EditorNumber, thing.Position.To2D());
+                    Log.Warn("Cannot find entity by editor number {0} at {1}", thing.EditorNumber, thing.Position.To2D());
                     continue;
                 }
 

@@ -39,11 +39,10 @@ namespace Helion.World.Entities.Definition.Composer
         public EntityDefinition? this[CIString name] => GetByName(name);
         public EntityDefinition? this[int editorId] => GetByID(editorId);
 
-        private static void ApplyActorComponents(EntityDefinition definition, ActorDefinition actorDefinition)
+        private static void ApplyActorFlagsAndProperties(EntityDefinition definition, ActorDefinition actorDefinition)
         {
             DefinitionFlagApplier.Apply(definition, actorDefinition.Flags);
             DefinitionPropertyApplier.Apply(definition, actorDefinition.Properties);
-            DefinitionStateApplier.Apply(definition, actorDefinition.States);
         }
 
         private EntityDefinition? GetByName(CIString name)
@@ -72,10 +71,10 @@ namespace Helion.World.Entities.Definition.Composer
             ActorDefinition current = actorDef;
             while (current.Parent != null)
             {
-                ActorDefinition? parent = m_archiveCollection.Definitions.Decorate[actorDef.Parent];
+                ActorDefinition? parent = m_archiveCollection.Definitions.Decorate[current.Parent];
                 if (parent == null)
                 {
-                    Log.Warn("Cannot find entity definition for parent class '{0}'", actorDef.Parent);
+                    Log.Warn("Cannot find entity definition for parent class '{0}'", current.Parent);
                     return false;
                 }
 
@@ -84,10 +83,14 @@ namespace Helion.World.Entities.Definition.Composer
 
                 if (definitions.Count > RecursiveDefinitionOverflow)
                 {
-                    Log.Warn("Infinite recursive parent cycle detected, possible offender: {0}", actorDef.Parent);
+                    Log.Warn("Infinite recursive parent cycle detected, possible offender: {0}", current.Name);
                     return false;
                 }
             }
+
+            // The base actor must always come first, but we can do this at
+            // the very end. It is a critical error for this not to exist.
+            definitions.AddFirst(m_archiveCollection.Definitions.Decorate[Constants.BaseActorClass]);
             
             return true;
         }
@@ -107,8 +110,12 @@ namespace Helion.World.Entities.Definition.Composer
             int id = m_indexTracker.Next();
             EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber);
 
-            definitions.ForEach(actorDef => ApplyActorComponents(definition, actorDef));
-            
+            // While we can apply properties and flags sequentially without
+            // remembering what came before it, that is not the case for the
+            // states.
+            definitions.ForEach(actorDef => ApplyActorFlagsAndProperties(definition, actorDef));
+            DefinitionStateApplier.Apply(definition, definitions);
+
             // TODO: Check if well formed after everything was added.
 
             // TODO: Handle 'replaces'.

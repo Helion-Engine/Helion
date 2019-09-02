@@ -86,12 +86,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             world.Map.Lines.SelectMany(GetSides)
                 .SelectMany(side => new[] { side.UpperTexture.ToString(), side.MiddleTexture.ToString(), side.LowerTexture.ToString() })
                 .Distinct()
-                .ForEach(texName => m_textureManager.GetWall(texName));
+                .ForEach(texName => m_textureManager.TryGetWall(texName, out _));
 
             world.Map.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
                 .Select(flat => flat.Texture.ToString())
                 .Distinct()
-                .ForEach(texName => m_textureManager.GetFlat(texName));
+                .ForEach(texName => m_textureManager.TryGetWall(texName, out _));
 
             // TODO: Can we work this into the Line object itself?
             Side[] GetSides(Line line) => line.Back != null ? new[] { line.Front, line.Back } : new[] { line.Front };
@@ -137,7 +137,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             Sector sector = side.Sector;
             short lightLevel = sector.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetWall(side.MiddleTexture);
+            m_textureManager.TryGetWall(side.MiddleTexture, out GLLegacyTexture texture);
             WallVertices wall = WorldTriangulator.HandleOneSided(line, side, texture.UVInverse, m_tickFraction);
             
             RenderWorldData renderData = m_worldDataManager[texture];
@@ -191,7 +191,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             bool isSky = otherSide.Sector.Floor.Texture == Constants.SkyTexture;
             short lightLevel = facingSide.Sector.LightLevel;
             
-            GLLegacyTexture texture = m_textureManager.GetWall(facingSide.LowerTexture);
+            m_textureManager.TryGetWall(facingSide.LowerTexture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
@@ -223,7 +223,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             short lightLevel = facingSide.Sector.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetWall(facingSide.MiddleTexture);
+            m_textureManager.TryGetWall(facingSide.MiddleTexture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
@@ -274,7 +274,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             bool isSky = otherSide.Sector.Ceiling.Texture == Constants.SkyTexture;
             short lightLevel = facingSide.Sector.LightLevel;
             
-            GLLegacyTexture texture = m_textureManager.GetWall(facingSide.UpperTexture);
+            m_textureManager.TryGetWall(facingSide.UpperTexture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
@@ -313,7 +313,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
             // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
             short lightLevel = flat.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetFlat(flat.Texture);
+            m_textureManager.TryGetFlat(flat.Texture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             // Note that the subsector triangulator is supposed to realize when

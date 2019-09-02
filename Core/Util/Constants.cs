@@ -42,5 +42,11 @@ namespace Helion.Util
         /// The name of the decorate player class.
         /// </summary>
         public static readonly CIString PlayerClass = "DoomPlayer";
+
+        /// <summary>
+        /// The name of the actor class that is at the base of all decorate
+        /// inheritance hierarchies.
+        /// </summary>
+        public static readonly CIString BaseActorClass = "ACTOR";
     }
 }

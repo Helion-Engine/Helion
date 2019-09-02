@@ -102,7 +102,7 @@ actor PowerupGiver : Inventory
 actor PowerInvulnerable : Powerup
 {
     Powerup.Duration -30
-    inventory.icon "SPSHLD0"
+    inventory.Icon "SPSHLD0"
 }
 
 actor PowerStrength : Powerup
@@ -178,6 +178,11 @@ actor WeaponHolder : Inventory
     +NOBLOCKMAP
     +NOSECTOR
     +INVENTORY.UNDROPPABLE
+}
+
+actor FastProjectile
+{
+    PROJECTILE
 }
 
 actor PuzzleItem : Inventory

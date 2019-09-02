@@ -165,7 +165,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // We figure we'll run into the rotations the most, followed by the
             // non-rotation, and then rarely the octet rotation form.
             string rotationSprite = GetRotationSprite(fullFrame, rotation);
-            if (m_textureManager.TryGetSprite(rotationSprite, out GLLegacyTexture? mirrorTexture))
+            if (m_textureManager.TryGetSprite(rotationSprite, out GLLegacyTexture mirrorTexture))
             {
                 // Rotations 0 - 4 are normal, and 5 - 7 are the A2A8, A3A7, and
                 // A4A6 rotations which we do need to mirror.

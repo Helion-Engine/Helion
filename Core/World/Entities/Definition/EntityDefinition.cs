@@ -23,5 +23,7 @@ namespace Helion.World.Entities.Definition
             Name = name;
             EditorId = editorId;
         }
+        
+        public override string ToString() => $"{Name} (id = {Id}, editorId = {EditorId})";
     }
 }

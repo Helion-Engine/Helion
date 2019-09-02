@@ -67,6 +67,7 @@ namespace Helion.World.Entities.Definition.States
             ["A_CLEARSHADOW"] = A_ClearShadow,
             ["A_CLEARSOUNDTARGET"] = A_ClearSoundTarget,
             ["A_CLEARTARGET"] = A_ClearTarget,
+            ["A_CLOSESHOTGUN2"] = A_CloseShotgun2,
             ["A_COMBOATTACK"] = A_ComboAttack,
             ["A_COPYFRIENDLINESS"] = A_CopyFriendliness,
             ["A_COPYSPRITEFRAME"] = A_CopySpriteFrame,
@@ -164,6 +165,7 @@ namespace Helion.World.Entities.Definition.States
             ["A_LIGHT1"] = A_Light1,
             ["A_LIGHT2"] = A_Light2,
             ["A_LIGHTINVERSE"] = A_LightInverse,
+            ["A_LOADSHOTGUN2"] = A_LoadShotgun2,
             ["A_LOG"] = A_Log,
             ["A_LOGFLOAT"] = A_LogFloat,
             ["A_LOGINT"] = A_LogInt,
@@ -183,6 +185,7 @@ namespace Helion.World.Entities.Definition.States
             ["A_MUSHROOM"] = A_Mushroom,
             ["A_NOBLOCKING"] = A_NoBlocking,
             ["A_NOGRAVITY"] = A_NoGravity,
+            ["A_OPENSHOTGUN2"] = A_OpenShotgun2,
             ["A_OVERLAY"] = A_Overlay,
             ["A_OVERLAYALPHA"] = A_OverlayAlpha,
             ["A_OVERLAYFLAGS"] = A_OverlayFlags,
@@ -626,6 +629,11 @@ namespace Helion.World.Entities.Definition.States
         }
 
         private static void A_ClearTarget(Entity entity)
+        {
+             // TODO
+        }
+        
+        private static void A_CloseShotgun2(Entity entity)
         {
              // TODO
         }
@@ -1109,7 +1117,12 @@ namespace Helion.World.Entities.Definition.States
         {
              // TODO
         }
-
+        
+        private static void A_LoadShotgun2(Entity entity)
+        {
+             // TODO
+        }
+        
         private static void A_Log(Entity entity)
         {
              // TODO
@@ -1201,6 +1214,11 @@ namespace Helion.World.Entities.Definition.States
         }
 
         private static void A_NoGravity(Entity entity)
+        {
+             // TODO
+        }
+        
+        private static void A_OpenShotgun2(Entity entity)
         {
              // TODO
         }

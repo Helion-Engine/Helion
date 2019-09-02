@@ -28,5 +28,7 @@ namespace Helion.Resources.Definitions.Decorate
             Replaces = replaces;
             EditorNumber = editorNumber;
         }
+
+        public override string ToString() => $"{Name}";
     }
 }
