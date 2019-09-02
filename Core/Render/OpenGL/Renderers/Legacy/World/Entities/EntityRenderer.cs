@@ -86,10 +86,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             //
             // Then we can do a bit shift trick which converts the higher order
             // three bits into the angle rotation between 0 - 7.
-            unchecked
-            {
-                return (viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29;
-            }
+            return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
         }
 
         private static string GetRotationSprite(string fullFrame, uint rotation)
