@@ -219,7 +219,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             Vec3D centerBottom = entity.Position.Interpolate(entity.PrevPosition, m_tickFraction);
             Vec2D entityPos = centerBottom.To2D();
 
-            uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
+            uint viewAngle = ViewClipper.DiamondAngleFromRadians(m_cameraEntity.AngleRadians);
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             uint rotation = CalculateRotation(viewAngle, entityAngle);
 
