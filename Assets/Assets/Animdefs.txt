@@ -49,15 +49,6 @@ switch SW1WOOD on pic SW2WOOD tics 0
 switch SW1ZIM on pic SW2ZIM tics 0
 
 texture BFALL1 range BFALL4 tics 8
-texture BLODGR1 range BLODGR4 tics 8
-texture BLODRIP1 range BLODRIP4 tics 8
-texture DBRAIN1 range DBRAIN4 tics 8
 texture FIREBLU1 range FIREBLU2 tics 8
-texture FIRELAV3 range FIRELAVA tics 8
-texture FIREMAG1 range FIREMAG3 tics 8
-texture FIREWALA range FIREWALL tics 8
-texture GSTFONT1 range GSTFONT3 tics 8
-texture ROCKRED1 range ROCKRED3 tics 8
 texture SFALL1 range SFALL4 tics 8
-texture SLADRIP1 range SLADRIP4 tics 8
 texture WFALL1 range WFALL4 tics 8

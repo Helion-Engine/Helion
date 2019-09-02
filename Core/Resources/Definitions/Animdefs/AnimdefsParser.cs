@@ -159,9 +159,59 @@ namespace Helion.Resources.Definitions.Animdefs
             AnimatedTextures.Add(texture);
         }
 
+        private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch)
+        {
+            string name = ConsumeString();
+            
+            // I don't know if this is like the texture/flat combo whereby any
+            // floating point numbers are allowed or not.
+            int minTicks;
+            int maxTicks;
+            if (ConsumeIf("tics"))
+            {
+                minTicks = ConsumeInteger();
+                maxTicks = minTicks;
+            }
+            else
+            {
+                Consume("rand");
+                minTicks = ConsumeInteger();
+                maxTicks = ConsumeInteger();
+            }
+
+            if (minTicks > maxTicks)
+                throw MakeException($"Switch '{animatedSwitch.StartTexture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
+
+            animatedSwitch.Components.Add(new AnimatedTextureComponent(name.ToUpper(), minTicks, maxTicks));
+        }
+
+        private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch)
+        {
+            while (true)
+            {
+                string? value = PeekCurrentText();
+                if (value == null)
+                    throw MakeException($"Ran out of tokens when parsing switch definition for {animatedSwitch.StartTexture}");
+                
+                switch (value.ToUpper())
+                {
+                case "PIC":
+                    Consume();
+                    ConsumeSwitchPic(animatedSwitch);
+                    break;
+                case "SOUND":
+                    Consume();
+                    animatedSwitch.Sound = ConsumeString();
+                    break;
+                default:
+                    return;
+                }
+            }
+        }
+
         private void ConsumeSwitchAnimation()
         {
-            string upperSwitchBegin = ConsumeString();
+            string upperSwitchName = ConsumeString();
             SwitchType switchType = SwitchType.On;
 
             if (!ConsumeIf("ON"))
@@ -170,9 +220,11 @@ namespace Helion.Resources.Definitions.Animdefs
                 switchType = SwitchType.Off;
             }
 
-            AnimatedSwitch animatedSwitch = new AnimatedSwitch(upperSwitchBegin, switchType);
-            
-            // TODO
+            AnimatedSwitch animatedSwitch = new AnimatedSwitch(upperSwitchName, switchType);
+            ConsumeAllSwitchPicAndSounds(animatedSwitch);
+
+            if (animatedSwitch.Components.Empty())
+                throw MakeException($"Found no animated definitions for switch {upperSwitchName}");
             
             AnimatedSwitches.Add(animatedSwitch);
         }

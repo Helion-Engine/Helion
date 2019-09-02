@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Animdefs.Switches;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using NLog;
 
@@ -10,6 +11,7 @@ namespace Helion.Resources.Definitions.Animdefs
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly List<AnimatedTexture> AnimatedTextures = new List<AnimatedTexture>();
+        public readonly List<AnimatedSwitch> AnimatedSwitches = new List<AnimatedSwitch>();
             
         public void AddDefinitions(Entry entry)
         {
@@ -21,6 +23,7 @@ namespace Helion.Resources.Definitions.Animdefs
             }
             
             AnimatedTextures.AddRange(parser.AnimatedTextures);
+            AnimatedSwitches.AddRange(parser.AnimatedSwitches);
         }
     }
 }
