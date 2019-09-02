@@ -1,16 +1,26 @@
 using System.Collections.Generic;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using NLog;
 
 namespace Helion.Resources.Definitions.Animdefs
 {
     public class AnimatedDefinitions
     {
-        public readonly IList<AnimatedTexture> AnimatedTextures = new List<AnimatedTexture>();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        public readonly List<AnimatedTexture> AnimatedTextures = new List<AnimatedTexture>();
             
         public void AddDefinitions(Entry entry)
         {
-            // TODO
+            AnimdefsParser parser = new AnimdefsParser();
+            if (!parser.Parse(entry))
+            {
+                Log.Error("Unable to parse animdefs file, animations will be missing");
+                return;
+            }
+            
+            AnimatedTextures.AddRange(parser.AnimatedTextures);
         }
     }
 }

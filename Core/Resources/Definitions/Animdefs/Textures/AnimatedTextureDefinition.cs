@@ -7,15 +7,19 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
     {
         public readonly CIString Name;
         public readonly bool Optional;
+        public readonly ResourceNamespace Namespace;
+        public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
         public bool AllowDecals;
         public bool Oscillate;
         public bool Random;
-        public IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
 
-        public AnimatedTexture(string name, bool optional)
+        public AnimatedTexture(string name, bool optional, ResourceNamespace resourceNamespace)
         {
             Name = name.ToUpper();
             Optional = optional;
+            Namespace = resourceNamespace;
         }
+
+        public override string ToString() => $"{Name} (len={Components.Count})";
     }
 }

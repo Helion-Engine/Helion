@@ -8,6 +8,10 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
         public readonly string Texture;
         public readonly int MinTicks;
         public readonly int MaxTicks;
+
+        public AnimatedTextureComponent(string texture, int duration) : this(texture, duration, duration)
+        {
+        }
         
         public AnimatedTextureComponent(string texture, int min, int max)
         {
@@ -18,5 +22,7 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
             MinTicks = min;
             MaxTicks = max;
         }
+
+        public override string ToString() => $"{Texture} (startTicks={MinTicks} endTicks={MaxTicks})";
     }
 }
