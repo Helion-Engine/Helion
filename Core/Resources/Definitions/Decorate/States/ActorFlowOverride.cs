@@ -24,8 +24,8 @@ namespace Helion.Resources.Definitions.Decorate.States
             Precondition(!label.Empty(), "Cannot do a Goto label override with an empty label");
                 
             BranchType = ActorStateBranch.Goto;
-            Parent = parent;
-            Label = label;
+            Parent = parent?.ToUpper();
+            Label = label.ToUpper();
             Offset = offset;
         }
     }

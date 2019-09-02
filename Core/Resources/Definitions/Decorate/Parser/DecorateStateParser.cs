@@ -218,14 +218,14 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void HandleLabelOverride(ActorStateBranch branchType)
         {
-            string upperLabel = m_immediatelySeenLabel.ToUpper();
+            string upperImmediateLabel = m_immediatelySeenLabel.ToUpper();
             
             if (branchType != ActorStateBranch.Goto)
             {
                 // This assumes no one will ever use Wait/Fail/Loop for flow
                 // overriding, and if they do then we will kill the state.
                 // No one should be doing that anyways.
-                m_currentDefinition.States.FlowOverrides[upperLabel] = new ActorFlowOverride();
+                m_currentDefinition.States.FlowOverrides[upperImmediateLabel] = new ActorFlowOverride();
                 return;
             }
 
@@ -244,7 +244,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 offset = ConsumeInteger();
             
             ActorFlowOverride gotoOverride = new ActorFlowOverride(label, parent, offset);
-            m_currentDefinition.States.FlowOverrides[upperLabel] = gotoOverride;
+            m_currentDefinition.States.FlowOverrides[upperImmediateLabel] = gotoOverride;
         }
 
         private void HandleFrameGotoFlowControl(ActorFrame frame, ActorStateBranch branchType)

@@ -10,6 +10,7 @@ using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using NLog;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities
 {
@@ -189,6 +190,8 @@ namespace Helion.World.Entities
 
         private void TickFrame()
         {
+            Precondition(FrameIndex >= 0 && FrameIndex < Definition.States.Frames.Count, "Out of range frame index for entity");
+            
             EntityFrame frame = Definition.States.Frames[FrameIndex];
             
             if (TicksInFrame == 0)
@@ -199,13 +202,7 @@ namespace Helion.World.Entities
             TicksInFrame++;
             if (TicksInFrame > frame.Ticks)
             {
-                // TODO: If flow control is `Stop` and frame.Ticks is -1, remove actor.
-                
-                // TODO: If running off the edge, remove the actor? What does ZDoom do...?
-                // But we should make it so the very last one doesn't run off when making
-                // the actor though!
-                
-                // TODO: Handle `Wait`.
+                // TODO: If flow control is `Stop` and frame.Ticks is not -1, remove actor.
 
                 FrameIndex = frame.NextFrameIndex;
                 TicksInFrame = 0;

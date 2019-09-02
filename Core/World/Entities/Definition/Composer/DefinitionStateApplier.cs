@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
 using MoreLinq.Extensions;
@@ -55,8 +56,8 @@ namespace Helion.World.Entities.Definition.Composer
             masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value);
         }
 
-        private static void AddFrameAndNonGotoFlowControl(EntityDefinition definition, ActorDefinition current,
-            Dictionary<string, int> masterLabelTable, int startingFrameOffset, List<UnresolvedGotoFrame> unresolvedGotoFrames)
+        private static void AddFrameAndNonGotoFlowControl(EntityDefinition definition, ActorDefinition current, 
+            int startingFrameOffset, IList<UnresolvedGotoFrame> unresolvedGotoFrames)
         {
             // The following are used for knowing where to jump back to if we
             // encounter the `loop` control flow.
@@ -110,7 +111,7 @@ namespace Helion.World.Entities.Definition.Composer
             }
         }
 
-        private static void AddLabelsToMasterTable(ActorDefinition definition, Dictionary<string, int> masterLabelTable,
+        private static void AddLabelsToMasterTable(ActorDefinition definition, IDictionary<string, int> masterLabelTable,
             string upperActorName, int startingFrameOffset)
         {
             definition.States.Labels.ForEach(pair =>
@@ -123,8 +124,7 @@ namespace Helion.World.Entities.Definition.Composer
             });
         }
 
-        private static void PurgeAnyControlFlowStopOverride(ActorDefinition current, 
-            Dictionary<string, int> masterLabelTable)
+        private static void PurgeAnyControlFlowStopOverride(ActorDefinition current, IDictionary<string, int> masterLabelTable)
         {
             current.States.FlowOverrides.ForEach(pair =>
             {
@@ -146,8 +146,48 @@ namespace Helion.World.Entities.Definition.Composer
             }
         }
 
+        private static int FindGotoOverrideOffset(IDictionary<string, int> masterLabelTable, ActorFlowOverride flowOverride, 
+            string upperImmediateParentName)
+        {
+            if (flowOverride.Label == null)
+            {
+                Log.Error("Malformed flow override offset label (report this to a developer!)");
+                return 0;
+            }
+            
+            string upperTargetLabel = flowOverride.Label.ToUpper();
+            int offset = flowOverride.Offset ?? 0;
+
+            if (flowOverride.Parent == null) 
+                return masterLabelTable[$"{upperTargetLabel}"] + offset;
+            
+            string upperParentLabel = flowOverride.Parent.ToUpper();
+            string label = $"{upperParentLabel}::{upperTargetLabel}";
+            if (upperParentLabel == "SUPER")
+                label = $"{upperImmediateParentName.ToUpper()}::{upperTargetLabel}";
+            
+            return masterLabelTable[label] + offset;
+        }
+
+        private static void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
+            IDictionary<string, int> masterLabelTable)
+        {
+            foreach ((CIString label, ActorFlowOverride flowOverride) in current.States.FlowOverrides)
+            {
+                if (flowOverride.BranchType != ActorStateBranch.Goto)
+                    continue;
+
+                string upperActorName = current.Name.ToString().ToUpper();
+                string upperLabel = label.ToString().ToUpper();
+
+                int overrideOffset = FindGotoOverrideOffset(masterLabelTable, flowOverride, upperImmediateParentName);
+                masterLabelTable[upperLabel] = overrideOffset;
+                masterLabelTable[$"{upperActorName}::{upperLabel}"] = overrideOffset;
+            }
+        }
+        
         private static void ApplyGotoOffsets(IEnumerable<UnresolvedGotoFrame> unresolvedGotoFrames, 
-            Dictionary<string, int> masterLabelTable, string upperParentName, EntityDefinition definition)
+            Dictionary<string, int> masterLabelTable, string upperImmediateParentName, EntityDefinition definition)
         {
             foreach (UnresolvedGotoFrame unresolved in unresolvedGotoFrames)
             {
@@ -174,7 +214,7 @@ namespace Helion.World.Entities.Definition.Composer
                 
                 string targetLabel = $"{upperParent}::{upperLabel}";
                 if (upperParent == "SUPER")
-                    targetLabel = $"{upperParentName}::{upperLabel}";
+                    targetLabel = $"{upperImmediateParentName}::{upperLabel}";
                 
                 if (masterLabelTable.TryGetValue(targetLabel, out int parentOffset))
                     entityFrame.NextFrameIndex = parentOffset;
@@ -186,15 +226,16 @@ namespace Helion.World.Entities.Definition.Composer
         private static void ApplyActorDefinition(EntityDefinition definition, ActorDefinition current,
             ActorDefinition parent, Dictionary<string, int> masterLabelTable)
         {
-            string upperParentName = parent.Name.ToString().ToUpper();
+            string upperImmediateParentName = parent.Name.ToString().ToUpper();
             string upperCurrentName = current.Name.ToString().ToUpper();
             int startingFrameOffset = definition.States.Frames.Count;
             List<UnresolvedGotoFrame> unresolvedGotoFrames = new List<UnresolvedGotoFrame>();
             
-            AddFrameAndNonGotoFlowControl(definition, current, masterLabelTable, startingFrameOffset, unresolvedGotoFrames);
+            AddFrameAndNonGotoFlowControl(definition, current, startingFrameOffset, unresolvedGotoFrames);
             AddLabelsToMasterTable(current, masterLabelTable, upperCurrentName, startingFrameOffset);
             PurgeAnyControlFlowStopOverride(current, masterLabelTable);
-            ApplyGotoOffsets(unresolvedGotoFrames, masterLabelTable, upperParentName, definition);
+            HandleGotoFlowOverrides(current, upperImmediateParentName, masterLabelTable);
+            ApplyGotoOffsets(unresolvedGotoFrames, masterLabelTable, upperImmediateParentName, definition);
         }
     }
 }

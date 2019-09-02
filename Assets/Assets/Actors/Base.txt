@@ -31,6 +31,14 @@ actor Inventory
     Inventory.UseSound "misc/invuse"
 }
 
+actor FakeInventory : Inventory
+{
+}
+
+actor CustomInventory : Inventory
+{
+}
+
 actor Ammo : Inventory
 {
     Inventory.PickupSound "misc/ammo_pkup"

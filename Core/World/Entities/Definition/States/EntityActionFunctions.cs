@@ -296,6 +296,7 @@ namespace Helion.World.Entities.Definition.States
             ["A_SPAWNPROJECTILE"] = A_SpawnProjectile,
             ["A_SPAWNSOUND"] = A_SpawnSound,
             ["A_SPIDREFIRE"] = A_SpidRefire,
+            ["A_SPOSATTACKUSEATKSOUND"] = A_SPosAttackUseAtkSound,
             ["A_SPRAYDECAL"] = A_SprayDecal,
             ["A_STARTFIRE"] = A_StartFire,
             ["A_STOP"] = A_Stop,
@@ -1769,6 +1770,11 @@ namespace Helion.World.Entities.Definition.States
         }
 
         private static void A_SpidRefire(Entity entity)
+        {
+             // TODO
+        }
+        
+        private static void A_SPosAttackUseAtkSound(Entity entity)
         {
              // TODO
         }
