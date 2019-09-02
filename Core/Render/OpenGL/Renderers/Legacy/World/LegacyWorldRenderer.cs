@@ -103,7 +103,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             return m_viewClipper.InsideAnyRange(first, second);
         }
 
-        private void RecursivelyRenderBsp(BspNodeCompact node, Vec2D position, WorldBase world)
+        private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec2D position, WorldBase world)
         {
             if (Occluded(node, position))
                 return;
@@ -135,7 +135,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             }
         }
 
-        private void RenderSubsector(Subsector subsector, Vec2D position)
+        private void RenderSubsector(Subsector subsector, in Vec2D position)
         {
             m_geometryRenderer.RenderSubsector(subsector, position);
             m_entityRenderer.RenderSubsector(subsector, position);

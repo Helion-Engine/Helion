@@ -50,7 +50,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             m_SectorDrawnTracker.Reset();
         }
 
-        public void RenderSubsector(Subsector subsector, Vec2D position)
+        public void RenderSubsector(Subsector subsector, in Vec2D position)
         {
             Sector sector = subsector.Sector;
             
@@ -189,7 +189,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             return (m_textureManager.NullTexture, false);
         }
 
-        private void AddSpriteQuad(Vec2D vectorToEntity, Vec3D entityCenterBottom, Entity entity, 
+        private void AddSpriteQuad(in Vec2D vectorToEntity, in Vec3D entityCenterBottom, Entity entity, 
             GLLegacyTexture texture, bool mirror)
         {
             // We need to find the perpendicular vector from the entity so we
@@ -221,7 +221,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             renderWorldData.Vbo.Add(bottomRight);
         }
 
-        private void RenderEntity(Entity entity, Vec2D position)
+        private void RenderEntity(Entity entity, in Vec2D position)
         {
             Vec3D centerBottom = entity.Position.Interpolate(entity.PrevPosition, m_tickFraction);
             Vec2D entityPos = centerBottom.To2D();

@@ -69,7 +69,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_skyRenderer.Render(renderInfo);
         }
 
-        public void RenderSubsector(Subsector subsector, Vec2D position)
+        public void RenderSubsector(Subsector subsector, in Vec2D position)
         {
             RenderWalls(subsector, position);
             RenderFlats(subsector);
@@ -97,7 +97,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             Side[] GetSides(Line line) => line.Back != null ? new[] { line.Front, line.Back } : new[] { line.Front };
         }
 
-        private void RenderWalls(Subsector subsector, Vec2D position)
+        private void RenderWalls(Subsector subsector, in Vec2D position)
         {
             List<SubsectorEdge> edges = subsector.ClockwiseEdges;
             for (int i = 0; i < edges.Count; i++)
