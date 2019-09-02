@@ -74,8 +74,10 @@ namespace Helion.World.Entities.Definition.Composer
                     lastLabelIndex = absoluteFrameOffset;
 
                 int absoluteNextFrameIndex = absoluteFrameOffset + 1;
+                EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
                 Action<Entity>? actionFunction = EntityActionFunctions.Find(frame.ActionFunction?.FunctionName);
-                EntityFrame entityFrame = new EntityFrame(frame.Sprite, frame.Frame, frame.Ticks, actionFunction, absoluteNextFrameIndex);
+                EntityFrame entityFrame = new EntityFrame(frame.Sprite, frame.Frame, frame.Ticks, properties,
+                    actionFunction, absoluteNextFrameIndex);
 
                 HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
                 

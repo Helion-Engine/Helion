@@ -118,6 +118,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             return fullFrame + rotation;
         }
         
+        private static short CalculateLightLevel(Entity entity, short sectorLightLevel)
+        {
+            if (entity.Flags.Bright || entity.Frame.Properties.Bright)
+                return 255;
+            return sectorLightLevel;
+        }
+        
         private void PreloadAllTextures(WorldBase world)
         {
             world.Entities.Select(entity => entity.Definition)
@@ -201,7 +208,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             float topZ = bottomZ + texture.Height;
             float leftU = mirror ? 1.0f : 0.0f;
             float rightU = mirror ? 0.0f : 1.0f;
-            short lightLevel = entity.Sector.LightLevel;
+            short lightLevel = CalculateLightLevel(entity, entity.Sector.LightLevel);
 
             LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, lightLevel);
             LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, lightLevel);
