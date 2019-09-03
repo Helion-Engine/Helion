@@ -107,6 +107,10 @@ namespace Helion.World.Entities
         {
             foreach (Thing thing in map.Things)
             {
+                // TODO: Temporary!
+                if (!thing.Flags.Doom.SinglePlayer)
+                    continue;
+                
                 EntityDefinition? definition = m_definitionComposer[thing.EditorNumber];
                 if (definition == null)
                 {
