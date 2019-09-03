@@ -8,6 +8,7 @@ using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Physics;
+using Helion.World.Special;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 

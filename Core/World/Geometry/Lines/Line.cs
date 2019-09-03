@@ -8,16 +8,33 @@ namespace Helion.World.Geometry.Lines
     public class Line
     {
         public readonly int Id;
+        public readonly int MapId;
         public readonly Seg2D Segment;
         public readonly Side Front;
         public readonly Side? Back;
         public readonly Side[] Sides;
         public readonly SpecialArgs Args;
-        public LineFlags Flags;
+        public readonly LineFlags Flags;
 
         public bool OneSided => Back == null;
         public bool TwoSided => !OneSided;
-        
+
+        public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, SpecialArgs? args = null)
+        {
+            Id = id;
+            MapId = mapId;
+            Segment = segment;
+            Front = front;
+            Back = back;
+            Sides = (back == null ? new[] { front } : new[] { front, back });
+            Args = args ?? new SpecialArgs();
+            Flags = flags;
+
+            front.Line = this;
+            if (back != null)
+                back.Line = this;
+        }
+
         /// <summary>
         /// If the line blocks the given entity. Only checks line properties
         /// and flags. No sector checking.
@@ -27,10 +44,7 @@ namespace Helion.World.Geometry.Lines
         /// otherwise.</returns>
         public bool BlocksEntity(Entity entity)
         {
-            if (OneSided)
-                return true;
-
-            return entity.Player != null && Flags.Blocking.Players;
+            return OneSided || (entity.Player != null && Flags.Blocking.Players);
         }
     }
 }
