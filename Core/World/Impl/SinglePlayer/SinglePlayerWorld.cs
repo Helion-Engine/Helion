@@ -11,6 +11,8 @@ using Helion.World.Bsp;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry;
+using Helion.World.Geometry.Builder;
 using Helion.World.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -25,8 +27,8 @@ namespace Helion.World.Impl.SinglePlayer
         public readonly Player Player;
         private readonly CheatManager m_cheatManager = new CheatManager();
         
-        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree) : 
-            base(config, archiveCollection, map, bspTree)
+        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map) : 
+            base(config, archiveCollection, geometry, map)
         {
             Player? player = EntityManager.CreatePlayer(1);
             if (player == null)
@@ -60,8 +62,18 @@ namespace Helion.World.Impl.SinglePlayer
             {
                 Log.Error("BSP builder cannot process the map, geometry is malformed");
             }
+
+            if (bspTree == null)
+                return null;
+
+            MapGeometry? geometry = GeometryBuilder.Create(map);
+            if (geometry == null)
+            {
+                Log.Error("Cannot make single player world, geometry is malformed");
+                return null;
+            }
             
-            return bspTree != null ? new SinglePlayerWorld(config, archiveCollection, map, bspTree) : null;
+            return new SinglePlayerWorld(config, archiveCollection, geometry, map);
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)

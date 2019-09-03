@@ -7,7 +7,6 @@ using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Util;
 using Helion.Util.Geometry;
-using Helion.World.Geometry;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;

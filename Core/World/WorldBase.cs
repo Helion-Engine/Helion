@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
@@ -7,6 +8,11 @@ using Helion.Util.Time;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Geometry;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special;
 using MoreLinq;
@@ -19,29 +25,35 @@ namespace Helion.World
         public event EventHandler<LevelChangeEvent>? LevelExit;
 
         public readonly long CreationTimeNanos;
-        public readonly IMap Map;
-        public readonly BspTree BspTree;
         public readonly Blockmap Blockmap;
+        public readonly IMap Map;
         public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly SpecialManager SpecialManager;
+        private readonly MapGeometry m_geometry;
 
+        public List<Line> Lines => m_geometry.Lines;
+        public List<Side> Sides => m_geometry.Sides;
+        public List<Wall> Walls => m_geometry.Walls;
+        public List<Sector> Sectors => m_geometry.Sectors;
+        public BspTree BspTree => m_geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
         
-        protected WorldBase(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree)
+        protected WorldBase(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
             Config = config;
             Map = map;
-            BspTree = bspTree;
-            Blockmap = new Blockmap(map);
-            PhysicsManager = new PhysicsManager(bspTree, Blockmap); 
-            EntityManager = new EntityManager(this, archiveCollection, bspTree, Blockmap, PhysicsManager, map);
-            SpecialManager = new SpecialManager(PhysicsManager, Map);
+            m_geometry = geometry;
+
+            Blockmap = new Blockmap(Lines);
+            PhysicsManager = new PhysicsManager(BspTree, Blockmap); 
+            EntityManager = new EntityManager(this, archiveCollection, PhysicsManager, map);
+            SpecialManager = new SpecialManager();
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
@@ -14,11 +12,12 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
-using MoreLinq;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
@@ -83,12 +82,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void PreloadAllTextures(WorldBase world)
         {
-            world.Map.Lines.SelectMany(GetSides)
+            world.Lines.SelectMany(GetSides)
                 .SelectMany(side => new[] { side.UpperTexture.ToString(), side.MiddleTexture.ToString(), side.LowerTexture.ToString() })
                 .Distinct()
                 .ForEach(texName => m_textureManager.TryGetWall(texName, out _));
 
-            world.Map.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
+            world.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
                 .Select(flat => flat.Texture.ToString())
                 .Distinct()
                 .ForEach(texName => m_textureManager.TryGetWall(texName, out _));

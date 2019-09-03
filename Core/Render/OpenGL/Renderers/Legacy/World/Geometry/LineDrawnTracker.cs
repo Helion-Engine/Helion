@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Linq;
-using Helion.Maps.Geometry.Lines;
 using Helion.World;
+using Helion.World.Geometry.Lines;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
@@ -13,7 +13,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         public void UpdateToWorld(WorldBase world)
         {
-            m_maxLineId = world.Map.Lines.Max(line => line.Id);
+            m_maxLineId = world.Lines.Max(line => line.Id);
             m_lineWasDrawn = new BitArray(m_maxLineId + 1);
             ClearDrawnLines();
         }

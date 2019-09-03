@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Numerics;
-using Helion.Maps.Geometry;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
@@ -9,6 +8,7 @@ using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 

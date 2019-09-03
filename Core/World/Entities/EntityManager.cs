@@ -7,8 +7,6 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
-using Helion.World.Blockmaps;
-using Helion.World.Bsp;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
@@ -26,23 +24,18 @@ namespace Helion.World.Entities
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public readonly Dictionary<int, Player> Players = new Dictionary<int, Player>();
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly Blockmap m_blockmap;
-        private readonly BspTree m_bspTree;
         private readonly IMap m_map;
-        private readonly PhysicsManager m_physicsManager;
         private readonly WorldBase m_world;
-        private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
+        private readonly PhysicsManager m_physicsManager;
         private readonly EntityDefinitionComposer m_definitionComposer;
+        private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
 
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, BspTree bspTree,
-            Blockmap blockmap, PhysicsManager physicsManager, IMap map)
+        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, PhysicsManager physics, IMap map)
         {
             m_archiveCollection = archiveCollection;
-            m_blockmap = blockmap;
-            m_bspTree = bspTree;
             m_map = map;
-            m_physicsManager = physicsManager;
             m_world = world;
+            m_physicsManager = physics;
             m_definitionComposer = new EntityDefinitionComposer(archiveCollection);
 
             PopulateFrom(map);
@@ -51,7 +44,7 @@ namespace Helion.World.Entities
         public Entity Create(EntityDefinition definition, Vec3D position, double angle)
         {
             int id = m_entityIdTracker.Next();
-            Sector sector = m_bspTree.ToSector(position);
+            Sector sector = m_world.BspTree.ToSector(position);
             Entity entity = new Entity(id, definition, position, angle, sector);
             
             LinkableNode<Entity> node = Entities.Add(entity);

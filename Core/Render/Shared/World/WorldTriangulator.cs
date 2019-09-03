@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Helion.Maps;
-using Helion.Maps.Enums;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World

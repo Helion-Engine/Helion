@@ -16,14 +16,8 @@ namespace Helion.World.Geometry.Builder
     public class DoomGeometryBuilder : GeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-        private DoomGeometryBuilder(List<Line> lines, List<Side> sides, List<Wall> walls, List<Sector> sectors, 
-            List<SectorSpan> sectorSpans, List<SectorPlane> sectorPlanes, BspTree bspTree) 
-            : base(lines, sides, walls, sectors, sectorSpans, sectorPlanes, bspTree)
-        {
-        }
-
-        public static DoomGeometryBuilder? Create(DoomMap map)
+        
+        public static MapGeometry? Create(DoomMap map)
         {
             List<Sector> sectors = new List<Sector>();
             List<SectorSpan> sectorSpans = new List<SectorSpan>();
@@ -41,7 +35,7 @@ namespace Helion.World.Geometry.Builder
             
             // TODO: Connect subsector to sectors, and subsector segments to sides (and/or lines)?
 
-            return new DoomGeometryBuilder(lines, sides, walls, sectors, sectorSpans, sectorPlanes, bspTree);
+            return new MapGeometry(lines, sides, walls, sectors, sectorSpans, sectorPlanes, bspTree);
         }
 
         private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face)
