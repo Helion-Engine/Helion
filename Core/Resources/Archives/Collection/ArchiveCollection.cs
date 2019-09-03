@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
 using Helion.Maps;
+using Helion.Maps.Entries;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Archives.Iterator;
 using Helion.Resources.Archives.Locator;

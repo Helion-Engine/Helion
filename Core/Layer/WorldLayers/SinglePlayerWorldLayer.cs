@@ -1,6 +1,7 @@
 using System;
 using Helion.Input;
 using Helion.Maps;
+using Helion.Maps.Entries;
 using Helion.Render.Commands;
 using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;

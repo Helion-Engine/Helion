@@ -5,6 +5,7 @@ using Helion.Bsp.Builder;
 using Helion.Bsp.Builder.Stepwise;
 using Helion.Bsp.Node;
 using Helion.Maps;
+using Helion.Maps.Entries;
 using Helion.Maps.Geometry;
 using Helion.Maps.Geometry.Lines;
 using Helion.Util;

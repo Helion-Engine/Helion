@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using Helion.Bsp.Builder.Stepwise;
 using Helion.Maps;
+using Helion.Maps.Entries;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 

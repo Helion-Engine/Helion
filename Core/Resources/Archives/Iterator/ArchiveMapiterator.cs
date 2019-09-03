@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Helion.Maps;
+using Helion.Maps.Entries;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;

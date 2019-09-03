@@ -1,7 +1,7 @@
 ﻿using Helion.Maps.Enums;
 using Helion.Util;
 
-namespace Helion.Maps
+namespace Helion.Maps.Entries
 {
     /// <summary>
     /// Contains all the entries that belong to a map collection. This is *not*
