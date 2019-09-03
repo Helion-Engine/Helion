@@ -5,11 +5,12 @@ using Helion.Bsp.Builder;
 using Helion.Bsp.Builder.Stepwise;
 using Helion.Bsp.Node;
 using Helion.Maps;
-using Helion.Maps.Entries;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.World.Geometry;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -26,7 +27,7 @@ namespace Helion.World.Bsp
         /// <summary>
         /// All the segments, which are the edges of the subsector.
         /// </summary>
-        public List<SubsectorEdge> Segments = new List<SubsectorEdge>();
+        public List<SubsectorSegment> Segments = new List<SubsectorSegment>();
 
         /// <summary>
         /// All the subsectors, the convex leaves at the bottom of the BSP 
@@ -59,12 +60,7 @@ namespace Helion.World.Bsp
         /// This is the end index of the nodes array because the recursive
         /// traversal fills in the array from post-order traversal.
         /// </remarks>
-        public BspNodeCompact Root => Nodes[Nodes.Length - 1];
-
-        /// <summary>
-        /// The index of the root node. This will always be a BSP node.
-        /// </summary>
-        public uint RootIndex => (uint)(Nodes.Length - 1);
+        public BspNodeCompact Root => Nodes[^1];
 
         /// <summary>
         /// Gets the subsector that maps onto the point provided.
@@ -110,6 +106,7 @@ namespace Helion.World.Bsp
         private BspTree(BspNode root, IMap map)
         {
             Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
+            
             CreateComponents(root, map);
         }
         
@@ -118,13 +115,10 @@ namespace Helion.World.Bsp
         /// for the map is corrupt and we cannot make a BSP tree.
         /// </summary>
         /// <param name="map">The map to build the tree from.</param>
-        /// <param name="mapEntryCollection">An optional parameter which may
-        /// contain GLBSP nodes that we can use.</param>
         /// <returns>A built BSP tree, or a null value if the geometry for the
         /// map is corrupt beyond repair.</returns>
-        public static BspTree? Create(IMap map, MapEntryCollection? mapEntryCollection = null)
+        public static BspTree? Create(IMap map)
         {
-            // TODO: Should use the optimized version when it's time!
             IBspBuilder builderBase = new StepwiseBspBuilder(map);
             BspNode? root = builderBase.Build();
 
@@ -135,7 +129,7 @@ namespace Helion.World.Bsp
             return null;
         }
         
-        private static Side? GetSideFromEdge(Helion.Bsp.Node.SubsectorEdge edge)
+        private static Side? GetSideFromEdge(SubsectorEdge edge)
         {
             if (edge.Line == null)
                 return null;
@@ -153,7 +147,7 @@ namespace Helion.World.Bsp
             int subsectorNodeCount = parentNodeCount + 1;
             int segmentCountGuess = subsectorNodeCount * 4;
 
-            Segments = new List<SubsectorEdge>(segmentCountGuess);
+            Segments = new List<SubsectorSegment>(segmentCountGuess);
             Subsectors = new Subsector[subsectorNodeCount];
             Nodes = new BspNodeCompact[parentNodeCount];
 
@@ -173,9 +167,8 @@ namespace Helion.World.Bsp
 
         private BspCreateResult CreateSubsector(BspNode node)
         {
-            List<SubsectorEdge> clockwiseSegments = CreateClockwiseSegments(node);
+            List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node);
 
-            // Apparently contravariance doesn't work with lists...
             List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Cast<Seg2D>().ToList();
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
             
@@ -185,14 +178,14 @@ namespace Helion.World.Bsp
             return BspCreateResult.Subsector(m_nextSubsectorIndex++);
         }
 
-        private List<SubsectorEdge> CreateClockwiseSegments(BspNode node)
+        private List<SubsectorSegment> CreateClockwiseSegments(BspNode node)
         {
-            List<SubsectorEdge> returnSegments = new List<SubsectorEdge>();
+            List<SubsectorSegment> returnSegments = new List<SubsectorSegment>();
          
-            foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
+            foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge);
-                SubsectorEdge subsectorEdge = new SubsectorEdge(Segments.Count, side, edge.Start, edge.End);
+                SubsectorSegment subsectorEdge = new SubsectorSegment(Segments.Count, side, edge.Start, edge.End);
                 
                 returnSegments.Add(subsectorEdge);
                 Segments.Add(subsectorEdge);
@@ -203,7 +196,7 @@ namespace Helion.World.Bsp
         
         private Sector GetSectorFrom(BspNode node)
         {
-            foreach (Helion.Bsp.Node.SubsectorEdge edge in node.ClockwiseEdges)
+            foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Sector? sector = edge.Sector;
                 if (sector != null)

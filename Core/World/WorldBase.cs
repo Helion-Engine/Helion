@@ -1,6 +1,5 @@
 ﻿using System;
 using Helion.Maps;
-using Helion.Maps.Special;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;

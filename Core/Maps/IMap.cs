@@ -1,39 +1,52 @@
 using System.Collections.Generic;
-using Helion.Maps.Enums;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
-using Helion.Maps.Things;
-using Helion.Util;
+using Helion.Maps.Components;
 
 namespace Helion.Maps
 {
+    /// <summary>
+    /// The interface for a map with map components. This can be loaded by a
+    /// things like a world, map editor, resource editor... etc.
+    /// </summary>
     public interface IMap
     {
-        CIString Name { get; }
-
+        /// <summary>
+        /// The name of the map.
+        /// </summary>
+        string Name { get; }
+        
+        /// <summary>
+        /// The type of map this is.
+        /// </summary>
         MapType MapType { get; }
-
-        IList<Line> Lines { get; }
         
-        IList<Thing> Things { get; }
+        /// <summary>
+        /// Gets the lines for this map.
+        /// </summary>
+        /// <returns>The lines for this map.</returns>
+        IReadOnlyList<ILine> GetLines();
         
-        IList<Side> Sides { get; }
+        /// <summary>
+        /// Gets the lines for this map.
+        /// </summary>
+        /// <returns>The lines for this map.</returns>
+        IReadOnlyList<ISector> GetSectors();
         
-        IList<Sector> Sectors { get; }
+        /// <summary>
+        /// Gets the sides for this map.
+        /// </summary>
+        /// <returns>The sides for this map.</returns>
+        IReadOnlyList<ISide> GetSides();
         
-        IList<SectorFlat> SectorFlats { get; }
+        /// <summary>
+        /// Gets the things for this map.
+        /// </summary>
+        /// <returns>The things for this map.</returns>
+        IReadOnlyList<IThing> GetThings();
         
-        IList<Vertex> Vertices { get; }
-
-        Sector? GetLowestAdjacentFloor(Sector sector);
-        Sector? GetHighestAdjacentFloor(Sector sector);
-        Sector? GetLowestAdjacentCeiling(Sector sector);
-        Sector? GetHighestAdjacentCeiling(Sector sector);
-        Sector? GetNextLowestFloor(Sector sector);
-        Sector? GetNextLowestCeiling(Sector sector);
-        Sector? GetNextHighestFloor(Sector sector);
-        Sector? GetNextHighestCeiling(Sector sector);
-        short GetMinLightLevelNeighbor(Sector sector);
-        short GetMaxLightLevelNeighbor(Sector sector);
+        /// <summary>
+        /// Gets the vertices for this map.
+        /// </summary>
+        /// <returns>The vertices for this map.</returns>
+        IReadOnlyList<IVertex> GetVertices();
     }
 }

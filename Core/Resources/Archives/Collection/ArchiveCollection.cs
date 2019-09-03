@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
 using Helion.Maps;
-using Helion.Maps.Entries;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Archives.Iterator;
 using Helion.Resources.Archives.Locator;
@@ -68,7 +67,7 @@ namespace Helion.Resources.Archives.Collection
             return true;
         }
 
-        public (IMap? Map, MapEntryCollection? EntryCollection) FindMap(string mapName)
+        public IMap? FindMap(string mapName)
         {
             string upperName = mapName.ToUpper();
 
@@ -85,16 +84,16 @@ namespace Helion.Resources.Archives.Collection
                     // confusing to the user in the case where they ask for the
                     // most recent map which is corrupt, but then get some
                     // earlier map in the pack which is not corrupt.
-                    IMap? map = Map.From(mapEntryCollection);
+                    IMap? map = MapReader.Read(mapEntryCollection);
                     if (map != null) 
-                        return (map, mapEntryCollection);
+                        return map;
                     
                     Log.Warn("Unable to use map {0}, it is corrupt", upperName);
-                    return (null, null);
+                    return null;
                 }
             }
             
-            return (null, null);
+            return null;
         }
         
         public Font? CompileFont(CIString name)

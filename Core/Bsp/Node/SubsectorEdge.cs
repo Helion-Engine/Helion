@@ -2,8 +2,7 @@
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Components;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
@@ -18,7 +17,7 @@ namespace Helion.Bsp.Node
         /// <summary>
         /// The line this is a part of.
         /// </summary>
-        public readonly Line? Line;
+        public readonly ILine? Line;
 
         /// <summary>
         /// The starting vertex.
@@ -44,15 +43,15 @@ namespace Helion.Bsp.Node
         /// <summary>
         /// Gets the sector (if any) for this.
         /// </summary>
-        public Sector? Sector
+        public ISector? Sector
         {
             get
             {
                 if (Line == null)
                     return null;
-                if (Line.Back == null)
-                    return Line.Front.Sector; 
-                return IsFront ? Line.Front.Sector : Line.Back.Sector;
+                if (Line.GetBack() == null)
+                    return Line.GetFront().GetSector(); 
+                return IsFront ? Line.GetFront().GetSector() : Line.GetBack()?.GetSector();
             }
         }
 
@@ -67,9 +66,9 @@ namespace Helion.Bsp.Node
         /// <param name="front">True if this is on the front side, false if it
         /// is the back. This value is not used if this is a miniseg. This
         /// must never be false for a one sided line.</param>
-        public SubsectorEdge(Vec2D start, Vec2D end, Line? line = null, bool front = true)
+        public SubsectorEdge(Vec2D start, Vec2D end, ILine? line = null, bool front = true)
         {
-            Precondition(line == null || front || line.TwoSided, "Provided a one sided segment and said it uses the back side");
+            Precondition(line == null || front || line.GetBack() != null, "Provided a one sided segment and said it uses the back side");
             
             Start = start;
             End = end;

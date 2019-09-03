@@ -99,10 +99,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderWalls(Subsector subsector, in Vec2D position)
         {
-            List<SubsectorEdge> edges = subsector.ClockwiseEdges;
+            List<SubsectorSegment> edges = subsector.ClockwiseEdges;
             for (int i = 0; i < edges.Count; i++)
             {
-                SubsectorEdge edge = edges[i];
+                SubsectorSegment edge = edges[i];
                 if (edge.Line == null || m_lineDrawnTracker.HasDrawn(edge.Line))
                     continue;
 

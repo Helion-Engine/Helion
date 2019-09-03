@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Helion.Maps.Geometry;
 using Helion.Util.Geometry;
+using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Bsp
@@ -9,10 +9,10 @@ namespace Helion.World.Bsp
     {
         public readonly int Id;
         public readonly Sector Sector;
-        public readonly List<SubsectorEdge> ClockwiseEdges;
+        public readonly List<SubsectorSegment> ClockwiseEdges;
         public readonly Box2D BoundingBox;
 
-        public Subsector(int id, Sector sector, List<SubsectorEdge> clockwiseEdges, Box2D boundingBox)
+        public Subsector(int id, Sector sector, List<SubsectorSegment> clockwiseEdges, Box2D boundingBox)
         {
             Precondition(clockwiseEdges.Count >= 3, "Degenerate sector, must be at least a triangle");
 

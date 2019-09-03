@@ -2,7 +2,6 @@
 using System.Numerics;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Maps.Entries;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Assertion;
@@ -46,13 +45,12 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map, 
-            MapEntryCollection? mapEntryCollection)
+        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map)
         {
             BspTree? bspTree = null;
             try
             {
-                bspTree = BspTree.Create(map, mapEntryCollection);
+                bspTree = BspTree.Create(map);
             }
             catch (AssertionException)
             {

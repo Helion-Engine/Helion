@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Helion.Maps.Special;
+using Helion.Maps.Specials;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
 {

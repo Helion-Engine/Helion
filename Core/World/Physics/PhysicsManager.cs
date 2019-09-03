@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
-using Helion.Maps.Special;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics

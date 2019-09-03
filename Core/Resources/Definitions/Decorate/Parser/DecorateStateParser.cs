@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Maps.Special;
+using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -205,7 +205,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             // It is possible that no such action function exists and we would
             // be reading a label or frame.
             string upperText = text.ToUpper();
-            if (upperText.StartsWith("A_") || ActionSpecials.Exists(upperText))
+            if (upperText.StartsWith("A_") || ActionSpecialHelper.Exists(upperText))
             {
                 string functionName = ConsumeIdentifier();
                 ConsumeActionFunctionArgumentsIfAny();

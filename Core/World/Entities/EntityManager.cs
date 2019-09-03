@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Helion.Maps;
-using Helion.Maps.Geometry;
-using Helion.Maps.Things;
+using Helion.Maps.Components;
+using Helion.Maps.Doom.Components;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Container;
@@ -12,6 +12,7 @@ using Helion.World.Bsp;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -91,12 +92,13 @@ namespace Helion.World.Entities
 
             // TODO: Use playerStartLocation w/ cached player spawn locations.
             // TODO: This is only for player 1, which is obviously not what we want.
-            foreach (Thing thing in m_map.Things)
+            foreach (IThing thing in m_map.GetThings())
             {
                 if (thing.EditorNumber != 1)
                     continue;
 
-                return CreatePlayer(1, playerDefinition, thing.Position, thing.AngleRadians);
+                double angleRadians = MathHelper.ToRadians(thing.Angle);
+                return CreatePlayer(1, playerDefinition, thing.Position.ToDouble(), angleRadians);
             }
             
             Log.Warn($"No player 1 spawns in map {m_map.Name}");
@@ -105,10 +107,13 @@ namespace Helion.World.Entities
         
         private void PopulateFrom(IMap map)
         {
-            foreach (Thing thing in map.Things)
+            foreach (IThing mapThing in map.GetThings())
             {
+                // TODO: This will blow up when we get non-doom maps, we'll handle that later.
+                DoomThing thing = (DoomThing)mapThing;
+                
                 // TODO: Temporary!
-                if (!thing.Flags.Doom.SinglePlayer)
+                if (!thing.Flags.SinglePlayer)
                     continue;
                 
                 EntityDefinition? definition = m_definitionComposer[thing.EditorNumber];
@@ -118,7 +123,8 @@ namespace Helion.World.Entities
                     continue;
                 }
 
-                Entity entity = Create(definition, thing.Position, thing.AngleRadians);
+                double angleRadians = MathHelper.ToRadians(thing.Angle);
+                Entity entity = Create(definition, thing.Position.ToDouble(), angleRadians);
                 // TODO: Register entity if it's special (ex: teleporter/spawn)
             }
         }

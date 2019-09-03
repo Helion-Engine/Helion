@@ -142,7 +142,7 @@ namespace Helion.Render.Shared.World
             Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
             
             PlaneD plane = flat.Plane;
-            List<SubsectorEdge> edges = subsector.ClockwiseEdges;
+            List<SubsectorSegment> edges = subsector.ClockwiseEdges;
             verticesToPopulate.Clear();
 
             if (flat.Facing == SectorFlatFace.Ceiling)

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Helion.Maps.Special;
+using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties;
 
 namespace Helion.World.Entities.Definition.Properties

@@ -1,7 +1,6 @@
 using System;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Maps.Entries;
 using Helion.Render.Commands;
 using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
@@ -59,14 +58,14 @@ namespace Helion.Layer.WorldLayers
 
         public bool LoadMap(string mapName)
         {
-            (IMap? map, MapEntryCollection? collection) = ArchiveCollection.FindMap(mapName);
-            if (map == null || collection == null)
+            IMap? map = ArchiveCollection.FindMap(mapName);
+            if (map == null)
             {
                 Log.Warn("Unable to find map {0}", mapName);
                 return false;
             }
 
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, map, collection);
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, map);
             if (world == null)
             {
                 Log.Error("Unable to load map {0}", mapName);
@@ -156,7 +155,7 @@ namespace Helion.Layer.WorldLayers
             switch (e.ChangeType)
             {
             case LevelChangeType.Next:
-                LoadMap(GetNextLevelName(m_world.Map.Name.ToString()));
+                LoadMap(GetNextLevelName(m_world.Map.Name));
                 break;
             case LevelChangeType.SecretNext:
                 // TODO: When we have MAPINFO working, we can do this.
