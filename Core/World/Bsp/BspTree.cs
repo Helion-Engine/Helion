@@ -5,8 +5,10 @@ using Helion.Bsp.Builder;
 using Helion.Bsp.Builder.Stepwise;
 using Helion.Bsp.Node;
 using Helion.Maps;
+using Helion.Maps.Components;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -70,7 +72,6 @@ namespace Helion.World.Bsp
         {
             BspNodeCompact node = Root;
 
-            // TODO: Would doing the `side ^ 1` optimization get us any perf?
             while (true)
             {
                 if (node.Splitter.OnRight(point))
@@ -102,11 +103,11 @@ namespace Helion.World.Bsp
         /// <returns>The sector for the provided point.</returns>
         public Sector ToSector(Vec3D point) => ToSubsector(point.To2D()).Sector;
         
-        private BspTree(BspNode root, IMap map)
+        private BspTree(BspNode root, GeometryBuilder builder)
         {
             Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
             
-            CreateComponents(root, map);
+            CreateComponents(root, builder);
         }
         
         /// <summary>
@@ -114,32 +115,37 @@ namespace Helion.World.Bsp
         /// for the map is corrupt and we cannot make a BSP tree.
         /// </summary>
         /// <param name="map">The map to build the tree from.</param>
+        /// <param name="builder">The geometry builder for the map.</param>
         /// <returns>A built BSP tree, or a null value if the geometry for the
         /// map is corrupt beyond repair.</returns>
-        public static BspTree? Create(IMap map)
+        public static BspTree? Create(IMap map, GeometryBuilder builder)
         {
             IBspBuilder builderBase = new StepwiseBspBuilder(map);
             BspNode? root = builderBase.Build();
-
-            if (root != null) 
-                return new BspTree(root, map);
+            if (root == null)
+            {
+                Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
+                return null;
+            }
             
-            Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
-            return null;
+            return new BspTree(root, builder);
         }
         
-        private static Side? GetSideFromEdge(SubsectorEdge edge)
+        private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
         {
             if (edge.Line == null)
                 return null;
 
-            Precondition(!edge.Line.OneSided || edge.IsFront, "Trying to get a back side for a one sided line");
-            
-            Line line = edge.Line;
+            // This should never be wrong because the edge line ID's should be
+            // shared with the instantiated lines.
+            Invariant(edge.Line.Id < builder.Lines.Count, "Expected a continuous and well formed line ID range");
+            Line line = builder.Lines[edge.Line.Id];
+
+            Precondition(!(line.OneSided && !edge.IsFront), "Trying to get a back side for a one sided line");
             return edge.IsFront ? line.Front : line.Back;
         }
 
-        private void CreateComponents(BspNode root, IMap map)
+        private void CreateComponents(BspNode root, GeometryBuilder builder)
         {
             // Since it's a full binary tree, N nodes implies N + 1 leaves.
             int parentNodeCount = root.CalculateParentNodeCount();
@@ -150,40 +156,40 @@ namespace Helion.World.Bsp
             Subsectors = new Subsector[subsectorNodeCount];
             Nodes = new BspNodeCompact[parentNodeCount];
 
-            RecursivelyCreateComponents(root, map);
+            RecursivelyCreateComponents(root, builder);
 
             Postcondition(m_nextSubsectorIndex <= ushort.MaxValue, "Subsector index overflow (need a 4-byte BSP tree for this map)");
             Postcondition(m_nextNodeIndex <= ushort.MaxValue, "Node index overflow (need a 4-byte BSP tree for this map)");
         }
 
-        private BspCreateResult RecursivelyCreateComponents(BspNode? node, IMap map)
+        private BspCreateResult RecursivelyCreateComponents(BspNode? node, GeometryBuilder builder)
         {
             if (node == null || node.IsDegenerate)
                 throw new HelionException("Should never recurse onto a null/degenerate node when composing a world BSP tree");
 
-            return node.IsSubsector ? CreateSubsector(node) : CreateNode(node, map);
+            return node.IsSubsector ? CreateSubsector(node, builder) : CreateNode(node, builder);
         }
 
-        private BspCreateResult CreateSubsector(BspNode node)
+        private BspCreateResult CreateSubsector(BspNode node, GeometryBuilder builder)
         {
-            List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node);
+            List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
 
             List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Cast<Seg2D>().ToList();
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
             
-            Sector sector = GetSectorFrom(node);
+            Sector sector = GetSectorFrom(node, builder);
             Subsectors[m_nextSubsectorIndex] = new Subsector((int)m_nextSubsectorIndex, sector, clockwiseSegments, bbox);
 
             return BspCreateResult.Subsector(m_nextSubsectorIndex++);
         }
 
-        private List<SubsectorSegment> CreateClockwiseSegments(BspNode node)
+        private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
         {
             List<SubsectorSegment> returnSegments = new List<SubsectorSegment>();
          
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
-                Side? side = GetSideFromEdge(edge);
+                Side? side = GetSideFromEdge(edge, builder);
                 SubsectorSegment subsectorEdge = new SubsectorSegment(Segments.Count, side, edge.Start, edge.End);
                 
                 returnSegments.Add(subsectorEdge);
@@ -193,25 +199,29 @@ namespace Helion.World.Bsp
             return returnSegments;
         }
         
-        private Sector GetSectorFrom(BspNode node)
+        private Sector GetSectorFrom(BspNode node, GeometryBuilder builder)
         {
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
-                Sector? sector = edge.Sector;
-                if (sector != null)
-                    return sector;
+                ISector? edgeSector = edge.Sector;
+                if (edgeSector == null)
+                    continue;
+                
+                // If this ever is wrong, something has gone terribly wrong
+                // with building the geometry.
+                return builder.Sectors[edge.Sector.Id];
             }
 
             throw new NullReferenceException("BSP building malformed, subsector made up of only minisegs (or is a not a leaf)");
         }
 
-        private BspCreateResult CreateNode(BspNode node, IMap map)
+        private BspCreateResult CreateNode(BspNode node, GeometryBuilder builder)
         {
             if (node.Splitter == null)
                 throw new NullReferenceException("Malformed BSP node, splitter should never be null");
             
-            BspCreateResult left = RecursivelyCreateComponents(node.Left, map);
-            BspCreateResult right = RecursivelyCreateComponents(node.Right, map);
+            BspCreateResult left = RecursivelyCreateComponents(node.Left, builder);
+            BspCreateResult right = RecursivelyCreateComponents(node.Right, builder);
             Box2D bbox = MakeBoundingBoxFrom(left, right);
 
             BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter, bbox);

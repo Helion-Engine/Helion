@@ -4,10 +4,8 @@ using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
-using Helion.World.Bsp;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
@@ -49,23 +47,6 @@ namespace Helion.World.Impl.SinglePlayer
 
         public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map)
         {
-            BspTree? bspTree = null;
-            try
-            {
-                bspTree = BspTree.Create(map);
-            }
-            catch (AssertionException)
-            {
-                Log.Error("Assertion error triggered when building BSP tree for map");
-            }
-            catch
-            {
-                Log.Error("BSP builder cannot process the map, geometry is malformed");
-            }
-
-            if (bspTree == null)
-                return null;
-
             MapGeometry? geometry = GeometryBuilder.Create(map);
             if (geometry == null)
             {

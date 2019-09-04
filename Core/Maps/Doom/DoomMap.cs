@@ -193,6 +193,13 @@ namespace Helion.Maps.Doom
                 DoomSide? back = null;
                 DoomLineFlags lineFlags = new DoomLineFlags(flags);
                 DoomLineType lineType = (DoomLineType)type;
+
+                if (startVertexId == endVertexId || startVertex.PositionFixed == endVertex.PositionFixed)
+                {
+                    Log.Warn("Zero length line segment (id = {0}) detected, skipping malformed line", id);
+                    id--; // We want a continuous chain of IDs.
+                    continue;
+                }
                 
                 if (leftSidedef != 0xFFFFU)
                     back = sides[leftSidedef];

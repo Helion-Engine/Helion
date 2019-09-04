@@ -12,12 +12,13 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
@@ -82,8 +83,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void PreloadAllTextures(WorldBase world)
         {
-            world.Lines.SelectMany(GetSides)
-                .SelectMany(side => new[] { side.UpperTexture.ToString(), side.MiddleTexture.ToString(), side.LowerTexture.ToString() })
+            world.Lines.SelectMany(line => line.Sides)
+                .SelectMany(side => side.Walls)
+                .Select(wall => wall.Texture)
                 .Distinct()
                 .ForEach(texName => m_textureManager.TryGetWall(texName, out _));
 
@@ -91,9 +93,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 .Select(flat => flat.Texture.ToString())
                 .Distinct()
                 .ForEach(texName => m_textureManager.TryGetWall(texName, out _));
-
-            // TODO: Can we work this into the Line object itself?
-            Side[] GetSides(Line line) => line.Back != null ? new[] { line.Front, line.Back } : new[] { line.Front };
         }
 
         private void RenderWalls(Subsector subsector, in Vec2D position)
@@ -113,7 +112,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 if (side == null)
                     throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
-                RenderSide(edge.Line, side, onFrontSide);
+                RenderSide(side, onFrontSide);
                 
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
                 if (edge.Line.OneSided)
@@ -121,23 +120,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             }
         }
 
-        private void RenderSide(Line line, Side side, bool isFrontSide)
+        private void RenderSide(Side side, bool isFrontSide)
         {
-            // TODO: All of the following functions and their children can be heavily refactored!
-            if (side.PartnerSide == null)
-                RenderOneSided(line, side);
+            if (!(side is TwoSided twoSided))
+                RenderOneSided(side);
             else
-                RenderTwoSided(line, side, side.PartnerSide, isFrontSide);
+                RenderTwoSided(twoSided, isFrontSide);
         }
 
-        private void RenderOneSided(Line line, Side side)
+        private void RenderOneSided(Side side)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             
             Sector sector = side.Sector;
             short lightLevel = sector.LightLevel;
-            m_textureManager.TryGetWall(side.MiddleTexture, out GLLegacyTexture texture);
-            WallVertices wall = WorldTriangulator.HandleOneSided(line, side, texture.UVInverse, m_tickFraction);
+            m_textureManager.TryGetWall(side.Middle.Texture, out GLLegacyTexture texture);
+            WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
             
             RenderWorldData renderData = m_worldDataManager[texture];
             
@@ -156,17 +154,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
         }
 
-        private void RenderTwoSided(Line line, Side facingSide, Side otherSide, bool isFrontSide)
+        private void RenderTwoSided(TwoSided facingSide, bool isFrontSide)
         {
+            TwoSided otherSide = facingSide.PartnerSide; 
             Sector facingSector = facingSide.Sector;
             Sector otherSector = otherSide.Sector;
 
             if (LowerIsVisible(facingSector, otherSector))
-                RenderTwoSidedLower(line, facingSide, otherSide, isFrontSide);
-            if (facingSide.MiddleTexture != Constants.NoTexture)
-                RenderTwoSidedMiddle(line, facingSide, otherSide, isFrontSide);
+                RenderTwoSidedLower(facingSide, otherSide, isFrontSide);
+            if (facingSide.Middle.Texture != Constants.NoTexture)
+                RenderTwoSidedMiddle(facingSide, otherSide, isFrontSide);
             if (UpperIsVisible(facingSector, otherSector))
-                RenderTwoSidedUpper(line, facingSide, otherSide, isFrontSide);
+                RenderTwoSidedUpper(facingSide, otherSide, isFrontSide);
         }
 
         private bool LowerIsVisible(Sector facingSector, Sector otherSector)
@@ -183,18 +182,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             return facingZ > otherZ;
         }
 
-        private void RenderTwoSidedLower(Line line, Side facingSide, Side otherSide, bool isFrontSide)
+        private void RenderTwoSidedLower(TwoSided facingSide, Side otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             
             bool isSky = otherSide.Sector.Floor.Texture == Constants.SkyTexture;
             short lightLevel = facingSide.Sector.LightLevel;
             
-            m_textureManager.TryGetWall(facingSide.LowerTexture, out GLLegacyTexture texture);
+            m_textureManager.TryGetWall(facingSide.Lower.Texture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
-            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(line, facingSide, otherSide, 
-                texture.UVInverse, isFrontSide, m_tickFraction);
+            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse, 
+                isFrontSide, m_tickFraction);
             
             if (isSky)
             {
@@ -214,18 +213,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             }
         }
 
-        private void RenderTwoSidedMiddle(Line line, Side facingSide, Side otherSide, bool isFrontSide)
+        private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, bool isFrontSide)
         {
-            Precondition(facingSide.MiddleTexture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
+            Precondition(facingSide.Middle.Texture != Constants.NoTexture, "Should not be rendering a two sided middle with no texture");
 
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             short lightLevel = facingSide.Sector.LightLevel;
-            m_textureManager.TryGetWall(facingSide.MiddleTexture, out GLLegacyTexture texture);
+            m_textureManager.TryGetWall(facingSide.Middle.Texture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
-            WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(line, facingSide, otherSide, 
+            WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide, 
                 texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible);
             
             // If the texture can't be drawn because the level has offsets that
@@ -246,10 +245,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector)
         {
-            SectorFlat facingFloor = facingSector.Floor;
-            SectorFlat facingCeiling = facingSector.Ceiling;
-            SectorFlat otherFloor = otherSector.Floor;
-            SectorFlat otherCeiling = otherSector.Ceiling;
+            SectorPlane facingFloor = facingSector.Floor;
+            SectorPlane facingCeiling = facingSector.Ceiling;
+            SectorPlane otherFloor = otherSector.Floor;
+            SectorPlane otherCeiling = otherSector.Ceiling;
 
             double facingFloorZ = facingFloor.PrevZ.Interpolate(facingFloor.Z, m_tickFraction);
             double facingCeilingZ = facingCeiling.PrevZ.Interpolate(facingCeiling.Z, m_tickFraction);
@@ -266,18 +265,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             return (bottomZ, topZ);
         }
 
-        private void RenderTwoSidedUpper(Line line, Side facingSide, Side otherSide, bool isFrontSide)
+        private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             
             bool isSky = otherSide.Sector.Ceiling.Texture == Constants.SkyTexture;
             short lightLevel = facingSide.Sector.LightLevel;
             
-            m_textureManager.TryGetWall(facingSide.UpperTexture, out GLLegacyTexture texture);
+            m_textureManager.TryGetWall(facingSide.Upper.Texture, out GLLegacyTexture texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
-            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(line, facingSide, otherSide, 
-                texture.UVInverse, isFrontSide, m_tickFraction);
+            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse, 
+                isFrontSide, m_tickFraction);
 
             if (isSky)
             {
@@ -299,12 +298,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderFlats(Subsector subsector)
         {
-            List<SectorFlat> flats = subsector.Sector.Flats;
-            for (int i = 0; i < flats.Count; i++)
-                RenderFlat(subsector, flats[i]);
+            RenderFlat(subsector, subsector.Sector.Floor);
+            RenderFlat(subsector, subsector.Sector.Ceiling);
         }
 
-        private void RenderFlat(Subsector subsector, SectorFlat flat)
+        private void RenderFlat(Subsector subsector, SectorPlane flat)
         {
             // TODO: If we can't see it (dot product the plane) then exit.
             

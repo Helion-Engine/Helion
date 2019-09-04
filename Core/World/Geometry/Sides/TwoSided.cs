@@ -8,8 +8,9 @@ namespace Helion.World.Geometry.Sides
     {
         public readonly Wall Upper;
         public readonly Wall Lower;
-        
-        public override Side PartnerSide => Line.Front;
+
+        public bool IsBack => !IsFront;
+        public TwoSided PartnerSide => IsFront ? (TwoSided)Line.Back : (TwoSided)Line.Front;
 
         public TwoSided(int id, int mapId, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector) : 
             base(id, mapId, offset, middle, sector)

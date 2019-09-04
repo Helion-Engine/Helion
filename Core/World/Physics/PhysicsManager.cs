@@ -74,16 +74,17 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorFlat flat, SectorMoveType moveType, MoveDirection direction, double speed, double destZ, CrushData? crush)
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorMoveType moveType, 
+            MoveDirection direction, double speed, double destZ, CrushData? crush)
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
             // TODO: Handle plane Z soon[tm].
             SectorMoveStatus status = SectorMoveStatus.Success;
-            double startZ = flat.Z;
-            flat.PrevZ = startZ;
-            flat.Z = destZ;
-            flat.Plane.MoveZ(destZ - startZ);
+            double startZ = sectorPlane.Z;
+            sectorPlane.PrevZ = startZ;
+            sectorPlane.Z = destZ;
+            sectorPlane.Plane.MoveZ(destZ - startZ);
 
             foreach (var entity in sector.Entities)
             {
@@ -111,8 +112,8 @@ namespace Helion.World.Physics
                             continue;
                     }
 
-                    flat.Z = startZ;
-                    flat.Plane.MoveZ(startZ - destZ);
+                    sectorPlane.Z = startZ;
+                    sectorPlane.Plane.MoveZ(startZ - destZ);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in sector.Entities)
@@ -128,7 +129,10 @@ namespace Helion.World.Physics
             return status;
         }
 
-        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush) => crush != null && status == SectorMoveStatus.Crush && crush.CrushMode == ZCrushMode.DoomWithSlowDown;
+        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush)
+        {
+            return crush != null && status == SectorMoveStatus.Crush && crush.CrushMode == ZCrushMode.DoomWithSlowDown;
+        }
 
         /// <summary>
         /// Executes use logic on the entity. EntityUseActivated event will

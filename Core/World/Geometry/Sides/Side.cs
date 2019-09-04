@@ -16,8 +16,6 @@ namespace Helion.World.Geometry.Sides
         public Wall[] Walls { get; protected set; }
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
-        public bool IsBack => !IsFront;
-        public virtual Side? PartnerSide => Line.TwoSided ? (ReferenceEquals(this, Line.Front) ? Line.Back : Line.Front) : null;
 
         public Side(int id, int mapId, Vec2I offset, Wall middle, Sector sector)
         {

@@ -2,6 +2,7 @@ using Helion.Maps.Specials;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sides;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Lines
 {
@@ -21,6 +22,8 @@ namespace Helion.World.Geometry.Lines
 
         public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, SpecialArgs? args = null)
         {
+            Precondition(id == mapId, "Line mismatch from generated ID to map ID");
+            
             Id = id;
             MapId = mapId;
             Segment = segment;

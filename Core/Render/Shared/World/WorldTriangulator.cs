@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -13,14 +14,14 @@ namespace Helion.Render.Shared.World
 {
     public static class WorldTriangulator
     {
-        public static WallVertices HandleOneSided(Line line, Side side, Vector2 textureUVInverse, 
-            double tickFraction)
+        public static WallVertices HandleOneSided(Side side, Vector2 textureUVInverse, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
-            
+
+            Line line = side.Line;
             Sector sector = side.Sector;
-            SectorFlat floor = sector.Floor;
-            SectorFlat ceiling = sector.Ceiling;
+            SectorPlane floor = sector.Floor;
+            SectorPlane ceiling = sector.Ceiling;
 
             Vec2D left = line.Segment.Start;
             Vec2D right = line.Segment.End;
@@ -39,14 +40,15 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static WallVertices HandleTwoSidedLower(Line line, Side facingSide, Side otherSide, 
+        public static WallVertices HandleTwoSidedLower(TwoSided facingSide, Side otherSide, 
             Vector2 textureUVInverse, bool isFrontSide, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
-            
+
+            Line line = facingSide.Line;
             Sector sector = facingSide.Sector;
-            SectorFlat topFlat = otherSide.Sector.Floor;
-            SectorFlat bottomFlat = sector.Floor;
+            SectorPlane topFlat = otherSide.Sector.Floor;
+            SectorPlane bottomFlat = sector.Floor;
             
             Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
             Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
@@ -64,7 +66,7 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
         
-        public static WallVertices HandleTwoSidedMiddle(Line line, Side facingSide, Side otherSide, 
+        public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide, Side otherSide, 
             Dimension textureDimension, Vector2 textureUVInverse, double bottomOpeningZ, double topOpeningZ,
             bool isFrontSide, out bool nothingVisible)
         {
@@ -73,7 +75,8 @@ namespace Helion.Render.Shared.World
                 nothingVisible = true;
                 return default;
             }
-            
+
+            Line line = facingSide.Line;
             MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, textureDimension);
             if (drawSpan.NotVisible())
             {
@@ -95,19 +98,20 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static WallVertices HandleTwoSidedUpper(Line line, Side facingSide, Side otherSide, 
-            Vector2 textureUVInverse, bool isFrontSide, double tickFraction)
+        public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, Vector2 textureUVInverse, 
+            bool isFrontSide, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
-            
+
+            Line line = facingSide.Line;
             Sector sector = facingSide.Sector;
-            SectorFlat topFlat = sector.Ceiling;
-            SectorFlat bottomFlat = otherSide.Sector.Ceiling;
+            SectorPlane topPlane = sector.Ceiling;
+            SectorPlane bottomPlane = otherSide.Sector.Ceiling;
             
             Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
             Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
-            double topZ = topFlat.PrevZ.Interpolate(topFlat.Z, tickFraction);
-            double bottomZ = bottomFlat.PrevZ.Interpolate(bottomFlat.Z, tickFraction);
+            double topZ = topPlane.PrevZ.Interpolate(topPlane.Z, tickFraction);
+            double bottomZ = bottomPlane.PrevZ.Interpolate(bottomPlane.Z, tickFraction);
             
             // TODO: If unchanging, we can pre-calculate the length.
             double length = line.Segment.Length();
@@ -127,23 +131,22 @@ namespace Helion.Render.Shared.World
         /// of vertices.
         /// </summary>
         /// <param name="subsector">The subsector to triangulate.</param>
-        /// <param name="flat">The flat plane for the subsector.</param>
+        /// <param name="sectorPlane">The flat plane for the subsector.</param>
         /// <param name="textureDimension">The texture dimension.</param>
         /// <param name="tickFraction">The fractional value for interpolating
         /// the subsector.</param>
         /// <param name="verticesToPopulate">An output array where vertices are
         /// written to upon triangulating.</param>
-        public static void HandleSubsector(Subsector subsector, SectorFlat flat, Dimension textureDimension, 
+        public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, Dimension textureDimension, 
             double tickFraction, DynamicArray<WorldVertex> verticesToPopulate)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
             Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
             
-            PlaneD plane = flat.Plane;
             List<SubsectorSegment> edges = subsector.ClockwiseEdges;
             verticesToPopulate.Clear();
 
-            if (flat.Facing == SectorFlatFace.Ceiling)
+            if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
             {
                 for (int i = 0; i < edges.Count; i++)
                 {
@@ -151,7 +154,7 @@ namespace Helion.Render.Shared.World
                     
                     // TODO: Interpolation and slopes needs a slight change in
                     //       how we store sector flat plane information.
-                    double z = flat.PrevZ.Interpolate(flat.Z, tickFraction);
+                    double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
                     
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, (float)z);
                     Vector2 uv = CalculateFlatUV(vertex, textureDimension);
@@ -170,7 +173,7 @@ namespace Helion.Render.Shared.World
                     
                     // TODO: Interpolation and slopes needs a slight change in
                     //       how we store sector flat plane information.
-                    double z = flat.PrevZ.Interpolate(flat.Z, tickFraction);
+                    double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
                     
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, (float)z);
                     Vector2 uv = CalculateFlatUV(vertex, textureDimension);

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Util.Geometry;
@@ -13,29 +12,24 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Builder
 {
-    public class DoomGeometryBuilder : GeometryBuilder
+    public class DoomGeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
         public static MapGeometry? Create(DoomMap map)
         {
-            List<Sector> sectors = new List<Sector>();
-            List<SectorSpan> sectorSpans = new List<SectorSpan>();
-            List<SectorPlane> sectorPlanes = new List<SectorPlane>();
-            PopulateSectorData(map, sectors, sectorSpans, sectorPlanes);
+            GeometryBuilder builder = new GeometryBuilder();
             
-            List<Line> lines = new List<Line>();
-            List<Side> sides = new List<Side>();
-            List<Wall> walls = new List<Wall>();
-            PopulateLineData(map, lines, sides, walls, sectors);
+            PopulateSectorData(map, builder);
+            PopulateLineData(map, builder);
             
-            BspTree? bspTree = BspTree.Create(map);
+            BspTree? bspTree = BspTree.Create(map, builder);
             if (bspTree == null)
                 return null;
             
             // TODO: Connect subsector to sectors, and subsector segments to sides (and/or lines)?
 
-            return new MapGeometry(lines, sides, walls, sectors, sectorSpans, sectorPlanes, bspTree);
+            return new MapGeometry(builder, bspTree);
         }
 
         private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face)
@@ -50,41 +44,36 @@ namespace Helion.World.Geometry.Builder
             return sectorPlane;
         }
         
-        private static void PopulateSectorData(DoomMap map, List<Sector> sectors, List<SectorSpan> sectorSpans, 
-            List<SectorPlane> sectorPlanes)
+        private static void PopulateSectorData(DoomMap map, GeometryBuilder builder)
         {
             foreach (DoomSector doomSector in map.Sectors)
             {
-                SectorPlane floorPlane = CreateAndAddPlane(doomSector, sectorPlanes, SectorPlaneFace.Floor);
-                SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, sectorPlanes, SectorPlaneFace.Ceiling);
+                SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
+                SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
 
-                SectorSpan span = new SectorSpan(sectorSpans.Count, floorPlane, ceilingPlane);
-                sectorSpans.Add(span);
-                
-                Sector sector = new Sector(sectors.Count, doomSector.Id, doomSector.Tag, doomSector.LightLevel, span);
-                sectors.Add(sector);
+                Sector sector = new Sector(builder.Sectors.Count, doomSector.Id, doomSector.Tag, 
+                    doomSector.LightLevel, floorPlane, ceilingPlane);
+                builder.Sectors.Add(sector);
             }
-            
-            Postcondition(sectors.Any(sector => sector.Id != sector.MapId), "Non-continuous sector allocation detected");
         }
 
-        private static (Side front, Side back) CreateSingleSide(DoomLine doomLine, List<Side> sides, List<Sector> sectors,
-            List<Wall> walls, ref int nextSideId)
+        private static (Side front, Side back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder, 
+            ref int nextSideId)
         {
             DoomSide doomSide = doomLine.Front;
             
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
-            Invariant(doomSide.Sector.Id < sectors.Count, "Sector ID mapping broken");
-            Sector sector = sectors[doomSide.Sector.Id];
+            Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
+            Sector sector = builder.Sectors[doomSide.Sector.Id];
 
             // When we get to 3D floors we're going to have to fix this...
-            Wall wall = new Wall(walls.Count, WallLocation.Middle);
-            walls.Add(wall);
+            Wall wall = new Wall(builder.Walls.Count, doomSide.MiddleTexture, WallLocation.Middle);
+            builder.Walls.Add(wall);
             
             Side front = new Side(nextSideId, doomSide.Id, doomSide.Offset, wall, sector);
-            sides.Add(front);
+            builder.Sides.Add(front);
 
             wall.Side = front;
 
@@ -93,43 +82,41 @@ namespace Helion.World.Geometry.Builder
             return (front, null);
         }
 
-        private static TwoSided CreateTwoSided(DoomSide facingSide, List<Sector> sectors, List<Side> sides, 
-            List<Wall> walls, ref int nextSideId)
+        private static TwoSided CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
         {
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
-            Invariant(facingSide.Sector.Id < sectors.Count, "Sector (facing) ID mapping broken");
-            Sector facingSector = sectors[facingSide.Sector.Id];
+            Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
+            Sector facingSector = builder.Sectors[facingSide.Sector.Id];
             
-            Wall middle = new Wall(walls.Count, WallLocation.Middle);
-            Wall upper = new Wall(walls.Count + 1, WallLocation.Upper);
-            Wall lower = new Wall(walls.Count + 2, WallLocation.Lower);
-            walls.Add(middle);
-            walls.Add(upper);
-            walls.Add(lower);
+            Wall middle = new Wall(builder.Walls.Count, facingSide.MiddleTexture, WallLocation.Middle);
+            Wall upper = new Wall(builder.Walls.Count + 1, facingSide.UpperTexture, WallLocation.Upper);
+            Wall lower = new Wall(builder.Walls.Count + 2, facingSide.LowerTexture, WallLocation.Lower);
+            builder.Walls.Add(middle);
+            builder.Walls.Add(upper);
+            builder.Walls.Add(lower);
             
             TwoSided side = new TwoSided(nextSideId, facingSide.Id, facingSide.Offset, upper, middle, lower, facingSector);
-            sides.Add(side);
+            builder.Sides.Add(side);
 
             nextSideId++;
             
             return side;
         }
 
-        private static (Side front, Side? back) CreateSides(DoomLine doomLine, List<Side> sides, List<Sector> sectors, 
-            List<Wall> walls, ref int nextSideId)
+        private static (Side front, Side? back) CreateSides(DoomLine doomLine, GeometryBuilder builder, 
+            ref int nextSideId)
         {
             if (doomLine.Back == null)
-                return CreateSingleSide(doomLine, sides, sectors, walls, ref nextSideId);
+                return CreateSingleSide(doomLine, builder, ref nextSideId);
 
-            TwoSided front = CreateTwoSided(doomLine.Front, sectors, sides, walls, ref nextSideId);
-            TwoSided back = CreateTwoSided(doomLine.Back, sectors, sides, walls, ref nextSideId);
+            TwoSided front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
+            TwoSided back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
             return (front, back);
         }
 
-        private static void PopulateLineData(DoomMap map, List<Line> lines, List<Side> sides, List<Wall> walls, 
-            List<Sector> sectors)
+        private static void PopulateLineData(DoomMap map, GeometryBuilder builder)
         {
             int nextSideId = 0;
             
@@ -141,13 +128,13 @@ namespace Helion.World.Geometry.Builder
                     continue;
                 }
                 
-                (Side front, Side? back) = CreateSides(doomLine, sides, sectors, walls, ref nextSideId);
+                (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId);
 
                 Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
                 LineFlags flags = new LineFlags(doomLine.Flags);
                 
-                Line line = new Line(lines.Count, doomLine.Id, seg, front, back, flags);
-                lines.Add(line);
+                Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags);
+                builder.Lines.Add(line);
             }
         }
     }
