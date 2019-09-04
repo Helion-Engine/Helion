@@ -9,6 +9,7 @@ using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 

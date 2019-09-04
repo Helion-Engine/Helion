@@ -16,6 +16,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.World;
 using Helion.World.Bsp;
+using Helion.World.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World

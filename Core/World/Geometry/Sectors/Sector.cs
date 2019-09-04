@@ -76,7 +76,7 @@ namespace Helion.World.Geometry.Sectors
         
         public LinkableNode<Entity> Link(Entity entity)
         {
-            Precondition(!ContainsEntityAlready(entity), "Trying to link an entity to a sector twice");
+            Precondition(!Entities.Contains(entity), "Trying to link an entity to a sector twice");
             
             return Entities.Add(entity);            
         }
@@ -91,18 +91,5 @@ namespace Helion.World.Geometry.Sectors
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
 
         public override int GetHashCode() => Id.GetHashCode();
-
-        private bool ContainsEntityAlready(Entity entity)
-        {
-            LinkableNode<Entity>? node = Entities.Head;
-            while (node != null)
-            {
-                if (ReferenceEquals(entity, node.Value))
-                    return true;
-                node = node.Next;
-            }
-
-            return false;
-        }
     }
 }

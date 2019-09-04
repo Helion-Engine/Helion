@@ -12,6 +12,7 @@ using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Subsectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -178,7 +179,7 @@ namespace Helion.World.Bsp
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
             
             Sector sector = GetSectorFrom(node, builder);
-            Subsectors[m_nextSubsectorIndex] = new Subsector((int)m_nextSubsectorIndex, sector, clockwiseSegments, bbox);
+            Subsectors[m_nextSubsectorIndex] = new Subsector((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
 
             return BspCreateResult.Subsector(m_nextSubsectorIndex++);
         }

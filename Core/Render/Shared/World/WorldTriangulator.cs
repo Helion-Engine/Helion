@@ -8,6 +8,7 @@ using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World

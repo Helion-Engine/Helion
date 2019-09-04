@@ -6,6 +6,8 @@ namespace Helion.Maps.Specials
     /// </summary>
     public class SpecialArgs
     {
+        public const int TotalArgs = 5;
+        
         private readonly byte[] m_args;
 
         public byte Arg0

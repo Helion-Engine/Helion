@@ -145,5 +145,11 @@ namespace Helion.Test.Unit.Util.Container.Linkable
             Assert.IsNull(list.Head);
             AssertListSequence(list);
         }
+
+        [TestMethod]
+        public void CorrectlyChecksContains()
+        {
+            Assert.Fail("TODO");
+        }
     }
 }
