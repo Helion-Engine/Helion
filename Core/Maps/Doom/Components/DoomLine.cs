@@ -1,5 +1,6 @@
 using Helion.Maps.Components;
 using Helion.Maps.Doom.Components.Types;
+using Helion.Maps.Specials.Vanilla;
 
 namespace Helion.Maps.Doom.Components
 {
@@ -11,11 +12,11 @@ namespace Helion.Maps.Doom.Components
         public readonly DoomSide Front;
         public readonly DoomSide? Back;
         public readonly DoomLineFlags Flags;
-        public readonly DoomLineType LineType;
+        public readonly VanillaLineSpecialType LineType;
         public readonly ushort SectorTag;
         
         internal DoomLine(int id, DoomVertex start, DoomVertex end, DoomSide front, DoomSide? back, 
-            DoomLineFlags flags, DoomLineType lineType, ushort sectorTag)
+            DoomLineFlags flags, VanillaLineSpecialType lineType, ushort sectorTag)
         {
             Id = id;
             Start = start;

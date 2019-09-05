@@ -1,6 +1,6 @@
-namespace Helion.Maps.Doom.Components.Types
+namespace Helion.Maps.Specials.Vanilla
 {
-    public enum DoomLineType
+    public enum VanillaLineSpecialType
     {
         None,
         DR_DoorOpenClose,
@@ -83,10 +83,10 @@ namespace Helion.Maps.Doom.Components.Types
         Unused1,
         WR_LightOffMinBrightness,
         WR_LightLevelMatchBrightestAdjacent,
-        WR_LightOnMaxBrigthness,
+        WR_LightOnMaxBrightness,
         WR_LowerFloorToLowestAdjacentFloor,
         WR_LowerFloorToHighestAdjacentFloor,
-        WR_LowerFLoorToLowestAdjacentFloorChangeTexture,
+        WR_LowerFloorToLowestAdjacentFloorChangeTexture,
         Unused2,
         WR_OpenDoorStay,
         WR_StartMovingFloorPerpetual,
@@ -103,8 +103,8 @@ namespace Helion.Maps.Doom.Components.Types
         WR_LowerFloorToEightAboveHighestAdjacentFloor,
         SR_OpenBlueKeyFastStay,
         W1_RaiseStairsFast,
-        S1_RaiseFLoorToLowestAdjacentCeiling,
-        S1_LowerFLoorToHighestAdjacentFloor,
+        S1_RaiseFloorToLowestAdjacentCeiling,
+        S1_LowerFloorToHighestAdjacentFloor,
         S1_OpenDoorStay,
         W1_LightMatchDimmestAdjacent,
         WR_OpenDoorFastClose,

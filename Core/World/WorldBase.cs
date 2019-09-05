@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Time;
@@ -20,26 +21,26 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World
 {
-    public abstract class WorldBase : IDisposable
+    public abstract class WorldBase : IWorld
     {
         public event EventHandler<LevelChangeEvent>? LevelExit;
 
         public readonly long CreationTimeNanos;
+        public readonly CIString MapName;
         public readonly Blockmap Blockmap;
-        public readonly IMap Map;
         public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
+        protected readonly MapGeometry Geometry;
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly SpecialManager SpecialManager;
-        private readonly MapGeometry m_geometry;
 
-        public List<Line> Lines => m_geometry.Lines;
-        public List<Side> Sides => m_geometry.Sides;
-        public List<Wall> Walls => m_geometry.Walls;
-        public List<Sector> Sectors => m_geometry.Sectors;
-        public BspTree BspTree => m_geometry.BspTree;
+        public IList<Line> Lines => Geometry.Lines;
+        public IList<Side> Sides => Geometry.Sides;
+        public IList<Wall> Walls => Geometry.Walls;
+        public IList<Sector> Sectors => Geometry.Sectors;
+        public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
         
         protected WorldBase(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map)
@@ -47,13 +48,12 @@ namespace Helion.World
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
             Config = config;
-            Map = map;
-            m_geometry = geometry;
-
+            MapName = map.Name;
+            Geometry = geometry;
             Blockmap = new Blockmap(Lines);
             PhysicsManager = new PhysicsManager(BspTree, Blockmap); 
-            EntityManager = new EntityManager(this, archiveCollection, PhysicsManager, map);
-            SpecialManager = new SpecialManager();
+            EntityManager = new EntityManager(this, archiveCollection);
+            SpecialManager = new SpecialManager(PhysicsManager, this);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
@@ -62,6 +62,19 @@ namespace Helion.World
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             PerformDispose();
+        }
+
+        public void Link(Entity entity)
+        {
+            // TODO: Make sure it's been unlinked!
+            
+            PhysicsManager.LinkToWorld(entity);
+        }
+
+        public void Tick()
+        {
+            // TODO
+            throw new NotImplementedException();
         }
 
         public void Tick(long gametic)
@@ -79,6 +92,16 @@ namespace Helion.World
             Gametick++;
         }
         
+        public IEnumerable<Sector> FindBySectorTag(int tag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Entity> FindByTid(int tid)
+        {
+            return EntityManager.FindByTid(tid);
+        }
+
         public void Dispose()
         {
             PerformDispose();

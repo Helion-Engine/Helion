@@ -1,5 +1,8 @@
-namespace Helion.World.Special
+namespace Helion.Maps.Specials
 {
+    /// <summary>
+    /// Describes how a special is activated.
+    /// </summary>
     public enum ActivationType
     {
         None = -1,

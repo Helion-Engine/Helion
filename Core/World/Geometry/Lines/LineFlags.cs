@@ -1,9 +1,9 @@
 using Helion.Maps.Doom.Components.Types;
-using Helion.World.Special;
+using Helion.Maps.Specials;
 
 namespace Helion.World.Geometry.Lines
 {
-    public struct LineFlags
+    public class LineFlags
     {
         public LineAutomapFlags Automap;
         public LineBlockFlags Blocking;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Maps.Components;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Doom.Components.Types;
+using Helion.Maps.Specials.Vanilla;
 using Helion.Util;
 using Helion.Util.Geometry;
 using NLog;
@@ -192,7 +193,7 @@ namespace Helion.Maps.Doom
                 DoomSide front = sides[rightSidedef];
                 DoomSide? back = null;
                 DoomLineFlags lineFlags = new DoomLineFlags(flags);
-                DoomLineType lineType = (DoomLineType)type;
+                VanillaLineSpecialType lineType = (VanillaLineSpecialType)type;
 
                 if (startVertexId == endVertexId || startVertex.PositionFixed == endVertex.PositionFixed)
                 {
@@ -204,10 +205,10 @@ namespace Helion.Maps.Doom
                 if (leftSidedef != 0xFFFFU)
                     back = sides[leftSidedef];
                 
-                if (type >= Enum.GetNames(typeof(DoomLineType)).Length)
+                if (type >= Enum.GetNames(typeof(VanillaLineSpecialType)).Length)
                 {
                     Log.Warn("Line {0} has corrupt line value (type = {1}), setting line type to 'None'", id, type);
-                    lineType = DoomLineType.None;
+                    lineType = VanillaLineSpecialType.None;
                 }
 
                 DoomLine line = new DoomLine(id, startVertex, endVertex, front, back, lineFlags, lineType, sectorTag);

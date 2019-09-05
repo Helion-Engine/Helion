@@ -155,12 +155,15 @@ namespace Helion.Layer.WorldLayers
             switch (e.ChangeType)
             {
             case LevelChangeType.Next:
-                LoadMap(GetNextLevelName(m_world.Map.Name));
+                string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
+                LoadMap(nextLevelName);
                 break;
+            
             case LevelChangeType.SecretNext:
                 // TODO: When we have MAPINFO working, we can do this.
                 Log.Warn("Change level to secret type to be implemented...");
                 break;
+            
             case LevelChangeType.SpecificLevel:
                 // TODO: Need to figure out this ExMx situation...
                 string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
@@ -172,7 +175,7 @@ namespace Helion.Layer.WorldLayers
         private string GetNextLevelName(string currentName)
         {
             // TODO: We'd use MAPINFO here eventually!
-            // TODO: This ugly function will be fixed with MAPINFO hopefully.
+            // TODO: This ugly function will be fixed with MAPINFO.
 
             if (currentName.Length == 4 && currentName.StartsWith("E", StringComparison.OrdinalIgnoreCase))
             {

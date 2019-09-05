@@ -1,18 +1,22 @@
 using System.Collections.Generic;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
+using Helion.Maps.Specials;
+using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Geometry;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Special;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Builder
 {
-    public class DoomGeometryBuilder
+    public static class DoomGeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
@@ -50,9 +54,10 @@ namespace Helion.World.Geometry.Builder
             {
                 SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
+                ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate((VanillaSectorSpecialType)doomSector.SectorType);
 
                 Sector sector = new Sector(builder.Sectors.Count, doomSector.Id, doomSector.Tag, 
-                    doomSector.LightLevel, floorPlane, ceilingPlane);
+                    doomSector.LightLevel, floorPlane, ceilingPlane, sectorSpecial);
                 builder.Sectors.Add(sector);
             }
         }
@@ -132,8 +137,11 @@ namespace Helion.World.Geometry.Builder
 
                 Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
                 LineFlags flags = new LineFlags(doomLine.Flags);
+                SpecialArgs specialArgs = new SpecialArgs();
+                ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, (byte)doomLine.SectorTag, specialArgs);
+                LineSpecial special = new LineSpecial(zdoomType);
                 
-                Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags);
+                Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
             }
         }

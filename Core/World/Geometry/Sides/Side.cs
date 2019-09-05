@@ -10,8 +10,8 @@ namespace Helion.World.Geometry.Sides
         public readonly int Id;
         public readonly int MapId;
         public readonly Sector Sector;
-        public readonly Vec2I Offset;
         public readonly Wall Middle;
+        public Vec2I Offset;
         public Line Line { get; internal set; }
         public Wall[] Walls { get; protected set; }
 

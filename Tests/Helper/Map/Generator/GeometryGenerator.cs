@@ -1,9 +1,5 @@
 using System.Collections.Generic;
 using Helion.Maps;
-using Helion.Maps.Enums;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
-using Helion.Maps.Things;
 using Helion.Util;
 using Helion.Util.Geometry;
 

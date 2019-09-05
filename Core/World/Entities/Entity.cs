@@ -22,6 +22,7 @@ namespace Helion.World.Entities
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly int Id;
+        public readonly int ThingId;
         public readonly EntityDefinition Definition;
         public double AngleRadians;
         public EntityBox Box;
@@ -55,14 +56,19 @@ namespace Helion.World.Entities
         /// Creates an entity with the following information.
         /// </summary>
         /// <param name="id">A unique ID for this entity.</param>
+        /// <param name="thingId">The 'tid', which is a lookup ID. This differs
+        /// from the ID because multiple entities can share the thing ID, but
+        /// the other one must be unique.</param>
         /// <param name="definition">The definitions for the entity.</param>
         /// <param name="position">The location in the world.</param>
         /// <param name="angleRadians">The angle in radians.</param>
         /// <param name="sector">The sector that the center of the entity is on.
         /// </param>
-        public Entity(int id, EntityDefinition definition, Vec3D position, double angleRadians, Sector sector)
+        public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
+            Sector sector)
         {
             Id = id;
+            ThingId = thingId;
             Definition = definition;
             AngleRadians = angleRadians;
             Box = new EntityBox(position, Radius, Height);
@@ -71,7 +77,7 @@ namespace Helion.World.Entities
             LowestCeilingSector = sector;
             HighestFloorSector = sector;
             // TODO: Link to sector?
-            OnGround = CheckIfOnGround();
+            OnGround = CheckOnGround();
             
             FindInitialFrameIndex();
         }
@@ -97,6 +103,16 @@ namespace Helion.World.Entities
         public void SetXY(Vec2D position)
         {
             Box.SetXY(position);
+        }
+        
+        /// <summary>
+        /// Sets the entity to the new coordinate.
+        /// </summary>
+        /// <param name="position">The new position.</param>
+        public void SetPosition(Vec3D position)
+        {
+            Box.SetXY(position.To2D());
+            Box.SetZ(position.Z);
         }
 
         /// <summary>
@@ -180,13 +196,13 @@ namespace Helion.World.Entities
         
         public bool IsCrushing() => LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
 
+        public bool CheckOnGround() => HighestFloorSector.ToFloorZ(Position) >= Position.Z;
+
         public void Dispose()
         {
             UnlinkFromWorld();
             EntityListNode.Unlink();
         }
-
-        private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
 
         private void TickFrame()
         {

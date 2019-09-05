@@ -159,6 +159,7 @@ namespace Helion.World.Entities.Definition.Flags
         public bool Invisible { get => this[EntityFlag.Invisible]; set => this[EntityFlag.Invisible] = value; }
         public bool Invulnerable { get => this[EntityFlag.Invulnerable]; set => this[EntityFlag.Invulnerable] = value; }
         public bool IsMonster { get => this[EntityFlag.IsMonster]; set => this[EntityFlag.IsMonster] = value; }
+        public bool IsTeleportSpot { get => this[EntityFlag.IsTeleportSpot]; set => this[EntityFlag.IsTeleportSpot] = value; }
         public bool JumpDown { get => this[EntityFlag.JumpDown]; set => this[EntityFlag.JumpDown] = value; }
         public bool JustAttacked { get => this[EntityFlag.JustAttacked]; set => this[EntityFlag.JustAttacked] = value; }
         public bool JustHit { get => this[EntityFlag.JustHit]; set => this[EntityFlag.JustHit] = value; }

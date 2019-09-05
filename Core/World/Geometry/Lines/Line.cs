@@ -1,7 +1,9 @@
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sides;
+using Helion.World.Special;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Lines
@@ -16,11 +18,23 @@ namespace Helion.World.Geometry.Lines
         public readonly Side[] Sides;
         public readonly SpecialArgs Args;
         public readonly LineFlags Flags;
+        public readonly LineSpecial Special;
+        public bool Activated;
 
         public bool OneSided => Back == null;
         public bool TwoSided => !OneSided;
+        public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
+        
+        // TODO: Any way we can encapsulate this somehow?
+        public bool HasSectorTag => SectorTag > 0;
+        public int SectorTag => Args.Arg0;
+        public byte TagArg => Args.Arg0;
+        public byte SpeedArg => Args.Arg1;
+        public byte DelayArg => Args.Arg2;
+        public byte AmountArg => Args.Arg2;
 
-        public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, SpecialArgs? args = null)
+        public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, 
+            LineSpecial lineSpecial, SpecialArgs args)
         {
             Precondition(id == mapId, "Line mismatch from generated ID to map ID");
             
@@ -30,12 +44,18 @@ namespace Helion.World.Geometry.Lines
             Front = front;
             Back = back;
             Sides = (back == null ? new[] { front } : new[] { front, back });
-            Args = args ?? new SpecialArgs();
             Flags = flags;
+            Special = lineSpecial;
+            Args = args;
 
             front.Line = this;
+            front.Sector.Lines.Add(this);
+
             if (back != null)
+            {
                 back.Line = this;
+                back.Sector.Lines.Add(this);
+            }
         }
 
         /// <summary>

@@ -8,9 +8,16 @@ namespace Helion.Maps.Components
     public interface IThing
     {
         /// <summary>
-        /// The ID of the thing.
+        /// The ID of the thing. This is unique for every single thing.
         /// </summary>
         int Id { get; }
+        
+        /// <summary>
+        /// The thing ID for the thing. This is different from the ID since
+        /// this ID is for looking up things in the map and may be used on
+        /// multiple things, meaning it is not unique.
+        /// </summary>
+        int Tid { get; }
         
         /// <summary>
         /// The position in the map. The Z coordinate will be the most negative

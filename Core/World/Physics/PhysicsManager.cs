@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -9,6 +10,7 @@ using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Special.SectorMovement;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -131,7 +133,9 @@ namespace Helion.World.Physics
 
         private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush)
         {
-            return crush != null && status == SectorMoveStatus.Crush && crush.CrushMode == ZCrushMode.DoomWithSlowDown;
+            return crush != null && 
+                   crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown &&
+                   status == SectorMoveStatus.Crush;
         }
 
         /// <summary>
@@ -287,8 +291,8 @@ namespace Helion.World.Physics
             if (entity.NoClip && entity.IsFlying)
                 return;
 
-            double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
-            double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
+            double lowestCeil = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
+            double highestFloor = entity.HighestFloorSector.ToFloorZ(entity.Position);
 
             if (entity.Box.Top > lowestCeil)
             {
@@ -330,6 +334,7 @@ namespace Helion.World.Physics
                     {
                         if (!entity.NoClip)
                         {
+                            // TODO: Can we do this without LINQ? Make a method for it?
                             if (line.HasSpecial && !entity.IntersectSpecialLines.Any(x => x.Id == line.Id))
                                 entity.IntersectSpecialLines.Add(line);
                         }

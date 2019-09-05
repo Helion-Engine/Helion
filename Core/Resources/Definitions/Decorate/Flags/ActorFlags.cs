@@ -127,6 +127,7 @@ namespace Helion.Resources.Definitions.Decorate.Flags
         public bool? Invisible;
         public bool? Invulnerable;
         public bool? IsMonster;
+        public bool? IsTeleportSpot;
         public bool? JumpDown;
         public bool? JustAttacked;
         public bool? JustHit;

@@ -331,6 +331,8 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Flags.Invulnerable = flags.Invulnerable.Value;
             if (flags.IsMonster != null)
                 definition.Flags.IsMonster = flags.IsMonster.Value;
+            if (flags.IsTeleportSpot != null)
+                definition.Flags.IsTeleportSpot = flags.IsTeleportSpot.Value;
             if (flags.JumpDown != null)
                 definition.Flags.JumpDown = flags.JumpDown.Value;
             if (flags.JustAttacked != null)
