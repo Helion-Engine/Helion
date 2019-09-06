@@ -1,12 +1,13 @@
+using System;
 using System.Collections;
 
 namespace Helion.World.Entities.Definition.Flags
 {
     public class EntityFlags
     {
-        private const int NumFlags = 300;
+        private static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
         
-        private BitArray m_bits = new BitArray(NumFlags);
+        private readonly BitArray m_bits = new BitArray(NumFlags);
 
         public bool AbsMaskAngle { get => this[EntityFlag.AbsMaskAngle]; set => this[EntityFlag.AbsMaskAngle] = value; }
         public bool AbsMaskPitch { get => this[EntityFlag.AbsMaskPitch]; set => this[EntityFlag.AbsMaskPitch] = value; }

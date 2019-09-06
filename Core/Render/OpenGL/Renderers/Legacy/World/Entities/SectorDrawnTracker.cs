@@ -8,7 +8,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
     public class SectorDrawnTracker
     {
-        private int m_maxSectorId;
+        private int m_maxSectorId = -1;
         private BitArray m_sectorWasDrawn = new BitArray(0);
 
         public void UpdateTo(WorldBase world)

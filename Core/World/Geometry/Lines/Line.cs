@@ -24,9 +24,9 @@ namespace Helion.World.Geometry.Lines
         public bool OneSided => Back == null;
         public bool TwoSided => !OneSided;
         public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
+        public bool HasSectorTag => SectorTag > 0;
         
         // TODO: Any way we can encapsulate this somehow?
-        public bool HasSectorTag => SectorTag > 0;
         public int SectorTag => Args.Arg0;
         public byte TagArg => Args.Arg0;
         public byte SpeedArg => Args.Arg1;

@@ -30,10 +30,10 @@ namespace Helion.World.Impl.SinglePlayer
         {
             EntityManager.PopulateFrom(map);
             
-            Player? player = EntityManager.CreatePlayer(1);
+            // TODO: Did we want to force creation of the player if missing? Like stick them at (0, 0)?
+            Player? player = EntityManager.CreatePlayer(0);
             if (player == null)
                 throw new NullReferenceException("TODO: Should not allow this, maybe spawn player forcefully?");
-
             Player = player;
 
             m_cheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
@@ -107,7 +107,7 @@ namespace Helion.World.Impl.SinglePlayer
             }
 
             if (tickCommand.Has(TickCommands.Use))
-                PhysicsManager.EntityUse(Player.Entity);             
+                PhysicsManager.EntityUse(Player.Entity);
         }
         
         protected override void PerformDispose()

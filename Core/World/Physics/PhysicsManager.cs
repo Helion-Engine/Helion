@@ -11,6 +11,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -28,6 +29,8 @@ namespace Helion.World.Physics
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
         private const double SetEntityToFloorSpeedMax = 9;
+
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
@@ -61,8 +64,10 @@ namespace Helion.World.Physics
         public void LinkToWorld(Entity entity)
         {
             Sector lastSector = entity.HighestFloorSector;
+            
             m_blockmap.Link(entity);
             LinkToSectors(entity);
+            
             ClampBetweenFloorAndCeiling(entity, lastSector != entity.HighestFloorSector);
         }
 
@@ -491,12 +496,12 @@ namespace Helion.World.Physics
 
             Vec2D previousPosition = entity.Position.To2D();
             entity.SetXY(nextPosition);
-
+            
             LinkToWorld(entity);
-
+            
             for (int i = 0; i < entity.IntersectSpecialLines.Count; i++)
                 CheckLineSpecialActivation(entity, entity.IntersectSpecialLines[i], previousPosition);
-
+            
             for (int i = 0; i < entity.IntersectEntities.Count; i++)
                 HandleStepIfNeeded(entity, entity.IntersectEntities[i]);
         }
@@ -728,7 +733,7 @@ namespace Helion.World.Physics
         {
             if (entity.Velocity.To2D() == Vec2D.Zero)
                 return;
-
+            
             PerformMoveXY(entity);
             ApplyFriction(entity);
             StopXYMovementIfSmall(entity);
@@ -740,7 +745,7 @@ namespace Helion.World.Physics
                 entity.Velocity.Z *= Friction;
             else if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
-            
+
             // TODO: Check if any entities are in the way of our movement.
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
             ClampBetweenFloorAndCeiling(entity, false);
