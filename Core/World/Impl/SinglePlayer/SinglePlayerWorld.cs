@@ -28,6 +28,8 @@ namespace Helion.World.Impl.SinglePlayer
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map) : 
             base(config, archiveCollection, geometry, map)
         {
+            EntityManager.PopulateFrom(map);
+            
             Player? player = EntityManager.CreatePlayer(1);
             if (player == null)
                 throw new NullReferenceException("TODO: Should not allow this, maybe spawn player forcefully?");

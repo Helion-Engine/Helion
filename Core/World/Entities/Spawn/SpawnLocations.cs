@@ -64,6 +64,8 @@ namespace Helion.World.Entities.Spawn
                 Precondition(!spawns.Contains(entity), "Trying to add the same entity twice to the deathmatch spawns");
                 spawns.Add(entity);
             }
+            else
+                m_playerStarts[playerIndex] = new List<Entity> { entity };
         }
 
         private void AddDeathmatchStart(Entity entity)

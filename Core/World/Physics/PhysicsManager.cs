@@ -102,7 +102,7 @@ namespace Helion.World.Physics
                 LinkToWorld(entity);
 
                 double thingZ = entity.OnGround ? 
-                    entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position.To2D()) : 
+                    entity.HighestFloorSector.ToFloorZ(entity.Position.To2D()) : 
                     entity.Position.Z;
 
                 if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
@@ -361,14 +361,14 @@ namespace Helion.World.Physics
                 LinkableNode<Entity> node = sector.Link(entity);
                 entity.SectorNodes.Add(node);
                 
-                double floorZ = sector.Floor.Plane.ToZ(entity.Position);
+                double floorZ = sector.ToFloorZ(entity.Position);
                 if (floorZ > highestFloorZ)
                 {
                     highestFloor = sector;
                     highestFloorZ = floorZ;
                 }
                 
-                double ceilZ = sector.Ceiling.Plane.ToZ(entity.Position);
+                double ceilZ = sector.ToCeilingZ(entity.Position);
                 if (ceilZ < lowestCeilZ)
                 {
                     lowestCeiling = sector;
