@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Input;
+using NLog;
 
 namespace Helion.World.Cheats
 {
     public class CheatManager
     {
-        private readonly ICheat[] m_cheats = 
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        private static readonly ICheat[] Cheats = 
         {
             new ChangeLevelCheat(),
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
@@ -21,7 +24,7 @@ namespace Helion.World.Cheats
 
         public CheatManager()
         {
-            m_cheatLookup = m_cheats.ToDictionary(x => x.CheatType);
+            m_cheatLookup = Cheats.ToDictionary(cheat => cheat.CheatType);
         }
 
         public void ActivateCheat(CheatType cheatType)
@@ -33,6 +36,7 @@ namespace Helion.World.Cheats
             if (cheat.IsToggleCheat)
                 cheat.Activated = !cheat.Activated;
 
+            Log.Warn("{0} cheat: {1}", cheat.Activated ? "Activated" : "Deactivated", cheat.CheatName);
             CheatActivationChanged?.Invoke(this, cheat);
         }
 
@@ -42,9 +46,9 @@ namespace Helion.World.Cheats
             {
                 m_currentCheat += key.ToString();
 
-                if (m_cheats.Any(x => x.PartialMatch(m_currentCheat)))
+                if (Cheats.Any(x => x.PartialMatch(m_currentCheat)))
                 {
-                    ICheat? cheat = m_cheats.FirstOrDefault(x => x.IsMatch(m_currentCheat));
+                    ICheat? cheat = Cheats.FirstOrDefault(x => x.IsMatch(m_currentCheat));
                     if (cheat != null)
                     {
                         ActivateCheat(cheat.CheatType);
