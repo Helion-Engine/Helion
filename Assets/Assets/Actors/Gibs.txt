@@ -1,0 +1,20 @@
+// Wonderful ZDoom compatibility for gibs...
+actor RealGibs
+{
+    +CORPSE
+    +DONTGIB
+    +DROPOFF
+    +NOTELEPORT
+    
+    States
+    {
+    Spawn:
+        Goto GenericCrush
+    }
+}
+
+actor Gibs : RealGibs 24  
+{
+    ClearFlags
+    SpawnID 146
+}

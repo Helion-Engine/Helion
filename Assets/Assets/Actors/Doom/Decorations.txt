@@ -753,6 +753,22 @@ actor TechLamp2 86
     }
 }
 
+actor Column 2028
+{
+    Height 48
+    ProjectilePassHeight -16
+    Radius 14
+    
+    +SOLID
+    
+    States
+    {
+    Spawn:
+        COLU A -1 Bright
+        Stop
+    }
+}
+
 actor ExplosiveBarrel 2035
 {
     DeathSound "world/barrelx"

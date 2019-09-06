@@ -152,7 +152,7 @@ namespace Helion.Util.Geometry
         public float ToFloat() => Bits / 65536.0f;
         public double ToDouble() => Bits / 65536.0;
 
-        public override string ToString() => $"{(float)Bits}";
+        public override string ToString() => $"{ToDouble()}";
         public override bool Equals(object? obj) => obj is Fixed f && Bits == f.Bits;
         public override int GetHashCode() => Bits.GetHashCode();
     }

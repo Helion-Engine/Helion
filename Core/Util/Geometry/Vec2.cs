@@ -218,7 +218,6 @@ namespace Helion.Util.Geometry
         [Pure]
         public Fixed this[int index] => index == 0 ? X : Y;
 
-       
         [Pure]
         public Vec2Fixed Abs() => new Vec2Fixed(X.Abs(), Y.Abs());
         

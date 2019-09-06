@@ -40,6 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\Actors\Base.txt" />
+    <Content Include="Assets\Actors\Bridges.txt" />
     <Content Include="Assets\Actors\Constants.txt" />
     <Content Include="Assets\Actors\Doom\Corpses.txt" />
     <Content Include="Assets\Actors\Doom\Decorations.txt" />
@@ -69,6 +70,7 @@
     <Content Include="Assets\Actors\Doom\Monsters\WolfensteinSS.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\ZombieMan.txt" />
     <Content Include="Assets\Actors\Doom\Weapons.txt" />
+    <Content Include="Assets\Actors\Gibs.txt" />
     <Content Include="Assets\Actors\Items.txt" />
     <Content Include="Assets\Actors\Markers.txt" />
     <Content Include="Assets\Actors\Player.txt" />

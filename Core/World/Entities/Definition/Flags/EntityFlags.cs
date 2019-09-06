@@ -316,5 +316,12 @@ namespace Helion.World.Entities.Definition.Flags
             get => m_bits[(int)flag];
             set => m_bits.Set((int)flag, value);
         }
+
+        public void ClearAll()
+        {
+            int numFlags = Enum.GetValues(typeof(EntityFlag)).Length;
+            for (int i = 0; i < numFlags; i++)
+                this[(EntityFlag)i] = false;
+        }
     }
 }
