@@ -149,7 +149,40 @@ namespace Helion.Test.Unit.Util.Container.Linkable
         [TestMethod]
         public void CorrectlyChecksContains()
         {
-            Assert.Fail("TODO");
+            LinkableList<int> list = new LinkableList<int>();
+            Assert.IsFalse(list.Contains(1));
+            Assert.IsFalse(list.Contains(2));
+            Assert.IsFalse(list.Contains(3));
+            
+            LinkableNode<int> one = list.Add(1);
+            Assert.IsTrue(list.Contains(1));
+            Assert.IsFalse(list.Contains(2));
+            Assert.IsFalse(list.Contains(3));
+            
+            LinkableNode<int> two = list.Add(2);
+            Assert.IsTrue(list.Contains(1));
+            Assert.IsTrue(list.Contains(2));
+            Assert.IsFalse(list.Contains(3));
+            
+            LinkableNode<int> three = list.Add(3);
+            Assert.IsTrue(list.Contains(1));
+            Assert.IsTrue(list.Contains(2));
+            Assert.IsTrue(list.Contains(3));
+            
+            two.Unlink();
+            Assert.IsTrue(list.Contains(1));
+            Assert.IsFalse(list.Contains(2));
+            Assert.IsTrue(list.Contains(3));
+            
+            one.Unlink();
+            Assert.IsFalse(list.Contains(1));
+            Assert.IsFalse(list.Contains(2));
+            Assert.IsTrue(list.Contains(3));
+            
+            three.Unlink();
+            Assert.IsFalse(list.Contains(1));
+            Assert.IsFalse(list.Contains(2));
+            Assert.IsFalse(list.Contains(3));
         }
     }
 }

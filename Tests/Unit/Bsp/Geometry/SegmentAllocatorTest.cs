@@ -1,5 +1,5 @@
 using Helion.Bsp.Geometry;
-using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Components;
 using Helion.Test.Helper.Map.Generator;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -122,14 +122,14 @@ namespace Helion.Test.Unit.Bsp.Geometry
             int startIndex = vertexAllocator[start];
             int endIndex = vertexAllocator[end];
             
-            Line line = new GeometryGenerator()
+            ILine line = new GeometryGenerator()
                 .AddSector()
                 .AddSector()
                 .AddSide(0)
                 .AddSide(1)
                 .AddLine(0, 1, start, end)
                 .ToMap()
-                .Lines[0];
+                .GetLines()[0];
             
             BspSegment segment = segmentAllocator.GetOrCreate(startIndex, endIndex, line);
 

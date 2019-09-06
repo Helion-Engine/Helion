@@ -25,7 +25,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddLine(0, 1, start, end)
                 .ToMap();
             
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 42, map.Lines[0]);
+            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 42, map.GetLines()[0]);
             
             Assert.AreEqual(startIndex, segment.StartIndex);
             Assert.AreEqual(endIndex, segment.EndIndex);
@@ -51,7 +51,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddLine(0, start, end)
                 .ToMap();
             
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 1, map.Lines[0]);
+            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 1, map.GetLines()[0]);
 
             Assert.IsFalse(segment.TwoSided);
             Assert.IsTrue(segment.OneSided);

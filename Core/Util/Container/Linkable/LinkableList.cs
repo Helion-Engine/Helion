@@ -59,7 +59,7 @@ namespace Helion.Util.Container.Linkable
             LinkableNode<T>? node = Head;
             while (node != null)
             {
-                if (ReferenceEquals(obj, node.Value))
+                if (Equals(obj, node.Value))
                     return true;
                 node = node.Next;
             }
