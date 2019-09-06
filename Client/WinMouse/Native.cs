@@ -103,9 +103,9 @@ namespace Helion.Client.WinMouse
             Marshal.FreeHGlobal(rawData);
         }
 
-        public static void CenterMouse(Dimension windowDimension)
+        public static void SetMousePosition(int x, int y)
         {
-            SetCursorPos(windowDimension.Width / 2, windowDimension.Height / 2);
+            SetCursorPos(x, y);
         }
 
         [DllImport("User32.dll", SetLastError = true)]
