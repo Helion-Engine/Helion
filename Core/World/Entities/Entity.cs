@@ -83,7 +83,6 @@ namespace Helion.World.Entities
             HighestFloorZ = sector.Floor.Z;
             HighestFloorSector = sector;
             LowestCeilingSector = sector;
-            // TODO: Link to sector?
             OnGround = CheckOnGround();
             
             FindInitialFrameIndex();
