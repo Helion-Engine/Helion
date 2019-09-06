@@ -65,8 +65,11 @@ namespace Helion.World.Physics
         {
             Sector lastSector = entity.HighestFloorSector;
             
-            m_blockmap.Link(entity);
-            LinkToSectors(entity);
+            if (!entity.Flags.NoBlockmap)
+                m_blockmap.Link(entity);
+            
+            if (!entity.Flags.NoSector)
+                LinkToSectors(entity);
             
             ClampBetweenFloorAndCeiling(entity, lastSector != entity.HighestFloorSector);
         }
@@ -314,7 +317,7 @@ namespace Helion.World.Physics
         private void LinkToSectors(Entity entity)
         {
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
-            
+
             // TODO: We (very likely) do a fair amount of object creation here.
             //       Let's use `stackalloc` for an array in the future and do
             //       direct comparison via iteration. It's probably the very
