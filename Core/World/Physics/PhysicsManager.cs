@@ -60,7 +60,8 @@ namespace Helion.World.Physics
         public void LinkToWorld(Entity entity)
         {
             m_blockmap.Link(entity);
-            LinkToSectorsAndEntities(entity);
+            if (entity.CalculatePhysics)
+                LinkToSectorsAndEntities(entity);
             ClampBetweenFloorAndCeiling(entity);
         }
 
@@ -323,9 +324,6 @@ namespace Helion.World.Physics
 
             foreach (Sector sector in entity.IntersectSectors)
             {
-                LinkableNode<Entity> node = sector.Link(entity);
-                entity.SectorNodes.Add(node);
-
                 double floorZ = sector.Floor.Plane.ToZ(entity.Position);
                 if (floorZ > highestFloorZ)
                 {
@@ -398,6 +396,9 @@ namespace Helion.World.Physics
             entity.IntersectSectors = sectors.ToList();
             entity.IntersectEntities = entities.ToList();
 
+            for (int i = 0; i < entity.IntersectSectors.Count; i++)
+                entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
+
             GridIterationStatus EntitySectorOverlapFinder(Block block)
             {
                 // Doing iteration over enumeration for performance reasons.
@@ -422,7 +423,7 @@ namespace Helion.World.Physics
                 while (entityNode != null)
                 {
                     Entity nextEntity = entityNode.Value;
-                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.To2D().Overlaps(entity.Box.To2D()))
+                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(entity.Box))
                         entities.Add(nextEntity);
 
                     entityNode = entityNode.Next;
@@ -515,12 +516,12 @@ namespace Helion.World.Physics
                 {
                     Entity nextEntity = entityNode.Value;
     
-                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.To2D().Overlaps(nextBox) && 
+                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(nextBox) && 
                         entity.Box.OverlapsZ(nextEntity.Box))
                     {
                         if (EntityBlocksEntityZ(entity, nextEntity))
                             return GridIterationStatus.Stop;
-      
+
                         entity.IntersectEntities.Add(nextEntity);
                     }
 
@@ -533,7 +534,7 @@ namespace Helion.World.Physics
 
         private bool EntityBlocksEntityZ(Entity entity, Entity other)
         {
-            return Math.Abs(entity.Box.Bottom - other.Box.Top) > entity.Properties.MaxStepHeight || 
+            return other.Box.Top - entity.Box.Bottom > entity.Properties.MaxStepHeight || 
                 entity.LowestCeilingZ - other.Box.Top < entity.Height;
         }
 
@@ -785,7 +786,7 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            if (entity.Player != null && entity.IsFlying)
+            if (entity.IsFlying)
                 entity.Velocity.Z *= Friction;
             else if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
