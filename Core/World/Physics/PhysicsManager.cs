@@ -91,7 +91,7 @@ namespace Helion.World.Physics
             double startZ = sectorPlane.Z;
             sectorPlane.PrevZ = startZ;
             sectorPlane.Z = destZ;
-            sectorPlane.Plane.MoveZ(destZ - startZ);
+            sectorPlane.Plane?.MoveZ(destZ - startZ);
 
             foreach (var entity in sector.Entities)
             {
@@ -120,7 +120,7 @@ namespace Helion.World.Physics
                     }
 
                     sectorPlane.Z = startZ;
-                    sectorPlane.Plane.MoveZ(startZ - destZ);
+                    sectorPlane.Plane?.MoveZ(startZ - destZ);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in sector.Entities)
