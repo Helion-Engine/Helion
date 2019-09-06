@@ -31,7 +31,7 @@ namespace Helion.World.Special.Specials
 
             entity.FrozenTics = TeleportFreezeTicks;
             entity.Velocity = Vec3D.Zero;
-            entity.SetPosition(entity.Position);
+            entity.SetPosition(teleportSpot.Position);
             entity.AngleRadians = teleportSpot.AngleRadians;
             if (entity.Player != null)
                 entity.Player.Pitch = 0;
@@ -54,7 +54,7 @@ namespace Helion.World.Special.Specials
             int tid = line.Args.Arg0;
             int tag = line.Args.Arg1;
 
-            if (tid == EntityManager.NoTid && tag == 0)
+            if (tid == EntityManager.NoTid && tag == Sector.NoTag)
                 return null;
             
             if (tid == EntityManager.NoTid)
@@ -64,7 +64,7 @@ namespace Helion.World.Special.Specials
                         if (entity.Flags.IsTeleportSpot)
                             return entity;
             } 
-            else if (tag == 0)
+            else if (tag == Sector.NoTag)
             {
                 foreach (Entity entity in m_world.FindByTid(tid))
                     if (entity.Flags.IsTeleportSpot)

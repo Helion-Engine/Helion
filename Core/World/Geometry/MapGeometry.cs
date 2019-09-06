@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
@@ -16,6 +17,7 @@ namespace Helion.World.Geometry
         public readonly List<Sector> Sectors;
         public readonly List<SectorPlane> SectorPlanes;
         public readonly BspTree BspTree;
+        private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
 
         internal MapGeometry(GeometryBuilder builder, BspTree bspTree)
         {
@@ -25,6 +27,27 @@ namespace Helion.World.Geometry
             Sectors = builder.Sectors;
             SectorPlanes = builder.SectorPlanes;
             BspTree = bspTree;
+
+            TrackSectorsByTag();
+        }
+
+        public IEnumerable<Sector> FindBySectorTag(int tag)
+        {
+            return m_tagToSector.TryGetValue(tag, out IList<Sector>? sectors) ? sectors : Enumerable.Empty<Sector>();
+        }
+
+        private void TrackSectorsByTag()
+        {
+            foreach (Sector sector in Sectors)
+            {
+                if (sector.Tag == Sector.NoTag)
+                    continue;
+
+                if (m_tagToSector.TryGetValue(sector.Tag, out IList<Sector>? sectors))
+                    sectors.Add(sector);
+                else
+                    m_tagToSector[sector.Tag] = new List<Sector> { sector };
+            }
         }
     }
 }

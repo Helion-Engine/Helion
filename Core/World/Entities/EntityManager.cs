@@ -130,11 +130,14 @@ namespace Helion.World.Entities
         private void PostProcessEntity(Entity entity)
         {
             SpawnLocations.AddPossibleSpawnLocation(entity);
-            
-            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity> entities))
-                entities.Add(entity);
-            else
-                TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
+
+            if (entity.ThingId != NoTid)
+            {
+                if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity> entities))
+                    entities.Add(entity);
+                else
+                    TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
+            }
         }
         
         private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double angle)

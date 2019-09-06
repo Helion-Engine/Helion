@@ -14,6 +14,11 @@ namespace Helion.World.Geometry.Sectors
     public class Sector
     {
         /// <summary>
+        /// A value that indicates no tag is present.
+        /// </summary>
+        public const int NoTag = 0;
+        
+        /// <summary>
         /// A unique identifier for this element.
         /// </summary>
         public readonly int Id;

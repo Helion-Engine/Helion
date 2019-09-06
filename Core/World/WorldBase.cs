@@ -73,7 +73,7 @@ namespace Helion.World
 
         public void Tick()
         {
-            // TODO
+            // TODO: Use me?
             throw new NotImplementedException();
         }
 
@@ -94,7 +94,7 @@ namespace Helion.World
         
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {
-            throw new NotImplementedException();
+            return Geometry.FindBySectorTag(tag);
         }
 
         public IEnumerable<Entity> FindByTid(int tid)

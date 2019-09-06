@@ -18,7 +18,7 @@ namespace Helion.Maps.Specials.Vanilla
             case VanillaLineSpecialType.WR_Teleport:
             case VanillaLineSpecialType.W1_MonsterTeleport:
             case VanillaLineSpecialType.WR_MonsterTeleport:
-                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = tag;
                 return ZDoomLineSpecialType.Teleport;
 
             case VanillaLineSpecialType.SR_LowerLiftRaise:
