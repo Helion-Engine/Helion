@@ -54,6 +54,7 @@ namespace Helion.World.Entities
         public EntityFlags Flags => Definition.Flags;
         public EntityProperties Properties => Definition.Properties;
         public EntityFrame Frame => Definition.States.Frames[FrameIndex];
+        public bool CalculatePhysics => Definition.Id != 0;
 
         /// <summary>
         /// Creates an entity with the following information.
@@ -75,6 +76,7 @@ namespace Helion.World.Entities
             LowestCeilingZ = sector.Ceiling.Z;
             HighestFloorZ = sector.Floor.Z;
             HighestFloorSector = sector;
+            LowestCeilingSector = sector;
             // TODO: Link to sector?
             OnGround = CheckIfOnGround();
             
@@ -145,6 +147,10 @@ namespace Helion.World.Entities
             for (int i = 0; i < BlockmapNodes.Count; i++)
                 BlockmapNodes[i].Unlink();
             BlockmapNodes.Clear();
+
+            // Need to remove this from other intersect entities as they will not remove us unless they move
+            for (int i = 0; i < IntersectEntities.Count; i++)
+                IntersectEntities[i].IntersectEntities.Remove(this);
             
             IntersectSpecialLines.Clear();
             IntersectEntities.Clear();
