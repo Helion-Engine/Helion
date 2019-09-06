@@ -219,7 +219,8 @@ namespace Helion.World.Physics
 
             if (activateLine != null)
             {
-                // The use line was blocked by a blocking line
+                // The use line was blocked by a blocking line.
+                // TODO: Epsilon check?
                 if (activateLine.Segment.ClosestDistance(start) != closestDist)
                     activateLine = null;
             }
@@ -287,6 +288,7 @@ namespace Helion.World.Physics
             if (entity.Player != null && !entity.OnGround)
                 entity.Player.SetHitZ(IsHardHitZ(entity));
 
+            // TODO: Should do delta epsilon check.
             Entity? lastOnEntity = entity.OnEntity;
             entity.OnEntity = entity.IntersectEntities.FirstOrDefault(x => x.Box.Top == entity.Box.Bottom);
 
