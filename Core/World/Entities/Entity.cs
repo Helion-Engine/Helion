@@ -34,10 +34,14 @@ namespace Helion.World.Entities
         public bool NoClip;
         public bool OnGround;
         public Sector Sector;
-        public Sector LowestCeilingSector;
+        public double LowestCeilingZ;
+        public double HighestFloorZ;
         public Sector HighestFloorSector;
+        public Sector LowestCeilingSector;
         public List<Line> IntersectSpecialLines = new List<Line>();
         public List<Entity> IntersectEntities = new List<Entity>();
+        public List<Sector> IntersectSectors = new List<Sector>();
+        public Entity? OnEntity;
         protected int FrameIndex;
         protected int TicksInFrame;
         internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
@@ -68,7 +72,8 @@ namespace Helion.World.Entities
             Box = new EntityBox(position, Radius, Height);
             PrevPosition = Box.Position;
             Sector = sector;
-            LowestCeilingSector = sector;
+            LowestCeilingZ = sector.Ceiling.Z;
+            HighestFloorZ = sector.Floor.Z;
             HighestFloorSector = sector;
             // TODO: Link to sector?
             OnGround = CheckIfOnGround();
@@ -143,6 +148,7 @@ namespace Helion.World.Entities
             
             IntersectSpecialLines.Clear();
             IntersectEntities.Clear();
+            IntersectSectors.Clear();
         }
 
         /// <summary>
@@ -178,7 +184,7 @@ namespace Helion.World.Entities
             return false;
         }
         
-        public bool IsCrushing() => LowestCeilingSector.Ceiling.Z - HighestFloorSector.Floor.Z < Height;
+        public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
 
         public void Dispose()
         {
@@ -186,7 +192,7 @@ namespace Helion.World.Entities
             EntityListNode.Unlink();
         }
 
-        private bool CheckIfOnGround() => HighestFloorSector.Floor.Plane.ToZ(Position) >= Position.Z;
+        private bool CheckIfOnGround() => HighestFloorZ >= Position.Z;
 
         private void TickFrame()
         {

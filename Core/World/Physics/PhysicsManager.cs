@@ -59,10 +59,9 @@ namespace Helion.World.Physics
         /// <param name="entity">The entity to link.</param>
         public void LinkToWorld(Entity entity)
         {
-            Sector lastSector = entity.HighestFloorSector;
             m_blockmap.Link(entity);
-            LinkToSectors(entity);
-            ClampBetweenFloorAndCeiling(entity, lastSector != entity.HighestFloorSector);
+            LinkToSectorsAndEntities(entity);
+            ClampBetweenFloorAndCeiling(entity);
         }
 
         /// <summary>
@@ -79,34 +78,41 @@ namespace Helion.World.Physics
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
-            // TODO: Handle plane Z soon[tm].
             SectorMoveStatus status = SectorMoveStatus.Success;
             double startZ = flat.Z;
             flat.PrevZ = startZ;
             flat.Z = destZ;
             flat.Plane.MoveZ(destZ - startZ);
 
-            foreach (var entity in sector.Entities)
+            // Move lower entities first to handle stacked entities
+            IEnumerable<Entity> entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
+
+            foreach (var entity in entities)
             {
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
                 if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
                     entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
                 {
-                    entity.SetZ(destZ, false);
+                    if (entity.OnEntity == null)
+                        entity.SetZ(destZ, false);
+                    else
+                        entity.SetZ(entity.OnEntity.Box.Top, false);
                 }
 
                 entity.UnlinkFromWorld();
                 LinkToWorld(entity);
+            }
 
-                double thingZ = entity.OnGround ? 
-                    entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position.To2D()) : 
-                    entity.Position.Z;
+            foreach (var entity in entities)
+            {
+                SetEntityBoundsZ(entity);
+                double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
 
-                if (thingZ + entity.Height > entity.LowestCeilingSector.Ceiling.Z)
+                if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
                     if (crush != null)
-                    {              
+                    {
                         status = SectorMoveStatus.Crush;
                         if (CrusherShouldContinue(status, crush))
                             continue;
@@ -116,9 +122,10 @@ namespace Helion.World.Physics
                     flat.Plane.MoveZ(startZ - destZ);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
-                    foreach (var relinkEntity in sector.Entities)
+                    foreach (var relinkEntity in entities)
                     {
                         relinkEntity.UnlinkFromWorld();
+                        relinkEntity.SetZ(relinkEntity.PrevPosition.Z, false);
                         LinkToWorld(relinkEntity);
                     }
 
@@ -254,7 +261,7 @@ namespace Helion.World.Physics
             return !opening.CanPassOrStepThrough(entity);
         }
 
-        private static bool EntityBlocksEntity(Entity entity, Entity other)
+        private static bool EntityCanBlockEntity(Entity entity, Entity other)
         {
             if (ReferenceEquals(entity, other))
                 return false;
@@ -265,10 +272,14 @@ namespace Helion.World.Physics
         {
             if (entity.Player != null && !entity.OnGround)
                 entity.Player.SetHitZ(IsHardHitZ(entity));
-            
-            entity.SetZ(floorZ, smoothZ);
+
+            Entity? lastOnEntity = entity.OnEntity;
+            entity.OnEntity = entity.IntersectEntities.FirstOrDefault(x => x.Box.Top == entity.Box.Bottom);
+
+            // Additionally check to smooth camera when stepping up to an entity
+            entity.SetZ(floorZ, smoothZ || lastOnEntity != entity.OnEntity);
             entity.OnGround = true;
-            
+
             // For now we remove any negative velocity. If upward velocity is
             // reset to zero then the jump we apply to players is lost and they
             // can never jump. Maybe we want to fix this in the future by doing
@@ -279,13 +290,17 @@ namespace Helion.World.Physics
         // TODO: Take sector gravity into account when implemented!
         private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
-        private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ)
+        private void ClampBetweenFloorAndCeiling(Entity entity)
         {
             if (entity.NoClip && entity.IsFlying)
                 return;
 
-            double lowestCeil = entity.LowestCeilingSector.Ceiling.Plane.ToZ(entity.Position);
-            double highestFloor = entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position);
+            Sector? lastSector = entity.HighestFloorSector;
+            SetEntityBoundsZ(entity);
+            bool smoothZ = lastSector != entity.HighestFloorSector;
+
+            double lowestCeil = entity.LowestCeilingZ;
+            double highestFloor = entity.HighestFloorZ;
 
             if (entity.Box.Top > lowestCeil)
             {
@@ -299,7 +314,70 @@ namespace Helion.World.Physics
                 entity.OnGround = false;
         }
 
-        private void LinkToSectors(Entity entity)
+        private void SetEntityBoundsZ(Entity entity)
+        {
+            double highestFloorZ = double.MinValue;
+            double lowestCeilZ = double.MaxValue;
+            Sector highestFloor = entity.Sector;
+            Sector lowestCeiling = entity.Sector;
+
+            foreach (Sector sector in entity.IntersectSectors)
+            {
+                LinkableNode<Entity> node = sector.Link(entity);
+                entity.SectorNodes.Add(node);
+
+                double floorZ = sector.Floor.Plane.ToZ(entity.Position);
+                if (floorZ > highestFloorZ)
+                {
+                    highestFloor = sector;
+                    highestFloorZ = floorZ;
+                }
+
+                double ceilZ = sector.Ceiling.Plane.ToZ(entity.Position);
+                if (ceilZ < lowestCeilZ)
+                {
+                    lowestCeiling = sector;
+                    lowestCeilZ = ceilZ;
+                }
+            }
+
+            entity.OnEntity = null;
+
+            foreach (Entity intersectEntity in entity.IntersectEntities)
+            {
+                bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
+                bool below = entity.PrevPosition.Z < intersectEntity.Box.Bottom;
+                bool clipped = false;
+                if (above && entity.Box.Bottom < intersectEntity.Box.Top)
+                    clipped = true;
+                else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
+                    clipped = true;
+
+                if (above)
+                {
+                    // Need to check clipping coming from above, if we are above or clipped through then this is our floor
+                    if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
+                        highestFloorZ = intersectEntity.Box.Top;
+                }
+                else if (below)
+                {
+                    // Same check as above but checking clipping the ceiling
+                    if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
+                        lowestCeilZ = intersectEntity.Box.Bottom;
+                }
+
+                // Need to check if we can step up to this floor
+                if (entity.Box.Bottom + entity.Properties.MaxStepHeight >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
+                    highestFloorZ = intersectEntity.Box.Top;
+            }
+
+            entity.HighestFloorZ = highestFloorZ;
+            entity.LowestCeilingZ = lowestCeilZ;
+            entity.HighestFloorSector = highestFloor;
+            entity.LowestCeilingSector = lowestCeiling;
+        }
+
+        private void LinkToSectorsAndEntities(Entity entity)
         {
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
             
@@ -311,11 +389,14 @@ namespace Helion.World.Physics
             //       performance issues we can resolve as well by fixing this.
             Sector centerSector = m_bspTree.ToSector(entity.Position);
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
+            HashSet<Entity> entities = new HashSet<Entity>();
             
             Box2D box = entity.Box.To2D();
             m_blockmap.Iterate(box, EntitySectorOverlapFinder);
-            
-            PerformSectorLinkingAndBoundDiscovery(entity, sectors, centerSector);
+
+            entity.Sector = centerSector;
+            entity.IntersectSectors = sectors.ToList();
+            entity.IntersectEntities = entities.ToList();
 
             GridIterationStatus EntitySectorOverlapFinder(Block block)
             {
@@ -334,42 +415,21 @@ namespace Helion.World.Physics
                         sectors.Add(line.Front.Sector);
                         if (line.Back != null)
                             sectors.Add(line.Back.Sector);
-                    } 
+                    }
                 }
-                
+
+                LinkableNode<Entity>? entityNode = block.Entities.Head;
+                while (entityNode != null)
+                {
+                    Entity nextEntity = entityNode.Value;
+                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.To2D().Overlaps(entity.Box.To2D()))
+                        entities.Add(nextEntity);
+
+                    entityNode = entityNode.Next;
+                }
+
                 return GridIterationStatus.Continue;
             }
-        }
-
-        private void PerformSectorLinkingAndBoundDiscovery(Entity entity, HashSet<Sector> sectors, Sector centerSector)
-        {
-            double highestFloorZ = double.MinValue;
-            double lowestCeilZ = double.MaxValue;
-            Sector highestFloor = centerSector;
-            Sector lowestCeiling = centerSector;
-            
-            foreach (Sector sector in sectors)
-            {
-                LinkableNode<Entity> node = sector.Link(entity);
-                entity.SectorNodes.Add(node);
-                
-                double floorZ = sector.Floor.Plane.ToZ(entity.Position);
-                if (floorZ > highestFloorZ)
-                {
-                    highestFloor = sector;
-                    highestFloorZ = floorZ;
-                }
-                
-                double ceilZ = sector.Ceiling.Plane.ToZ(entity.Position);
-                if (ceilZ < lowestCeilZ)
-                {
-                    lowestCeiling = sector;
-                    lowestCeilZ = ceilZ;
-                }
-            }
-
-            entity.HighestFloorSector = highestFloor;
-            entity.LowestCeilingSector = lowestCeiling;
         }
         
         private void ClearVelocityXY(Entity entity)
@@ -454,11 +514,14 @@ namespace Helion.World.Physics
                 while (entityNode != null)
                 {
                     Entity nextEntity = entityNode.Value;
-                    if (EntityBlocksEntity(entity, nextEntity))
+    
+                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.To2D().Overlaps(nextBox) && 
+                        entity.Box.OverlapsZ(nextEntity.Box))
                     {
-                        entity.IntersectEntities.Add(nextEntity);
-                        if (nextEntity.Box.To2D().Overlaps(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
+                        if (EntityBlocksEntityZ(entity, nextEntity))
                             return GridIterationStatus.Stop;
+      
+                        entity.IntersectEntities.Add(nextEntity);
                     }
 
                     entityNode = entityNode.Next;
@@ -467,14 +530,11 @@ namespace Helion.World.Physics
                 return GridIterationStatus.Continue;
             }
         }
-        
-        private void HandleStepIfNeeded(Entity entity, Entity other)
+
+        private bool EntityBlocksEntityZ(Entity entity, Entity other)
         {
-            if (!entity.Box.Overlaps(other.Box)) 
-                return;
-            
-            Precondition(entity.Box.Bottom >= other.Box.Top - entity.Properties.MaxStepHeight, "Entity too high to step up onto");
-            SetEntityOnFloorOrEntity(entity, other.Box.Top, true);
+            return Math.Abs(entity.Box.Bottom - other.Box.Top) > entity.Properties.MaxStepHeight || 
+                entity.LowestCeilingZ - other.Box.Top < entity.Height;
         }
 
         private void MoveTo(Entity entity, Vec2D nextPosition)
@@ -488,9 +548,6 @@ namespace Helion.World.Physics
 
             for (int i = 0; i < entity.IntersectSpecialLines.Count; i++)
                 CheckLineSpecialActivation(entity, entity.IntersectSpecialLines[i], previousPosition);
-
-            for (int i = 0; i < entity.IntersectEntities.Count; i++)
-                HandleStepIfNeeded(entity, entity.IntersectEntities[i]);
         }
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
@@ -732,10 +789,9 @@ namespace Helion.World.Physics
                 entity.Velocity.Z *= Friction;
             else if (!entity.OnGround)
                 entity.Velocity.Z -= Gravity;
-            
-            // TODO: Check if any entities are in the way of our movement.
+
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
-            ClampBetweenFloorAndCeiling(entity, false);
+            ClampBetweenFloorAndCeiling(entity);
         }
     }
 }

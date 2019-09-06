@@ -114,7 +114,7 @@ namespace Helion.World.Entities.Players
 
             // TODO: This should be clamped to the floor/ceiling and use the
             //       property for the player.           
-            position.Z = MathHelper.Clamp(position.Z, Entity.HighestFloorSector.Floor.Z, Entity.LowestCeilingSector.Ceiling.Z - 8);
+            position.Z = MathHelper.Clamp(position.Z, Entity.HighestFloorZ, Entity.LowestCeilingZ - 8);
 
             return new Camera(position.ToFloat(), yaw, pitch);
         }

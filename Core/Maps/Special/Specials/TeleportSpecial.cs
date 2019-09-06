@@ -41,7 +41,7 @@ namespace Helion.Maps.Special.Specials
 
                 m_physicsManager.LinkToWorld(entity);
 
-                entity.SetZ(entity.HighestFloorSector.Floor.Plane.ToZ(entity.Position), false);
+                entity.SetZ(entity.HighestFloorZ, false);
                 entity.ResetInterpolation();
                 entity.OnGround = true;
             }
