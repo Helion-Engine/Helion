@@ -107,6 +107,31 @@ namespace Helion.World.Entities
         /// <param name="other">The other entity to check against.</param>
         /// <returns>True if they overlap, false if not.</returns>
         public bool Overlaps(EntityBox other) => m_box.Overlaps(other.m_box);
+
+        /// <summary>
+        /// Checks if the boxes overlap using X/Y coordinates only. Touching is not considered to be
+        /// overlapping.
+        /// </summary>
+        /// <param name="other">The other entity to check against.</param>
+        /// <returns>True if they overlap on X/Y, false if not.</returns>
+        public bool Overlaps2D(EntityBox other)
+        {
+            // This is the same as Box2 Overlaps
+            // This is for performance so we do not have a construct a new Box2D everytime we want to check 2D bounds on a 3D box
+            return !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+        }
+
+        /// <summary>
+        /// Checks if the boxes overlap using X/Y coordinates only. Touching is not considered to be
+        /// overlapping.
+        /// </summary>
+        /// <param name="other">The other Box2d to check against.</param>
+        /// <returns>True if they overlap on X/Y, false if not.</returns>
+        public bool Overlaps2D(Box2D other)
+        {
+            // Same as previous Overlaps2d, convienence function to not construct more Box2D objects
+            return !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+        }
         
         /// <summary>
         /// Checks to see if the two boxes have overlapping Z values. It does
