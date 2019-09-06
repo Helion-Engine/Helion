@@ -1,12 +1,13 @@
+using System;
 using System.Collections;
 
 namespace Helion.World.Entities.Definition.Flags
 {
     public class EntityFlags
     {
-        private const int NumFlags = 300;
+        private static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
         
-        private BitArray m_bits = new BitArray(NumFlags);
+        private readonly BitArray m_bits = new BitArray(NumFlags);
 
         public bool AbsMaskAngle { get => this[EntityFlag.AbsMaskAngle]; set => this[EntityFlag.AbsMaskAngle] = value; }
         public bool AbsMaskPitch { get => this[EntityFlag.AbsMaskPitch]; set => this[EntityFlag.AbsMaskPitch] = value; }
@@ -159,6 +160,7 @@ namespace Helion.World.Entities.Definition.Flags
         public bool Invisible { get => this[EntityFlag.Invisible]; set => this[EntityFlag.Invisible] = value; }
         public bool Invulnerable { get => this[EntityFlag.Invulnerable]; set => this[EntityFlag.Invulnerable] = value; }
         public bool IsMonster { get => this[EntityFlag.IsMonster]; set => this[EntityFlag.IsMonster] = value; }
+        public bool IsTeleportSpot { get => this[EntityFlag.IsTeleportSpot]; set => this[EntityFlag.IsTeleportSpot] = value; }
         public bool JumpDown { get => this[EntityFlag.JumpDown]; set => this[EntityFlag.JumpDown] = value; }
         public bool JustAttacked { get => this[EntityFlag.JustAttacked]; set => this[EntityFlag.JustAttacked] = value; }
         public bool JustHit { get => this[EntityFlag.JustHit]; set => this[EntityFlag.JustHit] = value; }
@@ -313,6 +315,13 @@ namespace Helion.World.Entities.Definition.Flags
         {
             get => m_bits[(int)flag];
             set => m_bits.Set((int)flag, value);
+        }
+
+        public void ClearAll()
+        {
+            int numFlags = Enum.GetValues(typeof(EntityFlag)).Length;
+            for (int i = 0; i < numFlags; i++)
+                this[(EntityFlag)i] = false;
         }
     }
 }

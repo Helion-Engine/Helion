@@ -301,6 +301,8 @@ namespace Helion.World.Entities.Definition.Flags
         WeaponWimpyWeapon = 296,
         WeaponSpawn = 297,
         WindThrust = 298,
-        ZdoomTrans = 299, 
+        ZdoomTrans = 299,
+        // New flags we added.
+        IsTeleportSpot = 300,
     }
 }

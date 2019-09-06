@@ -4,13 +4,13 @@ using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
-using Helion.World.Bsp;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry;
+using Helion.World.Geometry.Builder;
 using Helion.World.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -25,13 +25,15 @@ namespace Helion.World.Impl.SinglePlayer
         public readonly Player Player;
         private readonly CheatManager m_cheatManager = new CheatManager();
         
-        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IMap map, BspTree bspTree) : 
-            base(config, archiveCollection, map, bspTree)
+        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map) : 
+            base(config, archiveCollection, geometry, map)
         {
-            Player? player = EntityManager.CreatePlayer(1);
+            EntityManager.PopulateFrom(map);
+            
+            // TODO: Did we want to force creation of the player if missing? Like stick them at (0, 0)?
+            Player? player = EntityManager.CreatePlayer(0);
             if (player == null)
                 throw new NullReferenceException("TODO: Should not allow this, maybe spawn player forcefully?");
-
             Player = player;
 
             m_cheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
@@ -45,24 +47,16 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map, 
-            MapEntryCollection? mapEntryCollection)
+        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map)
         {
-            BspTree? bspTree = null;
-            try
+            MapGeometry? geometry = GeometryBuilder.Create(map);
+            if (geometry == null)
             {
-                bspTree = BspTree.Create(map, mapEntryCollection);
-            }
-            catch (AssertionException)
-            {
-                Log.Error("Assertion error triggered when building BSP tree for map");
-            }
-            catch
-            {
-                Log.Error("BSP builder cannot process the map, geometry is malformed");
+                Log.Error("Cannot make single player world, geometry is malformed");
+                return null;
             }
             
-            return bspTree != null ? new SinglePlayerWorld(config, archiveCollection, map, bspTree) : null;
+            return new SinglePlayerWorld(config, archiveCollection, geometry, map);
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)
@@ -113,7 +107,7 @@ namespace Helion.World.Impl.SinglePlayer
             }
 
             if (tickCommand.Has(TickCommands.Use))
-                PhysicsManager.EntityUse(Player.Entity);             
+                PhysicsManager.EntityUse(Player.Entity);
         }
         
         protected override void PerformDispose()

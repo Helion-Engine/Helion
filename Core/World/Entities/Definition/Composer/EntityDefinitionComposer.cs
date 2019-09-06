@@ -41,7 +41,7 @@ namespace Helion.World.Entities.Definition.Composer
 
         private static void ApplyActorFlagsAndProperties(EntityDefinition definition, ActorDefinition actorDefinition)
         {
-            DefinitionFlagApplier.Apply(definition, actorDefinition.Flags);
+            DefinitionFlagApplier.Apply(definition, actorDefinition.Flags, actorDefinition.FlagProperties);
             DefinitionPropertyApplier.Apply(definition, actorDefinition.Properties);
         }
 

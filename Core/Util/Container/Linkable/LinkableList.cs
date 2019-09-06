@@ -48,6 +48,24 @@ namespace Helion.Util.Container.Linkable
         {
             return new LinkableNode<T>(value, m_dummyHead);
         }
+        
+        /// <summary>
+        /// Checks if an object is contained (checks via reference).
+        /// </summary>
+        /// <param name="obj">The object to check against.</param>
+        /// <returns>True if is in the list, false otherwise.</returns>
+        public bool Contains(T obj)
+        {
+            LinkableNode<T>? node = Head;
+            while (node != null)
+            {
+                if (Equals(obj, node.Value))
+                    return true;
+                node = node.Next;
+            }
+
+            return false;
+        }
 
         /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()

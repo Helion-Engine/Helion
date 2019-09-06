@@ -602,6 +602,9 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "ISMONSTER":
                 m_currentDefinition.Flags.IsMonster = flagValue;
                 break;
+            case "ISTELEPORTSPOT":
+                m_currentDefinition.Flags.IsTeleportSpot = flagValue;
+                break;
             case "JUMPDOWN":
                 m_currentDefinition.Flags.JumpDown = flagValue;
                 break;

@@ -7,7 +7,7 @@ using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
-using Helion.Maps.Geometry.Lines;
+using Helion.Maps.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
@@ -199,11 +199,12 @@ namespace Helion.Bsp.Builder
         private List<BspSegment> ReadAndPopulateAllocatorsFrom(IMap map)
         {
             List<BspSegment> segments = new List<BspSegment>();
-            foreach (Line line in map.Lines)
+            foreach (ILine line in map.GetLines())
             {
-                int startIndex = VertexAllocator[line.StartVertex.Position];
-                int endIndex = VertexAllocator[line.EndVertex.Position];
-                segments.Add(SegmentAllocator.GetOrCreate(startIndex, endIndex, line));
+                int startIndex = VertexAllocator[line.GetStart().Position];
+                int endIndex = VertexAllocator[line.GetEnd().Position];
+                BspSegment segment = SegmentAllocator.GetOrCreate(startIndex, endIndex, line);
+                segments.Add(segment);
             }
             
             // TODO: Extract both out of the following out

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Definition;
@@ -9,6 +7,8 @@ using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -22,6 +22,7 @@ namespace Helion.World.Entities
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly int Id;
+        public readonly int ThingId;
         public readonly EntityDefinition Definition;
         public double AngleRadians;
         public EntityBox Box;
@@ -34,10 +35,10 @@ namespace Helion.World.Entities
         public bool NoClip;
         public bool OnGround;
         public Sector Sector;
-        public double LowestCeilingZ;
-        public double HighestFloorZ;
         public Sector HighestFloorSector;
         public Sector LowestCeilingSector;
+        public double LowestCeilingZ;
+        public double HighestFloorZ;
         public List<Line> IntersectSpecialLines = new List<Line>();
         public List<Entity> IntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
@@ -60,14 +61,19 @@ namespace Helion.World.Entities
         /// Creates an entity with the following information.
         /// </summary>
         /// <param name="id">A unique ID for this entity.</param>
+        /// <param name="thingId">The 'tid', which is a lookup ID. This differs
+        /// from the ID because multiple entities can share the thing ID, but
+        /// the other one must be unique.</param>
         /// <param name="definition">The definitions for the entity.</param>
         /// <param name="position">The location in the world.</param>
         /// <param name="angleRadians">The angle in radians.</param>
         /// <param name="sector">The sector that the center of the entity is on.
         /// </param>
-        public Entity(int id, EntityDefinition definition, Vec3D position, double angleRadians, Sector sector)
+        public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
+            Sector sector)
         {
             Id = id;
+            ThingId = thingId;
             Definition = definition;
             AngleRadians = angleRadians;
             Box = new EntityBox(position, Radius, Height);
@@ -78,7 +84,7 @@ namespace Helion.World.Entities
             HighestFloorSector = sector;
             LowestCeilingSector = sector;
             // TODO: Link to sector?
-            OnGround = CheckIfOnGround();
+            OnGround = CheckOnGround();
             
             FindInitialFrameIndex();
         }
@@ -104,6 +110,16 @@ namespace Helion.World.Entities
         public void SetXY(Vec2D position)
         {
             Box.SetXY(position);
+        }
+        
+        /// <summary>
+        /// Sets the entity to the new coordinate.
+        /// </summary>
+        /// <param name="position">The new position.</param>
+        public void SetPosition(Vec3D position)
+        {
+            Box.SetXY(position.To2D());
+            Box.SetZ(position.Z);
         }
 
         /// <summary>
@@ -192,14 +208,14 @@ namespace Helion.World.Entities
         
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
 
+        public bool CheckOnGround() => HighestFloorZ >= Position.Z;
+
         public void Dispose()
         {
             UnlinkFromWorld();
             EntityListNode.Unlink();
         }
-
-        private bool CheckIfOnGround() => HighestFloorZ >= Position.Z;
-
+        
         private void TickFrame()
         {
             Precondition(FrameIndex >= 0 && FrameIndex < Definition.States.Frames.Count, "Out of range frame index for entity");

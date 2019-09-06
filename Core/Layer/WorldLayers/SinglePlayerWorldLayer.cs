@@ -58,14 +58,14 @@ namespace Helion.Layer.WorldLayers
 
         public bool LoadMap(string mapName)
         {
-            (IMap? map, MapEntryCollection? collection) = ArchiveCollection.FindMap(mapName);
-            if (map == null || collection == null)
+            IMap? map = ArchiveCollection.FindMap(mapName);
+            if (map == null)
             {
                 Log.Warn("Unable to find map {0}", mapName);
                 return false;
             }
 
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, map, collection);
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, map);
             if (world == null)
             {
                 Log.Error("Unable to load map {0}", mapName);
@@ -155,12 +155,15 @@ namespace Helion.Layer.WorldLayers
             switch (e.ChangeType)
             {
             case LevelChangeType.Next:
-                LoadMap(GetNextLevelName(m_world.Map.Name.ToString()));
+                string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
+                LoadMap(nextLevelName);
                 break;
+            
             case LevelChangeType.SecretNext:
                 // TODO: When we have MAPINFO working, we can do this.
                 Log.Warn("Change level to secret type to be implemented...");
                 break;
+            
             case LevelChangeType.SpecificLevel:
                 // TODO: Need to figure out this ExMx situation...
                 string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
@@ -172,7 +175,7 @@ namespace Helion.Layer.WorldLayers
         private string GetNextLevelName(string currentName)
         {
             // TODO: We'd use MAPINFO here eventually!
-            // TODO: This ugly function will be fixed with MAPINFO hopefully.
+            // TODO: This ugly function will be fixed with MAPINFO.
 
             if (currentName.Length == 4 && currentName.StartsWith("E", StringComparison.OrdinalIgnoreCase))
             {

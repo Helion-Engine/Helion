@@ -1,19 +1,19 @@
 using System.Collections;
 using System.Linq;
-using Helion.Maps.Geometry;
 using Helion.World;
+using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
     public class SectorDrawnTracker
     {
-        private int m_maxSectorId;
+        private int m_maxSectorId = -1;
         private BitArray m_sectorWasDrawn = new BitArray(0);
 
         public void UpdateTo(WorldBase world)
         {
-            int maxSectorId = world.Map.Sectors.Max(entity => entity.Id);
+            int maxSectorId = world.Sectors.Max(sector => sector.Id);
             if (maxSectorId > m_maxSectorId)
             {
                 m_maxSectorId = maxSectorId;

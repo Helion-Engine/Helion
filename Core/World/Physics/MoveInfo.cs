@@ -1,5 +1,5 @@
-using Helion.Maps.Geometry.Lines;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Physics
 {

@@ -17,6 +17,18 @@ actor TeleportFog
 actor TeleportDest 14
 {
     +DONTSPLASH
+    +ISTELEPORTSPOT
     +NOBLOCKMAP
     +NOSECTOR
+}
+
+actor TeleportDest2 : TeleportDest 9044
+{
+    +NOGRAVITY 
+}
+
+// This is really dumb, compatibility sucks...
+actor TeleportDest3 : TeleportDest2 9043
+{
+    -NOGRAVITY
 }

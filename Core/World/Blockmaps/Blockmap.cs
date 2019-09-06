@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Helion.Maps;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
-using MoreLinq.Extensions;
+using Helion.World.Geometry.Lines;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Blockmaps
@@ -23,13 +23,13 @@ namespace Helion.World.Blockmaps
         /// <summary>
         /// Creates a blockmap grid for the map provided.
         /// </summary>
-        /// <param name="map">The map to make the grid for.</param>
-        public Blockmap(IMap map)
+        /// <param name="lines">The lines to make the grid for.</param>
+        public Blockmap(IList<Line> lines)
         {
-            Bounds = FindMapBoundingBox(map);
+            Bounds = FindMapBoundingBox(lines);
             m_blocks = new UniformGrid<Block>(Bounds);
             SetBlockCoordinates();
-            AddLinesToBlocks(map);
+            AddLinesToBlocks(lines);
         }
         
         /// <summary>
@@ -82,9 +82,6 @@ namespace Helion.World.Blockmaps
         {
             Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
-            if (entity.Flags.NoBlockmap)
-                return;
-
             m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
             
             GridIterationStatus BlockLinkFunc(Block block)
@@ -95,11 +92,11 @@ namespace Helion.World.Blockmaps
             }
         }
 
-        private static Box2D FindMapBoundingBox(IMap map)
+        private static Box2D FindMapBoundingBox(IList<Line> lines)
         {
-            Box2D startBox = map.Lines.First().Segment.Box;
-            return map.Lines.Select(line => line.Segment.Box)
-                            .Aggregate(startBox, (accumBox, lineBox) => Box2D.Combine(accumBox, lineBox));
+            Box2D startBox = lines.First().Segment.Box;
+            return lines.Select(line => line.Segment.Box)
+                        .Aggregate(startBox, (accumBox, lineBox) => Box2D.Combine(accumBox, lineBox));
         }
 
         private void SetBlockCoordinates()
@@ -113,16 +110,16 @@ namespace Helion.World.Blockmaps
                     m_blocks[index++].SetCoordinate(x, y);
         }
 
-        private void AddLinesToBlocks(IMap map)
+        private void AddLinesToBlocks(IEnumerable<Line> lines)
         {
-            map.Lines.ForEach(line =>
+            foreach (Line line in lines)
             {
                 m_blocks.Iterate(line.Segment, block =>
                 {
                     block.Lines.Add(line);
                     return GridIterationStatus.Continue;
                 });
-            });
+            }
         }
     }
 }

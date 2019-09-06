@@ -1,0 +1,30 @@
+actor InvisibleBridge 9990
+{
+    Radius 32
+    Height 4
+    RenderStyle None
+    
+    +ACTLIKEBRIDGE
+    +NOGRAVITY
+    +NOLIFTDROP
+    +SOLID
+    
+    States
+    {
+    Spawn:
+        TNT1 A -1
+        Stop
+    }
+}
+
+actor InvisibleBridge32 : InvisibleBridge 5061
+{
+    Radius 32
+    Height 8
+}
+
+actor InvisibleBridge16 : InvisibleBridge 5064
+{
+    Radius 16
+    Height 8
+}

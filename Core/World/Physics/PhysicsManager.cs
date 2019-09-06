@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
-using Helion.Maps.Special;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Special.SectorMovement;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -27,6 +29,8 @@ namespace Helion.World.Physics
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
         private const double SetEntityToFloorSpeedMax = 9;
+
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
@@ -59,9 +63,12 @@ namespace Helion.World.Physics
         /// <param name="entity">The entity to link.</param>
         public void LinkToWorld(Entity entity)
         {
-            m_blockmap.Link(entity);
+            if (!entity.Flags.NoBlockmap)
+                m_blockmap.Link(entity);
+            
             if (entity.CalculatePhysics)
                 LinkToSectorsAndEntities(entity);
+            
             ClampBetweenFloorAndCeiling(entity);
         }
 
@@ -75,15 +82,16 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorFlat flat, SectorMoveType moveType, MoveDirection direction, double speed, double destZ, CrushData? crush)
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorMoveType moveType, 
+            MoveDirection direction, double speed, double destZ, CrushData? crush)
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
             SectorMoveStatus status = SectorMoveStatus.Success;
-            double startZ = flat.Z;
-            flat.PrevZ = startZ;
-            flat.Z = destZ;
-            flat.Plane.MoveZ(destZ - startZ);
+            double startZ = sectorPlane.Z;
+            sectorPlane.PrevZ = startZ;
+            sectorPlane.Z = destZ;
+            sectorPlane.Plane?.MoveZ(destZ - startZ);
 
             // Move lower entities first to handle stacked entities
             IEnumerable<Entity> entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
@@ -119,8 +127,8 @@ namespace Helion.World.Physics
                             continue;
                     }
 
-                    flat.Z = startZ;
-                    flat.Plane.MoveZ(startZ - destZ);
+                    sectorPlane.Z = startZ;
+                    sectorPlane.Plane?.MoveZ(startZ - destZ);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in entities)
@@ -137,7 +145,12 @@ namespace Helion.World.Physics
             return status;
         }
 
-        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush) => crush != null && status == SectorMoveStatus.Crush && crush.CrushMode == ZCrushMode.DoomWithSlowDown;
+        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush)
+        {
+            return crush != null && 
+                   crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown &&
+                   status == SectorMoveStatus.Crush;
+        }
 
         /// <summary>
         /// Executes use logic on the entity. EntityUseActivated event will
@@ -324,14 +337,14 @@ namespace Helion.World.Physics
 
             foreach (Sector sector in entity.IntersectSectors)
             {
-                double floorZ = sector.Floor.Plane.ToZ(entity.Position);
+                double floorZ = sector.ToFloorZ(entity.Position);
                 if (floorZ > highestFloorZ)
                 {
                     highestFloor = sector;
                     highestFloorZ = floorZ;
                 }
 
-                double ceilZ = sector.Ceiling.Plane.ToZ(entity.Position);
+                double ceilZ = sector.ToCeilingZ(entity.Position);
                 if (ceilZ < lowestCeilZ)
                 {
                     lowestCeiling = sector;
@@ -389,6 +402,7 @@ namespace Helion.World.Physics
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
             HashSet<Entity> entities = new HashSet<Entity>();
             
+            // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
             m_blockmap.Iterate(box, EntitySectorOverlapFinder);
 
@@ -396,8 +410,9 @@ namespace Helion.World.Physics
             entity.IntersectSectors = sectors.ToList();
             entity.IntersectEntities = entities.ToList();
 
-            for (int i = 0; i < entity.IntersectSectors.Count; i++)
-                entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
+            if (!entity.Flags.NoSector)
+                for (int i = 0; i < entity.IntersectSectors.Count; i++)
+                    entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
 
             GridIterationStatus EntitySectorOverlapFinder(Block block)
             {
@@ -409,6 +424,7 @@ namespace Helion.World.Physics
                     {
                         if (!entity.NoClip)
                         {
+                            // TODO: Can we do this without LINQ? Make a method for it?
                             if (line.HasSpecial && !entity.IntersectSpecialLines.Any(x => x.Id == line.Id))
                                 entity.IntersectSpecialLines.Add(line);
                         }

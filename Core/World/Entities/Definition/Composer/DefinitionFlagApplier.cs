@@ -1,11 +1,15 @@
 using Helion.Resources.Definitions.Decorate.Flags;
+using Helion.Resources.Definitions.Decorate.Properties;
 
 namespace Helion.World.Entities.Definition.Composer
 {
     public static class DefinitionFlagApplier
     {
-        public static void Apply(EntityDefinition definition, ActorFlags flags)
+        public static void Apply(EntityDefinition definition, ActorFlags flags, ActorFlagProperty flagProperties)
         {
+            if (flagProperties.ClearFlags ?? false)
+                definition.Flags.ClearAll();
+            
             if (flags.Monster ?? false)
             {
                 definition.Flags.ActivateMCross = true;
@@ -331,6 +335,8 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Flags.Invulnerable = flags.Invulnerable.Value;
             if (flags.IsMonster != null)
                 definition.Flags.IsMonster = flags.IsMonster.Value;
+            if (flags.IsTeleportSpot != null)
+                definition.Flags.IsTeleportSpot = flags.IsTeleportSpot.Value;
             if (flags.JumpDown != null)
                 definition.Flags.JumpDown = flags.JumpDown.Value;
             if (flags.JustAttacked != null)

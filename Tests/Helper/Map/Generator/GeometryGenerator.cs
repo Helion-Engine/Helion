@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using Helion.Maps;
-using Helion.Maps.Enums;
-using Helion.Maps.Geometry;
-using Helion.Maps.Geometry.Lines;
-using Helion.Maps.Things;
-using Helion.Util;
+using Helion.Maps.Components;
 using Helion.Util.Geometry;
+using Moq;
 
 namespace Helion.Test.Helper.Map.Generator
 {
@@ -14,12 +11,11 @@ namespace Helion.Test.Helper.Map.Generator
     /// </summary>
     public class GeometryGenerator
     {
-        private readonly List<Line> lines = new List<Line>();
-        private readonly List<Thing> things = new List<Thing>();
-        private readonly List<SectorFlat> sectorFlats = new List<SectorFlat>();
-        private readonly List<Sector> sectors = new List<Sector>();
-        private readonly List<Side> sides = new List<Side>();
-        private readonly List<Vertex> vertices = new List<Vertex>();
+        private readonly List<ILine> lines = new List<ILine>();
+        private readonly List<IThing> things = new List<IThing>();
+        private readonly List<ISector> sectors = new List<ISector>();
+        private readonly List<ISide> sides = new List<ISide>();
+        private readonly List<IVertex> vertices = new List<IVertex>();
 
         /// <summary>
         /// Creates a new sector from a floor and ceiling value.
@@ -33,13 +29,16 @@ namespace Helion.Test.Helper.Map.Generator
         /// <returns>A reference to itself for chaining.</returns>
         public GeometryGenerator AddSector(double floorZ, double ceilingZ)
         {
-            SectorFlat floor = new SectorFlat(sectorFlats.Count, "TEMP", floorZ, (byte)sectorFlats.Count, SectorFlatFace.Floor);
-            SectorFlat ceiling = new SectorFlat(sectorFlats.Count, "TEMP", floorZ, (byte)sectorFlats.Count, SectorFlatFace.Floor);
-            sectorFlats.Add(floor);
-            sectorFlats.Add(ceiling);
+            var mock = new Mock<ISector>();
+            mock.Setup(sec => sec.Id).Returns(sectors.Count);
+            mock.Setup(sec => sec.Tag).Returns(0);
+            mock.Setup(sec => sec.FloorZ).Returns((short)floorZ);
+            mock.Setup(sec => sec.CeilingZ).Returns((short)floorZ);
+            mock.Setup(sec => sec.LightLevel).Returns(0);
+            mock.Setup(sec => sec.FloorTexture).Returns("TEMP");
+            mock.Setup(sec => sec.CeilingTexture).Returns("TEMP");
             
-            Sector sector = new Sector(sectors.Count, (byte)sectors.Count, floor, ceiling, 0, 0);
-            sectors.Add(sector);
+            sectors.Add(mock.Object);
             
             return this;
         }
@@ -66,8 +65,15 @@ namespace Helion.Test.Helper.Map.Generator
         /// <returns>A reference to itself for chaining.</returns>
         public GeometryGenerator AddSide(int sectorId)
         {
-            Side side = new Side(sides.Count, Vec2I.Zero, "TEMP", "TEMP", "TEMP", sectors[sectorId]);
-            sides.Add(side);
+            var mock = new Mock<ISide>();
+            mock.Setup(side => side.Id).Returns(sides.Count);
+            mock.Setup(side => side.Offset).Returns(Vec2I.Zero);
+            mock.Setup(side => side.UpperTexture).Returns("TEMP");
+            mock.Setup(side => side.MiddleTexture).Returns("TEMP");
+            mock.Setup(side => side.LowerTexture).Returns("TEMP");
+            mock.Setup(side => side.GetSector()).Returns(sectors[sectorId]);
+            
+            sides.Add(mock.Object);
             
             return this;
         }
@@ -85,10 +91,16 @@ namespace Helion.Test.Helper.Map.Generator
         /// <returns>A reference to itself for chaining.</returns>
         public GeometryGenerator AddLine(int sideId, Vec2D start, Vec2D end)
         {
-            Vertex startVertex = CreateVertex(start);
-            Vertex endVertex = CreateVertex(end);
-            Line line = new Line(lines.Count, startVertex, endVertex, sides[sideId]);
-            lines.Add(line);
+            IVertex startVertex = CreateVertex(start);
+            IVertex endVertex = CreateVertex(end);
+            
+            var mock = new Mock<ILine>();
+            mock.Setup(line => line.Id).Returns(lines.Count);
+            mock.Setup(line => line.GetStart()).Returns(startVertex);
+            mock.Setup(line => line.GetStart()).Returns(endVertex);
+            mock.Setup(line => line.GetFront()).Returns(sides[sideId]);
+
+            lines.Add(mock.Object);
             
             return this;
         }
@@ -107,10 +119,17 @@ namespace Helion.Test.Helper.Map.Generator
         /// <returns>A reference to itself for chaining.</returns>
         public GeometryGenerator AddLine(int frontSideId, int backSideId, Vec2D start, Vec2D end)
         {
-            Vertex startVertex = CreateVertex(start);
-            Vertex endVertex = CreateVertex(end);
-            Line line = new Line(lines.Count, startVertex, endVertex, sides[frontSideId], sides[backSideId]);
-            lines.Add(line);
+            IVertex startVertex = CreateVertex(start);
+            IVertex endVertex = CreateVertex(end);
+            
+            var mock = new Mock<ILine>();
+            mock.Setup(line => line.Id).Returns(lines.Count);
+            mock.Setup(line => line.GetStart()).Returns(startVertex);
+            mock.Setup(line => line.GetStart()).Returns(endVertex);
+            mock.Setup(line => line.GetFront()).Returns(sides[frontSideId]);
+            mock.Setup(line => line.GetBack()).Returns(sides[backSideId]);
+
+            lines.Add(mock.Object);
             
             return this;
         }
@@ -122,44 +141,41 @@ namespace Helion.Test.Helper.Map.Generator
         /// <returns>The compiled map.</returns>
         public IMap ToMap() => new GeneratedMap(this);
         
-        private Vertex CreateVertex(Vec2D position)
+        private IVertex CreateVertex(Vec2D position)
         {
-            Vertex vertex = new Vertex(vertices.Count, position);
-            vertices.Add(vertex);
-            return vertex;
+            var mock = new Mock<IVertex>();
+            mock.Setup(v => v.Id).Returns(vertices.Count);
+            mock.Setup(v => v.Position).Returns(position);
+            
+            vertices.Add(mock.Object);
+            
+            return mock.Object;
         }
 
         private class GeneratedMap : IMap
         {
-            public CIString Name { get; } = "";
-            public MapType MapType { get; } = MapType.Doom;
-            public IList<Line> Lines { get; }
-            public IList<Thing> Things { get; }
-            public IList<Sector> Sectors { get; }
-            public IList<SectorFlat> SectorFlats { get; }
-            public IList<Side> Sides { get; }
-            public IList<Vertex> Vertices { get; }
+            private readonly List<ILine> Lines;
+            private readonly List<IThing> Things;
+            private readonly List<ISector> Sectors;
+            private readonly List<ISide> Sides;
+            private readonly List<IVertex> Vertices;
 
+            public string Name { get; } = "TEMP";
+            public MapType MapType { get; } = MapType.Doom;
+            public IReadOnlyList<ILine> GetLines() => Lines;
+            public IReadOnlyList<ISector> GetSectors() => Sectors;
+            public IReadOnlyList<ISide> GetSides() => Sides;
+            public IReadOnlyList<IThing> GetThings() => Things;
+            public IReadOnlyList<IVertex> GetVertices() => Vertices;
+            
             internal GeneratedMap(GeometryGenerator generator)
             {
                 Lines = generator.lines;
                 Things = generator.things;
                 Sectors = generator.sectors;
-                SectorFlats = generator.sectorFlats;
                 Sides = generator.sides;
                 Vertices = generator.vertices;
             }
-
-            public Sector? GetLowestAdjacentFloor(Sector sector) => null;
-            public Sector? GetHighestAdjacentFloor(Sector sector) => null;
-            public Sector? GetLowestAdjacentCeiling(Sector sector) => null;
-            public Sector? GetHighestAdjacentCeiling(Sector sector) => null;
-            public Sector? GetNextLowestFloor(Sector sector) => null;
-            public Sector? GetNextLowestCeiling(Sector sector) => null;
-            public Sector? GetNextHighestFloor(Sector sector) => null;
-            public Sector? GetNextHighestCeiling(Sector sector) => null;
-            public short GetMinLightLevelNeighbor(Sector sector) => 0;
-            public short GetMaxLightLevelNeighbor(Sector sector) => 0;
         }
     }
 }

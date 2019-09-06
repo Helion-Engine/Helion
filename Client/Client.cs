@@ -103,7 +103,7 @@ namespace Helion.Client
 
         private string GetWarpMapFormat(int level)
         {
-            bool usesMap = m_archiveCollection.FindMap("MAP01").Map != null;
+            bool usesMap = m_archiveCollection.FindMap("MAP01") != null;
             string levelDigits = level.ToString().PadLeft(2, '0');
             return usesMap ? $"MAP{levelDigits}" : $"E{levelDigits[0]}M{levelDigits[1]}";
         }

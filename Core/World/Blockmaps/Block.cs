@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Helion.Maps.Geometry.Lines;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Blockmaps
