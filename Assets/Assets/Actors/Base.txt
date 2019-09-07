@@ -29,6 +29,8 @@ actor Inventory
     Inventory.PickupSound "misc/i_pkup"
     Inventory.PickupMessage "$TXT_DEFAULTPICKUPMSG"
     Inventory.UseSound "misc/invuse"
+    
+    +INVENTORYITEM
 }
 
 actor FakeInventory : Inventory

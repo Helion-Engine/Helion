@@ -6,6 +6,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -29,6 +30,7 @@ namespace Helion.World.Entities
         public Vec3D PrevPosition;
         public Vec3D Position => Box.Position;
         public Vec3D Velocity = Vec3D.Zero;
+        public Inventory Inventory = new Inventory();
         public Player? Player;
         public int FrozenTics;
         public bool IsFlying;

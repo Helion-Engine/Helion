@@ -142,6 +142,7 @@ namespace Helion.World.Entities.Definition.Flags
         public bool InventoryInvbar { get => this[EntityFlag.InventoryInvbar]; set => this[EntityFlag.InventoryInvbar] = value; }
         public bool InventoryIsArmor { get => this[EntityFlag.InventoryIsArmor]; set => this[EntityFlag.InventoryIsArmor] = value; }
         public bool InventoryIsHealth { get => this[EntityFlag.InventoryIsHealth]; set => this[EntityFlag.InventoryIsHealth] = value; }
+        public bool InventoryItem { get => this[EntityFlag.InventoryItem]; set => this[EntityFlag.InventoryItem] = value; }
         public bool InventoryKeepDepleted { get => this[EntityFlag.InventoryKeepDepleted]; set => this[EntityFlag.InventoryKeepDepleted] = value; }
         public bool InventoryNeverRespawn { get => this[EntityFlag.InventoryNeverRespawn]; set => this[EntityFlag.InventoryNeverRespawn] = value; }
         public bool InventoryNoAttenPickupSound { get => this[EntityFlag.InventoryNoAttenPickupSound]; set => this[EntityFlag.InventoryNoAttenPickupSound] = value; }
