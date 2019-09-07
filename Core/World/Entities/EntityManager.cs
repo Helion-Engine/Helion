@@ -13,7 +13,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Entities.Spawn;
 using Helion.World.Geometry.Sectors;
 using NLog;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities
 {
@@ -23,7 +22,6 @@ namespace Helion.World.Entities
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-        public readonly Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public readonly SpawnLocations SpawnLocations = new SpawnLocations();
         private readonly WorldBase m_world;
         private readonly EntityDefinitionComposer m_definitionComposer;
@@ -46,15 +44,20 @@ namespace Helion.World.Entities
             int id = m_entityIdTracker.Next();
             Sector sector = m_world.BspTree.ToSector(position);
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this);
-            
+
+            FinishCreatingEntity(entity);
+
+            return entity;
+        }
+
+        private void FinishCreatingEntity(Entity entity)
+        {
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
             
             m_world.Link(entity);
 
             entity.ResetInterpolation();
-            
-            return entity;
         }
 
         public void Destroy(Entity entity)
@@ -72,29 +75,20 @@ namespace Helion.World.Entities
             entity.Dispose();
         }
 
-        public Player? CreatePlayer(int playerIndex)
+        public Player CreatePlayer(int playerIndex)
         {
-            // TODO: Have to handle dummies fake duplicate players. Also want
-            // an assertion that does not let us make more than the number of
-            // player spawns in the map.
-            if (Players.TryGetValue(playerIndex, out Player? existingPlayer))
-            {
-                Log.Error("Trying to create player twice (should not happen, report to a developer)");
-                return existingPlayer;
-            }
-                
             EntityDefinition? playerDefinition = m_definitionComposer[Constants.PlayerClass];
             if (playerDefinition == null)
             {
                 Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
-                return null;
+                throw new HelionException("Missing the default player class, should never happen");
             }
 
             Entity? spawnSpot = SpawnLocations.GetPlayerSpawn(playerIndex);
             if (spawnSpot == null)
             {
-                Log.Warn("No player {0} spawns found", playerIndex);
-                return null;
+                Log.Warn("No player {0} spawns found, creating player at origin", playerIndex);
+                return CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0);
             }
 
             return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, spawnSpot.AngleRadians);
@@ -146,11 +140,12 @@ namespace Helion.World.Entities
         
         private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double angle)
         {
-            Precondition(!Players.ContainsKey(playerNumber), $"Trying to create player {playerNumber} twice");
+            int id = m_entityIdTracker.Next();
+            Sector sector = m_world.BspTree.ToSector(position);
+            Player player = new Player(id, 0, definition, position, angle, sector, this, playerNumber);
             
-            Entity playerEntity = Create(definition, position, angle, NoTid);
-            Player player = new Player(playerNumber, playerEntity);
-            Players[playerNumber] = player;
+            FinishCreatingEntity(player);
+            
             return player;
         }
     }

@@ -80,8 +80,6 @@ namespace Helion.World
 
         public void Tick(long gametic)
         {
-            EntityManager.Players.Values.ForEach(player => player.Tick());
-            
             EntityManager.Entities.ForEach(entity =>
             {
                 entity.Tick();

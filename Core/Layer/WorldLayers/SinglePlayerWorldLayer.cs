@@ -9,7 +9,6 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Time;
 using Helion.World;
-using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
@@ -129,8 +128,8 @@ namespace Helion.Layer.WorldLayers
                 return;
             
             Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
-            Entity playerEntity = m_world.Player.Entity;
-            renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, playerEntity);
+            Player player = m_world.Player;
+            renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player);
 
             // TODO: Should not be passing the window dimension as the viewport.
             WorldHudDrawer.Draw(m_world, Console, renderCommands.WindowDimension, renderCommands);

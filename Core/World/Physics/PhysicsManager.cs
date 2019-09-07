@@ -8,6 +8,7 @@ using Helion.Util.Geometry;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
@@ -230,7 +231,7 @@ namespace Helion.World.Physics
                 var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
                 EntityActivatedSpecial?.Invoke(this, args);
             }
-            else if (hitBlockLine && entity.Player != null)
+            else if (hitBlockLine && entity is Player)
             {
                 PlayerUseFail?.Invoke(this, entity);
             }
@@ -285,8 +286,8 @@ namespace Helion.World.Physics
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
         {
-            if (entity.Player != null && !entity.OnGround)
-                entity.Player.SetHitZ(IsHardHitZ(entity));
+            if (!entity.OnGround && entity is Player player)
+                player.SetHitZ(IsHardHitZ(entity));
 
             // TODO: Should do delta epsilon check.
             Entity? lastOnEntity = entity.OnEntity;

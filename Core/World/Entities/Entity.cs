@@ -8,7 +8,6 @@ using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using NLog;
@@ -32,7 +31,6 @@ namespace Helion.World.Entities
         public Vec3D Position => Box.Position;
         public Vec3D Velocity = Vec3D.Zero;
         public Inventory Inventory = new Inventory();
-        public Player? Player;
         public int Health;
         public int FrozenTics;
         public bool IsFlying;
@@ -104,11 +102,8 @@ namespace Helion.World.Entities
         /// </summary>
         /// <param name="z">The Z coordinate.</param>
         /// <param name="smooth">If the entity should smooth the player's view height. This smooths the camera when stepping up to a higher sector.</param>
-        public void SetZ(double z, bool smooth)
+        public virtual void SetZ(double z, bool smooth)
         {
-            if (Player != null && smooth && Box.Bottom < z)
-                Player.SetSmoothZ(z);
-
             Box.SetZ(z);
         }
 
@@ -139,10 +134,9 @@ namespace Helion.World.Entities
         /// not want any interpolation with the previous spot being done in the
         /// renderer. An example of this would be going through a teleporter.
         /// </remarks>
-        public void ResetInterpolation()
+        public virtual void ResetInterpolation()
         {
             PrevPosition = Position;
-            Player?.ResetInterpolation();
         }
 
         /// <summary>
@@ -185,7 +179,7 @@ namespace Helion.World.Entities
         /// <summary>
         /// Runs any tickable logic on the entity.
         /// </summary>
-        public void Tick()
+        public virtual void Tick()
         {
             PrevPosition = Box.Position;
 
@@ -238,7 +232,6 @@ namespace Helion.World.Entities
             TicksInFrame++;
             if (TicksInFrame > frame.Ticks)
             {
-                // TODO: If flow control is `Stop` and frame.Ticks is not -1, remove actor.
                 if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
                 {
                     EntityManager.Destroy(this);

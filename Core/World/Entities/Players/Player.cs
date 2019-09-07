@@ -1,12 +1,14 @@
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.World.Entities.Definition;
+using Helion.World.Geometry.Sectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities.Players
 {
-    public class Player
+    public class Player : Entity
     {
         public const double ForwardMovementSpeed = 1.5625;
         public const double SideMovementSpeed = 1.25;
@@ -20,7 +22,6 @@ namespace Helion.World.Entities.Players
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
         public readonly int PlayerNumber;
-        public Entity Entity;
         public double Pitch;
         private bool m_isJumping;
         private int m_jumpTics;
@@ -30,41 +31,48 @@ namespace Helion.World.Entities.Players
         private double m_prevViewHeight = PlayerViewHeight;
         private double m_deltaViewHeight;
 
-        public Player(int playerNumber, Entity entity)
+        public Player(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
+            Sector sector, EntityManager entityManager, int playerNumber) 
+            : base(id, thingId, definition, position, angleRadians, sector, entityManager)
         {
             Precondition(playerNumber >= 0, "Player number should not be negative");
             
             PlayerNumber = playerNumber;
-            Entity = entity;
-            Entity.Player = this;
-            m_prevAngle = entity.AngleRadians;
+            m_prevAngle = AngleRadians;
         }
 
         public Vec3D GetViewPosition()
         {
-            Vec3D position = Entity.Position;
+            Vec3D position = Position;
             position.Z += m_viewHeight;
             return position;
         }
 
         public Vec3D GetPrevViewPosition()
         {
-            Vec3D position = Entity.PrevPosition;
+            Vec3D position = PrevPosition;
             position.Z += m_prevViewHeight;
             return position;
         }
 
-        public void SetSmoothZ(double z)
+        public override void SetZ(double z, bool smooth)
         {
-            m_viewHeight -= z - Entity.Box.Bottom;
-            m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / PlayerViewDivider;
+            if (smooth && Box.Bottom < z)
+            {
+                m_viewHeight -= z - Box.Bottom;
+                m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / PlayerViewDivider;
+            }
+            
+            base.SetZ(z, smooth);
         }
 
-        public void ResetInterpolation()
+        public override void ResetInterpolation()
         {
             m_viewHeight = PlayerViewHeight;
             m_prevViewHeight = PlayerViewHeight;
             m_deltaViewHeight = 0;
+            
+            base.ResetInterpolation();
         }
 
         /// <summary>
@@ -80,18 +88,18 @@ namespace Helion.World.Entities.Players
 
             m_isJumping = false;
 
-            if (hardHit && !Entity.IsFlying)
+            if (hardHit && !IsFlying)
             {
                 Log.Debug("Player - oof (Hit ground)");
-                m_deltaViewHeight = Entity.Velocity.Z / PlayerViewDivider;
+                m_deltaViewHeight = Velocity.Z / PlayerViewDivider;
             }
         }
 
         public void AddToYaw(double delta)
         {
-            Entity.AngleRadians = (Entity.AngleRadians + delta) % MathHelper.TwoPi;
-            if (Entity.AngleRadians < 0)
-                Entity.AngleRadians += MathHelper.TwoPi;
+            AngleRadians = (AngleRadians + delta) % MathHelper.TwoPi;
+            if (AngleRadians < 0)
+                AngleRadians += MathHelper.TwoPi;
         }
         
         public void AddToPitch(double delta)
@@ -109,19 +117,21 @@ namespace Helion.World.Entities.Players
             // and would likely need to add more logic for wrapping around if
             // the player rotates from 359 degrees -> 2 degrees since that will
             // interpolate in the wrong direction.
-            float yaw = (float)Entity.AngleRadians;
+            float yaw = (float)AngleRadians;
             float pitch = (float)Pitch;
 
             // TODO: This should be clamped to the floor/ceiling and use the
             //       property for the player.           
-            position.Z = MathHelper.Clamp(position.Z, Entity.HighestFloorZ, Entity.LowestCeilingZ - 8);
+            position.Z = MathHelper.Clamp(position.Z, HighestFloorZ, LowestCeilingZ - 8);
 
             return new Camera(position.ToFloat(), yaw, pitch);
         }
         
-        public void Tick()
+        public override void Tick()
         {
-            m_prevAngle = Entity.AngleRadians;
+            base.Tick();
+            
+            m_prevAngle = AngleRadians;
             m_prevPitch = Pitch;
 
             if (m_jumpTics > 0)
@@ -148,10 +158,10 @@ namespace Helion.World.Entities.Players
             if (AbleToJump)
             {
                 m_isJumping = true;
-                Entity.Velocity.Z += JumpZ;
+                Velocity.Z += JumpZ;
             }
         }
 
-        private bool AbleToJump => Entity.OnGround && Entity.Velocity.Z == 0 && m_jumpTics == 0;
+        private bool AbleToJump => OnGround && Velocity.Z == 0 && m_jumpTics == 0;
     }
 }
