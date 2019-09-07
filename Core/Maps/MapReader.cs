@@ -1,4 +1,6 @@
+using System;
 using Helion.Maps.Doom;
+using Helion.Maps.Hexen;
 
 namespace Helion.Maps
 {
@@ -15,15 +17,16 @@ namespace Helion.Maps
         /// missing critical elements.</returns>
         public static IMap? Read(MapEntryCollection map)
         {
-            if (map.IsDoomMap)
+            switch (map.MapType)
+            {
+            case MapType.Doom:
                 return DoomMap.Create(map);
-            
-            // TODO: Hexen here.
-            if (map.IsHexenMap)
+            case MapType.Hexen:
+                return HexenMap.Create(map);
+            default:
+                // TODO: UDMF!
                 return null;
-            
-            // TODO: UDMF here.
-            return null;
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using Helion.Maps.Shared;
 using Helion.Util.Geometry;
 
 namespace Helion.Maps.Components
@@ -17,7 +18,7 @@ namespace Helion.Maps.Components
         /// this ID is for looking up things in the map and may be used on
         /// multiple things, meaning it is not unique.
         /// </summary>
-        int Tid { get; }
+        int ThingId { get; }
         
         /// <summary>
         /// The position in the map. The Z coordinate will be the most negative
@@ -34,5 +35,10 @@ namespace Helion.Maps.Components
         /// The editor number for what type this is.
         /// </summary>
         ushort EditorNumber { get; }
+        
+        /// <summary>
+        /// The flags for the thing.
+        /// </summary>
+        ThingFlags Flags { get; }
     }
 }

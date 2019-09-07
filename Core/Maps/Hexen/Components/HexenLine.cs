@@ -1,10 +1,12 @@
 using Helion.Maps.Components;
+using Helion.Maps.Doom.Components;
 using Helion.Maps.Shared;
-using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 
-namespace Helion.Maps.Doom.Components
+namespace Helion.Maps.Hexen.Components
 {
-    public class DoomLine : ILine
+    public class HexenLine : ILine
     {
         public int Id { get; }
         public MapLineFlags Flags { get; }
@@ -12,11 +14,11 @@ namespace Helion.Maps.Doom.Components
         public readonly DoomVertex End;
         public readonly DoomSide Front;
         public readonly DoomSide? Back;
-        public readonly VanillaLineSpecialType LineType;
-        public readonly ushort SectorTag;
-        
-        internal DoomLine(int id, DoomVertex start, DoomVertex end, DoomSide front, DoomSide? back, 
-            MapLineFlags flags, VanillaLineSpecialType lineType, ushort sectorTag)
+        public readonly ZDoomLineSpecialType LineType;
+        public readonly SpecialArgs Args;
+    
+        internal HexenLine(int id, DoomVertex start, DoomVertex end, DoomSide front, DoomSide? back, 
+            MapLineFlags flags, ZDoomLineSpecialType lineType, SpecialArgs args)
         {
             Id = id;
             Start = start;
@@ -25,7 +27,7 @@ namespace Helion.Maps.Doom.Components
             Back = back;
             Flags = flags;
             LineType = lineType;
-            SectorTag = sectorTag;
+            Args = args;
         }
 
         public IVertex GetStart() => Start;

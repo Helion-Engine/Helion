@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Doom;
+using Helion.Maps.Hexen;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -29,6 +30,8 @@ namespace Helion.World.Geometry.Builder
             {
             case DoomMap doomMap:
                 return DoomGeometryBuilder.Create(doomMap);
+            case HexenMap hexenMap:
+                return HexenGeometryBuilder.Create(hexenMap);
             default:
                 Log.Error("Do not support map type {0} yet", map.MapType);
                 return null;
