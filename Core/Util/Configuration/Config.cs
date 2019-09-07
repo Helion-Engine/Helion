@@ -12,6 +12,12 @@ namespace Helion.Util.Configuration
     {
         public readonly ConfigValue<int> MaxMessages = new ConfigValue<int>(256);
     }
+    
+    [ConfigComponent]
+    public class EngineFilesConfig 
+    {
+        public readonly ConfigValue<string> Directories = new ConfigValue<string>(";");
+    }
 
     [ConfigComponent]
     public class EngineDeveloperConfig
@@ -81,6 +87,7 @@ namespace Helion.Util.Configuration
     public class EngineConfig
     {
         public readonly EngineConsoleConfig Console = new EngineConsoleConfig();
+        public readonly EngineFilesConfig Files = new EngineFilesConfig();
         public readonly EngineDeveloperConfig Developer = new EngineDeveloperConfig();
         public readonly EngineMouseConfig Mouse = new EngineMouseConfig();
         public readonly EngineControlConfig Controls = new EngineControlConfig();

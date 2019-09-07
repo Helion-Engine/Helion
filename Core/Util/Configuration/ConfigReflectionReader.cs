@@ -145,7 +145,7 @@ namespace Helion.Util.Configuration
                 break;
 
             case ConfigValue<string> stringNode:
-                if (!string.IsNullOrEmpty(value))
+                if (value != null)
                     stringNode.Set(value);
                 else
                     fail = true;
