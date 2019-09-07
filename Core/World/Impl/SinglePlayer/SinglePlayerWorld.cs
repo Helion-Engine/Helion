@@ -120,7 +120,7 @@ namespace Helion.World.Impl.SinglePlayer
             double z = 0;
 
             if (player.IsFlying)
-               z = Player.ForwardMovementSpeed * player.Pitch;
+               z = Player.ForwardMovementSpeed * player.PitchRadians;
 
             return new Vec3D(x, y, z);
         }

@@ -35,7 +35,7 @@ namespace Helion.World.Special.Specials
             entity.SetPosition(teleportSpot.Position);
             entity.AngleRadians = teleportSpot.AngleRadians;
             if (entity is Player player)
-                player.Pitch = 0;
+                player.PitchRadians = 0;
 
             m_world.Link(entity);
 

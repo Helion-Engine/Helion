@@ -22,7 +22,7 @@ namespace Helion.World.Entities.Players
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
         public readonly int PlayerNumber;
-        public double Pitch;
+        public double PitchRadians;
         private bool m_isJumping;
         private int m_jumpTics;
         private double m_prevAngle;
@@ -105,7 +105,7 @@ namespace Helion.World.Entities.Players
         public void AddToPitch(double delta)
         {
             const double notQuiteVertical = MathHelper.HalfPi - 0.001;
-            Pitch = MathHelper.Clamp(Pitch + delta, -notQuiteVertical, notQuiteVertical);
+            PitchRadians = MathHelper.Clamp(PitchRadians + delta, -notQuiteVertical, notQuiteVertical);
         }
 
         public Camera GetCamera(double t)
@@ -118,7 +118,7 @@ namespace Helion.World.Entities.Players
             // the player rotates from 359 degrees -> 2 degrees since that will
             // interpolate in the wrong direction.
             float yaw = (float)AngleRadians;
-            float pitch = (float)Pitch;
+            float pitch = (float)PitchRadians;
 
             // TODO: This should be clamped to the floor/ceiling and use the
             //       property for the player.           
@@ -132,7 +132,7 @@ namespace Helion.World.Entities.Players
             base.Tick();
             
             m_prevAngle = AngleRadians;
-            m_prevPitch = Pitch;
+            m_prevPitch = PitchRadians;
 
             if (m_jumpTics > 0)
                 m_jumpTics--;
