@@ -52,6 +52,10 @@ actor BackpackItem : Inventory
 {
 }
 
+actor MapRevealer : Inventory
+{
+}
+
 actor Armor : Inventory
 {
     Inventory.PickupSound "misc/armor_pkup"
