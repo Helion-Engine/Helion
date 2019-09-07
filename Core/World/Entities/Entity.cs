@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Definition;
@@ -32,6 +33,7 @@ namespace Helion.World.Entities
         public Vec3D Velocity = Vec3D.Zero;
         public Inventory Inventory = new Inventory();
         public Player? Player;
+        public int Health;
         public int FrozenTics;
         public bool IsFlying;
         public bool NoClip;
@@ -45,11 +47,12 @@ namespace Helion.World.Entities
         public List<Entity> IntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
         public Entity? OnEntity;
+        protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
+        protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
+        protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
+        protected readonly EntityManager EntityManager;
         protected int FrameIndex;
         protected int TicksInFrame;
-        internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
-        internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
-        internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
 
         public double Height => Definition.Properties.Height;
         public double Radius => Definition.Properties.Radius;
@@ -71,8 +74,10 @@ namespace Helion.World.Entities
         /// <param name="angleRadians">The angle in radians.</param>
         /// <param name="sector">The sector that the center of the entity is on.
         /// </param>
+        /// <param name="entityManager">The entity manager that created this
+        /// entity (so the entity can destroy itself if needed).</param>
         public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
-            Sector sector)
+            Sector sector, EntityManager entityManager)
         {
             Id = id;
             ThingId = thingId;
@@ -86,6 +91,9 @@ namespace Helion.World.Entities
             HighestFloorSector = sector;
             LowestCeilingSector = sector;
             OnGround = CheckOnGround();
+            EntityManager = entityManager;
+
+            Health = definition.Properties.Health;
             
             FindInitialFrameIndex();
         }
@@ -223,15 +231,19 @@ namespace Helion.World.Entities
             
             EntityFrame frame = Definition.States.Frames[FrameIndex];
             
+            // TODO: If frame.Ticks == 0, we need to loop and keep consuming frames.
             if (TicksInFrame == 0)
                 frame.ActionFunction?.Invoke(this);
-
-            // TODO: If frame.Ticks == 0, we need to loop and keep consuming frames.
             
             TicksInFrame++;
             if (TicksInFrame > frame.Ticks)
             {
                 // TODO: If flow control is `Stop` and frame.Ticks is not -1, remove actor.
+                if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
+                {
+                    EntityManager.Destroy(this);
+                    return;
+                }
 
                 FrameIndex = frame.NextFrameIndex;
                 TicksInFrame = 0;

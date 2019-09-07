@@ -7,6 +7,9 @@ namespace Helion.World.Entities.Definition.Composer
         public static void Apply(EntityDefinition definition, ActorProperties properties)
         {
             // TODO
+            if (properties.Health != null)
+                definition.Properties.Height = properties.Health.Value;
+            // TODO
             if (properties.Height != null)
                 definition.Properties.Height = properties.Height.Value;
             // TODO

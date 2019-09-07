@@ -45,7 +45,7 @@ namespace Helion.World.Entities
         {
             int id = m_entityIdTracker.Next();
             Sector sector = m_world.BspTree.ToSector(position);
-            Entity entity = new Entity(id, tid, definition, position, angle, sector);
+            Entity entity = new Entity(id, tid, definition, position, angle, sector, this);
             
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
@@ -72,7 +72,6 @@ namespace Helion.World.Entities
             entity.Dispose();
         }
 
-        // TODO: Change this method name, it clashes with another...
         public Player? CreatePlayer(int playerIndex)
         {
             // TODO: Have to handle dummies fake duplicate players. Also want
