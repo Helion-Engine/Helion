@@ -94,10 +94,12 @@ namespace Helion.World.Physics
             sectorPlane.Plane?.MoveZ(destZ - startZ);
 
             // Move lower entities first to handle stacked entities
-            IEnumerable<Entity> entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
+            var entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
 
             foreach (var entity in entities)
             {
+                entity.SaveZ = entity.Position.Z;
+
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
                 if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
@@ -127,14 +129,19 @@ namespace Helion.World.Physics
                             continue;
                     }
 
-                    sectorPlane.Z = startZ;
-                    sectorPlane.Plane?.MoveZ(startZ - destZ);
+                    // Set the sector Z to the difference of the blocked height
+                    double diff = Math.Abs(startZ - destZ) - (thingZ + entity.Height - entity.LowestCeilingZ);
+                    if (speed < 0)
+                        diff = -diff;
+
+                    sectorPlane.Z = startZ + diff;
+                    sectorPlane.Plane?.MoveZ(startZ + diff);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in entities)
                     {
                         relinkEntity.UnlinkFromWorld();
-                        relinkEntity.SetZ(relinkEntity.PrevPosition.Z, false);
+                        relinkEntity.SetZ(relinkEntity.SaveZ + diff, false);
                         LinkToWorld(relinkEntity);
                     }
 
@@ -358,6 +365,10 @@ namespace Helion.World.Physics
 
             foreach (Entity intersectEntity in entity.IntersectEntities)
             {
+                // Check if we are stuck inside this entity and skip because it is invalid for setting floor/ceiling
+                if (PreviouslyClipped(entity, intersectEntity))
+                    continue;
+
                 bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
                 bool below = entity.PrevPosition.Z < intersectEntity.Box.Bottom;
                 bool clipped = false;
@@ -390,13 +401,20 @@ namespace Helion.World.Physics
             entity.LowestCeilingSector = lowestCeiling;
         }
 
+        private static bool PreviouslyClipped(Entity entity, Entity other)
+        {
+            EntityBox box = new EntityBox(entity.PrevPosition, entity.Radius, entity.Height);
+            EntityBox otherBox = new EntityBox(other.PrevPosition, other.Radius, other.Height);
+            return box.Overlaps(otherBox);
+        }
+
         private void LinkToSectorsAndEntities(Entity entity)
         {
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
             
-            // TODO: We (very likely) do a fair amount of object creation here.
+            // TODO: We (very likely) do a fair amount of object creation here
             //       Let's use `stackalloc` for an array in the future and do
-            //       direct comparison via iteration. It's probably the very
+            //       direct comparison via iteration. It's probably the  b 
             //       few examples where O(n) beats O(1) due to how small n is.
             //       Plus we also do a foreach over the hash set, which has
             //       performance issues we can resolve as well by fixing this.
@@ -437,14 +455,17 @@ namespace Helion.World.Physics
                     }
                 }
 
-                LinkableNode<Entity>? entityNode = block.Entities.Head;
-                while (entityNode != null)
+                if (entity.Flags.Solid)
                 {
-                    Entity nextEntity = entityNode.Value;
-                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(entity.Box))
-                        entities.Add(nextEntity);
+                    LinkableNode<Entity>? entityNode = block.Entities.Head;
+                    while (entityNode != null)
+                    {
+                        Entity nextEntity = entityNode.Value;
+                        if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(entity.Box))
+                            entities.Add(nextEntity);
 
-                    entityNode = entityNode.Next;
+                        entityNode = entityNode.Next;
+                    }
                 }
 
                 return GridIterationStatus.Continue;
@@ -529,21 +550,24 @@ namespace Helion.World.Physics
                         return GridIterationStatus.Stop;
                 }
 
-                LinkableNode<Entity>? entityNode = block.Entities.Head;
-                while (entityNode != null)
+                if (entity.Flags.Solid)
                 {
-                    Entity nextEntity = entityNode.Value;
-    
-                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(nextBox) && 
-                        entity.Box.OverlapsZ(nextEntity.Box))
+                    LinkableNode<Entity>? entityNode = block.Entities.Head;
+                    while (entityNode != null)
                     {
-                        if (EntityBlocksEntityZ(entity, nextEntity))
-                            return GridIterationStatus.Stop;
+                        Entity nextEntity = entityNode.Value;
 
-                        entity.IntersectEntities.Add(nextEntity);
+                        if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(nextBox) &&
+                            entity.Box.OverlapsZ(nextEntity.Box))
+                        {
+                            if (EntityBlocksEntityZ(entity, nextEntity))
+                                return GridIterationStatus.Stop;
+
+                            entity.IntersectEntities.Add(nextEntity);
+                        }
+
+                        entityNode = entityNode.Next;
                     }
-
-                    entityNode = entityNode.Next;
                 }
                 
                 return GridIterationStatus.Continue;
