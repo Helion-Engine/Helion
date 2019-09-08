@@ -30,8 +30,7 @@ namespace Helion.Client.OpenAL.Components
 
         private void ReleaseUnmanagedResources()
         {
-            if (Device == IntPtr.Zero)
-                Alc.CloseDevice(Device);
+            Alc.CloseDevice(Device);
         }
     }
 }

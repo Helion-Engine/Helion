@@ -43,7 +43,7 @@ namespace Helion.Client.OpenAL
             Log.Info("OpenAL v{0}", AL.Get(ALGetString.Version));
             Log.Info("OpenAL Vendor: {0}", AL.Get(ALGetString.Vendor));
             Log.Info("OpenAL Renderer: {0}", AL.Get(ALGetString.Renderer));
-            Log.Info("OpenAL Extension count: {0}", AL.Get(ALGetString.Extensions).Split(' ').Length);
+            Log.Info("OpenAL Extensions: {0}", AL.Get(ALGetString.Extensions).Split(' ').Length);
 
             PrintedALInfo = true;
         }

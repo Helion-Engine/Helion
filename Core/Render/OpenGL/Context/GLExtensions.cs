@@ -12,6 +12,8 @@ namespace Helion.Render.OpenGL.Context
         public readonly bool ShaderImageLoadStore;
         private readonly HashSet<string> m_extensions = new HashSet<string>();
 
+        public int Count => m_extensions.Count;
+        
         public GLExtensions(IGLFunctions functions)
         {
             PopulateExtensions(functions);
