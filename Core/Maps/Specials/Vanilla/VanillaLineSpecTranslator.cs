@@ -216,6 +216,12 @@ namespace Helion.Maps.Specials.Vanilla
                 argsToMutate.Arg2 = 64;
                 return ZDoomLineSpecialType.FloorRaiseByValueTimes8;
 
+            case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
+            case VanillaLineSpecialType.W1_LowerCeilingToEightAboveFloor:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                return ZDoomLineSpecialType.CeilingLowerToFloor;
+
             case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
             case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
                 argsToMutate.Arg0 = tag;
