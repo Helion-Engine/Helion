@@ -19,7 +19,8 @@ namespace Helion.Audio
     /// halted and never bleed into other areas. In ports like ZDoom and such,
     /// Randy said on the forums that it's all done on another thread and this
     /// coding style has led to weird sound leakage issues. This design pattern
-    /// will hopefully remedy this.
+    /// will hopefully remedy this. By this, I mean that sounds in the world
+    /// still keep playing even after the world has been terminated (disposed).
     /// </remarks>
     public interface IAudioContext : IDisposable
     {
