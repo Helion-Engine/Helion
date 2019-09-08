@@ -49,6 +49,9 @@ namespace Helion.World.Entities
         internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
 
+        // Temporary storage variable for handling PhysicsManager.SectorMoveZ
+        public double SaveZ;
+
         public double Height => Definition.Properties.Height;
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
@@ -177,8 +180,6 @@ namespace Helion.World.Entities
         /// </summary>
         public void Tick()
         {
-            PrevPosition = Box.Position;
-
             if (FrozenTics > 0)
                 FrozenTics--;
 
