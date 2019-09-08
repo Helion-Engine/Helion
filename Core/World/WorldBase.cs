@@ -5,6 +5,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
+using Helion.Util.Extensions;
 using Helion.Util.Time;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
@@ -66,7 +67,7 @@ namespace Helion.World
 
         public void Link(Entity entity)
         {
-            // TODO: Make sure it's been unlinked!
+            Precondition(entity.SectorNodes.Empty() && entity.BlockmapNodes.Empty(), "Forgot to unlink entity before linking");
             
             PhysicsManager.LinkToWorld(entity);
         }

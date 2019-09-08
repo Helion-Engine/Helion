@@ -1,3 +1,5 @@
+using Helion.Maps.Shared;
+
 namespace Helion.Maps.Components
 {
     /// <summary>
@@ -11,6 +13,11 @@ namespace Helion.Maps.Components
         /// are encountered when building.
         /// </summary>
         int Id { get; }
+        
+        /// <summary>
+        /// The flags for the line.
+        /// </summary>
+        MapLineFlags Flags { get; }
         
         /// <summary>
         /// Gets the starting vertex.

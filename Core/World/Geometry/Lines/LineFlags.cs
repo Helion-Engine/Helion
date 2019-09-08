@@ -1,4 +1,4 @@
-using Helion.Maps.Doom.Components.Types;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 
 namespace Helion.World.Geometry.Lines
@@ -12,7 +12,7 @@ namespace Helion.World.Geometry.Lines
         public bool BlockSound;
         public bool Repeat;
 
-        public LineFlags(DoomLineFlags flags)
+        public LineFlags(MapLineFlags flags)
         {
             Automap.AlwaysDraw = flags.AlwaysDrawAutomap;
             Automap.NeverDraw = flags.NoDrawAutomap;
@@ -28,9 +28,8 @@ namespace Helion.World.Geometry.Lines
             
             BlockSound = flags.BlockSound;
 
-            // TODO
             ActivationType = ActivationType.None;
-            Repeat = false;
+            Repeat = flags.RepeatSpecial;
         }
     }
 }

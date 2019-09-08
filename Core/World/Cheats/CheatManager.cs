@@ -9,7 +9,6 @@ namespace Helion.World.Cheats
     public class CheatManager
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
         private static readonly ICheat[] Cheats = 
         {
             new ChangeLevelCheat(),

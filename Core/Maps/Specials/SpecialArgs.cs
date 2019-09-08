@@ -1,3 +1,5 @@
+using System;
+
 namespace Helion.Maps.Specials
 {
     /// <summary>
@@ -43,6 +45,12 @@ namespace Helion.Maps.Specials
         public SpecialArgs(byte arg0 = 0, byte arg1 = 0, byte arg2 = 0, byte arg3 = 0, byte arg4 = 0)
         {
             m_args = new[] { arg0, arg1, arg2, arg3, arg4 };
+        }
+
+        public SpecialArgs(SpecialArgs other)
+        {
+            m_args = new byte[] { 0, 0, 0, 0, 0 };
+            Array.Copy(other.m_args, m_args, m_args.Length);
         }
     }
 }

@@ -27,8 +27,8 @@ namespace Helion.Client
         private readonly HelionConsole m_console;
         private readonly Config m_config;
         private readonly GCTracker m_gcTracker;
+        private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenTKWindow m_window;
-        private readonly ArchiveCollection m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
         private readonly GameLayerManager m_layerManager;
 
         private Client(CommandLineArgs cmdArgs, Config config)
@@ -39,6 +39,7 @@ namespace Helion.Client
             m_console = new HelionConsole(config);
             LogClientInformation();
             
+            m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
             m_layerManager = new GameLayerManager(config, m_console);
 

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps;
 using Helion.Maps.Components;
-using Helion.Maps.Doom.Components;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Container;
@@ -46,7 +45,7 @@ namespace Helion.World.Entities
         {
             int id = m_entityIdTracker.Next();
             Sector sector = m_world.BspTree.ToSector(position);
-            Entity entity = new Entity(id, tid, definition, position, angle, sector);
+            Entity entity = new Entity(id, tid, definition, position, angle, sector, this);
             
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
@@ -73,7 +72,6 @@ namespace Helion.World.Entities
             entity.Dispose();
         }
 
-        // TODO: Change this method name, it clashes with another...
         public Player? CreatePlayer(int playerIndex)
         {
             // TODO: Have to handle dummies fake duplicate players. Also want
@@ -106,25 +104,31 @@ namespace Helion.World.Entities
         {
             foreach (IThing mapThing in map.GetThings())
             {
-                // TODO: This will blow up when we get non-doom maps, we'll handle that later.
-                DoomThing thing = (DoomThing)mapThing;
-                
-                // TODO: Temporary!
-                if (!thing.Flags.SinglePlayer)
+                if (!ShouldSpawn(mapThing))
                     continue;
                 
-                EntityDefinition? definition = m_definitionComposer[thing.EditorNumber];
+                EntityDefinition? definition = m_definitionComposer[mapThing.EditorNumber];
                 if (definition == null)
                 {
-                    Log.Warn("Cannot find entity by editor number {0} at {1}", thing.EditorNumber, thing.Position.To2D());
+                    Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.To2D());
                     continue;
                 }
 
-                double angleRadians = MathHelper.ToRadians(thing.Angle);
-                Entity entity = Create(definition, thing.Position.ToDouble(), angleRadians, mapThing.Tid);
+                double angleRadians = MathHelper.ToRadians(mapThing.Angle);
+                Entity entity = Create(definition, mapThing.Position.ToDouble(), angleRadians, mapThing.ThingId);
 
                 PostProcessEntity(entity);
             }
+        }
+        
+        private static bool ShouldSpawn(IThing mapThing)
+        {
+            if (!mapThing.Flags.SinglePlayer)
+                return false;
+            
+            // TODO: Check skill level.
+
+            return true;
         }
 
         private void PostProcessEntity(Entity entity)

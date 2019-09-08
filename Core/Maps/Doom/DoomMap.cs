@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Maps.Components;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Doom.Components.Types;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util;
 using Helion.Util.Geometry;
@@ -83,7 +84,7 @@ namespace Helion.Maps.Doom
         public IReadOnlyList<IThing> GetThings() => Things;
         public IReadOnlyList<IVertex> GetVertices() => Vertices;
 
-        private static IReadOnlyList<DoomVertex>? CreateVertices(byte[] vertexData)
+        internal static IReadOnlyList<DoomVertex>? CreateVertices(byte[] vertexData)
         {
             if (vertexData.Length % BytesPerVertex != 0)
                 return null;
@@ -103,7 +104,7 @@ namespace Helion.Maps.Doom
             return vertices;
         }
 
-        private static IReadOnlyList<DoomSector> CreateSectors(byte[] sectorData)
+        internal static IReadOnlyList<DoomSector> CreateSectors(byte[] sectorData)
         {
             if (sectorData.Length % BytesPerSector != 0)
                 return null;
@@ -122,10 +123,6 @@ namespace Helion.Maps.Doom
                 ushort special = reader.ReadUInt16();
                 ushort tag = reader.ReadUInt16();
 
-                // Some mods do this, we don't want malformed sectors that may
-                // result because of such errors.
-                ceilZ = Math.Max(floorZ, ceilZ);
-
                 DoomSectorType sectorType = (DoomSectorType)special;
                 DoomSector sector = new DoomSector(id, floorZ, ceilZ, floorTexture, ceilTexture, lightLevel, sectorType, tag);
                 sectors.Add(sector);
@@ -134,7 +131,7 @@ namespace Helion.Maps.Doom
             return sectors;
         }
         
-        private static IReadOnlyList<DoomSide> CreateSides(byte[] sideData, IReadOnlyList<DoomSector> sectors)
+        internal static IReadOnlyList<DoomSide> CreateSides(byte[] sideData, IReadOnlyList<DoomSector> sectors)
         {
             if (sideData.Length % BytesPerSide != 0)
                 return null;
@@ -192,7 +189,7 @@ namespace Helion.Maps.Doom
                 DoomVertex endVertex = vertices[endVertexId];
                 DoomSide front = sides[rightSidedef];
                 DoomSide? back = null;
-                DoomLineFlags lineFlags = new DoomLineFlags(flags);
+                MapLineFlags lineFlags = MapLineFlags.Doom(flags);
                 VanillaLineSpecialType lineType = (VanillaLineSpecialType)type;
 
                 if (startVertexId == endVertexId || startVertex.PositionFixed == endVertex.PositionFixed)
@@ -234,7 +231,7 @@ namespace Helion.Maps.Doom
                 Vec2Fixed position = new Vec2Fixed(x, y);
                 ushort angle = reader.ReadUInt16();
                 ushort editorNumber = reader.ReadUInt16();
-                DoomThingFlags flags = new DoomThingFlags(reader.ReadUInt16());
+                ThingFlags flags = ThingFlags.Doom(reader.ReadUInt16());
                 
                 DoomThing thing = new DoomThing(id, position, angle, editorNumber, flags);
                 things.Add(thing);
