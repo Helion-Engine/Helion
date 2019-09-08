@@ -137,8 +137,8 @@ namespace Helion.Render.OpenGL
             
             Log.Info("Loaded OpenGL v{0}", capabilities.Version);
             Log.Info("OpenGL Shading Language: {0}", capabilities.Info.ShadingVersion);
-            Log.Info("Vendor: {0}", capabilities.Info.Vendor);
-            Log.Info("Hardware: {0}", capabilities.Info.Renderer);
+            Log.Info("OpenGL Vendor: {0}", capabilities.Info.Vendor);
+            Log.Info("OpenGL Hardware: {0}", capabilities.Info.Renderer);
 
             InfoPrinted = true;
         }

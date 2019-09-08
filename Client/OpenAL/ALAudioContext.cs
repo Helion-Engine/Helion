@@ -6,16 +6,16 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client.OpenAL
 {
-    public class OpenALAudioContext : IAudioContext
+    public class ALAudioContext : IAudioContext
     {
-        public IAudioListener Listener { get; } = new OpenALAudioListener();
+        public IAudioListener Listener { get; } = new ALAudioListener();
 
-        public OpenALAudioContext(Config config, ArchiveCollection archiveCollection)
+        public ALAudioContext(Config config, ArchiveCollection archiveCollection)
         {
             // TODO
         }
 
-        ~OpenALAudioContext()
+        ~ALAudioContext()
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             PerformDispose();
@@ -23,7 +23,7 @@ namespace Helion.Client.OpenAL
 
         public IAudioSource Create(string sound)
         {
-            OpenALAudioSource source = new OpenALAudioSource();
+            ALAudioSource source = new ALAudioSource();
             return source;
         }
 

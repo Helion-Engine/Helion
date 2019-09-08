@@ -5,12 +5,12 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client.OpenAL
 {
-    public class OpenALAudioSource : IAudioSource
+    public class ALAudioSource : IAudioSource
     {
         public Vector3 Position { get; set; }
         public Vector3 Velocity { get; set; }
 
-        ~OpenALAudioSource()
+        ~ALAudioSource()
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             PerformDispose();

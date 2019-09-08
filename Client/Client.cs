@@ -31,7 +31,7 @@ namespace Helion.Client
         private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
-        private readonly OpenALAudioSystem m_audioSystem;
+        private readonly ALAudioSystem m_audioSystem;
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
@@ -43,7 +43,7 @@ namespace Helion.Client
             
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_audioSystem = new OpenALAudioSystem(config, m_archiveCollection);
+            m_audioSystem = new ALAudioSystem(config, m_archiveCollection);
             m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
