@@ -1,3 +1,4 @@
+using Helion.Audio;
 using Helion.Input;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -18,14 +19,16 @@ namespace Helion.Layer
     {
         private readonly Config m_config;
         private readonly HelionConsole m_console;
+        private readonly IAudioSystem m_audioSystem;
 
         protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
-        public GameLayerManager(Config config, HelionConsole console)
+        public GameLayerManager(Config config, HelionConsole console, IAudioSystem audioSystem)
         {
             m_config = config;
             m_console = console;
+            m_audioSystem = audioSystem;
         }
 
         public override void HandleInput(ConsumableInput consumableInput)

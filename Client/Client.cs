@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Helion.Client.OpenAL;
 using Helion.Client.OpenTK;
 using Helion.Input;
 using Helion.Layer;
@@ -30,6 +31,7 @@ namespace Helion.Client
         private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
+        private readonly ALAudioSystem m_audioSystem;
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
@@ -41,7 +43,8 @@ namespace Helion.Client
             
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_layerManager = new GameLayerManager(config, m_console);
+            m_audioSystem = new ALAudioSystem(config, m_archiveCollection);
+            m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
         }
@@ -57,6 +60,7 @@ namespace Helion.Client
 
             m_layerManager.Dispose();
             m_window.Dispose();
+            m_audioSystem.Dispose();
             m_console.Dispose();
 
             GC.SuppressFinalize(this);
@@ -120,7 +124,12 @@ namespace Helion.Client
             m_layerManager.RunLogic();
         }
 
-        private void Render()
+        private void RenderSound()
+        {
+            // TODO!
+        }
+
+        private void RenderGraphics()
         {
             Dimension windowDimension = m_window.WindowDimension;
             IRenderer renderer = m_window.Renderer;
@@ -139,7 +148,8 @@ namespace Helion.Client
             
             HandleInput();
             RunLogic();
-            Render();
+            RenderSound();
+            RenderGraphics();
             m_window.SwapBuffers();
         }
 
