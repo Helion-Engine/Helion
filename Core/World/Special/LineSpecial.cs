@@ -1,6 +1,7 @@
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Physics;
 
@@ -28,7 +29,7 @@ namespace Helion.World.Special
         /// </summary>
         public bool CanActivate(Entity entity, LineFlags flags, ActivationContext context)
         {
-            if (!Active && entity.Player != null)
+            if (!Active && entity is Player)
             {
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.PlayerLineCross;

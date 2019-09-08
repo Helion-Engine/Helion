@@ -1,5 +1,6 @@
 ﻿using Helion.Util.Geometry;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -33,8 +34,8 @@ namespace Helion.World.Special.Specials
             entity.Velocity = Vec3D.Zero;
             entity.SetPosition(teleportSpot.Position);
             entity.AngleRadians = teleportSpot.AngleRadians;
-            if (entity.Player != null)
-                entity.Player.Pitch = 0;
+            if (entity is Player player)
+                player.PitchRadians = 0;
 
             m_world.Link(entity);
 

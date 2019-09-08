@@ -2,6 +2,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Geometry;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using static Helion.Util.Assertion.Assert;
@@ -67,7 +68,7 @@ namespace Helion.World.Geometry.Lines
         /// otherwise.</returns>
         public bool BlocksEntity(Entity entity)
         {
-            return OneSided || (entity.Player != null && Flags.Blocking.Players);
+            return OneSided || (entity is Player && Flags.Blocking.Players);
         }
     }
 }

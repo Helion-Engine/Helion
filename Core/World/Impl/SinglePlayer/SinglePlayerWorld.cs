@@ -30,11 +30,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
             EntityManager.PopulateFrom(map);
             
-            // TODO: Did we want to force creation of the player if missing? Like stick them at (0, 0)?
-            Player? player = EntityManager.CreatePlayer(0);
-            if (player == null)
-                throw new NullReferenceException("TODO: Should not allow this, maybe spawn player forcefully?");
-            Player = player;
+            Player = EntityManager.CreatePlayer(0);
 
             m_cheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
             PhysicsManager.EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
@@ -67,28 +63,26 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleTickCommand(TickCommand tickCommand)
         {
-            if (Player.Entity.IsFrozen)
+            if (Player.IsFrozen)
                 return;
-
-            Entity entity = Player.Entity;
 
             Vec3D movement = Vec3D.Zero;
             if (tickCommand.Has(TickCommands.Forward))
-                movement += CalculateForwardMovement(entity);
+                movement += CalculateForwardMovement(Player);
             if (tickCommand.Has(TickCommands.Backward))
-                movement -= CalculateForwardMovement(entity);
+                movement -= CalculateForwardMovement(Player);
             if (tickCommand.Has(TickCommands.Right))
-                movement += CalculateStrafeRightMovement(entity);
+                movement += CalculateStrafeRightMovement(Player);
             if (tickCommand.Has(TickCommands.Left))
-                movement -= CalculateStrafeRightMovement(entity);
+                movement -= CalculateStrafeRightMovement(Player);
 
             if (tickCommand.Has(TickCommands.Jump))
             {
-                if (Player.Entity.IsFlying)
+                if (Player.IsFlying)
                 {
                     // This z velocity overrides z movement velocity
                     movement.Z = 0;
-                    entity.Velocity.Z = Player.ForwardMovementSpeed * 2;
+                    Player.Velocity.Z = Player.ForwardMovementSpeed * 2;
                 }
                 else
                 {
@@ -98,16 +92,16 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (movement != Vec3D.Zero)
             {
-                if (!entity.OnGround && !Player.Entity.IsFlying)
+                if (!Player.OnGround && !Player.IsFlying)
                     movement *= AirControl;
                 
-                entity.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
-                entity.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
-                entity.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
+                Player.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
+                Player.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
+                Player.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
             }
 
             if (tickCommand.Has(TickCommands.Use))
-                PhysicsManager.EntityUse(Player.Entity);
+                PhysicsManager.EntityUse(Player);
         }
         
         protected override void PerformDispose()
@@ -119,14 +113,14 @@ namespace Helion.World.Impl.SinglePlayer
             base.PerformDispose();
         }
 
-        private static Vec3D CalculateForwardMovement(Entity entity)
+        private static Vec3D CalculateForwardMovement(Player player)
         {
-            double x = Math.Cos(entity.AngleRadians) * Player.ForwardMovementSpeed;
-            double y = Math.Sin(entity.AngleRadians) * Player.ForwardMovementSpeed;
+            double x = Math.Cos(player.AngleRadians) * Player.ForwardMovementSpeed;
+            double y = Math.Sin(player.AngleRadians) * Player.ForwardMovementSpeed;
             double z = 0;
 
-            if (entity.Player != null && entity.IsFlying)
-               z = Player.ForwardMovementSpeed * entity.Player.Pitch;
+            if (player.IsFlying)
+               z = Player.ForwardMovementSpeed * player.PitchRadians;
 
             return new Vec3D(x, y, z);
         }
@@ -151,10 +145,10 @@ namespace Helion.World.Impl.SinglePlayer
             switch (cheatEvent.CheatType)
             {
             case CheatType.NoClip:
-                Player.Entity.NoClip = cheatEvent.Activated;
+                Player.NoClip = cheatEvent.Activated;
                 break;
             case CheatType.Fly:
-                Player.Entity.IsFlying = cheatEvent.Activated;
+                Player.IsFlying = cheatEvent.Activated;
                 break;
             }
         }
@@ -176,7 +170,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         private void HandleMouseLook(ConsumableInput frameInput)
         {
-            if (Player.Entity.IsFrozen)
+            if (Player.IsFrozen)
                 return;
 
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
