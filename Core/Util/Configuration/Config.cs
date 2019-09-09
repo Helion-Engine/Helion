@@ -1,5 +1,6 @@
 using System;
 using Helion.Input;
+using Helion.Maps.Shared;
 using Helion.Render.Shared;
 using Helion.Window;
 
@@ -17,6 +18,12 @@ namespace Helion.Util.Configuration
     public class EngineFilesConfig 
     {
         public readonly ConfigValue<string> Directories = new ConfigValue<string>(";");
+    }
+    
+    [ConfigComponent]
+    public class EngineGameConfig 
+    {
+        public readonly ConfigValue<SkillLevel> Skill = new ConfigValue<SkillLevel>(SkillLevel.Hard);
     }
 
     [ConfigComponent]
@@ -88,6 +95,7 @@ namespace Helion.Util.Configuration
     {
         public readonly EngineConsoleConfig Console = new EngineConsoleConfig();
         public readonly EngineFilesConfig Files = new EngineFilesConfig();
+        public readonly EngineGameConfig Game = new EngineGameConfig();
         public readonly EngineDeveloperConfig Developer = new EngineDeveloperConfig();
         public readonly EngineMouseConfig Mouse = new EngineMouseConfig();
         public readonly EngineControlConfig Controls = new EngineControlConfig();

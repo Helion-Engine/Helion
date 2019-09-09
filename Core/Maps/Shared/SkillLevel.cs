@@ -1,4 +1,4 @@
-namespace Helion.World
+namespace Helion.Maps.Shared
 {
     public enum SkillLevel
     {

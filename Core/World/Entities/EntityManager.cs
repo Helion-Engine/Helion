@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps;
 using Helion.Maps.Components;
+using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Container;
@@ -27,11 +28,13 @@ namespace Helion.World.Entities
         private readonly EntityDefinitionComposer m_definitionComposer;
         private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
+        private readonly SkillLevel m_skill;
 
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection)
+        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SkillLevel skill)
         {
             m_world = world;
             m_definitionComposer = new EntityDefinitionComposer(archiveCollection);
+            m_skill = skill;
         }
         
         public IEnumerable<Entity> FindByTid(int tid)
@@ -98,7 +101,7 @@ namespace Helion.World.Entities
         {
             foreach (IThing mapThing in map.GetThings())
             {
-                if (!ShouldSpawn(mapThing))
+                if (!ShouldSpawn(mapThing, m_skill))
                     continue;
                 
                 EntityDefinition? definition = m_definitionComposer[mapThing.EditorNumber];
@@ -115,14 +118,25 @@ namespace Helion.World.Entities
             }
         }
         
-        private static bool ShouldSpawn(IThing mapThing)
+        private static bool ShouldSpawn(IThing mapThing, SkillLevel skill)
         {
+            // TODO: These should be offloaded into SinglePlayerWorld...
             if (!mapThing.Flags.SinglePlayer)
                 return false;
             
-            // TODO: Check skill level.
-
-            return true;
+            switch (skill)
+            {
+            case SkillLevel.VeryEasy:
+            case SkillLevel.Easy:
+                return mapThing.Flags.Easy;
+            case SkillLevel.Medium:
+                return mapThing.Flags.Medium;
+            case SkillLevel.Hard:
+            case SkillLevel.Nightmare:
+                return mapThing.Flags.Hard;
+            default:
+                return false;
+            }
         }
 
         private void PostProcessEntity(Entity entity)

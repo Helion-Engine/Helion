@@ -53,7 +53,7 @@ namespace Helion.World
             Geometry = geometry;
             Blockmap = new Blockmap(Lines);
             PhysicsManager = new PhysicsManager(BspTree, Blockmap); 
-            EntityManager = new EntityManager(this, archiveCollection);
+            EntityManager = new EntityManager(this, archiveCollection, config.Engine.Game.Skill);
             SpecialManager = new SpecialManager(PhysicsManager, this);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
