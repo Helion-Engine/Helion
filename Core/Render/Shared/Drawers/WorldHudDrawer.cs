@@ -50,10 +50,12 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawPickupFlash(WorldBase world, RenderCommands cmd)
         {
+            // TODO
         }
 
         private static void DrawDamage(WorldBase world, RenderCommands cmd)
         {
+            // TODO
         }
 
         private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, RenderCommands cmd)

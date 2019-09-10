@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
@@ -12,6 +12,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Physics;
 using Helion.World.Sound;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -113,7 +114,9 @@ namespace Helion.World.Entities
         /// provided.
         /// </summary>
         /// <param name="z">The Z coordinate.</param>
-        /// <param name="smooth">If the entity should smooth the player's view height. This smooths the camera when stepping up to a higher sector.</param>
+        /// <param name="smooth">If the entity should smooth the player's view
+        /// height. This smooths the camera when stepping up to a higher sector.
+        /// </param>
         public virtual void SetZ(double z, bool smooth)
         {
             Box.SetZ(z);
@@ -198,6 +201,8 @@ namespace Helion.World.Entities
 
             TickStateFrame();
             SoundChannels.Tick();
+
+            RunDebugSanityChecks();
         }
 
         private void FindInitialFrameIndex()
@@ -252,6 +257,13 @@ namespace Helion.World.Entities
                 FrameIndex = frame.NextFrameIndex;
                 TicksInFrame = 0;
             }
+        }
+
+        [Conditional("DEBUG")]
+        private void RunDebugSanityChecks()
+        {
+            if (Position.Z < PhysicsManager.LowestPossibleZ)
+                Fail($"Entity #{Id} ({Definition.Name}) has fallen too far, did you forget +NOGRAVITY with something like +NOSECTOR/+NOBLOCKMAP?");
         }
     }
 }

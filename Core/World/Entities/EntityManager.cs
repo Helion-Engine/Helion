@@ -138,10 +138,21 @@ namespace Helion.World.Entities
 
         private void FinishCreatingEntity(Entity entity)
         {
+            bool forceToCenterZ = (entity.Position.Z == Fixed.Lowest().ToDouble());
+            
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
             
             m_world.Link(entity);
+            
+            // Apparently things that are spawned without a specific Z value
+            // are forced to their center sector floor Z, regardless of whether
+            // or not their bounding box intersects geometry or things.
+            if (forceToCenterZ)
+            {
+                double floorZ = entity.Sector.ToFloorZ(entity.Position);
+                entity.SetZ(floorZ, false);
+            }
 
             entity.ResetInterpolation();
         }

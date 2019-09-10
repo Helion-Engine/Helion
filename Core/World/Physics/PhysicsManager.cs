@@ -35,6 +35,7 @@ namespace Helion.World.Physics
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
         private const double SetEntityToFloorSpeedMax = 9;
 
+        public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly BspTree m_bspTree;
@@ -194,6 +195,24 @@ namespace Helion.World.Physics
             Seg2D useSeg = new Seg2D(start, end);
             m_blockmap.Iterate(useSeg, TraceLineFinder);
 
+            if (activateLine != null)
+            {
+                // The use line was blocked by a blocking line.
+                // TODO: Epsilon check?
+                if (activateLine.Segment.ClosestDistance(start) != closestDist)
+                    activateLine = null;
+            }
+
+            if (activateLine != null)
+            {
+                var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
+                EntityActivatedSpecial?.Invoke(this, args);
+            }
+            else if (hitBlockLine && entity is Player)
+            {
+                PlayerUseFail?.Invoke(this, entity);
+            }
+            
             GridIterationStatus TraceLineFinder(Block block)
             {
                 for (int i = 0; i < block.Lines.Count; i++)
@@ -231,24 +250,6 @@ namespace Helion.World.Physics
                 }
 
                 return GridIterationStatus.Continue;
-            }
-
-            if (activateLine != null)
-            {
-                // The use line was blocked by a blocking line.
-                // TODO: Epsilon check?
-                if (activateLine.Segment.ClosestDistance(start) != closestDist)
-                    activateLine = null;
-            }
-
-            if (activateLine != null)
-            {
-                var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
-                EntityActivatedSpecial?.Invoke(this, args);
-            }
-            else if (hitBlockLine && entity is Player)
-            {
-                PlayerUseFail?.Invoke(this, entity);
             }
         }
 
@@ -297,6 +298,12 @@ namespace Helion.World.Physics
             if (ReferenceEquals(entity, other))
                 return false;
             return other.Flags.Solid;
+        }
+        
+        private static bool EntityBlocksEntityZ(Entity entity, Entity other)
+        {
+            return other.Box.Top - entity.Box.Bottom > entity.Properties.MaxStepHeight || 
+                   entity.LowestCeilingZ - other.Box.Top < entity.Height;
         }
         
         private static bool PreviouslyClipped(Entity entity, Entity other)
@@ -584,12 +591,6 @@ namespace Helion.World.Physics
             }
         }
 
-        private bool EntityBlocksEntityZ(Entity entity, Entity other)
-        {
-            return other.Box.Top - entity.Box.Bottom > entity.Properties.MaxStepHeight || 
-                entity.LowestCeilingZ - other.Box.Top < entity.Height;
-        }
-
         private void MoveTo(Entity entity, Vec2D nextPosition)
         {
             entity.UnlinkFromWorld();
@@ -834,10 +835,17 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
+            double startingZ = entity.Position.Z;
+            
             if (entity.IsFlying)
                 entity.Velocity.Z *= Friction;
-            else if (!entity.OnGround)
+            else if (!entity.OnGround && !entity.Flags.NoGravity)
                 entity.Velocity.Z -= Gravity;
+
+            // We do this because ports right now appear to not run any of the
+            // physics functions or clamping if the actor isn't moving.
+            if (entity.Position.Z == startingZ)
+                return;
 
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
             ClampBetweenFloorAndCeiling(entity);
