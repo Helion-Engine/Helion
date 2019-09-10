@@ -835,16 +835,12 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            double startingZ = entity.Position.Z;
-            
             if (entity.IsFlying)
                 entity.Velocity.Z *= Friction;
             else if (!entity.OnGround && !entity.Flags.NoGravity)
                 entity.Velocity.Z -= Gravity;
 
-            // We do this because ports right now appear to not run any of the
-            // physics functions or clamping if the actor isn't moving.
-            if (entity.Position.Z == startingZ)
+            if (entity.Velocity.Z == 0)
                 return;
 
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
