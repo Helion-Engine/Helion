@@ -2,6 +2,7 @@ using System;
 using GlmSharp;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.OpenGL.Context
 {

@@ -2,6 +2,7 @@
 using System.IO;
 using Helion.Resources;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Graphics
 {

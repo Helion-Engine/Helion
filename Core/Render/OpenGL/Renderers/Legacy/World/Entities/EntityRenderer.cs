@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities;

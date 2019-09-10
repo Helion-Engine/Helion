@@ -1,4 +1,5 @@
-﻿using static Helion.Util.Assertion.Assert;
+﻿using Helion.Util.Geometry.Vectors;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry
 {

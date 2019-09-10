@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using static Helion.Util.Assertion.Assert;

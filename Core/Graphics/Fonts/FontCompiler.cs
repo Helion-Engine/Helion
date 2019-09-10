@@ -7,6 +7,7 @@ using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

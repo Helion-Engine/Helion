@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using static Helion.Util.Assertion.Assert;
+using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Segments;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Util.Geometry
 {

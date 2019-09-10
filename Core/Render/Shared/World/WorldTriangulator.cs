@@ -4,6 +4,7 @@ using System.Numerics;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;

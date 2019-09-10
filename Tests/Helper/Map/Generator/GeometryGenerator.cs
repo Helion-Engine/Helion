@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Moq;
 
 namespace Helion.Test.Helper.Map.Generator

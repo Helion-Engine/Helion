@@ -1,4 +1,6 @@
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.World.Entities
 {

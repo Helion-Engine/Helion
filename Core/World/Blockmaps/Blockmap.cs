@@ -4,6 +4,8 @@ using System.Linq;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Segments;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using static Helion.Util.Assertion.Assert;

@@ -1,11 +1,11 @@
-﻿using Helion.Util.Geometry;
-using System.Drawing;
+﻿using System.Drawing;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
+using Helion.Util.Geometry.Vectors;
 
 namespace BspVisualizer
 {

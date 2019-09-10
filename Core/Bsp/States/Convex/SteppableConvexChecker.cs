@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Segments;
+using Helion.Util.Geometry.Segments.Enums;
+using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Convex

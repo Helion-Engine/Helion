@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Miniseg

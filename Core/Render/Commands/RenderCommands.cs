@@ -6,6 +6,7 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.Text;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities;
 

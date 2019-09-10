@@ -14,6 +14,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Subsectors;

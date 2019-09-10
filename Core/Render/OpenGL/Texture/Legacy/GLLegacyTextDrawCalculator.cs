@@ -3,6 +3,7 @@ using Helion.Graphics.String;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.Shared.Text;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.OpenGL.Texture.Legacy
 {

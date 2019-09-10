@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Render.Shared.World.ViewClipping

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Input
 {

@@ -1,5 +1,6 @@
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Resources.Definitions.Texture
 {

@@ -4,6 +4,7 @@ using GlmSharp;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Helion.Client.OpenTK

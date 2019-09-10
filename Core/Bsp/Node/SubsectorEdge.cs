@@ -3,7 +3,8 @@ using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
 using Helion.Maps.Components;
-using Helion.Util.Geometry;
+using Helion.Util.Geometry.Segments.Enums;
+using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Node
@@ -20,6 +21,12 @@ namespace Helion.Bsp.Node
         public readonly ILine? Line;
 
         /// <summary>
+        /// If this segment is on the front of the line or not. This is not
+        /// meaningful if it is a miniseg, and can be either true or false.
+        /// </summary>
+        public readonly bool IsFront;
+
+        /// <summary>
         /// The starting vertex.
         /// </summary>
         public Vec2D Start;
@@ -28,12 +35,6 @@ namespace Helion.Bsp.Node
         /// The ending vertex.
         /// </summary>
         public Vec2D End;
-
-        /// <summary>
-        /// If this segment is on the front of the line or not. This is not
-        /// meaningful if it is a miniseg, and can be either true or false.
-        /// </summary>
-        public bool IsFront;
 
         /// <summary>
         /// True if it's a miniseg, false if not.

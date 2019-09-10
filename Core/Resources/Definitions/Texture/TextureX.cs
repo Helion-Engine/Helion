@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

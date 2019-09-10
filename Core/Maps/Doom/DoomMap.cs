@@ -7,6 +7,7 @@ using Helion.Maps.Shared;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using NLog;
 
 namespace Helion.Maps.Doom

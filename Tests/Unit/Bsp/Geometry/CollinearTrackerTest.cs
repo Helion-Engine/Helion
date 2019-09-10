@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Bsp.Geometry

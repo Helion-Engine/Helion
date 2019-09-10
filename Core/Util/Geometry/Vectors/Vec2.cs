@@ -2,7 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Numerics;
 
-namespace Helion.Util.Geometry
+namespace Helion.Util.Geometry.Vectors
 {
     public struct Vec2I
     {

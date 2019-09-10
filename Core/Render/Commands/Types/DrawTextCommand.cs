@@ -1,5 +1,6 @@
 using Helion.Graphics.String;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Commands.Types
 {

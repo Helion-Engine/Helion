@@ -1,6 +1,7 @@
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Segments;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Util;
-using Helion.Util.Geometry;
+using Helion.Util.Geometry.Segments.Enums;
+using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Split

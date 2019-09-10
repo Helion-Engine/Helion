@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Segments;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Blockmaps;
 using Helion.World.Bsp;
 using Helion.World.Entities;

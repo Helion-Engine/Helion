@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Maps.Components;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry

@@ -1,34 +1,80 @@
-using System;
+using System.Diagnostics.Contracts;
+using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Geometry
+namespace Helion.Util.Geometry.Boxes
 {
     /// <summary>
     /// A two dimensional box, which follows the cartesian coordinate system.
     /// </summary>
-    public struct Box3D
+    public struct Box2I
     {
         /// <summary>
         /// The minimum point in the box. This is equal to the bottom left 
         /// corner.
         /// </summary>
-        public Vec3D Min;
+        public Vec2I Min;
 
         /// <summary>
         /// The maximum point in the box. This is equal to the top right 
         /// corner.
         /// </summary>
-        public Vec3D Max;
+        public Vec2I Max;
+
+        /// <summary>
+        /// The top left corner of the box.
+        /// </summary>
+        public Vec2I TopLeft => new Vec2I(Min.X, Max.Y);
+
+        /// <summary>
+        /// The bottom left corner of the box.
+        /// </summary>
+        public Vec2I BottomLeft => Min;
+
+        /// <summary>
+        /// The bottom right corner of the box.
+        /// </summary>
+        public Vec2I BottomRight => new Vec2I(Max.X, Min.Y);
+
+        /// <summary>
+        /// The top right corner of the box.
+        /// </summary>
+        public Vec2I TopRight => Max;
 
         /// <summary>
         /// The top value of the box.
         /// </summary>
-        public double Top => Max.Z;
+        public int Top => Max.Y;
         
         /// <summary>
         /// The bottom value of the box.
         /// </summary>
-        public double Bottom => Min.Z;
+        public int Bottom => Min.Y;
+        
+        /// <summary>
+        /// The left value of the box.
+        /// </summary>
+        public int Left => Min.X;
+        
+        /// <summary>
+        /// The right value of the box.
+        /// </summary>
+        public int Right => Max.X;
+        
+        /// <summary>
+        /// A property that calculates the width of the box.
+        /// </summary>
+        public int Width => Max.X - Min.X;
+        
+        /// <summary>
+        /// A property that calculates the height of the box.
+        /// </summary>
+        public int Height => Max.Y - Min.Y;
+        
+        /// <summary>
+        /// A property that calculates the dimension of the box.
+        /// </summary>
+        public Dimension Dimension => new Dimension(Width, Height);
 
         /// <summary>
         /// Creates a box from a bottom left and top right point. It is an 
@@ -36,41 +82,14 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="min">The bottom left point.</param>
         /// <param name="max">The top right point.</param>
-        public Box3D(Vec3D min, Vec3D max)
+        public Box2I(Vec2I min, Vec2I max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Precondition(min.Z <= max.Z, "Bounding box min Z > max Z");
 
             Min = min;
             Max = max;
         }
-        
-        /// <summary>
-        /// Creates a bigger box from a series of smaller boxes, returning such
-        /// a box that encapsulates minimally all the provided arguments.
-        /// </summary>
-        /// <param name="firstBox">The first box in the sequence.</param>
-        /// <param name="boxes">The remaining boxes, if any.</param>
-        /// <returns>A box that encases all of the args tightly.</returns>
-        public static Box3D Combine(Box3D firstBox, params Box3D[] boxes)
-        {
-            Vec3D min = firstBox.Min;
-            Vec3D max = firstBox.Max;
-
-            foreach (Box3D box in boxes)
-            {
-                min.X = Math.Min(min.X, box.Min.X);
-                min.Y = Math.Min(min.Y, box.Min.Y);
-                min.Z = Math.Min(min.Z, box.Min.Z);
-                
-                max.X = Math.Max(max.X, box.Max.X);
-                max.Y = Math.Max(max.Y, box.Max.Y);
-                max.Z = Math.Max(max.Z, box.Max.Z);
-            }
-
-            return new Box3D(min, max);
-        }
 
         /// <summary>
         /// Checks if the box contains the point. Being on the edge is not
@@ -78,22 +97,22 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="point">The point to check.</param>
         /// <returns>True if it is inside, false if not.</returns>
-        public bool Contains(Vec2D point)
+        [Pure]
+        public bool Contains(Vec2I point)
         {
             return point.X <= Min.X || point.X >= Max.X || point.Y <= Min.Y || point.Y >= Max.Y;
         }
-        
+
         /// <summary>
         /// Checks if the box contains the point. Being on the edge is not
         /// considered to be containing.
         /// </summary>
         /// <param name="point">The point to check.</param>
         /// <returns>True if it is inside, false if not.</returns>
-        public bool Contains(Vec3D point)
+        [Pure]
+        public bool Contains(Vec3I point)
         {
-            return point.X <= Min.X || point.X >= Max.X || 
-                   point.Y <= Min.Y || point.Y >= Max.Y ||
-                   point.Z <= Min.Z || point.Z >= Max.Z;
+            return point.X <= Min.X || point.X >= Max.X || point.Y <= Min.Y || point.Y >= Max.Y;
         }
 
         /// <summary>
@@ -102,26 +121,19 @@ namespace Helion.Util.Geometry
         /// </summary>
         /// <param name="box">The other box to check against.</param>
         /// <returns>True if they overlap, false if not.</returns>
-        public bool Overlaps(Box3D box)
+        [Pure]
+        public bool Overlaps(Box2I box)
         {
-            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || 
-                     Min.Y >= box.Max.Y || Max.Y <= box.Min.Y ||
-                     Min.Z >= box.Max.Z || Max.Z <= box.Min.Z);
+            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
         }
 
         /// <summary>
         /// Calculates the sides of this bounding box.
         /// </summary>
         /// <returns>The sides of the bounding box.</returns>
-        public Vec3D Sides() => Max - Min;
-        
-        /// <summary>
-        /// Gets a 2-dimensional box by dropping the Z axis.
-        /// </summary>
-        /// <returns>The two dimensional representation of this box.</returns>
-        public Box2D To2D() => new Box2D(Min.To2D(), Max.To2D());
+        [Pure]
+        public Vec2I Sides() => Max - Min;
 
-        /// <inheritdoc/>
         public override string ToString() => $"({Min}), ({Max})";
     }
 }
