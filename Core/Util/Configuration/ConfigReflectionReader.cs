@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Helion.Util.Configuration.Attributes;
 using IniParser;
 using IniParser.Model;
 using MoreLinq;
@@ -198,10 +199,15 @@ namespace Helion.Util.Configuration
                 .Select(fieldInfo => (lowerFieldName: fieldInfo.Name.ToLower(), fieldValue: fieldInfo.GetValue(root)))
                 .ForEach(pair =>
                 {
-                    // Do a select here instead? We should find a way to inline
-                    // this into the above linq query!
-                    foreach (KeyData keyValue in data[pair.lowerFieldName])
-                        ReadKeyValueIntoConfigNode(pair.fieldValue, keyValue.KeyName, keyValue.Value);
+                    if (pair.fieldValue != null)
+                    {
+                        // Do a select here instead? We should find a way to inline
+                        // this into the above linq query!
+                        foreach (KeyData keyValue in data[pair.lowerFieldName])
+                            ReadKeyValueIntoConfigNode(pair.fieldValue, keyValue.KeyName, keyValue.Value);
+                    }
+                    else 
+                        Log.Error("Unexpected null field when reading config sections (report to a developer!)");
                 });
         }
     }

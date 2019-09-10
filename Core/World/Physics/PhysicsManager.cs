@@ -298,6 +298,14 @@ namespace Helion.World.Physics
                 return false;
             return other.Flags.Solid;
         }
+        
+        private static bool PreviouslyClipped(Entity entity, Entity other)
+        {
+            // TODO: Can we get around making 2 new boxes here?
+            EntityBox box = new EntityBox(entity.PrevPosition, entity.Radius, entity.Height);
+            EntityBox otherBox = new EntityBox(other.PrevPosition, other.Radius, other.Height);
+            return box.Overlaps(otherBox);
+        }
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
         {
@@ -408,14 +416,6 @@ namespace Helion.World.Physics
             entity.LowestCeilingZ = lowestCeilZ;
             entity.HighestFloorSector = highestFloor;
             entity.LowestCeilingSector = lowestCeiling;
-        }
-
-        private static bool PreviouslyClipped(Entity entity, Entity other)
-        {
-            // TODO: Can we get around making 2 new boxes here?
-            EntityBox box = new EntityBox(entity.PrevPosition, entity.Radius, entity.Height);
-            EntityBox otherBox = new EntityBox(other.PrevPosition, other.Radius, other.Height);
-            return box.Overlaps(otherBox);
         }
 
         private void LinkToSectorsAndEntities(Entity entity)
@@ -626,7 +626,7 @@ namespace Helion.World.Physics
             {
                 if (MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep))
                 {
-                    ReorientToSlideAlong(entity, moveInfo.BlockingLine, residualStep, ref stepDelta, ref movesLeft);
+                    ReorientToSlideAlong(entity, moveInfo.BlockingLine!, residualStep, ref stepDelta, ref movesLeft);
                     return;
                 }
             }
@@ -676,11 +676,7 @@ namespace Helion.World.Physics
             m_blockmap.Iterate(cornerTracer, CheckForTracerHit);
             
             if (hit && hitTime < moveInfo.LineIntersectionTime)
-            {
-                moveInfo.IntersectionFound = true;
-                moveInfo.LineIntersectionTime = hitTime;
-                moveInfo.BlockingLine = blockingLine;
-            }
+                moveInfo = MoveInfo.From(blockingLine!, hitTime);
 
             GridIterationStatus CheckForTracerHit(Block block)
             {

@@ -25,7 +25,7 @@ namespace Helion.Util.Configuration
             }
         }
 
-        private static string ConfigValueToString(object configValue, Type fieldType)
+        private static string ConfigValueToString(object configValue)
         {
             if (configValue is ConfigValue<double> node)
             {
@@ -50,12 +50,28 @@ namespace Helion.Util.Configuration
 
                 if (ConfigReflectionReader.HasConfigValueAttribute(field))
                 {
-                    keyData[newKeyName] = ConfigValueToString(field.GetValue(configNode), field.FieldType);
+                    object? fieldValue = field.GetValue(configNode);
+                    if (fieldValue == null)
+                    {
+                        Log.Error("Error writing key for config field (so far): '{0}' (report to a developer!)", keySoFar);
+                        keyData[newKeyName] = "Error";
+                    }
+                    else
+                        keyData[newKeyName] = ConfigValueToString(fieldValue);
                     continue;
                 }
 
-                if (ConfigReflectionReader.HasConfigComponentAttribute(field)) 
-                    PopulateIniKeysRecursively(field.GetValue(configNode), keyData, newKeyName);
+                if (ConfigReflectionReader.HasConfigComponentAttribute(field))
+                {
+                    object? fieldValue = field.GetValue(configNode);
+                    if (fieldValue == null)
+                    {
+                        Log.Error("Error writing to recursive config component with name (so far): '{0}' (report to a developer!)", keySoFar);
+                        return;
+                    }
+                    
+                    PopulateIniKeysRecursively(fieldValue, keyData, newKeyName);
+                }
             }
         }
 
@@ -68,7 +84,15 @@ namespace Helion.Util.Configuration
                 
                 string lowerName = field.Name.ToLower();
                 data.Sections.AddSection(lowerName);
-                PopulateIniKeysRecursively(field.GetValue(config), data[lowerName]);
+
+                object? fieldValue = field.GetValue(config);
+                if (fieldValue == null)
+                {
+                    Log.Error("Error when parsing ini section name: '{0}' (report to a developer!)", field.Name);
+                    continue;
+                }
+                
+                PopulateIniKeysRecursively(fieldValue, data[lowerName]);
             }
         }
     }

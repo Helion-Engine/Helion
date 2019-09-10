@@ -1,4 +1,5 @@
 using System;
+using Helion.Util.Configuration.Attributes;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Configuration
