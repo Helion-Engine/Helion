@@ -72,6 +72,8 @@ namespace Helion.World.Special
             {
                 foreach (ISpecial special in m_destroyedMoveSpecials)
                 {
+                    // TODO: Encapsulate in a 'reset interpolation' function?
+                    // As we need to also update the Plane (if present) as well.
                     special.Sector.Floor.PrevZ = special.Sector.Floor.Z;
                     special.Sector.Ceiling.PrevZ = special.Sector.Ceiling.Z;
                 }

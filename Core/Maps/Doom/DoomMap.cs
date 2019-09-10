@@ -104,7 +104,7 @@ namespace Helion.Maps.Doom
             return vertices;
         }
 
-        internal static IReadOnlyList<DoomSector> CreateSectors(byte[] sectorData)
+        internal static IReadOnlyList<DoomSector>? CreateSectors(byte[] sectorData)
         {
             if (sectorData.Length % BytesPerSector != 0)
                 return null;
@@ -131,7 +131,7 @@ namespace Helion.Maps.Doom
             return sectors;
         }
         
-        internal static IReadOnlyList<DoomSide> CreateSides(byte[] sideData, IReadOnlyList<DoomSector> sectors)
+        internal static IReadOnlyList<DoomSide>? CreateSides(byte[] sideData, IReadOnlyList<DoomSector> sectors)
         {
             if (sideData.Length % BytesPerSide != 0)
                 return null;
@@ -158,7 +158,7 @@ namespace Helion.Maps.Doom
             return sides;
         }
         
-        private static IReadOnlyList<DoomLine> CreateLines(byte[] lineData, IReadOnlyList<DoomVertex> vertices,
+        private static IReadOnlyList<DoomLine>? CreateLines(byte[] lineData, IReadOnlyList<DoomVertex> vertices,
             IReadOnlyList<DoomSide> sides)
         {
             if (lineData.Length % BytesPerLine != 0)
@@ -215,7 +215,7 @@ namespace Helion.Maps.Doom
             return lines;
         }
         
-        private static IReadOnlyList<DoomThing> CreateThings(byte[] thingData)
+        private static IReadOnlyList<DoomThing>? CreateThings(byte[] thingData)
         {
             if (thingData.Length % BytesPerThing != 0)
                 return null;

@@ -5,6 +5,7 @@ using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Decorate.Parser
 {
@@ -218,7 +219,8 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void HandleLabelOverride(ActorStateBranch branchType)
         {
-            string upperImmediateLabel = m_immediatelySeenLabel.ToUpper();
+            string upperImmediateLabel = m_immediatelySeenLabel?.ToUpper() ?? "";
+            Invariant(!upperImmediateLabel.Empty(), "Forgot to set immediate label when parsing actor states");
             
             if (branchType != ActorStateBranch.Goto)
             {

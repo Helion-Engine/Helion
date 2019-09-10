@@ -13,7 +13,7 @@ namespace Helion.World.Entities.Inventories
             if (amount <= 0 || !definition.Flags.InventoryItem)
                 return;
 
-            if (Items.TryGetValue(definition.Name, out InventoryItem item))
+            if (Items.TryGetValue(definition.Name, out InventoryItem? item))
                 item.Amount += amount;
             else
                 Items[definition.Name] = new InventoryItem(definition, amount);
@@ -33,7 +33,7 @@ namespace Helion.World.Entities.Inventories
             if (amount <= 0)
                 return;
             
-            if (Items.TryGetValue(name, out InventoryItem item))
+            if (Items.TryGetValue(name, out InventoryItem? item))
             {
                 if (amount < item.Amount)
                     item.Amount -= amount;

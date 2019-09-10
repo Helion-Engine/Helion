@@ -18,8 +18,11 @@ namespace Helion.Util
         public int Length => str.Length;
 
         public bool Empty => str.Empty();
-        
-        public CIString(string s) => str = s;
+
+        private CIString(string s)
+        {
+            str = s;
+        }
 
         public static implicit operator CIString(string s) => new CIString(s);
 
@@ -34,12 +37,12 @@ namespace Helion.Util
             return self.str.Equals(other.str, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool operator !=(CIString self, CIString? other)
+        public static bool operator !=(CIString? self, CIString? other)
         {
             return !(self == other);
         }
         
-        public static bool operator ==(CIString self, string other)
+        public static bool operator ==(CIString? self, string? other)
         {
             if (ReferenceEquals(self, null) && ReferenceEquals(other, null))
                 return true;
@@ -48,7 +51,7 @@ namespace Helion.Util
             return self.str.Equals(other, StringComparison.OrdinalIgnoreCase);      
         }
         
-        public static bool operator !=(CIString? self, string other)
+        public static bool operator !=(CIString? self, string? other)
         {
             return !(self == other);
         }

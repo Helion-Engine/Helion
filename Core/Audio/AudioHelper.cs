@@ -11,7 +11,7 @@ namespace Helion.Audio
         private const int DataBeforeSamplesSize = 2 + 2 + 4 + DmxPadding;
         private const int MinRequiredDmxLength = DataBeforeSamplesSize + DmxPadding;
 
-        public static bool TryReadDoomSound(byte[] data, out int sampleRate, [MaybeNullWhen(false)] out byte[]? sampleData)
+        public static bool TryReadDoomSound(byte[] data, out int sampleRate, out byte[] sampleData)
         {
             sampleRate = 0;
             sampleData = new byte[0];

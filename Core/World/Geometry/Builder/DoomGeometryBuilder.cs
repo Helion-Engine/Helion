@@ -62,7 +62,7 @@ namespace Helion.World.Geometry.Builder
             }
         }
 
-        private static (Side front, Side back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder, 
+        private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder, 
             ref int nextSideId)
         {
             DoomSide doomSide = doomLine.Front;

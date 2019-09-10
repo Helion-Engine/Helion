@@ -149,7 +149,7 @@ namespace Helion.Bsp.States.Convex
         {
             ConvexTraversalPoint linePoint = new ConvexTraversalPoint(segment, endpoint);
 
-            if (vertexMap.TryGetValue(index, out List<ConvexTraversalPoint> linePoints))
+            if (vertexMap.TryGetValue(index, out List<ConvexTraversalPoint>? linePoints))
             {
                 linePoints.Add(linePoint);
                 vertexTracker.Track(linePoints.Count);

@@ -210,7 +210,7 @@ namespace Helion.World.Bsp
                 
                 // If this ever is wrong, something has gone terribly wrong
                 // with building the geometry.
-                return builder.Sectors[edge.Sector.Id];
+                return builder.Sectors[edgeSector.Id];
             }
 
             throw new NullReferenceException("BSP building malformed, subsector made up of only minisegs (or is a not a leaf)");

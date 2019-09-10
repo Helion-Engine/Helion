@@ -341,7 +341,7 @@ namespace Helion.World.Entities.Definition.States
         {
              if (actionFuncName != null)
              {
-                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out Action<Entity> func)) 
+                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out Action<Entity>? func)) 
                        return func;
                   Log.Warn("Unable to find action function: {0}", actionFuncName);
              }

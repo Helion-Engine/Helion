@@ -79,7 +79,7 @@ namespace Helion.Maps.Hexen
         public IReadOnlyList<IThing> GetThings() => Things;
         public IReadOnlyList<IVertex> GetVertices() => Vertices;
         
-        private static IReadOnlyList<HexenLine> CreateLines(byte[] lineData, IReadOnlyList<DoomVertex> vertices,
+        private static IReadOnlyList<HexenLine>? CreateLines(byte[] lineData, IReadOnlyList<DoomVertex> vertices,
             IReadOnlyList<DoomSide> sides)
         {
             if (lineData.Length % BytesPerLine != 0)
@@ -135,7 +135,7 @@ namespace Helion.Maps.Hexen
             return lines;
         }
         
-        private static IReadOnlyList<HexenThing> CreateThings(byte[] thingData)
+        private static IReadOnlyList<HexenThing>? CreateThings(byte[] thingData)
         {
             if (thingData.Length % BytesPerThing != 0)
                 return null;

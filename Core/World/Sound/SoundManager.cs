@@ -62,7 +62,10 @@ namespace Helion.World.Sound
             if (m_playingSounds.Count >= MaxConcurrentSounds)
                 return;
 
-            IAudioSource audioSource = m_audioManager.Create(sound);
+            IAudioSource? audioSource = m_audioManager.Create(sound);
+            if (audioSource == null)
+                return;
+            
             audioSource.Position = entity.Position.ToFloat();
             audioSource.Velocity = entity.Velocity.ToFloat();
 

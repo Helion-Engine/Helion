@@ -1,17 +1,17 @@
 namespace Helion.Resources.Definitions.Decorate.Properties
 {
-    public readonly struct PainChance
+    public readonly struct PainChanceProperty
     {
         public readonly string? Type;
         public readonly double Value;
 
-        public PainChance(double value)
+        public PainChanceProperty(double value)
         {
             Type = null;
             Value = value;
         }
         
-        public PainChance(string type, double value)
+        public PainChanceProperty(string type, double value)
         {
             Type = type;
             Value = value;

@@ -47,7 +47,7 @@ namespace Helion.World.Entities.Definition.Composer
 
         private EntityDefinition? GetByName(CIString name)
         {
-            if (m_definitions.TryGetValue(name, out EntityDefinition definition))
+            if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
                 return definition;
 
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
@@ -56,7 +56,7 @@ namespace Helion.World.Entities.Definition.Composer
         
         private EntityDefinition? GetByID(int id)
         {
-            if (m_editorNumToDefinition.TryGetValue(id, out EntityDefinition definition))
+            if (m_editorNumToDefinition.TryGetValue(id, out EntityDefinition? definition))
                 return definition;
             
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
@@ -90,7 +90,11 @@ namespace Helion.World.Entities.Definition.Composer
 
             // The base actor must always come first, but we can do this at
             // the very end. It is a critical error for this not to exist.
-            definitions.AddFirst(m_archiveCollection.Definitions.Decorate[Constants.BaseActorClass]);
+            ActorDefinition? baseActorClass = m_archiveCollection.Definitions.Decorate[Constants.BaseActorClass];
+            if (baseActorClass == null)
+                throw new HelionException($"Missing base decorate actor definition {Constants.BaseActorClass}");
+            
+            definitions.AddFirst(baseActorClass);
             
             return true;
         }

@@ -81,7 +81,7 @@ namespace Helion.World.Geometry.Sectors
         public ISpecial? ActiveMoveSpecial;
         
         /// <summary>
-        /// The special sector type
+        /// The special sector type.
         /// </summary>
         public ZDoomSectorSpecialType SectorSpecialType;
         

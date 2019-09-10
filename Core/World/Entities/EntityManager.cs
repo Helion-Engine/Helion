@@ -45,7 +45,7 @@ namespace Helion.World.Entities
         
         public IEnumerable<Entity> FindByTid(int tid)
         {
-            return TidToEntity.TryGetValue(tid, out ISet<Entity> entities) ? entities : Enumerable.Empty<Entity>();
+            return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
         }
 
         public Entity Create(EntityDefinition definition, Vec3D position, double angle, int tid)
@@ -78,7 +78,7 @@ namespace Helion.World.Entities
             // Most maps wouldn't even approach a number that high for us to
             // worry about. If it ever becomes an issue, then we can add a line
             // of code that removes empty sets here as well.
-            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity> entities))
+            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
                 entities.Remove(entity);
 
             entity.Dispose();
@@ -151,7 +151,7 @@ namespace Helion.World.Entities
 
             if (entity.ThingId != NoTid)
             {
-                if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity> entities))
+                if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
                     entities.Add(entity);
                 else
                     TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });

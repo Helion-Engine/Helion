@@ -1270,9 +1270,9 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 break;
             case "PAINCHANCE":
                 if (PeekFloat())
-                    m_currentDefinition.Properties.PainChance = new PainChance(ConsumeFloat());
+                    m_currentDefinition.Properties.PainChance = new PainChanceProperty(ConsumeFloat());
                 else
-                    m_currentDefinition.Properties.PainChance = new PainChance(ConsumeString(), ConsumeFloat());
+                    m_currentDefinition.Properties.PainChance = new PainChanceProperty(ConsumeString(), ConsumeFloat());
                 break;
             case "PAINSOUND":
                 m_currentDefinition.Properties.PainSound = ConsumeString();

@@ -68,7 +68,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? MissileType;
         public MorphProjectileProperty MorphProjectile = default;
         public string? Obituary;
-        public PainChance? PainChance;
+        public PainChanceProperty? PainChance;
         public string? PainSound;
         public int? PainThreshold;
         public string? PainType;
