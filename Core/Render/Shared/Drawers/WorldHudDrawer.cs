@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
@@ -40,7 +41,8 @@ namespace Helion.Render.Shared.Drawers
             int y = viewport.Height - 4 - 19;
             cmd.DrawImage("MEDIA0", x, y);
 
-            ColoredString str = ColoredStringBuilder.From(Color.Red, player.Health.ToString());
+            int health = Math.Max(0, player.Health);
+            ColoredString str = ColoredStringBuilder.From(Color.Red, health.ToString());
             x += 36;
             y = viewport.Height - 4 - height;
             cmd.DrawText(str, "LargeHudFont", x, y);
