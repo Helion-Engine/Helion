@@ -4,7 +4,7 @@ using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Util.Geometry;
+using Helion.Util.Assertion;
 using Helion.Util.Geometry.Segments;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -27,10 +27,23 @@ namespace Helion.World.Geometry.Builder
             
             PopulateSectorData(map, builder);
             PopulateLineData(map, builder);
-            
-            BspTree? bspTree = BspTree.Create(map, builder);
-            if (bspTree == null)
+
+            BspTree? bspTree;
+            try
+            {
+                bspTree = BspTree.Create(map, builder);
+                if (bspTree == null)
+                    return null;
+            }
+            catch (AssertionException)
+            {
+                throw;
+            }
+            catch
+            {
+                Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
                 return null;
+            }
             
             // TODO: Connect subsector to sectors, and subsector segments to sides (and/or lines)?
 

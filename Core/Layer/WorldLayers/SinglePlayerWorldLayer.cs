@@ -36,6 +36,8 @@ namespace Helion.Layer.WorldLayers
             : base(config, console, archiveCollection, audioSystem)
         {
             m_world = world;
+            AddWorldEventListeners(m_world);
+
             m_ticker.Start();
 
             m_consumeDownKeys = new[]
@@ -68,6 +70,31 @@ namespace Helion.Layer.WorldLayers
                 return null;
 
             return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world);
+        }
+
+        public void LoadMap(string mapName)
+        {
+            IMap? map = ArchiveCollection.FindMap(mapName);
+            if (map == null)
+            {
+                Log.Warn("Unable to find map {0}", mapName);
+                return;
+            }
+
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, AudioSystem, map);
+            if (world == null)
+            {
+                Log.Error("Unable to load map {0}", mapName);
+                return;
+            }
+
+            m_ticker.Stop();
+            RemoveWorldEventListeners(m_world);
+            m_world.Dispose();
+
+            m_world = world;
+            AddWorldEventListeners(world);
+            m_ticker.Restart();
         }
 
         public override void HandleInput(ConsumableInput consumableInput)
@@ -109,14 +136,16 @@ namespace Helion.Layer.WorldLayers
             // TODO: Should not be passing the window dimension as the viewport.
             WorldHudDrawer.Draw(m_world, Console, renderCommands.WindowDimension, renderCommands);
         }
-        
+
         protected override void PerformDispose()
         {
+            RemoveWorldEventListeners(m_world);
+            
             m_world.Dispose();
 
             base.PerformDispose();
         }
-        
+
         private void World_LevelExit(object? sender, LevelChangeEvent e)
         { 
             // Eventually we would do intermission stuff here.
@@ -141,35 +170,6 @@ namespace Helion.Layer.WorldLayers
                 LoadMap($"MAP{levelNumber}");
                 break;
             }
-        }
-        
-        public void LoadMap(string mapName)
-        {
-            IMap? map = ArchiveCollection.FindMap(mapName);
-            if (map == null)
-            {
-                Log.Warn("Unable to find map {0}", mapName);
-                return;
-            }
-
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, AudioSystem, map);
-            if (world == null)
-            {
-                Log.Error("Unable to load map {0}", mapName);
-                return;
-            }
-
-            m_ticker.Stop();
-
-            if (m_world != null)
-            {
-                RemoveEventListeners(m_world);
-                m_world.Dispose();
-            }
-
-            AddEventListeners(world);
-            m_world = world;
-            m_ticker.Restart();
         }
 
         private string GetNextLevelName(string currentName)
@@ -212,12 +212,12 @@ namespace Helion.Layer.WorldLayers
             return currentName;
         }
         
-        private void AddEventListeners(WorldBase world)
+        private void AddWorldEventListeners(WorldBase world)
         {
             world.LevelExit += World_LevelExit;
         }
 
-        private void RemoveEventListeners(WorldBase world)
+        private void RemoveWorldEventListeners(WorldBase world)
         {
             world.LevelExit -= World_LevelExit;
         }
