@@ -7,7 +7,6 @@ using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
 using MoreLinq.Extensions;
 using NLog;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities.Definition.Composer
 {
@@ -17,7 +16,11 @@ namespace Helion.World.Entities.Definition.Composer
 
         public static void Apply(EntityDefinition definition, LinkedList<ActorDefinition> actorDefinitions)
         {
-            Precondition(actorDefinitions.Count >= 2, $"Expected state applier to have the base actor definition and the new definition in {definition.Name}");
+            if (actorDefinitions.Count < 2 || actorDefinitions.First == null)
+            {
+                Log.Error("Missing actor base class and/or actor definition for {0} (report to a developer!)", definition.Name);
+                return;
+            }
 
             // We need a table that remembers both the current and previous
             // label locations. We will store everything in the name of:
@@ -131,11 +134,15 @@ namespace Helion.World.Entities.Definition.Composer
             current.States.FlowOverrides.ForEach(pair =>
             {
                 if (pair.Value.BranchType == ActorStateBranch.Stop)
-                    RemoveAllEndingMatchKeys(pair.Value.Label.ToUpper());
+                    RemoveAllEndingMatchKeys(pair.Value.Label);
             });
 
-            void RemoveAllEndingMatchKeys(string upperSuffix)
+            void RemoveAllEndingMatchKeys(string? suffix)
             {
+                if (suffix == null)
+                    return;
+                
+                string upperSuffix = suffix.ToUpper();
                 HashSet<string> keysToRemove = new HashSet<string>();
                 
                 masterLabelTable.ForEach(pair =>

@@ -10,7 +10,7 @@ namespace Helion.Util
     /// https://stackoverflow.com/questions/9036369/library-with-equals-and-gethashcode-helper-methods-for-net
     /// It is very easy to add more functions if needed for more parameters.
     /// </remarks>
-    public static class HashCode
+    public static class HashCodes
     {
         /// <summary>
         /// Gets the hashcode for the two elements.

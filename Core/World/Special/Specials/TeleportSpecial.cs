@@ -1,4 +1,5 @@
 ﻿using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;

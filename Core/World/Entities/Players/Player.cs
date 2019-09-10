@@ -1,6 +1,7 @@
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;

@@ -9,6 +9,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using NLog;
 
 namespace Helion.Maps.Hexen

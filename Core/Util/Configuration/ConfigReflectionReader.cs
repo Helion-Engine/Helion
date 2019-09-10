@@ -36,37 +36,38 @@ namespace Helion.Util.Configuration
 
         internal static bool HasConfigSectionAttribute(FieldInfo fieldInfo)
         {
-            return fieldInfo.FieldType.IsDefined(typeof(ConfigSection), true);
+            return fieldInfo.FieldType.IsDefined(typeof(ConfigSectionAttribute), true);
         }
 
         internal static bool HasConfigComponentAttribute(FieldInfo fieldInfo)
         {
-            return fieldInfo.FieldType.IsDefined(typeof(ConfigComponent), true);
+            return fieldInfo.FieldType.IsDefined(typeof(ConfigComponentAttribute), true);
         }
 
         internal static bool HasConfigValueAttribute(FieldInfo fieldInfo)
         {
-            return fieldInfo.FieldType.IsDefined(typeof(ConfigValueComponent), true);
+            return fieldInfo.FieldType.IsDefined(typeof(ConfigValueComponentAttribute), true);
         }
 
-        private static object? RecursivelyFindField(object node, string[] lowerTokens, int tokenIndex = 0)
+        private static object? RecursivelyFindField(object? node, string[] lowerTokens, int tokenIndex = 0)
         {
             Precondition(tokenIndex < lowerTokens.Length, "Recursion for config key field out of range");
+
+            if (node == null)
+                return null;
             
             if (tokenIndex == lowerTokens.Length - 1)
             {
                 return (from field in node.GetType().GetFields()
                         where HasConfigValueAttribute(field)
-                        let lowerFieldName = field.Name.ToLower()
-                        where lowerFieldName == lowerTokens[tokenIndex]
+                        where field.Name.ToLower() == lowerTokens[tokenIndex]
                         select field.GetValue(node))
                         .FirstOrDefault();
             }
             
             return (from field in node.GetType().GetFields() 
                     where HasConfigComponentAttribute(field) 
-                    let lowerFieldName = field.Name.ToLower() 
-                    where lowerFieldName == lowerTokens[tokenIndex] 
+                    where field.Name.ToLower() == lowerTokens[tokenIndex] 
                     select RecursivelyFindField(field.GetValue(node), lowerTokens, tokenIndex + 1))
                     .FirstOrDefault();
         }

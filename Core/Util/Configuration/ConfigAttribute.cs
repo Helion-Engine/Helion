@@ -2,15 +2,15 @@ using System;
 
 namespace Helion.Util.Configuration
 {
-    public class ConfigSection : Attribute
+    public class ConfigSectionAttribute : Attribute
     {
     }
     
-    public class ConfigComponent : Attribute
+    public class ConfigComponentAttribute : Attribute
     {
     }
     
-    public class ConfigValueComponent : Attribute
+    public class ConfigValueComponentAttribute : Attribute
     {
     }
 }

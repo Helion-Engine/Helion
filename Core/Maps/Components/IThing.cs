@@ -1,5 +1,5 @@
 using Helion.Maps.Shared;
-using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Components
 {
