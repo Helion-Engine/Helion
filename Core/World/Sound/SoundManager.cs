@@ -33,6 +33,9 @@ namespace Helion.World.Sound
 
         public void Tick()
         {
+            if (m_playingSounds.Empty())
+                return;
+
             m_playingSounds.RemoveWhere(snd => snd.IsFinished()).ForEach(snd => snd.Dispose());
         }
 
@@ -54,7 +57,7 @@ namespace Helion.World.Sound
             // Because this (should) mutate the current playing sounds by doing
             // removal if a sound is on that channel via destruction, then the
             // sound
-            entity.SoundChannels.DestroySoundOn(channel);
+            entity.SoundChannels.DestroyChannelSound(channel);
             
             if (m_playingSounds.Count >= MaxConcurrentSounds)
                 return;

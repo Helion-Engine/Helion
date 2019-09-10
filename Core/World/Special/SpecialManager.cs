@@ -16,7 +16,7 @@ using Helion.World.Special.Switches;
 
 namespace Helion.World.Special
 {
-    public class SpecialManager
+    public class SpecialManager : ITickable
     {
         public event EventHandler<LevelChangeEvent>? LevelExit;
 
@@ -66,7 +66,7 @@ namespace Helion.World.Special
                 new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
         
-        public void Tick(long gametic)
+        public void Tick()
         {
             if (m_destroyedMoveSpecials.Count > 0)
             {
@@ -84,7 +84,7 @@ namespace Helion.World.Special
             while (node != null)
             {
                 var next = node.Next;
-                if (node.Value.Tick(gametic) == SpecialTickStatus.Destroy)
+                if (node.Value.Tick() == SpecialTickStatus.Destroy)
                 {
                     m_specials.Remove(node);
                     if (node.Value.Sector != null)

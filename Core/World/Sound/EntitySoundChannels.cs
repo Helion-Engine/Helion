@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using Helion.Audio;
 using Helion.Util;
 using Helion.World.Entities;
@@ -20,7 +19,7 @@ namespace Helion.World.Sound
             m_owner = owner;
         }
 
-        public void DestroySoundOn(SoundChannelType channel)
+        public void DestroyChannelSound(SoundChannelType channel)
         {
             int channelIndex = (int)channel;
             Precondition(channelIndex < MaxChannels, "ZDoom extra channel flags unsupported currently");
@@ -34,7 +33,7 @@ namespace Helion.World.Sound
             int channelIndex = (int)channel;
             Precondition(channelIndex < MaxChannels, "ZDoom extra channel flags unsupported currently");
 
-            DestroySoundOn(channel);
+            DestroyChannelSound(channel);
             m_channels[channelIndex] = audioSource;
         }
 

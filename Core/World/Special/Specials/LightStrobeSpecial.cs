@@ -25,7 +25,7 @@ namespace Helion.World.Special.Specials
                 m_delay = random.NextByte() & 0x07;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             if (m_delay > 0)
             {

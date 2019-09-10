@@ -95,7 +95,7 @@ namespace Helion.Layer.WorldLayers
 
             while (ticksToRun > 0)
             {
-                m_world.Tick(m_ticker.GameTic - ticksToRun);
+                m_world.Tick();
                 ticksToRun--;
             }
         }

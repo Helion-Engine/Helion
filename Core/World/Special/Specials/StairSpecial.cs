@@ -35,7 +35,7 @@ namespace Helion.World.Special.Specials
         }
 
         // TODO verify me - PrevZ probably doesn't work right
-        public override SpecialTickStatus Tick(long gametic)
+        public override SpecialTickStatus Tick()
         {
             if (m_stairDelayTics > 0)
             {
@@ -51,7 +51,7 @@ namespace Helion.World.Special.Specials
                 SectorPlane = Sector.Floor;
                 DestZ = m_startZ + (m_stairHeight * (i + 1));
                 if (Sector.IsMoving)
-                    currentStatus = base.Tick(gametic);
+                    currentStatus = base.Tick();
 
                 if (currentStatus == SpecialTickStatus.Destroy)
                 {

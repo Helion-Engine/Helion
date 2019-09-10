@@ -22,7 +22,7 @@ namespace Helion.World.Special.Specials
             m_inc = -DoomPulsateValue;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             int lightLevel = Sector.LightLevel + m_inc;
             lightLevel = MathHelper.Clamp(lightLevel, m_minBright, m_maxBright);

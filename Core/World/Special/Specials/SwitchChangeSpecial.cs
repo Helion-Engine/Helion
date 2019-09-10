@@ -20,7 +20,7 @@ namespace Helion.World.Special.Specials
             m_line.Activated = true;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             if (m_switchDelayTics > 0)
             {

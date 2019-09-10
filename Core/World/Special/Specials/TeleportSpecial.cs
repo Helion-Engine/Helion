@@ -21,7 +21,7 @@ namespace Helion.World.Special.Specials
             m_world = world;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             Entity entity = m_args.Entity;
             Entity? teleportSpot = FindTeleportSpot();

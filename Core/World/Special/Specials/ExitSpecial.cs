@@ -13,7 +13,7 @@ namespace Helion.World.Special.Specials
             m_delay = delayTics;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             if (m_delay > 0)
             {

@@ -34,7 +34,7 @@ namespace Helion.World.Special.Specials
             }
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
             Sector.SetLightLevel((short)set);

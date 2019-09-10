@@ -19,7 +19,7 @@ namespace Helion.World.Special.Specials
             m_scroll = scroll;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             m_line.Front.Offset.X += m_speed;
             return SpecialTickStatus.Continue;

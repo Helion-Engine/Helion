@@ -79,12 +79,6 @@ namespace Helion.World
 
         public void Tick()
         {
-            // TODO: Use me?
-            throw new NotImplementedException();
-        }
-
-        public void Tick(long gametic)
-        {
             // We need to do this (for now) because MoveZ and PreviouslyClipped
             // run into issues if this is not updated properly. If we can do a
             // resolution to the sector moving up/down with clipping monsters
@@ -97,7 +91,7 @@ namespace Helion.World
                 PhysicsManager.Move(entity);
             });
 
-            SpecialManager.Tick(gametic);
+            SpecialManager.Tick();
             SoundManager.Tick();
 
             Gametick++;

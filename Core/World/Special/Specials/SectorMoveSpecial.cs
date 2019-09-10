@@ -44,7 +44,7 @@ namespace Helion.World.Special.Specials
             Sector.ActiveMoveSpecial = this;
         }
 
-        public virtual SpecialTickStatus Tick(long gametic)
+        public virtual SpecialTickStatus Tick()
         {
             if (DelayTics > 0)
             {

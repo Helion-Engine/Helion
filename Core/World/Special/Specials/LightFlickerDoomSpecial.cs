@@ -20,7 +20,7 @@ namespace Helion.World.Special.Specials
             m_minBright = minLightLevel;
         }
 
-        public SpecialTickStatus Tick(long gametic)
+        public SpecialTickStatus Tick()
         {
             if (m_delay > 0)
             {
