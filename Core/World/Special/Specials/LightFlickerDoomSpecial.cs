@@ -3,10 +3,9 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
-    public class LightFlickerDoomSpecial : ISpecial
+    public class LightFlickerDoomSpecial : ISectorSpecial
     {
-        public Sector Sector { get; private set; }
-
+        public Sector Sector { get; }
         private readonly IRandom m_random;
         private short m_maxBright;
         private short m_minBright;

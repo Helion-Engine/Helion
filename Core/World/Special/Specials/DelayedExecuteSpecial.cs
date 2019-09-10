@@ -4,8 +4,6 @@ namespace Helion.World.Special.Specials
 {
     public class DelayedExecuteSpecial : ISpecial
     {
-        public Sector? Sector => null;
-
         private readonly SpecialManager m_specialManager;
         private readonly ISpecial m_special;
         private int m_delay;

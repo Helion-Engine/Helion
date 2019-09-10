@@ -5,14 +5,15 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
+using MoreLinq;
 
 namespace Helion.World.Special
 {
@@ -24,18 +25,16 @@ namespace Helion.World.Special
         private const double SpeedFactor = 0.125;
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
-        private readonly List<ISpecial> m_destroyedMoveSpecials = new List<ISpecial>();
+        private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
         private readonly SwitchManager m_switchManager = new SwitchManager();
         private readonly DoomRandom m_random = new DoomRandom();
         private readonly PhysicsManager m_physicsManager;
-        private readonly SoundManager m_soundManager;
         private readonly WorldBase m_world;
 
-        public SpecialManager(WorldBase world, PhysicsManager physicsManager, SoundManager soundManager)
+        public SpecialManager(WorldBase world, PhysicsManager physicsManager)
         {
             m_world = world;
             m_physicsManager = physicsManager;
-            m_soundManager = soundManager;
 
             StartInitSpecials();
         }
@@ -70,7 +69,7 @@ namespace Helion.World.Special
         {
             if (m_destroyedMoveSpecials.Count > 0)
             {
-                foreach (ISpecial special in m_destroyedMoveSpecials)
+                foreach (ISectorSpecial special in m_destroyedMoveSpecials)
                 {
                     // TODO: Encapsulate in a 'reset interpolation' function?
                     // As we need to also update the Plane (if present) as well.
@@ -81,22 +80,13 @@ namespace Helion.World.Special
                 m_destroyedMoveSpecials.Clear();
             }
 
-            var node = m_specials.First;
-
-            while (node != null)
+            m_specials.RemoveWhere(spec => spec.Tick() == SpecialTickStatus.Destroy).ForEach(spec =>
             {
-                var next = node.Next;
-                if (node.Value.Tick() == SpecialTickStatus.Destroy)
-                {
-                    m_specials.Remove(node);
-                    if (node.Value.Sector != null)
-                        m_destroyedMoveSpecials.Add(node.Value);
-                    if (node.Value is ExitSpecial)
-                        LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Next));
-                }
-
-                node = next;
-            }
+                if (spec is ISectorSpecial sectorSpecial)
+                    m_destroyedMoveSpecials.Add(sectorSpecial);
+                if (spec is ExitSpecial)
+                    LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Next));
+            });
         }
 
         public void AddSpecial(ISpecial special)

@@ -31,7 +31,7 @@ namespace Helion.World.Special.Specials
                 return null;
 
             Line line = sector.Lines.First();
-            if (line.OneSided)
+            if (line.Back == null)
                 return null;
             
             return line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;

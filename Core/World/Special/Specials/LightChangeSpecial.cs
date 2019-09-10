@@ -3,10 +3,9 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
-    public class LightChangeSpecial : ISpecial
+    public class LightChangeSpecial : ISectorSpecial
     {
-        public Sector Sector { get; private set; }
-
+        public Sector Sector { get; }
         private short m_lightLevel;
         private int m_step;
         private int m_min;

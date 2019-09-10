@@ -6,7 +6,6 @@ namespace Helion.World.Special.Specials
 {
     public class LineScrollSpecial : ISpecial
     {
-        public Sector? Sector => null;
         public Line? ActivatedLine;
         private Line m_line;
         private int m_speed;

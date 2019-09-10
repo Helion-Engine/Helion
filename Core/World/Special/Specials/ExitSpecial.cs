@@ -1,11 +1,7 @@
-﻿using Helion.World.Geometry.Sectors;
-
-namespace Helion.World.Special.Specials
+﻿namespace Helion.World.Special.Specials
 {
     public class ExitSpecial : ISpecial
     {
-        public Sector? Sector => null;
-
         private int m_delay;
 
         public ExitSpecial(int delayTics)

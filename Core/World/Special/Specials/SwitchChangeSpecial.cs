@@ -6,7 +6,6 @@ namespace Helion.World.Special.Specials
 {
     public class SwitchChangeSpecial : ISpecial
     {
-        public Sector? Sector => null;
         private SwitchManager m_manager;
         private Line m_line;
         private bool m_repeat;

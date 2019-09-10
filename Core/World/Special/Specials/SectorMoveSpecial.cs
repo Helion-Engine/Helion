@@ -6,9 +6,9 @@ using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
 {
-    public class SectorMoveSpecial : ISpecial
+    public class SectorMoveSpecial : ISectorSpecial
     {
-        public Sector? Sector { get; protected set; }
+        public Sector Sector { get; protected set; }
         protected readonly SectorMoveData MoveData;
         protected SectorPlane SectorPlane;
         protected double DestZ;
@@ -126,6 +126,9 @@ namespace Helion.World.Special.Specials
                     FlipMovementDirection();
                 break;
             case SectorMoveStatus.Crush when IsInitCrush:
+                // TODO: Can we maybe make this into its own class to avoid the null issue?
+                if (MoveData.Crush == null)
+                    throw new NullReferenceException("Should never have a null crush component when having a crushing sector");
                 m_crushing = true;
                 if (MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
                     m_speed = m_speed < 0 ? -0.1 : 0.1;

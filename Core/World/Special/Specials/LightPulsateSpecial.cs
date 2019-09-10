@@ -3,16 +3,15 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
-    public class LightPulsateSpecial : ISpecial
+    public class LightPulsateSpecial : ISectorSpecial
     {
         private const int DoomPulsateValue = 8;
 
+        public Sector Sector { get; }
         private readonly short m_maxBright;
         private readonly short m_minBright;
         private int m_inc;
 
-        public Sector Sector { get; }
-        
         public LightPulsateSpecial(Sector sector, short minLightLevel)
         {
             Sector = sector;

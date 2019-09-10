@@ -3,16 +3,15 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
-    public class LightStrobeSpecial : ISpecial
+    public class LightStrobeSpecial : ISectorSpecial
     {
-        public Sector? Sector { get; }
-
+        public Sector Sector { get; }
         private short m_maxBright;
         private short m_minBright;
         private int m_brightTics;
         private int m_darkTics;
         private int m_delay;
-
+        
         public LightStrobeSpecial(Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
         {
             Sector = sector;

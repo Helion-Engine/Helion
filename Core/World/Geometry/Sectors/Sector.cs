@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -79,7 +78,7 @@ namespace Helion.World.Geometry.Sectors
         /// The currently active move special, or null if there's no active
         /// movement happening on this sector.
         /// </summary>
-        public ISpecial? ActiveMoveSpecial;
+        public ISectorSpecial? ActiveMoveSpecial;
         
         /// <summary>
         /// The special sector type.

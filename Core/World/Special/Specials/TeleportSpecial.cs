@@ -1,5 +1,4 @@
-﻿using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+﻿using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
@@ -11,8 +10,7 @@ namespace Helion.World.Special.Specials
     public class TeleportSpecial : ISpecial
     {
         private const int TeleportFreezeTicks = 18;
-
-        public Sector? Sector { get; } = null;
+        
         private readonly EntityActivateSpecialEventArgs m_args;
         private readonly IWorld m_world;
 
