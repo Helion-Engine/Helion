@@ -81,5 +81,4 @@ public struct Vec2I
         
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
-
 }

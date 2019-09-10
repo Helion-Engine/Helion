@@ -3,13 +3,6 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Configuration
 {
-    public class ConfigValueEvent<T> where T : IConvertible
-    {
-        public readonly T NewValue;
-
-        public ConfigValueEvent(T newValue) => NewValue = newValue;
-    }
-
     [ConfigValueComponent]
     public class ConfigValue<T> where T : IConvertible
     {

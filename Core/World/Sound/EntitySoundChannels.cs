@@ -41,11 +41,12 @@ namespace Helion.World.Sound
         {
             for (int i = 0; i < MaxChannels; i++)
             {
-                if (m_channels[i] == null) 
+                IAudioSource? channelSound = m_channels[i];
+                if (channelSound == null)
                     continue;
                 
-                m_channels[i].Position = m_owner.Position.ToFloat();
-                m_channels[i].Velocity = m_owner.Position.ToFloat();
+                channelSound.Position = m_owner.Position.ToFloat();
+                channelSound.Velocity = m_owner.Position.ToFloat();
             }
         }
 

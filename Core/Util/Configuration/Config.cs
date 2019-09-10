@@ -6,8 +6,6 @@ using Helion.Window;
 
 namespace Helion.Util.Configuration
 {
-    // TODO: Add 'Constraining' functions for sanity checks to the functions as well.
-    
     [ConfigComponent]
     public class EngineConsoleConfig 
     {
