@@ -96,3 +96,24 @@ font SmallFont
         "|" STCFN121;
     }
 }
+
+font LargeHudFont 
+{
+    space = 12;
+    grayscale = true;
+    characters 
+    {
+        "-" STTMINUS align center;
+        "%" STTPRCNT;
+        "0" STTNUM0 default;
+        "1" STTNUM1;
+        "2" STTNUM2;
+        "3" STTNUM3;
+        "4" STTNUM4;
+        "5" STTNUM5;
+        "6" STTNUM6;
+        "7" STTNUM7;
+        "8" STTNUM8;
+        "9" STTNUM9;
+    }
+}

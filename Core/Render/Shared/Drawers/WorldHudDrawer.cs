@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
 using Helion.World;
+using Helion.World.Entities.Players;
 using MoreLinq;
 
 namespace Helion.Render.Shared.Drawers
@@ -19,11 +21,37 @@ namespace Helion.Render.Shared.Drawers
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
 
-        public static void Draw(WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
+        public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
             cmd.ClearDepth();
 
+            DrawHud(player, world, viewport, cmd);
+            DrawPickupFlash(world, cmd);
+            DrawDamage(world, cmd);
             DrawRecentConsoleMessages(world, console, cmd);
+        }
+        
+        private static void DrawHud(Player player, WorldBase world, Dimension viewport, RenderCommands cmd)
+        {
+            int height = cmd.GetFontHeight("LargeHudFont");
+
+            // TODO: Desperately need the 'draw from location' stuff, this sucks...
+            int x = 4;
+            int y = viewport.Height - 4 - 19;
+            cmd.DrawImage("MEDIA0", x, y);
+
+            ColoredString str = ColoredStringBuilder.From(Color.Red, player.Health.ToString());
+            x += 36;
+            y = viewport.Height - 4 - height;
+            cmd.DrawText(str, "LargeHudFont", x, y);
+        }
+
+        private static void DrawPickupFlash(WorldBase world, RenderCommands cmd)
+        {
+        }
+
+        private static void DrawDamage(WorldBase world, RenderCommands cmd)
+        {
         }
 
         private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, RenderCommands cmd)

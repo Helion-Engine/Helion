@@ -1,5 +1,6 @@
 actor PlayerPawn
 {
+    Health 100
     Height 56
     Mass 100
     PainChance 255

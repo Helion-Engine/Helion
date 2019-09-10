@@ -34,9 +34,19 @@ namespace Helion.Render.Commands
             m_commands.Add(ClearRenderCommand.DepthOnly());
         }
 
+        public void DrawImage(CIString textureName, int x, int y)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y)));
+        }
+        
         public void DrawImage(CIString textureName, Vec2I topLeft)
         {
             m_commands.Add(new DrawImageCommand(textureName, topLeft));
+        }
+        
+        public void DrawImage(CIString textureName, int x, int y, Color color)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y), color));
         }
         
         public void DrawImage(CIString textureName, Vec2I topLeft, Color color)
@@ -44,9 +54,19 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawImageCommand(textureName, topLeft, color));
         }
 
+        public void DrawImage(CIString textureName, int x, int y, float alpha)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y), alpha));
+        }
+        
         public void DrawImage(CIString textureName, Vec2I topLeft, float alpha)
         {
             m_commands.Add(new DrawImageCommand(textureName, topLeft, alpha));
+        }
+        
+        public void DrawImage(CIString textureName, int x, int y, Color color, float alpha)
+        {
+            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y), color, alpha));
         }
         
         public void DrawImage(CIString textureName, Vec2I topLeft, Color color, float alpha)

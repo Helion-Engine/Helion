@@ -60,16 +60,6 @@ namespace Helion.World.Entities
             return entity;
         }
 
-        private void FinishCreatingEntity(Entity entity)
-        {
-            LinkableNode<Entity> node = Entities.Add(entity);
-            entity.EntityListNode = node;
-            
-            m_world.Link(entity);
-
-            entity.ResetInterpolation();
-        }
-
         public void Destroy(Entity entity)
         {
             // TODO: Remove from spawns if it is a spawn.
@@ -103,7 +93,7 @@ namespace Helion.World.Entities
 
             return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, spawnSpot.AngleRadians);
         }
-        
+
         public void PopulateFrom(IMap map)
         {
             foreach (IThing mapThing in map.GetThings())
@@ -124,7 +114,7 @@ namespace Helion.World.Entities
                 PostProcessEntity(entity);
             }
         }
-        
+
         private static bool ShouldSpawn(IThing mapThing, SkillLevel skill)
         {
             // TODO: These should be offloaded into SinglePlayerWorld...
@@ -144,6 +134,16 @@ namespace Helion.World.Entities
             default:
                 return false;
             }
+        }
+
+        private void FinishCreatingEntity(Entity entity)
+        {
+            LinkableNode<Entity> node = Entities.Add(entity);
+            entity.EntityListNode = node;
+            
+            m_world.Link(entity);
+
+            entity.ResetInterpolation();
         }
 
         private void PostProcessEntity(Entity entity)

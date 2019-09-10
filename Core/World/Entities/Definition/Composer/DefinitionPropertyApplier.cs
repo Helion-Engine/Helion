@@ -8,7 +8,7 @@ namespace Helion.World.Entities.Definition.Composer
         {
             // TODO
             if (properties.Health != null)
-                definition.Properties.Height = properties.Health.Value;
+                definition.Properties.Health = properties.Health.Value;
             // TODO
             if (properties.Height != null)
                 definition.Properties.Height = properties.Height.Value;
