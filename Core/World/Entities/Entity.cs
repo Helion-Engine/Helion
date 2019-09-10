@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Definition;
@@ -10,6 +11,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Sound;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -18,13 +20,14 @@ namespace Helion.World.Entities
     /// <summary>
     /// An actor in a world.
     /// </summary>
-    public class Entity : IDisposable
+    public class Entity : IDisposable, ITickable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly int Id;
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
+        public readonly EntitySoundChannels SoundChannels;
         public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
@@ -49,6 +52,7 @@ namespace Helion.World.Entities
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
         protected readonly EntityManager EntityManager;
+        protected readonly SoundManager SoundManager;
         protected int FrameIndex;
         protected int TicksInFrame;
 
@@ -77,8 +81,10 @@ namespace Helion.World.Entities
         /// </param>
         /// <param name="entityManager">The entity manager that created this
         /// entity (so the entity can destroy itself if needed).</param>
+        /// <param name="soundManager">The sound manager to which we can play
+        /// any sounds with.</param>
         public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
-            Sector sector, EntityManager entityManager)
+            Sector sector, EntityManager entityManager, SoundManager soundManager)
         {
             Id = id;
             ThingId = thingId;
@@ -93,6 +99,8 @@ namespace Helion.World.Entities
             LowestCeilingSector = sector;
             OnGround = CheckOnGround();
             EntityManager = entityManager;
+            SoundManager = soundManager;
+            SoundChannels = new EntitySoundChannels(this);
 
             Health = definition.Properties.Health;
             
@@ -187,7 +195,8 @@ namespace Helion.World.Entities
             if (FrozenTics > 0)
                 FrozenTics--;
 
-            TickFrame();
+            TickStateFrame();
+            SoundChannels.Tick();
         }
 
         private void FindInitialFrameIndex()
@@ -220,7 +229,7 @@ namespace Helion.World.Entities
             EntityListNode.Unlink();
         }
         
-        private void TickFrame()
+        private void TickStateFrame()
         {
             Precondition(FrameIndex >= 0 && FrameIndex < Definition.States.Frames.Count, "Out of range frame index for entity");
             

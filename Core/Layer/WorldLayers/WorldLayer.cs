@@ -1,3 +1,4 @@
+using Helion.Audio;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -16,14 +17,17 @@ namespace Helion.Layer.WorldLayers
         protected readonly Config Config;
         protected readonly HelionConsole Console;
         protected readonly ArchiveCollection ArchiveCollection;
+        protected readonly IAudioSystem AudioSystem;
         
-        public abstract WorldBase? World { get; }
+        public abstract WorldBase World { get; }
 
-        public WorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection)
+        public WorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
+            IAudioSystem audioSystem)
         {
             Config = config;
             Console = console;
             ArchiveCollection = archiveCollection;
+            AudioSystem = audioSystem;
         }
     }
 }

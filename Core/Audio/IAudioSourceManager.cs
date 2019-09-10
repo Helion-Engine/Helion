@@ -22,7 +22,7 @@ namespace Helion.Audio
     /// will hopefully remedy this. By this, I mean that sounds in the world
     /// still keep playing even after the world has been terminated (disposed).
     /// </remarks>
-    public interface IAudioContext : IDisposable
+    public interface IAudioSourceManager : IDisposable
     {
         /// <summary>
         /// The listener to which all the sounds are played with respect to.
@@ -33,8 +33,17 @@ namespace Helion.Audio
         /// Creates a new audio source from this context. This means when the
         /// context is disposed, so will this sound.
         /// </summary>
+        /// <remarks>
+        /// While the implementation is responsible for disposing it after this
+        /// source manager is disposed, the user may dispose the underlying
+        /// audio source and it will properly unlink itself from this object.
+        /// Therefore it is not a requirement for the audio source to have some
+        /// disposal invocation occur, but you can do so if you want to save
+        /// memory.
+        /// </remarks>
         /// <param name="sound">The name of the sound.</param>
-        /// <returns>An audio source that we can play the sound from.</returns>
-        IAudioSource Create(string sound);
+        /// <returns>An audio source that we can play the sound from, or null
+        /// if it could not be created.</returns>
+        IAudioSource? Create(string sound);
     }
 }

@@ -9,10 +9,10 @@ namespace Helion.Audio
     public interface IAudioSystem : IDisposable
     {
         /// <summary>
-        /// Creates a new audio context. See <see cref="IAudioContext"/> for
+        /// Creates a new audio context. See <see cref="IAudioSourceManager"/> for
         /// more information on how to use this.
         /// </summary>
         /// <returns>A newly created audio context.</returns>
-        IAudioContext CreateContext();
+        IAudioSourceManager CreateContext();
     }
 }

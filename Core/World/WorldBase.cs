@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Helion.Audio;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -16,6 +17,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using Helion.World.Special;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
@@ -33,6 +35,7 @@ namespace Helion.World
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly MapGeometry Geometry;
+        protected readonly SoundManager SoundManager;
         protected readonly EntityManager EntityManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly SpecialManager SpecialManager;
@@ -44,7 +47,8 @@ namespace Helion.World
         public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
         
-        protected WorldBase(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map)
+        protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem, 
+            MapGeometry geometry, IMap map)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
@@ -52,9 +56,10 @@ namespace Helion.World
             MapName = map.Name;
             Geometry = geometry;
             Blockmap = new Blockmap(Lines);
-            PhysicsManager = new PhysicsManager(BspTree, Blockmap); 
-            EntityManager = new EntityManager(this, archiveCollection, config.Engine.Game.Skill);
-            SpecialManager = new SpecialManager(PhysicsManager, this);
+            SoundManager = new SoundManager(audioSystem);
+            PhysicsManager = new PhysicsManager(BspTree, Blockmap, SoundManager); 
+            EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
+            SpecialManager = new SpecialManager(this, PhysicsManager, SoundManager);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
@@ -93,6 +98,7 @@ namespace Helion.World
             });
 
             SpecialManager.Tick(gametic);
+            SoundManager.Tick();
 
             Gametick++;
         }
@@ -121,6 +127,9 @@ namespace Helion.World
         protected virtual void PerformDispose()
         {
             SpecialManager.LevelExit -= SpecialManager_LevelExit;
+            
+            EntityManager.Dispose();
+            SoundManager.Dispose();
         }
 
         private void SpecialManager_LevelExit(object? sender, LevelChangeEvent e)

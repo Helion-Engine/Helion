@@ -3,6 +3,7 @@ using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Sound;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -32,8 +33,8 @@ namespace Helion.World.Entities.Players
         private double m_deltaViewHeight;
 
         public Player(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
-            Sector sector, EntityManager entityManager, int playerNumber) 
-            : base(id, thingId, definition, position, angleRadians, sector, entityManager)
+            Sector sector, EntityManager entityManager, SoundManager soundManager, int playerNumber) 
+            : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager)
         {
             Precondition(playerNumber >= 0, "Player number should not be negative");
             
@@ -90,7 +91,7 @@ namespace Helion.World.Entities.Players
 
             if (hardHit && !IsFlying)
             {
-                Log.Debug("Player - oof (Hit ground)");
+                SoundManager.CreateSoundOn(this, "DSOOF", SoundChannelType.Voice);
                 m_deltaViewHeight = Velocity.Z / PlayerViewDivider;
             }
         }

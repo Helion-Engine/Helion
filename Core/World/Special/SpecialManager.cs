@@ -9,6 +9,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
@@ -27,12 +28,14 @@ namespace Helion.World.Special
         private readonly SwitchManager m_switchManager = new SwitchManager();
         private readonly DoomRandom m_random = new DoomRandom();
         private readonly PhysicsManager m_physicsManager;
+        private readonly SoundManager m_soundManager;
         private readonly WorldBase m_world;
 
-        public SpecialManager(PhysicsManager physicsManager, WorldBase world)
+        public SpecialManager(WorldBase world, PhysicsManager physicsManager, SoundManager soundManager)
         {
-            m_physicsManager = physicsManager;
             m_world = world;
+            m_physicsManager = physicsManager;
+            m_soundManager = soundManager;
 
             StartInitSpecials();
         }

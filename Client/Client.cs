@@ -43,7 +43,7 @@ namespace Helion.Client
             
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_audioSystem = new ALAudioSystem(config, m_archiveCollection);
+            m_audioSystem = new ALAudioSystem(m_archiveCollection);
             m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
@@ -66,7 +66,7 @@ namespace Helion.Client
             GC.SuppressFinalize(this);
         }
         
-        private void LogClientInformation()
+        private static void LogClientInformation()
         {
             Log.Info("{0} v{1}", Constants.ApplicationName, Constants.ApplicationVersion);
             
@@ -124,12 +124,7 @@ namespace Helion.Client
             m_layerManager.RunLogic();
         }
 
-        private void RenderSound()
-        {
-            // TODO!
-        }
-
-        private void RenderGraphics()
+        private void Render()
         {
             Dimension windowDimension = m_window.WindowDimension;
             IRenderer renderer = m_window.Renderer;
@@ -145,11 +140,11 @@ namespace Helion.Client
         private void RunGameLoop()
         {
             m_gcTracker.Update();
-            
+            ALAudioSystem.CheckForErrors();
+
             HandleInput();
             RunLogic();
-            RenderSound();
-            RenderGraphics();
+            Render();
             m_window.SwapBuffers();
         }
 

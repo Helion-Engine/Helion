@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
@@ -12,6 +13,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -25,8 +27,9 @@ namespace Helion.World.Impl.SinglePlayer
         public readonly Player Player;
         private readonly CheatManager m_cheatManager = new CheatManager();
         
-        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, MapGeometry geometry, IMap map) : 
-            base(config, archiveCollection, geometry, map)
+        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
+            MapGeometry geometry, IMap map)
+            : base(config, archiveCollection, audioSystem, geometry, map)
         {
             EntityManager.PopulateFrom(map);
             
@@ -43,7 +46,8 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, IMap map)
+        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, 
+            IAudioSystem audioSystem, IMap map)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map);
             if (geometry == null)
@@ -52,7 +56,7 @@ namespace Helion.World.Impl.SinglePlayer
                 return null;
             }
             
-            return new SinglePlayerWorld(config, archiveCollection, geometry, map);
+            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map);
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)
@@ -163,9 +167,11 @@ namespace Helion.World.Impl.SinglePlayer
             }
         }
 
-        private void PhysicsManager_PlayerUseFail(object? sender, Entity e)
+        private void PhysicsManager_PlayerUseFail(object? sender, Entity entity)
         {
-            Log.Debug("Player - 'oof'");
+            // TODO: Use SNDINFO.
+            // TODO: Should this be inside the physics class insted?
+            SoundManager.CreateSoundOn(entity, "DSOOF", SoundChannelType.Voice);
         }
 
         private void HandleMouseLook(ConsumableInput frameInput)

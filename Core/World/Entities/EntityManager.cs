@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps;
@@ -13,11 +14,13 @@ using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
 using Helion.World.Entities.Spawn;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Sound;
+using MoreLinq.Extensions;
 using NLog;
 
 namespace Helion.World.Entities
 {
-    public class EntityManager
+    public class EntityManager : IDisposable
     {
         public const int NoTid = 0;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -25,14 +28,17 @@ namespace Helion.World.Entities
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public readonly SpawnLocations SpawnLocations = new SpawnLocations();
         private readonly WorldBase m_world;
+        private readonly SoundManager m_soundManager;
         private readonly EntityDefinitionComposer m_definitionComposer;
         private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
         private readonly SkillLevel m_skill;
 
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SkillLevel skill)
+        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager,
+            SkillLevel skill)
         {
             m_world = world;
+            m_soundManager = soundManager;
             m_definitionComposer = new EntityDefinitionComposer(archiveCollection);
             m_skill = skill;
         }
@@ -46,7 +52,7 @@ namespace Helion.World.Entities
         {
             int id = m_entityIdTracker.Next();
             Sector sector = m_world.BspTree.ToSector(position);
-            Entity entity = new Entity(id, tid, definition, position, angle, sector, this);
+            Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager);
 
             FinishCreatingEntity(entity);
 
@@ -65,7 +71,7 @@ namespace Helion.World.Entities
 
         public void Destroy(Entity entity)
         {
-            // TODO: Remove from spawns if it is one.
+            // TODO: Remove from spawns if it is a spawn.
             
             // To avoid more object allocation and deallocation, I'm going to
             // leave empty sets in the map in case they get populated again.
@@ -156,11 +162,16 @@ namespace Helion.World.Entities
         {
             int id = m_entityIdTracker.Next();
             Sector sector = m_world.BspTree.ToSector(position);
-            Player player = new Player(id, 0, definition, position, angle, sector, this, playerNumber);
+            Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, playerNumber);
             
             FinishCreatingEntity(player);
             
             return player;
+        }
+
+        public void Dispose()
+        {
+            Entities.ForEach(entity => entity.Dispose());
         }
     }
 }

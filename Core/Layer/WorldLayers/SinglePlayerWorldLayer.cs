@@ -1,4 +1,5 @@
 using System;
+using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Render.Commands;
@@ -26,13 +27,17 @@ namespace Helion.Layer.WorldLayers
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumePressedKeys;
         private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
         private TickCommand m_tickCommand = new TickCommand();
-        private SinglePlayerWorld? m_world;
+        private SinglePlayerWorld m_world;
+        
+        public override WorldBase World => m_world;
 
-        public override WorldBase? World => m_world;
-
-        public SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection) :
-            base(config, console, archiveCollection)
+        private SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
+            IAudioSystem audioSystem, SinglePlayerWorld world) 
+            : base(config, console, archiveCollection, audioSystem)
         {
+            m_world = world;
+            m_ticker.Start();
+
             m_consumeDownKeys = new[]
             {
                 (config.Engine.Controls.MoveForward,  TickCommands.Forward),
@@ -55,51 +60,24 @@ namespace Helion.Layer.WorldLayers
             PerformDispose();
         }
 
-        public bool LoadMap(string mapName)
+        public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
+            ArchiveCollection archiveCollection, IMap map)
         {
-            IMap? map = ArchiveCollection.FindMap(mapName);
-            if (map == null)
-            {
-                Log.Warn("Unable to find map {0}", mapName);
-                return false;
-            }
-
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, map);
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, audioSystem, map);
             if (world == null)
-            {
-                Log.Error("Unable to load map {0}", mapName);
-                return false;
-            }
+                return null;
 
-            m_ticker.Stop();
-
-            if (m_world != null)
-            {
-                RemoveEventListeners(m_world);
-                m_world.Dispose();
-            }
-
-            AddEventListeners(world);
-            m_world = world;
-            m_ticker.Restart();
-            
-            return true;
+            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world);
         }
 
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            if (m_world == null)
-                return;
-            
             HandleMovementInput(consumableInput);
             m_world.HandleFrameInput(consumableInput);
         }
 
         public override void RunLogic()
         {
-            if (m_world == null)
-                return;
-            
             m_lastTickInfo = m_ticker.GetTickerInfo();
             int ticksToRun = m_lastTickInfo.Ticks;
 
@@ -124,9 +102,6 @@ namespace Helion.Layer.WorldLayers
 
         public override void Render(RenderCommands renderCommands)
         {
-            if (m_world == null)
-                return;
-            
             Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
             Player player = m_world.Player;
             renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player);
@@ -137,16 +112,13 @@ namespace Helion.Layer.WorldLayers
         
         protected override void PerformDispose()
         {
-            m_world?.Dispose();
-            
+            m_world.Dispose();
+
             base.PerformDispose();
         }
         
         private void World_LevelExit(object? sender, LevelChangeEvent e)
-        {
-            if (m_world == null)
-                throw new NullReferenceException("Should never get a world exit event when the world is null (Bad invocation? Rogue world?)");
-            
+        { 
             // Eventually we would do intermission stuff here.
 
             Log.Debug("Loading next level...");
@@ -169,6 +141,35 @@ namespace Helion.Layer.WorldLayers
                 LoadMap($"MAP{levelNumber}");
                 break;
             }
+        }
+        
+        public void LoadMap(string mapName)
+        {
+            IMap? map = ArchiveCollection.FindMap(mapName);
+            if (map == null)
+            {
+                Log.Warn("Unable to find map {0}", mapName);
+                return;
+            }
+
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, AudioSystem, map);
+            if (world == null)
+            {
+                Log.Error("Unable to load map {0}", mapName);
+                return;
+            }
+
+            m_ticker.Stop();
+
+            if (m_world != null)
+            {
+                RemoveEventListeners(m_world);
+                m_world.Dispose();
+            }
+
+            AddEventListeners(world);
+            m_world = world;
+            m_ticker.Restart();
         }
 
         private string GetNextLevelName(string currentName)

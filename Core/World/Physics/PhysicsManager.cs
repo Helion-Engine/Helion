@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
@@ -11,6 +12,7 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -35,6 +37,7 @@ namespace Helion.World.Physics
 
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
+        private readonly SoundManager m_soundManager;
 
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
@@ -52,10 +55,13 @@ namespace Helion.World.Physics
         /// </summary>
         /// <param name="bspTree">The BSP tree for the world.</param>
         /// <param name="blockmap">The blockmap for the world.</param>
-        public PhysicsManager(BspTree bspTree, Blockmap blockmap)
+        /// <param name="soundManager">The sound manager to play sounds from.
+        /// </param>
+        public PhysicsManager(BspTree bspTree, Blockmap blockmap, SoundManager soundManager)
         {
             m_bspTree = bspTree;
             m_blockmap = blockmap;
+            m_soundManager = soundManager;
         }
 
         /// <summary>
