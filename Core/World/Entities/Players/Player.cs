@@ -63,6 +63,7 @@ namespace Helion.World.Entities.Players
             {
                 m_viewHeight -= z - Box.Bottom;
                 m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / PlayerViewDivider;
+                ClampViewHeight();
             }
             
             base.SetZ(z, smooth);
@@ -122,10 +123,6 @@ namespace Helion.World.Entities.Players
             float yaw = (float)AngleRadians;
             float pitch = (float)PitchRadians;
 
-            // TODO: This should be clamped to the floor/ceiling and use the
-            //       property for the player.           
-            position.Z = MathHelper.Clamp(position.Z, HighestFloorZ, LowestCeilingZ - 8);
-
             return new Camera(position.ToFloat(), yaw, pitch);
         }
         
@@ -142,6 +139,11 @@ namespace Helion.World.Entities.Players
             m_prevViewHeight = m_viewHeight;
             m_viewHeight += m_deltaViewHeight;
 
+            ClampViewHeight();
+        }
+
+        private void ClampViewHeight()
+        {
             if (m_viewHeight > PlayerViewHeight)
             {
                 m_deltaViewHeight = 0;
@@ -153,7 +155,14 @@ namespace Helion.World.Entities.Players
 
             if (m_viewHeight < PlayerViewHeight)
                 m_deltaViewHeight += 0.25;
-        }    
+
+            double viewHeight = MathHelper.Clamp(m_viewHeight, 0, LowestCeilingZ - HighestFloorZ - 8);
+            if (viewHeight != m_viewHeight)
+            {
+                m_prevViewHeight = viewHeight;
+                m_viewHeight = viewHeight;
+            }
+        }
 
         public void Jump()
         {
