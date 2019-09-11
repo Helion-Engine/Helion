@@ -10,7 +10,7 @@ namespace Helion.Client
     {
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
         {
-            switch (ccmdArgs.Command)
+            switch (ccmdArgs.Command.ToUpper())
             {
             case "EXIT":
                 m_window.Close();

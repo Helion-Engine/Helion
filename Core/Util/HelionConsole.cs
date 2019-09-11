@@ -284,7 +284,7 @@ namespace Helion.Util
             if (tokens.Length == 0)
                 return;
 
-            Command = tokens[0].ToUpper();
+            Command = tokens[0];
             for (int i = 1; i < tokens.Length; i++)
                 Args.Add(tokens[i]);
         }

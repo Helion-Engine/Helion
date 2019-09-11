@@ -99,11 +99,16 @@ namespace Helion.Resources.Archives.Collection
         public Font? CompileFont(CIString name)
         {
             FontDefinition? definition = Definitions.Fonts.Get(name);
-            if (definition == null)
-                return null;
+            if (definition != null)
+            {
+                IImageRetriever imageRetriever = new ArchiveImageRetriever(this);
+                return FontCompiler.From(definition, imageRetriever);
+            }
 
-            IImageRetriever imageRetriever = new ArchiveImageRetriever(this);
-            return FontCompiler.From(definition, imageRetriever);
+            if (Data.TrueTypeFonts.TryGetValue(name, out Font? ttfFont))
+                return ttfFont;
+            
+            return null;
         }
 
         private void ProcessAndIndexEntries(IEnumerable<Archive> archives)

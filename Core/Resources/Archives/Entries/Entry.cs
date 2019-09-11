@@ -8,7 +8,7 @@
         /// <summary>
         /// The path within some archive to this entry.
         /// </summary>
-        public IEntryPath Path { get; protected set; }
+        public IEntryPath Path { get; }
 
         /// <summary>
         /// Reads all the raw data for this entry.
@@ -18,7 +18,7 @@
         /// <summary>
         /// The namespace this entry was located in.
         /// </summary>
-        public ResourceNamespace Namespace { get; protected set; }
+        public ResourceNamespace Namespace { get; }
 
         protected Entry(IEntryPath path, ResourceNamespace resourceNamespace)
         {

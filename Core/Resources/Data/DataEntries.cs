@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Helion.Graphics.Fonts;
+using Helion.Graphics.Fonts.TrueTypeFont;
 using Helion.Graphics.Palette;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
@@ -15,7 +17,9 @@ namespace Helion.Resources.Data
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public readonly Dictionary<CIString, Font> TrueTypeFonts = new Dictionary<CIString, Font>();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction;
+        private readonly Dictionary<CIString, Action<Entry>> m_extensionToAction;
         private Palette? m_latestPalette;
 
         /// <summary>
@@ -34,6 +38,11 @@ namespace Helion.Resources.Data
             {
                 ["PLAYPAL"] = HandlePlaypal,
             };
+            
+            m_extensionToAction = new Dictionary<CIString, Action<Entry>>
+            {
+                ["TTF"] = HandleTrueTypeFont,
+            };
         }
 
         /// <summary>
@@ -43,8 +52,10 @@ namespace Helion.Resources.Data
         /// <param name="entry">The entry to possibly read and process.</param>
         public void Read(Entry entry)
         {
-            if (m_entryNameToAction.TryGetValue(entry.Path.Name, out Action<Entry>? action))
-                action.Invoke(entry);
+            if (m_entryNameToAction.TryGetValue(entry.Path.Name, out Action<Entry>? nameAction))
+                nameAction.Invoke(entry);
+            else if (m_extensionToAction.TryGetValue(entry.Path.Extension, out Action<Entry>? extAction))
+                extAction.Invoke(entry);
         }
 
         private void HandlePlaypal(Entry entry)
@@ -54,6 +65,16 @@ namespace Helion.Resources.Data
                 m_latestPalette = palette;
             else
                 Log.Warn("Cannot read corrupt palette at {0}", entry);
+        }
+
+        private void HandleTrueTypeFont(Entry entry)
+        {
+            Font? font = TtfReader.ReadFont(entry.ReadData(), 0.4f);
+
+            if (font != null)
+                TrueTypeFonts[entry.Path.Name] = font;
+            else
+                Log.Warn("Unable to load font from entry {0}", entry.Path);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace Helion.Render.Shared.Drawers
         private const long FlashSpanNanos = 500 * 1000L * 1000L;
         private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
         private const float BackgroundAlpha = 0.95f;
+        private const string ConsoleFontName = "Console";
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
         
@@ -44,12 +45,12 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawInput(HelionConsole console, Dimension viewport, RenderCommands cmd, out int inputDrawTop)
         {
-            int fontHeight = cmd.GetFontHeight("SmallFont");
+            int fontHeight = cmd.GetFontHeight(ConsoleFontName);
             int middleY = viewport.Height / 2;
             int baseY = middleY - BlackBarDividerHeight - 5;
             ColoredString str = ColoredStringBuilder.From(Color.Yellow, console.Input);
 
-            cmd.DrawText(str, "SmallFont", LeftEdgeOffset, baseY - fontHeight, out Rectangle drawArea);
+            cmd.DrawText(str, ConsoleFontName, LeftEdgeOffset, baseY - fontHeight, out Rectangle drawArea);
             inputDrawTop = drawArea.Top;
 
             if (IsCursorFlashTime())
@@ -65,12 +66,12 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawMessages(HelionConsole console, Dimension viewport, RenderCommands cmd, int inputDrawTop)
         {
-            int fontHeight = cmd.GetFontHeight("SmallFont");
+            int fontHeight = cmd.GetFontHeight(ConsoleFontName);
             int topY = inputDrawTop - InputToMessagePadding - fontHeight;
 
             foreach (ConsoleMessage msg in console.Messages)
             {
-                cmd.DrawText(msg.Message, "SmallFont", 4, topY);
+                cmd.DrawText(msg.Message, ConsoleFontName, 4, topY);
                 topY -= fontHeight + BetweenMessagePadding;
 
                 if (topY < 0)

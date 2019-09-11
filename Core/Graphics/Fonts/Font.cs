@@ -22,6 +22,9 @@ namespace Helion.Graphics.Fonts
         
         private readonly Dictionary<char, Glyph> m_glyphs = new Dictionary<char, Glyph>();
 
+        /// <summary>
+        /// Gets how many glyphs are present.
+        /// </summary>
         public int Count => m_glyphs.Count;
         
         /// <summary>

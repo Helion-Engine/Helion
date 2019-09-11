@@ -18,6 +18,9 @@ namespace Helion.Resources.Archives.Entries
             FullPath = path;
             Name = Path.GetFileNameWithoutExtension(FullPath);
             Extension = Path.GetExtension(FullPath);
+
+            if (Extension.Length > 1)
+                Extension = Extension.Substring(1);
         }
 
         public override string ToString() => FullPath;

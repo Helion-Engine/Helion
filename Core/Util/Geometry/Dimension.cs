@@ -34,6 +34,17 @@ namespace Helion.Util.Geometry
         }
 
         /// <summary>
+        /// Deconstructs the dimension into its components.
+        /// </summary>
+        /// <param name="width">The width.</param>
+        /// <param name="height">The height.</param>
+        public void Deconstruct(out int width, out int height)
+        {
+            width = Width;
+            height = Height;
+        }
+
+        /// <summary>
         /// Checks for equality between dimensions.
         /// </summary>
         /// <param name="other">The other dimension.</param>
