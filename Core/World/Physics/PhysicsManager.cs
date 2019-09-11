@@ -447,7 +447,7 @@ namespace Helion.World.Physics
             entity.IntersectSectors = sectors.ToList();
             entity.IntersectEntities = entities.ToList();
 
-            if (!entity.Flags.NoSector)
+            if (!entity.Flags.NoSector && !entity.NoClip)
                 for (int i = 0; i < entity.IntersectSectors.Count; i++)
                     entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
 
@@ -461,8 +461,7 @@ namespace Helion.World.Physics
                     {
                         if (!entity.NoClip)
                         {
-                            // TODO: Can we do this without LINQ? Make a method for it?
-                            if (line.HasSpecial && !entity.IntersectSpecialLines.Any(x => x.Id == line.Id))
+                            if (line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
                                 entity.IntersectSpecialLines.Add(line);
                         }
 
@@ -487,6 +486,17 @@ namespace Helion.World.Physics
 
                 return GridIterationStatus.Continue;
             }
+        }
+
+        private bool FindLine(List<Line> lines, int id)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].Id == id)
+                    return true;
+            }
+
+            return false;
         }
         
         private void ClearVelocityXY(Entity entity)
