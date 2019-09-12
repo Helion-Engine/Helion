@@ -4,7 +4,7 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Texture.Fonts;
-using Helion.Render.Shared.Text;
+using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -28,7 +28,7 @@ namespace Helion.Render.OpenGL.Texture
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
         private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
         
-        public abstract ITextDrawCalculator TextDrawCalculator { get; }
+        public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
         /// <summary>
         /// The null texture, intended to be used when the actual texture
@@ -55,6 +55,16 @@ namespace Helion.Render.OpenGL.Texture
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             Dispose();
+        }
+        
+        /// <summary>
+        /// Checks if the texture manager contains the image.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <returns>True if it does, false if not.</returns>
+        public bool Contains(CIString name)
+        {
+            return TryGet(name, ResourceNamespace.Global, out _);
         }
         
         /// <summary>

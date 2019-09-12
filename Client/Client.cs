@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Helion.Client.OpenAL;
 using Helion.Client.OpenTK;
 using Helion.Input;
@@ -128,7 +127,7 @@ namespace Helion.Client
         {
             Dimension windowDimension = m_window.WindowDimension;
             IRenderer renderer = m_window.Renderer;
-            RenderCommands renderCommands = new RenderCommands(windowDimension, renderer.TextDrawCalculator);
+            RenderCommands renderCommands = new RenderCommands(windowDimension, renderer.ImageDrawInfoProvider);
 
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();
@@ -172,9 +171,6 @@ namespace Helion.Client
         {
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
             Logging.Initialize(cmdArgs);
-            
-            WarnIfTieredCompilationEnabled();
-            SetMaximumProcessAffinity();
 
             Log.Info($"Initializing {Constants.ApplicationName} v{Constants.ApplicationVersion}");
             
@@ -204,47 +200,6 @@ namespace Helion.Client
             finally
             {
                 LogManager.Shutdown();
-            }
-        }
-
-        private static void WarnIfTieredCompilationEnabled()
-        {
-            string? tieredCompilation = null;
-
-            try
-            {
-                tieredCompilation = Environment.GetEnvironmentVariable("COMPlus_TieredCompilation");
-            }
-            catch
-            {
-                Log.Error("Unable to check for tiered compilation in the environment");
-            }
-
-            if (tieredCompilation == null || (int.TryParse(tieredCompilation, out int value) && value != 0))
-            {
-                string message = "Missing critical performance environmental variable. Set the following:\n" +
-                                 "\n" +
-                                 "    COMPlus_TieredCompilation = 0\n" +
-                                 "\n" +
-                                 "This environmental variable is needed because (as of .NET Core 3.0 preview) " +
-                                 "the tiered JIT compilation causes microstuttering when playing the game. " +
-                                 "This bug may be resolved in later versions of .NET however.\n" +
-                                 "\n" +
-                                 "If you are not a developer and see this message, contact a developer immediately.";
-                MessageBox.Show(message, "Helion Critical Performance Issue", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private static void SetMaximumProcessAffinity()
-        {
-            try
-            {
-                using (Process process = Process.GetCurrentProcess())
-                    process.PriorityClass = ProcessPriorityClass.RealTime; 
-            }
-            catch
-            {
-                Log.Error("Unable to set the process to real time priority");
             }
         }
 

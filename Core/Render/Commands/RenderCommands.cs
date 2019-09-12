@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
+using Helion.Render.Commands.Align;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
-using Helion.Render.Shared.Text;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
@@ -15,13 +15,13 @@ namespace Helion.Render.Commands
     public class RenderCommands
     {
         public readonly Dimension WindowDimension;
+        public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
         private readonly List<IRenderCommand> m_commands = new List<IRenderCommand>();
-        private readonly ITextDrawCalculator m_textDrawCalculator;
 
-        public RenderCommands(Dimension windowDimensions, ITextDrawCalculator textDrawCalculator)
+        public RenderCommands(Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider)
         {
             WindowDimension = windowDimensions;
-            m_textDrawCalculator = textDrawCalculator;
+            ImageDrawInfoProvider = imageDrawInfoProvider;
         }
         
         public void Clear()
@@ -34,118 +34,20 @@ namespace Helion.Render.Commands
             m_commands.Add(ClearRenderCommand.DepthOnly());
         }
 
-        public void DrawImage(CIString textureName, int x, int y)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y)));
-        }
-        
-        public void DrawImage(CIString textureName, Vec2I topLeft)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, topLeft));
-        }
-        
-        public void DrawImage(CIString textureName, int x, int y, Color color)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y), color));
-        }
-        
-        public void DrawImage(CIString textureName, Vec2I topLeft, Color color)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, topLeft, color));
-        }
-
-        public void DrawImage(CIString textureName, int x, int y, float alpha)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y), alpha));
-        }
-        
-        public void DrawImage(CIString textureName, Vec2I topLeft, float alpha)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, topLeft, alpha));
-        }
-        
-        public void DrawImage(CIString textureName, int x, int y, Color color, float alpha)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Vec2I(x, y), color, alpha));
-        }
-        
-        public void DrawImage(CIString textureName, Vec2I topLeft, Color color, float alpha)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, topLeft, color, alpha));
-        }
-        
-        public void DrawImage(CIString textureName, int left, int top, int width, int height)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height)));
-        }
-        
-        public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color));
-        }
-        
-        public void DrawImage(CIString textureName, int left, int top, int width, int height, float alpha)
-        {
-            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), alpha));
-        }
-        
         public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color, float alpha)
         {
             m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color, alpha));
-        }
-
-        public void FillRect(int left, int top, int width, int height, Color color)
-        {
-            FillRect(new Rectangle(left, top, width, height), color, 1.0f);
-        }
-        
-        public void FillRect(int left, int top, int width, int height, Color color, float alpha)
-        {
-            FillRect(new Rectangle(left, top, width, height), color, alpha);
-        }
-
-        public void FillRect(Rectangle rectangle, Color color)
-        {
-            FillRect(rectangle, color, 1.0f);
         }
 
         public void FillRect(Rectangle rectangle, Color color, float alpha)
         {
             m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
         }
-
-        public void DrawText(string text, string font, int x, int y)
-        {
-            DrawText(RGBColoredStringDecoder.Decode(text), font, x, y, 1.0f);
-        }
         
-        public void DrawText(string text, string font, int x, int y, out Rectangle drawArea)
+        public void DrawText(ColoredString text, string font, int fontSize, int x, int y, int width, int height,
+            TextAlignment textAlign, float alpha)
         {
-            DrawText(RGBColoredStringDecoder.Decode(text), font, x, y, 1.0f, out drawArea);
-        }
-        
-        public void DrawText(ColoredString text, string font, int x, int y)
-        {
-            DrawText(text, font, x, y, 1.0f);
-        }
-        
-        public void DrawText(ColoredString text, string font, int x, int y, out Rectangle drawArea)
-        {
-            DrawText(text, font, x, y, 1.0f, out drawArea);
-        }
-        
-        public void DrawText(ColoredString text, string font, int x, int y, float alpha)
-        {
-            Vec2I topLeft = new Vec2I(x, y);
-            m_commands.Add(new DrawTextCommand(text, font, topLeft, alpha, null));
-        }
-        
-        public void DrawText(ColoredString text, string font, int x, int y, float alpha, out Rectangle drawArea)
-        {
-            Vec2I topLeft = new Vec2I(x, y);
-            m_commands.Add(new DrawTextCommand(text, font, topLeft, alpha, null));
-            
-            drawArea = m_textDrawCalculator.GetDrawArea(text, font, topLeft);
+            m_commands.Add(new DrawTextCommand(text, font, fontSize, x, y, width, height, textAlign, alpha));
         }
 
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity)
@@ -163,7 +65,7 @@ namespace Helion.Render.Commands
             m_commands.Add(new ViewportCommand(dimension, offset));
         }
 
-        public int GetFontHeight(string fontName) => m_textDrawCalculator.GetFontHeight(fontName);
+        public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);
         
         public IReadOnlyList<IRenderCommand> GetCommands() => m_commands.AsReadOnly();
     }

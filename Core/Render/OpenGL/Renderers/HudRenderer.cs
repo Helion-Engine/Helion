@@ -14,7 +14,7 @@ namespace Helion.Render.OpenGL.Renderers
         public abstract void DrawImage(CIString textureName, Vec2I topLeft, Color mixColor, Color multiplyColor, float alpha);
         public abstract void DrawImage(CIString textureName, Rectangle drawArea, Color mixColor, Color multiplyColor, float alpha);
         public abstract void DrawShape(Rectangle area, Color color, float alpha);
-        public abstract void DrawText(ColoredString text, CIString fontName, Vec2I topLeft, float alpha);
+        public abstract void DrawText(ColoredString text, CIString fontName, int fontHeight, Vec2I topLeft, float alpha);
         public abstract void Render(Rectangle viewport);
     }
 }

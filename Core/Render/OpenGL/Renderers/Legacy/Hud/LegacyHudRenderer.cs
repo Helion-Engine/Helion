@@ -83,21 +83,25 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             AddImage(texture, area, Color.FromArgb(255, color.R, color.G, color.B), Color.Transparent, alpha);
         }
         
-        public override void DrawText(ColoredString text, CIString fontName, Vec2I topLeftDraw, float alpha)
+        public override void DrawText(ColoredString text, CIString fontName, int fontHeight, Vec2I topLeftDraw, float alpha)
         {
             GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(fontName);
-            int maxHeight = font.Metrics.MaxHeight;
+            float fontScale = (float)fontHeight / font.Metrics.MaxHeight;
 
             float offset = topLeftDraw.X;
             foreach (ColoredChar c in text)
             {
                 GLGlyph glyph = font[c.Character];
                 GlyphUV uv = glyph.UV;
+                
+                // We truncate to an integer because this is how it is also
+                // calculated from the text width/height calculators.
+                float width = (int)(glyph.Width * fontScale);
 
                 float top = topLeftDraw.Y;
-                float bottom = top + maxHeight;
+                float bottom = top + fontHeight;
                 float left = offset;
-                float right = left + glyph.Width;
+                float right = left + width;
                 
                 HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, Color.Transparent, c.Color, alpha);
                 HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, Color.Transparent, c.Color, alpha);
@@ -106,7 +110,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
                 m_drawBuffer.Add(font.Texture, quad);
 
-                offset += glyph.Width;
+                offset += width;
             }
             
             DrawDepth += 1.0f;

@@ -26,12 +26,13 @@ namespace Helion.Render.Shared.Drawers
         {
             cmd.ClearDepth();
 
-            DrawHud(player, world, viewport, cmd);
-            DrawPickupFlash(world, cmd);
-            DrawDamage(world, cmd);
-            DrawRecentConsoleMessages(world, console, cmd);
+            // DrawHud(player, world, viewport, cmd);
+            // DrawPickupFlash(world, cmd);
+            // DrawDamage(world, cmd);
+            // DrawRecentConsoleMessages(world, console, cmd);
         }
         
+#if NOPE
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, RenderCommands cmd)
         {
             int height = cmd.GetFontHeight("LargeHudFont");
@@ -104,5 +105,6 @@ namespace Helion.Render.Shared.Drawers
             double fractionIntoFadeRange = (double)(timeSinceMessage - OpaqueNanoRange) / FadingNanoSpan;
             return 1.0f - (float)fractionIntoFadeRange;
         }
+#endif
     }
 }
