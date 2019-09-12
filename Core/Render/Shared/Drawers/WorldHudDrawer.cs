@@ -38,13 +38,23 @@ namespace Helion.Render.Shared.Drawers
         
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
+            // We will draw the medkit slightly higher so it looks like it
+            // aligns with the font.
             int x = 4;
             int y = viewport.Height - 4;
             helper.Image("MEDIA0", x, y, Alignment.BottomLeft, out Dimension medkitArea);
 
-            x += medkitArea.Width;
+            // We will draw the health numbers with the same height as the
+            // medkit image. However if someone ever replaces it, we probably
+            // want to draw it at the height of that image. We also don't want
+            // to have a missing or small image screw up the height so we'll
+            // clamp it to be at least 16. Let's get a more robust solution in
+            // the future!
+            int fontHeight = Math.Max(16, medkitArea.Height);
+            
+            x += medkitArea.Width + 4;
             int health = Math.Max(0, player.Health);
-            helper.Text(Color.Red, health.ToString(), "LargeHudFont", 24, x, y, Alignment.BottomLeft, out _);
+            helper.Text(Color.Red, health.ToString(), "LargeHudFont", fontHeight, x, y, Alignment.BottomLeft, out _);
         }
         
         private static void DrawPickupFlash(WorldBase world, DrawHelper helper)
@@ -73,10 +83,7 @@ namespace Helion.Render.Shared.Drawers
             Stack<(ColoredString msg, float alpha)> msgs = new Stack<(ColoredString, float)>();
             foreach (ConsoleMessage msg in console.Messages)
             {
-                if (messagesDrawn >= MaxHudMessages)
-                    break;
-
-                if (msg.TimeNanos < world.CreationTimeNanos)
+                if (messagesDrawn >= MaxHudMessages || msg.TimeNanos < world.CreationTimeNanos)
                     break;
 
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
