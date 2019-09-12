@@ -1,4 +1,3 @@
-using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -146,8 +145,10 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             if (!Config.Engine.Render.Anisotropy.Enable)
                 return;
 
-            float desiredAnisotropy = (float)Config.Engine.Render.Anisotropy.Value;
-            float value = Math.Max(1.0f, Math.Min(desiredAnisotropy, Capabilities.Limits.MaxAnisotropy));
+            float value = (float)Config.Engine.Render.Anisotropy.Value;
+            if (Config.Engine.Render.Anisotropy.UseMaxSupported)
+                value = Capabilities.Limits.MaxAnisotropy;
+            value = MathHelper.Clamp(value, 1.0f, Capabilities.Limits.MaxAnisotropy);
 
             gl.TexParameterF(targetType, TextureParameterFloatNameType.AnisotropyExt, value);
         }
