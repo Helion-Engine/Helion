@@ -38,6 +38,11 @@ namespace Helion.Render.Shared.Drawers
         
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
+            DrawHudHealth(player, viewport, helper);
+        }
+
+        private static void DrawHudHealth(Player player, Dimension viewport, DrawHelper helper)
+        {
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
             int x = 4;
@@ -56,7 +61,7 @@ namespace Helion.Render.Shared.Drawers
             int health = Math.Max(0, player.Health);
             helper.Text(Color.Red, health.ToString(), "LargeHudFont", fontHeight, x, y, Alignment.BottomLeft, out _);
         }
-        
+
         private static void DrawPickupFlash(WorldBase world, DrawHelper helper)
         {
             // TODO
