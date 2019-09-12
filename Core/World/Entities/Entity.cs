@@ -67,8 +67,7 @@ namespace Helion.World.Entities
         public EntityFlags Flags => Definition.Flags;
         public EntityProperties Properties => Definition.Properties;
         public EntityFrame Frame => Definition.States.Frames[FrameIndex];
-        public bool CalculatePhysics => Definition.Id != 0;
-
+        
         /// <summary>
         /// Creates an entity with the following information.
         /// </summary>

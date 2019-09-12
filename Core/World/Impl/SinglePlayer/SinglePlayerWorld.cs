@@ -171,7 +171,7 @@ namespace Helion.World.Impl.SinglePlayer
         private void PhysicsManager_PlayerUseFail(object? sender, Entity entity)
         {
             // TODO: Use SNDINFO.
-            // TODO: Should this be inside the physics class insted?
+            // TODO: Should this be inside the physics class instead?
             SoundManager.CreateSoundOn(entity, "DSOOF", SoundChannelType.Voice);
         }
 

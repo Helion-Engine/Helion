@@ -76,8 +76,7 @@ namespace Helion.World.Physics
             if (!entity.Flags.NoBlockmap)
                 m_blockmap.Link(entity);
             
-            if (entity.CalculatePhysics)
-                LinkToSectorsAndEntities(entity);
+            LinkToSectorsAndEntities(entity);
             
             ClampBetweenFloorAndCeiling(entity);
         }
@@ -363,11 +362,11 @@ namespace Helion.World.Physics
 
         private void SetEntityBoundsZ(Entity entity)
         {
-            double highestFloorZ = double.MinValue;
-            double lowestCeilZ = double.MaxValue;
             Sector highestFloor = entity.Sector;
             Sector lowestCeiling = entity.Sector;
-
+            double highestFloorZ = highestFloor.ToFloorZ(entity.Position);
+            double lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
+            
             foreach (Sector sector in entity.IntersectSectors)
             {
                 double floorZ = sector.ToFloorZ(entity.Position);
@@ -389,7 +388,8 @@ namespace Helion.World.Physics
 
             foreach (Entity intersectEntity in entity.IntersectEntities)
             {
-                // Check if we are stuck inside this entity and skip because it is invalid for setting floor/ceiling
+                // Check if we are stuck inside this entity and skip because it
+                // is invalid for setting floor/ceiling.
                 if (PreviouslyClipped(entity, intersectEntity))
                     continue;
 
@@ -403,18 +403,19 @@ namespace Helion.World.Physics
 
                 if (above)
                 {
-                    // Need to check clipping coming from above, if we are above or clipped through then this is our floor
+                    // Need to check clipping coming from above, if we're above
+                    // or clipped through then this is our floor.
                     if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
                         highestFloorZ = intersectEntity.Box.Top;
                 }
                 else if (below)
                 {
-                    // Same check as above but checking clipping the ceiling
+                    // Same check as above but checking clipping the ceiling.
                     if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
                         lowestCeilZ = intersectEntity.Box.Bottom;
                 }
 
-                // Need to check if we can step up to this floor
+                // Need to check if we can step up to this floor.
                 if (entity.Box.Bottom + entity.Properties.MaxStepHeight >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
                     highestFloorZ = intersectEntity.Box.Top;
             }
