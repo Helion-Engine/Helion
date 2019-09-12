@@ -230,6 +230,11 @@ namespace Helion.Client.OpenTK
             return errorCode == ErrorCode.NoError ? ErrorType.None : (ErrorType)errorCode;
         }
 
+        public float GetFloat(GetFloatType type)
+        {
+            return GL.GetFloat((GetPName)type);
+        }
+
         public int GetInteger(GetIntegerType type)
         {
             return GL.GetInteger((GetPName)type);
@@ -321,6 +326,11 @@ namespace Helion.Client.OpenTK
         }
 
         public void TexParameter(TextureTargetType targetType, TextureParameterNameType paramType, int value)
+        {
+            GL.TexParameter((TextureTarget)targetType, (TextureParameterName)paramType, value);
+        }
+
+        public void TexParameterF(TextureTargetType targetType, TextureParameterFloatNameType paramType, float value)
         {
             GL.TexParameter((TextureTarget)targetType, (TextureParameterName)paramType, value);
         }

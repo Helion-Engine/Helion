@@ -47,6 +47,7 @@ namespace Helion.Render.OpenGL.Context
         int GenVertexArray();
         string GetActiveUniform(int mrogramId, int uniformIndex, out int size, out int typeEnum);
         ErrorType GetError();
+        float GetFloat(GetFloatType type);
         int GetInteger(GetIntegerType type);
         void GetProgram(int programId, GetProgramParameterType type, out int value);
         string GetProgramInfoLog(int programId);
@@ -66,6 +67,7 @@ namespace Helion.Render.OpenGL.Context
         void StencilMask(int mask);
         void StencilOp(StencilOpType stencilFail, StencilOpType depthFail, StencilOpType depthPass);
         void TexParameter(TextureTargetType targetType, TextureParameterNameType paramType, int value);
+        void TexParameterF(TextureTargetType targetType, TextureParameterFloatNameType paramType, float value);
         void TexStorage2D(TexStorageTargetType targetType, int mipmapLevels, TexStorageInternalType internalType, Dimension dimension);
         void TexSubImage2D(TextureTargetType targetType, int mipmapLevels, Vec2I position, Dimension dimension, PixelFormatType formatType, PixelDataType pixelType, IntPtr data);
         void TexImage2D(TextureTargetType textureType, int level, PixelInternalFormatType internalType, Dimension dimension, PixelFormatType formatType, PixelDataType dataType, IntPtr data);

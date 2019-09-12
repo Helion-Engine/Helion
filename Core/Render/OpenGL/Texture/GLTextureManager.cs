@@ -7,9 +7,9 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
 using MoreLinq;
@@ -19,6 +19,7 @@ namespace Helion.Render.OpenGL.Texture
 {
     public abstract class GLTextureManager<GLTextureType> : IGLTextureManager where GLTextureType : GLTexture
     {
+        protected readonly Config Config;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly GLCapabilities Capabilities;
         protected readonly IGLFunctions gl;
@@ -41,8 +42,10 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         public GLFontTexture<GLTextureType> NullFont { get; }
         
-        protected GLTextureManager(GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection)
+        protected GLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, 
+            ArchiveCollection archiveCollection)
         {
+            Config = config;
             ArchiveCollection = archiveCollection;
             m_imageRetriever = new ArchiveImageRetriever(ArchiveCollection);
             Capabilities = capabilities;
@@ -148,7 +151,6 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture you want, or it will be the null image texture.</param>
         /// <returns>True if the texture was found, false if it was not found
         /// and the out value is the null texture handle.</returns>
-        // TODO: Docs update...!
         public bool TryGetFlat(CIString name, out GLTextureType texture)
         {
             return TryGet(name, ResourceNamespace.Flats, out texture);
@@ -184,13 +186,7 @@ namespace Helion.Render.OpenGL.Texture
             Font? font = ArchiveCollection.CompileFont(name);
             if (font != null)
                 return CreateNewFont(font, name);
-
-            Entry? entry = ArchiveCollection.Entries.FindByNamespace(name, ResourceNamespace.Fonts);
-            if (entry == null)
-                return NullFont;
-
-            // Attempt to read as a TTF file.
-            // TODO: Implement TTF reader and then this!
+            
             return NullFont;
         }
 

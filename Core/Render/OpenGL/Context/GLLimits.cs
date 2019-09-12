@@ -1,11 +1,14 @@
+using Helion.Render.OpenGL.Context.Types;
+
 namespace Helion.Render.OpenGL.Context
 {
     public class GLLimits
     {
-        public GLLimits(IGLFunctions functions)
+        public readonly float MaxAnisotropy;
+        
+        public GLLimits(IGLFunctions gl)
         {
-            // TODO: Anisotropy
-            // TODO: Texture unit max
+            MaxAnisotropy = gl.GetFloat(GetFloatType.MaxTextureMaxAnisotropyExt);
             // TODO: GL_MAX_UNIFORM_BUFFER_BINDINGS
             // TODO: GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
         }

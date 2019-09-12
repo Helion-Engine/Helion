@@ -1,3 +1,4 @@
+using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -9,6 +10,7 @@ using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Legacy
@@ -17,10 +19,13 @@ namespace Helion.Render.OpenGL.Texture.Legacy
     {
         public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
         
-        public LegacyGLTextureManager(GLCapabilities capabilities, IGLFunctions functions, ArchiveCollection archiveCollection) :
-            base(capabilities, functions, archiveCollection)
+        public LegacyGLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, 
+            ArchiveCollection archiveCollection) 
+            : base(config, capabilities, functions, archiveCollection)
         {
             ImageDrawInfoProvider = new GlLegacyImageDrawInfoProvider(this);
+            
+            // TODO: Listen for config changes to filtering/anisotropic.
         }
         
         ~LegacyGLTextureManager()
@@ -104,11 +109,47 @@ namespace Helion.Render.OpenGL.Texture.Legacy
                 return;
             }
 
-            // TODO: Add interpolation types from the config as needed.
-            gl.TexParameter(targetType, TextureParameterNameType.MinFilter, (int)TextureMinFilterType.Nearest);
-            gl.TexParameter(targetType, TextureParameterNameType.MagFilter, (int)TextureMagFilterType.Nearest);
+            (int minFilter, int maxFilter) = FindFilterValues();
+            gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
+            gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
             gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.Repeat);
             gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.Repeat);
+
+            SetAnisotropicFiltering(targetType);
+        }
+
+        private (int minFilter, int maxFilter) FindFilterValues()
+        {
+            int minFilter = (int)TextureMinFilterType.Nearest;
+            int maxFilter = (int)TextureMagFilterType.Nearest;
+            
+            switch (Config.Engine.Render.Filter.Get())
+            {
+            case FilterType.Nearest:
+                // Already set as the default!
+                break;
+            case FilterType.Bilinear:
+                minFilter = (int)TextureMinFilterType.Linear;
+                maxFilter = (int)TextureMinFilterType.Linear;
+                break;
+            case FilterType.Trilinear:
+                minFilter = (int)TextureMinFilterType.LinearMipmapLinear;
+                maxFilter = (int)TextureMagFilterType.Linear;
+                break;
+            }
+
+            return (minFilter, maxFilter);
+        }
+
+        private void SetAnisotropicFiltering(TextureTargetType targetType)
+        {
+            if (!Config.Engine.Render.Anisotropy.Enable)
+                return;
+
+            float desiredAnisotropy = (float)Config.Engine.Render.Anisotropy.Value;
+            float value = Math.Max(1.0f, Math.Min(desiredAnisotropy, Capabilities.Limits.MaxAnisotropy));
+
+            gl.TexParameterF(targetType, TextureParameterFloatNameType.AnisotropyExt, value);
         }
     }
 }

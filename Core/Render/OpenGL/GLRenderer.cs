@@ -49,6 +49,7 @@ namespace Helion.Render.OpenGL
             PrintGLInfo(m_capabilities);
             SetGLDebugger();
             SetGLStates();
+            WarnForInvalidStates(config);
 
             GLRenderType renderType = GetRenderTypeFromCapabilities();
             m_textureManager = CreateTextureManager(renderType, archiveCollection);
@@ -79,7 +80,19 @@ namespace Helion.Render.OpenGL
             
             return projection * view * model;
         }
-        
+
+        private static void WarnForInvalidStates(Config config)
+        {
+            if (config.Engine.Render.Anisotropy.Enable)
+            {
+                if (config.Engine.Render.Anisotropy.Value <= 1.0)
+                    Log.Warn("Anisotropic filter is enabled, but the desired value of 1.0 (equal to being off). Set a higher value than 1.0!");
+
+                if (config.Engine.Render.Filter != FilterType.Trilinear)
+                    Log.Warn("Anisotropic filter should be paired with trilinear filtering (you have {0}), you will not get the best results!", config.Engine.Render.Filter.Get());
+            }
+        }
+
         public void Render(RenderCommands renderCommands)
         {
             m_hudRenderer.Clear();
@@ -219,7 +232,7 @@ namespace Helion.Render.OpenGL
             case GLRenderType.Standard:
                 throw new NotImplementedException("Standard GL renderer not implemented yet");
             default:
-                return new LegacyGLTextureManager(m_capabilities, gl, archiveCollection);
+                return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
             }
         }
 
