@@ -120,6 +120,8 @@ namespace Helion.World.Physics
                         entity.SetZ(entity.OnEntity.Box.Top, false);
                 }
 
+                // TODO: Is there some small component of this we can use from
+                // this instead of performing a full unlink and link?
                 entity.UnlinkFromWorld();
                 LinkToWorld(entity);
             }
