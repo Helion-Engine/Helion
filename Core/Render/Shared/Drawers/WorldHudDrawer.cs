@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
+using Helion.Render.Commands.Align;
+using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
@@ -24,46 +26,41 @@ namespace Helion.Render.Shared.Drawers
 
         public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
+            DrawHelper helper = new DrawHelper(cmd);
+            
             cmd.ClearDepth();
 
-            // DrawHud(player, world, viewport, cmd);
-            // DrawPickupFlash(world, cmd);
-            // DrawDamage(world, cmd);
-            // DrawRecentConsoleMessages(world, console, cmd);
+            DrawHud(player, world, viewport, helper);
+            DrawPickupFlash(world, helper);
+            DrawDamage(world, helper);
+            DrawRecentConsoleMessages(world, console, helper);
         }
         
-#if NOPE
-        private static void DrawHud(Player player, WorldBase world, Dimension viewport, RenderCommands cmd)
+        private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
-            int height = cmd.GetFontHeight("LargeHudFont");
-
-            // TODO: Desperately need the 'draw from location' stuff, this sucks...
             int x = 4;
-            int y = viewport.Height - 4 - 19;
-            cmd.DrawImage("MEDIA0", x, y);
+            int y = viewport.Height - 4;
+            helper.Image("MEDIA0", x, y, Alignment.BottomLeft, out Dimension medkitArea);
 
+            x += medkitArea.Width;
             int health = Math.Max(0, player.Health);
-            ColoredString str = ColoredStringBuilder.From(Color.Red, health.ToString());
-            x += 36;
-            y = viewport.Height - 4 - height;
-            cmd.DrawText(str, "LargeHudFont", x, y);
+            helper.Text(Color.Red, health.ToString(), "LargeHudFont", 24, x, y, Alignment.BottomLeft, out _);
         }
-
-        private static void DrawPickupFlash(WorldBase world, RenderCommands cmd)
+        
+        private static void DrawPickupFlash(WorldBase world, DrawHelper helper)
         {
             // TODO
         }
 
-        private static void DrawDamage(WorldBase world, RenderCommands cmd)
+        private static void DrawDamage(WorldBase world, DrawHelper helper)
         {
             // TODO
         }
 
-        private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, RenderCommands cmd)
+        private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, DrawHelper helper)
         {
             long currentNanos = Ticker.NanoTime();
 
-            int fontHeight = cmd.GetFontHeight("SmallFont");
             int messagesDrawn = 0;
             int offsetY = TopOffset;
 
@@ -92,8 +89,9 @@ namespace Helion.Render.Shared.Drawers
             
             msgs.ForEach(pair =>
             {
-                cmd.DrawText(pair.msg, "SmallFont", LeftOffset, offsetY, pair.alpha);
-                offsetY += fontHeight + MessageSpacing;
+                helper.Text(pair.msg, "SmallFont", 16, LeftOffset, offsetY, Alignment.TopLeft, 
+                            pair.alpha, out Dimension drawArea);
+                offsetY += drawArea.Height + MessageSpacing;
             });
         }
 
@@ -105,6 +103,5 @@ namespace Helion.Render.Shared.Drawers
             double fractionIntoFadeRange = (double)(timeSinceMessage - OpaqueNanoRange) / FadingNanoSpan;
             return 1.0f - (float)fractionIntoFadeRange;
         }
-#endif
     }
 }
