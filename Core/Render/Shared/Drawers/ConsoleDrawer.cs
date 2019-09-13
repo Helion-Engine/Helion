@@ -17,7 +17,7 @@ namespace Helion.Render.Shared.Drawers
         private const int ConsoleFontSize = 32;
         private const int BlackBarDividerHeight = 3;
         private const int CaretWidth = 2;
-        private const int LeftEdgeOffset = 4;
+        private const int LeftEdgeOffset = 8;
         private const int InputToMessagePadding = 8;
         private const int BetweenMessagePadding = 3;
         private const long FlashSpanNanos = 500 * 1000L * 1000L;
@@ -85,10 +85,10 @@ namespace Helion.Render.Shared.Drawers
 
             foreach (ConsoleMessage msg in console.Messages)
             {
-                helper.Text(msg.Message, ConsoleFontName, ConsoleFontSize, 4, topY, Alignment.BottomLeft, 
+                helper.Text(msg.Message, ConsoleFontName, ConsoleFontSize, LeftEdgeOffset, topY, Alignment.BottomLeft, 
                             out Dimension drawArea);
+                
                 topY -= drawArea.Height + BetweenMessagePadding;
-
                 if (topY < 0)
                     break;
             }
