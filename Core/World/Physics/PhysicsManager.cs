@@ -120,15 +120,17 @@ namespace Helion.World.Physics
                         entity.SetZ(entity.OnEntity.Box.Top, false);
                 }
 
-                // TODO: Is there some small component of this we can use from
-                // this instead of performing a full unlink and link?
-                entity.UnlinkFromWorld();
-                LinkToWorld(entity);
+                SetEntityBoundsZ(entity);
+                ClampBetweenFloorAndCeiling(entity);
             }
 
             foreach (var entity in entities)
             {
                 SetEntityBoundsZ(entity);
+
+                if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
+                    continue;
+
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
 
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
