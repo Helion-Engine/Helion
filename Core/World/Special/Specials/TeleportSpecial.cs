@@ -1,4 +1,5 @@
-﻿using Helion.Util.Geometry.Vectors;
+﻿using System;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
@@ -10,6 +11,7 @@ namespace Helion.World.Special.Specials
     public class TeleportSpecial : ISpecial
     {
         private const int TeleportFreezeTicks = 18;
+        private const int TeleportOffsetDist = 16;
         
         private readonly EntityActivateSpecialEventArgs m_args;
         private readonly IWorld m_world;
@@ -27,6 +29,8 @@ namespace Helion.World.Special.Specials
             if (teleportSpot == null)
                 return SpecialTickStatus.Destroy;
 
+            CreateTeleportFogAt(entity);
+
             entity.UnlinkFromWorld();
 
             entity.FrozenTics = TeleportFreezeTicks;
@@ -40,8 +44,25 @@ namespace Helion.World.Special.Specials
 
             entity.ResetInterpolation();
             entity.OnGround = entity.CheckOnGround();
+            
+            CreateDestinationTeleportFogAt(entity);
 
             return SpecialTickStatus.Destroy;
+        }
+
+        private void CreateTeleportFogAt(Entity entity)
+        {
+            // TODO: Spawn it slightly in front of the entity based on the angle.
+            // TODO: Make a sound!
+        }
+
+        private void CreateDestinationTeleportFogAt(Entity entity)
+        {
+            // TODO: Switch to a LUT when the time comes.
+            Vec3D offset = new Vec3D(Math.Sin(entity.AngleRadians), Math.Cos(entity.AngleRadians), 0) * TeleportOffsetDist;
+
+            // TODO: Spawn thing
+            // TODO: Make a sound!
         }
 
         public void Use()
