@@ -101,28 +101,48 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             // This stops artifacts from forming.
             if (resourceNamespace == ResourceNamespace.Sprites)
             {
-                gl.TexParameter(targetType, TextureParameterNameType.MinFilter, (int)TextureMinFilterType.Nearest);
-                gl.TexParameter(targetType, TextureParameterNameType.MagFilter, (int)TextureMagFilterType.Nearest);
-                gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);
-                gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.ClampToEdge);
+                HandleSpriteTextureParameters(targetType);
                 return;
             }
 
-            (int minFilter, int maxFilter) = FindFilterValues();
+            if (resourceNamespace == ResourceNamespace.Fonts)
+            {
+                HandleFontTextureParameters(targetType);
+                return;
+            }
+
+            (int minFilter, int maxFilter) = FindFilterValues(Config.Engine.Render.TextureFilter);
+            
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
             gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.Repeat);
             gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.Repeat);
-
             SetAnisotropicFiltering(targetType);
         }
 
-        private (int minFilter, int maxFilter) FindFilterValues()
+        private void HandleSpriteTextureParameters(TextureTargetType targetType)
+        {
+                gl.TexParameter(targetType, TextureParameterNameType.MinFilter, (int)TextureMinFilterType.Nearest);
+                gl.TexParameter(targetType, TextureParameterNameType.MagFilter, (int)TextureMagFilterType.Nearest);
+                gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);
+                gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.ClampToEdge);
+        }
+
+        private void HandleFontTextureParameters(TextureTargetType targetType)
+        {
+            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Engine.Render.FontFilter);
+            gl.TexParameter(targetType, TextureParameterNameType.MinFilter, fontMinFilter);
+            gl.TexParameter(targetType, TextureParameterNameType.MagFilter, fontMaxFilter);
+            gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);
+            gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.ClampToEdge);
+        }
+
+        private (int minFilter, int maxFilter) FindFilterValues(FilterType filterType)
         {
             int minFilter = (int)TextureMinFilterType.Nearest;
             int maxFilter = (int)TextureMagFilterType.Nearest;
             
-            switch (Config.Engine.Render.Filter.Get())
+            switch (filterType)
             {
             case FilterType.Nearest:
                 // Already set as the default!

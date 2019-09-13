@@ -88,8 +88,8 @@ namespace Helion.Render.OpenGL
                 if (config.Engine.Render.Anisotropy.Value <= 1.0)
                     Log.Warn("Anisotropic filter is enabled, but the desired value of 1.0 (equal to being off). Set a higher value than 1.0!");
 
-                if (config.Engine.Render.Filter != FilterType.Trilinear)
-                    Log.Warn("Anisotropic filter should be paired with trilinear filtering (you have {0}), you will not get the best results!", config.Engine.Render.Filter.Get());
+                if (config.Engine.Render.TextureFilter != FilterType.Trilinear)
+                    Log.Warn("Anisotropic filter should be paired with trilinear filtering (you have {0}), you will not get the best results!", config.Engine.Render.TextureFilter);
             }
         }
 
