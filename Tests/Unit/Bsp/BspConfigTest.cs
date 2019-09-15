@@ -1,5 +1,6 @@
-using Helion.Bsp;
-using Helion.Bsp.States.Split;
+using Helion.BspOld;
+using Helion.BspOld.States.Split;
+using Helion.BspOld;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Bsp

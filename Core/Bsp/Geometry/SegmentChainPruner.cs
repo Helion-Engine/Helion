@@ -29,14 +29,14 @@ namespace Helion.Bsp.Geometry
     /// </remarks>
     public class SegmentChainPruner
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// A list of all the pruned segments. These may harmless lines or they
         /// could be lines that would cause problems with BSP building.
         /// </summary>
         public readonly HashSet<BspSegment> PrunedSegments = new HashSet<BspSegment>();
         
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
         private readonly SegmentLookupTable m_segmentTable = new SegmentLookupTable();
         private readonly Dictionary<int, List<int>> m_vertexAdjacencyList = new Dictionary<int, List<int>>();
         private readonly HashSet<int> m_terminalChainTails = new HashSet<int>();
@@ -49,7 +49,13 @@ namespace Helion.Bsp.Geometry
         /// <returns>A new list of the non-pruned segments. This may return the
         /// list passed in if it was unchanged, or it may return a completely
         /// new list.</returns>
-        public List<BspSegment> Prune(List<BspSegment> segments)
+        public static List<BspSegment> Prune(List<BspSegment> segments)
+        {
+            SegmentChainPruner segmentChainPruner = new SegmentChainPruner();
+            return segmentChainPruner.PerformPrune(segments);
+        }
+
+        private List<BspSegment> PerformPrune(List<BspSegment> segments)
         {
             ClearDataStructures();
             AddSegmentsToAdjacencyList(segments);

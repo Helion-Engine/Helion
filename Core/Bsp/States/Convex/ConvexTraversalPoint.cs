@@ -1,4 +1,4 @@
-using Helion.Bsp.Geometry;
+using Helion.BspOld.Geometry;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 
@@ -30,7 +30,7 @@ namespace Helion.Bsp.States.Convex
         /// Gets the point to which we arrived at this segment first.
         /// </summary>
         /// <returns>The point for the endpoint of the segment.</returns>
-        public Vec2D Vertex => Segment[Endpoint];
+        public readonly Vec2D Vertex;
 
         /// <summary>
         /// Creates a new traversal point.
@@ -43,6 +43,7 @@ namespace Helion.Bsp.States.Convex
         {
             Segment = segment;
             Endpoint = endpoint;
+            Vertex = Segment[Endpoint];
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Bsp.Builder;
-using Helion.Bsp.Builder.Stepwise;
-using Helion.Bsp.Node;
+using Helion.BspOld.Builder;
+using Helion.BspOld.Builder.Stepwise;
+using Helion.BspOld.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util;

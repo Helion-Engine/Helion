@@ -1,5 +1,4 @@
 using Helion.Maps.Components;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
@@ -33,7 +32,7 @@ namespace Helion.Bsp.Geometry
         /// <summary>
         /// The ID of the line this is or is a subset of.
         /// </summary>
-        public readonly ILine? Line;
+        public readonly IBspUsableLine? Line;
 
         /// <summary>
         /// True if this is a one sided segment, false if not.
@@ -41,7 +40,7 @@ namespace Helion.Bsp.Geometry
         /// <remarks>
         /// This does not take into account miniseg status.
         /// </remarks>
-        public bool OneSided => Line != null && Line.GetBack() == null;
+        public bool OneSided => Line != null && Line.OneSided;
 
         /// <summary>
         /// True if this is two sided, false if not.
@@ -64,7 +63,7 @@ namespace Helion.Bsp.Geometry
         /// <see cref="CollinearTracker"/> for more info.</param>
         /// <param name="line">The line (if any, this being null implies it is
         /// a miniseg).</param>
-        public BspSegment(Vec2D start, Vec2D end, int startIndex, int endIndex, int collinearIndex, ILine? line = null) : 
+        public BspSegment(Vec2D start, Vec2D end, int startIndex, int endIndex, int collinearIndex, IBspUsableLine? line = null) : 
             base(start, end)
         {
             Precondition(startIndex != endIndex, "BSP segment shouldn't have a start and end index being the same");
@@ -133,7 +132,9 @@ namespace Helion.Bsp.Geometry
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"({Start}) -> ({End}) [line={Line?.Id}, oneSided={OneSided} miniseg={IsMiniseg}]";
+            if (Line is ILine line)
+                return $"({Start}) -> ({End}) [line={line?.Id}, oneSided={OneSided} miniseg={IsMiniseg}]";
+            return $"({Start}) -> ({End}) [oneSided={OneSided} miniseg={IsMiniseg}]";
         }
     }
 }

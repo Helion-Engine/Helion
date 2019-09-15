@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
-using Helion.Bsp.Builder.Stepwise;
-using Helion.Bsp.Geometry;
-using Helion.Bsp.States;
+using Helion.BspOld.Builder.Stepwise;
+using Helion.BspOld.Geometry;
+using Helion.BspOld.States;
 using Helion.Util.Geometry.Vectors;
 
 namespace BspVisualizer

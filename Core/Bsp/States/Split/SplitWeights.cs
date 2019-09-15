@@ -1,4 +1,4 @@
-﻿namespace Helion.Bsp.States.Split
+namespace Helion.Bsp.States.Split
 {
     /// <summary>
     /// Score weights for all the negatives when splitting. A larger score

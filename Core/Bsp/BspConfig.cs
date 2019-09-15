@@ -1,4 +1,4 @@
-﻿using Helion.Bsp.States.Split;
+using Helion.Bsp.States.Split;
 
 namespace Helion.Bsp
 {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using Helion.Bsp.Builder.Stepwise;
+using Helion.BspOld.Builder.Stepwise;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;

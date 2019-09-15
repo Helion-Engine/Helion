@@ -1,7 +1,8 @@
+using Helion.Bsp.Geometry;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Segments;
+using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
@@ -10,7 +11,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Lines
 {
-    public class Line
+    public class Line : IBspUsableLine
     {
         public readonly int Id;
         public readonly int MapId;
@@ -22,7 +23,10 @@ namespace Helion.World.Geometry.Lines
         public readonly LineFlags Flags;
         public readonly LineSpecial Special;
         public bool Activated;
-
+        
+        public Vec2D StartPosition => Segment.Start;
+        public Vec2D EndPosition => Segment.End;
+        
         public bool OneSided => Back == null;
         public bool TwoSided => !OneSided;
         public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;

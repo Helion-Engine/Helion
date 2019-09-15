@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Helion.Bsp.Geometry;
-using Helion.Bsp.Node;
-using Helion.Bsp.States;
+using Helion.BspOld.Geometry;
+using Helion.BspOld.Node;
+using Helion.BspOld.States;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
