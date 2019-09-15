@@ -1,8 +1,7 @@
 using Helion.Bsp.Geometry;
-using Helion.Bsp.States.Convex;
 using Helion.Util.Geometry.Segments.Enums;
 
-namespace Helion.Bsp.Impl.Debuggable.Convex
+namespace Helion.Bsp.States.Convex
 {
     /// <summary>
     /// A tracker of convex state information.
@@ -10,10 +9,10 @@ namespace Helion.Bsp.Impl.Debuggable.Convex
     public class ConvexStates
     {
         /// <summary>
-        /// The current state.
+        /// The current state of convex handling.
         /// </summary>
-        public ConvexState State = ConvexState.Loaded;
-        
+        public ConvexState State = ConvexState.None;
+
         /// <summary>
         /// A traversal of the segments we've done thus far.
         /// </summary>

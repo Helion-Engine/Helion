@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.BspOld.Geometry;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
