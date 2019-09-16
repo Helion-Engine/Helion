@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Helion.Bsp;
-using Helion.Bsp.Impl.Debuggable;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
@@ -124,7 +122,7 @@ namespace Helion.World.Bsp
         /// map is corrupt beyond repair.</returns>
         public static BspTree? Create(IMap map, GeometryBuilder builder)
         {
-            BspBuilder bspBuilder = new DebuggableBspBuilder(map);
+            BspBuilder bspBuilder = new BspBuilder(map);
             BspNode? root = bspBuilder.Build();
             if (root == null)
             {

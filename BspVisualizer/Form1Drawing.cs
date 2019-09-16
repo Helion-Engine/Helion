@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using Helion.Bsp.Geometry;
-using Helion.Bsp.Impl.Debuggable;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
@@ -72,7 +71,7 @@ namespace BspVisualizer
 
         private void PaintVertices(Graphics g)
         {
-            foreach (Vec2D vertex in bspBuilder.GetVertexAllocator())
+            foreach (Vec2D vertex in bspBuilder.VertexAllocator)
                 DrawVertex(g, cyanBrush, vertex);
         }
 
@@ -85,16 +84,16 @@ namespace BspVisualizer
         {
             switch (bspBuilder.State)
             {
-            case DebuggableBspState.CheckingConvexity:
+            case BspState.CheckingConvexity:
                 DrawCheckingConvexity(g);
                 break;
-            case DebuggableBspState.FindingSplitter:
+            case BspState.FindingSplitter:
                 DrawFindingSplitter(g);
                 break;
-            case DebuggableBspState.PartitioningSegments:
+            case BspState.PartitioningSegments:
                 DrawPartitioningSegments(g);
                 break;
-            case DebuggableBspState.GeneratingMinisegs:
+            case BspState.GeneratingMinisegs:
                 DrawGeneratingMinisegs(g);
                 break;
             }
@@ -193,10 +192,10 @@ namespace BspVisualizer
             if (states.CurrentVertexListIndex + 1 < states.Vertices.Count)
             {
                 VertexSplitterTime firstVertexTime = states.Vertices[states.CurrentVertexListIndex];
-                Vec2D firstVertex = bspBuilder.GetVertexAllocator()[firstVertexTime.Index];
+                Vec2D firstVertex = bspBuilder.VertexAllocator[firstVertexTime.Index];
 
                 VertexSplitterTime secondVertexTime = states.Vertices[states.CurrentVertexListIndex + 1];
-                Vec2D secondVertex = bspBuilder.GetVertexAllocator()[secondVertexTime.Index];
+                Vec2D secondVertex = bspBuilder.VertexAllocator[secondVertexTime.Index];
 
                 // The corner drawers are a stack that builds upwards from the
                 // bottom, so the order to drawing them is reversed.

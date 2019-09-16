@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
+using Helion.Bsp;
 using Helion.Bsp.Geometry;
-using Helion.Bsp.Impl.Debuggable;
 using Helion.Bsp.States;
 using Helion.Util.Geometry.Vectors;
 
@@ -31,15 +31,15 @@ namespace BspVisualizer
         private static Vec2I cornerOffset = new Vec2I(4, 4);
         private static StringCornerDrawer bottomLeftCornerDrawer = new StringCornerDrawer(Corner.BottomLeft, cornerOffset);
 
-        private DebuggableBspBuilder bspBuilder;
+        private BspBuilder bspBuilder;
         private List<BspSegment> shadowSegments;
         private Vector2 camera = new Vector2(0, 0);
         private float zoom = 0.25f;
 
-        public Form1(DebuggableBspBuilder builder)
+        public Form1(BspBuilder builder)
         {
             bspBuilder = builder;
-            shadowSegments = GetShadowSegments(builder.GetSegmentAllocator());
+            shadowSegments = GetShadowSegments(builder.SegmentAllocator);
 
             InitializeComponent();
         }

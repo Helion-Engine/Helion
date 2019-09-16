@@ -1,9 +1,9 @@
-namespace Helion.Bsp.Impl.Debuggable
+﻿namespace Helion.Bsp.States
 {
     /// <summary>
     /// All the states the BSP builder can be in.
     /// </summary>
-    public enum DebuggableBspState
+    public enum BspState
     {
         NotStarted,
         CheckingConvexity,

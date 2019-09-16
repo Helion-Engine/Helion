@@ -15,9 +15,9 @@ using Helion.Util.Geometry;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util.Assertion;
+using Helion.Util.Time;
 using NLog;
 using static Helion.Util.Assertion.Assert;
-using Helion.Util.Time;
 
 namespace Helion.Client
 {

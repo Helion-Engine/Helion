@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Miniseg;
+using Helion.Util;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 using NLog;
@@ -9,7 +10,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Partition
 {
-    public abstract class Partitioner
+    public class Partitioner
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -17,7 +18,7 @@ namespace Helion.Bsp.States.Partition
         protected readonly BspConfig BspConfig;
         protected readonly SegmentAllocator SegmentAllocator;
         protected readonly JunctionClassifier JunctionClassifier;
-        
+
         /// <summary>
         /// Creates a partitioner tha allows steppable debugging.
         /// </summary>
@@ -26,7 +27,7 @@ namespace Helion.Bsp.States.Partition
         /// BSP segments when splitting.</param>
         /// <param name="junctionClassifier">The junction classifier to update
         /// with new junctions.</param>
-        protected Partitioner(BspConfig config, SegmentAllocator segmentAllocator, JunctionClassifier junctionClassifier)
+        public Partitioner(BspConfig config, SegmentAllocator segmentAllocator, JunctionClassifier junctionClassifier)
         {
             BspConfig = config;
             SegmentAllocator = segmentAllocator;
@@ -47,8 +48,49 @@ namespace Helion.Bsp.States.Partition
             States = new PartitionStates { Splitter = splitter, SegsToSplit = segments };
         }
 
-        public abstract void Execute();
-        
+        public void Execute()
+        {
+            Precondition(States.State != PartitionState.Finished, "Trying to partition when it's already completed");
+            if (States.Splitter == null)
+                throw new NullReferenceException("Unexpected null splitter");
+
+            BspSegment splitter = States.Splitter;
+            BspSegment segToSplit = States.SegsToSplit[States.CurrentSegToPartitionIndex];
+            States.CurrentSegToPartitionIndex++;
+
+            bool doneAllSplitting = (States.CurrentSegToPartitionIndex >= States.SegsToSplit.Count);
+            States.State = (doneAllSplitting ? PartitionState.Finished : PartitionState.Working);
+
+            if (ReferenceEquals(segToSplit, splitter))
+            {
+                HandleSplitter(splitter);
+                return;
+            }
+
+            if (segToSplit.Parallel(splitter))
+            {
+                HandleParallelSegment(splitter, segToSplit);
+                return;
+            }
+
+            bool splits = splitter.IntersectionAsLine(segToSplit, out double splitterTime, out double segmentTime);
+            Invariant(splits, "A non-parallel line should intersect");
+
+            // Note that it is possible for two segments that share endpoints
+            // to calculate intersections to each other outside of the normal
+            // range due (ex: D2M29 has one at approx t = 1.0000000000000002).
+            // Because they share a point and aren't parallel, then the line
+            // must be on one of the sides and isn't intersecting. This will
+            // also avoid very small cuts as well since we definitely do not
+            // want a cut happening at the pathological time seen above!
+            if (splitter.SharesAnyEndpoints(segToSplit))
+                HandleSegmentOnSide(splitter, segToSplit);
+            else if (MathHelper.InNormalRange(segmentTime))
+                HandleSplit(splitter, segToSplit, segmentTime, splitterTime);
+            else
+                HandleSegmentOnSide(splitter, segToSplit);
+        }
+
         protected bool BetweenEndpoints(double splitterTime)
         {
             double epsilon = BspConfig.VertexWeldingEpsilon;

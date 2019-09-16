@@ -9,14 +9,14 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Split
 {
-    public abstract class SplitCalculator
+    public class SplitCalculator
     {
         public SplitterStates States { get; protected set; } = new SplitterStates();
         protected readonly BspConfig BspConfig;
         protected readonly CollinearTracker CollinearTracker;
         protected BitArray SeenCollinear = new BitArray(0);
         
-        protected SplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker)
+        public SplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker)
         {
             BspConfig = bspConfig;
             CollinearTracker = collinearTracker;
@@ -30,8 +30,33 @@ namespace Helion.Bsp.States.Split
             SeenCollinear = new BitArray(CollinearTracker.Count);
         }
 
-        public abstract void Execute();
-        
+        public void Execute()
+        {
+            Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");
+            Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
+
+            BspSegment splitter = States.Segments[States.CurrentSegmentIndex];
+
+            if (!SeenCollinear.Get(splitter.CollinearIndex))
+            {
+                States.CurrentSegScore = CalculateScore(splitter);
+
+                if (States.CurrentSegScore < States.BestSegScore)
+                {
+                    Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
+                    States.BestSegScore = States.CurrentSegScore;
+                    States.BestSplitter = splitter;
+                }
+
+                SeenCollinear.Set(splitter.CollinearIndex, true);
+            }
+
+            States.CurrentSegmentIndex++;
+
+            bool hasSegmentsLeft = States.CurrentSegmentIndex < States.Segments.Count;
+            States.State = (hasSegmentsLeft ? SplitterState.Working : SplitterState.Finished);
+        }
+
         protected static double CalculateDistanceToNearestEndpoint(BspSegment segment, double tSegment)
         {
             Vec2D endpointVertex = (tSegment < 0.5 ? segment.Start : segment.End);
