@@ -1,5 +1,4 @@
 ﻿using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Switches;
 
 namespace Helion.World.Special.Specials

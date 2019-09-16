@@ -8,6 +8,7 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
         public readonly string Texture;
         public readonly int MinTicks;
         public readonly int MaxTicks;
+        public int TextureIndex;
 
         public AnimatedTextureComponent(string texture, int min, int max)
         {

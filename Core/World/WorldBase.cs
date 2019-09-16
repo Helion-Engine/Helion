@@ -59,7 +59,7 @@ namespace Helion.World
             SoundManager = new SoundManager(audioSystem);
             PhysicsManager = new PhysicsManager(BspTree, Blockmap, SoundManager); 
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
-            SpecialManager = new SpecialManager(this, PhysicsManager);
+            SpecialManager = new SpecialManager(this, PhysicsManager, archiveCollection.Definitions);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
@@ -93,6 +93,7 @@ namespace Helion.World
 
             SpecialManager.Tick();
             SoundManager.Tick();
+            Resources.TextureManager.Instance.Tick();
 
             Gametick++;
         }

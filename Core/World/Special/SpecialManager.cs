@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
@@ -26,15 +27,16 @@ namespace Helion.World.Special
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
-        private readonly SwitchManager m_switchManager = new SwitchManager();
         private readonly DoomRandom m_random = new DoomRandom();
         private readonly PhysicsManager m_physicsManager;
+        private readonly SwitchManager m_switchManager;
         private readonly WorldBase m_world;
 
-        public SpecialManager(WorldBase world, PhysicsManager physicsManager)
+        public SpecialManager(WorldBase world, PhysicsManager physicsManager, DefinitionEntries definition)
         {
             m_world = world;
             m_physicsManager = physicsManager;
+            m_switchManager = new SwitchManager(definition);
 
             StartInitSpecials();
         }
@@ -158,7 +160,7 @@ namespace Helion.World.Special
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
-        public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, CIString? floorChangeTexture = null)
+        public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null)
         {
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0, null, floorChangeTexture));

@@ -8,13 +8,7 @@ using static Helion.Util.Assertion.Assert;
 namespace Helion.Render.OpenGL.Texture
 {
     public abstract class GLTexture : IDisposable
-    {
-        /// <summary>
-        /// A unique identifier for this texture so we could look it up by this
-        /// index.
-        /// </summary>
-        public readonly int Id;
-        
+    {    
         /// <summary>
         /// The OpenGL texture 'name' handle.
         /// </summary>
@@ -45,10 +39,9 @@ namespace Helion.Render.OpenGL.Texture
         public int Width => Dimension.Width;
         public int Height => Dimension.Height;
 
-        protected GLTexture(int id, int textureId, string name, Dimension dimension, IGLFunctions functions, 
+        protected GLTexture(int textureId, string name, Dimension dimension, IGLFunctions functions, 
             TextureTargetType textureType)
         {
-            Id = id;
             TextureId = textureId;
             Name = name;
             Dimension = dimension;

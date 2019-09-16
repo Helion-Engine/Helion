@@ -52,3 +52,9 @@ texture BFALL1 range BFALL4 tics 8
 texture FIREBLU1 range FIREBLU2 tics 8
 texture SFALL1 range SFALL4 tics 8
 texture WFALL1 range WFALL4 tics 8
+texture SLADRIP1 range SLADRIP3 tics 8
+texture BLODGR1 range BLODGR1 tics 8
+texture BLODRIP1 range BLODRIP4 tics 8
+texture GSTFONT1 range GSTFONT4 tics 8
+texture ROCKRED1 range ROCKRED3 tics 8
+texture FIREMAG1 range FIREMAG3 tics 8

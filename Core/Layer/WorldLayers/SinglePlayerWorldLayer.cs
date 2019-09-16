@@ -5,6 +5,7 @@ using Helion.Maps;
 using Helion.Render.Commands;
 using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -65,6 +66,7 @@ namespace Helion.Layer.WorldLayers
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, IMap map)
         {
+            TextureManager.Init(archiveCollection);
             SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, audioSystem, map);
             if (world == null)
                 return null;

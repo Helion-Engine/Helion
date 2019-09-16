@@ -61,7 +61,7 @@ namespace Helion.World.Special.Specials
                 if (IsNonRepeat)
                 {
                     if (MoveData.FloorChangeTexture != null)
-                        Sector.Floor.Texture = MoveData.FloorChangeTexture;
+                        Sector.Floor.Texture = MoveData.FloorChangeTexture.Value;
 
                     Sector.ActiveMoveSpecial = null;
                     return SpecialTickStatus.Destroy;

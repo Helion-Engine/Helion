@@ -66,7 +66,7 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Continue;
         }
 
-        private static Sector? GetNextSector(Sector start, CIString floorpic)
+        private static Sector? GetNextSector(Sector start, int floorpic)
         {
             foreach (var line in start.Lines)
                 if (line.Back != null && line.Front.Sector == start && line.Back.Sector.Floor.Texture == floorpic)

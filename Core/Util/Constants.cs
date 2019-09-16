@@ -32,6 +32,11 @@ namespace Helion.Util
         /// The name of a 'missing' texture in a map.
         /// </summary>
         public static readonly CIString NoTexture = "-";
+
+        /// <summary>
+        /// The index of a 'missing' texture in a map.
+        /// </summary>
+        public static readonly int NoTextureIndex = 0;
         
         /// <summary>
         /// The sky flat texture name.

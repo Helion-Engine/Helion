@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Util.Container
 {
@@ -110,6 +111,39 @@ namespace Helion.Util.Container
                 if (map.TryGetValue(secondKey, out value))
                     return true;
             return false;
+        }
+
+        /// <summary>
+        /// Returns the count of all values.
+        /// </summary>
+        public int CountAll()
+        {
+            int count = 0;
+            foreach (var key in m_table.Keys)
+                count += m_table[key].Values.Count;
+            return count;
+        }
+
+        /// <summary>
+        /// Returns a list of all values.
+        /// </summary>
+        public List<V> GetValues()
+        {
+            List<V> values = new List<V>();
+            foreach (var key in m_table.Keys)
+                values.AddRange(m_table[key].Values);
+            return values;
+        }
+
+        /// <summary>
+        /// Returns a list of all values for the given key.
+        /// </summary>
+        public List<V> GetValues(K1 key)
+        {
+            if (m_table.TryGetValue(key, out var data))
+                return data.Values.ToList();
+
+            return new List<V>();
         }
     }
 }

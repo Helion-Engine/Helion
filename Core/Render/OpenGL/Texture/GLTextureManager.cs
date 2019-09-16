@@ -24,10 +24,8 @@ namespace Helion.Render.OpenGL.Texture
         protected readonly GLCapabilities Capabilities;
         protected readonly IGLFunctions gl;
         private readonly IImageRetriever m_imageRetriever;
-        private readonly List<GLTextureType?> m_textures = new List<GLTextureType?>();
         private readonly Dictionary<CIString, GLFontTexture<GLTextureType>> m_fonts = new Dictionary<CIString, GLFontTexture<GLTextureType>>();
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
-        private readonly AvailableIndexTracker m_freeTextureIndex = new AvailableIndexTracker();
         
         public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
@@ -128,32 +126,15 @@ namespace Helion.Render.OpenGL.Texture
             return true;
         }
 
-        /// <summary>
-        /// Gets the texture, with priority given to the texture namespace. If
-        /// it cannot be found, the null texture handle is returned.
-        /// </summary>
-        /// <param name="name">The texture name.</param>
-        /// <param name="texture">The populated texture. This will either be
-        /// the texture you want, or it will be the null image texture.</param>
-        /// <returns>True if the texture was found, false if it was not found
-        /// and the out value is the null texture handle.</returns>
-        public bool TryGetWall(CIString name, out GLTextureType texture)
+        public GLTextureType GetTexture(int index)
         {
-            return TryGet(name, ResourceNamespace.Textures, out texture);
-        } 
+            var texture = TextureManager.Instance.GetTexture(index);
 
-        /// <summary>
-        /// Gets the texture, with priority given to the flat namespace. If it
-        /// cannot be found, the null texture handle is returned.
-        /// </summary>
-        /// <param name="name">The flat texture name.</param>
-        /// <param name="texture">The populated texture. This will either be
-        /// the texture you want, or it will be the null image texture.</param>
-        /// <returns>True if the texture was found, false if it was not found
-        /// and the out value is the null texture handle.</returns>
-        public bool TryGetFlat(CIString name, out GLTextureType texture)
-        {
-            return TryGet(name, ResourceNamespace.Flats, out texture);
+            if (texture.RenderStore != null)
+                return (GLTextureType)texture.RenderStore;
+
+            texture.RenderStore = CreateTexture(texture.Image, texture.Name, texture.Namespace);
+            return (GLTextureType)texture.RenderStore;
         }
 
         /// <summary>
@@ -202,22 +183,23 @@ namespace Helion.Render.OpenGL.Texture
             return (int)Math.Floor(Math.Log(smallerAxis, 2));
         }
         
-        protected GLTextureType CreateTexture(Image image, CIString name, ResourceNamespace resourceNamespace)
+        protected GLTextureType CreateTexture(Image? image, CIString name, ResourceNamespace resourceNamespace)
         { 
             DeleteOldTextureIfAny(name, resourceNamespace);
 
-            int id = m_freeTextureIndex.Next();
-            GLTextureType texture = GenerateTexture(id, image, name, resourceNamespace);
+            GLTextureType texture;
+            if (image == null)
+                texture = NullTexture;
+            else
+                texture = GenerateTexture(image, name, resourceNamespace);
+
             m_textureTracker.Insert(name, resourceNamespace, texture);
-            AddToTextureList(id, texture);
 
             return texture;
         }
         
         protected void DeleteTexture(GLTextureType texture, CIString name, ResourceNamespace resourceNamespace)
         {
-            m_textures[texture.Id] = null;
-            m_freeTextureIndex.MakeAvailable(texture.Id);
             m_textureTracker.Remove(name, resourceNamespace);
             texture.Dispose();
         }
@@ -225,19 +207,19 @@ namespace Helion.Render.OpenGL.Texture
         protected void ReleaseUnmanagedResources()
         {
             NullTexture.Dispose();
-            m_textures.ForEach(texture => texture?.Dispose());
+            m_textureTracker.GetValues().ForEach(texture => texture?.Dispose());
             
             NullFont.Dispose();
             m_fonts.ForEach(pair => pair.Value.Dispose());
         }
 
-        protected abstract GLTextureType GenerateTexture(int id, Image image, CIString name, ResourceNamespace resourceNamespace);
+        protected abstract GLTextureType GenerateTexture(Image image, CIString name, ResourceNamespace resourceNamespace);
         
         protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, CIString name);
 
         private GLTextureType CreateNullTexture()
         {
-            return GenerateTexture(0, ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
+            return GenerateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
         }
 
         private GLFontTexture<GLTextureType> CreateNullFont()
@@ -249,18 +231,6 @@ namespace Helion.Render.OpenGL.Texture
 
             Font font = new Font(glyph, glyphs, metrics);
             return GenerateFont(font, "NULL");
-        }
-
-        private void AddToTextureList(int id, GLTextureType texture)
-        {
-            if (id == m_textures.Count)
-            {
-                m_textures.Add(texture);
-                return;
-            }
-
-            Invariant(id == m_textures.Count, $"Trying to add texture to an invalid index: {id} (count = {m_textures.Count})");
-            m_textures[id] = texture;
         }
         
         private void DeleteOldTextureIfAny(CIString name, ResourceNamespace resourceNamespace) 

@@ -9,11 +9,11 @@ namespace Helion.World.Special.SectorMovement
         public readonly double Speed;
         public readonly int Delay;
         public readonly CrushData? Crush;
-        public readonly CIString? FloorChangeTexture;
+        public readonly int? FloorChangeTexture;
         public MoveDirection StartDirection;
         
         public SectorMoveData(SectorMoveType moveType, MoveDirection startDirection, MoveRepetition repetition, 
-            double speed, int delay, CrushData? crush = null, CIString? floorChangeTexture = null)
+            double speed, int delay, CrushData? crush = null, int? floorChangeTexture = null)
         {
             SectorMoveType = moveType;
             StartDirection = startDirection;

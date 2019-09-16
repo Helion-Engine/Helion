@@ -1,4 +1,5 @@
-﻿using Helion.Util;
+﻿using System.Collections.Generic;
+using Helion.Util;
 using Helion.Util.Container;
 
 namespace Helion.Resources
@@ -104,6 +105,30 @@ namespace Helion.Resources
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns a count of all resources.
+        /// </summary>
+        public int CountAll()
+        {
+            return m_table.CountAll();
+        }
+
+        /// <summary>
+        /// Returns a list of all resources.
+        /// </summary>
+        public List<T> GetValues()
+        {
+            return m_table.GetValues();
+        }
+
+        /// <summary>
+        /// Returns a list of all resources of the given resource namespace.
+        /// </summary>
+        public List<T> GetValues(ResourceNamespace resourceNamespace)
+        {
+            return m_table.GetValues(resourceNamespace);
         }
     }
 }

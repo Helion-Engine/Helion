@@ -63,19 +63,18 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         /// <summary>
         /// Creates a new texture. The caller is responsible for disposing it.
         /// </summary>
-        /// <param name="id">A unique ID for this texture.</param>
         /// <param name="image">The image that makes up this texture.</param>
         /// <param name="name">The name of the texture.</param>
         /// <param name="resourceNamespace">What namespace the texture is from.
         /// </param>
         /// <returns>A new texture.</returns>
-        protected override GLLegacyTexture GenerateTexture(int id, Image image, CIString name, 
+        protected override GLLegacyTexture GenerateTexture(Image image, CIString name, 
             ResourceNamespace resourceNamespace)
         {
             int textureId = gl.GenTexture();
             string textureName = $"{name} [{resourceNamespace}]";
             
-            GLLegacyTexture texture = new GLLegacyTexture(id, textureId, textureName, image.Dimension, gl, TextureTargetType.Texture2D);
+            GLLegacyTexture texture = new GLLegacyTexture(textureId, textureName, image.Dimension, gl, TextureTargetType.Texture2D);
             UploadAndSetParameters(texture, image, name, resourceNamespace);
             
             return texture;
@@ -90,7 +89,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, CIString name)
         {
             (Image image, GLFontMetrics metrics) = GLFontGenerator.CreateFontAtlasFrom(font); 
-            GLLegacyTexture texture = GenerateTexture(0, image, $"[FONT] {name}", ResourceNamespace.Fonts);
+            GLLegacyTexture texture = GenerateTexture(image, $"[FONT] {name}", ResourceNamespace.Fonts);
             GLFontTexture<GLLegacyTexture> fontTexture = new GLFontTexture<GLLegacyTexture>(texture, metrics);
             return fontTexture;
         }

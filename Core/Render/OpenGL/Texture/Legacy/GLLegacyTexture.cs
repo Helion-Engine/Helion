@@ -6,8 +6,8 @@ namespace Helion.Render.OpenGL.Texture.Legacy
 {
     public class GLLegacyTexture : GLTexture
     {
-        public GLLegacyTexture(int id, int textureId, string name, Dimension dimension, IGLFunctions functions, TextureTargetType textureType) : 
-            base(id, textureId, name, dimension, functions, textureType)
+        public GLLegacyTexture(int textureId, string name, Dimension dimension, IGLFunctions functions, TextureTargetType textureType) : 
+            base(textureId, name, dimension, functions, textureType)
         {
         }
 

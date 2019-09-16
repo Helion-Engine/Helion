@@ -4,6 +4,7 @@ using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
 using Helion.Util.Assertion;
 using Helion.Util.Geometry.Segments;
 using Helion.World.Bsp;
@@ -56,7 +57,7 @@ namespace Helion.World.Geometry.Builder
             double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
             string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
             
-            SectorPlane sectorPlane = new SectorPlane(id, face, z, texture, doomSector.LightLevel);
+            SectorPlane sectorPlane = new SectorPlane(id, face, z, TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index, doomSector.LightLevel);
             sectorPlanes.Add(sectorPlane);
             
             return sectorPlane;
@@ -76,7 +77,7 @@ namespace Helion.World.Geometry.Builder
             }
         }
 
-        private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder, 
+        private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
             ref int nextSideId)
         {
             DoomSide doomSide = doomLine.Front;
@@ -88,7 +89,7 @@ namespace Helion.World.Geometry.Builder
             Sector sector = builder.Sectors[doomSide.Sector.Id];
 
             // When we get to 3D floors we're going to have to fix this...
-            Wall wall = new Wall(builder.Walls.Count, doomSide.MiddleTexture, WallLocation.Middle);
+            Wall wall = new Wall(builder.Walls.Count, TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures).Index, WallLocation.Middle);
             builder.Walls.Add(wall);
             
             Side front = new Side(nextSideId, doomSide.Id, doomSide.Offset, wall, sector);
@@ -108,10 +109,14 @@ namespace Helion.World.Geometry.Builder
             // ordering very badly.
             Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
             Sector facingSector = builder.Sectors[facingSide.Sector.Id];
+
+            var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
+            var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
+            var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
             
-            Wall middle = new Wall(builder.Walls.Count, facingSide.MiddleTexture, WallLocation.Middle);
-            Wall upper = new Wall(builder.Walls.Count + 1, facingSide.UpperTexture, WallLocation.Upper);
-            Wall lower = new Wall(builder.Walls.Count + 2, facingSide.LowerTexture, WallLocation.Lower);
+            Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
+            Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
+            Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
             builder.Walls.Add(middle);
             builder.Walls.Add(upper);
             builder.Walls.Add(lower);
@@ -124,7 +129,7 @@ namespace Helion.World.Geometry.Builder
             return side;
         }
 
-        private static (Side front, Side? back) CreateSides(DoomLine doomLine, GeometryBuilder builder, 
+        private static (Side front, Side? back) CreateSides(DoomLine doomLine, GeometryBuilder builder,
             ref int nextSideId)
         {
             if (doomLine.Back == null)

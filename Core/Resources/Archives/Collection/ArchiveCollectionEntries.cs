@@ -76,5 +76,10 @@ namespace Helion.Resources.Archives.Collection
         {
             return m_namespaceNameEntries.Get(name, priorityNamespace);
         }
+
+        public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace)
+        {
+            return m_namespaceNameEntries.GetValues(resourceNamespace);
+        }
     }
 }
