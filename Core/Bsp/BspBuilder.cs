@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
+using Helion.Bsp.States.Miniseg;
 using Helion.Maps;
 
 namespace Helion.Bsp
@@ -11,6 +12,7 @@ namespace Helion.Bsp
         protected readonly VertexAllocator VertexAllocator;
         protected readonly CollinearTracker CollinearTracker;
         protected readonly SegmentAllocator SegmentAllocator;
+        protected readonly JunctionClassifier JunctionClassifier;
 
         protected BspBuilder(BspConfig config, IMap map)
         {
@@ -18,6 +20,7 @@ namespace Helion.Bsp
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
             CollinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
             SegmentAllocator = new SegmentAllocator(VertexAllocator, CollinearTracker);
+            JunctionClassifier = new JunctionClassifier();
 
             List<BspSegment> segments = ReadMapLines(map);
             // TODO: JunctionClassifier.Add(segments);

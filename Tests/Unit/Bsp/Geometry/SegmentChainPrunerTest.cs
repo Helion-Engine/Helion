@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Helion.BspOld.Geometry;
+using Helion.Bsp.Geometry;
 using Helion.Test.Helper.Bsp.Geometry;
 using Helion.Util.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -25,10 +25,9 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 BspSegmentCreator.Create(4, 0),
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
-            Assert.IsTrue(pruner.PrunedSegments.Empty());
+            Assert.IsTrue(prunedSegs.Empty());
             // For optimization reasons, we expect no pruning to return the 
             // same list reference.
             Assert.AreSame(prunedSegs, segments);
@@ -53,10 +52,9 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 BspSegmentCreator.Create(0, 3),
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
-            Assert.IsTrue(pruner.PrunedSegments.Empty());
+            Assert.IsTrue(prunedSegs.Empty());
             // For optimization reasons, we expect no pruning to return the 
             // same list reference.
             Assert.AreSame(prunedSegs, segments);
@@ -82,10 +80,9 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 BspSegmentCreator.Create(7, 5),
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
-            Assert.IsTrue(pruner.PrunedSegments.Empty());
+            Assert.IsTrue(prunedSegs.Empty());
             // For optimization reasons, we expect no pruning to return the 
             // same list reference.
             Assert.AreSame(prunedSegs, segments);
@@ -110,16 +107,15 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 danglingSeg,
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
             Assert.AreEqual(3, prunedSegs.Count);
             Assert.IsTrue(prunedSegs.Contains(firstSeg));
             Assert.IsTrue(prunedSegs.Contains(secondSeg));
             Assert.IsTrue(prunedSegs.Contains(thirdSeg));
             
-            Assert.AreEqual(1, pruner.PrunedSegments.Count);
-            Assert.IsTrue(pruner.PrunedSegments.Contains(danglingSeg));
+            Assert.AreEqual(1, prunedSegs.Count);
+            Assert.IsTrue(prunedSegs.Contains(danglingSeg));
         }
         
         // o---X---X---X
@@ -145,18 +141,17 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 thirdDanglingSeg,
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
             Assert.AreEqual(3, prunedSegs.Count);
             Assert.IsTrue(prunedSegs.Contains(firstSeg));
             Assert.IsTrue(prunedSegs.Contains(secondSeg));
             Assert.IsTrue(prunedSegs.Contains(thirdSeg));
             
-            Assert.AreEqual(3, pruner.PrunedSegments.Count);
-            Assert.IsTrue(pruner.PrunedSegments.Contains(firstDanglingSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(secondDanglingSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(thirdDanglingSeg));
+            Assert.AreEqual(3, prunedSegs.Count);
+            Assert.IsTrue(prunedSegs.Contains(firstDanglingSeg));
+            Assert.IsTrue(prunedSegs.Contains(secondDanglingSeg));
+            Assert.IsTrue(prunedSegs.Contains(thirdDanglingSeg));
         }
         
         // X
@@ -185,18 +180,17 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 doubleBranchDanglingSegSecond,
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
             Assert.AreEqual(3, prunedSegs.Count);
             Assert.IsTrue(prunedSegs.Contains(firstSeg));
             Assert.IsTrue(prunedSegs.Contains(secondSeg));
             Assert.IsTrue(prunedSegs.Contains(thirdSeg));
             
-            Assert.AreEqual(3, pruner.PrunedSegments.Count);
-            Assert.IsTrue(pruner.PrunedSegments.Contains(standaloneDanglingSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(doubleBranchDanglingSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(doubleBranchDanglingSegSecond));
+            Assert.AreEqual(3, prunedSegs.Count);
+            Assert.IsTrue(prunedSegs.Contains(standaloneDanglingSeg));
+            Assert.IsTrue(prunedSegs.Contains(doubleBranchDanglingSeg));
+            Assert.IsTrue(prunedSegs.Contains(doubleBranchDanglingSegSecond));
         }
         
         //       5
@@ -228,20 +222,19 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 fourSeven,
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
             Assert.AreEqual(3, prunedSegs.Count);
             Assert.IsTrue(prunedSegs.Contains(firstSeg));
             Assert.IsTrue(prunedSegs.Contains(secondSeg));
             Assert.IsTrue(prunedSegs.Contains(thirdSeg));
             
-            Assert.AreEqual(5, pruner.PrunedSegments.Count);
-            Assert.IsTrue(pruner.PrunedSegments.Contains(twoThree));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(threeFour));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(fiveFour));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(sixFour));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(fourSeven));
+            Assert.AreEqual(5, prunedSegs.Count);
+            Assert.IsTrue(prunedSegs.Contains(twoThree));
+            Assert.IsTrue(prunedSegs.Contains(threeFour));
+            Assert.IsTrue(prunedSegs.Contains(fiveFour));
+            Assert.IsTrue(prunedSegs.Contains(sixFour));
+            Assert.IsTrue(prunedSegs.Contains(fourSeven));
         }
         
         //   2   3--4
@@ -262,16 +255,15 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 fourthSeg,
             };
             
-            SegmentChainPruner pruner = new SegmentChainPruner();
-            List<BspSegment> prunedSegs = pruner.Prune(segments);
+            List<BspSegment> prunedSegs = SegmentChainPruner.Prune(segments);
             
             Assert.IsTrue(prunedSegs.Empty());
             
-            Assert.AreEqual(4, pruner.PrunedSegments.Count);
-            Assert.IsTrue(pruner.PrunedSegments.Contains(firstSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(secondSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(thirdSeg));
-            Assert.IsTrue(pruner.PrunedSegments.Contains(fourthSeg));
+            Assert.AreEqual(4, prunedSegs.Count);
+            Assert.IsTrue(prunedSegs.Contains(firstSeg));
+            Assert.IsTrue(prunedSegs.Contains(secondSeg));
+            Assert.IsTrue(prunedSegs.Contains(thirdSeg));
+            Assert.IsTrue(prunedSegs.Contains(fourthSeg));
         }
     }
 }

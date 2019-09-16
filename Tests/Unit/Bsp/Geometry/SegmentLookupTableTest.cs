@@ -1,5 +1,4 @@
-using Helion.BspOld.Geometry;
-using Helion.Util.Geometry;
+using Helion.Bsp.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

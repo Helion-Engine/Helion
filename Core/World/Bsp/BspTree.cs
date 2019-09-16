@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.BspOld.Builder;
-using Helion.BspOld.Builder.Stepwise;
-using Helion.BspOld.Node;
+using Helion.Bsp;
+using Helion.Bsp.Impl.Debuggable;
+using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
@@ -124,7 +123,7 @@ namespace Helion.World.Bsp
         /// map is corrupt beyond repair.</returns>
         public static BspTree? Create(IMap map, GeometryBuilder builder)
         {
-            IBspBuilder builderBase = new StepwiseBspBuilder(map);
+            BspBuilder builderBase = new DebuggableBspBuilder(map);
             BspNode? root = builderBase.Build();
             if (root == null)
             {

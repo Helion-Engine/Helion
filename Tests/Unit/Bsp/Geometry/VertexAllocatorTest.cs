@@ -1,5 +1,4 @@
-using Helion.BspOld.Geometry;
-using Helion.Util.Geometry;
+using Helion.Bsp.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -40,7 +39,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
             Vec2D vec = new Vec2D(12, 34);
             vertexAllocator.Insert(new Vec2D(1, 2));
             
-            Assert.IsFalse(vertexAllocator.TryGetValue(vec, out int noSuchIndex));
+            Assert.IsFalse(vertexAllocator.TryGetValue(vec, out _));
 
             int allocatedIndex = vertexAllocator[vec];
             bool found = vertexAllocator.TryGetValue(vec, out int index);

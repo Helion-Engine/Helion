@@ -1,4 +1,4 @@
-using Helion.BspOld.Geometry;
+using Helion.Bsp.Geometry;
 using Helion.Maps;
 using Helion.Test.Helper.Map.Generator;
 using Helion.Util.Geometry.Segments.Enums;

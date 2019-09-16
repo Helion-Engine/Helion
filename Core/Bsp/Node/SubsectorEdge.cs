@@ -2,7 +2,6 @@
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
-using Helion.Maps.Components;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
@@ -18,7 +17,7 @@ namespace Helion.Bsp.Node
         /// <summary>
         /// The line this is a part of.
         /// </summary>
-        public readonly ILine? Line;
+        public readonly IBspUsableLine? Line;
 
         /// <summary>
         /// If this segment is on the front of the line or not. This is not
@@ -40,21 +39,6 @@ namespace Helion.Bsp.Node
         /// True if it's a miniseg, false if not.
         /// </summary>
         public bool IsMiniseg => Line == null;
-        
-        /// <summary>
-        /// Gets the sector (if any) for this.
-        /// </summary>
-        public ISector? Sector
-        {
-            get
-            {
-                if (Line == null)
-                    return null;
-                if (Line.GetBack() == null)
-                    return Line.GetFront().GetSector(); 
-                return IsFront ? Line.GetFront().GetSector() : Line.GetBack()?.GetSector();
-            }
-        }
 
         /// <summary>
         /// Creates a subsector edge from some geometric data and for some
@@ -67,10 +51,8 @@ namespace Helion.Bsp.Node
         /// <param name="front">True if this is on the front side, false if it
         /// is the back. This value is not used if this is a miniseg. This
         /// must never be false for a one sided line.</param>
-        public SubsectorEdge(Vec2D start, Vec2D end, ILine? line = null, bool front = true)
+        public SubsectorEdge(Vec2D start, Vec2D end, IBspUsableLine? line = null, bool front = true)
         {
-            Precondition(line == null || front || line.GetBack() != null, "Provided a one sided segment and said it uses the back side");
-            
             Start = start;
             End = end;
             IsFront = front;
@@ -114,8 +96,9 @@ namespace Helion.Bsp.Node
                 BspSegment segment = traversalPoint.Segment;
                 Vec2D endingPoint = segment.Opposite(traversalPoint.Endpoint);
                 bool traversedFrontSide = CheckIfTraversedFrontSide(traversalPoint, rotation);
-                
-                subsectorEdges.Add(new SubsectorEdge(startPoint, endingPoint, segment.Line, traversedFrontSide));
+
+                SubsectorEdge edge = new SubsectorEdge(startPoint, endingPoint, segment.Line, traversedFrontSide);
+                subsectorEdges.Add(edge);
 
                 Invariant(startPoint != endingPoint, "Traversal produced the wrong endpoint indices");
                 startPoint = endingPoint;
