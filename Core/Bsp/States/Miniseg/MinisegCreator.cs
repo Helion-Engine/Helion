@@ -1,40 +1,25 @@
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Miniseg
 {
-    /// <summary>
-    /// A debuggable miniseg creator that moves in an atomic stepwise fashion.
-    /// </summary>
-    public class SteppableMinisegCreator : IMinisegCreator
+    public class MinisegCreator
     {
-        /// <summary>
-        /// The states for this object.
-        /// </summary>
         public MinisegStates States { get; private set; } = new MinisegStates();
+        protected readonly VertexAllocator VertexAllocator;
+        protected readonly SegmentAllocator SegmentAllocator;
+        protected readonly JunctionClassifier JunctionClassifier;
 
-        private readonly VertexAllocator m_vertexAllocator;
-        private readonly SegmentAllocator m_segmentAllocator;
-        private readonly JunctionClassifier m_junctionClassifier;
-
-        /// <summary>
-        /// Creates a new debuggable miniseg creator.
-        /// </summary>
-        /// <param name="vertexAllocator">The vertex allocator.</param>
-        /// <param name="segmentAllocator">The segment allocator.</param>
-        /// <param name="junctionClassifier">The junction classifier.</param>
-        public SteppableMinisegCreator(VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator, 
+        public MinisegCreator(VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator, 
             JunctionClassifier junctionClassifier)
         {
-            m_vertexAllocator = vertexAllocator;
-            m_segmentAllocator = segmentAllocator;
-            m_junctionClassifier = junctionClassifier;
+            VertexAllocator = vertexAllocator;
+            SegmentAllocator = segmentAllocator;
+            JunctionClassifier = junctionClassifier;
         }
-
-        /// <inheritdoc/>
+        
         public void Load(BspSegment splitter, HashSet<int> collinearVertices)
         {
             Precondition(collinearVertices.Count >= 2, "Requires two or more vertices for miniseg generation (the splitter should have contributed two)");
@@ -43,14 +28,13 @@ namespace Helion.Bsp.States.Miniseg
 
             foreach (int vertexIndex in collinearVertices)
             {
-                double splitterTime = splitter.ToTime(m_vertexAllocator[vertexIndex]);
+                double splitterTime = splitter.ToTime(VertexAllocator[vertexIndex]);
                 States.Vertices.Add(new VertexSplitterTime(vertexIndex, splitterTime));
             }
 
             States.Vertices.Sort();
         }
 
-        /// <inheritdoc/>
         public void Execute()
         {
             Precondition(States.State != MinisegState.Finished, "Trying to do miniseg generation when already finished");
@@ -66,22 +50,22 @@ namespace Helion.Bsp.States.Miniseg
             States.State = (isDone ? MinisegState.Finished : MinisegState.Working);
         }
 
-        private void HandleMinisegGeneration(VertexSplitterTime first, VertexSplitterTime second)
+        protected void HandleMinisegGeneration(VertexSplitterTime first, VertexSplitterTime second)
         {
             States.VoidStatus = VoidStatus.NotInVoid;
 
             // If a segment exists for the vertices then we're walking along a
             // segment that was collinear with the splitter, so we don't need a
             // miniseg.
-            if (m_segmentAllocator.ContainsSegment(first.Index, second.Index))
+            if (SegmentAllocator.ContainsSegment(first.Index, second.Index))
                 return;
 
-            Vec2D secondVertex = m_vertexAllocator[second.Index];
-            if (m_junctionClassifier.CheckCrossingVoid(first.Index, secondVertex))
+            Vec2D secondVertex = VertexAllocator[second.Index];
+            if (JunctionClassifier.CheckCrossingVoid(first.Index, secondVertex))
                 States.VoidStatus = VoidStatus.InVoid;
             else
             {
-                BspSegment miniseg = m_segmentAllocator.GetOrCreate(first.Index, second.Index);
+                BspSegment miniseg = SegmentAllocator.GetOrCreate(first.Index, second.Index);
                 States.Minisegs.Add(miniseg);
             }
         }

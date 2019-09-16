@@ -5,6 +5,7 @@ namespace Helion.Bsp.States.Convex
     /// </summary>
     public enum ConvexState
     {
+        None,
         Loaded,
         Traversing,
         FinishedIsDegenerate,

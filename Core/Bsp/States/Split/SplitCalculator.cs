@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Util;
@@ -8,49 +9,46 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Split
 {
-    /// <summary>
-    /// A stepwise debuggable split calculator.
-    /// </summary>
-    public class SteppableSplitCalculator : ISplitCalculator
+    public class SplitCalculator
     {
-        /// <inheritdoc/>
-        public SplitterStates States { get; private set; } = new SplitterStates();
-
-        private readonly BspConfig m_config;
-
-        /// <summary>
-        /// Creates a debuggable split calculator.
-        /// </summary>
-        /// <param name="bspConfig">The config with splitting information.
-        /// </param>
-        public SteppableSplitCalculator(BspConfig bspConfig)
+        public SplitterStates States { get; protected set; } = new SplitterStates();
+        protected readonly BspConfig BspConfig;
+        protected readonly CollinearTracker CollinearTracker;
+        protected BitArray SeenCollinear = new BitArray(0);
+        
+        public SplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker)
         {
-            m_config = bspConfig;            
+            BspConfig = bspConfig;
+            CollinearTracker = collinearTracker;
         }
         
-        /// <inheritdoc/>
         public void Load(List<BspSegment> segments)
         {
             Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
 
-            States = new SplitterStates();
-            States.Segments = segments;
+            States = new SplitterStates { Segments = segments };
+            SeenCollinear = new BitArray(CollinearTracker.Count);
         }
 
-        /// <inheritdoc/>
         public void Execute()
         {
             Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");
             Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
 
             BspSegment splitter = States.Segments[States.CurrentSegmentIndex];
-            States.CurrentSegScore = CalculateScore(splitter);
 
-            if (States.CurrentSegScore < States.BestSegScore)
+            if (!SeenCollinear.Get(splitter.CollinearIndex))
             {
-                Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
-                States.BestSegScore = States.CurrentSegScore;
-                States.BestSplitter = splitter;
+                States.CurrentSegScore = CalculateScore(splitter);
+
+                if (States.CurrentSegScore < States.BestSegScore)
+                {
+                    Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
+                    States.BestSegScore = States.CurrentSegScore;
+                    States.BestSplitter = splitter;
+                }
+
+                SeenCollinear.Set(splitter.CollinearIndex, true);
             }
 
             States.CurrentSegmentIndex++;
@@ -59,29 +57,29 @@ namespace Helion.Bsp.States.Split
             States.State = (hasSegmentsLeft ? SplitterState.Working : SplitterState.Finished);
         }
 
-        private static double CalculateDistanceToNearestEndpoint(BspSegment segment, double tSegment)
+        protected static double CalculateDistanceToNearestEndpoint(BspSegment segment, double tSegment)
         {
             Vec2D endpointVertex = (tSegment < 0.5 ? segment.Start : segment.End);
             Vec2D intersectionPoint = segment.FromTime(tSegment);
             return endpointVertex.Distance(intersectionPoint);
         }
 
-        private static bool IsAxisAligned(BspSegment seg)
+        protected static bool IsAxisAligned(BspSegment seg)
         {
             return seg.Direction == SegmentDirection.Vertical || seg.Direction == SegmentDirection.Horizontal;
         }
 
-        private static bool CheckEndpointEpsilon(double distance, double epsilon)
+        protected static bool CheckEndpointEpsilon(double distance, double epsilon)
         {
             return MathHelper.AreEqual(0.0, distance, epsilon) || MathHelper.AreEqual(1.0, distance, epsilon);
         }
 
-        private static bool NoSplitsAndLinesAllOnOneSide(int splitCount, int leftLines, int rightLines)
+        protected static bool NoSplitsAndLinesAllOnOneSide(int splitCount, int leftLines, int rightLines)
         {
             return splitCount == 0 && (leftLines == 0 || rightLines == 0);
         }
 
-        private static bool IsEffectivelyRightOfSplitter(BspSegment splitter, BspSegment segment)
+        protected static bool IsEffectivelyRightOfSplitter(BspSegment splitter, BspSegment segment)
         {
             Rotation startSide = splitter.ToSide(segment.Start);
 
@@ -96,20 +94,20 @@ namespace Helion.Bsp.States.Split
             return startSide == Rotation.Right;
         }
 
-        private bool SplitOccursAtEndpoint(double distance)
+        protected bool SplitOccursAtEndpoint(double distance)
         {
-            return CheckEndpointEpsilon(distance, m_config.VertexWeldingEpsilon);
+            return CheckEndpointEpsilon(distance, BspConfig.VertexWeldingEpsilon);
         }
 
-        private bool IntersectionNearButNotAtEndpoint(double distance)
+        protected bool IntersectionNearButNotAtEndpoint(double distance)
         {
-            return CheckEndpointEpsilon(distance, m_config.PunishableEndpointDistance) &&
-                   !CheckEndpointEpsilon(distance, m_config.VertexWeldingEpsilon);
+            return CheckEndpointEpsilon(distance, BspConfig.PunishableEndpointDistance) &&
+                   !CheckEndpointEpsilon(distance, BspConfig.VertexWeldingEpsilon);
         }
 
-        private int CalculateScore(BspSegment splitter)
+        protected int CalculateScore(BspSegment splitter)
         {
-            SplitWeights splitWeights = m_config.SplitWeights;
+            SplitWeights splitWeights = BspConfig.SplitWeights;
             int score = 0;
 
             if (!IsAxisAligned(splitter))

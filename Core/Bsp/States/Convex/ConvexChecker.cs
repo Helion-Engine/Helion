@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
@@ -10,30 +9,25 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Convex
 {
-    /// <summary>
-    /// An instance that is responsible for convexity checking and remembering
-    /// traversal ordering.
-    /// </summary>
-    public class SteppableConvexChecker : IConvexChecker
+    public class ConvexChecker
     {
-        /// <inheritdoc/>
         public ConvexStates States { get; private set; } = new ConvexStates();
+        protected readonly VertexCountTracker VertexTracker = new VertexCountTracker();
+        protected readonly Dictionary<int, List<ConvexTraversalPoint>> VertexMap = new Dictionary<int, List<ConvexTraversalPoint>>();
 
-        private readonly VertexCountTracker vertexTracker = new VertexCountTracker();
-        private readonly Dictionary<int, List<ConvexTraversalPoint>> vertexMap = new Dictionary<int, List<ConvexTraversalPoint>>();
-        
-        /// <inheritdoc/>
         public void Load(List<BspSegment> segments)
         {
-            Reset();
-
+            States = new ConvexStates();
+            VertexMap.Clear();
+            VertexTracker.Reset();
+            
             foreach (BspSegment segment in segments)
             {
                 AddSegmentEndpoint(segment, segment.StartIndex, Endpoint.Start);
                 AddSegmentEndpoint(segment, segment.EndIndex, Endpoint.End);
 
                 // If we know we're not convex, we're done (save computation).
-                if (vertexTracker.HasTripleJunction)
+                if (VertexTracker.HasTripleJunction)
                 {
                     States.State = ConvexState.FinishedIsSplittable;
                     return;
@@ -41,21 +35,21 @@ namespace Helion.Bsp.States.Convex
             }
 
             // If there's a dangling segment somewhere (a vertex that
-            if (vertexTracker.HasTerminalLine)
+            if (VertexTracker.HasTerminalLine)
             {
                 States.State = ConvexState.FinishedIsSplittable;
                 return;
             }
-
-            SetLoadedStateInfo(segments);
+            
+            States.State = ConvexState.Loaded;
+            SetStateLoadedInfo(segments);
         }
 
-        /// <inheritdoc/>
         public void Execute()
         {
-            Precondition(ValidExecutionState(), $"Called convex checker execution in an invalid state");
+            Precondition(ValidExecutionState(), "Called convex checker execution in an invalid state");
             if (States.CurrentSegment == null)
-                throw new NullReferenceException("Should never have a null current segment (forgot to Load()?)");
+                throw new NullReferenceException("Forgot to load the segments in, current segment is null");
 
             States.State = ConvexState.Traversing;
 
@@ -86,7 +80,7 @@ namespace Helion.Bsp.States.Convex
             // Since we know there are exactly two lines at each endpoint, we
             // can select the next segment by whichever of the two is not the
             // current segment.
-            List<ConvexTraversalPoint> linesAtPivot = vertexMap[pivotIndex];
+            List<ConvexTraversalPoint> linesAtPivot = VertexMap[pivotIndex];
             Invariant(linesAtPivot.Count == 2, "Expected two lines for every endpoint");
 
             BspSegment nextSeg = linesAtPivot[0].Segment;
@@ -97,7 +91,7 @@ namespace Helion.Bsp.States.Convex
             Vec2D thirdVertex = nextSeg.Opposite(nextSegPivotEndpoint);
 
             Rotation rotation = Seg2D.Rotation(firstVertex, secondVertex, thirdVertex);
-            if (rotation != Rotation.On) 
+            if (rotation != Rotation.On)
             {
                 if (States.Rotation == Rotation.On)
                     States.Rotation = rotation;
@@ -133,48 +127,40 @@ namespace Helion.Bsp.States.Convex
             return States.State == ConvexState.Loaded || States.State == ConvexState.Traversing;
         }
 
-        private void SetLoadedStateInfo(List<BspSegment> segments)
+        private bool CompletedTraversalCycle(BspSegment segment)
         {
-            // We're just picking a random vertex, and taking some random segment that
-            // comes out of that vertex.
-            int randomVertexIndex = vertexMap.Keys.First();
-            ConvexTraversalPoint randomLinePoint = vertexMap[randomVertexIndex].First();
-            BspSegment startSegment = randomLinePoint.Segment;
-
-            States.State = ConvexState.Loaded;
-            States.CurrentEndpoint = randomLinePoint.Endpoint;
-            States.StartSegment = startSegment;
-            States.CurrentSegment = startSegment;
-            States.TotalSegs = segments.Count;
+            return States.SegsVisited > 2 && ReferenceEquals(segment, States.StartSegment);
         }
 
         private void AddSegmentEndpoint(BspSegment segment, int index, Endpoint endpoint)
         {
             ConvexTraversalPoint linePoint = new ConvexTraversalPoint(segment, endpoint);
 
-            if (vertexMap.TryGetValue(index, out List<ConvexTraversalPoint>? linePoints))
+            if (VertexMap.TryGetValue(index, out List<ConvexTraversalPoint>? linePoints))
             {
                 linePoints.Add(linePoint);
-                vertexTracker.Track(linePoints.Count);
+                VertexTracker.Track(linePoints.Count);
             }
             else
             {
                 List<ConvexTraversalPoint> newLinePoints = new List<ConvexTraversalPoint> { linePoint };
-                vertexMap.Add(index, newLinePoints);
-                vertexTracker.Track(newLinePoints.Count);
+                VertexMap.Add(index, newLinePoints);
+                VertexTracker.Track(newLinePoints.Count);
             }
         }
-
-        private bool CompletedTraversalCycle(BspSegment segment)
+        
+        private void SetStateLoadedInfo(List<BspSegment> segments)
         {
-            return States.SegsVisited > 2 && ReferenceEquals(segment, States.StartSegment);
-        }
+            // We're just picking a random vertex, and taking some random segment that
+            // comes out of that vertex.
+            int randomVertexIndex = VertexMap.Keys.First();
+            ConvexTraversalPoint randomLinePoint = VertexMap[randomVertexIndex].First();
+            BspSegment startSegment = randomLinePoint.Segment;
 
-        private void Reset()
-        {
-            States = new ConvexStates();
-            vertexMap.Clear();
-            vertexTracker.Reset();
+            States.CurrentEndpoint = randomLinePoint.Endpoint;
+            States.StartSegment = startSegment;
+            States.CurrentSegment = startSegment;
+            States.TotalSegs = segments.Count;
         }
     }
 }

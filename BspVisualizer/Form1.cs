@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
-using Helion.Bsp.Builder.Stepwise;
+using Helion.Bsp;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States;
 using Helion.Util.Geometry.Vectors;
@@ -31,15 +31,15 @@ namespace BspVisualizer
         private static Vec2I cornerOffset = new Vec2I(4, 4);
         private static StringCornerDrawer bottomLeftCornerDrawer = new StringCornerDrawer(Corner.BottomLeft, cornerOffset);
 
-        private StepwiseBspBuilder bspBuilderBase;
+        private BspBuilder bspBuilder;
         private List<BspSegment> shadowSegments;
         private Vector2 camera = new Vector2(0, 0);
         private float zoom = 0.25f;
 
-        public Form1(StepwiseBspBuilder builderBase)
+        public Form1(BspBuilder builder)
         {
-            bspBuilderBase = builderBase;
-            shadowSegments = GetShadowSegments(builderBase.SegmentAllocator);
+            bspBuilder = builder;
+            shadowSegments = GetShadowSegments(builder.SegmentAllocator);
 
             InitializeComponent();
         }
@@ -103,19 +103,19 @@ namespace BspVisualizer
                 break;
             case 'b':
             case 'B':
-                bspBuilderBase.Execute();
+                bspBuilder.Execute();
                 break;
             case 'n':
             case 'N':
-                bspBuilderBase.ExecuteMajorStep();
+                bspBuilder.ExecuteMajorStep();
                 break;
             case 'm':
             case 'M':
-                bspBuilderBase.ExecuteFullCycleStep();
+                bspBuilder.ExecuteFullCycleStep();
                 break;
             case 'c':
             case 'C':
-                WorkItem? workItem = bspBuilderBase.CurrentWorkItem;
+                WorkItem? workItem = bspBuilder.CurrentWorkItem;
                 if (workItem != null)
                     Clipboard.SetText(workItem.BranchPath);
                 break;

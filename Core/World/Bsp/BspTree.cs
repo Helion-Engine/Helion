@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Bsp.Builder;
-using Helion.Bsp.Builder.Stepwise;
+using Helion.Bsp;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
@@ -124,8 +122,8 @@ namespace Helion.World.Bsp
         /// map is corrupt beyond repair.</returns>
         public static BspTree? Create(IMap map, GeometryBuilder builder)
         {
-            IBspBuilder builderBase = new StepwiseBspBuilder(map);
-            BspNode? root = builderBase.Build();
+            BspBuilder bspBuilder = new BspBuilder(map);
+            BspNode? root = bspBuilder.Build();
             if (root == null)
             {
                 Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
@@ -142,7 +140,6 @@ namespace Helion.World.Bsp
 
             // This should never be wrong because the edge line ID's should be
             // shared with the instantiated lines.
-            Invariant(edge.Line.Id < builder.Lines.Count, "Expected a continuous and well formed line ID range");
             Line line = builder.Lines[edge.Line.Id];
 
             Precondition(!(line.OneSided && !edge.IsFront), "Trying to get a back side for a one sided line");
@@ -207,16 +204,28 @@ namespace Helion.World.Bsp
         {
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
-                ISector? edgeSector = edge.Sector;
-                if (edgeSector == null)
+                if (edge.Line == null)
                     continue;
+                
+                // We have built the BSP tree with this kind of line. If it's
+                // not, someone has some something unbelievably wrong.
+                ILine line = (ILine)edge.Line;
+                int sectorId;
+
+                if (line.OneSided) 
+                    sectorId = line.GetFront().GetSector().Id;
+                else
+                {
+                    ISide side = edge.IsFront ? line.GetFront() : line.GetBack() !;
+                    sectorId = side.GetSector().Id;
+                }
                 
                 // If this ever is wrong, something has gone terribly wrong
                 // with building the geometry.
-                return builder.Sectors[edgeSector.Id];
+                return builder.Sectors[sectorId];
             }
 
-            throw new NullReferenceException("BSP building malformed, subsector made up of only minisegs (or is a not a leaf)");
+            throw new HelionException("BSP building malformed, subsector made up of only minisegs (or is a not a leaf)");
         }
 
         private BspCreateResult CreateNode(BspNode node, GeometryBuilder builder)

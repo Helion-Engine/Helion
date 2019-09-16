@@ -6,6 +6,7 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Align;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
 using Helion.World;
@@ -20,6 +21,7 @@ namespace Helion.Render.Shared.Drawers
         private const int LeftOffset = 1;
         private const int TopOffset = 1;
         private const int MessageSpacing = 1;
+        private const int FpsMessageSpacing = 2;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
@@ -34,6 +36,7 @@ namespace Helion.Render.Shared.Drawers
             DrawPickupFlash(world, helper);
             DrawDamage(world, helper);
             DrawRecentConsoleMessages(world, console, helper);
+            DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
         }
         
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
@@ -105,6 +108,25 @@ namespace Helion.Render.Shared.Drawers
                             pair.alpha, out Dimension drawArea);
                 offsetY += drawArea.Height + MessageSpacing;
             });
+        }
+
+        private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker, DrawHelper helper)
+        {
+            if (!config.Engine.Render.ShowFPS)
+                return;
+
+            int y = 0;
+            
+            string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";
+            helper.Text(Color.White, avgFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension avgArea);
+            y += avgArea.Height + FpsMessageSpacing;
+
+            string maxFps = $"Max FPS: {(int)Math.Round(fpsTracker.MaxFramesPerSecond)}";
+            helper.Text(Color.White, maxFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension maxArea);
+            y += maxArea.Height + FpsMessageSpacing;
+
+            string minFps = $"Min FPS: {(int)Math.Round(fpsTracker.MinFramesPerSecond)}";
+            helper.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out _);
         }
 
         private static float CalculateFade(long timeSinceMessage)

@@ -35,6 +35,7 @@ namespace Helion.Bsp.States.Convex
         public void AddTraversal(BspSegment segment, Endpoint endpoint)
         {
             Precondition(IsProperlyConnectedEndpoint(segment, endpoint), "Provided a disconnected segment");
+            
             Traversal.Add(new ConvexTraversalPoint(segment, endpoint));
         }
 

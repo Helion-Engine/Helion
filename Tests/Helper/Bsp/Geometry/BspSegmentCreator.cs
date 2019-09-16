@@ -1,5 +1,4 @@
 using Helion.Bsp.Geometry;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Test.Helper.Bsp.Geometry

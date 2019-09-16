@@ -2,7 +2,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Convex
 {
-/// <summary>
+    /// <summary>
     /// Keeps track of how many times a segment enters and exits a vertex. This
     /// tells us very quickly whether it's definitely not convex, or if it is
     /// worth testing further for convexity.

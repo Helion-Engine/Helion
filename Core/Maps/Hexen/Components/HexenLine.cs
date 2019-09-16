@@ -3,6 +3,7 @@ using Helion.Maps.Doom.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Hexen.Components
 {
@@ -16,6 +17,10 @@ namespace Helion.Maps.Hexen.Components
         public readonly DoomSide? Back;
         public readonly ZDoomLineSpecialType LineType;
         public readonly SpecialArgs Args;
+        
+        public Vec2D StartPosition => Start.Position;
+        public Vec2D EndPosition => End.Position;
+        public bool OneSided => Back == null;
     
         internal HexenLine(int id, DoomVertex start, DoomVertex end, DoomSide front, DoomSide? back, 
             MapLineFlags flags, ZDoomLineSpecialType lineType, SpecialArgs args)

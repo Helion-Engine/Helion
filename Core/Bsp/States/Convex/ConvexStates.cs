@@ -9,10 +9,10 @@ namespace Helion.Bsp.States.Convex
     public class ConvexStates
     {
         /// <summary>
-        /// The current state.
+        /// The current state of convex handling.
         /// </summary>
-        public ConvexState State = ConvexState.Loaded;
-        
+        public ConvexState State = ConvexState.None;
+
         /// <summary>
         /// A traversal of the segments we've done thus far.
         /// </summary>

@@ -1,3 +1,4 @@
+using Helion.Bsp.Geometry;
 using Helion.Maps.Shared;
 
 namespace Helion.Maps.Components
@@ -5,15 +6,8 @@ namespace Helion.Maps.Components
     /// <summary>
     /// A line in a map.
     /// </summary>
-    public interface ILine
+    public interface ILine : IBspUsableLine
     {
-        /// <summary>
-        /// The unique ID of the line. This is *not* guaranteed to map onto the
-        /// index in a map lump, as it will be wrong if any zero-length lines
-        /// are encountered when building.
-        /// </summary>
-        int Id { get; }
-        
         /// <summary>
         /// The flags for the line.
         /// </summary>

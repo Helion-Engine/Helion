@@ -10,19 +10,14 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Partition
 {
-    /// <summary>
-    /// A stepwise debuggable line partitioner.
-    /// </summary>
-    public class StepwisePartitioner : IPartitioner
+    public class Partitioner
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        /// <inheritdoc/>
         public PartitionStates States { get; private set; } = new PartitionStates();
-        
-        private readonly BspConfig m_config;
-        private readonly SegmentAllocator m_segmentAllocator;
-        private readonly JunctionClassifier m_junctionClassifier;
+        protected readonly BspConfig BspConfig;
+        protected readonly SegmentAllocator SegmentAllocator;
+        protected readonly JunctionClassifier JunctionClassifier;
 
         /// <summary>
         /// Creates a partitioner tha allows steppable debugging.
@@ -32,14 +27,13 @@ namespace Helion.Bsp.States.Partition
         /// BSP segments when splitting.</param>
         /// <param name="junctionClassifier">The junction classifier to update
         /// with new junctions.</param>
-        public StepwisePartitioner(BspConfig config, SegmentAllocator segmentAllocator, JunctionClassifier junctionClassifier)
+        public Partitioner(BspConfig config, SegmentAllocator segmentAllocator, JunctionClassifier junctionClassifier)
         {
-            m_config = config;
-            m_segmentAllocator = segmentAllocator;
-            m_junctionClassifier = junctionClassifier;
+            BspConfig = config;
+            SegmentAllocator = segmentAllocator;
+            JunctionClassifier = junctionClassifier;
         }
         
-        /// <inheritdoc/>
         public void Load(BspSegment? splitter, List<BspSegment> segments)
         {
             if (splitter == null)
@@ -51,12 +45,9 @@ namespace Helion.Bsp.States.Partition
             // and remember having all the segments to be split for the best
             // segment. We throw away all that work, and then do an O(n) check
             // again on top of it.
-            States = new PartitionStates();
-            States.Splitter = splitter;
-            States.SegsToSplit = segments;
+            States = new PartitionStates { Splitter = splitter, SegsToSplit = segments };
         }
 
-        /// <inheritdoc/>
         public void Execute()
         {
             Precondition(States.State != PartitionState.Finished, "Trying to partition when it's already completed");
@@ -99,14 +90,14 @@ namespace Helion.Bsp.States.Partition
             else
                 HandleSegmentOnSide(splitter, segToSplit);
         }
-        
-        private bool BetweenEndpoints(double splitterTime)
+
+        protected bool BetweenEndpoints(double splitterTime)
         {
-            double epsilon = m_config.VertexWeldingEpsilon;
+            double epsilon = BspConfig.VertexWeldingEpsilon;
             return epsilon < splitterTime && splitterTime < 1.0 - epsilon;
         }
 
-        private bool IntersectionTimeAtEndpoint(BspSegment segmentToSplit, double segmentTime, out Endpoint endpoint)
+        protected bool IntersectionTimeAtEndpoint(BspSegment segmentToSplit, double segmentTime, out Endpoint endpoint)
         {
             // Note that we cannot attempt to look up the endpoint, because it
             // is possible that it may detect an unrelated vertex from a split
@@ -135,13 +126,13 @@ namespace Helion.Bsp.States.Partition
             // Therefore our only solution is to do it by checking distances.
             Vec2D vertex = segmentToSplit.FromTime(segmentTime);
 
-            if (vertex.Distance(segmentToSplit.Start) <= m_config.VertexWeldingEpsilon)
+            if (vertex.Distance(segmentToSplit.Start) <= BspConfig.VertexWeldingEpsilon)
             {
                 endpoint = Endpoint.Start;
                 return true;
             }
 
-            if (vertex.Distance(segmentToSplit.End) <= m_config.VertexWeldingEpsilon)
+            if (vertex.Distance(segmentToSplit.End) <= BspConfig.VertexWeldingEpsilon)
             {
                 endpoint = Endpoint.End;
                 return true;
@@ -151,7 +142,7 @@ namespace Helion.Bsp.States.Partition
             return false;
         }
 
-        private void HandleSplitter(BspSegment splitter)
+        protected void HandleSplitter(BspSegment splitter)
         {
             // The reason we add these is because we (frequently) have cases
             // where there is only one intersection from the splitter to some
@@ -171,7 +162,7 @@ namespace Helion.Bsp.States.Partition
                 States.LeftSegments.Add(splitter);
         }
 
-        private void HandleCollinearSegment(BspSegment splitter, BspSegment segment)
+        protected void HandleCollinearSegment(BspSegment splitter, BspSegment segment)
         {
             Precondition(!segment.IsMiniseg, "Should never be collinear to a miniseg");
 
@@ -195,7 +186,7 @@ namespace Helion.Bsp.States.Partition
             }
         }
 
-        private void HandleParallelSegment(BspSegment splitter, BspSegment segment)
+        protected void HandleParallelSegment(BspSegment splitter, BspSegment segment)
         {
             if (splitter.Collinear(segment))
                 HandleCollinearSegment(splitter, segment);
@@ -205,7 +196,7 @@ namespace Helion.Bsp.States.Partition
                 States.LeftSegments.Add(segment);
         }
 
-        private void HandleEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, Endpoint endpoint)
+        protected void HandleEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, Endpoint endpoint)
         {
             // We know that the endpoint argument is the vertex that was 
             // intersected by the splitter. This means the other endpoint is
@@ -225,13 +216,13 @@ namespace Helion.Bsp.States.Partition
             States.CollinearVertices.Add(index);
         }
 
-        private void HandleNonEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, double segmentTime)
+        protected void HandleNonEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, double segmentTime)
         {
             // Note for the future: If we ever change to using pointers or some
             // kind of reference that invalidates on a list resizing (like a
             // std::vector in C++), this will lead to undefined behavior since
             // it will add new segments and cause them to become dangling.
-            (BspSegment segA, BspSegment segB) = m_segmentAllocator.Split(segmentToSplit, segmentTime);
+            (BspSegment segA, BspSegment segB) = SegmentAllocator.Split(segmentToSplit, segmentTime);
 
             // Since we split the segment such that the line is:
             //
@@ -284,10 +275,10 @@ namespace Helion.Bsp.States.Partition
             States.CollinearVertices.Add(middleVertexIndex);
 
             if (segmentToSplit.OneSided)
-                m_junctionClassifier.AddSplitJunction(segA, segB);
+                JunctionClassifier.AddSplitJunction(segA, segB);
         }
 
-        private void HandleSplit(BspSegment splitter, BspSegment segmentToSplit, double segmentTime, double splitterTime)
+        protected void HandleSplit(BspSegment splitter, BspSegment segmentToSplit, double segmentTime, double splitterTime)
         {
             Precondition(!BetweenEndpoints(splitterTime), "Should not have a segment crossing the splitter");
 
@@ -297,7 +288,7 @@ namespace Helion.Bsp.States.Partition
                 HandleNonEndpointIntersectionSplit(splitter, segmentToSplit, segmentTime);
         }
 
-        private void HandleSegmentOnSide(BspSegment splitter, BspSegment segmentToSplit)
+        protected void HandleSegmentOnSide(BspSegment splitter, BspSegment segmentToSplit)
         {
             if (splitter.OnRight(segmentToSplit))
                 States.RightSegments.Add(segmentToSplit);

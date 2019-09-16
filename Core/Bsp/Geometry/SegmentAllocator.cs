@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Helion.Maps.Components;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -66,7 +64,7 @@ namespace Helion.Bsp.Geometry
         /// <param name="line">The line (optional).</param>
         /// <returns>Either a newly allocated BSP segment, or the one that
         /// already exists with the information provided.</returns>
-        public BspSegment GetOrCreate(int startIndex, int endIndex, ILine? line = null)
+        public BspSegment GetOrCreate(int startIndex, int endIndex, IBspUsableLine? line = null)
         {
             Precondition(startIndex != endIndex, "Cannot create a segment that is a point");
             Precondition(startIndex >= 0 && startIndex < m_vertexAllocator.Count, "Start vertex out of range.");
@@ -138,7 +136,7 @@ namespace Helion.Bsp.Geometry
         /// <returns>A list of all the existing segments.</returns>
         public List<BspSegment> ToList() => new List<BspSegment>(m_segments);
         
-        private BspSegment CreateNewSegment(int startIndex, int endIndex, int collinearIndex, ILine? line = null)
+        private BspSegment CreateNewSegment(int startIndex, int endIndex, int collinearIndex, IBspUsableLine? line = null)
         {
             Vec2D start = m_vertexAllocator[startIndex];
             Vec2D end = m_vertexAllocator[endIndex];
