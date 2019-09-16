@@ -21,6 +21,7 @@ namespace Helion.Render.Shared.Drawers
         private const int LeftOffset = 1;
         private const int TopOffset = 1;
         private const int MessageSpacing = 1;
+        private const int FpsMessageSpacing = 2;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
@@ -114,8 +115,18 @@ namespace Helion.Render.Shared.Drawers
             if (!config.Engine.Render.ShowFPS)
                 return;
 
-            string text = $"FPS: {(int)Math.Round(fpsTracker.FramesPerSecond)}";
-            helper.Text(Color.White, text, "Console", 16, viewport.Width - 1, 0, Alignment.TopRight, out _);
+            int y = 0;
+            
+            string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";
+            helper.Text(Color.White, avgFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension avgArea);
+            y += avgArea.Height + FpsMessageSpacing;
+
+            string maxFps = $"Max FPS: {(int)Math.Round(fpsTracker.MaxFramesPerSecond)}";
+            helper.Text(Color.White, maxFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension maxArea);
+            y += maxArea.Height + FpsMessageSpacing;
+
+            string minFps = $"Min FPS: {(int)Math.Round(fpsTracker.MinFramesPerSecond)}";
+            helper.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out _);
         }
 
         private static float CalculateFade(long timeSinceMessage)

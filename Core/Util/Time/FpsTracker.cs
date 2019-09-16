@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace Helion.Util.Time
 {
@@ -6,9 +7,13 @@ namespace Helion.Util.Time
     {
         private const long RefreshRateMs = 1000;
 
-        public double FramesPerSecond { get; private set; }
+        public double AverageFramesPerSecond { get; private set; }
+        public double MaxFramesPerSecond { get; private set; }
+        public double MinFramesPerSecond { get; private set; }
         private readonly Stopwatch m_stopwatch = new Stopwatch();
         private double tickSum;
+        private double minTicksSeen = long.MaxValue;
+        private double maxTicksSeen;
         private int numFrames;
 
         public FpsTracker()
@@ -19,6 +24,8 @@ namespace Helion.Util.Time
         public void FinishFrame()
         {
             tickSum += m_stopwatch.ElapsedTicks;
+            maxTicksSeen = Math.Max(maxTicksSeen, m_stopwatch.ElapsedTicks);
+            minTicksSeen = Math.Min(minTicksSeen, m_stopwatch.ElapsedTicks);
             numFrames++;
 
             UpdateFpsIfNeeded();
@@ -30,6 +37,8 @@ namespace Helion.Util.Time
         {
             tickSum = 0;
             numFrames = 0;
+            minTicksSeen = long.MaxValue;
+            maxTicksSeen = 0;
         }
 
         private void UpdateFpsIfNeeded()
@@ -39,11 +48,20 @@ namespace Helion.Util.Time
                 return;
 
             if (numFrames == 0)
-                FramesPerSecond = 0;
+            {
+                AverageFramesPerSecond = 0;
+                MaxFramesPerSecond = 0;
+                MinFramesPerSecond = 0;
+            }
             else
             {
                 double averageTicks = tickSum / numFrames;
-                FramesPerSecond = Stopwatch.Frequency / averageTicks;
+                AverageFramesPerSecond = Stopwatch.Frequency / averageTicks;
+
+                // Remember: Our maximum FPS is the smallest amount of ticks
+                // that we've seen; same logic for the minimum FPS.
+                MaxFramesPerSecond = Stopwatch.Frequency / minTicksSeen;
+                MinFramesPerSecond = Stopwatch.Frequency / maxTicksSeen;
             }
 
             ResetTrackingVariables();
