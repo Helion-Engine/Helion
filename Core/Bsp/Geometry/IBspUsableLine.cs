@@ -1,3 +1,4 @@
+using Helion.Maps.Components;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Bsp.Geometry
@@ -7,6 +8,15 @@ namespace Helion.Bsp.Geometry
     /// </summary>
     public interface IBspUsableLine
     {
+        /// <summary>
+        /// A unique identifier for this line.
+        /// </summary>
+        /// <remarks>
+        /// This can also mean (in the case of <see cref="ILine"/> extending
+        /// from this) the ID of the line in the LINEDEFS entry.
+        /// </remarks>
+        int Id { get; }
+        
         /// <summary>
         /// The starting vertex of the line.
         /// </summary>

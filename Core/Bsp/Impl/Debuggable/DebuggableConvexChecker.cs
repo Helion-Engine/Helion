@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
@@ -13,6 +14,8 @@ namespace Helion.Bsp.Impl.Debuggable
         public override void Execute()
         {
             Assert.Precondition(ValidExecutionState(), "Called convex checker execution in an invalid state");
+            if (States.CurrentSegment == null)
+                throw new NullReferenceException("Forgot to load the segments in, current segment is null");
             
             States.State = ConvexState.Traversing;
 

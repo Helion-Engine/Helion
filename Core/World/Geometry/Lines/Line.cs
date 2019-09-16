@@ -13,7 +13,7 @@ namespace Helion.World.Geometry.Lines
 {
     public class Line : IBspUsableLine
     {
-        public readonly int Id;
+        public int Id { get; }
         public readonly int MapId;
         public readonly Seg2D Segment;
         public readonly Side Front;
