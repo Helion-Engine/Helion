@@ -6,6 +6,7 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Align;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
 using Helion.World;
@@ -34,6 +35,7 @@ namespace Helion.Render.Shared.Drawers
             DrawPickupFlash(world, helper);
             DrawDamage(world, helper);
             DrawRecentConsoleMessages(world, console, helper);
+            DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
         }
         
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
@@ -105,6 +107,15 @@ namespace Helion.Render.Shared.Drawers
                             pair.alpha, out Dimension drawArea);
                 offsetY += drawArea.Height + MessageSpacing;
             });
+        }
+
+        private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker, DrawHelper helper)
+        {
+            if (!config.Engine.Render.ShowFPS)
+                return;
+
+            string text = $"FPS: {(int)Math.Round(fpsTracker.FramesPerSecond)}";
+            helper.Text(Color.White, text, "Console", 16, viewport.Width - 1, 0, Alignment.TopRight, out _);
         }
 
         private static float CalculateFade(long timeSinceMessage)

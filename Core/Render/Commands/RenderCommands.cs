@@ -5,8 +5,10 @@ using Helion.Render.Commands.Align;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
+using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Entities;
 
@@ -14,14 +16,19 @@ namespace Helion.Render.Commands
 {
     public class RenderCommands
     {
+        public readonly Config Config;
         public readonly Dimension WindowDimension;
         public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
+        public readonly FpsTracker FpsTracker;
         private readonly List<IRenderCommand> m_commands = new List<IRenderCommand>();
 
-        public RenderCommands(Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider)
+        public RenderCommands(Config config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
+            FpsTracker fpsTracker)
         {
+            Config = config;
             WindowDimension = windowDimensions;
             ImageDrawInfoProvider = imageDrawInfoProvider;
+            FpsTracker = fpsTracker;
         }
         
         public void Clear()

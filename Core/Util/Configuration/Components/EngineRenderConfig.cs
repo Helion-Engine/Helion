@@ -11,5 +11,6 @@ namespace Helion.Util.Configuration.Components
         public readonly ConfigValue<double> FieldOfView = new ConfigValue<double>(90.0);
         public readonly EngineRenderMultisampleConfig Multisample = new EngineRenderMultisampleConfig();
         public readonly ConfigValue<FilterType> TextureFilter = new ConfigValue<FilterType>(FilterType.Trilinear);
+        public readonly ConfigValue<bool> ShowFPS = new ConfigValue<bool>(false);
     }
 }

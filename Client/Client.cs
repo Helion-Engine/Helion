@@ -17,6 +17,7 @@ using Helion.Resources.Archives.Locator;
 using Helion.Util.Assertion;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using Helion.Util.Time;
 
 namespace Helion.Client
 {
@@ -32,6 +33,7 @@ namespace Helion.Client
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
         private readonly ALAudioSystem m_audioSystem;
+        private readonly FpsTracker m_fpsTracker = new FpsTracker();
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
@@ -128,7 +130,7 @@ namespace Helion.Client
         {
             Dimension windowDimension = m_window.WindowDimension;
             IRenderer renderer = m_window.Renderer;
-            RenderCommands renderCommands = new RenderCommands(windowDimension, renderer.ImageDrawInfoProvider);
+            RenderCommands renderCommands = new RenderCommands(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
 
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();
@@ -146,6 +148,8 @@ namespace Helion.Client
             RunLogic();
             Render();
             m_window.SwapBuffers();
+
+            m_fpsTracker.FinishFrame();
         }
 
         private void Start()
