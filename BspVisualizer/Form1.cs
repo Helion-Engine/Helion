@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
-using Helion.BspOld.Builder.Stepwise;
-using Helion.BspOld.Geometry;
-using Helion.BspOld.States;
+using Helion.Bsp.Geometry;
+using Helion.Bsp.Impl.Debuggable;
+using Helion.Bsp.States;
 using Helion.Util.Geometry.Vectors;
 
 namespace BspVisualizer
@@ -31,15 +31,15 @@ namespace BspVisualizer
         private static Vec2I cornerOffset = new Vec2I(4, 4);
         private static StringCornerDrawer bottomLeftCornerDrawer = new StringCornerDrawer(Corner.BottomLeft, cornerOffset);
 
-        private StepwiseBspBuilder bspBuilderBase;
+        private DebuggableBspBuilder bspBuilder;
         private List<BspSegment> shadowSegments;
         private Vector2 camera = new Vector2(0, 0);
         private float zoom = 0.25f;
 
-        public Form1(StepwiseBspBuilder builderBase)
+        public Form1(DebuggableBspBuilder builder)
         {
-            bspBuilderBase = builderBase;
-            shadowSegments = GetShadowSegments(builderBase.SegmentAllocator);
+            bspBuilder = builder;
+            shadowSegments = GetShadowSegments(builder.GetSegmentAllocator());
 
             InitializeComponent();
         }
@@ -103,19 +103,19 @@ namespace BspVisualizer
                 break;
             case 'b':
             case 'B':
-                bspBuilderBase.Execute();
+                bspBuilder.Execute();
                 break;
             case 'n':
             case 'N':
-                bspBuilderBase.ExecuteMajorStep();
+                bspBuilder.ExecuteMajorStep();
                 break;
             case 'm':
             case 'M':
-                bspBuilderBase.ExecuteFullCycleStep();
+                bspBuilder.ExecuteFullCycleStep();
                 break;
             case 'c':
             case 'C':
-                WorkItem? workItem = bspBuilderBase.CurrentWorkItem;
+                WorkItem? workItem = bspBuilder.CurrentWorkItem;
                 if (workItem != null)
                     Clipboard.SetText(workItem.BranchPath);
                 break;

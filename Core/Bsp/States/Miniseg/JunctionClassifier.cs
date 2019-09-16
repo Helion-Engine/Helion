@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -19,6 +18,18 @@ namespace Helion.Bsp.States.Miniseg
         private readonly Dictionary<int, Junction> m_vertexToJunction = new Dictionary<int, Junction>();
 
         /// <summary>
+        /// Adds a series of junctions to the classifier. This will run some
+        /// bulky computations, so it's best to invoke this once you have all
+        /// of your segments.
+        /// </summary>
+        /// <param name="segments">The segments to add.</param>
+        public void Add(List<BspSegment> segments)
+        {
+            segments.ForEach(Add);
+            NotifyDoneAdding();
+        }
+        
+        /// <summary>
         /// To be called every time a one sided segment is discovered when 
         /// reading the valid map entry collection. After that, then the
         /// <see cref="NotifyDoneAdding"/> should be invoked.
@@ -28,7 +39,7 @@ namespace Helion.Bsp.States.Miniseg
         /// later for both code cleanliness and performance reasons.
         /// </remarks>
         /// <param name="segment">The segment to track.</param>
-        public void Add(BspSegment segment)
+        private void Add(BspSegment segment)
         {
             if (!segment.OneSided)
                 return;
@@ -54,8 +65,8 @@ namespace Helion.Bsp.States.Miniseg
 
         /// <summary>
         /// Tells the junction classifier that we will not be adding anymore
-        /// junctions from <see cref="Add"/> anymore. It will
-        /// then compile all the junctions.
+        /// junctions from `Add()` anymore. It will then compile all the
+        /// junctions.
         /// </summary>
         /// <remarks>
         /// The only way to add new junctions after calling this should be
@@ -65,10 +76,8 @@ namespace Helion.Bsp.States.Miniseg
         /// doing one day however since it is a code smell due to requiring
         /// users to know about this function.
         /// </remarks>
-        public void NotifyDoneAdding()
+        private void NotifyDoneAdding()
         {
-            // TODO: Would like to not have this, it requires the user to know it
-            // which is bad design unless we have to for optimization reasons.
             foreach (var vertexJunctionPair in m_vertexToJunction)
             {
                 int index = vertexJunctionPair.Key;

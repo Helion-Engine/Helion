@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using Helion.BspOld.Builder.Stepwise;
+using Helion.Bsp.Impl.Debuggable;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
@@ -62,7 +62,7 @@ namespace BspVisualizer
             IMap? map = archiveCollection.FindMap(args[1]);
             if (map != null)
             {
-                StepwiseBspBuilder bspBuilderBase = new StepwiseBspBuilder(map);
+                DebuggableBspBuilder bspBuilderBase = new DebuggableBspBuilder(map);
 
                 if (args.Length >= 3)
                     bspBuilderBase.ExecuteUntilBranch(args[2]);

@@ -1,4 +1,4 @@
-using Helion.Bsp.States.Split;
+﻿using Helion.Bsp.States.Split;
 
 namespace Helion.Bsp
 {
@@ -24,6 +24,20 @@ namespace Helion.Bsp
         /// The weights for each split criteria.
         /// </summary>
         public readonly SplitWeights SplitWeights = new SplitWeights();
+
+        /// <summary>
+        /// When doing a split, it will branch always take a branch to the
+        /// right when doing it recursively.
+        /// </summary>
+        /// <remarks>
+        /// This can be used to control the direction of descent, so if you
+        /// want to go down a right path in some debugging circumstance, you
+        /// can achieve that by having this set to true. This way you do not
+        /// need to evaluate the entire left side of the tree and descend to
+        /// the place you want to go immediately. If this is false, it will
+        /// take branches to the left first.
+        /// </remarks>
+        public bool BranchRight = true;
 
         /// <summary>
         /// Creates a BSP config with the default values.

@@ -1,10 +1,11 @@
 ﻿using System.Drawing;
-using Helion.BspOld.Geometry;
-using Helion.BspOld.States;
-using Helion.BspOld.States.Convex;
-using Helion.BspOld.States.Miniseg;
-using Helion.BspOld.States.Partition;
-using Helion.BspOld.States.Split;
+using Helion.Bsp.Geometry;
+using Helion.Bsp.Impl.Debuggable;
+using Helion.Bsp.States;
+using Helion.Bsp.States.Convex;
+using Helion.Bsp.States.Miniseg;
+using Helion.Bsp.States.Partition;
+using Helion.Bsp.States.Split;
 using Helion.Util.Geometry.Vectors;
 
 namespace BspVisualizer
@@ -43,7 +44,7 @@ namespace BspVisualizer
         {
             bottomLeftCornerDrawer.Add(
                 Color.White, "State: ", 
-                Color.Cyan, bspBuilderBase.State.ToString()
+                Color.Cyan, bspBuilder.State.ToString()
             );
         }
 
@@ -59,7 +60,7 @@ namespace BspVisualizer
 
         private void PaintCurrentWorkItem(Graphics g)
         {
-            WorkItem? workItem = bspBuilderBase.CurrentWorkItem;
+            WorkItem? workItem = bspBuilder.CurrentWorkItem;
             if (workItem == null)
                 return;
 
@@ -71,7 +72,7 @@ namespace BspVisualizer
 
         private void PaintVertices(Graphics g)
         {
-            foreach (Vec2D vertex in bspBuilderBase.VertexAllocator)
+            foreach (Vec2D vertex in bspBuilder.GetVertexAllocator())
                 DrawVertex(g, cyanBrush, vertex);
         }
 
@@ -82,32 +83,26 @@ namespace BspVisualizer
 
         private void PaintCurrentState(Graphics g, Rectangle windowBounds)
         {
-            switch (bspBuilderBase.State)
+            switch (bspBuilder.State)
             {
-            case BuilderState.CheckingConvexity:
+            case DebuggableBspState.CheckingConvexity:
                 DrawCheckingConvexity(g);
                 break;
-            case BuilderState.FindingSplitter:
+            case DebuggableBspState.FindingSplitter:
                 DrawFindingSplitter(g);
                 break;
-            case BuilderState.PartitioningSegments:
+            case DebuggableBspState.PartitioningSegments:
                 DrawPartitioningSegments(g);
                 break;
-            case BuilderState.GeneratingMinisegs:
+            case DebuggableBspState.GeneratingMinisegs:
                 DrawGeneratingMinisegs(g);
-                break;
-            case BuilderState.NotStarted:
-            case BuilderState.CreatingLeafNode:
-            case BuilderState.FinishingSplit:
-            case BuilderState.Complete:
-            default:
                 break;
             }
         }
 
         private void DrawCheckingConvexity(Graphics g)
         {
-            ConvexStates states = bspBuilderBase.ConvexChecker.States;
+            ConvexStates states = bspBuilder.ConvexChecker.States;
 
             if (states.StartSegment != null)
                 DrawSegment(g, redPen, states.StartSegment);
@@ -121,7 +116,7 @@ namespace BspVisualizer
 
         private void DrawFindingSplitter(Graphics g)
         {
-            SplitterStates states = bspBuilderBase.SplitCalculator.States;
+            SplitterStates states = bspBuilder.SplitCalculator.States;
 
             bottomLeftCornerDrawer.Add(Color.White, "Substate: ", Color.Cyan, states.State.ToString());
 
@@ -158,7 +153,7 @@ namespace BspVisualizer
 
         private void DrawPartitioningSegments(Graphics g)
         {
-            PartitionStates states = bspBuilderBase.Partitioner.States;
+            PartitionStates states = bspBuilder.Partitioner.States;
 
             bottomLeftCornerDrawer.Add(Color.White, "Substate: ", Color.Cyan, states.State.ToString());
 
@@ -181,7 +176,7 @@ namespace BspVisualizer
 
         private void DrawGeneratingMinisegs(Graphics g)
         {
-            MinisegStates states = bspBuilderBase.MinisegCreator.States;
+            MinisegStates states = bspBuilder.MinisegCreator.States;
 
             bottomLeftCornerDrawer.Add(
                 Color.White, "Substate: ", 
@@ -198,10 +193,10 @@ namespace BspVisualizer
             if (states.CurrentVertexListIndex + 1 < states.Vertices.Count)
             {
                 VertexSplitterTime firstVertexTime = states.Vertices[states.CurrentVertexListIndex];
-                Vec2D firstVertex = bspBuilderBase.VertexAllocator[firstVertexTime.Index];
+                Vec2D firstVertex = bspBuilder.GetVertexAllocator()[firstVertexTime.Index];
 
                 VertexSplitterTime secondVertexTime = states.Vertices[states.CurrentVertexListIndex + 1];
-                Vec2D secondVertex = bspBuilderBase.VertexAllocator[secondVertexTime.Index];
+                Vec2D secondVertex = bspBuilder.GetVertexAllocator()[secondVertexTime.Index];
 
                 // The corner drawers are a stack that builds upwards from the
                 // bottom, so the order to drawing them is reversed.

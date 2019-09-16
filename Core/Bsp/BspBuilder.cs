@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
+using Helion.Bsp.States;
 using Helion.Bsp.States.Miniseg;
 using Helion.Maps;
 
@@ -13,6 +14,8 @@ namespace Helion.Bsp
         protected readonly CollinearTracker CollinearTracker;
         protected readonly SegmentAllocator SegmentAllocator;
         protected readonly JunctionClassifier JunctionClassifier;
+        protected readonly BspNode Root = new BspNode();
+        protected readonly Stack<WorkItem> WorkItems = new Stack<WorkItem>();
 
         protected BspBuilder(BspConfig config, IMap map)
         {
@@ -23,7 +26,9 @@ namespace Helion.Bsp
             JunctionClassifier = new JunctionClassifier();
 
             List<BspSegment> segments = ReadMapLines(map);
-            // TODO: JunctionClassifier.Add(segments);
+            JunctionClassifier.Add(segments);
+            
+            WorkItems.Push(new WorkItem(Root, segments));
         }
 
         public abstract BspNode? Build();
