@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
-using Helion.Util.Assertion;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Impl.Debuggable
 {
@@ -13,7 +13,7 @@ namespace Helion.Bsp.Impl.Debuggable
     {
         public override void Execute()
         {
-            Assert.Precondition(ValidExecutionState(), "Called convex checker execution in an invalid state");
+            Precondition(ValidExecutionState(), "Called convex checker execution in an invalid state");
             if (States.CurrentSegment == null)
                 throw new NullReferenceException("Forgot to load the segments in, current segment is null");
             
@@ -47,7 +47,7 @@ namespace Helion.Bsp.Impl.Debuggable
             // can select the next segment by whichever of the two is not the
             // current segment.
             List<ConvexTraversalPoint> linesAtPivot = VertexMap[pivotIndex];
-            Assert.Invariant(linesAtPivot.Count == 2, "Expected two lines for every endpoint");
+            Invariant(linesAtPivot.Count == 2, "Expected two lines for every endpoint");
 
             BspSegment nextSeg = linesAtPivot[0].Segment;
             if (ReferenceEquals(currentSeg, nextSeg))

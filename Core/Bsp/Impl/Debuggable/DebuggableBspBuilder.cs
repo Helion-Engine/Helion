@@ -200,10 +200,7 @@ namespace Helion.Bsp.Impl.Debuggable
             WorkItems.Pop();
 
             if (WorkItems.Empty())
-            {
-                Root.StripDegenerateNodes();
                 State = DebuggableBspState.Complete;
-            }
             else
                 LoadNextWorkItem();
         }
@@ -267,8 +264,7 @@ namespace Helion.Bsp.Impl.Debuggable
             BspNode rightChild = new BspNode();
             parentNode.SetChildren(leftChild, rightChild);
             parentNode.Splitter = SplitCalculator.States.BestSplitter;
-
-            // We arbitrarily decide to build left first, so left is stacked after.
+            
             List<BspSegment> rightSegs = Partitioner.States.RightSegments;
             List<BspSegment> leftSegs = Partitioner.States.LeftSegments;
             rightSegs.AddRange(MinisegCreator.States.Minisegs);
