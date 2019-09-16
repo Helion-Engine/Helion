@@ -6,7 +6,8 @@ namespace Helion.Bsp.Impl.Debuggable
 {
     public class DebuggableSplitCalculator : SplitCalculator
     {
-        public DebuggableSplitCalculator(BspConfig bspConfig) : base(bspConfig)
+        public DebuggableSplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker) : 
+            base(bspConfig, collinearTracker)
         {
         }
 
@@ -16,13 +17,19 @@ namespace Helion.Bsp.Impl.Debuggable
             Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
 
             BspSegment splitter = States.Segments[States.CurrentSegmentIndex];
-            States.CurrentSegScore = CalculateScore(splitter);
-
-            if (States.CurrentSegScore < States.BestSegScore)
+            
+            if (!SeenCollinear.Get(splitter.CollinearIndex))
             {
-                Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
-                States.BestSegScore = States.CurrentSegScore;
-                States.BestSplitter = splitter;
+                States.CurrentSegScore = CalculateScore(splitter);
+
+                if (States.CurrentSegScore < States.BestSegScore)
+                {
+                    Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
+                    States.BestSegScore = States.CurrentSegScore;
+                    States.BestSplitter = splitter;
+                }
+
+                SeenCollinear.Set(splitter.CollinearIndex, true);
             }
 
             States.CurrentSegmentIndex++;

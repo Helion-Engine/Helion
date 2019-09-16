@@ -39,7 +39,7 @@ namespace Helion.Bsp.Impl.Debuggable
         public DebuggableBspBuilder(BspConfig config, IMap map) : base(config, map)
         {
             ConvexChecker = new DebuggableConvexChecker();
-            SplitCalculator = new DebuggableSplitCalculator(config);
+            SplitCalculator = new DebuggableSplitCalculator(config, CollinearTracker);
             Partitioner = new DebuggablePartitioner(config, SegmentAllocator, JunctionClassifier);
             MinisegCreator = new DebuggableMinisegCreator(VertexAllocator, SegmentAllocator, JunctionClassifier);
         }

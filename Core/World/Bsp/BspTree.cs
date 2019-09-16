@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Helion.Bsp;
 using Helion.Bsp.Impl.Debuggable;
-using Helion.Bsp.Impl.Optimized;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;

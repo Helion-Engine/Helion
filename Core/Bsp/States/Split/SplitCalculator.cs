@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Util;
@@ -12,10 +13,13 @@ namespace Helion.Bsp.States.Split
     {
         public SplitterStates States { get; protected set; } = new SplitterStates();
         protected readonly BspConfig BspConfig;
+        protected readonly CollinearTracker CollinearTracker;
+        protected BitArray SeenCollinear = new BitArray(0);
         
-        protected SplitCalculator(BspConfig bspConfig)
+        protected SplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker)
         {
-            BspConfig = bspConfig;            
+            BspConfig = bspConfig;
+            CollinearTracker = collinearTracker;
         }
         
         public void Load(List<BspSegment> segments)
@@ -23,6 +27,7 @@ namespace Helion.Bsp.States.Split
             Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
 
             States = new SplitterStates { Segments = segments };
+            SeenCollinear = new BitArray(CollinearTracker.Count);
         }
 
         public abstract void Execute();
