@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Definitions;
+using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 
@@ -34,19 +35,19 @@ namespace Helion.World.Special.Switches
         {
             foreach (var animSwitch in m_definition.Animdefs.AnimatedSwitches)
             {
-                if (animSwitch.IsMatch(side.Upper.Texture))
+                if (side.Upper.Texture != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.Texture))
                 {
                     side.Upper.Texture = animSwitch.GetOpposingTexture(side.Upper.Texture);
                     break;
                 }
 
-                if (animSwitch.IsMatch(side.Middle.Texture))
+                if (side.Middle.Texture != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.Texture))
                 {
                     side.Middle.Texture = animSwitch.GetOpposingTexture(side.Middle.Texture);
                     break;
                 }
 
-                if (animSwitch.IsMatch(side.Lower.Texture))
+                if (side.Lower.Texture != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.Texture))
                 {
                     side.Lower.Texture = animSwitch.GetOpposingTexture(side.Lower.Texture);
                     break;

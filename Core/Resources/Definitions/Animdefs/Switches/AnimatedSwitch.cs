@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Util;
 
 namespace Helion.Resources.Definitions.Animdefs.Switches
 {
@@ -20,6 +21,9 @@ namespace Helion.Resources.Definitions.Animdefs.Switches
 
         public bool IsMatch(int textureIndex)
         {
+            if (StartTextureIndex == Constants.NoTextureIndex || Components[0].TextureIndex == Constants.NoTextureIndex)
+                return false;
+
             return StartTextureIndex == textureIndex || Components[0].TextureIndex == textureIndex;
         }
 
