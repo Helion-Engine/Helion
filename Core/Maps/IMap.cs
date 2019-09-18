@@ -24,6 +24,14 @@ namespace Helion.Maps
         /// </summary>
         /// <returns>The lines for this map.</returns>
         IReadOnlyList<ILine> GetLines();
+
+        /// <summary>
+        /// Gets the nodes for the map. This is empty if there was no nodes
+        /// element.
+        /// </summary>
+        /// <returns>The list of nodes, or an empty list if no nodes were
+        /// present.</returns>
+        IReadOnlyList<INode> GetNodes();
         
         /// <summary>
         /// Gets the lines for this map.

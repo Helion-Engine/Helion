@@ -8,12 +8,22 @@ using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
+using Helion.Maps.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Segments.Enums;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp
 {
+    /// <summary>
+    /// Builds a BSP tree.
+    /// </summary>
+    /// <remarks>
+    /// Currently not thread safe, some state is shared (the non-readonly ones)
+    /// which prevents threading from being used recursively on a tree. However
+    /// it is possible to apply threading to each stage itself since those are
+    /// 'embarrassingly parallel'.
+    /// </remarks>
     public class BspBuilder
     {
         /// <summary>
@@ -30,14 +40,17 @@ namespace Helion.Bsp
         public readonly MinisegCreator MinisegCreator;
         public readonly VertexAllocator VertexAllocator;
         public readonly SegmentAllocator SegmentAllocator;
-        protected readonly BspConfig BspConfig;
-        protected readonly CollinearTracker CollinearTracker;
-        protected readonly JunctionClassifier JunctionClassifier;
-        protected readonly BspNode Root = new BspNode();
-        protected readonly Stack<WorkItem> WorkItems = new Stack<WorkItem>();
+        private readonly BspConfig BspConfig;
+        private readonly CollinearTracker m_collinearTracker;
+        private readonly JunctionClassifier m_junctionClassifier;
+        private readonly SplitDecisionHelper m_splitDecisionHelper;
+        private readonly BspNode m_root = new BspNode();
+        private readonly Stack<WorkItem> m_workItems = new Stack<WorkItem>();
+        private bool m_foundDegenerateNode;
+        private INode? m_currentMapNode;
 
         public bool Done => State == BspState.Complete;
-        public WorkItem? CurrentWorkItem => WorkItems.TryPeek(out WorkItem? result) ? result : null;
+        public WorkItem? CurrentWorkItem => m_workItems.TryPeek(out WorkItem? result) ? result : null;
 
         public BspBuilder(IMap map) : this(new BspConfig(), map)
         {
@@ -46,19 +59,20 @@ namespace Helion.Bsp
         public BspBuilder(BspConfig config, IMap map)
         {
             BspConfig = config;
+            m_collinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
+            m_junctionClassifier = new JunctionClassifier();
+            m_splitDecisionHelper = new SplitDecisionHelper(map);
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
-            CollinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
-            SegmentAllocator = new SegmentAllocator(VertexAllocator, CollinearTracker);
-            JunctionClassifier = new JunctionClassifier();
+            SegmentAllocator = new SegmentAllocator(VertexAllocator, m_collinearTracker);
             ConvexChecker = new ConvexChecker();
-            SplitCalculator = new SplitCalculator(config, CollinearTracker);
-            Partitioner = new Partitioner(config, SegmentAllocator, JunctionClassifier);
-            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, JunctionClassifier);
+            SplitCalculator = new SplitCalculator(config, m_collinearTracker, m_splitDecisionHelper);
+            Partitioner = new Partitioner(config, SegmentAllocator, m_junctionClassifier);
+            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, m_junctionClassifier);
 
             List<BspSegment> segments = ReadMapLines(map);
-            JunctionClassifier.Add(segments);
-            
-            WorkItems.Push(new WorkItem(Root, segments));
+            m_junctionClassifier.Add(segments);
+
+            CreateInitialWorkItem(segments, map);
         }
 
         /// <summary>
@@ -114,9 +128,10 @@ namespace Helion.Bsp
             while (!Done)
                 ExecuteFullCycleStep();
 
-            // TODO: Only do this if we actually have degenerate nodes!
-            Root.StripDegenerateNodes();
-            return Root.IsDegenerate ? null : Root;
+            if (m_foundDegenerateNode)
+                m_root.StripDegenerateNodes();
+            
+            return m_root.IsDegenerate ? null : m_root;
         }
 
         /// <summary>
@@ -161,7 +176,7 @@ namespace Helion.Bsp
         private List<BspSegment> ReadMapLines(IMap map)
         {
             List<BspSegment> segments = new List<BspSegment>();
-            foreach (IBspUsableLine line in map.GetLines())
+            foreach (ILine line in map.GetLines())
             {
                 int startIndex = VertexAllocator[line.StartPosition];
                 int endIndex = VertexAllocator[line.EndPosition];
@@ -172,32 +187,42 @@ namespace Helion.Bsp
             return SegmentChainPruner.Prune(segments);
         }
 
+        private void CreateInitialWorkItem(List<BspSegment> segments, IMap map)
+        {
+            int? nodeIndex = null;
+            if (map.GetNodes().Count > 0)
+                nodeIndex = map.GetNodes().Count - 1;
+            
+            WorkItem workItem = new WorkItem(m_root, segments, nodeIndex);
+            m_workItems.Push(workItem);
+        }
+        
         /// <summary>
         /// Takes the convex traversal that was done and adds it to the top BSP 
         /// node on the stack. This effectively creates the subsector.
         /// </summary>
         private void AddConvexTraversalToTopNode()
         {
-            Invariant(!WorkItems.Empty(), "Cannot add convex traversal to an empty work item stack");
+            Invariant(!m_workItems.Empty(), "Cannot add convex traversal to an empty work item stack");
 
             ConvexTraversal traversal = ConvexChecker.States.ConvexTraversal;
             Rotation rotation = ConvexChecker.States.Rotation;
             List<SubsectorEdge> edges = SubsectorEdge.FromClockwiseTraversal(traversal, rotation);
 
-            WorkItems.Peek().Node.ClockwiseEdges = edges;
+            m_workItems.Peek().Node.ClockwiseEdges = edges;
         }
 
         private void LoadNextWorkItem()
         {
-            Invariant(WorkItems.Count > 0, "Expected a root work item to be present");
+            Invariant(m_workItems.Count > 0, "Expected a root work item to be present");
 
-            ConvexChecker.Load(WorkItems.Peek().Segments);
+            ConvexChecker.Load(m_workItems.Peek().Segments);
             State = BspState.CheckingConvexity;
         }
 
         private void ExecuteConvexityCheck()
         {
-            Invariant(WorkItems.Count < RecursiveOverflowAmount, "BSP recursive overflow detected");
+            Invariant(m_workItems.Count < RecursiveOverflowAmount, "BSP recursive overflow detected");
 
             switch (ConvexChecker.States.State)
             {
@@ -207,12 +232,15 @@ namespace Helion.Bsp
                 break;
 
             case ConvexState.FinishedIsDegenerate:
+                m_foundDegenerateNode = true;
+                goto case ConvexState.FinishedIsConvex;
             case ConvexState.FinishedIsConvex:
                 State = BspState.CreatingLeafNode;
                 break;
 
             case ConvexState.FinishedIsSplittable:
-                SplitCalculator.Load(WorkItems.Peek().Segments);
+                WorkItem workItem = m_workItems.Peek();
+                SplitCalculator.Load(workItem.Segments, workItem.NodeIndex);
                 State = BspState.FindingSplitter;
                 break;
             }
@@ -226,9 +254,9 @@ namespace Helion.Bsp
             if (convexState == ConvexState.FinishedIsConvex)
                 AddConvexTraversalToTopNode();
 
-            WorkItems.Pop();
+            m_workItems.Pop();
 
-            if (WorkItems.Empty())
+            if (m_workItems.Empty())
                 State = BspState.Complete;
             else
                 LoadNextWorkItem();
@@ -240,11 +268,11 @@ namespace Helion.Bsp
             {
             case SplitterState.Loaded:
             case SplitterState.Working:
-                SplitCalculator.Execute();
+                SplitCalculator.Execute(out m_currentMapNode);
                 break;
 
             case SplitterState.Finished:
-                Partitioner.Load(SplitCalculator.States.BestSplitter, WorkItems.Peek().Segments);
+                Partitioner.Load(SplitCalculator.States.BestSplitter, m_workItems.Peek().Segments);
                 State = BspState.PartitioningSegments;
                 break;
             }
@@ -286,7 +314,7 @@ namespace Helion.Bsp
 
         private void ExecuteSplitFinalization()
         {
-            WorkItem currentWorkItem = WorkItems.Pop();
+            WorkItem currentWorkItem = m_workItems.Pop();
 
             BspNode parentNode = currentWorkItem.Node;
             BspNode leftChild = new BspNode();
@@ -299,20 +327,28 @@ namespace Helion.Bsp
             rightSegs.AddRange(MinisegCreator.States.Minisegs);
             leftSegs.AddRange(MinisegCreator.States.Minisegs);
 
+            (int? leftNodeIndex, int? rightNodeIndex) = GetChildNodeIndicesIfPossible();
             string path = currentWorkItem.BranchPath;
 
             if (BspConfig.BranchRight)
             {
-                WorkItems.Push(new WorkItem(rightChild, rightSegs, path + "R"));
-                WorkItems.Push(new WorkItem(leftChild, leftSegs, path + "L"));
+                m_workItems.Push(new WorkItem(leftChild, leftSegs, leftNodeIndex, path + "L"));
+                m_workItems.Push(new WorkItem(rightChild, rightSegs, rightNodeIndex, path + "R"));
             }
             else
             {
-                WorkItems.Push(new WorkItem(leftChild, leftSegs, path + "L"));
-                WorkItems.Push(new WorkItem(rightChild, rightSegs, path + "R"));
+                m_workItems.Push(new WorkItem(rightChild, rightSegs, rightNodeIndex, path + "R"));
+                m_workItems.Push(new WorkItem(leftChild, leftSegs, leftNodeIndex, path + "L"));
             }
 
             LoadNextWorkItem();
+        }
+
+        private (int? leftChild, int? rightChild) GetChildNodeIndicesIfPossible()
+        {
+            if (m_currentMapNode == null)
+                return (null, null);
+            return ((int)m_currentMapNode.LeftChild, (int)m_currentMapNode.RightChild);
         }
     }
 }

@@ -24,13 +24,15 @@ namespace Helion.Maps.Hexen
         public string Name { get; }
         public MapType MapType { get; } = MapType.Hexen;
         public readonly IReadOnlyList<HexenLine> Lines;
+        public readonly IReadOnlyList<DoomNode> Nodes;
         public readonly IReadOnlyList<DoomSector> Sectors;
         public readonly IReadOnlyList<DoomSide> Sides;
         public readonly IReadOnlyList<HexenThing> Things;
         public readonly IReadOnlyList<DoomVertex> Vertices;
         
         private HexenMap(string name, IReadOnlyList<DoomVertex> vertices, IReadOnlyList<DoomSector> sectors, 
-            IReadOnlyList<DoomSide> sides, IReadOnlyList<HexenLine> lines, IReadOnlyList<HexenThing> things)
+            IReadOnlyList<DoomSide> sides, IReadOnlyList<HexenLine> lines, IReadOnlyList<HexenThing> things,
+            IReadOnlyList<DoomNode> nodes)
         {
             Name = name;
             Vertices = vertices;
@@ -38,6 +40,7 @@ namespace Helion.Maps.Hexen
             Sides = sides;
             Lines = lines;
             Things = things;
+            Nodes = nodes;
         }
         
         /// <summary>
@@ -48,9 +51,6 @@ namespace Helion.Maps.Hexen
         /// missing or bad data.</returns>
         public static HexenMap? Create(MapEntryCollection map)
         {
-            if (map.Vertices == null || map.Sectors == null || map.Sidedefs == null || map.Linedefs == null || map.Things == null)
-                return null;
-
             IReadOnlyList<DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices);
             if (vertices == null)
                 return null;
@@ -71,19 +71,22 @@ namespace Helion.Maps.Hexen
             if (things == null)
                 return null;
 
-            return new HexenMap(map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things);
+            IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes);
+            
+            return new HexenMap(map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things, nodes);
         }
         
         public IReadOnlyList<ILine> GetLines() => Lines;
+        public IReadOnlyList<INode> GetNodes() => Nodes;
         public IReadOnlyList<ISector> GetSectors() => Sectors;
         public IReadOnlyList<ISide> GetSides() => Sides;
         public IReadOnlyList<IThing> GetThings() => Things;
         public IReadOnlyList<IVertex> GetVertices() => Vertices;
         
-        private static IReadOnlyList<HexenLine>? CreateLines(byte[] lineData, IReadOnlyList<DoomVertex> vertices,
+        private static IReadOnlyList<HexenLine>? CreateLines(byte[]? lineData, IReadOnlyList<DoomVertex> vertices,
             IReadOnlyList<DoomSide> sides)
         {
-            if (lineData.Length % BytesPerLine != 0)
+            if (lineData == null || lineData.Length % BytesPerLine != 0)
                 return null;
 
             int numLines = lineData.Length / BytesPerLine;
@@ -136,9 +139,9 @@ namespace Helion.Maps.Hexen
             return lines;
         }
         
-        private static IReadOnlyList<HexenThing>? CreateThings(byte[] thingData)
+        private static IReadOnlyList<HexenThing>? CreateThings(byte[]? thingData)
         {
-            if (thingData.Length % BytesPerThing != 0)
+            if (thingData == null || thingData.Length % BytesPerThing != 0)
                 return null;
 
             int numThings = thingData.Length / BytesPerThing;

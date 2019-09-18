@@ -7,6 +7,8 @@ using Helion.Maps.Shared;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using NLog;
 
@@ -22,19 +24,22 @@ namespace Helion.Maps.Doom
         private const int BytesPerSide = 30;
         private const int BytesPerThing = 10;
         private const int BytesPerVertex = 4;
+        private const int BytesPerNode = 28;
         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public string Name { get; }
         public MapType MapType => MapType.Doom;
         public readonly IReadOnlyList<DoomLine> Lines;
+        public readonly IReadOnlyList<DoomNode> Nodes;
         public readonly IReadOnlyList<DoomSector> Sectors;
         public readonly IReadOnlyList<DoomSide> Sides;
         public readonly IReadOnlyList<DoomThing> Things;
         public readonly IReadOnlyList<DoomVertex> Vertices;
 
         private DoomMap(string name, IReadOnlyList<DoomVertex> vertices, IReadOnlyList<DoomSector> sectors, 
-            IReadOnlyList<DoomSide> sides, IReadOnlyList<DoomLine> lines, IReadOnlyList<DoomThing> things)
+            IReadOnlyList<DoomSide> sides, IReadOnlyList<DoomLine> lines, IReadOnlyList<DoomThing> things,
+            IReadOnlyList<DoomNode> nodes)
         {
             Name = name;
             Vertices = vertices;
@@ -42,6 +47,7 @@ namespace Helion.Maps.Doom
             Sides = sides;
             Lines = lines;
             Things = things;
+            Nodes = nodes;
         }
 
         /// <summary>
@@ -52,10 +58,6 @@ namespace Helion.Maps.Doom
         /// missing or bad data.</returns>
         public static DoomMap? Create(MapEntryCollection map)
         {
-            if (map.Vertices == null || map.Sectors == null || map.Sidedefs == null || map.Linedefs == null ||
-                map.Things == null)
-                return null;
-
             IReadOnlyList<DoomVertex>? vertices = CreateVertices(map.Vertices);
             if (vertices == null)
                 return null;
@@ -75,19 +77,22 @@ namespace Helion.Maps.Doom
             IReadOnlyList<DoomThing>? things = CreateThings(map.Things);
             if (things == null)
                 return null;
+            
+            IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes);
 
-            return new DoomMap(map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things);
+            return new DoomMap(map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things, nodes);
         }
         
         public IReadOnlyList<ILine> GetLines() => Lines;
+        public IReadOnlyList<INode> GetNodes() => Nodes;
         public IReadOnlyList<ISector> GetSectors() => Sectors;
         public IReadOnlyList<ISide> GetSides() => Sides;
         public IReadOnlyList<IThing> GetThings() => Things;
         public IReadOnlyList<IVertex> GetVertices() => Vertices;
 
-        internal static IReadOnlyList<DoomVertex>? CreateVertices(byte[] vertexData)
+        internal static IReadOnlyList<DoomVertex>? CreateVertices(byte[]? vertexData)
         {
-            if (vertexData.Length % BytesPerVertex != 0)
+            if (vertexData == null || vertexData.Length % BytesPerVertex != 0)
                 return null;
 
             int numVertices = vertexData.Length / BytesPerVertex;
@@ -105,9 +110,9 @@ namespace Helion.Maps.Doom
             return vertices;
         }
 
-        internal static IReadOnlyList<DoomSector>? CreateSectors(byte[] sectorData)
+        internal static IReadOnlyList<DoomSector>? CreateSectors(byte[]? sectorData)
         {
-            if (sectorData.Length % BytesPerSector != 0)
+            if (sectorData == null || sectorData.Length % BytesPerSector != 0)
                 return null;
 
             int numSectors = sectorData.Length / BytesPerSector;
@@ -132,9 +137,9 @@ namespace Helion.Maps.Doom
             return sectors;
         }
         
-        internal static IReadOnlyList<DoomSide>? CreateSides(byte[] sideData, IReadOnlyList<DoomSector> sectors)
+        internal static IReadOnlyList<DoomSide>? CreateSides(byte[]? sideData, IReadOnlyList<DoomSector> sectors)
         {
-            if (sideData.Length % BytesPerSide != 0)
+            if (sideData == null || sideData.Length % BytesPerSide != 0)
                 return null;
             
             int numSides = sideData.Length / BytesPerSide;
@@ -159,10 +164,10 @@ namespace Helion.Maps.Doom
             return sides;
         }
         
-        private static IReadOnlyList<DoomLine>? CreateLines(byte[] lineData, IReadOnlyList<DoomVertex> vertices,
+        private static IReadOnlyList<DoomLine>? CreateLines(byte[]? lineData, IReadOnlyList<DoomVertex> vertices,
             IReadOnlyList<DoomSide> sides)
         {
-            if (lineData.Length % BytesPerLine != 0)
+            if (lineData == null || lineData.Length % BytesPerLine != 0)
                 return null;
 
             int numLines = lineData.Length / BytesPerLine;
@@ -216,9 +221,9 @@ namespace Helion.Maps.Doom
             return lines;
         }
         
-        private static IReadOnlyList<DoomThing>? CreateThings(byte[] thingData)
+        private static IReadOnlyList<DoomThing>? CreateThings(byte[]? thingData)
         {
-            if (thingData.Length % BytesPerThing != 0)
+            if (thingData == null || thingData.Length % BytesPerThing != 0)
                 return null;
 
             int numThings = thingData.Length / BytesPerThing;
@@ -239,6 +244,43 @@ namespace Helion.Maps.Doom
             }
 
             return things;
+        }
+        
+        internal static IReadOnlyList<DoomNode> CreateNodes(byte[]? nodeData)
+        {
+            if (nodeData == null || nodeData.Length % BytesPerNode != 0)
+                return new List<DoomNode>();
+            
+            int numNodes = nodeData.Length / BytesPerNode;
+            ByteReader reader = new ByteReader(nodeData);
+            List<DoomNode> nodes = new List<DoomNode>();
+
+            for (int id = 0; id < numNodes; id++)
+            {
+                short x = reader.ReadInt16();
+                short y = reader.ReadInt16();
+                short dx = reader.ReadInt16();
+                short dy = reader.ReadInt16();
+                short rightBoxTop = reader.ReadInt16();
+                short rightBoxBottom = reader.ReadInt16();
+                short rightBoxLeft = reader.ReadInt16();
+                short rightBoxRight = reader.ReadInt16();
+                short leftBoxTop = reader.ReadInt16();
+                short leftBoxBottom = reader.ReadInt16();
+                short leftBoxLeft = reader.ReadInt16();
+                short leftBoxRight = reader.ReadInt16();
+                ushort rightChild = reader.ReadUInt16();
+                ushort leftChild = reader.ReadUInt16();
+
+                Seg2D segment = new Seg2D(new Vec2D(x, y), new Vec2D(x + dx, y + dy));
+                Box2D rightBox = new Box2D(new Vec2D(rightBoxLeft, rightBoxBottom), new Vec2D(rightBoxRight, rightBoxTop));
+                Box2D leftBox = new Box2D(new Vec2D(leftBoxLeft, leftBoxBottom), new Vec2D(leftBoxRight, leftBoxTop));
+                
+                DoomNode node = new DoomNode(segment, rightBox, leftBox, leftChild, rightChild);
+                nodes.Add(node);
+            }
+
+            return nodes;
         }
     }
 }
