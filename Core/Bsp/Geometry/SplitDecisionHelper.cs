@@ -34,7 +34,7 @@ namespace Helion.Bsp.Geometry
             node = m_map.GetNodes()[nodeIndex];
 
             foreach (BspSegment segment in segments)
-                if (node.Splitter.Collinear(segment))
+                if (!segment.IsMiniseg && node.Splitter.Collinear(segment))
                     return segment;
 
             if (!m_corrupt)

@@ -19,11 +19,12 @@ namespace Helion.Test.Unit.Bsp.States
             BspSegment segment = new BspSegment(new Vec2D(0, 0),  new Vec2D(1, 1), 0, 1, 0);
             List<BspSegment> segments = new List<BspSegment> { segment };
 
-            WorkItem workItem = new WorkItem(node, segments, path);
+            WorkItem workItem = new WorkItem(node, segments, 5, path);
             
-            Assert.AreSame(node,workItem.Node);
-            Assert.AreSame(segments,workItem.Segments);
-            Assert.AreEqual(path,workItem.BranchPath);
+            Assert.AreSame(node, workItem.Node);
+            Assert.AreSame(segments, workItem.Segments);
+            Assert.AreEqual(path, workItem.BranchPath);
+            Assert.AreEqual(5, workItem.NodeIndex);
         }
     }
 }

@@ -269,8 +269,8 @@ namespace Helion.Maps.Doom
                 short leftBoxBottom = reader.ReadInt16();
                 short leftBoxLeft = reader.ReadInt16();
                 short leftBoxRight = reader.ReadInt16();
-                ushort leftChild = reader.ReadUInt16();
                 ushort rightChild = reader.ReadUInt16();
+                ushort leftChild = reader.ReadUInt16();
 
                 Seg2D segment = new Seg2D(new Vec2D(x, y), new Vec2D(x + dx, y + dy));
                 Box2D rightBox = new Box2D(new Vec2D(rightBoxLeft, rightBoxBottom), new Vec2D(rightBoxRight, rightBoxTop));

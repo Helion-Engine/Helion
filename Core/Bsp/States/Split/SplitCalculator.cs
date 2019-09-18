@@ -12,7 +12,7 @@ namespace Helion.Bsp.States.Split
 {
     public class SplitCalculator
     {
-        public const int NoNodeIndex = -1;
+        private const int NoNodeIndex = -1;
         
         public SplitterStates States { get; private set; } = new SplitterStates();
         private readonly BspConfig m_bspConfig;
@@ -29,25 +29,27 @@ namespace Helion.Bsp.States.Split
             m_splitHelper = splitHelper;
         }
         
-        public void Load(List<BspSegment> segments, int nodeIndex = NoNodeIndex)
+        public void Load(List<BspSegment> segments, int? nodeIndex)
         {
             Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
 
             States = new SplitterStates { Segments = segments };
             m_seenCollinear = new BitArray(m_collinearTracker.Count);
             m_checkedSplitHelper = false;
+            m_nodeIndex = nodeIndex ?? NoNodeIndex;
         }
 
-        public void Execute()
+        public void Execute(out INode? node)
         {
             Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");
             Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
-
+            node = null;
+            
             if (!m_checkedSplitHelper)
             {
                 m_checkedSplitHelper = true;
                 
-                BspSegment? bestSplitter = m_splitHelper.FindSplitter(m_nodeIndex, States.Segments, out INode? node);
+                BspSegment? bestSplitter = m_splitHelper.FindSplitter(m_nodeIndex, States.Segments, out node);
                 if (bestSplitter != null)
                 {
                     States.BestSplitter = bestSplitter;
