@@ -135,7 +135,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             Sector sector = side.Sector;
             short lightLevel = sector.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle, side.Middle.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
             WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
             
             RenderWorldData renderData = m_worldDataManager[texture];
@@ -191,7 +191,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             short lightLevel = facingSide.Sector.LightLevel;
             Wall lowerWall = facingSide.Lower;
 
-            GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle, lowerWall.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse, 
@@ -222,7 +222,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             short lightLevel = facingSide.Sector.LightLevel;
             Wall middleWall = facingSide.Middle;
-            GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle, middleWall.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide, 
@@ -274,7 +274,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             short lightLevel = facingSide.Sector.LightLevel;
             Wall upperWall = facingSide.Upper;
 
-            GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle, upperWall.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse, 
@@ -311,7 +311,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
             // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
             short lightLevel = flat.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetTexture(flat.TextureHandle, flat.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(flat.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             // Note that the subsector triangulator is supposed to realize when

@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Animdefs.Switches;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
 
 namespace Helion.Resources
 {
-    public class TextureManager
+    public class TextureManager : ITickable
     {
         private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly ArchiveCollection m_archiveCollection;
@@ -22,6 +24,29 @@ namespace Helion.Resources
         // TODO - Maybe TextureManager shouldn't be an instance class - this is just to get us started.
         public static TextureManager Instance { get; private set; } = null!;
 
+        private TextureManager(ArchiveCollection archiveCollection)
+        {
+            m_archiveCollection = archiveCollection;
+            m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
+
+            var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
+            int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
+            m_textures = new Texture[count];
+            m_textureNames = new CIString[count];
+            m_translations = new int[count];
+
+            var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
+            var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
+                .Select(x => x.Path.Name.Substring(0, 4))
+                .Distinct()
+                .ToList();
+
+            InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
+            InitAnimations();
+            InitSwitches();
+            InitSprites(spriteNames, spriteEntries);
+        }
+        
         public static void Init(ArchiveCollection archiveCollection)
         {
             Instance = new TextureManager(archiveCollection);
@@ -35,7 +60,7 @@ namespace Helion.Resources
         { 
             textures.ForEach(LoadTextureImage);
 
-            foreach (var anim in m_animations)
+            foreach (Animation anim in m_animations)
             {
                 if (textures.Contains(anim.TranslationIndex))
                 {
@@ -44,10 +69,10 @@ namespace Helion.Resources
                 }
             }
 
-            foreach (var sw in m_archiveCollection.Definitions.Animdefs.AnimatedSwitches)
+            foreach (AnimatedSwitch animSwitch in m_archiveCollection.Definitions.Animdefs.AnimatedSwitches)
             {
-                LoadTextureImage(sw.StartTextureIndex);
-                foreach (var component in sw.Components)
+                LoadTextureImage(animSwitch.StartTextureIndex);
+                foreach (var component in animSwitch.Components)
                     LoadTextureImage(component.TextureIndex);
             }
         }
@@ -89,12 +114,20 @@ namespace Helion.Resources
         /// Get a texture by index.
         /// </summary>
         /// <param name="index">The index of the texture.</param>
-        /// <returns>Returns a texture at the given index. If the texture is animated it's current animation texture will be returned.</returns>
+        /// <returns>Returns a texture at the given index. If the texture is
+        /// animated it's current animation texture will be returned.</returns>
         public Texture GetTexture(int index)
         {
             return m_textures[m_translations[index]];
         }
 
+        /// <summary>
+        /// Gets the name of the texture from the lookup index.
+        /// </summary>
+        /// <param name="index">The texture index.</param>
+        /// <returns>The name of the texture.</returns>
+        /// <exception cref="IndexOutOfRangeException">If the index is negative
+        /// or is larger/equal to the number of textures.</exception>
         public CIString GetTextureName(int index)
         {
             return m_textureNames[m_translations[index]];
@@ -116,39 +149,18 @@ namespace Helion.Resources
 
         public void Tick()
         {
-            foreach (var anim in m_animations)
+            foreach (Animation anim in m_animations)
             {
+                var components = anim.AnimatedTexture.Components;
+                
                 anim.Tics++;
-                if (anim.Tics == anim.AnimatedTexture.Components[anim.AnimationIndex].MaxTicks)
+                if (anim.Tics == components[anim.AnimationIndex].MaxTicks)
                 {
-                    anim.AnimationIndex = ++anim.AnimationIndex % anim.AnimatedTexture.Components.Count;
-                    m_translations[anim.TranslationIndex] = anim.AnimatedTexture.Components[anim.AnimationIndex].TextureIndex;
+                    anim.AnimationIndex = ++anim.AnimationIndex % components.Count;
+                    m_translations[anim.TranslationIndex] = components[anim.AnimationIndex].TextureIndex;
                     anim.Tics = 0;
                 }
             }
-        }
-
-        private TextureManager(ArchiveCollection archiveCollection)
-        {
-            m_archiveCollection = archiveCollection;
-            m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
-
-            var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
-            int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
-            m_textures = new Texture[count];
-            m_textureNames = new CIString[count];
-            m_translations = new int[count];
-
-            var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
-            var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
-                .Select(x => x.Path.Name.Substring(0, 4))
-                .Distinct()
-                .ToList();
-
-            InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
-            InitAnimations();
-            InitSwitches();
-            InitSprites(spriteNames, spriteEntries);
         }
 
         private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
