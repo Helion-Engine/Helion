@@ -36,7 +36,7 @@ namespace Helion.Util.Configuration
             if (newValue is Enum newEnumValue)
             {
                 if (value is Enum enumValue)
-                    return Equals(enumValue, newEnumValue);
+                    return !Equals(enumValue, newEnumValue);
                 Fail($"Unexpected argument type for enum type {typeof(T)}");
                 return true;
             }
@@ -45,25 +45,25 @@ namespace Helion.Util.Configuration
             {
             case bool newBoolValue:
                 if (value is bool boolValue)
-                    return boolValue == newBoolValue;
+                    return boolValue != newBoolValue;
                 Fail($"Unexpected argument type, expected a boolean but got {typeof(T)}");
                 return true;
         
             case double newDoubleValue:
                 if (value is double doubleValue)
-                    return MathHelper.AreEqual(doubleValue, newDoubleValue);
+                    return !MathHelper.AreEqual(doubleValue, newDoubleValue);
                 Fail($"Unexpected argument type, expected a double but got {typeof(T)}");
                 return true;
         
             case int newIntValue:
                 if (value is int intValue)
-                    return intValue == newIntValue;
+                    return intValue != newIntValue;
                 Fail($"Unexpected argument type, expected an int but got {typeof(T)}");
                 return true;
         
             case string newStringValue:
                 if (value is string stringValue)
-                    return stringValue == newStringValue;
+                    return stringValue != newStringValue;
                 Fail($"Unexpected argument type, expected a string but got {typeof(T)}");
                 return true;
         

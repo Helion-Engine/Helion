@@ -66,6 +66,8 @@ namespace Helion.Client.OpenTK
             {
                 if (e.Alt && e.Key == Key.F4)
                     Close();
+                if (e.Alt && e.Key == Key.Enter)
+                    ToggleWindowStateViaConfig();
                 m_inputAdapter.HandleKeyDown(e);
             }
 
@@ -173,6 +175,14 @@ namespace Helion.Client.OpenTK
         {
             int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
             return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
+        }
+        
+        private void ToggleWindowStateViaConfig()
+        {
+            if (m_config.Engine.Window.State == WindowStatus.Fullscreen)
+                m_config.Engine.Window.State.Set(WindowStatus.Windowed);
+            else
+                m_config.Engine.Window.State.Set(WindowStatus.Fullscreen);
         }
 
         private void SetupMouse()
