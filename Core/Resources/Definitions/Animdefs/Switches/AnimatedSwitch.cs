@@ -10,7 +10,6 @@ namespace Helion.Resources.Definitions.Animdefs.Switches
         public readonly SwitchType SwitchType;
         public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
         public string? Sound;
-
         public int StartTextureIndex;
 
         public AnimatedSwitch(string texture, SwitchType switchType)
@@ -27,11 +26,11 @@ namespace Helion.Resources.Definitions.Animdefs.Switches
             return StartTextureIndex == textureIndex || Components[0].TextureIndex == textureIndex;
         }
 
-        public int GetOpposingTexture(int textureIndex)
+        public (string name, int handle) GetOpposingTexture(int textureIndex)
         {
-            if (StartTextureIndex == textureIndex)
-                return Components[0].TextureIndex;
-            return StartTextureIndex;
+            if (StartTextureIndex != textureIndex) 
+                return (StartTexture, StartTextureIndex);
+            return (Components[0].Texture, Components[0].TextureIndex);
         }
 
         public override string ToString() => $"{StartTexture} ({SwitchType}: components={Components.Count})";

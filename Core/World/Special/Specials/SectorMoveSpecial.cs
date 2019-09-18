@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
@@ -60,8 +61,12 @@ namespace Helion.World.Special.Specials
             {
                 if (IsNonRepeat)
                 {
-                    if (MoveData.FloorChangeTexture != null)
-                        Sector.Floor.Texture = MoveData.FloorChangeTexture.Value;
+                    if (MoveData.FloorChangeTextureHandle != null)
+                    {
+                        int handle = MoveData.FloorChangeTextureHandle.Value;
+                        Sector.Floor.TextureHandle = handle;
+                        Sector.Floor.Texture = TextureManager.Instance.GetTextureName(handle);
+                    }
 
                     Sector.ActiveMoveSpecial = null;
                     return SpecialTickStatus.Destroy;

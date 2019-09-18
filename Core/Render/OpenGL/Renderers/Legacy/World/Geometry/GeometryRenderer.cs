@@ -14,14 +14,12 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
-using Helion.World.Bsp;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using MoreLinq.Extensions;
+using Helion.World.Geometry.Walls;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
@@ -84,19 +82,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             GC.SuppressFinalize(this);
         }
 
-        private void PreloadAllTextures(WorldBase world)
+        private static void PreloadAllTextures(IWorld world)
         {
-            var textures =
-            world.Lines.SelectMany(line => line.Sides)
+            var textures = world.Lines.SelectMany(line => line.Sides)
                 .SelectMany(side => side.Walls)
-                .Select(wall => wall.Texture)
+                .Select(wall => wall.TextureHandle)
                 .Distinct().ToList();
 
-            textures.AddRange(
-            world.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
-                .Select(flat => flat.Texture)
-                .Distinct());
-
+            var flatTextures = world.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
+                .Select(flat => flat.TextureHandle)
+                .Distinct();
+            textures.AddRange(flatTextures);
+            
             TextureManager.Instance.LoadTextureImages(textures);
         }
 
@@ -136,10 +133,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderOneSided(Side side)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            
             Sector sector = side.Sector;
             short lightLevel = sector.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle, side.Middle.Texture);
             WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
             
             RenderWorldData renderData = m_worldDataManager[texture];
@@ -167,7 +163,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
             if (LowerIsVisible(facingSector, otherSector))
                 RenderTwoSidedLower(facingSide, otherSide, isFrontSide);
-            if (facingSide.Middle.Texture != Constants.NoTextureIndex)
+            if (facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
                 RenderTwoSidedMiddle(facingSide, otherSide, isFrontSide);
             if (UpperIsVisible(facingSector, otherSector))
                 RenderTwoSidedUpper(facingSide, otherSide, isFrontSide);
@@ -190,10 +186,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderTwoSidedLower(TwoSided facingSide, Side otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            bool isSky = TextureManager.Instance.IsSkyTexture(otherSide.Sector.Floor.Texture);
+            SectorPlane plane = otherSide.Sector.Floor;
+            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             short lightLevel = facingSide.Sector.LightLevel;
+            Wall lowerWall = facingSide.Lower;
 
-            GLLegacyTexture texture = m_textureManager.GetTexture(facingSide.Lower.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle, lowerWall.Texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse, 
@@ -223,7 +221,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
             short lightLevel = facingSide.Sector.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetTexture(facingSide.Middle.Texture);
+            Wall middleWall = facingSide.Middle;
+            GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle, middleWall.Texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide, 
@@ -270,10 +269,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            bool isSky = TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.Texture);
+            SectorPlane plane = otherSide.Sector.Ceiling;
+            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             short lightLevel = facingSide.Sector.LightLevel;
+            Wall upperWall = facingSide.Upper;
 
-            GLLegacyTexture texture = m_textureManager.GetTexture(facingSide.Upper.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle, upperWall.Texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse, 
@@ -306,11 +307,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderFlat(Subsector subsector, SectorPlane flat)
         {
             // TODO: If we can't see it (dot product the plane) then exit.
-            bool isSky = TextureManager.Instance.IsSkyTexture(flat.Texture);
+            bool isSky = TextureManager.Instance.IsSkyTexture(flat.TextureHandle);
 
             // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
             short lightLevel = flat.LightLevel;
-            GLLegacyTexture texture = m_textureManager.GetTexture(flat.Texture);
+            GLLegacyTexture texture = m_textureManager.GetTexture(flat.TextureHandle, flat.Texture);
             RenderWorldData renderData = m_worldDataManager[texture];
             
             // Note that the subsector triangulator is supposed to realize when

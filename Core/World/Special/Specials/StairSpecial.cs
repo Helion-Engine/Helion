@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Helion.Util;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
@@ -8,12 +8,12 @@ namespace Helion.World.Special.Specials
 {
     public class StairSpecial : SectorMoveSpecial
     {
-        private int m_stairHeight;
-        private int m_stairDelayTics;
-        private int m_stairDelay;
+        private readonly int m_stairHeight;
+        private readonly int m_stairDelay;
+        private readonly double m_startZ;
+        private readonly List<Sector> m_sectors = new List<Sector>();
         private int m_destroyCount;
-        private double m_startZ;
-        private List<Sector> m_sectors = new List<Sector>();
+        private int m_stairDelayTics;
 
         public StairSpecial(PhysicsManager physicsManager, Sector sector, double speed, int height, int delay, bool crush) : 
             base(physicsManager, sector, 0, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
@@ -27,7 +27,7 @@ namespace Helion.World.Special.Specials
             do
             {
                 m_sectors.Add(nextSector);
-                nextSector = GetNextSector(nextSector, Sector.Floor.Texture);
+                nextSector = GetNextSector(nextSector, Sector.Floor.TextureHandle);
             }
             while (nextSector != null);
 
@@ -68,8 +68,8 @@ namespace Helion.World.Special.Specials
 
         private static Sector? GetNextSector(Sector start, int floorpic)
         {
-            foreach (var line in start.Lines)
-                if (line.Back != null && line.Front.Sector == start && line.Back.Sector.Floor.Texture == floorpic)
+            foreach (Line line in start.Lines)
+                if (line.Back != null && line.Front.Sector == start && line.Back.Sector.Floor.TextureHandle == floorpic)
                     return line.Back.Sector;
 
             return null;

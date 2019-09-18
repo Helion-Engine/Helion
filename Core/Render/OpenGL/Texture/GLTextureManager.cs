@@ -134,14 +134,20 @@ namespace Helion.Render.OpenGL.Texture
             return true;
         }
 
-        public GLTextureType GetTexture(int index)
+        public GLTextureType GetTexture(int index, CIString? name)
         {
             var texture = TextureManager.Instance.GetTexture(index);
 
             if (texture.RenderStore != null)
                 return (GLTextureType)texture.RenderStore;
 
-            texture.RenderStore = CreateTexture(texture.Image);
+            if (texture.Image == null)
+            {
+                texture.RenderStore = CreateTexture(texture.Image); 
+                return (GLTextureType)texture.RenderStore;
+            }
+            
+            texture.RenderStore = CreateTexture(texture.Image, name, texture.Image.Metadata.Namespace);
             return (GLTextureType)texture.RenderStore;
         }
 
@@ -216,7 +222,7 @@ namespace Helion.Render.OpenGL.Texture
         }
 
         protected GLTextureType CreateTexture(Image? image) => CreateTexture(image, null, ResourceNamespace.Global);
-
+        
         protected GLTextureType CreateTexture(Image? image, CIString? name, ResourceNamespace resourceNamespace)
         { 
             if (name != null)

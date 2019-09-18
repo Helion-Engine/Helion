@@ -23,7 +23,7 @@ namespace Helion.Resources
         public ResourceNamespace Namespace;
 
         /// <summary>
-        /// Chached image of the texture.
+        /// Cached image of the texture.
         /// </summary>
         public Image? Image;
 

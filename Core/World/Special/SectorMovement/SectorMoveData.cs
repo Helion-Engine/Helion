@@ -1,6 +1,4 @@
-﻿using Helion.Util;
-
-namespace Helion.World.Special.SectorMovement
+﻿namespace Helion.World.Special.SectorMovement
 {
     public class SectorMoveData
     {
@@ -9,11 +7,11 @@ namespace Helion.World.Special.SectorMovement
         public readonly double Speed;
         public readonly int Delay;
         public readonly CrushData? Crush;
-        public readonly int? FloorChangeTexture;
-        public MoveDirection StartDirection;
+        public readonly int? FloorChangeTextureHandle;
+        public readonly MoveDirection StartDirection;
         
         public SectorMoveData(SectorMoveType moveType, MoveDirection startDirection, MoveRepetition repetition, 
-            double speed, int delay, CrushData? crush = null, int? floorChangeTexture = null)
+            double speed, int delay, CrushData? crush = null, int? floorChangeTextureHandle = null)
         {
             SectorMoveType = moveType;
             StartDirection = startDirection;
@@ -21,7 +19,7 @@ namespace Helion.World.Special.SectorMovement
             Speed = speed;
             Delay = delay;
             Crush = crush;
-            FloorChangeTexture = floorChangeTexture;
+            FloorChangeTextureHandle = floorChangeTextureHandle;
         }
     }
 }

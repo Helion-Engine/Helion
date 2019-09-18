@@ -8,12 +8,14 @@ namespace Helion.World.Geometry.Walls
         public readonly int Id;
         public readonly WallLocation Location;
         public Side Side { get; internal set; }
-        public int Texture;
+        public CIString Texture;
+        public int TextureHandle;
 
-        public Wall(int id, int texture, WallLocation location)
+        public Wall(int id, CIString textureName, int textureHandle, WallLocation location)
         {
             Id = id;
-            Texture = texture;
+            Texture = textureName;
+            TextureHandle = textureHandle;
             Location = location;
             
             // We are okay with things blowing up violently if someone forgets
