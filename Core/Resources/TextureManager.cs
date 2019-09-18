@@ -137,7 +137,7 @@ namespace Helion.Resources
             m_translations = new int[count];
 
             var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
-            var spriteNames = spriteEntries.Select(x => x.Path.Name.Substring(0, 4)).Distinct().ToList();
+            var spriteNames = spriteEntries.Where(x => x.Path.Name.Length > 3).Select(x => x.Path.Name.Substring(0, 4)).Distinct().ToList();
 
             InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
             InitAnimations();
