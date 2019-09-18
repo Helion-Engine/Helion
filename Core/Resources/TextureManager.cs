@@ -12,18 +12,14 @@ namespace Helion.Resources
     {
         private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly ArchiveCollection m_archiveCollection;
-
         private readonly Texture[] m_textures;
         private readonly int[] m_translations;
         private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new Dictionary<string, SpriteDefinition>();
-
         private List<Animation> m_animations = new List<Animation>();
         private int m_skyIndex;
 
         // TODO - Maybe TextureManager shouldn't be an instance class - this is just to get us started.
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public static TextureManager Instance { get; private set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        public static TextureManager Instance { get; private set; } = null!;
 
         public static void Init(ArchiveCollection archiveCollection)
         {
@@ -36,7 +32,7 @@ namespace Helion.Resources
         /// <param name="textures">List of texture indices to load.</param>
         public void LoadTextureImages(List<int> textures)
         { 
-            textures.ForEach(x => LoadTextureImage(x));
+            textures.ForEach(LoadTextureImage);
 
             foreach (var anim in m_animations)
             {

@@ -158,7 +158,10 @@ namespace Helion.Render.OpenGL.Texture
             if (spriteRotation != null)
             {
                 if (spriteRotation.Texture.RenderStore == null)
-                    spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, null, ResourceNamespace.Sprites);
+                {
+                    string name = spriteName + (char)frame + rotation;
+                    spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, name, ResourceNamespace.Sprites);
+                }
 
                 return spriteRotation;
             }
