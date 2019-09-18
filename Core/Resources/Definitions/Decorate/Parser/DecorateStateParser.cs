@@ -166,7 +166,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 if (!IsValidFrameLetter(frame))
                     throw MakeException($"Invalid actor frame letter: {frame} (ascii ordinal {(int)frame})");
                 
-                ActorFrame actorFrame = new ActorFrame(sprite, frame, ticks, properties, actionFunction);
+                ActorFrame actorFrame = new ActorFrame(sprite, frame - 'A', ticks, properties, actionFunction);
                 m_currentDefinition.States.Frames.Add(actorFrame);
                 m_frameIndex++;
             }

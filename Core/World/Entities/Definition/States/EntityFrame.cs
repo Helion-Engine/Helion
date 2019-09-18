@@ -7,15 +7,14 @@ namespace Helion.World.Entities.Definition.States
     public class EntityFrame
     {
         public readonly string Sprite;
-        public readonly char Frame;
+        public readonly int Frame;
         public readonly int Ticks;
         public readonly EntityFrameProperties Properties;
         public readonly Action<Entity>? ActionFunction;
-        public readonly string FullSpriteFrame;
         public int NextFrameIndex;
         public ActorStateBranch BranchType;
 
-        public EntityFrame(string sprite, char frame, int ticks, EntityFrameProperties properties,
+        public EntityFrame(string sprite, int frame, int ticks, EntityFrameProperties properties,
             Action<Entity>? actionFunction, int nextFrameIndex)
         {
             Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");
@@ -25,7 +24,6 @@ namespace Helion.World.Entities.Definition.States
             Ticks = ticks;
             Properties = properties;
             ActionFunction = actionFunction;
-            FullSpriteFrame = sprite + frame;
             NextFrameIndex = nextFrameIndex;
             BranchType = ActorStateBranch.None;
         }

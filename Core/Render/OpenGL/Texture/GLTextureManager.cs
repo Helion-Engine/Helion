@@ -10,7 +10,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Configuration;
-using Helion.Util.Container;
 using Helion.Util.Geometry;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
@@ -34,6 +33,7 @@ namespace Helion.Render.OpenGL.Texture
         /// cannot be found.
         /// </summary>
         public GLTextureType NullTexture { get; }
+        public SpriteRotation NullSpriteRotation { get; }
         
         /// <summary>
         /// The null font, intended to be used when a font cannot be found.
@@ -49,9 +49,17 @@ namespace Helion.Render.OpenGL.Texture
             Capabilities = capabilities;
             gl = functions;
             NullTexture = CreateNullTexture();
+            NullSpriteRotation = CreateNullSpriteRotation();
             NullFont = CreateNullFont();
         }
-        
+
+        private SpriteRotation CreateNullSpriteRotation()
+        {
+            SpriteRotation spriteFrame = new SpriteRotation(new Resources.Texture("NULL", ResourceNamespace.Sprites, 0), false);
+            spriteFrame.Texture.RenderStore = NullTexture;
+            return spriteFrame;
+        }
+
         ~GLTextureManager()
         {
             Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
@@ -133,8 +141,29 @@ namespace Helion.Render.OpenGL.Texture
             if (texture.RenderStore != null)
                 return (GLTextureType)texture.RenderStore;
 
-            texture.RenderStore = CreateTexture(texture.Image, texture.Name, texture.Namespace);
+            texture.RenderStore = CreateTexture(texture.Image);
             return (GLTextureType)texture.RenderStore;
+        }
+
+        /// <summary>
+        /// Get a sprite rotation.
+        /// </summary>
+        /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
+        /// <param name="frame">Sprite frame.</param>
+        /// <param name="rotation">Rotation.</param>
+        /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
+        public SpriteRotation GetSpriteRotation(string spriteName, int frame, int rotation)
+        {
+            SpriteRotation? spriteRotation = TextureManager.Instance.GetSpriteRotation(spriteName, frame, rotation);
+            if (spriteRotation != null)
+            {
+                if (spriteRotation.Texture.RenderStore == null)
+                    spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image);
+
+                return spriteRotation;
+            }
+
+            return NullSpriteRotation;
         }
 
         /// <summary>
@@ -182,18 +211,22 @@ namespace Helion.Render.OpenGL.Texture
             int smallerAxis = Math.Min(dimension.Width, dimension.Height);
             return (int)Math.Floor(Math.Log(smallerAxis, 2));
         }
-        
-        protected GLTextureType CreateTexture(Image? image, CIString name, ResourceNamespace resourceNamespace)
+
+        protected GLTextureType CreateTexture(Image? image) => CreateTexture(image, null, ResourceNamespace.Global);
+
+        protected GLTextureType CreateTexture(Image? image, CIString? name, ResourceNamespace resourceNamespace)
         { 
-            DeleteOldTextureIfAny(name, resourceNamespace);
+            if (name != null)
+                DeleteOldTextureIfAny(name, resourceNamespace);
 
             GLTextureType texture;
             if (image == null)
                 texture = NullTexture;
             else
-                texture = GenerateTexture(image, name, resourceNamespace);
+                texture = GenerateTexture(image, name == null ? string.Empty : name, resourceNamespace);
 
-            m_textureTracker.Insert(name, resourceNamespace, texture);
+            if (name != null)
+                m_textureTracker.Insert(name, resourceNamespace, texture);
 
             return texture;
         }

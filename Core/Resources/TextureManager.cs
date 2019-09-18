@@ -15,6 +15,7 @@ namespace Helion.Resources
 
         private readonly Texture[] m_textures;
         private readonly int[] m_translations;
+        private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new Dictionary<string, SpriteDefinition>();
 
         private List<Animation> m_animations = new List<Animation>();
         private int m_skyIndex;
@@ -97,6 +98,20 @@ namespace Helion.Resources
             return m_textures[m_translations[index]];
         }
 
+        /// <summary>
+        /// Get a sprite rotation.
+        /// </summary>
+        /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
+        /// <param name="frame">Sprite frame.</param>
+        /// <param name="rotation">Rotation.</param>
+        /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
+        public SpriteRotation? GetSpriteRotation(string spriteName, int frame, int rotation)
+        {
+            if (m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef))
+                return spriteDef.GetSpriteRotation(frame, rotation);
+            return null;
+        }
+
         public void Tick()
         {
             foreach (var anim in m_animations)
@@ -121,9 +136,22 @@ namespace Helion.Resources
             m_textures = new Texture[count];
             m_translations = new int[count];
 
+            var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
+            var spriteNames = spriteEntries.Select(x => x.Path.Name.Substring(0, 4)).Distinct().ToList();
+
             InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
             InitAnimations();
             InitSwitches();
+            InitSprites(spriteNames, spriteEntries);
+        }
+
+        private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
+        {
+            foreach (var spriteName in spriteNames)
+            {
+                var spriteDefEntries = spriteEntries.Where(x => x.Path.Name.StartsWith(spriteName)).ToList();
+                m_spriteDefinitions.Add(spriteName, new SpriteDefinition(spriteName, spriteDefEntries, m_imageRetriever));
+            }
         }
 
         private void InitSwitches()

@@ -1,18 +1,13 @@
-using System.Linq;
 using System.Numerics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
-using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
-using MoreLinq.Extensions;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
@@ -90,33 +85,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // three bits into the angle rotation between 0 - 7.
             return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
         }
-
-        private static string GetRotationSprite(string fullFrame, uint rotation)
-        {
-            Precondition(fullFrame.Length == 5, "The 'AAAA B' sprite/frame should be 5 letters long");
-
-            char frame = fullFrame[4];
-            switch (rotation)
-            {
-            case 0:
-                return fullFrame + '1';
-            case 1:
-            case 7:
-                return fullFrame + '2' + frame + '8';
-            case 2:
-            case 6:
-                return fullFrame + '3' + frame + '7';
-            case 3:
-            case 5:
-                return fullFrame + '4' + frame + '6';
-            case 4:
-                return fullFrame + '5';
-            }
-
-            Fail("Rotation sprite was somehow not between 0 - 7");
-            return fullFrame + rotation;
-        }
-        
+      
         private static short CalculateLightLevel(Entity entity, short sectorLightLevel)
         {
             if (entity.Flags.Bright || entity.Frame.Properties.Bright)
@@ -126,36 +95,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         
         private void PreloadAllTextures(WorldBase world)
         {
-            world.Entities.Select(entity => entity.Definition)
-                          .DistinctBy(def => def.Id)
-                          .SelectMany(def => def.States.Frames)
-                          .Select(frame => frame.FullSpriteFrame)
-                          .Distinct()
-                          .ForEach(LoadSprite);
-
-            void LoadSprite(string spriteFrame)
-            {
-                Precondition(spriteFrame.Length == 5, "Expected frame in the form of 'AAAA B', length was wrong");
-                
-                char frame = spriteFrame[4];
-                string[] allPossibleFrames =
-                {
-                    spriteFrame + '0', 
-                    spriteFrame + '1', 
-                    spriteFrame + '2', 
-                    spriteFrame + '3', 
-                    spriteFrame + '4', 
-                    spriteFrame + '5', 
-                    spriteFrame + '6', 
-                    spriteFrame + '7', 
-                    spriteFrame + '8',
-                    spriteFrame + '2' + frame + '8',
-                    spriteFrame + '3' + frame + '7',
-                    spriteFrame + '4' + frame + '6',
-                };
-                
-                allPossibleFrames.ForEach(sprite => m_textureManager.TryGetSprite(sprite, out _));
-            }
         }
 
         private bool ShouldNotDraw(Entity entity)
@@ -163,32 +102,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             return m_EntityDrawnTracker.HasDrawn(entity) || 
                    ReferenceEquals(m_cameraEntity, entity) ||
                    entity.Frame.Sprite == Constants.InvisibleSprite;
-        }
-
-        private (GLLegacyTexture, bool) FindSpriteTexture(Entity entity, uint rotation)
-        {
-            Precondition(rotation < 8, "Bad rotation index, rotation should be between 0 - 7.");
-
-            string fullFrame = entity.Frame.FullSpriteFrame;
-            
-            // We figure we'll run into the rotations the most, followed by the
-            // non-rotation, and then rarely the octet rotation form.
-            string rotationSprite = GetRotationSprite(fullFrame, rotation);
-            if (m_textureManager.TryGetSprite(rotationSprite, out GLLegacyTexture mirrorTexture))
-            {
-                // Rotations 0 - 4 are normal, and 5 - 7 are the A2A8, A3A7, and
-                // A4A6 rotations which we do need to mirror.
-                bool isMirror = rotation >= 5;
-                return (mirrorTexture, isMirror);                
-            }
-
-            if (m_textureManager.TryGetSprite(fullFrame + '0', out GLLegacyTexture? noRotationSprite))
-                return (noRotationSprite, false);
-            
-            if (m_textureManager.TryGetSprite(fullFrame + rotation, out GLLegacyTexture? octetSprite))
-                return (octetSprite, false);
-
-            return (m_textureManager.NullTexture, false);
         }
 
         private void AddSpriteQuad(in Vec2D vectorToEntity, in Vec3D entityCenterBottom, Entity entity, 
@@ -232,8 +145,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             uint rotation = CalculateRotation(viewAngle, entityAngle);
 
-            (GLLegacyTexture texture, bool mirror) = FindSpriteTexture(entity, rotation);
-            AddSpriteQuad(entityPos - position, centerBottom, entity, texture, mirror);
+            var spriteFrame = m_textureManager.GetSpriteRotation(entity.Frame.Sprite, entity.Frame.Frame, (int)rotation);
+            GLLegacyTexture texture = spriteFrame.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteFrame.Texture.RenderStore;
+
+            AddSpriteQuad(entityPos - position, centerBottom, entity, texture, spriteFrame.Mirror);
         }
     }
 }
