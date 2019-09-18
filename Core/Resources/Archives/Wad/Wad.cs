@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Helion.Resources.Archives.Entries;
@@ -16,6 +17,28 @@ namespace Helion.Resources.Archives
 
         public WadHeader Header;
         private readonly ByteReader m_byteReader;
+
+        private readonly Dictionary<CIString, ResourceNamespace> m_entryToNamespace = new Dictionary<CIString, ResourceNamespace>()
+        {
+            ["F_START"] = ResourceNamespace.Flats,
+            ["F_END"] = ResourceNamespace.Global,
+            ["FF_START"] = ResourceNamespace.Flats,
+            ["FF_END"] = ResourceNamespace.Global,
+            ["HI_START"] = ResourceNamespace.Textures,
+            ["HI_END"] = ResourceNamespace.Textures,
+            ["P_START"] = ResourceNamespace.Textures,
+            ["P_END"] = ResourceNamespace.Global,
+            ["PP_START"] = ResourceNamespace.Textures,
+            ["PP_END"] = ResourceNamespace.Global,
+            ["S_START"] = ResourceNamespace.Sprites,
+            ["S_END"] = ResourceNamespace.Global,
+            ["SS_START"] = ResourceNamespace.Sprites,
+            ["SS_END"] = ResourceNamespace.Global,
+            ["T_START"] = ResourceNamespace.Textures,
+            ["T_END"] = ResourceNamespace.Global,
+            ["TX_START"] = ResourceNamespace.Textures,
+            ["TX_END"] = ResourceNamespace.Global,
+        };
 
         public Wad(IEntryPath path) : base(path)
         {
@@ -58,13 +81,13 @@ namespace Helion.Resources.Archives
         }
 
         private void LoadWadEntries()
-        {
-            WadNamespaceTracker namespaceTracker = new WadNamespaceTracker();
-            
+        {           
             Header = ReadHeader();
 
             if (Header.DirectoryTableOffset + (Header.EntryCount * LumpTableEntryBytes) > m_byteReader.Length)
                 throw new HelionException("Lump entry table runs out of data");
+
+            ResourceNamespace currentNamespace = ResourceNamespace.Global;
 
             m_byteReader.Offset(Header.DirectoryTableOffset);
             for (int i = 0; i < Header.EntryCount; i++)
@@ -78,9 +101,15 @@ namespace Helion.Resources.Archives
                 if (offset + size > m_byteReader.Length)
                     throw new HelionException("Lump entry data location overflows");
 
-                namespaceTracker.UpdateIfNeeded(upperName);
+                bool isMarker = false;
+                if (m_entryToNamespace.TryGetValue(upperName, out ResourceNamespace resourceNamespace))
+                {
+                    isMarker = true;
+                    currentNamespace = resourceNamespace;  
+                }
+
                 WadEntryPath entryPath = new WadEntryPath(upperName);
-                Entries.Add(new WadEntry(this, offset, size, entryPath, namespaceTracker.Current));
+                Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace));
             }
         }
     }
