@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Maps;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -93,7 +94,7 @@ namespace Helion.World
 
             SpecialManager.Tick();
             SoundManager.Tick();
-            Resources.TextureManager.Instance.Tick();
+            TextureManager.Instance.Tick();
 
             Gametick++;
         }

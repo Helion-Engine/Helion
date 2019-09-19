@@ -535,13 +535,13 @@ namespace Helion.Maps.Specials.Vanilla
             case VanillaLineSpecialType.S1_LowerLiftRaise:
             case VanillaLineSpecialType.SR_LowerLiftRaise:
             case VanillaLineSpecialType.WR_LowerLiftRaise:
-                return VanillaConstants.LiftSlowSpeed;
+                return VanillaConstants.LiftFastSpeed;
 
             case VanillaLineSpecialType.WR_LowerLiftFastRaise:
             case VanillaLineSpecialType.W1_LowerLiftFastRaise:
             case VanillaLineSpecialType.S1_LowerLiftFastRaise:
             case VanillaLineSpecialType.SR_LowerLiftFastRaise:
-                return VanillaConstants.LiftFastSpeed;
+                return VanillaConstants.LiftTurboSpeed;
 
             case VanillaLineSpecialType.DR_OpenRedKeyClose:
             case VanillaLineSpecialType.DR_OpenBlueKeyClose:

@@ -7,8 +7,10 @@ namespace Helion.Maps.Specials.Vanilla
         public const byte SectorSlowSpeed = 8;
         public const byte SectorFastSpeed = 16;
 
-        public const byte LiftSlowSpeed = 32;
-        public const byte LiftFastSpeed = 64;
+        public const byte LiftSlowSpeed = 8;
+        public const byte LiftNormalSpeed = 16;
+        public const byte LiftFastSpeed = 32;
+        public const byte LiftTurboSpeed = 64;
 
         public const byte DoorSlowSpeed = 16;
         public const byte DoorFastSpeed = 64;
