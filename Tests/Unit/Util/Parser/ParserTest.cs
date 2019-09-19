@@ -23,6 +23,8 @@ namespace Helion.Test.Unit.Util.Parser
             sb.Append("\"hi").Append((char)127).Append('!').Append((char)0).Append((char)31).Append('"');
             ParserTestImpl parser = new ParserTestImpl(sb.ToString());
 
+            Assert.IsTrue(parser.Peek(TokenType.QuotedString));
+            
             string s = parser.ConsumeString();
             Assert.AreEqual("hi!", s);
             Assert.AreEqual(3, s.Length);
