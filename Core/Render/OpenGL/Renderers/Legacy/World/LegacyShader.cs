@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 in float lightLevel;
 
                 out vec2 uvFrag;
-                out float lightLevelFrag;
+                flat out float lightLevelFrag;
 
                 uniform mat4 mvp;
 
@@ -42,7 +42,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 #version 130
 
                 in vec2 uvFrag;
-                in float lightLevelFrag;
+                flat in float lightLevelFrag;
 
                 out vec4 fragColor;
 

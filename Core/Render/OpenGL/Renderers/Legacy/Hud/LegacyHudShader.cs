@@ -28,9 +28,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 in float alpha;
 
                 out vec2 uvFrag;
-                out vec4 rgbMixFrag;
-                out vec4 rgbMultiplierFrag;   
-                out float alphaFrag;
+                flat out vec4 rgbMixFrag;
+                flat out vec4 rgbMultiplierFrag;   
+                flat out float alphaFrag;
 
                 uniform mat4 mvp;
 
@@ -48,9 +48,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 #version 130
 
                 in vec2 uvFrag;
-                in vec4 rgbMixFrag;
-                in vec4 rgbMultiplierFrag;   
-                in float alphaFrag;
+                flat in vec4 rgbMixFrag;
+                flat in vec4 rgbMultiplierFrag;   
+                flat in float alphaFrag;
 
                 out vec4 fragColor;
 
