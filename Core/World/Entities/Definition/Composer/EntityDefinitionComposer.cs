@@ -3,7 +3,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Util;
 using Helion.Util.Container;
-using MoreLinq;
 using NLog;
 
 namespace Helion.World.Entities.Definition.Composer
@@ -39,6 +38,30 @@ namespace Helion.World.Entities.Definition.Composer
         public EntityDefinition? this[CIString name] => GetByName(name);
         public EntityDefinition? this[int editorId] => GetByID(editorId);
 
+        private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
+        {
+            // This entire function is needed to support Skip_Super. Thanks
+            // ZDoom! In short, skip super is designed to ignore its parent
+            // flags/properties, but keep its states. To do this, we create
+            // a list of actors and then only take the elements onwards from
+            // the latest actor that has Skip_Super on it (or if none have it,
+            // then we have the entire list to apply as per normal).
+            //
+            // The state applier will take care of the states for us in another
+            // function, while we take care of the property/flag stuff here to
+            // accomodate this very annoying 'feature'.
+            List<ActorDefinition> parentsToApply = new List<ActorDefinition>();
+            foreach (ActorDefinition parent in parents)
+            {
+                if (parent.FlagProperties.SkipSuper ?? false)
+                    parentsToApply.Clear();
+                
+                parentsToApply.Add(parent);
+            }
+            
+            parentsToApply.ForEach(parent => ApplyActorFlagsAndProperties(definition, parent));
+        }
+        
         private static void ApplyActorFlagsAndProperties(EntityDefinition definition, ActorDefinition actorDefinition)
         {
             DefinitionFlagApplier.Apply(definition, actorDefinition.Flags, actorDefinition.FlagProperties);
@@ -114,10 +137,7 @@ namespace Helion.World.Entities.Definition.Composer
             int id = m_indexTracker.Next();
             EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber);
 
-            // While we can apply properties and flags sequentially without
-            // remembering what came before it, that is not the case for the
-            // states.
-            definitions.ForEach(actorDef => ApplyActorFlagsAndProperties(definition, actorDef));
+            ApplyFlagsAndPropertiesFrom(definition, definitions);
             DefinitionStateApplier.Apply(definition, definitions);
 
             // TODO: Check if well formed after everything was added.
