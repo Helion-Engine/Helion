@@ -91,7 +91,7 @@ namespace Helion.Render.Shared.Drawers
             Stack<(ColoredString msg, float alpha)> msgs = new Stack<(ColoredString, float)>();
             foreach (ConsoleMessage msg in console.Messages)
             {
-                if (messagesDrawn >= MaxHudMessages || msg.TimeNanos < world.CreationTimeNanos)
+                if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, world, console))
                     break;
 
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
@@ -108,6 +108,11 @@ namespace Helion.Render.Shared.Drawers
                             pair.alpha, out Dimension drawArea);
                 offsetY += drawArea.Height + MessageSpacing;
             });
+        }
+
+        private static bool MessageTooOldToDraw(in ConsoleMessage msg, WorldBase world, HelionConsole console)
+        {
+            return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }
 
         private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker, DrawHelper helper)

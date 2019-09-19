@@ -4,6 +4,7 @@ using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Time;
 using MoreLinq;
 using TextCopy;
 
@@ -53,6 +54,7 @@ namespace Helion.Layer
         protected override void PerformDispose()
         {
             m_console.ClearInputText();
+            m_console.LastClosedNanos = Ticker.NanoTime();
             
             base.PerformDispose();
         }

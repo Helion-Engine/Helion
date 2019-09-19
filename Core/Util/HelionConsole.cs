@@ -51,6 +51,18 @@ namespace Helion.Util
         public readonly LinkedList<ConsoleMessage> Messages = new LinkedList<ConsoleMessage>();
 
         /// <summary>
+        /// The clock epoch in nanoseconds when this was last closed.
+        /// </summary>
+        /// <remarks>
+        /// This is set by other viewers as a marker when it was last closed.
+        /// We need this because we don't want console messages that were just
+        /// viewed in a console renderer to appear in the messages area on the
+        /// screen. This should be set with something like Ticker.NanoTime()
+        /// when the console is closed from a viewer.
+        /// </remarks>
+        public long LastClosedNanos;
+
+        /// <summary>
         /// Gets the current input.
         /// </summary>
         /// <remarks>
