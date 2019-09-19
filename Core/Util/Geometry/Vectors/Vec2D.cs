@@ -11,6 +11,9 @@ namespace Helion.Util.Geometry.Vectors
         public double X;
         public double Y;
 
+        public double U => X;
+        public double V => Y;
+
         public Vec2D(double x, double y)
         {
             X = x;

@@ -9,6 +9,9 @@ namespace Helion.Util.Geometry.Vectors
         public Fixed X;
         public Fixed Y;
 
+        public Fixed U => X;
+        public Fixed V => Y;
+        
         public Vec2Fixed(Fixed x, Fixed y)
         {
             X = x;
