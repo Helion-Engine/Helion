@@ -160,7 +160,8 @@ namespace Helion.World.Geometry.Builder
                 LineFlags flags = new LineFlags(doomLine.Flags);
                 SpecialArgs specialArgs = new SpecialArgs();
                 ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, (byte)doomLine.SectorTag, specialArgs);
-                LineSpecial special = new LineSpecial(zdoomType);
+                LineActivationType activationType = VanillaLineSpecTranslator.GetLineTagActivation(doomLine.LineType);
+                LineSpecial special = new LineSpecial(zdoomType, activationType);
                 
                 Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);

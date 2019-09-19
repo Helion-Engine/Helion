@@ -509,9 +509,9 @@ namespace Helion.World.Special
 
         private List<Sector> GetSectorsFromSpecialLine(Line line)
         {
-            if (line.HasSectorTag)
+            if (line.Special.CanActivateByTag && line.HasSectorTag)
                 return m_world.Sectors.Where(x => x.Tag == line.SectorTag).ToList();
-            if (line.Back != null)
+            else if (line.Special.CanActivateByBackSide && line.Back != null)
                 return new List<Sector> { line.Back.Sector };
 
             return new List<Sector>();
