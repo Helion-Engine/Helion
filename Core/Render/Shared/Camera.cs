@@ -2,7 +2,6 @@
 using System.Numerics;
 using GlmSharp;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -63,8 +62,8 @@ namespace Helion.Render.Shared
         /// to that range.</param>
         public Camera(Vector3 position, float yawRadians, float pitchRadians)
         {
-            Precondition(yawRadians >= 0.0f && yawRadians < MathHelper.TwoPi, $"Out of range yaw, should be in [0, 2*pi), got {yawRadians}");
-            Precondition(pitchRadians > -MathHelper.HalfPi && pitchRadians < MathHelper.TwoPi, $"Out of range pitch, should be in (-pi/2, pi/2), got {pitchRadians}");
+            Precondition(yawRadians >= 0.0f && yawRadians < MathHelper.TwoPi, "Out of range yaw, should be in [0, 2*pi)");
+            Precondition(pitchRadians > -MathHelper.HalfPi && pitchRadians < MathHelper.TwoPi, "Out of range pitch, should be in (-pi/2, pi/2)");
             
             Position = position;
             YawRadians = ClampYaw(yawRadians);

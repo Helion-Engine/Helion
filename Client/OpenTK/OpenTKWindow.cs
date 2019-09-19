@@ -48,7 +48,7 @@ namespace Helion.Client.OpenTK
 
         ~OpenTKWindow()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             Dispose(false);
         }
         

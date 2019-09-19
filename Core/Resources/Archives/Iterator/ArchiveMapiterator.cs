@@ -124,7 +124,7 @@ namespace Helion.Resources.Archives.Iterator
             if (MapEntryLookup.ContainsKey(entryName))
                 MapEntryLookup[entryName].SetValue(m_currentMap, entry.ReadData());
             else
-                Fail($"Unexpected map entry name: {entry.Path.Name}");         
+                Fail("Unexpected map entry name (not a map entry)");         
         }
     }
 }

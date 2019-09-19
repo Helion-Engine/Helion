@@ -129,11 +129,11 @@ namespace Helion.Bsp.Geometry
 
         private (int endingIndex, bool wasDoubleEnded) RemoveTerminalChain(int index)
         {
-            Precondition(m_vertexAdjacencyList.ContainsKey(index), $"Vertex index {index} was somehow not indexed");
+            Precondition(m_vertexAdjacencyList.ContainsKey(index), "Vertex index was somehow not indexed");
             Precondition(m_vertexAdjacencyList[index].Count == 1, "Trying to remove a non-terminal chain");
 
             List<int> adjacentIndices = m_vertexAdjacencyList[index];
-            Invariant(adjacentIndices[0] != index, $"Terminal chain has a self-reference for index {index}");
+            Invariant(adjacentIndices[0] != index, "Terminal chain has a self-referenced index");
 
             return RemoveTerminalChainIteratively(index, adjacentIndices[0]);
         }

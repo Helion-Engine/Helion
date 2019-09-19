@@ -29,7 +29,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
 
         ~LegacySkyRenderer()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
         

@@ -13,7 +13,7 @@ namespace Helion.Render.OpenGL.Vertex.IntegralAttribute
         public override void Enable(IGLFunctions gl, int stride, int offset)
         {
             Precondition(stride >= ByteLength(), "Stride is smaller than the length of the VAO element");
-            Precondition(offset >= 0 && offset < stride, $"Offset relative to stride is wrong: offset = {offset}, stride = {stride}");
+            Precondition(offset >= 0 && offset < stride, "Offset relative to stride is wrong");
 
             gl.VertexAttribIPointer(Index, Size, GetAttributeType(), stride, offset);
             gl.EnableVertexAttribArray(Index);

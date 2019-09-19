@@ -61,7 +61,7 @@ namespace Helion.Graphics.Palette
 
         private static Color[] PaletteLayerFrom(Span<byte> data)
         {
-            Precondition(data.Length == BytesPerLayer, $"Palette byte span range incorrect: {data.Length}");
+            Precondition(data.Length == BytesPerLayer, "Palette byte span range incorrect");
 
             Color[] paletteColors = new Color[NumColors];
 

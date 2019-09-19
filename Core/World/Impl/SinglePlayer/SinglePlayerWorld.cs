@@ -43,7 +43,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         ~SinglePlayerWorld()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             PerformDispose();
         }
 

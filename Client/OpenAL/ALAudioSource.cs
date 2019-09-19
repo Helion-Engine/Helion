@@ -25,7 +25,7 @@ namespace Helion.Client.OpenAL
 
         ~ALAudioSource()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             PerformDispose();
         }
         

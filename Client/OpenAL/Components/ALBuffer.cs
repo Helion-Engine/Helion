@@ -18,7 +18,7 @@ namespace Helion.Client.OpenAL.Components
 
         ~ALBuffer()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
         

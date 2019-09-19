@@ -50,7 +50,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
         ~LegacyHudRenderer()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
 

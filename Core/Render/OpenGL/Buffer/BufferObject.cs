@@ -85,7 +85,7 @@ namespace Helion.Render.OpenGL.Buffer
 
         ~BufferObject()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
 

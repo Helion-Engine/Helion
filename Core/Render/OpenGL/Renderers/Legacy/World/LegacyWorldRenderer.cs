@@ -53,7 +53,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         ~LegacyWorldRenderer()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
 

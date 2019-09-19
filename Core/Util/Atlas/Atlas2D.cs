@@ -29,7 +29,7 @@ namespace Helion.Util.Atlas
         /// </param>
         public Atlas2D(Dimension initialDimension, int? maxSize = null)
         {
-            Precondition(initialDimension.Width > 0 && initialDimension.Height > 0, $"Bad atlas dimensions: {initialDimension}");
+            Precondition(initialDimension.Width > 0 && initialDimension.Height > 0, "Bad atlas dimensions");
             
             if (maxSize == null)
                 maxSize = Math.Min(initialDimension.Width, initialDimension.Height);
@@ -100,8 +100,8 @@ namespace Helion.Util.Atlas
         private Dimension FindSmallestAccomodatingDimension(Dimension dimension)
         {
             Precondition(dimension.Width > 0 || dimension.Height > 0, "Dimension for atlas cannot be negative or zero");
-            Precondition(dimension.Width < int.MaxValue / 2, $"Width of {dimension.Width} too large, risking integer overflow");
-            Precondition(dimension.Height < int.MaxValue / 2, $"Height of {dimension.Height} too large, risking integer overflow");
+            Precondition(dimension.Width < int.MaxValue / 2, "Width too large for atlas component, risking integer overflow");
+            Precondition(dimension.Height < int.MaxValue / 2, "Height too large for atlas component, risking integer overflow");
             
             // We either want to pick the doubled size of the current dimension
             // (in case we're having trouble adding something small) or the

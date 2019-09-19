@@ -50,7 +50,7 @@ namespace Helion.Bsp.States.Convex
 
             if (ReferenceEquals(segment, lastSeg))
             {
-                Fail($"Trying to add the same segment twice: {segment}");
+                Fail("Trying to add the same segment twice");
                 return false;
             }
 
@@ -68,7 +68,7 @@ namespace Helion.Bsp.States.Convex
             // match.
             if (segment.IndexFrom(endpoint) != lastSeg.OppositeIndex(lastEndpoint))
             {
-                Fail($"Expect a tail-to-head connection for: {lastSeg} -> {segment}");
+                Fail("Expect a tail-to-head connection");
                 return false;
             }
 

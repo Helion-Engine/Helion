@@ -62,7 +62,7 @@ namespace Helion.Render.OpenGL.Texture
 
         ~GLTextureManager()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             Dispose();
         }
         

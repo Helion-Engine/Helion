@@ -59,13 +59,13 @@ namespace Helion.Render.OpenGL
 
         ~GLRenderer()
         {
-            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
+            FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
 
         public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, float fovRadiansX)
         {
-            Precondition(fovRadiansX > 0 && fovRadiansX <= MathHelper.Pi, $"Field of view X radians are out of range: {fovRadiansX}");
+            Precondition(fovRadiansX > 0 && fovRadiansX <= MathHelper.Pi, "Field of view X radians are out of range, double rounding error?");
             
             float w = renderInfo.Viewport.Width;
             float h = renderInfo.Viewport.Height;

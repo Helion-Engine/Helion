@@ -17,6 +17,18 @@ namespace Helion.Util.Assertion
         {
             throw new AssertionException(reason);
         }
+        
+        /// <summary>
+        /// Should be called when a state should never be reached. Will not be
+        /// called in release mode.
+        /// </summary>
+        /// <param name="obj">The object that should have been disposed but was
+        /// not.</param>
+        [Conditional("DEBUG")]
+        public static void FailedToDispose(object obj)
+        {
+            Fail($"Forgot to dispose {obj.GetType().FullName}, finalizer run when it should not have");
+        }
 
         /// <summary>
         /// Checks for a precondition, throws if the precondition is false. 
