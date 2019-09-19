@@ -19,7 +19,7 @@ namespace Helion.World.Special.Specials
             base(physicsManager, sector, 0, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
         {
             m_stairHeight = height;
-            m_stairDelay = 35; 
+            m_stairDelay = delay; 
             m_startZ = Sector.Floor.Z;
 
             Sector? nextSector = sector;

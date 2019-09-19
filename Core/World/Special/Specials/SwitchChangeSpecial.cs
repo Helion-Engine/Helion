@@ -5,8 +5,8 @@ namespace Helion.World.Special.Specials
 {
     public class SwitchChangeSpecial : ISpecial
     {
-        private SwitchManager m_manager;
-        private Line m_line;
+        private readonly SwitchManager m_manager;
+        private readonly Line m_line;
         private bool m_repeat;
         private int m_switchDelayTics;
 

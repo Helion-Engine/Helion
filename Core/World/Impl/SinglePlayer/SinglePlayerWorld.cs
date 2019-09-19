@@ -161,11 +161,7 @@ namespace Helion.World.Impl.SinglePlayer
         private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)
         {
             if (e.ActivateLineSpecial != null)
-            {
-                var special = e.ActivateLineSpecial.Special;
-                if (SpecialManager.TryAddActivatedLineSpecial(e))
-                    Log.Debug($"Activate line special - line id[{e.ActivateLineSpecial.Id}] activation[{e.ActivationContext}] type[{special.LineSpecialType}] repeat[{e.ActivateLineSpecial.Flags.Repeat}]");
-            }
+                SpecialManager.TryAddActivatedLineSpecial(e);
         }
 
         private void PhysicsManager_PlayerUseFail(object? sender, Entity entity)
