@@ -1,5 +1,5 @@
-﻿using Helion.Util.Assertion;
-using Helion.Util.Geometry.Vectors;
+﻿using Helion.Util.Geometry.Vectors;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Planes
 {
@@ -13,7 +13,7 @@ namespace Helion.Util.Geometry.Planes
 
         public PlaneD(double a, double b, double c, double d)
         {
-            Assert.Precondition(!MathHelper.IsZero(c), "A plane cannot have a zero Z coefficient");
+            Precondition(!MathHelper.IsZero(c), "A plane cannot have a zero Z coefficient");
 
             A = a;
             B = b;
