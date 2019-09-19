@@ -63,14 +63,11 @@ namespace Helion.Render.OpenGL
             ReleaseUnmanagedResources();
         }
 
-        public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, float fovRadiansX)
+        public static mat4 CalculateMvpMatrix(RenderInfo renderInfo)
         {
-            Precondition(fovRadiansX > 0 && fovRadiansX <= MathHelper.Pi, "Field of view X radians are out of range, double rounding error?");
-            
             float w = renderInfo.Viewport.Width;
             float h = renderInfo.Viewport.Height;
-            float aspectRatio = w / h;
-            float fovY = Camera.FieldOfViewXToY(fovRadiansX, aspectRatio);
+            float fovY = (float)MathHelper.ToRadians(70);
             
             mat4 model = mat4.Identity;
             mat4 view = renderInfo.Camera.CalculateViewMatrix();

@@ -13,7 +13,6 @@ using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Bsp;
@@ -145,10 +144,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         
         private void SetUniforms(RenderInfo renderInfo)
         {
-            float fovX = (float)MathHelper.ToRadians(m_config.Engine.Render.FieldOfView);
-            
             m_shaderProgram.BoundTexture.Set(gl, 0);
-            m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, fovX));
+            m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
         }
         
         private void RenderWorldData(RenderInfo renderInfo)

@@ -8,7 +8,6 @@ using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;
 
@@ -64,8 +63,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         {
             m_geometryShaderProgram.Bind();
 
-            float fovX = (float)MathHelper.ToRadians(m_config.Engine.Render.FieldOfView);
-            m_geometryShaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, fovX));
+            m_geometryShaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
             
             m_geometryVbo.UploadIfNeeded();
             
