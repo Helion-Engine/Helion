@@ -100,6 +100,7 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(line => line.GetStart()).Returns(startVertex);
             mock.Setup(line => line.GetStart()).Returns(endVertex);
             mock.Setup(line => line.GetFront()).Returns(m_sides[sideId]);
+            mock.Setup(line => line.OneSided).Returns(true);
 
             m_lines.Add(mock.Object);
             
@@ -129,6 +130,7 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(line => line.GetStart()).Returns(endVertex);
             mock.Setup(line => line.GetFront()).Returns(m_sides[frontSideId]);
             mock.Setup(line => line.GetBack()).Returns(m_sides[backSideId]);
+            mock.Setup(line => line.OneSided).Returns(false);
 
             m_lines.Add(mock.Object);
             
