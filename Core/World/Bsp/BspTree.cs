@@ -65,6 +65,37 @@ namespace Helion.World.Bsp
         /// </remarks>
         public BspNodeCompact Root => Nodes[^1];
 
+        private BspTree(BspNode root, GeometryBuilder builder)
+        {
+            Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
+            
+            CreateComponents(root, builder);
+            
+            if (Subsectors.Length == 1)
+                HandleSingleSubsectorTree();
+        }
+
+        /// <summary>
+        /// Creates a BSP from the map provided. This can fail if the geometry
+        /// for the map is corrupt and we cannot make a BSP tree.
+        /// </summary>
+        /// <param name="map">The map to build the tree from.</param>
+        /// <param name="builder">The geometry builder for the map.</param>
+        /// <returns>A built BSP tree, or a null value if the geometry for the
+        /// map is corrupt beyond repair.</returns>
+        public static BspTree? Create(IMap map, GeometryBuilder builder)
+        {
+            BspBuilder bspBuilder = new BspBuilder(map);
+            BspNode? root = bspBuilder.Build();
+            if (root == null)
+            {
+                Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
+                return null;
+            }
+            
+            return new BspTree(root, builder);
+        }
+        
         /// <summary>
         /// Gets the subsector that maps onto the point provided.
         /// </summary>
@@ -104,34 +135,6 @@ namespace Helion.World.Bsp
         /// <param name="point">The point to get the sector for.</param>
         /// <returns>The sector for the provided point.</returns>
         public Sector ToSector(Vec3D point) => ToSubsector(point.To2D()).Sector;
-        
-        private BspTree(BspNode root, GeometryBuilder builder)
-        {
-            Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
-            
-            CreateComponents(root, builder);
-        }
-        
-        /// <summary>
-        /// Creates a BSP from the map provided. This can fail if the geometry
-        /// for the map is corrupt and we cannot make a BSP tree.
-        /// </summary>
-        /// <param name="map">The map to build the tree from.</param>
-        /// <param name="builder">The geometry builder for the map.</param>
-        /// <returns>A built BSP tree, or a null value if the geometry for the
-        /// map is corrupt beyond repair.</returns>
-        public static BspTree? Create(IMap map, GeometryBuilder builder)
-        {
-            BspBuilder bspBuilder = new BspBuilder(map);
-            BspNode? root = bspBuilder.Build();
-            if (root == null)
-            {
-                Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
-                return null;
-            }
-            
-            return new BspTree(root, builder);
-        }
         
         private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
         {
@@ -248,6 +251,21 @@ namespace Helion.World.Bsp
             Box2D leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
             Box2D rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
             return Box2D.Combine(leftBox, rightBox);
+        }
+        
+        private void HandleSingleSubsectorTree()
+        {
+            Subsector subsector = Subsectors[0];
+            var edge = subsector.ClockwiseEdges[0];
+            Seg2D splitter = new Seg2D(edge.Start, edge.End);
+            Box2D box = subsector.BoundingBox;
+            
+            // Because we want index 0 with the subsector bit set, this is just
+            // the subsector bit.
+            const uint subsectorIndex = BspNodeCompact.IsSubsectorBit;
+
+            BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, splitter, box);
+            Nodes = new[] { root };
         }
     }
 }
