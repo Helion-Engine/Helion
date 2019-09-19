@@ -145,13 +145,30 @@ namespace Helion.World.Entities
             
             m_world.Link(entity);
             
+            // More ZDoom compatibility.
+            if (entity.Flags.SpawnCeiling)
+            {
+                double ceilZ = entity.LowestCeilingZ;
+                entity.SetZ(ceilZ - entity.Height, false);
+            }
+            
             // Apparently things that are spawned without a specific Z value
             // are forced to their center sector floor Z, regardless of whether
             // or not their bounding box intersects geometry or things.
             if (forceToCenterZ)
             {
-                double floorZ = entity.Sector.ToFloorZ(entity.Position);
-                entity.SetZ(floorZ, false);
+                // This is a mixture of both ZDoom compatibility for ceilings
+                // and vanilla compatibility as seen in the above comment.
+                if (entity.Flags.SpawnCeiling)
+                {
+                    double ceilZ = entity.Sector.Ceiling.Z;
+                    entity.SetZ(ceilZ - entity.Height, false);
+                }
+                else
+                {
+                    double floorZ = entity.Sector.ToFloorZ(entity.Position);
+                    entity.SetZ(floorZ, false);   
+                }
             }
 
             entity.ResetInterpolation();
