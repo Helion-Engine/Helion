@@ -16,13 +16,22 @@ namespace Helion.World.Special
         public bool Active;
         private bool m_moveSpecial;
         private bool m_lightSpecial;
+        private LineActivationType m_lineActivationType;
 
-        public LineSpecial(ZDoomLineSpecialType type)
+        public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any)
+        {
+        }
+
+        public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType)
         {
             LineSpecialType = type;
+            m_lineActivationType = lineActivationType;
             m_moveSpecial = SetMoveSpecial();
             m_lightSpecial = SetLightSpecial();
         }
+
+        public bool CanActivateByTag => (m_lineActivationType & LineActivationType.Tag) != 0;
+        public bool CanActivateByBackSide => (m_lineActivationType & LineActivationType.BackSide) != 0;
 
         /// <summary>
         /// Returns true if the given entity can activate this special given the activation context.

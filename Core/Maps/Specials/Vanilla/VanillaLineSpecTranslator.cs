@@ -1,5 +1,6 @@
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
+using Helion.World.Special;
 
 namespace Helion.Maps.Specials.Vanilla
 {
@@ -312,6 +313,78 @@ namespace Helion.Maps.Specials.Vanilla
             }
 
             return ZDoomLineSpecialType.None;
+        }
+
+        public static LineActivationType GetLineTagActivation(VanillaLineSpecialType type)
+        {
+            switch (type)
+            {
+                case VanillaLineSpecialType.D1_OpenDoorStay:
+                case VanillaLineSpecialType.D1_OpenBlueKeyStay:
+                case VanillaLineSpecialType.D1_OpenRedKeyStay:
+                case VanillaLineSpecialType.D1_OpenYellowKeyStay:
+                case VanillaLineSpecialType.D1_OpenDoorFastStay:
+                case VanillaLineSpecialType.DR_DoorOpenClose:
+                case VanillaLineSpecialType.DR_OpenBlueKeyClose:
+                case VanillaLineSpecialType.DR_OpenYellowKeyClose:
+                case VanillaLineSpecialType.DR_OpenRedKeyClose:
+                case VanillaLineSpecialType.DR_OpenDoorFastClose:
+                    return LineActivationType.BackSide;
+
+                case VanillaLineSpecialType.S1_RaiseStairs8:
+                case VanillaLineSpecialType.S1_Donut:
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
+                case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigher:
+                case VanillaLineSpecialType.S1_LowerLiftRaise:
+                case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.S1_OpenDoorClose:
+                case VanillaLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.S1_CloseDoor:
+                case VanillaLineSpecialType.S1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_OpenDoorStay:
+                case VanillaLineSpecialType.S1_OpenDoorFastClose:
+                case VanillaLineSpecialType.S1_OpenDoorFastStay:
+                case VanillaLineSpecialType.S1_CloseDoorFast:
+                case VanillaLineSpecialType.S1_LowerLiftFastRaise:
+                case VanillaLineSpecialType.S1_RaiseStairsFast:
+                case VanillaLineSpecialType.S1_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.S1_OpenBlueKeyFastStay:
+                case VanillaLineSpecialType.S1_OpenRedKeyFastStay:
+                case VanillaLineSpecialType.S1_OpenYellowKeyFastStay:
+                case VanillaLineSpecialType.S1_RaiseFloor512:
+                case VanillaLineSpecialType.SR_CloseDoor:
+                case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.SR_OpenDoorStay:
+                case VanillaLineSpecialType.SR_LowerLiftRaise:
+                case VanillaLineSpecialType.SR_OpenDoorClose:
+                case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
+                case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_OpenBlueKeyFastStay:
+                case VanillaLineSpecialType.SR_OpenDoorFastClose:
+                case VanillaLineSpecialType.SR_OpenDoorFastStay:
+                case VanillaLineSpecialType.SR_CloseDoorFast:
+                case VanillaLineSpecialType.SR_LowerLiftFastRaise:
+                case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
+                case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
+                case VanillaLineSpecialType.SR_LightOnMaxBrightness:
+                case VanillaLineSpecialType.SR_LightOffMinBrightness:
+                    return LineActivationType.Tag;
+            }
+
+            return LineActivationType.Any;
         }
 
         private static byte GetDoorKey(VanillaLineSpecialType type)
