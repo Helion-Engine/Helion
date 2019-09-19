@@ -72,7 +72,6 @@ namespace Helion.World.Geometry.Builder
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
-            Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
             Sector facingSector = builder.Sectors[facingSide.Sector.Id];
 
             string middleTexture = facingSide.MiddleTexture;

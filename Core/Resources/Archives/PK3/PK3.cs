@@ -44,7 +44,7 @@ namespace Helion.Resources.Archives
 
         public byte[] ReadData(PK3Entry entry)
         {
-            Postcondition(entry.Parent == this, "Bad entry parent");
+            Invariant(entry.Parent == this, "Bad entry parent");
             
             using (var stream = entry.ZipEntry.Open())
             {

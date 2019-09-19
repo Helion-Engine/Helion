@@ -86,7 +86,6 @@ namespace Helion.World.Geometry.Builder
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
-            Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
             Sector sector = builder.Sectors[doomSide.Sector.Id];
             int handle = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures).Index;
 
