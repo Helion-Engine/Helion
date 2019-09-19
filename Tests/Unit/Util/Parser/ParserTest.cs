@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Helion.Util.Parser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +14,18 @@ namespace Helion.Test.Unit.Util.Parser
             ParserTestImpl parser = new ParserTestImpl("hello");
             parser.Parse("test");
             Assert.AreEqual(1, parser.PerformParsingInvocations);
+        }
+        
+        [TestMethod]
+        public void NoBadCharactersAllowedInStrings()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("\"hi").Append((char)127).Append('!').Append((char)0).Append((char)31).Append('"');
+            ParserTestImpl parser = new ParserTestImpl(sb.ToString());
+
+            string s = parser.ConsumeString();
+            Assert.AreEqual("hi!", s);
+            Assert.AreEqual(3, s.Length);
         }
 
         [TestMethod]
