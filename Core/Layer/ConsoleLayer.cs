@@ -1,8 +1,11 @@
+using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Util;
+using Helion.Util.Extensions;
 using MoreLinq;
+using TextCopy;
 
 namespace Helion.Layer
 {
@@ -30,6 +33,9 @@ namespace Helion.Layer
             
             if (consumableInput.ConsumeKeyPressed(InputKey.Enter))
                 m_console.SubmitInputText();
+
+            if (ConsumeControlV(consumableInput))
+                AddClipboardToConsole();
             
             consumableInput.ConsumeAll();
             
@@ -49,6 +55,29 @@ namespace Helion.Layer
             m_console.ClearInputText();
             
             base.PerformDispose();
+        }
+        
+        private static bool ConsumeControlV(ConsumableInput consumableInput)
+        {
+            // MacOS is going to have problems with this probably!
+            bool ctrl = consumableInput.ConsumeKeyPressedOrDown(InputKey.ControlLeft) ||
+                        consumableInput.ConsumeKeyPressedOrDown(InputKey.ControlRight);
+            bool v = consumableInput.ConsumeKeyPressed(InputKey.V);
+            return ctrl && v;
+        }
+        
+        private void AddClipboardToConsole()
+        {
+            string text = Clipboard.GetText();
+
+            if (text.Contains('\n'))
+                text = text.Split('\n').First();
+
+            text = text.Trim();
+            if (text.Empty())
+                return;
+            
+            m_console.AddInput(text);
         }
     }
 }
