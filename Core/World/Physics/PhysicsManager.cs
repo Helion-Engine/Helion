@@ -14,6 +14,7 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using NLog;
@@ -440,9 +441,12 @@ namespace Helion.World.Physics
             //       few examples where O(n) beats O(1) due to how small n is.
             //       Plus we also do a foreach over the hash set, which has
             //       performance issues we can resolve as well by fixing this.
-            Sector centerSector = m_bspTree.ToSector(entity.Position);
+            //Sector centerSector = m_bspTree.ToSector(entity.Position);
+            Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position.To2D());
+            Sector centerSector = centerSubsector.Sector;
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
             HashSet<Entity> entities = new HashSet<Entity>();
+            HashSet<Subsector> subsectors = new HashSet<Subsector> { centerSubsector };
             
             // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
@@ -451,10 +455,15 @@ namespace Helion.World.Physics
             entity.Sector = centerSector;
             entity.IntersectSectors = sectors.ToList();
             entity.IntersectEntities = entities.ToList();
+            entity.IntersectSubsectors = subsectors.ToList();
 
             if (!entity.Flags.NoSector && !entity.NoClip)
+            {
                 for (int i = 0; i < entity.IntersectSectors.Count; i++)
                     entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
+                for (int i = 0; i < entity.IntersectSubsectors.Count; i++)
+                    entity.SubsectorNodes.Add(entity.IntersectSubsectors[i].Link(entity));
+            }
 
             GridIterationStatus EntitySectorOverlapFinder(Block block)
             {
@@ -470,6 +479,10 @@ namespace Helion.World.Physics
                                 entity.IntersectSpecialLines.Add(line);
                         }
 
+                        // TODO: Do we want to use a List<> instead of HashSet<>? Avoid the `foreach` for a `for`.
+                        foreach (Subsector subsector in line.Subsectors)
+                            subsectors.Add(subsector);
+                        
                         sectors.Add(line.Front.Sector);
                         if (line.Back != null)
                             sectors.Add(line.Back.Sector);

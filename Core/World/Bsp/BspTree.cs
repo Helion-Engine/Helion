@@ -14,6 +14,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -182,7 +183,8 @@ namespace Helion.World.Bsp
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
             
             Sector sector = GetSectorFrom(node, builder);
-            Subsectors[m_nextSubsectorIndex] = new Subsector((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
+            Subsector subsector = new Subsector((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
+            Subsectors[m_nextSubsectorIndex] = subsector;
 
             return BspCreateResult.Subsector(m_nextSubsectorIndex++);
         }
@@ -266,6 +268,28 @@ namespace Helion.World.Bsp
 
             BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, splitter, box);
             Nodes = new[] { root };
+        }
+
+        public void ConnectSubsectorsToSectors()
+        {
+            Subsectors.ForEach(subsector => subsector.Sector.Subsectors.Add(subsector));
+        }
+
+        public void ConnectSubsectorsToSidesAndLines()
+        {
+            foreach (Subsector subsector in Subsectors)
+            {
+                foreach (SubsectorSegment seg in subsector.ClockwiseEdges)
+                {
+                    if (seg.Side == null)
+                        continue;
+
+                    seg.Side.Subsectors.Add(subsector);
+                    seg.Side.SubsectorSegments.Add(seg);
+                    seg.Side.Line.Subsectors.Add(subsector);
+                    seg.Side.Line.SubsectorSegments.Add(seg);
+                }
+            }
         }
     }
 }

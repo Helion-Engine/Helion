@@ -1,7 +1,8 @@
-using Helion.Util.Geometry;
+using System.Collections.Generic;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 
 namespace Helion.World.Geometry.Sides
@@ -12,6 +13,8 @@ namespace Helion.World.Geometry.Sides
         public readonly int MapId;
         public readonly Sector Sector;
         public readonly Wall Middle;
+        public readonly HashSet<Subsector> Subsectors = new HashSet<Subsector>();
+        public readonly HashSet<SubsectorSegment> SubsectorSegments = new HashSet<SubsectorSegment>();
         public Vec2I Offset;
         public Line Line { get; internal set; }
         public Wall[] Walls { get; protected set; }

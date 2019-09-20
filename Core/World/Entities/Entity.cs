@@ -12,6 +12,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
 using NLog;
@@ -19,6 +20,8 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities
 {
+    // TODO: When the optimized renderer becomes a thing, we can remove subsector stuff (perf boost!)
+    
     /// <summary>
     /// An actor in a world.
     /// </summary>
@@ -49,10 +52,12 @@ namespace Helion.World.Entities
         public List<Line> IntersectSpecialLines = new List<Line>();
         public List<Entity> IntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
+        public List<Subsector> IntersectSubsectors = new List<Subsector>();
         public Entity? OnEntity;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
+        protected internal List<LinkableNode<Entity>> SubsectorNodes = new List<LinkableNode<Entity>>();
         protected readonly EntityManager EntityManager;
         protected readonly SoundManager SoundManager;
         protected int FrameIndex;
@@ -177,6 +182,10 @@ namespace Helion.World.Entities
                 SectorNodes[i].Unlink();
             SectorNodes.Clear();
             
+            for (int i = 0; i < SubsectorNodes.Count; i++)
+                SubsectorNodes[i].Unlink();
+            SubsectorNodes.Clear();
+            
             for (int i = 0; i < BlockmapNodes.Count; i++)
                 BlockmapNodes[i].Unlink();
             BlockmapNodes.Clear();
@@ -188,6 +197,7 @@ namespace Helion.World.Entities
             IntersectSpecialLines.Clear();
             IntersectEntities.Clear();
             IntersectSectors.Clear();
+            IntersectSubsectors.Clear();
         }
 
         /// <summary>
