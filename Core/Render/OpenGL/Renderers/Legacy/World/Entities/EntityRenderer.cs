@@ -47,7 +47,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             m_SectorDrawnTracker.Reset();
         }
 
-        public void RenderSubsector(Subsector subsector, in Vec2D position)
+        public void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
         {
             Sector sector = subsector.Sector;
             
@@ -60,7 +60,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 if (ShouldNotDraw(entity))
                     continue;
 
-                RenderEntity(entity, position);
+                RenderEntity(entity, position, viewDirection);
                 m_EntityDrawnTracker.MarkDrawn(entity);
             }
             
@@ -105,12 +105,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                    entity.Frame.Sprite == Constants.InvisibleSprite;
         }
 
-        private void AddSpriteQuad(in Vec2D vectorToEntity, in Vec3D entityCenterBottom, Entity entity, 
+        private void AddSpriteQuad(in Vec2D viewDirection, in Vec3D entityCenterBottom, Entity entity, 
             GLLegacyTexture texture, bool mirror)
         {
             // We need to find the perpendicular vector from the entity so we
             // know where to place the quad vertices.
-            Vector2 rightNormal = vectorToEntity.OriginRightRotate90().Unit().ToFloat();
+            Vector2 rightNormal = viewDirection.OriginRightRotate90().Unit().ToFloat();
 
             Vector2 entityCenterXY = entityCenterBottom.To2D().ToFloat();
             Vector2 halfWidth = rightNormal * texture.Dimension.Width / 2;
@@ -137,7 +137,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             renderWorldData.Vbo.Add(bottomRight);
         }
 
-        private void RenderEntity(Entity entity, in Vec2D position)
+        private void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
         {
             Vec3D centerBottom = entity.Position.Interpolate(entity.PrevPosition, m_tickFraction);
             Vec2D entityPos = centerBottom.To2D();
@@ -149,7 +149,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             var spriteFrame = m_textureManager.GetSpriteRotation(entity.Frame.Sprite, entity.Frame.Frame, (int)rotation);
             GLLegacyTexture texture = spriteFrame.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteFrame.Texture.RenderStore;
 
-            AddSpriteQuad(entityPos - position, centerBottom, entity, texture, spriteFrame.Mirror);
+            AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteFrame.Mirror);
         }
     }
 }
