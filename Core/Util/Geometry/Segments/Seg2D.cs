@@ -128,21 +128,6 @@ namespace Helion.Util.Geometry.Segments
             }
         }
 
-        /// <summary>
-        /// Checks if the segments are collinear to each other.
-        /// </summary>
-        /// <param name="seg">The segment to check.</param>
-        /// <param name="epsilon">The optional epsilon for comparisons.</param>
-        /// <returns>True if collinear, false if not.</returns>
-        public bool Collinear(Seg2DBase seg, double epsilon = 0.000001)
-        {
-            // If the midpoint of the provided segment is on the current segment
-            // line, it's reasonably collinear.
-            Vec2D midpoint = (seg.Start + seg.End) / 2;
-            Vec2D expectedMidpoint = FromTime(ToTime(midpoint));
-            return midpoint.EqualTo(expectedMidpoint, epsilon);
-        }
-        
         private static Box2D MakeBox(Vec2D start, Vec2D end)
         {
             return new Box2D(

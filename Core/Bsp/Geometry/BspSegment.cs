@@ -133,8 +133,8 @@ namespace Helion.Bsp.Geometry
         public override string ToString()
         {
             if (Line is ILine line)
-                return $"({Start}) -> ({End}) [line={line?.Id}, oneSided={OneSided} miniseg={IsMiniseg}]";
-            return $"({Start}) -> ({End}) [oneSided={OneSided} miniseg={IsMiniseg}]";
+                return $"({Start}) -> ({End}) [line={line?.Id}, oneSided={OneSided} miniseg={IsMiniseg} collinearIndex={CollinearIndex}]";
+            return $"({Start}) -> ({End}) [oneSided={OneSided} miniseg={IsMiniseg} collinearIndex={CollinearIndex}]";
         }
     }
 }

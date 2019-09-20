@@ -103,7 +103,11 @@ namespace Helion.Bsp.Geometry
 
         private void DiscoverTerminalChains()
         {
-            MoreEnumerable.ForEach(m_vertexAdjacencyList.Where(intToListPair => intToListPair.Value.Count == 1), intToListPair => m_terminalChainTails.Add(intToListPair.Key));
+            // This is a very annoying workaround for the library's resolution
+            // issues. Is there not a way to make it 'just work' the normal way
+            // at all?
+            MoreEnumerable.ForEach(m_vertexAdjacencyList.Where(intToListPair => intToListPair.Value.Count == 1), 
+                intToListPair => m_terminalChainTails.Add(intToListPair.Key));
         }
 
         private void RemoveAllTerminalChains()

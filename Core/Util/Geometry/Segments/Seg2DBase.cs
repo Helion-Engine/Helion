@@ -194,6 +194,16 @@ namespace Helion.Util.Geometry.Segments
         }
 
         /// <summary>
+        /// Checks if the segments are collinear to each other.
+        /// </summary>
+        /// <param name="seg">The segment to check.</param>
+        /// <returns>True if collinear, false if not.</returns>
+        public bool Collinear(Seg2DBase seg)
+        {
+            return CollinearHelper(seg.Start, Start, End) && CollinearHelper(seg.End, Start, End);
+        }
+
+        /// <summary>
         /// Gets the closest distance from the point provided to this segment.
         /// </summary>
         /// <param name="point">The point to evaluate.</param>
@@ -326,5 +336,13 @@ namespace Helion.Util.Geometry.Segments
 
         /// <inheritdoc/>
         public override string ToString() => $"({Start}), ({End})";
+        
+        private static bool CollinearHelper(in Vec2D first, in Vec2D second, in Vec2D third)
+        {
+            double determinant = (first.X * (second.Y - third.Y)) + 
+                                 (second.X * (third.Y - first.Y)) + 
+                                 (third.X * (first.Y - second.Y));
+            return MathHelper.IsZero(determinant);
+        }
     }
 }

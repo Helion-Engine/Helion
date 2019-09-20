@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry
 {
@@ -43,6 +41,15 @@ namespace Helion.Bsp.Geometry
         {
             m_slopeInterceptToIndex = new QuantizedGrid<int>(epsilon);            
         }
+        
+        private static double CalculatePointIndependentSlope(in Vec2D start, in Vec2D end)
+        {
+            // We want to always evaluate in one direction. This way if we swap
+            // start with end at all, then we will always get the same slope.
+            if (start.X < end.X)
+                return (end.Y - start.Y) / (end.X - start.X);
+            return (start.Y - end.Y) / (start.X - end.X);
+        }
 
         /// <summary>
         /// Either gets an existing index for the values provided, or will
@@ -53,13 +60,11 @@ namespace Helion.Bsp.Geometry
         /// <returns>The index for the slope/intercept combo.</returns>
         public int GetOrCreateIndex(Vec2D start, Vec2D end)
         {
-            Vec2D delta = end - start;
-
-            if (delta.X == 0)
+            if (start.X == end.X)
                 return LookupVerticalIndex(start.X);
-            if (delta.Y == 0)
+            if (start.Y == end.Y)
                 return LookupHorizontalIndex(start.Y);
-            return LookupSlopeIndex(start, delta);
+            return LookupSlopeIndex(start, end);
         }
 
         private int LookupVerticalIndex(double x)
@@ -82,17 +87,14 @@ namespace Helion.Bsp.Geometry
             return newIndex;
         }
 
-        private int LookupSlopeIndex(Vec2D start, Vec2D delta)
+        private int LookupSlopeIndex(in Vec2D start, in Vec2D end)
         {
-            Precondition(delta.X != 0 && delta.Y != 0, "Trying to look up a slope for a vertical/horizontal line");
-            
             // These are just y = mx + b. However we do the abs of the slope as
             // we want both directions to map onto the same index.
-            double m = delta.Y / delta.X;
+            double m = CalculatePointIndependentSlope(start, end);
             double yIntercept = start.Y - (m * start.X);
-            double absSlope = Math.Abs(m);
             
-            int index = m_slopeInterceptToIndex.GetExistingOrAdd(absSlope, yIntercept, m_nextAvailableIndex);
+            int index = m_slopeInterceptToIndex.GetExistingOrAdd(m, yIntercept, m_nextAvailableIndex);
             if (index == m_nextAvailableIndex)
                 m_nextAvailableIndex++;
 
