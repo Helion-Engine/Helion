@@ -30,6 +30,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
         
         /// <param name="vertices">Sky vertices.</param>
         void Add(SkyGeometryVertex[] vertices);
+
         /// <summary>
         /// Renders the world geometry. It is assumed the stencil buffer can be
         /// written to and will be with this invocation.

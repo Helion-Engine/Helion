@@ -44,13 +44,13 @@ namespace Helion.World.Special.Switches
 
                 if (side.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.TextureHandle))
                 {
-                    side.Middle.TextureHandle = animSwitch.GetOpposingTexture(side.Middle.TextureHandle); ;
+                    side.Middle.TextureHandle = animSwitch.GetOpposingTexture(side.Middle.TextureHandle);
                     break;
                 }
 
                 if (side.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.TextureHandle))
                 {
-                    side.Lower.TextureHandle = animSwitch.GetOpposingTexture(side.Lower.TextureHandle); ;
+                    side.Lower.TextureHandle = animSwitch.GetOpposingTexture(side.Lower.TextureHandle);
                     break;
                 }
             }
