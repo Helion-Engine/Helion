@@ -12,19 +12,17 @@ namespace Helion.World.Geometry.Sectors
         public PlaneD? Plane;
         public double Z;
         public double PrevZ;
-        public CIString Texture;
         public int TextureHandle;
         public short LightLevel;
 
         public bool Sloped => Plane != null;
 
-        public SectorPlane(int id, SectorPlaneFace facing, double z, CIString texture, int textureHandle, short lightLevel)
+        public SectorPlane(int id, SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
         {
             Id = id;
             Facing = facing;
             Z = z;
             PrevZ = z;
-            Texture = texture;
             TextureHandle = textureHandle;
             LightLevel = lightLevel;
 
