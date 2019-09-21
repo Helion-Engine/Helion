@@ -137,14 +137,11 @@ namespace Helion.Resources
         /// Get a sprite rotation.
         /// </summary>
         /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
-        /// <param name="frame">Sprite frame.</param>
-        /// <param name="rotation">Rotation.</param>
-        /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
-        public SpriteRotation? GetSpriteRotation(string spriteName, int frame, int rotation)
+        /// <returns>Returns a SpriteDefinition if found by sprite name. Otherwise null.</returns>
+        public SpriteDefinition? GetSpriteDefinition(string spriteName)
         {
-            if (m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef))
-                return spriteDef.GetSpriteRotation(frame, rotation);
-            return null;
+            m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef);
+            return spriteDef;
         }
 
         public void Tick()
