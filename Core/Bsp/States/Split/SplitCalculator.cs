@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
-using Helion.Maps.Components;
 using Helion.Util;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
@@ -12,54 +11,49 @@ namespace Helion.Bsp.States.Split
 {
     public class SplitCalculator
     {
-        private const int NoNodeIndex = -1;
-        
         public SplitterStates States { get; private set; } = new SplitterStates();
         private readonly BspConfig m_bspConfig;
         private readonly CollinearTracker m_collinearTracker;
-        private readonly SplitDecisionHelper m_splitHelper;
-        private bool m_checkedSplitHelper;
-        private int m_nodeIndex = NoNodeIndex;
         private BitArray m_seenCollinear = new BitArray(0);
 
-        public SplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker, SplitDecisionHelper splitHelper)
+        public SplitCalculator(BspConfig bspConfig, CollinearTracker collinearTracker)
         {
             m_bspConfig = bspConfig;
             m_collinearTracker = collinearTracker;
-            m_splitHelper = splitHelper;
         }
         
-        public void Load(List<BspSegment> segments, int? nodeIndex)
+        public void Load(List<BspSegment> segments)
         {
             Precondition(segments.Count > 0, "Cannot do BSP split calculations on an empty segment list");
 
             States = new SplitterStates { Segments = segments };
             m_seenCollinear = new BitArray(m_collinearTracker.Count);
-            m_checkedSplitHelper = false;
-            m_nodeIndex = nodeIndex ?? NoNodeIndex;
         }
 
-        public void Execute(out INode? node)
+        public void Execute()
         {
             Precondition(States.State != SplitterState.Finished, "Trying to run a split checker when finished");
             Precondition(States.CurrentSegmentIndex < States.Segments.Count, "Out of range split calculator segment index");
-            node = null;
-            
-            if (!m_checkedSplitHelper)
+            BspSegment splitter = States.Segments[States.CurrentSegmentIndex];
+
+            if (!m_seenCollinear.Get(splitter.CollinearIndex))
             {
-                m_checkedSplitHelper = true;
-                
-                BspSegment? bestSplitter = m_splitHelper.FindSplitter(m_nodeIndex, States.Segments, out node);
-                if (bestSplitter != null)
+                States.CurrentSegScore = CalculateScore(splitter);
+
+                if (States.CurrentSegScore < States.BestSegScore)
                 {
-                    States.BestSplitter = bestSplitter;
-                    States.BestSegScore = 0;
-                    States.State = SplitterState.Finished;
-                    return;
+                    Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
+                    States.BestSegScore = States.CurrentSegScore;
+                    States.BestSplitter = splitter;
                 }
+
+                m_seenCollinear.Set(splitter.CollinearIndex, true);
             }
 
-            SearchForBestSplitter();
+            States.CurrentSegmentIndex++;
+
+            bool hasSegmentsLeft = States.CurrentSegmentIndex < States.Segments.Count;
+            States.State = (hasSegmentsLeft ? SplitterState.Working : SplitterState.Finished);
         }
 
         private static double CalculateDistanceToNearestEndpoint(BspSegment segment, double tSegment)
@@ -98,31 +92,7 @@ namespace Helion.Bsp.States.Split
 
             return startSide == Rotation.Right;
         }
-
-        private void SearchForBestSplitter()
-        {
-            BspSegment splitter = States.Segments[States.CurrentSegmentIndex];
-
-            if (!m_seenCollinear.Get(splitter.CollinearIndex))
-            {
-                States.CurrentSegScore = CalculateScore(splitter);
-
-                if (States.CurrentSegScore < States.BestSegScore)
-                {
-                    Invariant(!splitter.IsMiniseg, "Should never be selecting a miniseg as a splitter");
-                    States.BestSegScore = States.CurrentSegScore;
-                    States.BestSplitter = splitter;
-                }
-
-                m_seenCollinear.Set(splitter.CollinearIndex, true);
-            }
-
-            States.CurrentSegmentIndex++;
-
-            bool hasSegmentsLeft = States.CurrentSegmentIndex < States.Segments.Count;
-            States.State = (hasSegmentsLeft ? SplitterState.Working : SplitterState.Finished);
-        }
-
+        
         private bool SplitOccursAtEndpoint(double distance)
         {
             return CheckEndpointEpsilon(distance, m_bspConfig.VertexWeldingEpsilon);

@@ -46,11 +46,9 @@ namespace Helion.Bsp
         private readonly BspConfig BspConfig;
         private readonly CollinearTracker m_collinearTracker;
         private readonly JunctionClassifier m_junctionClassifier;
-        private readonly SplitDecisionHelper m_splitDecisionHelper;
         private readonly BspNode m_root = new BspNode();
         private readonly Stack<WorkItem> m_workItems = new Stack<WorkItem>();
         private bool m_foundDegenerateNode;
-        private INode? m_currentMapNode;
 
         public bool Done => State == BspState.Complete;
         public WorkItem? CurrentWorkItem => m_workItems.TryPeek(out WorkItem? result) ? result : null;
@@ -64,18 +62,17 @@ namespace Helion.Bsp
             BspConfig = config;
             m_collinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
             m_junctionClassifier = new JunctionClassifier();
-            m_splitDecisionHelper = new SplitDecisionHelper(map);
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
             SegmentAllocator = new SegmentAllocator(VertexAllocator, m_collinearTracker);
             ConvexChecker = new ConvexChecker();
-            SplitCalculator = new SplitCalculator(config, m_collinearTracker, m_splitDecisionHelper);
+            SplitCalculator = new SplitCalculator(config, m_collinearTracker);
             Partitioner = new Partitioner(config, SegmentAllocator, m_junctionClassifier);
             MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, m_junctionClassifier);
 
             List<BspSegment> segments = ReadMapLines(map);
             m_junctionClassifier.Add(segments);
 
-            CreateInitialWorkItem(segments, map);
+            CreateInitialWorkItem(segments);
         }
 
         /// <summary>
@@ -194,13 +191,9 @@ namespace Helion.Bsp
             return prunedSegments;
         }
 
-        private void CreateInitialWorkItem(List<BspSegment> segments, IMap map)
+        private void CreateInitialWorkItem(List<BspSegment> segments)
         {
-            int? nodeIndex = null;
-            if (map.GetNodes().Count > 0)
-                nodeIndex = map.GetNodes().Count - 1;
-            
-            WorkItem workItem = new WorkItem(m_root, segments, nodeIndex);
+            WorkItem workItem = new WorkItem(m_root, segments);
             m_workItems.Push(workItem);
         }
         
@@ -247,7 +240,7 @@ namespace Helion.Bsp
 
             case ConvexState.FinishedIsSplittable:
                 WorkItem workItem = m_workItems.Peek();
-                SplitCalculator.Load(workItem.Segments, workItem.NodeIndex);
+                SplitCalculator.Load(workItem.Segments);
                 State = BspState.FindingSplitter;
                 break;
             }
@@ -275,7 +268,7 @@ namespace Helion.Bsp
             {
             case SplitterState.Loaded:
             case SplitterState.Working:
-                SplitCalculator.Execute(out m_currentMapNode);
+                SplitCalculator.Execute();
                 break;
 
             case SplitterState.Finished:
@@ -334,28 +327,20 @@ namespace Helion.Bsp
             rightSegs.AddRange(MinisegCreator.States.Minisegs);
             leftSegs.AddRange(MinisegCreator.States.Minisegs);
 
-            (int? leftNodeIndex, int? rightNodeIndex) = GetChildNodeIndicesIfPossible();
             string path = currentWorkItem.BranchPath;
 
             if (BspConfig.BranchRight)
             {
-                m_workItems.Push(new WorkItem(leftChild, leftSegs, leftNodeIndex, path + "L"));
-                m_workItems.Push(new WorkItem(rightChild, rightSegs, rightNodeIndex, path + "R"));
+                m_workItems.Push(new WorkItem(leftChild, leftSegs, path + "L"));
+                m_workItems.Push(new WorkItem(rightChild, rightSegs, path + "R"));
             }
             else
             {
-                m_workItems.Push(new WorkItem(rightChild, rightSegs, rightNodeIndex, path + "R"));
-                m_workItems.Push(new WorkItem(leftChild, leftSegs, leftNodeIndex, path + "L"));
+                m_workItems.Push(new WorkItem(rightChild, rightSegs, path + "R"));
+                m_workItems.Push(new WorkItem(leftChild, leftSegs, path + "L"));
             }
 
             LoadNextWorkItem();
-        }
-
-        private (int? leftChild, int? rightChild) GetChildNodeIndicesIfPossible()
-        {
-            if (m_currentMapNode == null)
-                return (null, null);
-            return ((int)m_currentMapNode.LeftChild, (int)m_currentMapNode.RightChild);
         }
     }
 }

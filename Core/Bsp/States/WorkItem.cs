@@ -25,31 +25,22 @@ namespace Helion.Bsp.States
         /// root node, it will be an empty string.
         /// </summary>
         public readonly string BranchPath;
-
-        /// <summary>
-        /// The index of the node in the nodes entry that this references, or
-        /// null if this should not be used.
-        /// </summary>
-        public readonly int? NodeIndex;
-
+        
         /// <summary>
         /// Creates a new work item that can be operated on in a BSP pass.
         /// </summary>
         /// <param name="node">The node to be operated on.</param>
         /// <param name="segments">The list of segments for this work item.
         /// </param>
-        /// <param name="nodeIndex">The index in the nodes entry, so the
-        /// splitter can be looked up in O(n) time instead of O(n^2).</param>
         /// <param name="branchPath">The path taken to get here. This should be
         /// upper case.</param>
-        public WorkItem(BspNode node, List<BspSegment> segments, int? nodeIndex = null, string branchPath = "")
+        public WorkItem(BspNode node, List<BspSegment> segments, string branchPath = "")
         {
             Precondition(segments.Count > 0, "Should never have zero segments for a work item");
             Precondition(branchPath == branchPath.ToUpper(), "Should be using upper case BSP branch paths");
             
             Node = node;
             Segments = segments;
-            NodeIndex = nodeIndex;
             BranchPath = branchPath;
         }
     }
