@@ -1,4 +1,3 @@
-using Helion.Util;
 using Helion.World.Geometry.Sides;
 
 namespace Helion.World.Geometry.Walls
@@ -8,13 +7,11 @@ namespace Helion.World.Geometry.Walls
         public readonly int Id;
         public readonly WallLocation Location;
         public Side Side { get; internal set; }
-        public CIString Texture;
         public int TextureHandle;
 
-        public Wall(int id, CIString textureName, int textureHandle, WallLocation location)
+        public Wall(int id, int textureHandle, WallLocation location)
         {
             Id = id;
-            Texture = textureName;
             TextureHandle = textureHandle;
             Location = location;
             

@@ -58,7 +58,7 @@ namespace Helion.World.Geometry.Builder
             string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
             int handle = TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index;
             
-            SectorPlane sectorPlane = new SectorPlane(id, face, z, texture, handle, doomSector.LightLevel);
+            SectorPlane sectorPlane = new SectorPlane(id, face, z, handle, doomSector.LightLevel);
             sectorPlanes.Add(sectorPlane);
             
             return sectorPlane;
@@ -86,11 +86,12 @@ namespace Helion.World.Geometry.Builder
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
+            Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
             Sector sector = builder.Sectors[doomSide.Sector.Id];
             int handle = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures).Index;
 
             // When we get to 3D floors we're going to have to fix this...
-            Wall wall = new Wall(builder.Walls.Count, doomSide.MiddleTexture, handle, WallLocation.Middle);
+            Wall wall = new Wall(builder.Walls.Count, handle, WallLocation.Middle);
             builder.Walls.Add(wall);
             
             Side front = new Side(nextSideId, doomSide.Id, doomSide.Offset, wall, sector);
@@ -115,9 +116,9 @@ namespace Helion.World.Geometry.Builder
             var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
             var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
             
-            Wall middle = new Wall(builder.Walls.Count, middleTexture.Name, middleTexture.Index, WallLocation.Middle);
-            Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Name, upperTexture.Index, WallLocation.Upper);
-            Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Name, lowerTexture.Index, WallLocation.Lower);
+            Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
+            Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
+            Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
             builder.Walls.Add(middle);
             builder.Walls.Add(upper);
             builder.Walls.Add(lower);
