@@ -21,6 +21,8 @@ namespace Helion.World.Special.Specials
 
         public SpecialTickStatus Tick()
         {
+            Sector.ActiveLightSpecial = this;
+
             if (m_delay > 0)
             {
                 m_delay--;
@@ -39,6 +41,11 @@ namespace Helion.World.Special.Specials
             }
 
             return SpecialTickStatus.Continue;
+        }
+
+        public void FinalizeDestroy()
+        {
+            Sector.ActiveLightSpecial = null;
         }
 
         public void Use()

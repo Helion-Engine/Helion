@@ -6,12 +6,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct LegacyVertex
     {
-        public readonly float X;
-        public readonly float Y;
-        public readonly float Z;
-        public readonly float U;
-        public readonly float V;
-        public readonly float LightLevelUnit;
+        public float X;
+        public float Y;
+        public float Z;
+        public float U;
+        public float V;
+        public float LightLevelUnit;
 
         public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel)
         {

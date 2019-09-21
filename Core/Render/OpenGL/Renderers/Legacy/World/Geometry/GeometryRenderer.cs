@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
@@ -33,7 +34,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly RenderWorldDataManager m_worldDataManager;
         private readonly LegacySkyRenderer m_skyRenderer;
         private double m_tickFraction;
-        
+
+        private List<LegacyVertex[]?> m_vertexLookup = new List<LegacyVertex[]?>();
+        private List<LegacyVertex[]?> m_vertexLowerLookup = new List<LegacyVertex[]?>();
+        private List<LegacyVertex[]?> m_vertexUpperLookup = new List<LegacyVertex[]?>();
+        private List<SkyGeometryVertex[]?> m_skyWallVertexLookup = new List<SkyGeometryVertex[]?>();
+        private List<LegacyVertex[]?> m_vertexFloorLookup = new List<LegacyVertex[]?>();
+        private List<LegacyVertex[]?> m_vertexCeilingLookup = new List<LegacyVertex[]?>();
+        private List<SkyGeometryVertex[]?> m_skyFloorVertexLookup = new List<SkyGeometryVertex[]?>();
+        private List<SkyGeometryVertex[]?> m_skyCeilingVertexLookup = new List<SkyGeometryVertex[]?>();
+
         public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
             RenderWorldDataManager worldDataManager)
@@ -43,10 +53,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_viewClipper = viewClipper;
             m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         }
-        
+
         ~GeometryRenderer()
         {
-            FailedToDispose(this);
+            Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
             ReleaseUnmanagedResources();
         }
 
@@ -56,8 +66,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             m_skyRenderer.Clear();
             m_lineDrawnTracker.UpdateToWorld(world);
             PreloadAllTextures(world);
+
+            m_vertexLookup.Clear();
+            m_vertexLowerLookup.Clear();
+            m_vertexUpperLookup.Clear();
+            m_skyWallVertexLookup.Clear();
+            m_skyFloorVertexLookup.Clear();
+            m_skyCeilingVertexLookup.Clear();
+            m_vertexFloorLookup.Clear();
+            m_vertexCeilingLookup.Clear();
+
+            for (int i = 0; i < world.Sides.Count; i++)
+            {
+                m_vertexLookup.Add(null);
+                m_vertexLowerLookup.Add(null);
+                m_vertexUpperLookup.Add(null);
+                m_skyWallVertexLookup.Add(null);
+                m_skyFloorVertexLookup.Add(null);
+                m_skyCeilingVertexLookup.Add(null);
+            }
+
+            for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
+            {
+                m_vertexFloorLookup.Add(null);
+                m_vertexCeilingLookup.Add(null);
+            }
         }
-        
+
         public void Clear(double tickFraction)
         {
             m_tickFraction = tickFraction;
@@ -73,9 +108,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         public void RenderSubsector(Subsector subsector, in Vec2D position)
         {
             RenderWalls(subsector, position);
-            RenderFlats(subsector);
+            RenderFlat(subsector, subsector.Sector.Floor, true);
+            RenderFlat(subsector, subsector.Sector.Ceiling, false);
         }
-        
+
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -133,31 +169,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderOneSided(Side side)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            Sector sector = side.Sector;
-            short lightLevel = sector.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
-            WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
-            
+            LegacyVertex[]? data = m_vertexLookup[side.Id];
+
+            if (side.Sector.IsMoving || data == null)
+            {
+                WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
+                data = GetWallVertices(ref wall, side.Sector.LightLevel / 256.0f);
+                m_vertexLookup[side.Id] = data;
+            }
+            else if (side.Sector.IsLighting)
+            {
+                SetLightToVertices(data, side.Sector.LightLevel / 256.0f);
+            }
+
             RenderWorldData renderData = m_worldDataManager[texture];
-            
-            // Our triangle is added like:
-            //    0--2
-            //    | /  3
-            //    |/  /|
-            //    1  / |
-            //      4--5
-            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+            renderData.Vbo.Add(data);
+        }
+
+        private void SetLightToVertices(LegacyVertex[] data, float lightLevel)
+        {
+            for (int i = 0; i < data.Length; i++)
+                data[i].LightLevelUnit = lightLevel;
         }
 
         private void RenderTwoSided(TwoSided facingSide, bool isFrontSide)
         {
-            TwoSided otherSide = facingSide.PartnerSide; 
+            TwoSided otherSide = facingSide.PartnerSide;
             Sector facingSector = facingSide.Sector;
             Sector otherSector = otherSide.Sector;
 
@@ -188,60 +226,133 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             SectorPlane plane = otherSide.Sector.Floor;
             bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
-            short lightLevel = facingSide.Sector.LightLevel;
             Wall lowerWall = facingSide.Lower;
 
-            GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
+            GLLegacyTexture texture;
+            if (lowerWall.TextureHandle == Constants.NoTextureIndex)
+                texture = m_textureManager.GetTexture(plane.TextureHandle);
+            else
+                texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
+
             RenderWorldData renderData = m_worldDataManager[texture];
-            
-            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse, 
-                isFrontSide, m_tickFraction);
-            
+
             if (isSky)
             {
-                m_skyRenderer.DefaultSky.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
-                m_skyRenderer.DefaultSky.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
+                SkyGeometryVertex[]? data = m_skyWallVertexLookup[facingSide.Id];
+
+                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                {
+                    WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
+                        isFrontSide, m_tickFraction);
+                    data = CreateSkyWallVertices(wall);
+                    m_skyWallVertexLookup[facingSide.Id] = data;
+                }
+
+                m_skyRenderer.DefaultSky.Add(data);
             }
             else
             {
+                LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
+
+                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                {
+                    WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
+                        isFrontSide, m_tickFraction);
+                    data = GetWallVertices(ref wall, facingSide.Sector.LightLevel / 256.0f);
+                    m_vertexLowerLookup[facingSide.Id] = data;
+                }
+                else if (facingSide.Sector.IsLighting)
+                {
+                    SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
+                }
+
                 // See RenderOneSided() for an ASCII image of why we do this.
-                // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-                renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+                renderData.Vbo.Add(data);
+            }
+        }
+
+        private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, bool isFrontSide)
+        {
+            // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
+
+            SectorPlane plane = otherSide.Sector.Ceiling;
+            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
+            Wall upperWall = facingSide.Upper;
+
+            GLLegacyTexture texture;
+            if (upperWall.TextureHandle == Constants.NoTextureIndex)
+                texture = m_textureManager.GetTexture(plane.TextureHandle);
+            else
+                texture = m_textureManager.GetTexture(upperWall.TextureHandle);
+
+            RenderWorldData renderData = m_worldDataManager[texture];
+
+            if (isSky)
+            {
+                SkyGeometryVertex[]? data = m_skyWallVertexLookup[facingSide.Id];
+
+                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                {
+                    WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
+                        isFrontSide, m_tickFraction);
+                    data = CreateSkyWallVertices(wall);
+                    m_skyWallVertexLookup[facingSide.Id] = data;
+                }
+
+                m_skyRenderer.DefaultSky.Add(data);
+            }
+            else
+            {
+                LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
+
+                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                {
+                    WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
+                        isFrontSide, m_tickFraction);
+                    data = GetWallVertices(ref wall, facingSide.Sector.LightLevel / 256.0f);
+                    m_vertexUpperLookup[facingSide.Id] = data;
+                }
+                else if (facingSide.Sector.IsLighting)
+                {
+                    SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
+                }
+
+                // See RenderOneSided() for an ASCII image of why we do this.
+                renderData.Vbo.Add(data);
             }
         }
 
         private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            
-            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
-            short lightLevel = facingSide.Sector.LightLevel;
             Wall middleWall = facingSide.Middle;
             GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
-            
-            WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide, 
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible);
-            
-            // If the texture can't be drawn because the level has offsets that
-            // are messed up (ex: offset causes it to be completely missing) we
-            // can exit early since nothing can be drawn.
-            if (nothingVisible)
-                return;
-            
+            LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
+
+            if (facingSide.Sector.IsMoving || data == null)
+            {
+                (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
+                WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide,
+                    texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible);
+
+                // If the texture can't be drawn because the level has offsets that
+                // are messed up (ex: offset causes it to be completely missing) we
+                // can exit early since nothing can be drawn.
+                if (nothingVisible)
+                    data = new LegacyVertex[0];
+                else
+                    data = GetWallVertices(ref wall, facingSide.Sector.LightLevel / 256.0f);
+
+                m_vertexLookup[facingSide.Id] = data;
+            }
+            else if (facingSide.Sector.IsLighting)
+            {
+                SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
+            }
+
             // See RenderOneSided() for an ASCII image of why we do this.
-            // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-            renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-            renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));
+            renderData.Vbo.Add(data);
         }
 
         private (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector)
@@ -266,83 +377,184 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             return (bottomZ, topZ);
         }
 
-        private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, bool isFrontSide)
-        {
-            // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            SectorPlane plane = otherSide.Sector.Ceiling;
-            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
-            short lightLevel = facingSide.Sector.LightLevel;
-            Wall upperWall = facingSide.Upper;
-
-            GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
-            RenderWorldData renderData = m_worldDataManager[texture];
-            
-            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse, 
-                isFrontSide, m_tickFraction);
-
-            if (isSky)
-            {
-                m_skyRenderer.DefaultSky.Add(wall.TopLeft, wall.BottomLeft, wall.TopRight);
-                m_skyRenderer.DefaultSky.Add(wall.TopRight, wall.BottomLeft, wall.BottomRight);
-            }
-            else
-            {
-                // See RenderOneSided() for an ASCII image of why we do this.
-                // TODO: Do some kind of stackalloc here to avoid calling it 6x.
-                renderData.Vbo.Add(new LegacyVertex(wall.TopLeft, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.TopRight, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.BottomLeft, lightLevel));
-                renderData.Vbo.Add(new LegacyVertex(wall.BottomRight, lightLevel));   
-            }
-        }
-
-        private void RenderFlats(Subsector subsector)
-        {
-            RenderFlat(subsector, subsector.Sector.Floor);
-            RenderFlat(subsector, subsector.Sector.Ceiling);
-        }
-
-        private void RenderFlat(Subsector subsector, SectorPlane flat)
+        private void RenderFlat(Subsector subsector, SectorPlane flat, bool floor)
         {
             // TODO: If we can't see it (dot product the plane) then exit.
             bool isSky = TextureManager.Instance.IsSkyTexture(flat.TextureHandle);
 
-            // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
-            short lightLevel = flat.LightLevel;
             GLLegacyTexture texture = m_textureManager.GetTexture(flat.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
-            
-            // Note that the subsector triangulator is supposed to realize when
-            // we're passing it a floor or ceiling and order the vertices for
-            // us such that it's always in counter-clockwise order.
-            WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
-
-            WorldVertex root = m_subsectorVertices[0];
 
             if (isSky)
             {
-                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Id] : m_skyCeilingVertexLookup[subsector.Id];
+
+                if (flat.Sector.IsMoving || data == null)
                 {
-                    WorldVertex second = m_subsectorVertices[i];
-                    WorldVertex third = m_subsectorVertices[i + 1];
-                    m_skyRenderer.DefaultSky.Add(root, second, third);
+                    // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
+                    // Note that the subsector triangulator is supposed to realize when
+                    // we're passing it a floor or ceiling and order the vertices for
+                    // us such that it's always in counter-clockwise order.
+                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
+                    WorldVertex root = m_subsectorVertices[0];
+                    List<SkyGeometryVertex> subData = new List<SkyGeometryVertex>();
+                    for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                    {
+                        WorldVertex second = m_subsectorVertices[i];
+                        WorldVertex third = m_subsectorVertices[i + 1];
+                        subData.AddRange(CreateSkyFlatVertices(ref root, ref second, ref third));
+                    }
+
+                    data = subData.ToArray();
+                    if (floor)
+                        m_skyFloorVertexLookup[subsector.Id] = data;
+                    else
+                        m_skyCeilingVertexLookup[subsector.Id] = data;
                 }
+
+                m_skyRenderer.DefaultSky.Add(data);
             }
             else
             {
-                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
-                {
-                    WorldVertex second = m_subsectorVertices[i];
-                    WorldVertex third = m_subsectorVertices[i + 1];
+                LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
 
-                    // TODO: Do some kind of stackalloc here to avoid calling it 3x.
-                    renderData.Vbo.Add(new LegacyVertex(root, lightLevel)); 
-                    renderData.Vbo.Add(new LegacyVertex(second, lightLevel));
-                    renderData.Vbo.Add(new LegacyVertex(third, lightLevel));
-                }   
+                if (flat.Sector.IsMoving || data == null)
+                {
+                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
+                    WorldVertex root = m_subsectorVertices[0];
+                    List<LegacyVertex> subData = new List<LegacyVertex>();
+                    for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                    {
+                        WorldVertex second = m_subsectorVertices[i];
+                        WorldVertex third = m_subsectorVertices[i + 1];
+                        subData.AddRange(GetFlatVertices(ref root, ref second, ref third, flat.LightLevel / 256.0f));
+                    }
+
+                    data = subData.ToArray();
+                    if (floor)
+                        m_vertexFloorLookup[subsector.Id] = data;
+                    else
+                        m_vertexCeilingLookup[subsector.Id] = data;
+                }
+                else if (flat.Sector.IsLighting)
+                {
+                    SetLightToVertices(data, flat.Sector.LightLevel / 256.0f);
+                }
+
+                renderData.Vbo.Add(data);
             }
+        }
+
+        private SkyGeometryVertex[] CreateSkyWallVertices(WallVertices wall)
+        {
+            SkyGeometryVertex[] data = new SkyGeometryVertex[6];
+            data[0] = new SkyGeometryVertex(wall.TopLeft.X, wall.TopLeft.Y, wall.TopLeft.Z);
+            data[1] = new SkyGeometryVertex(wall.BottomLeft.X, wall.BottomLeft.Y, wall.BottomLeft.Z);
+            data[2] = new SkyGeometryVertex(wall.TopRight.X, wall.TopRight.Y, wall.TopRight.Z);
+            data[3] = new SkyGeometryVertex(wall.TopRight.X, wall.TopRight.Y, wall.TopRight.Z);
+            data[4] = new SkyGeometryVertex(wall.BottomLeft.X, wall.BottomLeft.Y, wall.BottomLeft.Z);
+            data[5] = new SkyGeometryVertex(wall.BottomRight.X, wall.BottomRight.Y, wall.BottomRight.Z);
+            return data;
+        }
+
+        private SkyGeometryVertex[] CreateSkyFlatVertices(ref WorldVertex root, ref WorldVertex second, ref WorldVertex third)
+        {
+            SkyGeometryVertex[] data = new SkyGeometryVertex[3];
+            data[0].X = root.X;
+            data[0].Y = root.Y;
+            data[0].Z = root.Z;
+
+            data[1].X = second.X;
+            data[1].Y = second.Y;
+            data[1].Z = second.Z;
+
+            data[2].X = third.X;
+            data[2].Y = third.Y;
+            data[2].Z = third.Z;
+
+            return data;
+        }
+
+        private LegacyVertex[] GetWallVertices(ref WallVertices wv, float lightLevel)
+        {
+            LegacyVertex[] data = new LegacyVertex[6];
+            // Our triangle is added like:
+            //    0--2
+            //    | /  3
+            //    |/  /|
+            //    1  / |
+            //      4--5
+            data[0].LightLevelUnit = lightLevel;
+            data[0].X = wv.TopLeft.X;
+            data[0].Y = wv.TopLeft.Y;
+            data[0].Z = wv.TopLeft.Z;
+            data[0].U = wv.TopLeft.U;
+            data[0].V = wv.TopLeft.V;
+
+            data[1].LightLevelUnit = lightLevel;
+            data[1].X = wv.BottomLeft.X;
+            data[1].Y = wv.BottomLeft.Y;
+            data[1].Z = wv.BottomLeft.Z;
+            data[1].U = wv.BottomLeft.U;
+            data[1].V = wv.BottomLeft.V;
+
+            data[2].LightLevelUnit = lightLevel;
+            data[2].X = wv.TopRight.X;
+            data[2].Y = wv.TopRight.Y;
+            data[2].Z = wv.TopRight.Z;
+            data[2].U = wv.TopRight.U;
+            data[2].V = wv.TopRight.V;
+
+            data[3].LightLevelUnit = lightLevel;
+            data[3].X = wv.TopRight.X;
+            data[3].Y = wv.TopRight.Y;
+            data[3].Z = wv.TopRight.Z;
+            data[3].U = wv.TopRight.U;
+            data[3].V = wv.TopRight.V;
+
+            data[4].LightLevelUnit = lightLevel;
+            data[4].X = wv.BottomLeft.X;
+            data[4].Y = wv.BottomLeft.Y;
+            data[4].Z = wv.BottomLeft.Z;
+            data[4].U = wv.BottomLeft.U;
+            data[4].V = wv.BottomLeft.V;
+
+            data[5].LightLevelUnit = lightLevel;
+            data[5].X = wv.BottomRight.X;
+            data[5].Y = wv.BottomRight.Y;
+            data[5].Z = wv.BottomRight.Z;
+            data[5].U = wv.BottomRight.U;
+            data[5].V = wv.BottomRight.V;
+
+            return data;
+        }
+
+        private LegacyVertex[] GetFlatVertices(ref WorldVertex root, ref WorldVertex second, ref WorldVertex third, float lightLevel)
+        {
+            LegacyVertex[] data = new LegacyVertex[3];
+
+            data[0].LightLevelUnit = lightLevel;
+            data[0].X = root.X;
+            data[0].Y = root.Y;
+            data[0].Z = root.Z;
+            data[0].U = root.U;
+            data[0].V = root.V;
+
+            data[1].LightLevelUnit = lightLevel;
+            data[1].X = second.X;
+            data[1].Y = second.Y;
+            data[1].Z = second.Z;
+            data[1].U = second.U;
+            data[1].V = second.V;
+
+            data[2].LightLevelUnit = lightLevel;
+            data[2].X = third.X;
+            data[2].Y = third.Y;
+            data[2].Z = third.Z;
+            data[2].U = third.U;
+            data[2].V = third.V;
+
+            return data;
         }
 
         private void ReleaseUnmanagedResources()

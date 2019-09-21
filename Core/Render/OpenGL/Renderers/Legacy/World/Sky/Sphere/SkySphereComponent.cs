@@ -51,12 +51,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             m_geometryVbo.Clear();
         }
 
-        public void Add(WorldVertex first, WorldVertex second, WorldVertex third)
+        public void Add(SkyGeometryVertex[] vertices)
         {
             // TODO: Do some kind of triangle addition instead of one by one.
-            m_geometryVbo.Add(new SkyGeometryVertex(first));
-            m_geometryVbo.Add(new SkyGeometryVertex(second));
-            m_geometryVbo.Add(new SkyGeometryVertex(third));
+            m_geometryVbo.Add(vertices);
         }
 
         public void RenderWorldGeometry(RenderInfo renderInfo)

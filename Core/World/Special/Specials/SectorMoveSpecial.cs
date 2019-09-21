@@ -68,7 +68,6 @@ namespace Helion.World.Special.Specials
                         Sector.Floor.Texture = TextureManager.Instance.GetTextureName(handle);
                     }
 
-                    Sector.ActiveMoveSpecial = null;
                     return SpecialTickStatus.Destroy;
                 }
 
@@ -76,12 +75,15 @@ namespace Helion.World.Special.Specials
             }
 
             if (IsDelayReturn && SectorPlane.Z == m_startZ)
-            {
-                Sector.ActiveMoveSpecial = null;
                 return SpecialTickStatus.Destroy;
-            }
 
             return SpecialTickStatus.Continue;
+        }
+
+        public void FinalizeDestroy()
+        {
+            SectorPlane.PrevZ = SectorPlane.Z;
+            Sector.ActiveMoveSpecial = null;
         }
 
         public virtual void Use()

@@ -6,9 +6,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct SkyGeometryVertex
     {
-        public readonly float X;
-        public readonly float Y;
-        public readonly float Z;
+        public float X;
+        public float Y;
+        public float Z;
 
         public SkyGeometryVertex(float x, float y, float z)
         {

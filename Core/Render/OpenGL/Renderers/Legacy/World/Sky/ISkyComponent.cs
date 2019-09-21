@@ -1,4 +1,5 @@
 using System;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
 
@@ -26,11 +27,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
         /// Adds the triangle in the world where a sky should be drawn. This
         /// should be counter-clockwise.
         /// </summary>
-        /// <param name="first">The first vertex.</param>
-        /// <param name="second">The second vertex.</param>
-        /// <param name="third">The third vertex.</param>
-        void Add(WorldVertex first, WorldVertex second, WorldVertex third);
         
+        /// <param name="vertices">Sky vertices.</param>
+        void Add(SkyGeometryVertex[] vertices);
         /// <summary>
         /// Renders the world geometry. It is assumed the stencil buffer can be
         /// written to and will be with this invocation.

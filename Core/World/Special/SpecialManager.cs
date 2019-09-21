@@ -71,13 +71,10 @@ namespace Helion.World.Special
         {
             if (m_destroyedMoveSpecials.Count > 0)
             {
-                foreach (ISectorSpecial special in m_destroyedMoveSpecials)
-                {
-                    // TODO: Encapsulate in a 'reset interpolation' function?
-                    // As we need to also update the Plane (if present) as well.
-                    special.Sector.Floor.PrevZ = special.Sector.Floor.Z;
-                    special.Sector.Ceiling.PrevZ = special.Sector.Ceiling.Z;
-                }
+                // TODO: Encapsulate in a 'reset interpolation' function?
+                // As we need to also update the Plane (if present) as well.
+                for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
+                    m_destroyedMoveSpecials[i].FinalizeDestroy();
 
                 m_destroyedMoveSpecials.Clear();
             }
