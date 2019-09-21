@@ -62,7 +62,7 @@ namespace Helion.World.Special
 
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
         {
-            sector.Floor.Texture = line.Front.Sector.Floor.Texture;
+            sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, 
                 new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
@@ -475,7 +475,7 @@ namespace Helion.World.Special
         {
             // TODO clear sector special when implemented
             double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
-            sector.Floor.Texture = line.Front.Sector.Floor.Texture;
+            sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
 
             SectorMoveData moveData = new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
             return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, moveData);

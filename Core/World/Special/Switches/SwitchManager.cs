@@ -29,11 +29,7 @@ namespace Helion.World.Special.Switches
             var switchList = m_definition.Animdefs.AnimatedSwitches;
             AnimatedSwitch? animSwitch = switchList.FirstOrDefault(sw => sw.IsMatch(side.Middle.TextureHandle));
             if (animSwitch != null)
-            {
-                (string texName, int texHandle) = animSwitch.GetOpposingTexture(side.Middle.TextureHandle);
-                side.Middle.Texture = texName;
-                side.Middle.TextureHandle = texHandle;
-            }
+                side.Middle.TextureHandle = animSwitch.GetOpposingTexture(side.Middle.TextureHandle);
         }
 
         private void SetTwoSidedLineSwitch(TwoSided side)
@@ -42,25 +38,19 @@ namespace Helion.World.Special.Switches
             {
                 if (side.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.TextureHandle))
                 {
-                    (string texName, int texHandle) = animSwitch.GetOpposingTexture(side.Upper.TextureHandle);
-                    side.Upper.Texture = texName;
-                    side.Upper.TextureHandle = texHandle;
+                    side.Upper.TextureHandle = animSwitch.GetOpposingTexture(side.Upper.TextureHandle);
                     break;
                 }
 
                 if (side.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.TextureHandle))
                 {
-                    (string texName, int texHandle) = animSwitch.GetOpposingTexture(side.Middle.TextureHandle);
-                    side.Middle.Texture = texName;
-                    side.Middle.TextureHandle = texHandle;
+                    side.Middle.TextureHandle = animSwitch.GetOpposingTexture(side.Middle.TextureHandle);
                     break;
                 }
 
                 if (side.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.TextureHandle))
                 {
-                    (string texName, int texHandle) = animSwitch.GetOpposingTexture(side.Lower.TextureHandle);
-                    side.Lower.Texture = texName;
-                    side.Lower.TextureHandle = texHandle;
+                    side.Lower.TextureHandle = animSwitch.GetOpposingTexture(side.Lower.TextureHandle);
                     break;
                 }
             }

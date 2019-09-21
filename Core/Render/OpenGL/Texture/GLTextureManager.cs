@@ -154,25 +154,28 @@ namespace Helion.Render.OpenGL.Texture
         /// <summary>
         /// Get a sprite rotation.
         /// </summary>
-        /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
+        /// <param name="spriteDefinition">The sprite definition.</param>
         /// <param name="frame">Sprite frame.</param>
         /// <param name="rotation">Rotation.</param>
         /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
-        public SpriteRotation GetSpriteRotation(string spriteName, int frame, int rotation)
+        public SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation)
         {
-            SpriteRotation? spriteRotation = TextureManager.Instance.GetSpriteRotation(spriteName, frame, rotation);
-            if (spriteRotation != null)
-            {
-                if (spriteRotation.Texture.RenderStore == null)
-                {
-                    string name = spriteName + (char)frame + rotation;
-                    spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, name, ResourceNamespace.Sprites);
-                }
+            SpriteRotation spriteRotation = spriteDefinition.GetSpriteRotation(frame, rotation);
 
-                return spriteRotation;
-            }
+            if (spriteRotation.Texture.RenderStore == null)
+                spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image);
 
-            return NullSpriteRotation;
+            return spriteRotation;
+        }
+
+        /// <summary>
+        /// Get a sprite definition.
+        /// </summary>
+        /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
+        public SpriteDefinition? GetSpriteDefinition(string spriteName)
+        {
+            SpriteDefinition? spriteDef = TextureManager.Instance.GetSpriteDefinition(spriteName);
+            return spriteDef;
         }
 
         /// <summary>

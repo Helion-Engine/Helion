@@ -26,11 +26,11 @@ namespace Helion.Resources.Definitions.Animdefs.Switches
             return StartTextureIndex == textureIndex || Components[0].TextureIndex == textureIndex;
         }
 
-        public (string name, int handle) GetOpposingTexture(int textureIndex)
+        public int GetOpposingTexture(int textureIndex)
         {
             if (StartTextureIndex != textureIndex) 
-                return (StartTexture, StartTextureIndex);
-            return (Components[0].Texture, Components[0].TextureIndex);
+                return StartTextureIndex;
+            return Components[0].TextureIndex;
         }
 
         public override string ToString() => $"{StartTexture} ({SwitchType}: components={Components.Count})";

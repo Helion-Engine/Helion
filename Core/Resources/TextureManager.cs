@@ -7,6 +7,7 @@ using Helion.Resources.Definitions.Animdefs.Switches;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
+using Helion.Util.Configuration;
 
 namespace Helion.Resources
 {
@@ -15,7 +16,6 @@ namespace Helion.Resources
         private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Texture[] m_textures;
-        private readonly CIString[] m_textureNames;
         private readonly int[] m_translations;
         private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new Dictionary<string, SpriteDefinition>();
         private readonly List<Animation> m_animations = new List<Animation>();
@@ -32,7 +32,6 @@ namespace Helion.Resources
             var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
             int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
             m_textures = new Texture[count];
-            m_textureNames = new CIString[count];
             m_translations = new int[count];
 
             var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
@@ -105,7 +104,7 @@ namespace Helion.Resources
                 texture = m_textures.FirstOrDefault(tex => tex.Name == name && tex.Namespace == resourceNamespace);
 
             if (texture == null)
-                return m_textures[0];
+                return m_textures[Constants.NoTextureIndex];
 
             return texture;
         }
@@ -122,29 +121,14 @@ namespace Helion.Resources
         }
 
         /// <summary>
-        /// Gets the name of the texture from the lookup index.
-        /// </summary>
-        /// <param name="index">The texture index.</param>
-        /// <returns>The name of the texture.</returns>
-        /// <exception cref="IndexOutOfRangeException">If the index is negative
-        /// or is larger/equal to the number of textures.</exception>
-        public CIString GetTextureName(int index)
-        {
-            return m_textureNames[m_translations[index]];
-        }
-
-        /// <summary>
         /// Get a sprite rotation.
         /// </summary>
         /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
-        /// <param name="frame">Sprite frame.</param>
-        /// <param name="rotation">Rotation.</param>
-        /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
-        public SpriteRotation? GetSpriteRotation(string spriteName, int frame, int rotation)
+        /// <returns>Returns a SpriteDefinition if found by sprite name. Otherwise null.</returns>
+        public SpriteDefinition? GetSpriteDefinition(string spriteName)
         {
-            if (m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef))
-                return spriteDef.GetSpriteRotation(frame, rotation);
-            return null;
+            m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef);
+            return spriteDef;
         }
 
         public void Tick()
@@ -189,7 +173,8 @@ namespace Helion.Resources
                 foreach (var component in animTexture.Components)
                 {
                     component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
-                    m_animations.Add(new Animation(animTexture, component.TextureIndex));
+                    if (component.TextureIndex != Constants.NoTextureIndex)
+                        m_animations.Add(new Animation(animTexture, component.TextureIndex));
                 }
             }
         }
@@ -199,14 +184,12 @@ namespace Helion.Resources
             for (int i = 0; i < m_translations.Length; i++)
                 m_translations[i] = i;
 
-            m_textures[0] = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
-            m_textureNames[0] = Constants.NoTexture;
+            m_textures[Constants.NoTextureIndex] = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
 
-            int index = 1;
+            int index = Constants.NoTextureIndex + 1;
             foreach (TextureDefinition texture in textures)
             {
                 m_textures[index] = new Texture(texture.Name, texture.Namespace, index);
-                m_textureNames[index] = texture.Name;
                 index++;
             }
 
@@ -214,7 +197,6 @@ namespace Helion.Resources
             foreach (Entry flat in flatEntries)
             {
                 m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
-                m_textureNames[index] = flat.Path.Name;
                 
                 // TODO fix with MapInfo when implemented
                 if (flat.Path.Name == Constants.SkyTexture)
