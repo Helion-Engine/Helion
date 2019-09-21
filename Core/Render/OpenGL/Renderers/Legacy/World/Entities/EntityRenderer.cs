@@ -2,7 +2,9 @@ using System.Numerics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
+using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities;
@@ -142,14 +144,28 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             Vec3D centerBottom = entity.Position.Interpolate(entity.PrevPosition, m_tickFraction);
             Vec2D entityPos = centerBottom.To2D();
 
-            uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
-            uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
-            uint rotation = CalculateRotation(viewAngle, entityAngle);
+            var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.Sprite);
+            uint rotation;
 
-            var spriteFrame = m_textureManager.GetSpriteRotation(entity.Frame.Sprite, entity.Frame.Frame, (int)rotation);
-            GLLegacyTexture texture = spriteFrame.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteFrame.Texture.RenderStore;
+            if (spriteDef != null && spriteDef.HasRotations)
+            {
+                uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
+                uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
+                rotation = CalculateRotation(viewAngle, entityAngle);
+            }
+            else
+            {
+                rotation = 0;
+            }
 
-            AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteFrame.Mirror);
+            SpriteRotation spriteRotation;
+            if (spriteDef != null)
+                spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
+            else
+                spriteRotation = m_textureManager.NullSpriteRotation;
+            GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
+
+            AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteRotation.Mirror);
         }
     }
 }
