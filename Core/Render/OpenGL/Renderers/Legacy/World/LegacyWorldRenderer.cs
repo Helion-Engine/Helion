@@ -11,7 +11,6 @@ using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
@@ -90,9 +89,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
         {
             Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
+            Vec2D viewDirection = renderInfo.Camera.Direction.To2D().ToDouble();
             
             m_viewClipper.Center = position;
-            RecursivelyRenderBsp(world.BspTree.Root, position, world);
+            RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);
         }
 
         private bool Occluded(in BspNodeCompact node, in Vec2D position)
@@ -104,7 +104,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             return m_viewClipper.InsideAnyRange(first, second);
         }
 
-        private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec2D position, WorldBase world)
+        private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec2D position, in Vec2D viewDirection,
+            WorldBase world)
         {
             if (Occluded(node, position))
                 return;
@@ -113,33 +114,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             if (node.Splitter.OnRight(position))
             {
                 if (node.IsRightSubsector)
-                    RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position);
+                    RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position, viewDirection);
                 else
-                    RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, world);
+                    RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, viewDirection, world);
                 
                 if (node.IsLeftSubsector)
-                    RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position);
+                    RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position, viewDirection);
                 else
-                    RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, world);
+                    RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, viewDirection, world);
             }
             else
             {
                 if (node.IsLeftSubsector)
-                    RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position);
+                    RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position, viewDirection);
                 else
-                    RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, world);
+                    RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, viewDirection, world);
                 
                 if (node.IsRightSubsector)
-                    RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position);
+                    RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position, viewDirection);
                 else
-                    RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, world);
+                    RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, viewDirection, world);
             }
         }
 
-        private void RenderSubsector(Subsector subsector, in Vec2D position)
+        private void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
         {
             m_geometryRenderer.RenderSubsector(subsector, position);
-            m_entityRenderer.RenderSubsector(subsector, position);
+            m_entityRenderer.RenderSubsector(subsector, position, viewDirection);
         }
         
         private void SetUniforms(RenderInfo renderInfo)

@@ -11,6 +11,7 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Segments.Enums;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp
@@ -32,6 +33,8 @@ namespace Helion.Bsp
         /// this will never be reached.
         /// </summary>
         private const int RecursiveOverflowAmount = 10000;
+
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public BspState State { get; private set; } = BspState.NotStarted;
         public readonly ConvexChecker ConvexChecker;
@@ -184,7 +187,11 @@ namespace Helion.Bsp
                 segments.Add(segment);
             }
             
-            return SegmentChainPruner.Prune(segments);
+            List<BspSegment> prunedSegments = SegmentChainPruner.Prune(segments);
+            if (prunedSegments.Count < segments.Count)
+                Log.Debug("Pruned {0} dangling segments", segments.Count - prunedSegments.Count);
+            
+            return prunedSegments;
         }
 
         private void CreateInitialWorkItem(List<BspSegment> segments, IMap map)
