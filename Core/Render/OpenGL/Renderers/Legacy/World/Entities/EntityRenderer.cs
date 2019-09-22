@@ -141,7 +141,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         private void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
         {
-            Vec3D centerBottom = entity.Position.Interpolate(entity.PrevPosition, m_tickFraction);
+            Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
             Vec2D entityPos = centerBottom.To2D();
 
             var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.Sprite);
