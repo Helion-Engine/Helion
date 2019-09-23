@@ -172,13 +172,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
             LegacyVertex[]? data = m_vertexLookup[side.Id];
 
-            if (side.Sector.IsMoving || data == null)
+            if (side.Sector.ZChanged || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
                 data = GetWallVertices(ref wall, side.Sector.LightLevel / 256.0f);
                 m_vertexLookup[side.Id] = data;
             }
-            else if (side.Sector.IsLighting)
+            else if (side.Sector.LightingChanged)
             {
                 SetLightToVertices(data, side.Sector.LightLevel / 256.0f);
             }
@@ -240,7 +240,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 SkyGeometryVertex[]? data = m_skyWallVertexLookup[facingSide.Id];
 
-                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                if (facingSide.Sector.ZChanged || otherSide.Sector.ZChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -254,14 +254,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
 
-                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                if (facingSide.Sector.ZChanged || otherSide.Sector.ZChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
                     data = GetWallVertices(ref wall, facingSide.Sector.LightLevel / 256.0f);
                     m_vertexLowerLookup[facingSide.Id] = data;
                 }
-                else if (facingSide.Sector.IsLighting)
+                else if (facingSide.Sector.LightingChanged)
                 {
                     SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
                 }
@@ -291,7 +291,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 SkyGeometryVertex[]? data = m_skyWallVertexLookup[facingSide.Id];
 
-                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                if (facingSide.Sector.ZChanged || otherSide.Sector.ZChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -305,14 +305,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
-                if (facingSide.Sector.IsMoving || otherSide.Sector.IsMoving || data == null)
+                if (facingSide.Sector.ZChanged || otherSide.Sector.ZChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
                     data = GetWallVertices(ref wall, facingSide.Sector.LightLevel / 256.0f);
                     m_vertexUpperLookup[facingSide.Id] = data;
                 }
-                else if (facingSide.Sector.IsLighting)
+                else if (facingSide.Sector.LightingChanged)
                 {
                     SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
                 }
@@ -330,7 +330,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             RenderWorldData renderData = m_worldDataManager[texture];
             LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
-            if (facingSide.Sector.IsMoving || data == null)
+            if (facingSide.Sector.ZChanged || data == null)
             {
                 (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
                 WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide,
@@ -346,7 +346,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
                 m_vertexLookup[facingSide.Id] = data;
             }
-            else if (facingSide.Sector.IsLighting)
+            else if (facingSide.Sector.LightingChanged)
             {
                 SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
             }
@@ -389,7 +389,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Id] : m_skyCeilingVertexLookup[subsector.Id];
 
-                if (flat.Sector.IsMoving || data == null)
+                if (flat.Sector.ZChanged || data == null)
                 {
                     // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
                     // Note that the subsector triangulator is supposed to realize when
@@ -418,7 +418,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
 
-                if (flat.Sector.IsMoving || data == null)
+                if (flat.Sector.ZChanged || data == null)
                 {
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
                     WorldVertex root = m_subsectorVertices[0];
@@ -436,7 +436,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                     else
                         m_vertexCeilingLookup[subsector.Id] = data;
                 }
-                else if (flat.Sector.IsLighting)
+                else if (flat.Sector.LightingChanged)
                 {
                     SetLightToVertices(data, flat.Sector.LightLevel / 256.0f);
                 }

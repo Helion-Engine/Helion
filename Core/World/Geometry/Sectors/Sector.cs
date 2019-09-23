@@ -79,8 +79,6 @@ namespace Helion.World.Geometry.Sectors
         /// movement happening on this sector.
         /// </summary>
         public ISectorSpecial? ActiveMoveSpecial;
-
-        public ISectorSpecial? ActiveLightSpecial;
         
         /// <summary>
         /// The special sector type.
@@ -88,8 +86,9 @@ namespace Helion.World.Geometry.Sectors
         public ZDoomSectorSpecialType SectorSpecialType;
         
         public bool IsMoving => ActiveMoveSpecial != null;
-        public bool IsLighting => ActiveLightSpecial != null;
         public bool Has3DFloors => !Floors3D.Empty();
+        public bool ZChanged;
+        public bool LightingChanged;
 
         public Sector(int id, int mapId, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
             ZDoomSectorSpecialType sectorSpecial)

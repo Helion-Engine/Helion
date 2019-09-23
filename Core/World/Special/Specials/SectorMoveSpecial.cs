@@ -136,6 +136,10 @@ namespace Helion.World.Special.Specials
                 if (MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
                     m_speed = m_speed < 0 ? -0.1 : 0.1;
                 break;
+
+            case SectorMoveStatus.Success:
+                Sector.ZChanged = true;
+                break;
             }
 
             if (m_crushing && status == SectorMoveStatus.Success)

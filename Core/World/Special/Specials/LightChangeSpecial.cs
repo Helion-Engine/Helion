@@ -35,7 +35,7 @@ namespace Helion.World.Special.Specials
 
         public SpecialTickStatus Tick()
         {
-            Sector.ActiveLightSpecial = this;
+            Sector.LightingChanged = true;
             int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
             Sector.SetLightLevel((short)set);
 
@@ -47,7 +47,6 @@ namespace Helion.World.Special.Specials
 
         public void FinalizeDestroy()
         {
-            Sector.ActiveLightSpecial = null;
         }
 
         public void Use()
