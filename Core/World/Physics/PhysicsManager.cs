@@ -105,8 +105,9 @@ namespace Helion.World.Physics
             // Move lower entities first to handle stacked entities
             var entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
 
-            foreach (var entity in entities)
+            for (int i = 0; i < entities.Count; i++)
             {
+                Entity entity = entities[i];
                 entity.SaveZ = entity.Position.Z;
 
                 // At slower speeds we need to set entities to the floor
@@ -124,11 +125,15 @@ namespace Helion.World.Physics
                 ClampBetweenFloorAndCeiling(entity);
             }
 
-            foreach (var entity in entities)
+            for (int i = 0; i < entities.Count; i++)
             {
+                Entity entity = entities[i];
                 SetEntityBoundsZ(entity);
 
                 if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
+                    continue;
+
+                if (!entity.Flags.CanPass)
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
