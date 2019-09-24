@@ -59,18 +59,16 @@ namespace Helion.Bsp.Geometry
         /// Gets the segment at the vertices provided if it exists, or creates
         /// it if not.
         /// </summary>
-        /// <param name="startIndex">The start vertex.</param>
-        /// <param name="endIndex">The end vertex.</param>
+        /// <param name="start">The start vertex.</param>
+        /// <param name="end">The end vertex.</param>
         /// <param name="line">The line (optional).</param>
         /// <returns>Either a newly allocated BSP segment, or the one that
         /// already exists with the information provided.</returns>
-        public BspSegment GetOrCreate(int startIndex, int endIndex, IBspUsableLine? line = null)
+        public BspSegment GetOrCreate(BspVertex start, BspVertex end, IBspUsableLine? line = null)
         {
-            Precondition(startIndex != endIndex, "Cannot create a segment that is a point");
-            Precondition(startIndex >= 0 && startIndex < m_vertexAllocator.Count, "Start vertex out of range.");
-            Precondition(endIndex >= 0 && endIndex < m_vertexAllocator.Count, "End vertex out of range.");
+            Precondition(start != end, "Cannot create a segment that is a point");
 
-            (int smallerIndex, int largerIndex) = MathHelper.MinMax(startIndex, endIndex);
+            (int smallerIndex, int largerIndex) = MathHelper.MinMax(start.Index, end.Index);
 
             if (m_segmentTable.TryGetValue(smallerIndex, out var largerValues))
             {
@@ -78,27 +76,27 @@ namespace Helion.Bsp.Geometry
                     return m_segments[segIndex];
                 
                 largerValues[largerIndex] = m_segments.Count;
-                int newCollinearIndex = GetCollinearIndex(startIndex, endIndex);
-                return CreateNewSegment(startIndex, endIndex, newCollinearIndex, line);
+                int newCollinearIndex = GetCollinearIndex(start, end);
+                return CreateNewSegment(start, end, newCollinearIndex, line);
             }
 
             var largerIndexDict = new Dictionary<int, int> { [largerIndex] = m_segments.Count };
-            int collinearIndex = GetCollinearIndex(startIndex, endIndex);
+            int collinearIndex = GetCollinearIndex(start, end);
             m_segmentTable[smallerIndex] = largerIndexDict;
-            return CreateNewSegment(startIndex, endIndex, collinearIndex, line);
+            return CreateNewSegment(start, end, collinearIndex, line);
         }
 
         /// <summary>
         /// Checks if a segment exists with the start/end index combination.
         /// The order of the indices does not matter.
         /// </summary>
-        /// <param name="startIndex">The start index.</param>
-        /// <param name="endIndex">The end index.</param>
+        /// <param name="start">The start index.</param>
+        /// <param name="end">The end index.</param>
         /// <returns>True if a segment (start, end) or (end, start) exists in
         /// this allocator, false otherwise.</returns>
-        public bool ContainsSegment(int startIndex, int endIndex)
+        public bool ContainsSegment(BspVertex start, BspVertex end)
         {
-            (int smallerIndex, int largerIndex) = MathHelper.MinMax(startIndex, endIndex);
+            (int smallerIndex, int largerIndex) = MathHelper.MinMax(start.Index, end.Index);
 
             if (m_segmentTable.TryGetValue(smallerIndex, out var largerValues))
                 return largerValues.ContainsKey(largerIndex);
@@ -118,15 +116,13 @@ namespace Helion.Bsp.Geometry
         /// [middle, end].</returns>
         public (BspSegment first, BspSegment second) Split(BspSegment seg, double t)
         {
-            Precondition(t > 0.0 && t < 1.0, $"Trying to split BSP out of range, or at an endpoint with t = {t}");
+            Precondition(t > 0.0 && t < 1.0, "Trying to split BSP out of the (0.0, 1.0) range");
 
             Vec2D middle = seg.FromTime(t);
-            int middleIndex = m_vertexAllocator[middle];
-
-            // TODO: We know `seg.CollinearIndex`, it'd be nice to ass it in
-            //       instead of requiring a lookup for our split.
-            BspSegment firstSeg = GetOrCreate(seg.StartIndex, middleIndex, seg.Line);
-            BspSegment secondSeg = GetOrCreate(middleIndex, seg.EndIndex, seg.Line);
+            BspVertex middleVertex = m_vertexAllocator[middle];
+            
+            BspSegment firstSeg = GetOrCreate(seg.StartVertex, middleVertex, seg.Line);
+            BspSegment secondSeg = GetOrCreate(middleVertex, seg.EndVertex, seg.Line);
             return (firstSeg, secondSeg);
         }
 
@@ -136,21 +132,16 @@ namespace Helion.Bsp.Geometry
         /// <returns>A list of all the existing segments.</returns>
         public List<BspSegment> ToList() => new List<BspSegment>(m_segments);
         
-        private BspSegment CreateNewSegment(int startIndex, int endIndex, int collinearIndex, IBspUsableLine? line = null)
+        private BspSegment CreateNewSegment(BspVertex start, BspVertex end, int collinearIndex, IBspUsableLine? line = null)
         {
-            Vec2D start = m_vertexAllocator[startIndex];
-            Vec2D end = m_vertexAllocator[endIndex];
-
-            BspSegment seg = new BspSegment(start, end, startIndex, endIndex, collinearIndex, line);
+            BspSegment seg = new BspSegment(start, end, collinearIndex, line);
             m_segments.Add(seg);
             return seg;
         }
 
-        private int GetCollinearIndex(int startVertexIndex, int endVertexIndex)
+        private int GetCollinearIndex(BspVertex start, BspVertex end)
         {
-            Vec2D start = m_vertexAllocator[startVertexIndex];
-            Vec2D end = m_vertexAllocator[endVertexIndex];
-            return m_collinearTracker.GetOrCreateIndex(start, end);
+            return m_collinearTracker.GetOrCreateIndex(start.Position, end.Position);
         }
     }
 }

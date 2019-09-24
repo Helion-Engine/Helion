@@ -154,8 +154,8 @@ namespace Helion.Bsp.States.Partition
             // the lines attached to the splitter as ones that will end up in
             // the collinear set. We have to provide these ones here so that
             // miniseg generation has at least one reference point.
-            States.CollinearVertices.Add(splitter.StartIndex);
-            States.CollinearVertices.Add(splitter.EndIndex);
+            States.CollinearVertices.Add(splitter.StartVertex);
+            States.CollinearVertices.Add(splitter.EndVertex);
 
             States.RightSegments.Add(splitter);
             if (splitter.TwoSided)
@@ -166,8 +166,8 @@ namespace Helion.Bsp.States.Partition
         {
             Precondition(!segment.IsMiniseg, "Should never be collinear to a miniseg");
 
-            States.CollinearVertices.Add(segment.StartIndex);
-            States.CollinearVertices.Add(segment.EndIndex);
+            States.CollinearVertices.Add(segment.StartVertex);
+            States.CollinearVertices.Add(segment.EndVertex);
 
             // We don't want the back side of a one-sided line (which doesn't
             // exist) to be visible to the side of the partition that shouldn't
@@ -212,8 +212,8 @@ namespace Helion.Bsp.States.Partition
             else
                 States.LeftSegments.Add(segmentToSplit);
 
-            int index = segmentToSplit.IndexFrom(endpoint);
-            States.CollinearVertices.Add(index);
+            BspVertex vertex = segmentToSplit.VertexFrom(endpoint);
+            States.CollinearVertices.Add(vertex);
         }
 
         protected void HandleNonEndpointIntersectionSplit(BspSegment splitter, BspSegment segmentToSplit, double segmentTime)
@@ -271,8 +271,7 @@ namespace Helion.Bsp.States.Partition
             // splitter always has the first seg splitting based on the start.
             // A corollary is that this would be equal to segB.getStartIndex()
             // since they are equal.
-            int middleVertexIndex = segA.EndIndex;
-            States.CollinearVertices.Add(middleVertexIndex);
+            States.CollinearVertices.Add(segA.EndVertex);
 
             if (segmentToSplit.OneSided)
                 JunctionClassifier.AddSplitJunction(segA, segB);

@@ -12,9 +12,9 @@ namespace Helion.Bsp.Geometry
     /// An allocator of vertices. Also responsible for welding vertices to each
     /// other if one tries to be made close to another.
     /// </summary>
-    public class VertexAllocator : IEnumerable<Vec2D>
+    public class VertexAllocator : IEnumerable<BspVertex>
     {
-        private readonly List<Vec2D> vertices = new List<Vec2D>();
+        private readonly List<BspVertex> vertices = new List<BspVertex>();
         private readonly QuantizedGrid<int> grid;
 
         /// <summary>
@@ -40,8 +40,9 @@ namespace Helion.Bsp.Geometry
         /// </summary>
         /// <param name="index">The vertex index.</param>
         /// <returns>The vertex for the index provided.</returns>
-        /// 
-        public Vec2D this[int index] => vertices[index];
+        /// <exception cref="IndexOutOfRangeException">If the index does not
+        /// map onto an existing vertex.</exception>
+        public BspVertex this[int index] => vertices[index];
 
         /// <summary>
         /// Either gets the existing index for this vertex, or allocates a new
@@ -51,11 +52,11 @@ namespace Helion.Bsp.Geometry
         /// This is similar to how std::[unordered_]map work in C++ with the []
         /// operator.
         /// </remarks>
-        /// <param name="vertex">The vertex to get the index for or allocate
-        /// with.</param>
+        /// <param name="position">The vertex position to get the index for or
+        /// allocate with.</param>
         /// <returns>The index for the existing vertex, or the newly allocated
         /// index.</returns>
-        public int this[Vec2D vertex] => Insert(vertex);
+        public BspVertex this[Vec2D position] => Insert(position);
         
         /// <summary>
         /// Either gets the existing index for this vertex, or allocates a new
@@ -65,17 +66,18 @@ namespace Helion.Bsp.Geometry
         /// This is similar to how std::[unordered_]map work in C++ with the []
         /// operator.
         /// </remarks>
-        /// <param name="vertex">The vertex to get the index for or allocate
+        /// <param name="position">The vertex to get the index for or allocate
         /// with.</param>
-        /// <returns>The index for the existing vertex, or the newly allocated
-        /// index.</returns>
-        public int Insert(Vec2D vertex)
+        /// <returns>The existing or newly created vertex.</returns>
+        public BspVertex Insert(Vec2D position)
         {
-            int index = grid.GetExistingOrAdd(vertex.X, vertex.Y, vertices.Count);
-            if (index == vertices.Count)
-                vertices.Add(vertex);
-
-            return index;
+            int index = grid.GetExistingOrAdd(position.X, position.Y, vertices.Count);
+            if (index != vertices.Count) 
+                return this[index];
+            
+            BspVertex vertex = new BspVertex(position, index);
+            vertices.Add(vertex);
+            return vertex;
         }
 
         /// <summary>
@@ -114,19 +116,17 @@ namespace Helion.Bsp.Geometry
             Vec2D max = new Vec2D(double.MinValue, double.MinValue);
             vertices.ForEach(v =>
             {
-                min.X = Math.Min(min.X, v.X);
-                min.Y = Math.Min(min.Y, v.Y);
-                max.X = Math.Max(max.X, v.X);
-                max.Y = Math.Max(max.Y, v.Y);
+                min.X = Math.Min(min.X, v.Position.X);
+                min.Y = Math.Min(min.Y, v.Position.Y);
+                max.X = Math.Max(max.X, v.Position.X);
+                max.Y = Math.Max(max.Y, v.Position.Y);
             });
 
             return new Box2D(min, max);
         }
 
-        /// <inheritdoc/>
-        public IEnumerator<Vec2D> GetEnumerator() => vertices.GetEnumerator();
+        public IEnumerator<BspVertex> GetEnumerator() => vertices.GetEnumerator();
 
-        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
