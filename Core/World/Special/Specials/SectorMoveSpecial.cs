@@ -64,6 +64,7 @@ namespace Helion.World.Special.Specials
                     if (MoveData.FloorChangeTextureHandle != null)
                         Sector.Floor.TextureHandle = MoveData.FloorChangeTextureHandle.Value;
 
+                    Sector.ActiveMoveSpecial = null;
                     return SpecialTickStatus.Destroy;
                 }
 
@@ -71,15 +72,17 @@ namespace Helion.World.Special.Specials
             }
 
             if (IsDelayReturn && SectorPlane.Z == m_startZ)
+            {
+                Sector.ActiveMoveSpecial = null;
                 return SpecialTickStatus.Destroy;
+            }
 
             return SpecialTickStatus.Continue;
         }
 
-        public void FinalizeDestroy()
+        public virtual void FinalizeDestroy()
         {
             SectorPlane.PrevZ = SectorPlane.Z;
-            Sector.ActiveMoveSpecial = null;
         }
 
         public virtual void Use()
