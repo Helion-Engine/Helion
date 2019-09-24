@@ -178,9 +178,9 @@ namespace Helion.Bsp
             List<BspSegment> segments = new List<BspSegment>();
             foreach (ILine line in map.GetLines())
             {
-                int startIndex = VertexAllocator[line.StartPosition];
-                int endIndex = VertexAllocator[line.EndPosition];
-                BspSegment segment = SegmentAllocator.GetOrCreate(startIndex, endIndex, line);
+                BspVertex start = VertexAllocator[line.StartPosition];
+                BspVertex end = VertexAllocator[line.EndPosition];
+                BspSegment segment = SegmentAllocator.GetOrCreate(start, end, line);
                 segments.Add(segment);
             }
             

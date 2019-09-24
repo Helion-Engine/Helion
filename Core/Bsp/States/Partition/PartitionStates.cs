@@ -45,6 +45,6 @@ namespace Helion.Bsp.States.Partition
         /// A series of collinear vertex indices which can be looked up in the
         /// vertex allocator.
         /// </summary>
-        public HashSet<int> CollinearVertices = new HashSet<int>();
+        public HashSet<BspVertex> CollinearVertices = new HashSet<BspVertex>();
     }
 }

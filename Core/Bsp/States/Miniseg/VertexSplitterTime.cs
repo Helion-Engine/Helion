@@ -1,4 +1,5 @@
 using System;
+using Helion.Bsp.Geometry;
 
 namespace Helion.Bsp.States.Miniseg
 {
@@ -7,10 +8,7 @@ namespace Helion.Bsp.States.Miniseg
     /// </summary>
     public class VertexSplitterTime : IComparable<VertexSplitterTime>
     {
-        /// <summary>
-        /// The index of the vertex.
-        /// </summary>
-        public readonly int Index;
+        public readonly BspVertex Vertex;
 
         /// <summary>
         /// The time along the splitter segment that this vertex was made.
@@ -20,16 +18,15 @@ namespace Helion.Bsp.States.Miniseg
         /// <summary>
         /// Creates an index/time pair.
         /// </summary>
-        /// <param name="index">The index of the vertex.</param>
+        /// <param name="vertex">The vertex.</param>
         /// <param name="splitterTime">The time this is relative to the
         /// splitter.</param>
-        public VertexSplitterTime(int index, double splitterTime)
+        public VertexSplitterTime(BspVertex vertex, double splitterTime)
         {
-            Index = index;
+            Vertex = vertex;
             SplitterTime = splitterTime;
         }
-
-        /// <inheritdoc/>
+        
         public int CompareTo(VertexSplitterTime other) => SplitterTime.CompareTo(other.SplitterTime);
     }
 }

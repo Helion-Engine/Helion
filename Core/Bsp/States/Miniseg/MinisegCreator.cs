@@ -20,16 +20,17 @@ namespace Helion.Bsp.States.Miniseg
             JunctionClassifier = junctionClassifier;
         }
         
-        public void Load(BspSegment splitter, HashSet<int> collinearVertices)
+        public void Load(BspSegment splitter, HashSet<BspVertex> collinearVertices)
         {
             Precondition(collinearVertices.Count >= 2, "Requires two or more vertices for miniseg generation (the splitter should have contributed two)");
 
             States = new MinisegStates();
 
-            foreach (int vertexIndex in collinearVertices)
+            foreach (BspVertex vertex in collinearVertices)
             {
-                double splitterTime = splitter.ToTime(VertexAllocator[vertexIndex]);
-                States.Vertices.Add(new VertexSplitterTime(vertexIndex, splitterTime));
+                double splitterTime = splitter.ToTime(vertex.Position);
+                VertexSplitterTime vertexSplitterTime = new VertexSplitterTime(vertex, splitterTime);
+                States.Vertices.Add(vertexSplitterTime);
             }
 
             States.Vertices.Sort();
@@ -44,28 +45,27 @@ namespace Helion.Bsp.States.Miniseg
             VertexSplitterTime second = States.Vertices[States.CurrentVertexListIndex + 1];
             States.CurrentVertexListIndex++;
 
-            HandleMinisegGeneration(first, second);
+            HandleMinisegGeneration(first.Vertex, second.Vertex);
 
             bool isDone = (States.CurrentVertexListIndex + 1 >= States.Vertices.Count);
             States.State = (isDone ? MinisegState.Finished : MinisegState.Working);
         }
 
-        protected void HandleMinisegGeneration(VertexSplitterTime first, VertexSplitterTime second)
+        protected void HandleMinisegGeneration(BspVertex first, BspVertex second)
         {
             States.VoidStatus = VoidStatus.NotInVoid;
 
             // If a segment exists for the vertices then we're walking along a
             // segment that was collinear with the splitter, so we don't need a
             // miniseg.
-            if (SegmentAllocator.ContainsSegment(first.Index, second.Index))
+            if (SegmentAllocator.ContainsSegment(first, second))
                 return;
 
-            Vec2D secondVertex = VertexAllocator[second.Index];
-            if (JunctionClassifier.CheckCrossingVoid(first.Index, secondVertex))
+            if (JunctionClassifier.CheckCrossingVoid(first, second))
                 States.VoidStatus = VoidStatus.InVoid;
             else
             {
-                BspSegment miniseg = SegmentAllocator.GetOrCreate(first.Index, second.Index);
+                BspSegment miniseg = SegmentAllocator.GetOrCreate(first, second);
                 States.Minisegs.Add(miniseg);
             }
         }

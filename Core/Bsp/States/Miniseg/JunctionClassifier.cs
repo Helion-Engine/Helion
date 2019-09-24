@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -119,15 +118,15 @@ namespace Helion.Bsp.States.Miniseg
         /// Checks if the indices from the values provided cross the void or 
         /// not, where the void is the space outside the map.
         /// </summary>
-        /// <param name="firstIndex">The index of the first segment.</param>
-        /// <param name="secondVertex">The actual vertex coordinate of the
+        /// <param name="first">The index of the first segment.</param>
+        /// <param name="second">The actual vertex coordinate of the
         /// second segment.</param>
         /// <returns>True if the two vertices are crossing the void, false if
         /// it is inside the map.</returns>
-        public bool CheckCrossingVoid(int firstIndex, Vec2D secondVertex)
+        public bool CheckCrossingVoid(BspVertex first, BspVertex second)
         {
-            if (m_vertexToJunction.TryGetValue(firstIndex, out Junction? junction))
-                return !junction.BetweenWedge(secondVertex);
+            if (m_vertexToJunction.TryGetValue(first.Index, out Junction? junction))
+                return !junction.BetweenWedge(second.Position);
             return false;
         }
     }

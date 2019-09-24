@@ -71,8 +71,8 @@ namespace BspVisualizer
 
         private void PaintVertices(Graphics g)
         {
-            foreach (Vec2D vertex in bspBuilder.VertexAllocator)
-                DrawVertex(g, cyanBrush, vertex);
+            foreach (BspVertex vertex in bspBuilder.VertexAllocator)
+                DrawVertex(g, cyanBrush, vertex.Position);
         }
 
         private void PaintTextInfo(Graphics g, Rectangle windowBounds)
@@ -192,23 +192,23 @@ namespace BspVisualizer
             if (states.CurrentVertexListIndex + 1 < states.Vertices.Count)
             {
                 VertexSplitterTime firstVertexTime = states.Vertices[states.CurrentVertexListIndex];
-                Vec2D firstVertex = bspBuilder.VertexAllocator[firstVertexTime.Index];
+                BspVertex firstVertex = firstVertexTime.Vertex;
 
                 VertexSplitterTime secondVertexTime = states.Vertices[states.CurrentVertexListIndex + 1];
-                Vec2D secondVertex = bspBuilder.VertexAllocator[secondVertexTime.Index];
+                BspVertex secondVertex = secondVertexTime.Vertex;
 
                 // The corner drawers are a stack that builds upwards from the
                 // bottom, so the order to drawing them is reversed.
                 bottomLeftCornerDrawer.Add(
                     Color.White, "Second vertex: ",
-                    Color.LightGreen, secondVertex.ToString(),
+                    Color.LightGreen, secondVertex.Position.ToString(),
                     Color.White, "at t = ",
                     Color.Cyan, secondVertexTime.SplitterTime.ToString()
                 );
 
                 bottomLeftCornerDrawer.Add(
                     Color.White, "First vertex: ",
-                    Color.LightGreen, firstVertex.ToString(),
+                    Color.LightGreen, firstVertex.Position.ToString(),
                     Color.White, "at t = ",
                     Color.Cyan, firstVertexTime.SplitterTime.ToString()
                 );
