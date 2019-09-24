@@ -93,8 +93,17 @@ namespace Helion.Util.Container
         public void Add(params T[] elements)
         {
             EnsureCapacity(Length + elements.Length);
-            
-            Array.Copy(elements, 0, Data, Length, elements.Length);
+
+            if (elements.Length < 10)
+            {
+                for (int i = 0; i < elements.Length; i++)
+                    Data[Length + i] = elements[i];
+            }
+            else
+            {
+                Array.Copy(elements, 0, Data, Length, elements.Length);
+            }
+
             Length += elements.Length;
         }
         
