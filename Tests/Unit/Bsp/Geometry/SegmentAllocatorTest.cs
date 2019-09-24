@@ -28,16 +28,14 @@ namespace Helion.Test.Unit.Bsp.Geometry
             CollinearTracker collinearTracker = new CollinearTracker(0.005);
             SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
             
-            Vec2D start = new Vec2D(1, 2);
-            Vec2D end = new Vec2D(3, 4);
-            int startIndex = vertexAllocator[start];
-            int endIndex = vertexAllocator[end];
-            BspSegment segment = segmentAllocator.GetOrCreate(startIndex, endIndex);
+            Vec2D startPos = new Vec2D(1, 2);
+            Vec2D endPos = new Vec2D(3, 4);
+            BspVertex start = vertexAllocator[startPos];
+            BspVertex end = vertexAllocator[endPos];
+            BspSegment segment = segmentAllocator.GetOrCreate(start, end);
             
-            Assert.IsTrue(start == segment.Start);
-            Assert.IsTrue(end == segment.End);
-            Assert.AreEqual(startIndex, segment.StartIndex);
-            Assert.AreEqual(endIndex, segment.EndIndex);
+            Assert.IsTrue(start == segment.StartVertex);
+            Assert.IsTrue(end == segment.EndVertex);
             Assert.AreEqual(1, segmentAllocator.Count);
             Assert.AreSame(segment, segmentAllocator.ToList()[0]);
             Assert.AreSame(segment, segmentAllocator[0]);
@@ -50,13 +48,13 @@ namespace Helion.Test.Unit.Bsp.Geometry
             CollinearTracker collinearTracker = new CollinearTracker(0.005);
             SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
             
-            Vec2D start = new Vec2D(1, 2);
-            Vec2D end = new Vec2D(3, 4);
-            int startIndex = vertexAllocator[start];
-            int endIndex = vertexAllocator[end];
+            Vec2D startPos = new Vec2D(1, 2);
+            Vec2D endPos = new Vec2D(3, 4);
+            BspVertex start = vertexAllocator[startPos];
+            BspVertex end = vertexAllocator[endPos];
 
-            BspSegment segment = segmentAllocator.GetOrCreate(startIndex, endIndex);
-            BspSegment sameSegment = segmentAllocator.GetOrCreate(endIndex, startIndex);
+            BspSegment segment = segmentAllocator.GetOrCreate(start, end);
+            BspSegment sameSegment = segmentAllocator.GetOrCreate(end, start);
             
             Assert.AreEqual(1, segmentAllocator.Count);
             Assert.AreSame(segment, sameSegment);
@@ -78,13 +76,13 @@ namespace Helion.Test.Unit.Bsp.Geometry
             Assert.AreNotSame(first, third);
             Assert.AreNotSame(second, third);
             
-            Assert.IsTrue(segmentAllocator.ContainsSegment(first.StartIndex, first.EndIndex));
-            Assert.IsTrue(segmentAllocator.ContainsSegment(first.EndIndex, first.StartIndex));
-            Assert.IsTrue(segmentAllocator.ContainsSegment(second.StartIndex, second.EndIndex));
-            Assert.IsTrue(segmentAllocator.ContainsSegment(second.EndIndex, second.StartIndex));
-            Assert.IsTrue(segmentAllocator.ContainsSegment(third.StartIndex, third.EndIndex));
-            Assert.IsTrue(segmentAllocator.ContainsSegment(third.EndIndex, third.StartIndex));
-            Assert.IsFalse(segmentAllocator.ContainsSegment(first.StartIndex, first.StartIndex));
+            Assert.IsTrue(segmentAllocator.ContainsSegment(first.StartVertex, first.EndVertex));
+            Assert.IsTrue(segmentAllocator.ContainsSegment(first.EndVertex, first.StartVertex));
+            Assert.IsTrue(segmentAllocator.ContainsSegment(second.StartVertex, second.EndVertex));
+            Assert.IsTrue(segmentAllocator.ContainsSegment(second.EndVertex, second.StartVertex));
+            Assert.IsTrue(segmentAllocator.ContainsSegment(third.StartVertex, third.EndVertex));
+            Assert.IsTrue(segmentAllocator.ContainsSegment(third.EndVertex, third.StartVertex));
+            Assert.IsFalse(segmentAllocator.ContainsSegment(first.StartVertex, first.StartVertex));
             
             Assert.AreNotEqual(first.CollinearIndex, second.CollinearIndex);
             Assert.AreNotEqual(first.CollinearIndex, third.CollinearIndex);
@@ -117,43 +115,38 @@ namespace Helion.Test.Unit.Bsp.Geometry
             CollinearTracker collinearTracker = new CollinearTracker(0.005);
             SegmentAllocator segmentAllocator = new SegmentAllocator(vertexAllocator, collinearTracker);
                     
-            Vec2D start = new Vec2D(1, 1);
-            Vec2D end = new Vec2D(5, 1);
-            int startIndex = vertexAllocator[start];
-            int endIndex = vertexAllocator[end];
+            Vec2D startPos = new Vec2D(1, 1);
+            Vec2D endPos = new Vec2D(5, 1);
+            BspVertex start = vertexAllocator[startPos];
+            BspVertex end = vertexAllocator[endPos];    
             
             ILine line = new GeometryGenerator()
                 .AddSector()
                 .AddSector()
                 .AddSide(0)
                 .AddSide(1)
-                .AddLine(0, 1, start, end)
+                .AddLine(0, 1, start.Position, end.Position)
                 .ToMap()
                 .GetLines()[0];
             
-            BspSegment segment = segmentAllocator.GetOrCreate(startIndex, endIndex, line);
+            BspSegment segment = segmentAllocator.GetOrCreate(start, end, line);
 
             (BspSegment first, BspSegment second) = segmentAllocator.Split(segment, 0.25);
             Assert.AreEqual(3, segmentAllocator.Count);
 
-            Vec2D middle = vertexAllocator[first.EndIndex];
-            int middleIndex = first.EndIndex;
-            Assert.AreEqual(2, middle.X);
-            Assert.AreEqual(1, middle.Y);
+            BspVertex middle = vertexAllocator[first.End];
+            Assert.AreEqual(2, middle.Position.X);
+            Assert.AreEqual(1, middle.Position.Y);
 
             Assert.AreSame(line, segment.Line);
             Assert.AreSame(line, first.Line);
             Assert.AreSame(line, second.Line);
             Assert.AreEqual(segment.CollinearIndex, first.CollinearIndex);
             Assert.AreEqual(segment.CollinearIndex, second.CollinearIndex);
-            Assert.IsTrue(start == first.Start);
-            Assert.IsTrue(middle == first.End);
-            Assert.AreEqual(startIndex, first.StartIndex);
-            Assert.AreEqual(middleIndex, first.EndIndex);
-            Assert.IsTrue(middle == second.Start);
-            Assert.IsTrue(end == second.End);
-            Assert.AreEqual(middleIndex, second.StartIndex);
-            Assert.AreEqual(endIndex, second.EndIndex);
+            Assert.IsTrue(start == first.StartVertex);
+            Assert.IsTrue(middle == first.EndVertex);
+            Assert.IsTrue(middle == second.StartVertex);
+            Assert.IsTrue(end == second.EndVertex);
         }
     }
 }

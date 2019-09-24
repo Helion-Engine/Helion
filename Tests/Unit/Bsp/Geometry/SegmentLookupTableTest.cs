@@ -9,7 +9,9 @@ namespace Helion.Test.Unit.Bsp.Geometry
     {
         private static BspSegment Create(int startIndex, int endIndex)
         {
-            return new BspSegment(new Vec2D(0, 1), new Vec2D(1, 1), startIndex, endIndex, 0);
+            BspVertex start = new BspVertex(new Vec2D(0, 1), startIndex);
+            BspVertex end = new BspVertex(new Vec2D(1, 1), endIndex);
+            return new BspSegment(start, end, 0);
         }
 
         private static bool CheckContains(SegmentLookupTable table, BspSegment segment)

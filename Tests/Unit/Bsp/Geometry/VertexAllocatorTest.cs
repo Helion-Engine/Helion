@@ -13,20 +13,20 @@ namespace Helion.Test.Unit.Bsp.Geometry
         public void CanAddVerticesAndGetWelding()
         {
             VertexAllocator vertexAllocator = new VertexAllocator(DEFAULT_EPSILON);
-            Vec2D first = Vec2D.Zero;
-            Vec2D second = new Vec2D(0.05, 0.05);
-            Vec2D third = new Vec2D(0.2, 0.05);
+            Vec2D firstPos = Vec2D.Zero;
+            Vec2D secondPos = new Vec2D(0.05, 0.05);
+            Vec2D thirdPos = new Vec2D(0.2, 0.05);
 
-            int firstIndex = vertexAllocator[first];
-            int secondIndex = vertexAllocator[second];
-            int thirdIndex = vertexAllocator[third];
+            BspVertex first = vertexAllocator[firstPos];
+            BspVertex second = vertexAllocator[secondPos];
+            BspVertex third = vertexAllocator[thirdPos];
 
-            Vec2D firstIndexVertex = vertexAllocator[firstIndex];
-            Vec2D thirdIndexVertex = vertexAllocator[thirdIndex];
+            BspVertex firstIndexVertex = vertexAllocator[first.Index];
+            BspVertex thirdIndexVertex = vertexAllocator[third.Index];
             
-            Assert.AreEqual(firstIndex, secondIndex);
+            Assert.AreEqual(first, second);
             Assert.IsTrue(first == firstIndexVertex);
-            Assert.IsTrue(firstIndex != thirdIndex);
+            Assert.IsTrue(first != third);
             Assert.IsTrue(third == thirdIndexVertex);
             
             Assert.AreEqual(2, vertexAllocator.Count);
@@ -41,10 +41,10 @@ namespace Helion.Test.Unit.Bsp.Geometry
             
             Assert.IsFalse(vertexAllocator.TryGetValue(vec, out _));
 
-            int allocatedIndex = vertexAllocator[vec];
+            BspVertex vertex = vertexAllocator[vec];
             bool found = vertexAllocator.TryGetValue(vec, out int index);
             Assert.IsTrue(found);
-            Assert.AreEqual(allocatedIndex, index);
+            Assert.AreEqual(vertex.Index, index);
         }
     }
 }

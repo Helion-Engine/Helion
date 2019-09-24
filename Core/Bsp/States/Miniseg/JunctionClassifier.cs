@@ -14,7 +14,7 @@ namespace Helion.Bsp.States.Miniseg
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly Dictionary<int, Junction> m_vertexToJunction = new Dictionary<int, Junction>();
+        private readonly Dictionary<BspVertex, Junction> m_vertexToJunction = new Dictionary<BspVertex, Junction>();
 
         /// <summary>
         /// Adds a series of junctions to the classifier. This will run some
@@ -43,19 +43,19 @@ namespace Helion.Bsp.States.Miniseg
             if (!segment.OneSided)
                 return;
 
-            if (!m_vertexToJunction.TryGetValue(segment.EndIndex, out Junction? endJunction))
+            if (!m_vertexToJunction.TryGetValue(segment.EndVertex, out Junction? endJunction))
             {
                 endJunction = new Junction();
-                m_vertexToJunction.Add(segment.EndIndex, endJunction);
+                m_vertexToJunction.Add(segment.EndVertex, endJunction);
             }
 
             Precondition(!endJunction.InboundSegments.Contains(segment), "Adding same segment to inbound junction twice");
             endJunction.InboundSegments.Add(segment);
             
-            if (!m_vertexToJunction.TryGetValue(segment.StartIndex, out Junction? startJunction))
+            if (!m_vertexToJunction.TryGetValue(segment.StartVertex, out Junction? startJunction))
             {
                 startJunction = new Junction();
-                m_vertexToJunction.Add(segment.StartIndex, startJunction);
+                m_vertexToJunction.Add(segment.StartVertex, startJunction);
             }
 
             Precondition(!startJunction.OutboundSegments.Contains(segment), "Adding same segment to outbound junction twice");
@@ -79,11 +79,11 @@ namespace Helion.Bsp.States.Miniseg
         {
             foreach (var vertexJunctionPair in m_vertexToJunction)
             {
-                int index = vertexJunctionPair.Key;
+                BspVertex vertex = vertexJunctionPair.Key;
                 Junction junction = vertexJunctionPair.Value;
                 
                 if (junction.HasUnexpectedSegCount())
-                    Log.Warn("BSP junction at index {0} has wrong amount of one-sided lines, BSP tree likely to be malformed", index);
+                    Log.Warn("BSP junction at index {0} has wrong amount of one-sided lines, BSP tree likely to be malformed", vertex.Position);
 
                 junction.GenerateWedges();
             }
@@ -98,16 +98,16 @@ namespace Helion.Bsp.States.Miniseg
         public void AddSplitJunction(BspSegment inboundSegment, BspSegment outboundSegment)
         {
             Precondition(!ReferenceEquals(inboundSegment, outboundSegment), "Trying to add the same segment as an inbound/outbound junction");
-            int middleVertexIndex = inboundSegment.EndIndex;
-            Precondition(outboundSegment.StartIndex == middleVertexIndex, "Adding split junction where inbound/outbound segs are not connected");
-            Precondition(!m_vertexToJunction.ContainsKey(middleVertexIndex), "When creating a split, the middle vertex shouldn't already exist as a junction");
+            BspVertex middleVertex = inboundSegment.EndVertex;
+            Precondition(outboundSegment.StartVertex == middleVertex, "Adding split junction where inbound/outbound segs are not connected");
+            Precondition(!m_vertexToJunction.ContainsKey(middleVertex), "When creating a split, the middle vertex shouldn't already exist as a junction");
 
             // We create new junctions because this function is called from a
             // newly created split. This means the middle vertex is new and the
             // junction cannot exist by virtue of the pivot point never having
             // existed.
             Junction junction = new Junction();
-            m_vertexToJunction[middleVertexIndex] = junction;
+            m_vertexToJunction[middleVertex] = junction;
 
             junction.InboundSegments.Add(inboundSegment);
             junction.OutboundSegments.Add(outboundSegment);
@@ -125,7 +125,7 @@ namespace Helion.Bsp.States.Miniseg
         /// it is inside the map.</returns>
         public bool CheckCrossingVoid(BspVertex first, BspVertex second)
         {
-            if (m_vertexToJunction.TryGetValue(first.Index, out Junction? junction))
+            if (m_vertexToJunction.TryGetValue(first, out Junction? junction))
                 return !junction.BetweenWedge(second.Position);
             return false;
         }

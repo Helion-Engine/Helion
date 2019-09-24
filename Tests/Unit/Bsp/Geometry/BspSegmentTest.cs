@@ -12,8 +12,8 @@ namespace Helion.Test.Unit.Bsp.Geometry
     {
         private const int startIndex = 3;
         private const int endIndex = 7;
-        private static readonly Vec2D start = new Vec2D(1, 2);
-        private static readonly Vec2D end = new Vec2D(3, 4);
+        private static readonly BspVertex start = new BspVertex(new Vec2D(1, 2), startIndex);
+        private static readonly BspVertex end = new BspVertex(new Vec2D(3, 4), endIndex);
 
         [TestMethod]
         public void CanCreateTwoSidedSegment()
@@ -23,10 +23,10 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddSector()
                 .AddSide(0)
                 .AddSide(1)
-                .AddLine(0, 1, start, end)
+                .AddLine(0, 1, start.Position, end.Position)
                 .ToMap();
             
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 42, map.GetLines()[0]);
+            BspSegment segment = new BspSegment(start, end, 42, map.GetLines()[0]);
             
             Assert.AreEqual(startIndex, segment.StartIndex);
             Assert.AreEqual(endIndex, segment.EndIndex);
@@ -49,10 +49,10 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddSector()
                 .AddSector()
                 .AddSide(0)
-                .AddLine(0, start, end)
+                .AddLine(0, start.Position, end.Position)
                 .ToMap();
             
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 1, map.GetLines()[0]);
+            BspSegment segment = new BspSegment(start, end, 1, map.GetLines()[0]);
 
             Assert.IsFalse(segment.TwoSided);
             Assert.IsTrue(segment.OneSided);
@@ -62,7 +62,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
         [TestMethod]
         public void CanCreateMiniseg()
         {
-            BspSegment segment = new BspSegment(start, end, startIndex, endIndex, 0);
+            BspSegment segment = new BspSegment(start, end, 0);
 
             Assert.IsFalse(segment.TwoSided);
             Assert.IsFalse(segment.OneSided);
@@ -72,32 +72,36 @@ namespace Helion.Test.Unit.Bsp.Geometry
         [TestMethod]
         public void CheckForSharedEndpoints()
         {
-            const int firstIndex = 0;
-            const int secondIndex = 1;
-            const int diffFirstIndex = 2;
-            const int diffSecondIndex = 3;
+            const int firstIndex = 100;
+            const int secondIndex = 101;
+            const int diffFirstIndex = 102;
+            const int diffSecondIndex = 103;
 
-            BspSegment segment = new BspSegment(start, end, firstIndex, secondIndex, 0);
+            BspSegment segment = new BspSegment(start, end, 0);
 
             // This case demonstrates that even though the endpoints are the
             // same, it only checks for the endpoint indices.
-            BspSegment noSharedSegment = new BspSegment(start, end, diffFirstIndex, diffSecondIndex, 0);
+            BspVertex diffStart = new BspVertex(start.Position, diffFirstIndex);
+            BspVertex diffEnd = new BspVertex(end.Position, diffSecondIndex);
+            BspSegment noSharedSegment = new BspSegment(diffStart, diffEnd, 0);
             Assert.IsFalse(segment.SharesAnyEndpoints(noSharedSegment));
             
             // All of the following are intended to have at least one endpoint
             // index match.
             foreach ((int startingIndex, int endingIndex) in new[]
             {
-                (firstIndex, diffSecondIndex),
-                (secondIndex, diffSecondIndex),
-                (diffFirstIndex, firstIndex),
-                (diffFirstIndex, secondIndex),
-                (firstIndex, secondIndex),
+                (startIndex, diffSecondIndex),
+                (endIndex, diffSecondIndex),
+                (diffFirstIndex, startIndex),
+                (diffFirstIndex, endIndex),
+                (startIndex, endIndex),
             })
             {
                 // Remember that the endpoints are checked by index, not by the
                 // actual value of the endpoints (for optimization reasons).
-                BspSegment otherSeg = new BspSegment(start, end, startingIndex, endingIndex, 0);
+                BspVertex newStart = new BspVertex(start.Position, startingIndex);
+                BspVertex newEnd = new BspVertex(end.Position, endingIndex);
+                BspSegment otherSeg = new BspSegment(newStart, newEnd, 0);
                 Assert.IsTrue(segment.SharesAnyEndpoints(otherSeg));
             }
         }
