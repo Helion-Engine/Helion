@@ -25,7 +25,7 @@ namespace Helion.Bsp.Geometry
     {
         private readonly VertexAllocator m_vertexAllocator;
         private readonly CollinearTracker m_collinearTracker;
-        private readonly IList<BspSegment> m_segments = new List<BspSegment>();
+        private readonly List<BspSegment> m_segments = new List<BspSegment>();
         private readonly SegmentTable m_segmentTable = new SegmentTable();
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Helion.Bsp.Geometry
         /// already exists with the information provided.</returns>
         public BspSegment GetOrCreate(BspVertex start, BspVertex end, IBspUsableLine? line = null)
         {
-            Precondition(start != end, "Cannot create a segment that is a point");
+            Precondition(start.Position != end.Position, "Cannot create a segment that is a point");
 
             (int smallerIndex, int largerIndex) = MathHelper.MinMax(start.Index, end.Index);
 

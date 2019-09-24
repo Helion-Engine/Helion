@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Util.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -57,6 +58,21 @@ namespace Helion.Test.Unit.Util.Extensions
             {
                 seen.Add(value);
             }
+        }
+
+        [TestMethod]
+        public void GeneratePairCombinations()
+        {
+            List<int> list = new List<int> { 0, 1, 2, 3 };
+            List<(int, int)> expected = new List<(int, int)> { (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3) };
+            Assert.IsTrue(expected.SequenceEqual(list.PairCombinations()));
+            
+            List<(int, int)> emptyExpected = new List<(int, int)>();
+
+            List<int> emptyList = new List<int>();
+            List<int> oneElementList = new List<int> { 0 };
+            Assert.IsTrue(emptyExpected.SequenceEqual(oneElementList.PairCombinations()));
+            Assert.IsTrue(emptyExpected.SequenceEqual(emptyList.PairCombinations()));
         }
     }
 }
