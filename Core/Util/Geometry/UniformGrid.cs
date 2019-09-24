@@ -93,6 +93,24 @@ namespace Helion.Util.Geometry
         /// <summary>
         /// Performs iteration over the grid for the segment provided. The
         /// function will be invoked on every block the segment intersects.
+        /// If you want an early out, the other version of Iterate() should
+        /// be used instead.
+        /// </summary>
+        /// <param name="seg">The segment to iterate with.</param>
+        /// <param name="func">The function to call for each block it visits.
+        /// </param>
+        public void Iterate(Seg2DBase seg, Action<T> func)
+        {
+            Iterate(seg, block =>
+            {
+                func(block);
+                return GridIterationStatus.Continue;
+            });
+        }
+
+        /// <summary>
+        /// Performs iteration over the grid for the segment provided. The
+        /// function will be invoked on every block the segment intersects.
         /// </summary>
         /// <param name="seg">The segment to iterate with.</param>
         /// <param name="func">The function to call for each block it visits,
@@ -260,10 +278,8 @@ namespace Helion.Util.Geometry
             return false;
         }
 
-        /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)blocks).GetEnumerator();
 
-        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         
         private static Box2D ToBounds(Box2D bounds)

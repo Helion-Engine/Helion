@@ -40,27 +40,16 @@ namespace Helion.Bsp
         public bool BranchRight = true;
 
         /// <summary>
+        /// If true, will attempt to repair the map before performing BSP
+        /// actions.
+        /// </summary>
+        public bool AttemptMapRepair = false;
+
+        /// <summary>
         /// Creates a BSP config with the default values.
         /// </summary>
         public BspConfig()
         {
-        }
-
-        /// <summary>
-        /// Creates a BSP config with the values provided.
-        /// </summary>
-        /// <param name="vertexWeldingEpsilon">The distance on the map before
-        /// the vertices weld together.</param>
-        /// <param name="punishableEndpointDistance">The distance in map units
-        /// where a heavy punishment is applied when trying to determine which
-        /// line to use as a splitter.</param>
-        /// <param name="splitWeights">The weights of splitting which determine
-        /// which line of all the available lines will be the splitter.</param>
-        public BspConfig(double vertexWeldingEpsilon, double punishableEndpointDistance, SplitWeights splitWeights)
-        {
-            VertexWeldingEpsilon = vertexWeldingEpsilon;
-            PunishableEndpointDistance = punishableEndpointDistance;
-            SplitWeights = splitWeights;
         }
     }
 }

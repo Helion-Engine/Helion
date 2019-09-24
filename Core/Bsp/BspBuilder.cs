@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
+using Helion.Bsp.Repairer;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
@@ -44,8 +45,6 @@ namespace Helion.Bsp
         public readonly VertexAllocator VertexAllocator;
         public readonly SegmentAllocator SegmentAllocator;
         private readonly BspConfig BspConfig;
-        private readonly CollinearTracker m_collinearTracker;
-        private readonly JunctionClassifier m_junctionClassifier;
         private readonly BspNode m_root = new BspNode();
         private readonly Stack<WorkItem> m_workItems = new Stack<WorkItem>();
         private bool m_foundDegenerateNode;
@@ -60,18 +59,21 @@ namespace Helion.Bsp
         public BspBuilder(BspConfig config, IMap map)
         {
             BspConfig = config;
-            m_collinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
-            m_junctionClassifier = new JunctionClassifier();
+            CollinearTracker collinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
+            JunctionClassifier junctionClassifier = new JunctionClassifier();
+            
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
-            SegmentAllocator = new SegmentAllocator(VertexAllocator, m_collinearTracker);
+            SegmentAllocator = new SegmentAllocator(VertexAllocator, collinearTracker);
             ConvexChecker = new ConvexChecker();
-            SplitCalculator = new SplitCalculator(config, m_collinearTracker);
-            Partitioner = new Partitioner(config, SegmentAllocator, m_junctionClassifier);
-            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, m_junctionClassifier);
+            SplitCalculator = new SplitCalculator(config, collinearTracker);
+            Partitioner = new Partitioner(config, SegmentAllocator, junctionClassifier);
+            MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, junctionClassifier);
 
             List<BspSegment> segments = ReadMapLines(map);
-            m_junctionClassifier.Add(segments);
-
+            if (config.AttemptMapRepair)
+                segments = MapRepairer.Repair(segments, VertexAllocator, SegmentAllocator);
+                    
+            junctionClassifier.Add(segments);
             CreateInitialWorkItem(segments);
         }
 
