@@ -52,6 +52,8 @@ namespace Helion.World.Special.Specials
                 DestZ = m_startZ + (m_stairHeight * (i + 1));
                 if (Sector.IsMoving)
                     currentStatus = base.Tick();
+                else
+                    SectorPlane.PrevZ = SectorPlane.Z;
 
                 if (currentStatus == SpecialTickStatus.Destroy)
                 {
@@ -64,6 +66,15 @@ namespace Helion.World.Special.Specials
             }
 
             return SpecialTickStatus.Continue;
+        }
+
+        public override void FinalizeDestroy()
+        {
+            if (m_sectors.Count > 0)
+            {
+                Sector = m_sectors[m_sectors.Count - 1];
+                Sector.Floor.PrevZ = Sector.Floor.Z;
+            }
         }
 
         private static Sector? GetNextSector(Sector start, int floorpic)
