@@ -45,8 +45,9 @@ namespace Helion.World.Geometry.Builder
                 Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
                 return null;
             }
-            
-            // TODO: Connect subsector to sectors, and subsector segments to sides (and/or lines)?
+
+            bspTree.ConnectSubsectorsToSectors();
+            bspTree.ConnectSubsectorsToSidesAndLines();
 
             return new MapGeometry(builder, bspTree);
         }

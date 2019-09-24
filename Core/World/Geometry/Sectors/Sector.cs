@@ -6,6 +6,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Special;
 using static Helion.Util.Assertion.Assert;
 
@@ -52,6 +53,11 @@ namespace Helion.World.Geometry.Sectors
         /// All the lines that this sector may influence in some way.
         /// </summary>
         public readonly HashSet<Line> Lines = new HashSet<Line>();
+        
+        /// <summary>
+        /// All of the subsectors that are part of this sector.
+        /// </summary>
+        public readonly HashSet<Subsector> Subsectors = new HashSet<Subsector>();
         
         /// <summary>
         /// All the 3D floors that exist for this sector.

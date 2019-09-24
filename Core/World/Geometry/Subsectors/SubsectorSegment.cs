@@ -1,5 +1,4 @@
-﻿using Helion.Util.Geometry;
-using Helion.Util.Geometry.Segments;
+﻿using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
@@ -15,6 +14,11 @@ namespace Helion.World.Geometry.Subsectors
         /// The unique ID for the segment.
         /// </summary>
         public readonly int Id;
+
+        /// <summary>
+        /// The subsector for this segment.
+        /// </summary>
+        public Subsector Subsector { get; internal set; }
         
         /// <summary>
         /// The side this belongs to, if any (will be null if it's a miniseg).
@@ -44,6 +48,11 @@ namespace Helion.World.Geometry.Subsectors
         {
             Id = id;
             Side = side;
+
+            // As seen elsewhere: if this is not set shortly thereafter,
+            // someone screwed up big time. This also avoids making a very
+            // messy workaround to make this correct.
+            Subsector = null !;
         }
     }
 }

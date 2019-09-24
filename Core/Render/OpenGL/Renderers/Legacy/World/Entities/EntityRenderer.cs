@@ -8,7 +8,6 @@ using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities;
-using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
@@ -24,7 +23,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly RenderWorldDataManager m_worldDataManager;
-        private readonly SectorDrawnTracker m_SectorDrawnTracker = new SectorDrawnTracker();
         private readonly EntityDrawnTracker m_EntityDrawnTracker = new EntityDrawnTracker();
         private double m_tickFraction;
         private Entity? m_cameraEntity;
@@ -37,7 +35,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         public void UpdateTo(WorldBase world)
         {
-            m_SectorDrawnTracker.UpdateTo(world);
             PreloadAllTextures(world);
         }
 
@@ -46,18 +43,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             m_tickFraction = tickFraction;
             m_cameraEntity = cameraEntity;
             m_EntityDrawnTracker.Reset(world);
-            m_SectorDrawnTracker.Reset();
         }
 
         public void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
         {
-            Sector sector = subsector.Sector;
-            
-            // TODO: Track all the subsectors the entity is in, assuming that is faster.
-            if (m_SectorDrawnTracker.HasDrawn(sector))
-                return;
-            
-            foreach (Entity entity in sector.Entities)
+            foreach (Entity entity in subsector.Entities)
             {
                 if (ShouldNotDraw(entity))
                     continue;
@@ -65,8 +55,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 RenderEntity(entity, position, viewDirection);
                 m_EntityDrawnTracker.MarkDrawn(entity);
             }
-            
-            m_SectorDrawnTracker.MarkDrawn(sector);
         }
 
         private static uint CalculateRotation(uint viewAngle, uint entityAngle)

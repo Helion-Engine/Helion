@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -6,6 +7,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Special;
 using static Helion.Util.Assertion.Assert;
 
@@ -22,6 +24,8 @@ namespace Helion.World.Geometry.Lines
         public readonly SpecialArgs Args;
         public readonly LineFlags Flags;
         public readonly LineSpecial Special;
+        public readonly HashSet<Subsector> Subsectors = new HashSet<Subsector>();
+        public readonly HashSet<SubsectorSegment> SubsectorSegments = new HashSet<SubsectorSegment>();
         public bool Activated;
         
         public Vec2D StartPosition => Segment.Start;

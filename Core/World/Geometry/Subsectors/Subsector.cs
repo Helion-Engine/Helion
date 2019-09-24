@@ -23,6 +23,8 @@ namespace Helion.World.Geometry.Subsectors
             Sector = sector;
             BoundingBox = boundingBox;
             ClockwiseEdges = clockwiseEdges;
+            
+            clockwiseEdges.ForEach(edge => edge.Subsector = this);
         }
         
         public LinkableNode<Entity> Link(Entity entity)
