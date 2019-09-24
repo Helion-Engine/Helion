@@ -72,8 +72,6 @@ namespace Helion.Test.Unit.Bsp.Geometry
         [TestMethod]
         public void CheckForSharedEndpoints()
         {
-            const int firstIndex = 100;
-            const int secondIndex = 101;
             const int diffFirstIndex = 102;
             const int diffSecondIndex = 103;
 
