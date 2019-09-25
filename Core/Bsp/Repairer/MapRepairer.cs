@@ -82,42 +82,62 @@ namespace Helion.Bsp.Repairer
 
         private void FixOverlappingCollinearLines()
         {
-            List<BspSegment> segsToRemove;
-
-            do
+            while (true)
             {
-                segsToRemove = new List<BspSegment>();
-                
+                List<BspSegment> segsToRemove = new List<BspSegment>();
+                List<BspSegment> segsToAdd = new List<BspSegment>();
+
+                // TODO: We need to fully break out of both loops, but we also
+                // dont want to keep revisiting them since this is a O(n^4)
+                // function (the sum of `i = 1..(n choose 2) of i` has n^4 as a
+                // highest order term). Breaking out wont avoid O(n^4) but all
+                // maps thus far don't trigger this pathological case anyways.
                 foreach (MapBlock block in m_anySegmentBlocks)
                 {
                     foreach ((BspSegment firstSeg, BspSegment secondSeg) in block.Segments.PairCombinations())
                     {
                         if (!firstSeg.Collinear(secondSeg))
                             continue;
-                        
+
                         double startTime = firstSeg.ToTime(secondSeg.Start);
                         double endTime = firstSeg.ToTime(secondSeg.End);
                         if (HasNoOverlappingTime(startTime, endTime))
                             continue;
 
-                        Log.Error("Found overlapping segments for line {0} ({1} -> {2}) and {3} ({4} -> {5})", 
-                            firstSeg.Line?.Id, firstSeg.Start, firstSeg.End, secondSeg.Line?.Id, secondSeg.Start, secondSeg.End);
-                        
+                        Log.Error("Found overlapping segments for line {0} ({1} -> {2}) and {3} ({4} -> {5})",
+                            firstSeg.Line?.Id, firstSeg.Start, firstSeg.End, secondSeg.Line?.Id, secondSeg.Start,
+                            secondSeg.End);
+
                         var overlapResolver = new CollinearOverlapResolver(firstSeg, secondSeg, startTime, endTime);
                         overlapResolver.Resolve();
                         // TODO: Do things with the resolved segment data.
                         // TODO: Add seg to be removed to the segsToRemove.
+                        // TODO: Add new segs to segsToAdd.
                     }
                 }
+
+                if (segsToRemove.Empty())
+                    break;
                 
+                // We remove them outside because we do not want to affect the
+                // MapBlock's list while iterating over it.
                 // TODO: Remove any segments in segsToRemove from the SegmentAllocator.
-            } 
-            while (segsToRemove.Count > 0);
+                // TODO: Add any segsToAdd to the appropriate MapBlocks.
+            }
         }
 
         private void FixIntersectingLines()
         {
-            // TODO
+            while (true)
+            {
+                List<BspSegment> segsToRemove = new List<BspSegment>();
+                List<BspSegment> segsToAdd = new List<BspSegment>();
+                
+                // TODO:
+                
+                if (segsToRemove.Empty())
+                    break;
+            }
         }
 
         private void FixDanglingOneSidedLines()
