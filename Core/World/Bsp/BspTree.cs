@@ -86,7 +86,8 @@ namespace Helion.World.Bsp
         /// map is corrupt beyond repair.</returns>
         public static BspTree? Create(IMap map, GeometryBuilder builder)
         {
-            BspBuilder bspBuilder = new BspBuilder(map);
+            BspConfig bspConfig = new BspConfig { AttemptMapRepair = true };
+            BspBuilder bspBuilder = new BspBuilder(bspConfig, map);
             BspNode? root = bspBuilder.Build();
             if (root == null)
             {

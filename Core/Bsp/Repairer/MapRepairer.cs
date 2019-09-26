@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
@@ -15,7 +16,7 @@ namespace Helion.Bsp.Repairer
         private readonly List<BspSegment> m_segments;
         private readonly VertexAllocator m_vertexAllocator;
         private readonly SegmentAllocator m_segmentAllocator;
-        private readonly UniformGrid<MapBlock> m_anySegmentBlocks;
+        private readonly UniformGrid<MapBlock> m_blocks;
 
         public MapRepairer(List<BspSegment> segments, VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator)
         {
@@ -24,7 +25,7 @@ namespace Helion.Bsp.Repairer
             m_segmentAllocator = segmentAllocator;
 
             Box2D bounds = vertexAllocator.Bounds();
-            m_anySegmentBlocks = new UniformGrid<MapBlock>(bounds);
+            m_blocks = new UniformGrid<MapBlock>(bounds);
             AddSegmentsToBlocks();
         }
 
@@ -61,10 +62,49 @@ namespace Helion.Bsp.Repairer
         {
             foreach (BspSegment segment in m_segments)
             {
-                m_anySegmentBlocks.Iterate(segment, block =>
+                m_blocks.Iterate(segment, block =>
                 { 
                     block.Segments.Add(segment);
-                    block.OneSidedSegments.Add(segment);
+                    if (segment.OneSided)
+                        block.OneSidedSegments.Add(segment);
+                });
+            }
+        }
+        
+        private void AddSegments(List<BspSegment> segsToAdd)
+        {
+            // Yes, this is O(n), and the only reason this exists is because
+            // we call this so infrequently that it doesn't show up in the
+            // profiler. I still want this fixed at some point though since
+            // it'll eventually happen on a big map and we'll feel it.
+            foreach (BspSegment seg in segsToAdd)
+            {
+                m_segments.Add(seg);
+                
+                m_blocks.Iterate(seg, block =>
+                {
+                    block.Segments.Add(seg);
+                    if (seg.OneSided)
+                        block.OneSidedSegments.Add(seg);
+                });
+            }
+        }
+
+        private void RemoveSegments(List<BspSegment> segsToRemove)
+        {
+            // Yes, this is O(n), and the only reason this exists is because
+            // we call this so infrequently that it doesn't show up in the
+            // profiler. I still want this fixed at some point though since
+            // it'll eventually happen on a big map and we'll feel it.
+            foreach (BspSegment seg in segsToRemove)
+            {
+                m_segments.Remove(seg);
+                
+                m_blocks.Iterate(seg, block =>
+                {
+                    block.Segments.Remove(seg);
+                    if (seg.OneSided)
+                        block.OneSidedSegments.Remove(seg);
                 });
             }
         }
@@ -92,7 +132,7 @@ namespace Helion.Bsp.Repairer
                 // function (the sum of `i = 1..(n choose 2) of i` has n^4 as a
                 // highest order term). Breaking out wont avoid O(n^4) but all
                 // maps thus far don't trigger this pathological case anyways.
-                foreach (MapBlock block in m_anySegmentBlocks)
+                foreach (MapBlock block in m_blocks)
                 {
                     foreach ((BspSegment firstSeg, BspSegment secondSeg) in block.Segments.PairCombinations())
                     {
@@ -132,11 +172,66 @@ namespace Helion.Bsp.Repairer
             {
                 List<BspSegment> segsToRemove = new List<BspSegment>();
                 List<BspSegment> segsToAdd = new List<BspSegment>();
-                
-                // TODO:
-                
+
+                foreach (MapBlock block in m_blocks)
+                {
+                    foreach ((BspSegment firstSeg, BspSegment secondSeg) in block.Segments.PairCombinations())
+                    {
+                        if (firstSeg.SharesAnyEndpoints(secondSeg))
+                            continue;
+
+                        if (!firstSeg.IntersectionAsLine(secondSeg, out double tFirst, out double tSecond))
+                            continue;
+
+                        if (!MathHelper.InNormalRange(tFirst) || !MathHelper.InNormalRange(tSecond))
+                            continue;
+
+                        HandleIntersectingSegments(firstSeg, secondSeg, tFirst, tSecond, segsToRemove, segsToAdd);
+                        break;
+                    }
+
+                    // We need to abandon the loop if we're going to add stuff
+                    // since we'll be mutating things and want to revisit the
+                    // block. Yes, this is obviously not ideal and quickly is
+                    // an O(n^4) disaster if there's tons of these, but there
+                    // should never be tons of these.
+                    if (segsToRemove.Count > 0)
+                        break;
+                }
+
                 if (segsToRemove.Empty())
                     break;
+
+                RemoveSegments(segsToRemove);
+                AddSegments(segsToAdd);
+            }
+        }
+
+        private void HandleIntersectingSegments(BspSegment firstSeg, BspSegment secondSeg, double tFirst, double tSecond, 
+            List<BspSegment> segsToRemove, List<BspSegment> segsToAdd)
+        {
+            Log.Warn("Found unjoined line intersection, fixing bad geometry");
+
+            // At this point we know they either cross, or one
+            // touches the other and needs to be made into an
+            // intersection. See which line touches, and if
+            // neither touch then they must cross.
+            if (tFirst.ApproxEquals(0) || tFirst.ApproxEquals(1))
+                HandleSplitAt(secondSeg, tSecond);
+            else if (tSecond.ApproxEquals(0) || tSecond.ApproxEquals(1))
+                HandleSplitAt(firstSeg, tFirst);
+            else
+            {
+                HandleSplitAt(firstSeg, tFirst);
+                HandleSplitAt(secondSeg, tSecond);
+            }
+
+            void HandleSplitAt(BspSegment seg, double t)
+            {
+                (BspSegment segA, BspSegment segB) = m_segmentAllocator.Split(seg, t);
+                segsToRemove.Add(seg);
+                segsToAdd.Add(segA);
+                segsToAdd.Add(segB);
             }
         }
 

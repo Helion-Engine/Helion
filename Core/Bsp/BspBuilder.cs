@@ -69,10 +69,8 @@ namespace Helion.Bsp
             Partitioner = new Partitioner(config, SegmentAllocator, junctionClassifier);
             MinisegCreator = new MinisegCreator(VertexAllocator, SegmentAllocator, junctionClassifier);
 
-            List<BspSegment> segments = ReadMapLines(map);
-            if (config.AttemptMapRepair)
-                segments = MapRepairer.Repair(segments, VertexAllocator, SegmentAllocator);
-                    
+            List<BspSegment> segments = ProcessMapLines(map);
+
             junctionClassifier.Add(segments);
             CreateInitialWorkItem(segments);
         }
@@ -175,7 +173,7 @@ namespace Helion.Bsp
             }
         }
 
-        private List<BspSegment> ReadMapLines(IMap map)
+        private List<BspSegment> ProcessMapLines(IMap map)
         {
             List<BspSegment> segments = new List<BspSegment>();
             foreach (ILine line in map.GetLines())
@@ -185,6 +183,9 @@ namespace Helion.Bsp
                 BspSegment segment = SegmentAllocator.GetOrCreate(start, end, line);
                 segments.Add(segment);
             }
+            
+            if (BspConfig.AttemptMapRepair)
+                segments = MapRepairer.Repair(segments, VertexAllocator, SegmentAllocator);
             
             List<BspSegment> prunedSegments = SegmentChainPruner.Prune(segments);
             if (prunedSegments.Count < segments.Count)

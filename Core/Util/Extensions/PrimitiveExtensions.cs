@@ -6,6 +6,36 @@ namespace Helion.Util.Extensions
     public static class PrimitiveExtensions
     {
         /// <summary>
+        /// Checks if the value is approximately equal to another value. If you
+        /// are using a very large or small number you will need to customize
+        /// the epsilon.
+        /// </summary>
+        /// <param name="value">The original object.</param>
+        /// <param name="target">What you want to compare it to.</param>
+        /// <param name="epsilon">The range to check if value is within rnage
+        /// of target.</param>
+        /// <returns>True if so, false if not.</returns>
+        public static bool ApproxEquals(this double value, double target, double epsilon = 0.00001)
+        {
+            return value >= target - epsilon && value <= target + epsilon;
+        }
+        
+        /// <summary>
+        /// Checks if the value is approximately equal to another value. If you
+        /// are using a very large or small number you will need to customize
+        /// the epsilon.
+        /// </summary>
+        /// <param name="value">The original object.</param>
+        /// <param name="target">What you want to compare it to.</param>
+        /// <param name="epsilon">The range to check if value is within rnage
+        /// of target.</param>
+        /// <returns>True if so, false if not.</returns>
+        public static bool ApproxEquals(this float value, float target, float epsilon = 0.0001f)
+        {
+            return value >= target - epsilon && value <= target + epsilon;
+        }
+        
+        /// <summary>
         /// Interpolates the value from the current to the provided value by
         /// some time t.
         /// </summary>
