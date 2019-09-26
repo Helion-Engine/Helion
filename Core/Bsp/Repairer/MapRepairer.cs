@@ -213,20 +213,27 @@ namespace Helion.Bsp.Repairer
         private void HandleIntersectingSegments(BspSegment firstSeg, BspSegment secondSeg, double tFirst, double tSecond, 
             List<BspSegment> segsToRemove, List<BspSegment> segsToAdd)
         {
-            Log.Warn("Found unjoined line intersection, fixing bad geometry");
+            Log.Warn("Found lines that should have intersected to make a vertex but didn't, fixing geometry");
 
             // At this point we know they either cross, or one
             // touches the other and needs to be made into an
             // intersection. See which line touches, and if
             // neither touch then they must cross.
             if (tFirst.ApproxEquals(0) || tFirst.ApproxEquals(1))
+            {
                 HandleSplitAt(secondSeg, tSecond);
+                Log.Info("Fixed missing intersection  vertex at {0}", secondSeg.FromTime(tSecond));
+            }
             else if (tSecond.ApproxEquals(0) || tSecond.ApproxEquals(1))
+            {
                 HandleSplitAt(firstSeg, tFirst);
+                Log.Info("Fixed missing intersection vertex at {0}", firstSeg.FromTime(tFirst));
+            }
             else
             {
                 HandleSplitAt(firstSeg, tFirst);
                 HandleSplitAt(secondSeg, tSecond);
+                Log.Info("Fixed missing intersection vertex at {0}", firstSeg.FromTime(tFirst));
             }
 
             void HandleSplitAt(BspSegment seg, double t)

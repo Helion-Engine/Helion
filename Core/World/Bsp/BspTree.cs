@@ -6,6 +6,7 @@ using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
@@ -86,9 +87,48 @@ namespace Helion.World.Bsp
         /// map is corrupt beyond repair.</returns>
         public static BspTree? Create(IMap map, GeometryBuilder builder)
         {
-            BspConfig bspConfig = new BspConfig { AttemptMapRepair = true };
-            BspBuilder bspBuilder = new BspBuilder(bspConfig, map);
-            BspNode? root = bspBuilder.Build();
+            BspNode? root = null;
+            
+            // Currently the BSP builder has a fair amount of state, and having
+            // it detect errors, roll back, and try to repair a map mid-stream
+            // while resetting all of its data structures is a lot of work.
+            //
+            // Further assertions can occur due to malformed maps. The solution
+            // now is to attempt it, and if something goes wrong then try to
+            // run it with the map repairer and try again. We don't want to run
+            // the map repairer from the start because on bigger maps it uses a
+            // fair amount of computation due to how the implementation of some
+            // algorithms are.
+            try
+            {
+                BspBuilder bspBuilder = new BspBuilder(map);
+                root = bspBuilder.Build();
+            }
+            catch
+            {
+                Log.Warn("Unable to build BSP nodes due to map corruption, attempting to fix...");
+                
+                try
+                {
+                    BspConfig bspConfig = new BspConfig { AttemptMapRepair = true };
+                    BspBuilder bspBuilder = new BspBuilder(bspConfig, map);
+                    root = bspBuilder.Build();
+                }
+                catch (AssertionException)
+                {
+                    // These are supposed to leak through, because we repaired
+                    // the map and it was still triggering assertions which
+                    // means we screwed up and need to fix something.
+                    throw;
+                }
+                catch
+                {
+                    // We want the root to be left as null so the user will be
+                    // able to tell something went very wrong. When we have a
+                    // perfect map repairer, this catch won't be needed.
+                }
+            }
+
             if (root == null)
             {
                 Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);

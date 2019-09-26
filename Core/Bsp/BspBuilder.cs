@@ -187,11 +187,7 @@ namespace Helion.Bsp
             if (BspConfig.AttemptMapRepair)
                 segments = MapRepairer.Repair(segments, VertexAllocator, SegmentAllocator);
             
-            List<BspSegment> prunedSegments = SegmentChainPruner.Prune(segments);
-            if (prunedSegments.Count < segments.Count)
-                Log.Debug("Pruned {0} dangling segments", segments.Count - prunedSegments.Count);
-            
-            return prunedSegments;
+            return SegmentChainPruner.Prune(segments);
         }
 
         private void CreateInitialWorkItem(List<BspSegment> segments)
