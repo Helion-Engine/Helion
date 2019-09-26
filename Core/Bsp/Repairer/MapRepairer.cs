@@ -14,14 +14,12 @@ namespace Helion.Bsp.Repairer
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly List<BspSegment> m_segments;
-        private readonly VertexAllocator m_vertexAllocator;
         private readonly SegmentAllocator m_segmentAllocator;
         private readonly UniformGrid<MapBlock> m_blocks;
 
         public MapRepairer(List<BspSegment> segments, VertexAllocator vertexAllocator, SegmentAllocator segmentAllocator)
         {
             m_segments = segments;
-            m_vertexAllocator = vertexAllocator;
             m_segmentAllocator = segmentAllocator;
 
             Box2D bounds = vertexAllocator.Bounds();
@@ -177,12 +175,16 @@ namespace Helion.Bsp.Repairer
                 {
                     foreach ((BspSegment firstSeg, BspSegment secondSeg) in block.Segments.PairCombinations())
                     {
+                        // If they already meet at an endpoint, then we can
+                        // exit early because if they were overlapping and
+                        // have some kind of intersection elsewhere, that will
+                        // have been handled by the collinear overlapper.
                         if (firstSeg.SharesAnyEndpoints(secondSeg))
                             continue;
-
+                        
                         if (!firstSeg.IntersectionAsLine(secondSeg, out double tFirst, out double tSecond))
                             continue;
-
+                        
                         if (!MathHelper.InNormalRange(tFirst) || !MathHelper.InNormalRange(tSecond))
                             continue;
 
@@ -194,7 +196,8 @@ namespace Helion.Bsp.Repairer
                     // since we'll be mutating things and want to revisit the
                     // block. Yes, this is obviously not ideal and quickly is
                     // an O(n^4) disaster if there's tons of these, but there
-                    // should never be tons of these.
+                    // should never be tons of these because we rarely ever
+                    // run into it.
                     if (segsToRemove.Count > 0)
                         break;
                 }
