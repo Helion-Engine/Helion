@@ -22,7 +22,7 @@ namespace Helion.Maps.Specials.Vanilla
         W1_BlinkLightStartEveryOneSecond,
         S1_RaiseFloorMatchNextHigherFloor,
         W1_LowerFloorToHighestAdjacentFloor,
-        S1_RaiseFloorToMatchNextHigher,
+        S1_RaiseFloorToMatchNextHigherChangeTexture,
         S1_LowerLiftRaise,
         W1_RaiseFloorToMatchNextHigherChangeTexture,
         S1_LowerFloorToLowestAdjacentFloor,
