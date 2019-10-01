@@ -35,7 +35,9 @@ public struct Vec2I
         public static Vec2I operator +(Vec2I self, Vec2I other) => new Vec2I(self.X + other.X, self.Y + other.Y);
         public static Vec2I operator -(Vec2I self, Vec2I other) => new Vec2I(self.X - other.X, self.Y - other.Y);
         public static Vec2I operator *(Vec2I self, Vec2I other) => new Vec2I(self.X * other.X, self.Y * other.Y);
+        public static Vec2I operator *(Vec2I self, int value) => new Vec2I(self.X * value, self.Y * value);
         public static Vec2I operator /(Vec2I self, Vec2I other) => new Vec2I(self.X / other.X, self.Y / other.Y);
+        public static Vec2I operator /(Vec2I self, int value) => new Vec2I(self.X / value, self.Y / value);
         public static Vec2I operator <<(Vec2I self, int bits) => new Vec2I(self.X << bits, self.Y << bits);
         public static Vec2I operator >>(Vec2I self, int bits) => new Vec2I(self.X >> bits, self.Y >> bits);
         public static bool operator ==(Vec2I self, Vec2I other) => self.X == other.X && self.Y == other.Y;
