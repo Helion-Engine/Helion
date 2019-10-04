@@ -5,10 +5,12 @@ using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
+using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Fonts;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
+using Helion.Util.Extensions;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
@@ -21,6 +23,7 @@ namespace Helion.Resources.Definitions
     public class DefinitionEntries
     {
         public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
+        public readonly CompatibilityDefinitions Compatibility = new CompatibilityDefinitions();
         public readonly DecorateDefinitions Decorate;
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
@@ -36,6 +39,7 @@ namespace Helion.Resources.Definitions
             Decorate = new DecorateDefinitions(archiveCollection);
 
             m_entryNameToAction["ANIMDEFS"] = entry => Animdefs.AddDefinitions(entry);
+            m_entryNameToAction["COMPATIBILITY"] = entry => Compatibility.AddDefinitions(entry);
             m_entryNameToAction["DECORATE"] = entry => Decorate.AddDecorateDefinitions(entry);
             m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));
@@ -63,7 +67,7 @@ namespace Helion.Resources.Definitions
 
         private void CreateImageDefinitionsFrom(PnamesTextureXCollection collection)
         {
-            Precondition(collection.Pnames.Count > 0, "Expecting pnames to exist when reading TextureX definitions");
+            Precondition(!collection.Pnames.Empty(), "Expecting pnames to exist when reading TextureX definitions");
 
             // Note: We don't handle multiple pnames. I am not sure how they're
             // handled, it might be 'one pnames to textureX' when more than one

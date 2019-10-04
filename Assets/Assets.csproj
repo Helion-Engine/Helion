@@ -76,6 +76,7 @@
     <Content Include="Assets\Actors\Player.txt" />
     <Content Include="Assets\Actors\Teleport.txt" />
     <Content Include="Assets\Animdefs.txt" />
+    <Content Include="Assets\Compatibility.txt" />
     <Content Include="Assets\Decorate.txt" />
     <Content Include="Assets\Fonts.txt" />
     <Content Include="Assets\Fonts\console.ttf" />

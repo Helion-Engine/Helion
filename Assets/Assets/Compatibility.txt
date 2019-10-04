@@ -1,0 +1,9 @@
+"DOOM2.WAD"
+{
+    map "MAP14"
+    {
+        line 237 delete;
+        line 964 add side 1390;
+        line 966 add side 1388;
+    }
+}
