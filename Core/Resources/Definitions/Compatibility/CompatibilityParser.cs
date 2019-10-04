@@ -99,7 +99,6 @@ namespace Helion.Resources.Definitions.Compatibility
 
             InvokeUntilAndConsume('{', () => identifiers.Add(ConsumeString().ToUpper()));
             ConsumeDefinition();
-            // Calling ConsumeDefinition will consume the closing curly brace. 
 
             AddDefinitionToIdentifier(identifiers);
         }

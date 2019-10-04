@@ -42,10 +42,10 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["COMPATIBILITY"] = entry => Compatibility.AddDefinitions(entry);
             m_entryNameToAction["DECORATE"] = entry => Decorate.AddDecorateDefinitions(entry);
             m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
-            m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.Add(Pnames.From(entry.ReadData()));
-            m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
-            m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
-            m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.Add(TextureX.From(entry.ReadData()));
+            m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.AddPnames(entry);
+            m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
+            m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
+            m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
         }
         
         /// <summary>
