@@ -16,8 +16,8 @@ namespace Helion.World.Geometry.Sides
         // not playing nicely together (yet).
         private TwoSided BackSide => (TwoSided)Line.Back !;
 
-        public TwoSided(int id, int mapId, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector) : 
-            base(id, mapId, offset, middle, sector)
+        public TwoSided(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector) : 
+            base(id, offset, middle, sector)
         {
             Upper = upper;
             Lower = lower;

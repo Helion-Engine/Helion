@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Maps.Components;
+using Helion.Util.Container;
 
 namespace Helion.Maps
 {
@@ -23,7 +24,7 @@ namespace Helion.Maps
         /// Gets the lines for this map.
         /// </summary>
         /// <returns>The lines for this map.</returns>
-        IReadOnlyList<ILine> GetLines();
+        ICovariantReadOnlyDictionary<int, ILine> GetLines();
 
         /// <summary>
         /// Gets the nodes for the map. This is empty if there was no nodes
@@ -37,24 +38,24 @@ namespace Helion.Maps
         /// Gets the lines for this map.
         /// </summary>
         /// <returns>The lines for this map.</returns>
-        IReadOnlyList<ISector> GetSectors();
+        ICovariantReadOnlyDictionary<int, ISector> GetSectors();
         
         /// <summary>
         /// Gets the sides for this map.
         /// </summary>
         /// <returns>The sides for this map.</returns>
-        IReadOnlyList<ISide> GetSides();
+        ICovariantReadOnlyDictionary<int, ISide> GetSides();
         
         /// <summary>
         /// Gets the things for this map.
         /// </summary>
         /// <returns>The things for this map.</returns>
-        IReadOnlyList<IThing> GetThings();
+        ICovariantReadOnlyDictionary<int, IThing> GetThings();
         
         /// <summary>
         /// Gets the vertices for this map.
         /// </summary>
         /// <returns>The vertices for this map.</returns>
-        IReadOnlyList<IVertex> GetVertices();
+        ICovariantReadOnlyDictionary<int, IVertex> GetVertices();
     }
 }

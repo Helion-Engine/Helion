@@ -18,6 +18,11 @@
         /// Empty if this is extensionless or a directory.
         /// </summary>
         string Extension { get; }
+        
+        /// <summary>
+        /// Creates a string with the name and appends the extension (if any).
+        /// </summary>
+        string NameWithExtension { get; }
 
         /// <summary>
         /// Checks if it has an extension.

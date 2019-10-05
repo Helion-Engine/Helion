@@ -6,6 +6,7 @@ using Helion.Resources.Archives.Iterator;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Data;
 using Helion.Resources.Definitions;
+using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util;
@@ -69,14 +70,17 @@ namespace Helion.Resources.Archives.Collection
 
         public IMap? FindMap(string mapName)
         {
-            string upperName = mapName.ToUpper();
+            string upperMapName = mapName.ToUpper();
 
             for (int i = m_archives.Count - 1; i >= 0; i--)
             {
-                foreach (var mapEntryCollection in new ArchiveMapIterator(m_archives[i]))
+                Archive archive = m_archives[i];
+                foreach (var mapEntryCollection in new ArchiveMapIterator(archive))
                 {
-                    if (mapEntryCollection.Name != upperName)
+                    if (mapEntryCollection.Name != upperMapName)
                         continue;
+                    
+                    CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(archive, upperMapName);
                     
                     // If we find a map that is corrupt, we want to exit early
                     // instead of keep looking since the latest map we find is
@@ -84,11 +88,11 @@ namespace Helion.Resources.Archives.Collection
                     // confusing to the user in the case where they ask for the
                     // most recent map which is corrupt, but then get some
                     // earlier map in the pack which is not corrupt.
-                    IMap? map = MapReader.Read(mapEntryCollection);
+                    IMap? map = MapReader.Read(mapEntryCollection, compat);
                     if (map != null) 
                         return map;
                     
-                    Log.Warn("Unable to use map {0}, it is corrupt", upperName);
+                    Log.Warn("Unable to use map {0}, it is corrupt", upperMapName);
                     return null;
                 }
             }

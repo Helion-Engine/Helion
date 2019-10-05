@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using NLog;
@@ -12,6 +13,24 @@ namespace Helion.Resources.Definitions.Compatibility
         private readonly Dictionary<CIString, CompatibilityDefinition> FileDefinitions = new Dictionary<CIString, CompatibilityDefinition>();
         private readonly Dictionary<CIString, CompatibilityDefinition> HashDefinitions = new Dictionary<CIString, CompatibilityDefinition>();
 
+        public CompatibilityMapDefinition? Find(Archive archive, string mapName)
+        {
+            string name = archive.Path.NameWithExtension;
+            if (FileDefinitions.TryGetValue(name, out CompatibilityDefinition? fileCompatDef))
+            {
+                if (fileCompatDef.MapDefinitions.TryGetValue(mapName, out CompatibilityMapDefinition? mapDef))
+                    return mapDef;
+            }
+
+            if (HashDefinitions.TryGetValue(archive.MD5, out CompatibilityDefinition? hashCompatDef))
+            {
+                if (hashCompatDef.MapDefinitions.TryGetValue(mapName, out CompatibilityMapDefinition? mapDef))
+                    return mapDef;
+            }
+            
+            return null;
+        }
+        
         public void AddDefinitions(Entry entry)
         {
             CompatibilityParser parser = new CompatibilityParser();

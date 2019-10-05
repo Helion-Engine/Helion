@@ -20,6 +20,12 @@ namespace Helion.Resources.Archives
         public readonly IEntryPath Path;
 
         /// <summary>
+        /// The hash of the archive.
+        /// </summary>
+        // TODO: Implement!
+        public string MD5 = "00000000000000000000000000000000";
+
+        /// <summary>
         /// Creates an archive, which may either be a top level file or some
         /// nested entry.
         /// </summary>

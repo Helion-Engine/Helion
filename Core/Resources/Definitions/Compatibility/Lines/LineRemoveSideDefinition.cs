@@ -1,10 +1,10 @@
 namespace Helion.Resources.Definitions.Compatibility.Lines
 {
-    public class LineRemoveDefinition : ILineDefinition
+    public class LineRemoveSideDefinition : ILineDefinition
     {
         public int Id { get; }
 
-        public LineRemoveDefinition(int id)
+        public LineRemoveSideDefinition(int id)
         {
             Id = id;
         }

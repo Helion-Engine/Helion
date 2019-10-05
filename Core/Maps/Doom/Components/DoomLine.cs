@@ -12,9 +12,9 @@ namespace Helion.Maps.Doom.Components
         public readonly DoomVertex Start;
         public readonly DoomVertex End;
         public readonly DoomSide Front;
-        public readonly DoomSide? Back;
         public readonly VanillaLineSpecialType LineType;
         public readonly ushort SectorTag;
+        public DoomSide? Back;
         
         public Vec2D StartPosition => Start.Position;
         public Vec2D EndPosition => End.Position;

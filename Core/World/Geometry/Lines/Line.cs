@@ -16,7 +16,6 @@ namespace Helion.World.Geometry.Lines
     public class Line : IBspUsableLine
     {
         public int Id { get; }
-        public readonly int MapId;
         public readonly Seg2D Segment;
         public readonly Side Front;
         public readonly Side? Back;
@@ -43,13 +42,10 @@ namespace Helion.World.Geometry.Lines
         public byte DelayArg => Args.Arg2;
         public byte AmountArg => Args.Arg2;
 
-        public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, 
-            LineSpecial lineSpecial, SpecialArgs args)
+        public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial, 
+            SpecialArgs args)
         {
-            Precondition(id == mapId, "Line mismatch from generated ID to map ID");
-            
             Id = id;
-            MapId = mapId;
             Segment = segment;
             Front = front;
             Back = back;

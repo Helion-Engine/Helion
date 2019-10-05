@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using NLog;
 
@@ -21,24 +22,22 @@ namespace Helion.Resources.Definitions.Compatibility
             while (!Done)
                 ConsumeDefinitions();
         }
-
-        private static bool IsFile(string name) => name.Length != 32 || name.Contains('.');
-
+        
         private void AddDefinitionToIdentifier(IEnumerable<CIString> identifiers)
         {
             foreach (CIString identifier in identifiers)
             {
-                if (IsFile(identifier.ToString()))
-                {
-                    if (Files.ContainsKey(identifier))
-                        Log.Warn("Duplicate compatibility definition for file {0}, overwriting old definition", identifier);
-                    Files[identifier] = m_definition;
-                }
-                else
+                if (identifier.ToString().IsMD5())
                 {
                     if (Hashes.ContainsKey(identifier))
                         Log.Warn("Duplicate compatibility definition for hash {0}, overwriting old definition", identifier);
                     Hashes[identifier] = m_definition;
+                }
+                else
+                {
+                    if (Files.ContainsKey(identifier))
+                        Log.Warn("Duplicate compatibility definition for file {0}, overwriting old definition", identifier);
+                    Files[identifier] = m_definition;
                 }
             }
         }
@@ -64,7 +63,7 @@ namespace Helion.Resources.Definitions.Compatibility
             case "REMOVE":
                 // Right now we only support removing the back side of a line.
                 Consume("back");
-                m_mapDefinition.Lines.Add(new LineRemoveDefinition(id));
+                m_mapDefinition.Lines.Add(new LineRemoveSideDefinition(id));
                 break;
             
             default:

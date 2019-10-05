@@ -1,6 +1,6 @@
-using System;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
+using Helion.Resources.Definitions.Compatibility;
 
 namespace Helion.Maps
 {
@@ -13,16 +13,19 @@ namespace Helion.Maps
         /// Reads a collection of map entries into a map.
         /// </summary>
         /// <param name="map">The map to read.</param>
+        /// <param name="compatibility">The compatibility definition, if any.
+        /// This can be null. If present, it will mutate the resulting map.
+        /// </param>
         /// <returns>A processed map, or null if the map data is corrupt or
         /// missing critical elements.</returns>
-        public static IMap? Read(MapEntryCollection map)
+        public static IMap? Read(MapEntryCollection map, CompatibilityMapDefinition? compatibility = null)
         {
             switch (map.MapType)
             {
             case MapType.Doom:
-                return DoomMap.Create(map);
+                return DoomMap.Create(map, compatibility);
             case MapType.Hexen:
-                return HexenMap.Create(map);
+                return HexenMap.Create(map, compatibility);
             default:
                 // TODO: UDMF!
                 return null;
