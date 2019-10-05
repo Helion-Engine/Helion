@@ -170,8 +170,9 @@ namespace Helion.World.Geometry.Builder
                 LineSpecial special = new LineSpecial(hexenLine.LineType);
                 SpecialArgs specialArgs = new SpecialArgs(hexenLine.Args);
                 
-                Line line = new Line(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
+                Line line = new Line(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
+                builder.MapLines[line.MapId] = line;
             }
         }
     }

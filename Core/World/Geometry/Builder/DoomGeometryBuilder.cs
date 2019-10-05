@@ -36,10 +36,6 @@ namespace Helion.World.Geometry.Builder
                 if (bspTree == null)
                     return null;
             }
-            catch (AssertionException)
-            {
-                throw;
-            }
             catch
             {
                 Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
@@ -164,8 +160,9 @@ namespace Helion.World.Geometry.Builder
                 LineActivationType activationType = VanillaLineSpecTranslator.GetLineTagActivation(doomLine.LineType);
                 LineSpecial special = new LineSpecial(zdoomType, activationType);
                 
-                Line line = new Line(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
+                Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
+                builder.MapLines[line.MapId] = line;
             }
         }
     }

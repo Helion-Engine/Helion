@@ -97,7 +97,7 @@ namespace Helion.World.Blockmaps
         private static Box2D FindMapBoundingBox(IList<Line> lines)
         {
             Box2D startBox = lines.First().Segment.Box;
-            return lines.Select(line => line.Segment.Box)
+            return lines.Select(pair => pair.Segment.Box)
                         .Aggregate(startBox, (accumBox, lineBox) => Box2D.Combine(accumBox, lineBox));
         }
 
@@ -112,7 +112,7 @@ namespace Helion.World.Blockmaps
                     m_blocks[index++].SetCoordinate(x, y);
         }
 
-        private void AddLinesToBlocks(IEnumerable<Line> lines)
+        private void AddLinesToBlocks(IList<Line> lines)
         {
             foreach (Line line in lines)
             {

@@ -2,7 +2,10 @@
 {
     map "MAP14"
     {
+        line 191 delete;
         line 237 delete;
+        line 331 delete;
+        line 626 delete;
         line 964 add side 1390;
         line 966 add side 1388;
     }

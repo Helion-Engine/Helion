@@ -185,7 +185,7 @@ namespace Helion.World.Bsp
 
             // This should never be wrong because the edge line ID's should be
             // shared with the instantiated lines.
-            Line line = builder.Lines[edge.Line.Id];
+            Line line = builder.MapLines[edge.Line.Id];
 
             Precondition(!(line.OneSided && !edge.IsFront), "Trying to get a back side for a one sided line");
             return edge.IsFront ? line.Front : line.Back;
