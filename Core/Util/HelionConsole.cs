@@ -30,7 +30,8 @@ namespace Helion.Util
 
         /// <summary>
         /// How many console messages wil be logged. Any more than this will
-        /// cause older messages to be removed.
+        /// cause older messages to be removed. This also applies to the input
+        /// message submission list.
         /// </summary>
         public int Capacity { get; private set; }
 
@@ -50,6 +51,16 @@ namespace Helion.Util
         /// </remarks>
         public readonly LinkedList<ConsoleMessage> Messages = new LinkedList<ConsoleMessage>();
 
+        /// <summary>
+        /// A list of all the input that has been submitted. This allows us to
+        /// get the commands we've sent in the past. The front of the list is
+        /// the most recent command.
+        /// </summary>
+        /// <remarks>
+        /// This will never grow beyond <see cref="Capacity"/> in length.
+        /// </remarks>
+        public readonly LinkedList<string> SubmittedInput = new LinkedList<string>();
+        
         /// <summary>
         /// The clock epoch in nanoseconds when this was last closed.
         /// </summary>
@@ -94,7 +105,7 @@ namespace Helion.Util
             FailedToDispose(this);
         }
         
-               /// <summary>
+        /// <summary>
         /// Removes an input character, if any.
         /// </summary>
         public void RemoveInputCharacter()
@@ -125,6 +136,7 @@ namespace Helion.Util
                 return;
 
             Log.Info(inputText);
+            CacheSubmittedInput(inputText);
             OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(inputText));
         }
 
@@ -261,6 +273,18 @@ namespace Helion.Util
         {
             while (Messages.Count > Capacity)
                 Messages.RemoveLast();
+        }
+        
+        private void CacheSubmittedInput(string inputText)
+        {
+            RemoveExcessSubmittedInputIfAny();
+            SubmittedInput.AddFirst(inputText);
+        }
+
+        private void RemoveExcessSubmittedInputIfAny()
+        {
+            while (SubmittedInput.Count > Capacity)
+                SubmittedInput.RemoveLast();
         }
     }
 
