@@ -1,3 +1,11 @@
+"DOOM.WAD"
+{
+    map "E1M3"
+    {
+        line 933 change vertex end 764;
+    }
+}
+
 "DOOM2.WAD"
 {
     map "MAP14"

@@ -6,7 +6,6 @@ using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
@@ -106,32 +105,18 @@ namespace Helion.World.Bsp
             }
             catch
             {
-                Log.Warn("Unable to build BSP nodes due to map corruption, attempting to fix...");
-                
-                try
-                {
-                    BspConfig bspConfig = new BspConfig { AttemptMapRepair = true };
-                    BspBuilder bspBuilder = new BspBuilder(bspConfig, map);
-                    root = bspBuilder.Build();
-                }
-                catch (AssertionException)
-                {
-                    // These are supposed to leak through, because we repaired
-                    // the map and it was still triggering assertions which
-                    // means we screwed up and need to fix something.
-                    throw;
-                }
-                catch
-                {
-                    // We want the root to be left as null so the user will be
-                    // able to tell something went very wrong. When we have a
-                    // perfect map repairer, this catch won't be needed.
-                }
+                // Unfortunately malformed maps trigger assertion exceptions.
+                // This means map corruption will be impossible to detect as
+                // to whether it's map corruption or if it's our fault. For
+                // now, we'll have to visit each on a case by case basis and
+                // evaluate each corrupt map to see if it really is our fault
+                // or not. Therefore we ignore the exception to leave root as
+                // null so it can warn the user.
             }
 
             if (root == null)
             {
-                Log.Error("Cannot create BSP tree for map {0}, it is corrupt", map.Name);
+                Log.Error("Cannot create BSP tree for map {0}, map geometry corrupt", map.Name);
                 return null;
             }
             

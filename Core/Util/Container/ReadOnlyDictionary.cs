@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Util.Container
 {
@@ -19,12 +20,22 @@ namespace Helion.Util.Container
 
         public bool ContainsKey(K key) => m_dictionary.ContainsKey(key);
 
-        public bool TryGetValue(K key, out V? value) => m_dictionary.TryGetValue(key, out value);
+        public bool TryGetValue(K key, [MaybeNullWhen(false)] out V value)
+        {
+            if (m_dictionary.TryGetValue(key, out V? val))
+            {
+                value = val;
+                return true;
+            }
+
+            value = default!;
+            return false;
+        }
         
         public IEnumerator<V> GetEnumerator()
         {
-            foreach (var (k, v) in m_dictionary)
-                yield return v;
+            foreach (V value in m_dictionary.Values)
+                yield return value;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

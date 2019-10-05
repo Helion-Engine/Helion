@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
-using Helion.Bsp.Repairer;
 using Helion.Bsp.States;
 using Helion.Bsp.States.Convex;
 using Helion.Bsp.States.Miniseg;
@@ -12,7 +11,6 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Segments.Enums;
-using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp
@@ -34,8 +32,6 @@ namespace Helion.Bsp
         /// this will never be reached.
         /// </summary>
         private const int RecursiveOverflowAmount = 10000;
-
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public BspState State { get; private set; } = BspState.NotStarted;
         public readonly ConvexChecker ConvexChecker;
@@ -183,9 +179,6 @@ namespace Helion.Bsp
                 BspSegment segment = SegmentAllocator.GetOrCreate(start, end, line);
                 segments.Add(segment);
             }
-            
-            if (BspConfig.AttemptMapRepair)
-                segments = MapRepairer.Repair(segments, VertexAllocator, SegmentAllocator);
             
             return SegmentChainPruner.Prune(segments);
         }

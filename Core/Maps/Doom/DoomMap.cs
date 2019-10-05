@@ -12,6 +12,7 @@ using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
+using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -229,13 +230,14 @@ namespace Helion.Maps.Doom
             }
 
             if (compatibility != null)
-                ApplyLineCompatibility(lines, sides, compatibility);
+                ApplyLineCompatibility(lines, sides, vertices, compatibility);
 
             return new ReadOnlyDictionary<int, DoomLine>(lines);
         }
 
         private static void ApplyLineCompatibility(Dictionary<int, DoomLine> lines, 
-            ReadOnlyDictionary<int, DoomSide> sides, CompatibilityMapDefinition compatibility)
+            ReadOnlyDictionary<int, DoomSide> sides, ReadOnlyDictionary<int, DoomVertex> vertices,
+            CompatibilityMapDefinition compatibility)
         {
             foreach (ILineDefinition lineCompatibility in compatibility.Lines)
             {
@@ -249,6 +251,9 @@ namespace Helion.Maps.Doom
                     break;
                 case LineRemoveSideDefinition removeSideDefinition:
                     PerformLineSideRemoval(lines, removeSideDefinition);
+                    break;
+                case LineChangeVertexDefinition vertexChangeDefinition:
+                    PerformLineVertexChange(lines, vertices, vertexChangeDefinition);
                     break;
                 default:
                     Fail("Unexpected line compatibility type");
@@ -289,6 +294,31 @@ namespace Helion.Maps.Doom
                 line.Back = null;
             else
                 Log.Warn("Unable to remove line component for ID {0} when applying compatibility settings", removeSideDefinition.Id);
+        }
+        
+        private static void PerformLineVertexChange(Dictionary<int, DoomLine> lines, 
+            ReadOnlyDictionary<int, DoomVertex> vertices, LineChangeVertexDefinition vertexChangeDefinition)
+        {
+            if (!lines.TryGetValue(vertexChangeDefinition.Id, out DoomLine? line))
+            {
+                Log.Warn("Unable to add side to line component for ID {0} when applying compatibility settings", vertexChangeDefinition.Id);
+                return;
+            }
+            
+            if (vertices.TryGetValue(vertexChangeDefinition.NewVertexId, out DoomVertex? vertex))
+            {
+                switch (vertexChangeDefinition.Endpoint)
+                {
+                case Endpoint.Start:
+                    line.Start = vertex;
+                    break;
+                case Endpoint.End:
+                    line.End = vertex;
+                    break;
+                }
+            }
+            else
+                Log.Warn("Unable to find vertex ID {0} to set on a line when applying compatibility settings", vertexChangeDefinition.Id);
         }
 
         private static ReadOnlyDictionary<int, DoomThing>? CreateThings(byte[]? thingData)

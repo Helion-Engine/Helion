@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Parser;
 using NLog;
 
@@ -56,6 +57,10 @@ namespace Helion.Resources.Definitions.Compatibility
                 m_mapDefinition.Lines.Add(new LineAddDefinition(id, sideId));
                 break;
             
+            case "CHANGE":
+                ConsumeChangeDefinition(id);
+                break;
+            
             case "DELETE":
                 m_mapDefinition.Lines.Add(new LineDeleteDefinition(id));
                 break;
@@ -71,6 +76,23 @@ namespace Helion.Resources.Definitions.Compatibility
             }
 
             Consume(';');
+        }
+
+        private void ConsumeChangeDefinition(int id)
+        {
+            // Right now we only support changing vertices.
+            Consume("vertex");
+            
+            CIString endpointText = ConsumeString();
+            Endpoint endpoint = Endpoint.Start;
+            if (endpointText == "END")
+                endpoint = Endpoint.End;
+            else if (endpointText != "START")
+                throw MakeException($"Line command 'change vertex' should be followed by 'start' or 'end' (got {endpointText} instead)");
+
+            int vertexId = ConsumeInteger();
+            
+            m_mapDefinition.Lines.Add(new LineChangeVertexDefinition(id, endpoint, vertexId));
         }
 
         private void ConsumeDefinition()

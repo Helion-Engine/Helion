@@ -49,6 +49,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="SwitchAnalyzer" Version="0.6.10" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="TextCopy" Version="1.7.1" />
   </ItemGroup>

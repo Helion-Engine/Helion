@@ -38,18 +38,5 @@ namespace Helion.Bsp
         /// take branches to the left first.
         /// </remarks>
         public bool BranchRight = true;
-
-        /// <summary>
-        /// If true, will attempt to repair the map before performing BSP
-        /// actions.
-        /// </summary>
-        public bool AttemptMapRepair = false;
-
-        /// <summary>
-        /// Creates a BSP config with the default values.
-        /// </summary>
-        public BspConfig()
-        {
-        }
     }
 }
