@@ -76,8 +76,8 @@ namespace Helion.World.Geometry.Builder
                 // TODO: Is this right?
                 ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)doomSector.SectorType;
 
-                Sector sector = new Sector(builder.Sectors.Count, doomSector.Id, doomSector.Tag, 
-                    doomSector.LightLevel, floorPlane, ceilingPlane, sectorSpecial);
+                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
+                    floorPlane, ceilingPlane, sectorSpecial);
                 builder.Sectors.Add(sector);
             }
         }
@@ -106,7 +106,7 @@ namespace Helion.World.Geometry.Builder
             builder.Walls.Add(upper);
             builder.Walls.Add(lower);
             
-            TwoSided side = new TwoSided(nextSideId, facingSide.Id, facingSide.Offset, upper, middle, lower, facingSector);
+            TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
             builder.Sides.Add(side);
 
             nextSideId++;
@@ -124,14 +124,13 @@ namespace Helion.World.Geometry.Builder
             // ordering very badly.
             Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
             Sector sector = builder.Sectors[doomSide.Sector.Id];
-            string texture = doomSide.MiddleTexture;
             int textureHandle = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures).Index;
 
             // When we get to 3D floors we're going to have to fix this...
             Wall wall = new Wall(builder.Walls.Count, textureHandle, WallLocation.Middle);
             builder.Walls.Add(wall);
             
-            Side front = new Side(nextSideId, doomSide.Id, doomSide.Offset, wall, sector);
+            Side front = new Side(nextSideId, doomSide.Offset, wall, sector);
             builder.Sides.Add(front);
 
             wall.Side = front;
@@ -173,6 +172,7 @@ namespace Helion.World.Geometry.Builder
                 
                 Line line = new Line(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
+                builder.MapLines[line.MapId] = line;
             }
         }
     }

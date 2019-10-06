@@ -9,13 +9,13 @@ namespace Helion.Maps.Doom.Components
     {
         public int Id { get; }
         public MapLineFlags Flags { get; }
-        public readonly DoomVertex Start;
-        public readonly DoomVertex End;
-        public readonly DoomSide Front;
-        public readonly DoomSide? Back;
-        public readonly VanillaLineSpecialType LineType;
-        public readonly ushort SectorTag;
-        
+        public DoomVertex Start;
+        public DoomVertex End;
+        public DoomSide Front;
+        public DoomSide? Back;
+        public VanillaLineSpecialType LineType;
+        public ushort SectorTag;
+
         public Vec2D StartPosition => Start.Position;
         public Vec2D EndPosition => End.Position;
         public bool OneSided => Back == null;

@@ -25,11 +25,6 @@ namespace Helion.World.Geometry.Sectors
         public readonly int Id;
         
         /// <summary>
-        /// The index in the map file it was loaded from.
-        /// </summary>
-        public readonly int MapId;
-        
-        /// <summary>
         /// The tag that other actions will use to reference this sector by.
         /// </summary>
         public readonly int Tag;
@@ -96,13 +91,10 @@ namespace Helion.World.Geometry.Sectors
         public bool ZChanged;
         public bool LightingChanged;
 
-        public Sector(int id, int mapId, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
+        public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
             ZDoomSectorSpecialType sectorSpecial)
         {
-            Precondition(id == mapId, "Sector mismatch from generated ID to map ID");
-            
             Id = id;
-            MapId = mapId;
             Tag = tag;
             LightLevel = lightLevel;
             Floor = floor;

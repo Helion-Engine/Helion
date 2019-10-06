@@ -10,6 +10,7 @@ namespace Helion.Resources.Archives.Entries
         public string FullPath { get; }
         public string Name { get; }
         public string Extension { get; }
+        public string NameWithExtension => HasExtension ? $"{Name}.{Extension}" : Name;
         public bool HasExtension => !string.IsNullOrEmpty(Extension);
         public bool IsDirectory => string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(Extension);
 

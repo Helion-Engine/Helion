@@ -6,6 +6,8 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
+    // TODO: Unused, remove?
+    
     public class SectorDrawnTracker
     {
         private int m_maxSectorId = -1;

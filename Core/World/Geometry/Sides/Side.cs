@@ -10,7 +10,6 @@ namespace Helion.World.Geometry.Sides
     public class Side
     {
         public readonly int Id;
-        public readonly int MapId;
         public readonly Sector Sector;
         public readonly Wall Middle;
         public readonly HashSet<Subsector> Subsectors = new HashSet<Subsector>();
@@ -21,10 +20,9 @@ namespace Helion.World.Geometry.Sides
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
 
-        public Side(int id, int mapId, Vec2I offset, Wall middle, Sector sector)
+        public Side(int id, Vec2I offset, Wall middle, Sector sector)
         {
             Id = id;
-            MapId = mapId;
             Sector = sector;
             Offset = offset;
             Middle = middle;

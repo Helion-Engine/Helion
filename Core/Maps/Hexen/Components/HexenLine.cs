@@ -14,10 +14,10 @@ namespace Helion.Maps.Hexen.Components
         public readonly DoomVertex Start;
         public readonly DoomVertex End;
         public readonly DoomSide Front;
-        public readonly DoomSide? Back;
         public readonly ZDoomLineSpecialType LineType;
         public readonly SpecialArgs Args;
-        
+        public DoomSide? Back;
+
         public Vec2D StartPosition => Start.Position;
         public Vec2D EndPosition => End.Position;
         public bool OneSided => Back == null;

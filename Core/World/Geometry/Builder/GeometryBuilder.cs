@@ -10,6 +10,9 @@ using NLog;
 
 namespace Helion.World.Geometry.Builder
 {
+    /// <summary>
+    /// A helper class for making the geometry in a map.
+    /// </summary>
     public class GeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -20,10 +23,28 @@ namespace Helion.World.Geometry.Builder
         public readonly List<Sector> Sectors = new List<Sector>();
         public readonly List<SectorPlane> SectorPlanes = new List<SectorPlane>();
         
+        /// <summary>
+        /// A cached dictionary that maps the line ID number onto a line from
+        /// the map this was parsed from.
+        /// </summary>
+        /// <remarks>
+        /// We need this for the BSP builder to work properly because it does
+        /// references by map line ID. It also can't be a dictionary because
+        /// the line IDs in a map are not guaranteed to be contiguous due to
+        /// map corruption, line removal, etc.
+        /// </remarks>
+        public readonly Dictionary<int, Line> MapLines = new Dictionary<int, Line>();
+        
         internal GeometryBuilder()
         {
         }
 
+        /// <summary>
+        /// Creates world geometry from a map.
+        /// </summary>
+        /// <param name="map">The map to turn into world geometry.</param>
+        /// <returns>A map geometry object if it was parsed and created right,
+        /// otherwise null if it failed.</returns>
         public static MapGeometry? Create(IMap map)
         {
             switch (map)

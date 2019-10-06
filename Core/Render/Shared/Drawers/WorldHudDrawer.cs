@@ -8,6 +8,7 @@ using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Entities.Players;
@@ -22,6 +23,9 @@ namespace Helion.Render.Shared.Drawers
         private const int TopOffset = 1;
         private const int MessageSpacing = 1;
         private const int FpsMessageSpacing = 2;
+        private const int CrosshairLength = 10;
+        private const int CrosshairWidth = 4;
+        private const int CrosshairHalfWidth = CrosshairWidth / 2;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
@@ -42,6 +46,7 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealth(player, viewport, helper);
+            DrawHudCrosshair(viewport, helper);
         }
 
         private static void DrawHudHealth(Player player, Dimension viewport, DrawHelper helper)
@@ -63,6 +68,16 @@ namespace Helion.Render.Shared.Drawers
             x += medkitArea.Width + 4;
             int health = Math.Max(0, player.Health);
             helper.Text(Color.Red, health.ToString(), "LargeHudFont", fontHeight, x, y, Alignment.BottomLeft, out _);
+        }
+
+        private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
+        {
+            Vec2I center = viewport.ToVector() / 2;
+            Vec2I horizontalStart = center - new Vec2I(CrosshairLength, CrosshairHalfWidth);
+            Vec2I verticalStart = center - new Vec2I(CrosshairHalfWidth, CrosshairLength);
+            
+            helper.FillRect(horizontalStart.X, horizontalStart.Y, CrosshairLength * 2, CrosshairHalfWidth * 2, Color.LawnGreen);
+            helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
         private static void DrawPickupFlash(WorldBase world, DrawHelper helper)

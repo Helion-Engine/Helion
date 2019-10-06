@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Components;
+using Helion.Util.Container;
 using Helion.Util.Geometry.Vectors;
 using Moq;
 
@@ -11,12 +12,12 @@ namespace Helion.Test.Helper.Map.Generator
     /// </summary>
     public class GeometryGenerator
     {
-        private readonly List<ILine> m_lines = new List<ILine>();
+        private readonly Dictionary<int, ILine> m_lines = new Dictionary<int, ILine>();
+        private readonly Dictionary<int, IThing> m_things = new Dictionary<int, IThing>();
+        private readonly Dictionary<int, ISector> m_sectors = new Dictionary<int, ISector>();
+        private readonly Dictionary<int, ISide> m_sides = new Dictionary<int, ISide>();
+        private readonly Dictionary<int, IVertex> m_vertices = new Dictionary<int, IVertex>();
         private readonly List<INode> m_nodes = new List<INode>();
-        private readonly List<IThing> m_things = new List<IThing>();
-        private readonly List<ISector> m_sectors = new List<ISector>();
-        private readonly List<ISide> m_sides = new List<ISide>();
-        private readonly List<IVertex> m_vertices = new List<IVertex>();
 
         /// <summary>
         /// Creates a new sector from a floor and ceiling value.
@@ -38,8 +39,8 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(sec => sec.LightLevel).Returns(0);
             mock.Setup(sec => sec.FloorTexture).Returns("TEMP");
             mock.Setup(sec => sec.CeilingTexture).Returns("TEMP");
-            
-            m_sectors.Add(mock.Object);
+
+            m_sectors[mock.Object.Id] = mock.Object; 
             
             return this;
         }
@@ -74,7 +75,7 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(side => side.LowerTexture).Returns("TEMP");
             mock.Setup(side => side.GetSector()).Returns(m_sectors[sectorId]);
             
-            m_sides.Add(mock.Object);
+            m_sides[mock.Object.Id] = mock.Object;
             
             return this;
         }
@@ -102,7 +103,7 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(line => line.GetFront()).Returns(m_sides[sideId]);
             mock.Setup(line => line.OneSided).Returns(true);
 
-            m_lines.Add(mock.Object);
+            m_lines[mock.Object.Id] = mock.Object;
             
             return this;
         }
@@ -132,7 +133,7 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(line => line.GetBack()).Returns(m_sides[backSideId]);
             mock.Setup(line => line.OneSided).Returns(false);
 
-            m_lines.Add(mock.Object);
+            m_lines[mock.Object.Id] = mock.Object;
             
             return this;
         }
@@ -150,28 +151,28 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(v => v.Id).Returns(m_vertices.Count);
             mock.Setup(v => v.Position).Returns(position);
             
-            m_vertices.Add(mock.Object);
+            m_vertices[mock.Object.Id] = mock.Object;
             
             return mock.Object;
         }
 
         private class GeneratedMap : IMap
         {
-            private readonly List<ILine> Lines;
+            private readonly Dictionary<int, ILine> Lines;
             private readonly List<INode> Nodes;
-            private readonly List<IThing> Things;
-            private readonly List<ISector> Sectors;
-            private readonly List<ISide> Sides;
-            private readonly List<IVertex> Vertices;
+            private readonly Dictionary<int, IThing> Things;
+            private readonly Dictionary<int, ISector> Sectors;
+            private readonly Dictionary<int, ISide> Sides;
+            private readonly Dictionary<int, IVertex> Vertices;
 
             public string Name { get; } = "TEMP";
             public MapType MapType { get; } = MapType.Doom;
-            public IReadOnlyList<ILine> GetLines() => Lines;
+            public ICovariantReadOnlyDictionary<int, ILine> GetLines() => new ReadOnlyDictionary<int, ILine>(Lines);
             public IReadOnlyList<INode> GetNodes() => Nodes;
-            public IReadOnlyList<ISector> GetSectors() => Sectors;
-            public IReadOnlyList<ISide> GetSides() => Sides;
-            public IReadOnlyList<IThing> GetThings() => Things;
-            public IReadOnlyList<IVertex> GetVertices() => Vertices;
+            public ICovariantReadOnlyDictionary<int, ISector> GetSectors() => new ReadOnlyDictionary<int, ISector>(Sectors);
+            public ICovariantReadOnlyDictionary<int, ISide> GetSides() => new ReadOnlyDictionary<int, ISide>(Sides);
+            public ICovariantReadOnlyDictionary<int, IThing> GetThings() => new ReadOnlyDictionary<int, IThing>(Things);
+            public ICovariantReadOnlyDictionary<int, IVertex> GetVertices() => new ReadOnlyDictionary<int, IVertex>(Vertices);
             
             internal GeneratedMap(GeometryGenerator generator)
             {

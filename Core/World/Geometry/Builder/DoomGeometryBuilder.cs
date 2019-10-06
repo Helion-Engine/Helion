@@ -36,10 +36,6 @@ namespace Helion.World.Geometry.Builder
                 if (bspTree == null)
                     return null;
             }
-            catch (AssertionException)
-            {
-                throw;
-            }
             catch
             {
                 Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
@@ -73,8 +69,8 @@ namespace Helion.World.Geometry.Builder
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
                 ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate((VanillaSectorSpecialType)doomSector.SectorType);
 
-                Sector sector = new Sector(builder.Sectors.Count, doomSector.Id, doomSector.Tag, 
-                    doomSector.LightLevel, floorPlane, ceilingPlane, sectorSpecial);
+                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
+                    floorPlane, ceilingPlane, sectorSpecial);
                 builder.Sectors.Add(sector);
             }
         }
@@ -95,7 +91,7 @@ namespace Helion.World.Geometry.Builder
             Wall wall = new Wall(builder.Walls.Count, handle, WallLocation.Middle);
             builder.Walls.Add(wall);
             
-            Side front = new Side(nextSideId, doomSide.Id, doomSide.Offset, wall, sector);
+            Side front = new Side(nextSideId, doomSide.Offset, wall, sector);
             builder.Sides.Add(front);
 
             wall.Side = front;
@@ -124,7 +120,7 @@ namespace Helion.World.Geometry.Builder
             builder.Walls.Add(upper);
             builder.Walls.Add(lower);
             
-            TwoSided side = new TwoSided(nextSideId, facingSide.Id, facingSide.Offset, upper, middle, lower, facingSector);
+            TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
             builder.Sides.Add(side);
 
             nextSideId++;
@@ -166,6 +162,7 @@ namespace Helion.World.Geometry.Builder
                 
                 Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
+                builder.MapLines[line.MapId] = line;
             }
         }
     }

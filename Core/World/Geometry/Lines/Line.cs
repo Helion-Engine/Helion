@@ -9,7 +9,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Special;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Lines
 {
@@ -43,11 +42,9 @@ namespace Helion.World.Geometry.Lines
         public byte DelayArg => Args.Arg2;
         public byte AmountArg => Args.Arg2;
 
-        public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, 
-            LineSpecial lineSpecial, SpecialArgs args)
+        public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial, 
+            SpecialArgs args)
         {
-            Precondition(id == mapId, "Line mismatch from generated ID to map ID");
-            
             Id = id;
             MapId = mapId;
             Segment = segment;

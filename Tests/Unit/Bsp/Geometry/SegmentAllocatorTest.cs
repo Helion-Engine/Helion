@@ -127,7 +127,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
                 .AddSide(1)
                 .AddLine(0, 1, start.Position, end.Position)
                 .ToMap()
-                .GetLines()[0];
+                .GetLines()[0]!;
             
             BspSegment segment = segmentAllocator.GetOrCreate(start, end, line);
 
