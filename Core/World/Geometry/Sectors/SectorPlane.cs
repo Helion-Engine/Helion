@@ -9,7 +9,7 @@ namespace Helion.World.Geometry.Sectors
         public readonly int Id;
         public readonly SectorPlaneFace Facing;
         public Sector Sector { get; internal set; }
-        public PlaneD? Plane;
+        public PlaneD Plane;
         public double Z;
         public double PrevZ;
         public int TextureHandle;
@@ -25,6 +25,7 @@ namespace Helion.World.Geometry.Sectors
             PrevZ = z;
             TextureHandle = textureHandle;
             LightLevel = lightLevel;
+            Plane = new PlaneD(0, 0, 1.0, -z);
 
             // We are okay with things blowing up violently if someone forgets
             // to assign it, because that is such a critical error on the part

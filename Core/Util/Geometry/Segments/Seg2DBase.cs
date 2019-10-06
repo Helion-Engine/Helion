@@ -116,7 +116,18 @@ namespace Helion.Util.Geometry.Segments
         /// </summary>
         /// <param name="point">The point to test against.</param>
         /// <returns>The perpendicular dot product.</returns>
-        public double PerpDot(Vec2D point)
+        public double PerpDot(in Vec2D point)
+        {
+            return (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
+        }
+
+        /// <summary>
+        /// Calculates the perpendicular dot product. This also may be known as
+        /// the wedge product.
+        /// </summary>
+        /// <param name="point">The point to test against.</param>
+        /// <returns>The perpendicular dot product.</returns>
+        public double PerpDot(in Vec3D point)
         {
             return (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
         }
@@ -141,7 +152,16 @@ namespace Helion.Util.Geometry.Segments
         /// <param name="point">The point to check.</param>
         /// <returns>True if it's on the right (or on the line), false if on 
         /// the left.</returns>
-        public bool OnRight(Vec2D point) => PerpDot(point) <= 0;
+        public bool OnRight(in Vec2D point) => PerpDot(point) <= 0;
+
+        /// <summary>
+        /// Checks if the point is on the right side of this segment (or on the
+        /// seg itself).
+        /// </summary>
+        /// <param name="point">The point to check.</param>
+        /// <returns>True if it's on the right (or on the line), false if on 
+        /// the left.</returns>
+        public bool OnRight(in Vec3D point) => PerpDot(point) <= 0;
 
         /// <summary>
         /// Checks if the segment has both endpoints on this or on the right of

@@ -44,6 +44,7 @@
     <Content Include="Assets\Actors\Constants.txt" />
     <Content Include="Assets\Actors\Doom\Corpses.txt" />
     <Content Include="Assets\Actors\Doom\Decorations.txt" />
+    <Content Include="Assets\Actors\Doom\Explosive.txt" />
     <Content Include="Assets\Actors\Doom\Items\Ammo.txt" />
     <Content Include="Assets\Actors\Doom\Items\Armor.txt" />
     <Content Include="Assets\Actors\Doom\Items\Health.txt" />

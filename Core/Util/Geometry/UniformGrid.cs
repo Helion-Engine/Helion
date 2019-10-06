@@ -200,7 +200,7 @@ namespace Helion.Util.Geometry
             if (numBlocks > blocks.Length)
                 numBlocks = blocks.Length;
 
-            for (int i = 0; i < numBlocks && blockIndex < blocks.Length; i++)
+            for (int i = 0; i < numBlocks && blockIndex < blocks.Length && blockIndex > 0; i++)
             {
                 T gridElement = blocks[blockIndex];
                 if (func(gridElement) == GridIterationStatus.Stop)

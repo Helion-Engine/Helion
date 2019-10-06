@@ -107,6 +107,9 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (tickCommand.Has(TickCommands.Use))
                 PhysicsManager.EntityUse(Player);
+
+            if (tickCommand.Has(TickCommands.Attack))
+                PhysicsManager.FireHitscanTest(Player, Player.PitchRadians, Config.Engine.Gameplay.AutoAim, Config.Engine.Developer.RemoveHitEntity);
         }
         
         protected override void PerformDispose()

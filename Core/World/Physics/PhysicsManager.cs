@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -34,7 +36,11 @@ namespace Helion.World.Physics
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
+        private const double EntityShootDistance = 2048.0;
         private const double SetEntityToFloorSpeedMax = 9;
+
+        private const double MaxPitch = 80.0 * Math.PI / 180.0;
+        private const double MinPitch = -80.0 * Math.PI / 180.0;
 
         public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -42,6 +48,10 @@ namespace Helion.World.Physics
         private readonly BspTree m_bspTree;
         private readonly Blockmap m_blockmap;
         private readonly SoundManager m_soundManager;
+        private readonly EntityManager m_entityManager;
+        private readonly BlockmapTraverser m_blockmapTraverser;
+
+        private LineOpening m_lineOpening = new LineOpening();
 
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
@@ -59,13 +69,15 @@ namespace Helion.World.Physics
         /// </summary>
         /// <param name="bspTree">The BSP tree for the world.</param>
         /// <param name="blockmap">The blockmap for the world.</param>
-        /// <param name="soundManager">The sound manager to play sounds from.
-        /// </param>
-        public PhysicsManager(BspTree bspTree, Blockmap blockmap, SoundManager soundManager)
+        /// <param name="soundManager">The sound manager to play sounds from.</param>
+        /// <param name="entityManager">entity manager.</param>
+        public PhysicsManager(BspTree bspTree, Blockmap blockmap, SoundManager soundManager, EntityManager entityManager)
         {
             m_bspTree = bspTree;
             m_blockmap = blockmap;
             m_soundManager = soundManager;
+            m_entityManager = entityManager;
+            m_blockmapTraverser = new BlockmapTraverser(m_blockmap);
         }
 
         /// <summary>
@@ -195,24 +207,42 @@ namespace Helion.World.Physics
         public void EntityUse(Entity entity)
         {
             Line? activateLine = null;
-            Line? currentActivateLine = null;
             bool hitBlockLine = false;
-            double closestDist = double.MaxValue;
-
             Vec2D start = entity.Position.To2D();
             Vec2D end = new Vec2D(start.X + (Math.Cos(entity.AngleRadians) * EntityUseDistance), start.Y + (Math.Sin(entity.AngleRadians) * EntityUseDistance));
-            Seg2D useSeg = new Seg2D(start, end);
-            m_blockmap.Iterate(useSeg, TraceLineFinder);
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
 
-            if (activateLine != null)
+            for (int i = 0; i < intersections.Count; i++)
             {
-                // The use line was blocked by a blocking line.
-                // TODO: Epsilon check?
-                if (activateLine.Segment.ClosestDistance(start) != closestDist)
-                    activateLine = null;
+                BlockmapIntersect bi = intersections[i];
+                if (bi.Line != null && bi.Line.Segment.OnRight(start))
+                {
+                    if (bi.Line.HasSpecial)
+                    {
+                        activateLine = bi.Line;
+                        break;
+                    }
+
+                    if (bi.Line.Back == null)
+                    {
+                        hitBlockLine = true;
+                        break;
+                    }
+
+                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    if (opening.OpeningHeight <= 0)
+                    {
+                        hitBlockLine = true;
+                        break;
+                    }
+
+                    // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
+                    if (!opening.CanPassOrStepThrough(entity))
+                        hitBlockLine = true;
+                }
             }
 
-            if (activateLine != null)
+            if (activateLine != null && activateLine.Special.CanActivate(entity, activateLine.Flags, ActivationContext.UseLine))
             {
                 var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
                 EntityActivatedSpecial?.Invoke(this, args);
@@ -221,45 +251,220 @@ namespace Helion.World.Physics
             {
                 PlayerUseFail?.Invoke(this, entity);
             }
-            
-            GridIterationStatus TraceLineFinder(Block block)
+        }
+
+        public void FireHitscanTest(Entity shooter, double pitch, bool autoAim, bool removeEntity)
+        {
+            Vec3D start = shooter.AttackPosition;
+            Vec3D end = new Vec3D(start.X + (Math.Cos(shooter.AngleRadians) * EntityShootDistance), start.Y + (Math.Sin(shooter.AngleRadians) * EntityShootDistance),
+               start.Z + (Math.Tan(pitch) * EntityShootDistance));
+            Vec3D intersect = new Vec3D(0, 0, 0);
+
+            if (autoAim && GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+                pitch = autoAimPitch;
+
+            BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect);
+
+            if (bi != null)
             {
-                for (int i = 0; i < block.Lines.Count; i++)
+                Line? line = bi.Value.Line;
+                if (line != null && line.HasSpecial && line.Special.CanActivate(shooter, line.Flags, ActivationContext.ProjectileHitLine))
                 {
-                    Line line = block.Lines[i];
-                    if (line.Segment.Intersects(useSeg))
-                    {
-                        if (line.HasSpecial && line.Special.CanActivate(entity, line.Flags, ActivationContext.UseLine) && line.Segment.OnRight(start))
-                            currentActivateLine = line;
-
-                        bool isBlockingLine = line.OneSided;
-                        bool canActivateThrough = !line.OneSided;
-
-                        if (!isBlockingLine && line.Back != null)
-                        {
-                            LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
-                            isBlockingLine = !opening.CanPassOrStepThrough(entity);
-                            canActivateThrough = opening.OpeningHeight > 0;
-                        }
-
-                        // Only check BlocksEntity here so if we fail to activate special the PlayerUseFail event is raised for two-sided impassible lines
-                        if (isBlockingLine || line.BlocksEntity(entity))
-                            hitBlockLine = true;
-
-                        if (!canActivateThrough || line.HasSpecial)
-                        {
-                            var currentClosestDist = line.Segment.ClosestDistance(start);
-                            if (currentClosestDist < closestDist)
-                            {
-                                activateLine = currentActivateLine;
-                                closestDist = currentClosestDist;
-                            }
-                        }
-                    }
+                    var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, line);
+                    EntityActivatedSpecial?.Invoke(this, args);
                 }
 
-                return GridIterationStatus.Continue;
+                // Only move closer when not a sector plane hit
+                if (bi.Value.Sector == null)
+                    MoveIntersectCloser(start, ref intersect, shooter.AngleRadians, bi.Value.Distance2D);
+                DebugHitscanTest(bi.Value, intersect);
+
+                if (removeEntity && bi.Value.Entity != null)
+                    m_entityManager.Destroy(bi.Value.Entity);
             }
+        }
+
+        public BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, ref Vec3D intersect)
+        {
+            double floorZ, ceilingZ;
+            Seg2D seg = new Seg2D(start.To2D(), end.To2D());
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
+                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines, 
+                BlockmapTraverseEntityFlags.Shootable);
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+
+                if (bi.Line != null)
+                {
+                    intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
+
+                    if (bi.Line.Back == null)
+                    {
+                        floorZ = bi.Line.Front.Sector.ToFloorZ(intersect);
+                        ceilingZ = bi.Line.Front.Sector.ToCeilingZ(intersect);
+
+                        if (intersect.Z > floorZ && intersect.Z < ceilingZ)
+                            return bi;
+
+                        if (IsSkyClipOneSided(bi.Line.Front.Sector, floorZ, ceilingZ, intersect))
+                            return null;
+
+                        GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
+                        bi.Sector = bi.Line.Front.Sector;
+                        return bi;
+                    }
+
+                    GetOrderedSectors(bi, start, out Sector front, out Sector back);
+                    if (IsSkyClipTwoSided(front, back, intersect))
+                        return null;
+
+                    floorZ = front.ToFloorZ(intersect);
+                    ceilingZ = front.ToCeilingZ(intersect);
+
+                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
+                        return bi;
+
+                    if (intersect.Z < floorZ || intersect.Z > ceilingZ)
+                    {
+                        GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, ref intersect);
+                        bi.Sector = front;
+                        return bi;
+                    }
+                }
+                else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity))
+                {
+                    double topAngle = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                    double bottomAngle = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+
+                    if (topAngle > pitch && bottomAngle < pitch)
+                    {
+                        intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
+                        return bi;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static void GetSectorPlaneIntersection(in Vec3D start, in Vec3D end, Sector sector, double floorZ, double ceilingZ, ref Vec3D intersect)
+        {
+            if (intersect.Z < floorZ)
+            {
+                sector.Floor.Plane.Intersects(start, end, ref intersect);
+                intersect.Z = sector.ToFloorZ(intersect);
+            }
+            else if (intersect.Z > ceilingZ)
+            {
+                sector.Ceiling.Plane.Intersects(start, end, ref intersect);
+                intersect.Z = sector.ToCeilingZ(intersect) - 4;
+            }
+        }
+
+        private static void GetOrderedSectors(BlockmapIntersect bi, in Vec3D start, out Sector front, out Sector back)
+        {
+            if (bi.Line!.Segment.OnRight(start))
+            {
+                front = bi.Line.Front.Sector;
+                back = bi.Line.Back!.Sector;
+            }
+            else
+            {
+                front = bi.Line.Back!.Sector;
+                back = bi.Line.Front.Sector;
+            }
+        }
+
+        private bool IsSkyClipOneSided(Sector sector, double ceilingZ, double floorZ, in Vec3D intersect)
+        {
+            if (intersect.Z > ceilingZ && TextureManager.Instance.IsSkyTexture(sector.Ceiling.TextureHandle))
+                return true;
+            else if (intersect.Z < floorZ && TextureManager.Instance.IsSkyTexture(sector.Floor.TextureHandle))
+                return true;
+
+            return false;
+        }
+
+        private bool IsSkyClipTwoSided(Sector front, Sector back, in Vec3D intersect)
+        {
+            bool isFrontCeilingSky = TextureManager.Instance.IsSkyTexture(front.Ceiling.TextureHandle);
+            bool isBackCeilingSky = TextureManager.Instance.IsSkyTexture(back.Ceiling.TextureHandle);
+
+            if (isFrontCeilingSky && isBackCeilingSky && intersect.Z > back.ToCeilingZ(intersect))
+                return true;
+
+            if (isFrontCeilingSky && intersect.Z > front.ToCeilingZ(intersect))
+                return true;
+
+            if (TextureManager.Instance.IsSkyTexture(front.Floor.TextureHandle) && intersect.Z < front.ToFloorZ(intersect))
+                return true;
+
+            return false;
+        }
+
+        public bool GetAutoAimAngle(Entity shooter, Vec3D start, Vec3D end, out double pitch)
+        {
+            pitch = 0.0;
+            double topPitch = MaxPitch;
+            double bottomPitch = MinPitch;
+            Seg2D seg = new Seg2D(start.To2D(), end.To2D());
+
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
+                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines, 
+                BlockmapTraverseEntityFlags.Shootable);
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+
+                if (bi.Line != null)
+                {
+                    if (bi.Line.Back == null)
+                        return false;
+
+                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    if (opening.FloorZ < opening.CeilingZ)
+                    {
+                        double sectorPitch = start.Pitch(opening.FloorZ, bi.Distance2D);
+                        if (sectorPitch > bottomPitch)
+                            bottomPitch = sectorPitch;
+
+                        sectorPitch = start.Pitch(opening.CeilingZ, bi.Distance2D);
+                        if (sectorPitch < topPitch)
+                            topPitch = sectorPitch;
+
+                        if (topPitch <= bottomPitch)
+                            return false;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity))
+                {
+                    double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                    double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+
+                    if (thingBottomPitch > topPitch)
+                        return false;
+                    if (thingTopPitch < bottomPitch)
+                        return false;
+
+                    if (thingTopPitch < topPitch)
+                        topPitch = thingTopPitch;
+                    if (thingBottomPitch > bottomPitch)
+                        bottomPitch = thingBottomPitch;
+
+                    pitch = (bottomPitch + topPitch) / 2.0;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static int CalculateSteps(Vec2D velocity, double radius)
@@ -291,17 +496,6 @@ namespace Helion.World.Physics
                 entity.Velocity.Y = 0;
         }
         
-        private static bool LineBlocksEntity(Entity entity, Line line)
-        {
-            if (line.BlocksEntity(entity))
-                return true;
-            if (line.Back == null) 
-                return false;
-            
-            LineOpening opening = new LineOpening(line.Front.Sector, line.Back.Sector);
-            return !opening.CanPassOrStepThrough(entity);
-        }
-
         private static bool EntityCanBlockEntity(Entity entity, Entity other)
         {
             if (ReferenceEquals(entity, other))
@@ -321,6 +515,42 @@ namespace Helion.World.Physics
             EntityBox box = new EntityBox(entity.PrevPosition, entity.Radius, entity.Height);
             EntityBox otherBox = new EntityBox(other.PrevPosition, other.Radius, other.Height);
             return box.Overlaps(otherBox);
+        }
+
+        private bool LineBlocksEntity(Entity entity, Line line)
+        {
+            if (line.BlocksEntity(entity))
+                return true;
+            if (line.Back == null)
+                return false;
+
+            LineOpening opening = GetLineOpening(line.Front.Sector, line.Back.Sector);
+            return !opening.CanPassOrStepThrough(entity);
+        }
+
+        private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
+        {
+            CreateTestPuff(intersect, bi.Entity == null ? "BulletPuff" : "Blood");
+        }
+
+        private void CreateTestPuff(Vec3D intersect, string className)
+        {
+            var puff = m_entityManager.DefinitionComposer[className];
+            if (puff != null)
+                m_entityManager.Create(puff, intersect, 0.0, 0);
+        }
+
+        private void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
+        {
+            distXY -= 2.0;
+            intersect.X = start.X + (Math.Cos(angle) * distXY);
+            intersect.Y = start.Y + (Math.Sin(angle) * distXY);
+        }
+
+        private LineOpening GetLineOpening(Sector front, Sector back)
+        {
+            m_lineOpening.Set(front, back);
+            return m_lineOpening;
         }
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
@@ -348,7 +578,7 @@ namespace Helion.World.Physics
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
         {
-            if (entity.NoClip && entity.IsFlying)
+            if (entity.Flags.NoBlockmap || (entity.NoClip && entity.IsFlying))
                 return;
 
             Sector? lastSector = entity.HighestFloorSector;

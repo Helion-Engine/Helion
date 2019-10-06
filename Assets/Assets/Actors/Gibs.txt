@@ -18,3 +18,21 @@ actor Gibs : RealGibs 24
     ClearFlags
     SpawnID 146
 }
+
+ACTOR Blood
+{
+  Mass 5
+  +NOBLOCKMAP
+  +NOTELEPORT
+  +ALLOWPARTICLES
+  States
+  {
+  Spawn:
+    BLUD CBA 8
+    Stop
+  Spray:
+    SPRY ABCDEF 3
+    SPRY G 2
+    Stop
+  }
+}

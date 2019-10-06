@@ -10,6 +10,7 @@ namespace Helion.World.Physics
     {
         CrossLine,
         UseLine,
+        ProjectileHitLine,
     }
 
     /// <summary>

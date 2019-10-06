@@ -63,6 +63,8 @@ namespace Helion.Util.Geometry.Vectors
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
         public double Distance(Vec3D other) => (this - other).Length();
         public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
+        public double Pitch(Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
+        public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
 
         public Vec2D To2D() => new Vec2D(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));

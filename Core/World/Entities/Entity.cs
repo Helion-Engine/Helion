@@ -37,6 +37,7 @@ namespace Helion.World.Entities
         public EntityBox Box;
         public Vec3D PrevPosition;
         public Vec3D Position => Box.Position;
+        public Vec3D AttackPosition => new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
         public Vec3D Velocity = Vec3D.Zero;
         public Inventory Inventory = new Inventory();
         public int Health;

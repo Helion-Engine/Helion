@@ -42,8 +42,10 @@ namespace Helion.World.Special
             {
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.PlayerLineCross;
-                if (context == ActivationContext.UseLine)
+                else if (context == ActivationContext.UseLine)
                     return flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
+                else if (context == ActivationContext.ProjectileHitLine)
+                    return flags.ActivationType == ActivationType.ProjectileHitsWall;
             }
 
             return false;

@@ -14,5 +14,6 @@ namespace Helion.Util.Configuration.Components
         public readonly ConfigValue<InputKey> Jump = new ConfigValue<InputKey>(InputKey.Space);
         public readonly ConfigValue<InputKey> Crouch = new ConfigValue<InputKey>(InputKey.C);
         public readonly ConfigValue<InputKey> Console = new ConfigValue<InputKey>(InputKey.Backtick);
+        public readonly ConfigValue<InputKey> Attack = new ConfigValue<InputKey>(InputKey.MouseLeft);
     }
 }

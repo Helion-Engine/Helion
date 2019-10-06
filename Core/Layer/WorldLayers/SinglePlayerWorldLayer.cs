@@ -49,6 +49,7 @@ namespace Helion.Layer.WorldLayers
                 (config.Engine.Controls.MoveRight,    TickCommands.Right),
                 (config.Engine.Controls.Jump,         TickCommands.Jump),
                 (config.Engine.Controls.Crouch,       TickCommands.Crouch),
+                (config.Engine.Controls.Attack,       TickCommands.Attack),
             };
 
             m_consumePressedKeys = new[]

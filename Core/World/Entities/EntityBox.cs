@@ -1,5 +1,5 @@
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.World.Entities
@@ -151,6 +151,43 @@ namespace Helion.World.Entities
             Vec3D min = new Vec3D(centerBottom.X - radius, centerBottom.Y - radius, centerBottom.Z);
             Vec3D max = new Vec3D(centerBottom.X + radius, centerBottom.Y + radius, centerBottom.Z + height);
             return new Box3D(min, max);
+        }
+
+        public bool Intersects(in Vec2D p1, in Vec2D p2, ref Vec2D intersect)
+        {
+            if (p2.X < Min.X && p1.X < Min.X)
+                return false;
+            if (p2.X > Max.X && p1.X > Max.X)
+                return false;
+            if (p2.Y < Min.Y && p1.Y < Min.Y)
+                return false;
+            if (p2.Y > Max.Y && p1.Y > Max.Y)
+                return false;
+            if (p1.X > Min.X && p1.X < Max.X &&
+                p1.Y > Min.Y && p1.Y < Max.Y)
+            {
+                intersect = p1;
+                return true;
+            }
+
+            if ((p1.X < Min.X && Intersects(p1.X - Min.X, p2.X - Min.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y)
+                  || (p1.Y < Min.Y && Intersects(p1.Y - Min.Y, p2.Y - Min.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X)
+                  || (p1.X > Max.X && Intersects(p1.X - Max.X, p2.X - Max.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y)
+                  || (p1.Y > Max.Y && Intersects(p1.Y - Max.Y, p2.Y - Max.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X))
+                return true;
+
+            return false;
+        }
+
+        private bool Intersects(double dist1, double dist2, in Vec2D p1, in Vec2D p2, ref Vec2D intersect)
+        {
+            if (dist1 * dist2 >= 0.0)
+                return false;
+            if (dist1 == dist2)
+                return false;
+
+            intersect = p1 + ((p2 - p1) * (-dist1 / (dist2 - dist1)));
+            return true;
         }
     }
 }

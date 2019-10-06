@@ -36,5 +36,19 @@ namespace Helion.Util.Geometry.Planes
         {
             return -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
         }
+
+        public bool Intersects(in Vec3D p1, in Vec3D p2, ref Vec3D intersect)
+        {
+            double top = -(D + (A * p1.X) + (B * p1.Y) + (C * p1.Z));
+            double bottom = (A * p2.X) + (B * p2.X) + (C * p2.Z);
+
+            if (MathHelper.IsZero(bottom))
+                return false;
+
+            double t = top / bottom;
+            intersect = p1 + ((p2 - p1) * t);
+
+            return true;
+        }
     }
 }

@@ -104,5 +104,7 @@ namespace Helion.Util.Geometry.Vectors
         public override bool Equals(object? obj) => obj is Vec2I v && X == v.X && Y == v.Y;
         
         public override int GetHashCode() => HashCode.Combine(X, Y);
+
+        public Vec3D To3D(double z) => new Vec3D(X, Y, z);
     }
 }

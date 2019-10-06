@@ -30,17 +30,18 @@ namespace Helion.World.Entities
         public readonly SpawnLocations SpawnLocations = new SpawnLocations();
         private readonly WorldBase m_world;
         private readonly SoundManager m_soundManager;
-        private readonly EntityDefinitionComposer m_definitionComposer;
         private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
         private readonly SkillLevel m_skill;
+
+        public readonly EntityDefinitionComposer DefinitionComposer;
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager,
             SkillLevel skill)
         {
             m_world = world;
             m_soundManager = soundManager;
-            m_definitionComposer = new EntityDefinitionComposer(archiveCollection);
+            DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
             m_skill = skill;
         }
         
@@ -77,7 +78,7 @@ namespace Helion.World.Entities
 
         public Player CreatePlayer(int playerIndex)
         {
-            EntityDefinition? playerDefinition = m_definitionComposer[Constants.PlayerClass];
+            EntityDefinition? playerDefinition = DefinitionComposer[Constants.PlayerClass];
             if (playerDefinition == null)
             {
                 Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
@@ -101,7 +102,7 @@ namespace Helion.World.Entities
                 if (!ShouldSpawn(mapThing, m_skill))
                     continue;
                 
-                EntityDefinition? definition = m_definitionComposer[mapThing.EditorNumber];
+                EntityDefinition? definition = DefinitionComposer[mapThing.EditorNumber];
                 if (definition == null)
                 {
                     Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.To2D());
