@@ -36,7 +36,7 @@ namespace Helion.World.Physics
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
-        private const double EntityShootDistance = 2048.0;
+        private const double EntityShootDistance = 8192.0;
         private const double SetEntityToFloorSpeedMax = 9;
 
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
@@ -323,16 +323,16 @@ namespace Helion.World.Physics
                     floorZ = front.ToFloorZ(intersect);
                     ceilingZ = front.ToCeilingZ(intersect);
 
-                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
-                    if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
-                        return bi;
-
                     if (intersect.Z < floorZ || intersect.Z > ceilingZ)
                     {
                         GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, ref intersect);
                         bi.Sector = front;
                         return bi;
                     }
+
+                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
+                        return bi;
                 }
                 else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity))
                 {
