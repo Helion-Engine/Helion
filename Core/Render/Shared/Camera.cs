@@ -109,7 +109,7 @@ namespace Helion.Render.Shared
         {
             float x = (float)Math.Cos(yawRadians);
             float y = (float)Math.Sin(yawRadians);
-            float z = (float)Math.Sin(pitchRadians);
+            float z = (float)Math.Tan(pitchRadians);
             return Vector3.Normalize(new Vector3(x, y, z));
         }
 
