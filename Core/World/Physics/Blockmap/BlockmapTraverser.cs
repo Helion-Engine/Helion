@@ -2,21 +2,21 @@
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
-using Helion.World.Blockmaps;
+using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 
-namespace Helion.World.Physics
+namespace Helion.World.Physics.Blockmap
 {
     public class BlockmapTraverser
     {
-        private Blockmap m_blockmap;
+        private BlockMap m_blockmap;
 
         private List<BlockmapIntersect> m_intersections = new List<BlockmapIntersect>();
         private HashSet<int> m_lineMap = new HashSet<int>();
         private HashSet<int> m_entityMap = new HashSet<int>();
 
-        public BlockmapTraverser(Blockmap blockmap)
+        public BlockmapTraverser(BlockMap blockmap)
         {
             m_blockmap = blockmap;
         }

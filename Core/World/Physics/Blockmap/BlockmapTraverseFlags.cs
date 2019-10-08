@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.World.Physics
+namespace Helion.World.Physics.Blockmap
 {
     [Flags]
     public enum BlockmapTraverseFlags

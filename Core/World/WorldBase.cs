@@ -9,7 +9,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Time;
-using Helion.World.Blockmaps;
+using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry;
@@ -31,7 +31,7 @@ namespace Helion.World
 
         public readonly long CreationTimeNanos;
         public readonly CIString MapName;
-        public readonly Blockmap Blockmap;
+        public readonly BlockMap Blockmap;
         public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
@@ -56,7 +56,7 @@ namespace Helion.World
             Config = config;
             MapName = map.Name;
             Geometry = geometry;
-            Blockmap = new Blockmap(Lines);
+            Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(audioSystem);            
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(BspTree, Blockmap, SoundManager, EntityManager);
