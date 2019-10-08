@@ -261,7 +261,10 @@ namespace Helion.World.Physics
             Vec3D intersect = new Vec3D(0, 0, 0);
 
             if (autoAim && GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+            {
                 pitch = autoAimPitch;
+                end.Z = start.Z + (Math.Tan(pitch) * EntityShootDistance);
+            }
 
             BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect);
 
@@ -274,8 +277,8 @@ namespace Helion.World.Physics
                     EntityActivatedSpecial?.Invoke(this, args);
                 }
 
-                // Only move closer when not a sector plane hit
-                if (bi.Value.Sector == null)
+                // Only move closer on a line hit
+                if (bi.Value.Entity == null && bi.Value.Sector == null)
                     MoveIntersectCloser(start, ref intersect, shooter.AngleRadians, bi.Value.Distance2D);
                 DebugHitscanTest(bi.Value, intersect);
 
@@ -334,16 +337,9 @@ namespace Helion.World.Physics
                     if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                         return bi;
                 }
-                else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity))
+                else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity) && bi.Entity.Box.Intersects(start, end, ref intersect))
                 {
-                    double topAngle = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
-                    double bottomAngle = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
-
-                    if (topAngle > pitch && bottomAngle < pitch)
-                    {
-                        intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
-                        return bi;
-                    }
+                    return bi;
                 }
             }
 

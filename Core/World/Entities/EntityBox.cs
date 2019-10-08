@@ -179,7 +179,51 @@ namespace Helion.World.Entities
             return false;
         }
 
+        public bool Intersects(in Vec3D p1, in Vec3D p2, ref Vec3D intersect)
+        {
+            if (p2.X < Min.X && p1.X < Min.X)
+                return false;
+            if (p2.X > Max.X && p1.X > Max.X)
+                return false;
+            if (p2.Y < Min.Y && p1.Y < Min.Y)
+                return false;
+            if (p2.Y > Max.Y && p1.Y > Max.Y)
+                return false;
+            if (p2.Z < Min.Z && p1.Z < Min.Z)
+                return false;
+            if (p2.Z > Max.Z && p1.Z > Max.Z)
+                return false;
+            if (p1.X > Min.X && p1.X < Max.X &&
+                p1.Y > Min.Y && p1.Y < Max.Y &&
+                p1.Z > Min.Z && p1.Z < Max.Z)
+            {
+                intersect = p1;
+                return true;
+            }
+
+            if ((p1.X < Min.X && Intersects(p1.X - Min.X, p2.X - Min.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y && intersect.Z > Min.Z && intersect.Z < Max.Z)
+                  || (p1.Y < Min.Y && Intersects(p1.Y - Min.Y, p2.Y - Min.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Z > Min.Z && intersect.Z < Max.Z)
+                  || (p1.Z < Min.Z && Intersects(p1.Z - Min.Z, p2.Z - Min.Z, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Y > Min.Y && intersect.Y < Max.Y)
+                  || (p1.X > Max.X && Intersects(p1.X - Max.X, p2.X - Max.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y && intersect.Z > Min.Z && intersect.Z < Max.Z)
+                  || (p1.Y > Max.Y && Intersects(p1.Y - Max.Y, p2.Y - Max.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Z > Min.Z && intersect.Z < Max.Z)
+                  || (p1.Z > Max.Z && Intersects(p1.Z - Max.Z, p2.Z - Max.Z, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Y > Min.Y && intersect.Y < Max.Y))
+                return true;
+
+            return false;
+        }
+
         private bool Intersects(double dist1, double dist2, in Vec2D p1, in Vec2D p2, ref Vec2D intersect)
+        {
+            if (dist1 * dist2 >= 0.0)
+                return false;
+            if (dist1 == dist2)
+                return false;
+
+            intersect = p1 + ((p2 - p1) * (-dist1 / (dist2 - dist1)));
+            return true;
+        }
+
+        private bool Intersects(double dist1, double dist2, in Vec3D p1, in Vec3D p2, ref Vec3D intersect)
         {
             if (dist1 * dist2 >= 0.0)
                 return false;
