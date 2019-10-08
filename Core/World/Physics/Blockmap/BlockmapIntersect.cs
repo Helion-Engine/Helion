@@ -3,7 +3,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 
-namespace Helion.World.Physics
+namespace Helion.World.Physics.Blockmap
 {
     public struct BlockmapIntersect
     {

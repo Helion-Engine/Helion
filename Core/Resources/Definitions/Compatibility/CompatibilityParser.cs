@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Compatibility.Lines;
+using Helion.Resources.Definitions.Compatibility.Sides;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Segments.Enums;
+using Helion.Util.Geometry.Vectors;
 using Helion.Util.Parser;
 using NLog;
 
@@ -45,56 +46,104 @@ namespace Helion.Resources.Definitions.Compatibility
 
         private void ConsumeMapElementDefinition()
         {
-            Consume("line");
+            if (ConsumeIf("LINE"))
+                ConsumeLineMapElement();
+            else if (ConsumeIf("SIDE"))
+                ConsumeSideMapElement();
+        }
+
+        private void ConsumeLineMapElement()
+        {
             int id = ConsumeInteger();
 
             switch (ConsumeIdentifier().ToUpper())
             {
-            case "ADD":
-                // Right now we only support adding a side to a line.
-                Consume("side");
-                int sideId = ConsumeInteger();
-                m_mapDefinition.Lines.Add(new LineAddDefinition(id, sideId));
-                break;
-            
-            case "CHANGE":
-                ConsumeChangeDefinition(id);
-                break;
-            
             case "DELETE":
                 m_mapDefinition.Lines.Add(new LineDeleteDefinition(id));
                 break;
-            
-            case "REMOVE":
-                // Right now we only support removing the back side of a line.
-                Consume("back");
-                m_mapDefinition.Lines.Add(new LineRemoveSideDefinition(id));
+            case "SET":
+                ConsumeSetDefinition(id);
                 break;
-            
+            case "SPLIT":
+                ConsumeSplitDefinition(id);
+                break;
             default:
-                throw MakeException("Unknown map element type");
+                throw MakeException("Unknown line map element type");
             }
 
             Consume(';');
         }
 
-        private void ConsumeChangeDefinition(int id)
+        private void ConsumeSetDefinition(int id)
         {
-            // Right now we only support changing vertices.
-            Consume("vertex");
-            
-            CIString endpointText = ConsumeString();
-            Endpoint endpoint = Endpoint.Start;
-            if (endpointText == "END")
-                endpoint = Endpoint.End;
-            else if (endpointText != "START")
-                throw MakeException($"Line command 'change vertex' should be followed by 'start' or 'end' (got {endpointText} instead)");
+            LineSetDefinition setDefinition = new LineSetDefinition(id);
 
-            int vertexId = ConsumeInteger();
+            if (ConsumeIf("FLIP"))
+                setDefinition.Flip = true;
+            if (ConsumeIf("START"))
+                setDefinition.StartVertexId = ConsumeInteger();
+            if (ConsumeIf("END"))
+                setDefinition.EndVertexId = ConsumeInteger();
+            if (ConsumeIf("FRONT"))
+                setDefinition.FrontSideId = ConsumeInteger();
+            if (ConsumeIf("BACK"))
+            {
+                if (ConsumeIf("NONE"))
+                    setDefinition.RemoveBack = true;
+                else
+                    setDefinition.BackSideId = ConsumeInteger();
+            }
             
-            m_mapDefinition.Lines.Add(new LineChangeVertexDefinition(id, endpoint, vertexId));
+            m_mapDefinition.Lines.Add(setDefinition);
         }
 
+        private void ConsumeSplitDefinition(int id)
+        {
+            int startId = ConsumeInteger();
+            int endId = ConsumeInteger();
+            Consume("VERTEX");
+            int vertexId = ConsumeInteger();
+            
+            m_mapDefinition.Lines.Add(new LineSplitDefinition(id, startId, endId, vertexId));
+        }
+        
+        private void ConsumeSideMapElement()
+        {
+            int id = ConsumeInteger();
+
+            switch (ConsumeIdentifier().ToUpper())
+            {
+            case "SET":
+                ConsumeSideSetDefinition(id);
+                break;
+            default:
+                throw MakeException("Unknown side map element type");
+            }
+            
+            Consume(';');
+        }
+
+        private void ConsumeSideSetDefinition(int sideId)
+        {
+            SideSetDefinition sideSetDefinition = new SideSetDefinition(sideId);
+            
+            if (ConsumeIf("LOWER"))
+                sideSetDefinition.Lower = ConsumeString();
+            if (ConsumeIf("MIDDLE"))
+                sideSetDefinition.Middle = ConsumeString();
+            if (ConsumeIf("UPPER"))
+                sideSetDefinition.Upper = ConsumeString();
+            if (ConsumeIf("OFFSET"))
+            {
+                int x = ConsumeSignedInteger();
+                Consume(',');
+                int y = ConsumeSignedInteger();
+                sideSetDefinition.Offset = new Vec2I(x, y);
+            }
+            
+            m_mapDefinition.Sides.Add(sideSetDefinition);
+        }
+        
         private void ConsumeDefinition()
         {
             m_definition = new CompatibilityDefinition();
@@ -103,7 +152,7 @@ namespace Helion.Resources.Definitions.Compatibility
             {
                 m_mapDefinition = new CompatibilityMapDefinition();
                 
-                Consume("map");
+                Consume("MAP");
                 m_mapName = ConsumeString();
                 Consume('{');
                 InvokeUntilAndConsume('}', ConsumeMapElementDefinition);

@@ -1,12 +1,11 @@
 using System.Collections.Generic;
+using Helion.Util.Assertion;
 using Helion.Util.Container.Linkable;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
-using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Blockmaps
+namespace Helion.World.Blockmap
 {
     /// <summary>
     /// Represents a cell in the blockmap.
@@ -51,8 +50,8 @@ namespace Helion.World.Blockmaps
         /// </param>
         internal void SetCoordinate(int x, int y)
         {
-            Precondition(x >= 0, "Cannot have a negative blockmap X index");
-            Precondition(y >= 0, "Cannot have a negative blockmap Y index");
+            Assert.Precondition(x >= 0, "Cannot have a negative blockmap X index");
+            Assert.Precondition(y >= 0, "Cannot have a negative blockmap Y index");
             
             m_coordinate = new Vec2I(x, y);
         }

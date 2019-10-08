@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
-using Helion.World.Blockmaps;
+using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using NLog;
@@ -38,7 +38,6 @@ namespace Helion.World.Physics
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
         private const double EntityShootDistance = 8192.0;
         private const double SetEntityToFloorSpeedMax = 9;
-
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
         private const double MinPitch = -80.0 * Math.PI / 180.0;
 
@@ -46,7 +45,7 @@ namespace Helion.World.Physics
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly BspTree m_bspTree;
-        private readonly Blockmap m_blockmap;
+        private readonly BlockMap m_blockmap;
         private readonly SoundManager m_soundManager;
         private readonly EntityManager m_entityManager;
         private readonly BlockmapTraverser m_blockmapTraverser;
@@ -71,7 +70,7 @@ namespace Helion.World.Physics
         /// <param name="blockmap">The blockmap for the world.</param>
         /// <param name="soundManager">The sound manager to play sounds from.</param>
         /// <param name="entityManager">entity manager.</param>
-        public PhysicsManager(BspTree bspTree, Blockmap blockmap, SoundManager soundManager, EntityManager entityManager)
+        public PhysicsManager(BspTree bspTree, BlockMap blockmap, SoundManager soundManager, EntityManager entityManager)
         {
             m_bspTree = bspTree;
             m_blockmap = blockmap;
@@ -553,8 +552,7 @@ namespace Helion.World.Physics
         {
             if (!entity.OnGround && entity is Player player)
                 player.SetHitZ(IsHardHitZ(entity));
-
-            // TODO: Should do delta epsilon check.
+            
             Entity? lastOnEntity = entity.OnEntity;
             entity.OnEntity = entity.IntersectEntities.FirstOrDefault(x => x.Box.Top == entity.Box.Bottom);
 
@@ -568,8 +566,7 @@ namespace Helion.World.Physics
             // application of jumping after the XY movement instead of before?
             entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
-
-        // TODO: Take sector gravity into account when implemented!
+        
         private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
@@ -666,13 +663,6 @@ namespace Helion.World.Physics
         {
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
             
-            // TODO: We (very likely) do a fair amount of object creation here
-            //       Let's use `stackalloc` for an array in the future and do
-            //       direct comparison via iteration. It's probably the  b 
-            //       few examples where O(n) beats O(1) due to how small n is.
-            //       Plus we also do a foreach over the hash set, which has
-            //       performance issues we can resolve as well by fixing this.
-            //Sector centerSector = m_bspTree.ToSector(entity.Position);
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position.To2D());
             Sector centerSector = centerSubsector.Sector;
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
@@ -709,8 +699,7 @@ namespace Helion.World.Physics
                             if (line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
                                 entity.IntersectSpecialLines.Add(line);
                         }
-
-                        // TODO: Do we want to use a List<> instead of HashSet<>? Avoid the `foreach` for a `for`.
+                        
                         foreach (Subsector subsector in line.Subsectors)
                             subsectors.Add(subsector);
                         
@@ -1018,7 +1007,6 @@ namespace Helion.World.Physics
             // line or against the line. If the dot product is negative, it
             // means we are facing away from the line and should slide in
             // the opposite direction from the way the line is pointing.
-            // TODO: We can cache the Unit() for the line for perf reasons.
             Vec2D unitDirection = blockingLine.Segment.Delta.Unit();
             if (stepDelta.Dot(unitDirection) < 0)
                 unitDirection = -unitDirection;

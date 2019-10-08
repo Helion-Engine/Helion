@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.Assertion;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -8,16 +9,15 @@ using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
-using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Blockmaps
+namespace Helion.World.Blockmap
 {
     /// <summary>
     /// A conversion of a map into a grid structure whereby things in certain
     /// blocks only will check the blocks they are in for collision detection
     /// or line intersections to optimize computational cost.
     /// </summary>
-    public class Blockmap
+    public class BlockMap
     {
         public readonly Box2D Bounds;
         private readonly UniformGrid<Block> m_blocks;
@@ -26,7 +26,7 @@ namespace Helion.World.Blockmaps
         /// Creates a blockmap grid for the map provided.
         /// </summary>
         /// <param name="lines">The lines to make the grid for.</param>
-        public Blockmap(IList<Line> lines)
+        public BlockMap(IList<Line> lines)
         {
             Bounds = FindMapBoundingBox(lines);
             m_blocks = new UniformGrid<Block>(Bounds);
@@ -82,7 +82,7 @@ namespace Helion.World.Blockmaps
         /// </param>
         public void Link(Entity entity)
         {
-            Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
+            Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
             m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
             
