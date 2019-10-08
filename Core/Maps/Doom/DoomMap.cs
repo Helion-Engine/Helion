@@ -208,6 +208,8 @@ namespace Helion.Maps.Doom
                 side.MiddleTexture = sideSetDefinition.Middle.ToUpper();
             if (sideSetDefinition.Upper != null)
                 side.UpperTexture = sideSetDefinition.Upper.ToUpper();
+            if (sideSetDefinition.Offset != null)
+                side.Offset = sideSetDefinition.Offset.Value;
         }
 
         private static ReadOnlyDictionary<int, DoomLine>? CreateLines(byte[]? lineData, 

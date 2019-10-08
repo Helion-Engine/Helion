@@ -3,6 +3,7 @@ using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry.Vectors;
 using Helion.Util.Parser;
 using NLog;
 
@@ -90,7 +91,7 @@ namespace Helion.Resources.Definitions.Compatibility
                 if (ConsumeIf("NONE"))
                     setDefinition.RemoveBack = true;
                 else
-                    setDefinition.StartVertexId = ConsumeInteger();
+                    setDefinition.BackSideId = ConsumeInteger();
             }
             
             m_mapDefinition.Lines.Add(setDefinition);
@@ -132,6 +133,13 @@ namespace Helion.Resources.Definitions.Compatibility
                 sideSetDefinition.Middle = ConsumeString();
             if (ConsumeIf("UPPER"))
                 sideSetDefinition.Upper = ConsumeString();
+            if (ConsumeIf("OFFSET"))
+            {
+                int x = ConsumeSignedInteger();
+                Consume(',');
+                int y = ConsumeSignedInteger();
+                sideSetDefinition.Offset = new Vec2I(x, y);
+            }
             
             m_mapDefinition.Sides.Add(sideSetDefinition);
         }

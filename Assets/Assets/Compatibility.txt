@@ -4,6 +4,27 @@
     {
         line 933 set end 764;
     }
+    
+    map "E4M1"
+    {
+        line 403 set back 568;
+        line 404 set back 568;
+        line 440 set end 379;
+        line 442 set start 378;
+    }
+    
+    map "E4M3"
+    {
+        line 757 delete;
+        line 758 delete;
+        line 759 delete;
+    }
+    
+    map "E4M8"
+    {
+        side 174 set lower "SW1GSTON" offset 0, 73;
+        line 96 set back 186;
+    }
 }
 
 "DOOM2.WAD"

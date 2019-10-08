@@ -1,3 +1,5 @@
+using Helion.Util.Geometry.Vectors;
+
 namespace Helion.Resources.Definitions.Compatibility.Sides
 {
     /// <summary>
@@ -21,6 +23,11 @@ namespace Helion.Resources.Definitions.Compatibility.Sides
         /// The new upper texture, if not null.
         /// </summary>
         public string? Upper;
+
+        /// <summary>
+        /// The new side offset, if not null.
+        /// </summary>
+        public Vec2I? Offset;
 
         public SideSetDefinition(int id)
         {
