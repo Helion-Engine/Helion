@@ -66,7 +66,7 @@ namespace Helion.Maps.Hexen
             if (sectors == null)
                 return null;
 
-            ReadOnlyDictionary<int, DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs, sectors);
+            ReadOnlyDictionary<int, DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs, sectors, compatibility);
             if (sides == null)
                 return null;
 
@@ -146,26 +146,28 @@ namespace Helion.Maps.Hexen
             }
             
             if (compatibility != null)
-                ApplyLineCompatibility(lines, sides, compatibility);
+                ApplyLineCompatibility(lines, sides, vertices, compatibility);
 
             return new ReadOnlyDictionary<int, HexenLine>(lines);
         }
         
+        // TODO: Would be good if it's possible to consolidate these with DoomMap (repetition!)
         private static void ApplyLineCompatibility(Dictionary<int, HexenLine> lines, 
-            ReadOnlyDictionary<int, DoomSide> sides, CompatibilityMapDefinition compatibility)
+            ReadOnlyDictionary<int, DoomSide> sides, ReadOnlyDictionary<int, DoomVertex> vertices,
+            CompatibilityMapDefinition compatibility)
         {
             foreach (ILineDefinition lineCompatibility in compatibility.Lines)
             {
                 switch (lineCompatibility)
                 {
-                case LineAddDefinition addDefinition:
-                    PerformLineAddition(lines, sides, addDefinition);
-                    break;
                 case LineDeleteDefinition deleteDefinition:
                     PerformLineDeletion(lines, deleteDefinition);
                     break;
-                case LineRemoveSideDefinition removeSideDefinition:
-                    PerformLineSideRemoval(lines, removeSideDefinition);
+                case LineSplitDefinition splitDefinition:
+                    PerformLineSplit(lines, sides, vertices, splitDefinition);
+                    break;
+                case LineSetDefinition setDefinition:
+                    PerformLineSet(lines, sides, vertices, setDefinition);
                     break;
                 default:
                     Fail("Unexpected line compatibility type");
@@ -179,33 +181,86 @@ namespace Helion.Maps.Hexen
             if (lines.ContainsKey(deleteDefinition.Id))
                 lines.Remove(deleteDefinition.Id);
             else
-                Log.Warn("Unable to delete line ID {0} when applying compatibility settings", deleteDefinition.Id);
+                Log.Warn("Unable to delete nonexistent line ID {0} when applying compatibility settings", deleteDefinition.Id);
         }
 
-        private static void PerformLineAddition(Dictionary<int, HexenLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
-            LineAddDefinition addDefinition)
+        private static void PerformLineSplit(Dictionary<int, HexenLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
+            ReadOnlyDictionary<int, DoomVertex> vertices, LineSplitDefinition splitDefinition)
         {
-            if (!sides.TryGetValue(addDefinition.SideId, out DoomSide? side))
+            if (!lines.TryGetValue(splitDefinition.Id, out HexenLine? line))
             {
-                Log.Warn("Unable to find side component ID {0} for line ID {1} when applying compatibility settings", 
-                    addDefinition.SideId, addDefinition.Id);
+                Log.Warn("Unable to split nonexistent line ID {0} when applying compatibility settings", splitDefinition.Id);
                 return;
             }
-
-            if (lines.TryGetValue(addDefinition.Id, out HexenLine? line))
-                line.Back = side;
-            else
-                Log.Warn("Unable to add side to line component for ID {0} when applying compatibility settings", addDefinition.Id);
+            
+            // TODO
         }
 
-        private static void PerformLineSideRemoval(Dictionary<int, HexenLine> lines, LineRemoveSideDefinition removeSideDefinition)
+        private static void PerformLineSet(Dictionary<int, HexenLine> lines, ReadOnlyDictionary<int, DoomSide> sides, 
+            ReadOnlyDictionary<int, DoomVertex> vertices, LineSetDefinition setDefinition)
         {
-            // Since we only support removing back sides right now, this does
-            // not need much to be done.
-            if (lines.TryGetValue(removeSideDefinition.Id, out HexenLine? line))
+            if (!lines.TryGetValue(setDefinition.Id, out HexenLine? line))
+            {
+                Log.Warn("Unable to set properties on nonexistent line ID {0} when applying compatibility settings", setDefinition.Id);
+                return;
+            }
+            
+            if (setDefinition.Flip)
+            {
+                DoomVertex start = line.Start;
+                line.Start = line.End;
+                line.End = start;
+            }
+
+            DoomVertex originalStart = line.Start;
+            DoomVertex originalEnd = line.End;
+
+            if (setDefinition.StartVertexId != null)
+            {
+                if (vertices.TryGetValue(setDefinition.StartVertexId.Value, out DoomVertex? startVertex))
+                    line.Start = startVertex;
+                else
+                    Log.Warn("Unable to set line ID {0} to missing start vertex ID {1}", setDefinition.Id, setDefinition.StartVertexId.Value);
+            }
+            
+            if (setDefinition.EndVertexId != null)
+            {
+                if (vertices.TryGetValue(setDefinition.EndVertexId.Value, out DoomVertex? endVertex))
+                    line.End = endVertex;
+                else
+                    Log.Warn("Unable to set line ID {0} to missing end vertex ID {1}", setDefinition.Id, setDefinition.EndVertexId.Value);
+            }
+
+            if (setDefinition.FrontSideId != null)
+            {
+                if (sides.TryGetValue(setDefinition.FrontSideId.Value, out DoomSide? side))
+                    line.Front = side;
+                else
+                    Log.Warn("Unable to set line ID {0} to missing front side ID {1}", setDefinition.Id, setDefinition.FrontSideId.Value);
+            }
+            
+            if (setDefinition.BackSideId != null)
+            {
+                if (sides.TryGetValue(setDefinition.BackSideId.Value, out DoomSide? side))
+                    line.Back = side;
+                else
+                    Log.Warn("Unable to set line ID {0} to missing back side ID {1}", setDefinition.Id, setDefinition.BackSideId.Value);
+            }
+
+            // Reminder that this must come last, because we made our docs say
+            // that this boolean if true takes priority over setting the back
+            // side ID in some exotic case that both are set.
+            if (setDefinition.RemoveBack)
                 line.Back = null;
-            else
-                Log.Warn("Unable to remove line component for ID {0} when applying compatibility settings", removeSideDefinition.Id);
+            
+            // This should never happen as this is intended to be primarily an
+            // internal definition file.
+            if (line.Start == line.End)
+            {
+                Log.Warn("Line ID {0} had its start/end vertices set to the same point, reverting change", setDefinition.Id);
+                line.Start = originalStart;
+                line.End = originalEnd;
+            }
         }
         
         private static ReadOnlyDictionary<int, HexenThing>? CreateThings(byte[]? thingData)

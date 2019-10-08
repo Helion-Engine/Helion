@@ -2,19 +2,67 @@
 {
     map "E1M3"
     {
-        line 933 change vertex end 764;
+        line 933 set end 764;
     }
 }
 
 "DOOM2.WAD"
 {
+    map "MAP02"
+    {
+        line 315 set start 269;
+        line 491 set end 269;
+    }
+    
     map "MAP14"
     {
         line 191 delete;
         line 237 delete;
         line 331 delete;
         line 626 delete;
-        line 964 add side 1390;
-        line 966 add side 1388;
+        line 964 set back 1390;
+        line 966 set back 1388;
+    }
+    
+    map "MAP16"
+    {
+        line 542 delete;
+    }
+    
+    map "MAP17"
+    {
+        line 726 delete;
+    }
+    
+    map "MAP18"
+    {
+        side 536 set middle "WOOD1";
+        side 545 set middle "WOOD1";
+        line 451 set back none;
+        line 459 set back none;
+    }
+    
+    map "MAP19"
+    {
+        line 636 set flip;
+    }
+    
+    map "MAP22"
+    {
+        line 223 delete;
+        line 607 delete;
+        line 610 delete;
+        line 530 set back none;
+        line 539 set back none;
+        line 542 set back none;
+        line 543 set back none;
+        line 544 set back none;
+        line 545 set back none;
+        line 548 set back none;
+    }
+    
+    map "MAP26"
+    {
+        line 14 delete;
     }
 }

@@ -7,10 +7,10 @@ namespace Helion.Maps.Doom.Components
     public class DoomSide : ISide
     {
         public int Id { get; }
-        public Vec2I Offset { get; }
-        public string UpperTexture { get; }
-        public string MiddleTexture { get; }
-        public string LowerTexture { get; }
+        public Vec2I Offset { get; set; }
+        public string UpperTexture { get; set; }
+        public string MiddleTexture { get; set; }
+        public string LowerTexture { get; set; }
         public readonly DoomSector Sector;
 
         public DoomSide(int id, Vec2I offset, string upperTexture, string middleTexture, string lowerTexture, 
