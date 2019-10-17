@@ -1335,7 +1335,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.Species = ConsumeString();
                 break;
             case "SPEED":
-                m_currentDefinition.Properties.Speed = ConsumeFloat();
+                m_currentDefinition.Properties.Speed = ConsumeInteger();
                 break;
             case "SPRITEANGLE":
                 m_currentDefinition.Properties.SpriteAngle = ConsumeInteger();

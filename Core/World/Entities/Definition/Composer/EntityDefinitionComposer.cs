@@ -83,7 +83,9 @@ namespace Helion.World.Entities.Definition.Composer
                 return definition;
             
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
-            return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+            var def = actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+
+            return def;
         }
 
         private bool CreateInheritanceOrderedList(ActorDefinition actorDef, out LinkedList<ActorDefinition> definitions)

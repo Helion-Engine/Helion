@@ -1,0 +1,24 @@
+﻿ACTOR BFGBall
+{
+  Radius 13
+  Height 8
+  Speed 25
+  Damage 100
+  Projectile
+  +RANDOMIZE
+  RenderStyle Add
+  Alpha 0.75
+  DeathSound "weapons/bfgx"
+  Obituary "$OB_MPBFG_BOOM"
+  States
+  {
+  Spawn:
+    BFS1 AB 4 Bright
+    Loop
+  Death:
+    BFE1 AB 8 Bright
+    BFE1 C 8 Bright A_BFGSpray
+    BFE1 DEF 8 Bright
+    Stop
+  }
+}

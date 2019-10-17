@@ -12,9 +12,9 @@ namespace Helion.World.Entities.Definition
         public readonly int Id;
         public readonly int? EditorId;
         public readonly CIString Name;
-        public readonly EntityFlags Flags = new EntityFlags();
-        public readonly EntityProperties Properties = new EntityProperties();
-        public readonly EntityStates States = new EntityStates();
+        public readonly EntityFlags Flags;
+        public readonly EntityProperties Properties;
+        public readonly EntityStates States;
 
         public EntityDefinition(int id, CIString name, int? editorId)
         {
@@ -23,6 +23,21 @@ namespace Helion.World.Entities.Definition
             Id = id;
             Name = name;
             EditorId = editorId;
+
+            Flags = new EntityFlags();
+            Properties = new EntityProperties();
+            States = new EntityStates();
+        }
+
+        public EntityDefinition(EntityDefinition def)
+        {
+            Id = def.Id;
+            Name = def.Name;
+            EditorId = def.EditorId;
+
+            Flags = new EntityFlags(def.Flags);
+            Properties = def.Properties;
+            States = def.States;
         }
         
         public override string ToString() => $"{Name} (id = {Id}, editorId = {EditorId})";

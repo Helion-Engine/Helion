@@ -55,6 +55,8 @@ namespace Helion.World.Entities
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
         public Entity? OnEntity;
+        public Entity? Owner;
+        public Entity? BlockingEntity;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
@@ -199,6 +201,8 @@ namespace Helion.World.Entities
             IntersectEntities.Clear();
             IntersectSectors.Clear();
             IntersectSubsectors.Clear();
+
+            BlockingEntity = null;
         }
 
         /// <summary>
@@ -221,6 +225,17 @@ namespace Helion.World.Entities
             // the spawn frame somehow, we'll assume we start at index zero.
             if (!SetStateToLabel("SPAWN"))
                 FrameIndex = 0;
+        }
+
+        public void SetDeathState()
+        {
+            if (SetStateToLabel("DEATH"))
+            {
+                if (Flags.Missile)
+                    Velocity = Vec3D.Zero;
+
+                Flags.Solid = false;
+            }
         }
         
         public bool SetStateToLabel(string label)

@@ -66,9 +66,9 @@ namespace Helion.Render.OpenGL
         public static mat4 CalculateMvpMatrix(RenderInfo renderInfo)
         {
             float w = renderInfo.Viewport.Width;
-            float h = renderInfo.Viewport.Height;
-            float fovY = (float)MathHelper.ToRadians(70);
-            
+            float h = renderInfo.Viewport.Height * 0.825f;
+            float fovY = (float)MathHelper.ToRadians(63.2);
+
             mat4 model = mat4.Identity;
             mat4 view = renderInfo.Camera.CalculateViewMatrix();
             // TODO: Should base this off of the actor radius and config view

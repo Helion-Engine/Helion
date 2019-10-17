@@ -52,6 +52,8 @@ namespace Helion.World.Physics
 
         private LineOpening m_lineOpening = new LineOpening();
 
+        private DateTime m_shootTest = DateTime.Now;
+
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
         /// </summary>
@@ -252,11 +254,39 @@ namespace Helion.World.Physics
             }
         }
 
+        public void FireProjectile(Entity shooter, double pitch, bool autoAim, string projectClassName)
+        {
+            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
+                return;
+
+            m_shootTest = DateTime.Now;
+
+            if (autoAim)
+            {
+                Vec3D start = shooter.AttackPosition;
+                Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, EntityShootDistance);
+                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+                    pitch = autoAimPitch;
+            }
+
+            var projectile = m_entityManager.DefinitionComposer[projectClassName];
+            if (projectile != null)
+            {
+                Entity rocket = m_entityManager.Create(projectile, shooter.AttackPosition, shooter.AngleRadians, 0);
+                rocket.Owner = shooter;
+                rocket.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, rocket.Definition.Properties.Speed);
+            }
+        }
+
         public void FireHitscanTest(Entity shooter, double pitch, bool autoAim, bool removeEntity)
         {
+            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 100)
+                return;
+
+            m_shootTest = DateTime.Now;
+
             Vec3D start = shooter.AttackPosition;
-            Vec3D end = new Vec3D(start.X + (Math.Cos(shooter.AngleRadians) * EntityShootDistance), start.Y + (Math.Sin(shooter.AngleRadians) * EntityShootDistance),
-               start.Z + (Math.Tan(pitch) * EntityShootDistance));
+            Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, EntityShootDistance);
             Vec3D intersect = new Vec3D(0, 0, 0);
 
             if (autoAim && GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
@@ -282,7 +312,7 @@ namespace Helion.World.Physics
                 DebugHitscanTest(bi.Value, intersect);
 
                 if (removeEntity && bi.Value.Entity != null)
-                    m_entityManager.Destroy(bi.Value.Entity);
+                    bi.Value.Entity.SetDeathState();
             }
         }
 
@@ -292,7 +322,7 @@ namespace Helion.World.Physics
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
             List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines, 
-                BlockmapTraverseEntityFlags.Shootable);
+                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -408,8 +438,8 @@ namespace Helion.World.Physics
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
 
             List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
-                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines, 
-                BlockmapTraverseEntityFlags.Shootable);
+                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
+                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -493,14 +523,15 @@ namespace Helion.World.Physics
         
         private static bool EntityCanBlockEntity(Entity entity, Entity other)
         {
-            if (ReferenceEquals(entity, other))
+            if (ReferenceEquals(entity, other) || entity.Owner == other || !other.Flags.Solid)
                 return false;
             return other.Flags.Solid;
         }
         
         private static bool EntityBlocksEntityZ(Entity entity, Entity other)
         {
-            return other.Box.Top - entity.Box.Bottom > entity.Properties.MaxStepHeight || 
+            double maxStepHeight = entity is Player ? entity.Properties.MaxStepHeight : 0.0;
+            return other.Box.Top - entity.Box.Bottom > maxStepHeight || 
                    entity.LowestCeilingZ - other.Box.Top < entity.Height;
         }
         
@@ -525,7 +556,8 @@ namespace Helion.World.Physics
 
         private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
         {
-            CreateTestPuff(intersect, bi.Entity == null ? "BulletPuff" : "Blood");
+            string className = bi.Entity == null || (bi.Entity != null && bi.Entity.Definition.Flags.NoBlood) ? "BulletPuff" : "Blood";
+            CreateTestPuff(intersect, className);
         }
 
         private void CreateTestPuff(Vec3D intersect, string className)
@@ -571,8 +603,13 @@ namespace Helion.World.Physics
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
         {
-            if (entity.Flags.NoBlockmap || (entity.NoClip && entity.IsFlying))
+            // TODO fixme
+            if (entity.Definition.Name == "BulletPuff")
                 return;
+            if (entity.NoClip && entity.IsFlying)
+                return;
+
+            bool clipped = false;
 
             Sector? lastSector = entity.HighestFloorSector;
             SetEntityBoundsZ(entity);
@@ -583,14 +620,23 @@ namespace Helion.World.Physics
 
             if (entity.Box.Top > lowestCeil)
             {
+                clipped = true;
                 entity.SetZ(lowestCeil - entity.Height, smoothZ);
                 entity.Velocity.Z = 0;
             }
 
             if (entity.Box.Bottom <= highestFloor)
+            {
+                clipped = true;
                 SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ);
+            }
             else
+            {
                 entity.OnGround = false;
+            }
+
+            if (clipped)
+                HandleEntityHit(entity);
         }
 
         private void SetEntityBoundsZ(Entity entity)
@@ -709,19 +755,16 @@ namespace Helion.World.Physics
                     }
                 }
 
-                if (entity.Flags.Solid)
+                LinkableNode<Entity>? entityNode = block.Entities.Head;
+                while (entityNode != null)
                 {
-                    LinkableNode<Entity>? entityNode = block.Entities.Head;
-                    while (entityNode != null)
-                    {
-                        Entity nextEntity = entityNode.Value;
-                        if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(entity.Box))
-                            entities.Add(nextEntity);
+                    Entity nextEntity = entityNode.Value;
+                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(entity.Box))
+                        entities.Add(nextEntity);
 
-                        entityNode = entityNode.Next;
-                    }
+                    entityNode = entityNode.Next;
                 }
-
+                
                 return GridIterationStatus.Continue;
             }
         }
@@ -785,9 +828,21 @@ namespace Helion.World.Physics
                     slidesLeft--;
                     continue;
                 }
-                
+
+                HandleEntityHit(entity);
                 ClearVelocityXY(entity);
                 break;
+            }
+        }
+
+        private void HandleEntityHit(Entity entity)
+        {
+            if (entity.Flags.Missile)
+            {
+                entity.SetDeathState();
+
+                if (entity.BlockingEntity != null)
+                    entity.BlockingEntity.SetDeathState();
             }
         }
 
@@ -815,7 +870,7 @@ namespace Helion.World.Physics
                         return GridIterationStatus.Stop;
                 }
 
-                if (entity.Flags.Solid)
+                if (entity.Flags.Solid || entity.Flags.Missile)
                 {
                     LinkableNode<Entity>? entityNode = block.Entities.Head;
                     while (entityNode != null)
@@ -826,7 +881,10 @@ namespace Helion.World.Physics
                             entity.Box.OverlapsZ(nextEntity.Box))
                         {
                             if (EntityBlocksEntityZ(entity, nextEntity))
+                            {
+                                entity.BlockingEntity = nextEntity;
                                 return GridIterationStatus.Stop;
+                            }
 
                             entity.IntersectEntities.Add(nextEntity);
                         }

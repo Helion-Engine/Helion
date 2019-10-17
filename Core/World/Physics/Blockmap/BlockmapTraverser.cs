@@ -57,6 +57,8 @@ namespace Helion.World.Physics.Blockmap
                         {
                             if ((entityFlags & BlockmapTraverseEntityFlags.Shootable) != 0 && !entity.Flags.Shootable)
                                 continue;
+                            if ((entityFlags & BlockmapTraverseEntityFlags.Solid) != 0 && !entity.Flags.Solid)
+                                continue;
                         }
 
                         if (!m_entityMap.Contains(entity.Id) && entity.Box.Intersects(seg.Start, seg.End, ref intersect))

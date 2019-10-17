@@ -33,6 +33,16 @@ namespace Helion.Util.Geometry.Vectors
             return MathHelper.AreEqual(self.X, other.X) && MathHelper.AreEqual(self.Y, other.Y) && MathHelper.AreEqual(self.Z, other.Z);
         }
 
+        public static Vec3D UnitTimesValue(double angle, double pitch, double value)
+        {
+            return new Vec3D(Math.Cos(angle) * value, Math.Sin(angle) * value, Math.Tan(pitch) * value);
+        }
+
+        public static Vec3D Unit(double angle, double pitch)
+        {
+            return new Vec3D(Math.Cos(angle), Math.Sin(angle), Math.Tan(pitch));
+        }
+
         public bool EqualTo(Vec3D other, double epsilon = 0.00001)
         {
             return MathHelper.AreEqual(X, other.X, epsilon) && MathHelper.AreEqual(Y, other.Y, epsilon) && MathHelper.AreEqual(Z, other.Z, epsilon);

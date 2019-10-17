@@ -1,0 +1,15 @@
+﻿ACTOR Clip : Ammo
+{
+  Inventory.PickupMessage "$GOTCLIP" // "Picked up a clip."
+  Inventory.Amount 10
+  Inventory.MaxAmount 200
+  Ammo.BackpackAmount 10
+  Ammo.BackpackMaxAmount 400
+  Inventory.Icon "CLIPA0"
+  States
+  {
+  Spawn:
+    CLIP A -1
+    Stop
+  }
+}

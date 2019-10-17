@@ -1,0 +1,14 @@
+﻿ACTOR BFGExtra
+{
+  +NOBLOCKMAP
+  +NOGRAVITY
+  RenderStyle Add
+  Alpha 0.75
+  DamageType "BFGSplash"
+  States
+  {
+  Spawn:
+    BFE2 ABCD 8 Bright
+    Stop
+  }
+}

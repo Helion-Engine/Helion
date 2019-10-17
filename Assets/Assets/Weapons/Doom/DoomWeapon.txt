@@ -1,0 +1,4 @@
+﻿ACTOR DoomWeapon : Weapon
+{
+  Weapon.Kickback 100
+}

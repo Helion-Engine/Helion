@@ -110,7 +110,7 @@ namespace Helion.World.Entities
                 }
 
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-                Entity entity = Create(definition, mapThing.Position.ToDouble(), angleRadians, mapThing.ThingId);
+                Entity entity = Create(new EntityDefinition(definition), mapThing.Position.ToDouble(), angleRadians, mapThing.ThingId);
 
                 PostProcessEntity(entity);
             }
