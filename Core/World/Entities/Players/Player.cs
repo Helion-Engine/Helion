@@ -24,6 +24,8 @@ namespace Helion.World.Entities.Players
         
         public readonly int PlayerNumber;
         public double PitchRadians;
+        // Temporary test variable
+        public int Weapon = 1;
         private bool m_isJumping;
         private int m_jumpTics;
         private double m_prevAngle;

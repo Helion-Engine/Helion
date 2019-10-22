@@ -9,6 +9,7 @@ using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
+using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -36,7 +37,6 @@ namespace Helion.World.Physics
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
         private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
-        private const double EntityShootDistance = 8192.0;
         private const double SetEntityToFloorSpeedMax = 9;
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
         private const double MinPitch = -80.0 * Math.PI / 180.0;
@@ -51,6 +51,7 @@ namespace Helion.World.Physics
         private readonly BlockmapTraverser m_blockmapTraverser;
 
         private LineOpening m_lineOpening = new LineOpening();
+        private IRandom m_random;
 
         private DateTime m_shootTest = DateTime.Now;
 
@@ -72,12 +73,14 @@ namespace Helion.World.Physics
         /// <param name="blockmap">The blockmap for the world.</param>
         /// <param name="soundManager">The sound manager to play sounds from.</param>
         /// <param name="entityManager">entity manager.</param>
-        public PhysicsManager(BspTree bspTree, BlockMap blockmap, SoundManager soundManager, EntityManager entityManager)
+        /// <param name="random">Random number generator to use.</param>
+        public PhysicsManager(BspTree bspTree, BlockMap blockmap, SoundManager soundManager, EntityManager entityManager, IRandom random)
         {
             m_bspTree = bspTree;
             m_blockmap = blockmap;
             m_soundManager = soundManager;
             m_entityManager = entityManager;
+            m_random = random;
             m_blockmapTraverser = new BlockmapTraverser(m_blockmap);
         }
 
@@ -135,6 +138,7 @@ namespace Helion.World.Physics
                         entity.SetZ(entity.OnEntity.Box.Top, false);
                 }
 
+                // TODO this is called in ClampBetweenFloorAndCeiling - is this necessary
                 SetEntityBoundsZ(entity);
                 ClampBetweenFloorAndCeiling(entity);
             }
@@ -147,7 +151,7 @@ namespace Helion.World.Physics
                 if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
                     continue;
 
-                if (!entity.Flags.CanPass)
+                if (!entity.Flags.CanPass || !entity.Flags.Solid)
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
@@ -167,7 +171,7 @@ namespace Helion.World.Physics
                         diff = -diff;
 
                     sectorPlane.Z = startZ + diff;
-                    sectorPlane.Plane.MoveZ(destZ - startZ + diff);
+                    sectorPlane.Plane.MoveZ(startZ - destZ + diff);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in entities)
@@ -254,9 +258,9 @@ namespace Helion.World.Physics
             }
         }
 
-        public void FireProjectile(Entity shooter, double pitch, bool autoAim, string projectClassName)
+        public void FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName)
         {
-            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
+            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 100)
                 return;
 
             m_shootTest = DateTime.Now;
@@ -264,12 +268,12 @@ namespace Helion.World.Physics
             if (autoAim)
             {
                 Vec3D start = shooter.AttackPosition;
-                Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, EntityShootDistance);
+                Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
                 if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
                     pitch = autoAimPitch;
             }
 
-            var projectile = m_entityManager.DefinitionComposer[projectClassName];
+            var projectile = m_entityManager.DefinitionComposer.GetByName(projectClassName);
             if (projectile != null)
             {
                 Entity rocket = m_entityManager.Create(projectile, shooter.AttackPosition, shooter.AngleRadians, 0);
@@ -278,22 +282,41 @@ namespace Helion.World.Physics
             }
         }
 
-        public void FireHitscanTest(Entity shooter, double pitch, bool autoAim, bool removeEntity)
+        public void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim)
         {
-            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 100)
+            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 200)
                 return;
 
             m_shootTest = DateTime.Now;
 
-            Vec3D start = shooter.AttackPosition;
-            Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, EntityShootDistance);
-            Vec3D intersect = new Vec3D(0, 0, 0);
-
-            if (autoAim && GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+            if (autoAim)
             {
-                pitch = autoAimPitch;
-                end.Z = start.Z + (Math.Tan(pitch) * EntityShootDistance);
+                Vec3D start = shooter.AttackPosition;
+                Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
+                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+                    pitch = autoAimPitch;
             }
+
+            if (!shooter.Refire && bulletCount == 1)
+            {
+                FireHitscan(shooter, shooter.AngleRadians, pitch, distance);
+            }
+            else
+            {
+                for (int i = 0; i < bulletCount; i++)
+                {
+                    double angle = shooter.AngleRadians + (m_random.NextDiff() * spreadAngleRadians / 255);
+                    double newPitch = pitch + (m_random.NextDiff() * spreadPitchRadians / 255);
+                    FireHitscan(shooter, angle, newPitch, distance);
+                }
+            }
+        }
+
+        public void FireHitscan(Entity shooter, double angle, double pitch, double distance)
+        {
+            Vec3D start = shooter.AttackPosition;
+            Vec3D end = start + Vec3D.UnitTimesValue(angle, pitch, distance);
+            Vec3D intersect = new Vec3D(0, 0, 0);
 
             BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect);
 
@@ -308,10 +331,10 @@ namespace Helion.World.Physics
 
                 // Only move closer on a line hit
                 if (bi.Value.Entity == null && bi.Value.Sector == null)
-                    MoveIntersectCloser(start, ref intersect, shooter.AngleRadians, bi.Value.Distance2D);
+                    MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
                 DebugHitscanTest(bi.Value, intersect);
 
-                if (removeEntity && bi.Value.Entity != null)
+                if (bi.Value.Entity != null)
                     bi.Value.Entity.SetDeathState();
             }
         }
@@ -562,7 +585,7 @@ namespace Helion.World.Physics
 
         private void CreateTestPuff(Vec3D intersect, string className)
         {
-            var puff = m_entityManager.DefinitionComposer[className];
+            var puff = m_entityManager.DefinitionComposer.GetByName(className);
             if (puff != null)
                 m_entityManager.Create(puff, intersect, 0.0, 0);
         }

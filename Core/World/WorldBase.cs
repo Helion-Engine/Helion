@@ -8,6 +8,7 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
+using Helion.Util.RandomGenerators;
 using Helion.Util.Time;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -47,6 +48,8 @@ namespace Helion.World
         public IList<Sector> Sectors => Geometry.Sectors;
         public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
+
+        private DoomRandom m_random = new DoomRandom();
         
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem, 
             MapGeometry geometry, IMap map)
@@ -59,8 +62,8 @@ namespace Helion.World
             Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(audioSystem);            
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
-            PhysicsManager = new PhysicsManager(BspTree, Blockmap, SoundManager, EntityManager);
-            SpecialManager = new SpecialManager(this, PhysicsManager, archiveCollection.Definitions);
+            PhysicsManager = new PhysicsManager(BspTree, Blockmap, SoundManager, EntityManager, m_random);
+            SpecialManager = new SpecialManager(this, PhysicsManager, archiveCollection.Definitions, m_random);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
