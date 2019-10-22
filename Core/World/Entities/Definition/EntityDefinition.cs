@@ -29,6 +29,7 @@ namespace Helion.World.Entities.Definition
             States = new EntityStates();
         }
 
+        //TODO hopefully temporary
         public EntityDefinition(EntityDefinition def)
         {
             Id = def.Id;

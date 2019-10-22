@@ -78,7 +78,7 @@ namespace Helion.World.Entities
 
         public Player CreatePlayer(int playerIndex)
         {
-            EntityDefinition? playerDefinition = DefinitionComposer[Constants.PlayerClass];
+            EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
             if (playerDefinition == null)
             {
                 Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
@@ -102,7 +102,7 @@ namespace Helion.World.Entities
                 if (!ShouldSpawn(mapThing, m_skill))
                     continue;
                 
-                EntityDefinition? definition = DefinitionComposer[mapThing.EditorNumber];
+                EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
                 if (definition == null)
                 {
                     Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.To2D());
@@ -110,7 +110,7 @@ namespace Helion.World.Entities
                 }
 
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-                Entity entity = Create(new EntityDefinition(definition), mapThing.Position.ToDouble(), angleRadians, mapThing.ThingId);
+                Entity entity = Create(definition, mapThing.Position.ToDouble(), angleRadians, mapThing.ThingId);
 
                 PostProcessEntity(entity);
             }

@@ -35,8 +35,31 @@ namespace Helion.World.Entities.Definition.Composer
             m_archiveCollection = archiveCollection;
         }
 
-        public EntityDefinition? this[CIString name] => GetByName(name);
-        public EntityDefinition? this[int editorId] => GetByID(editorId);
+        public EntityDefinition? GetByName(CIString name)
+        {
+            //TODO make this better so we don't need to create a copy of EntityDefinition - this is just so the flags aren't global and can be modified per entity
+            if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
+                return new EntityDefinition(definition);
+
+            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
+            var newDefinition = actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+            if (newDefinition != null)
+                return new EntityDefinition(newDefinition);
+            return null;
+        }
+
+        public EntityDefinition? GetByID(int id)
+        {
+            //TODO make this better so we don't need to create a copy of EntityDefinition - this is just so the flags aren't global and can be modified per entity
+            if (m_editorNumToDefinition.TryGetValue(id, out EntityDefinition? definition))
+                return new EntityDefinition(definition);
+
+            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
+            var newDefinition = actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+            if (newDefinition != null)
+                return new EntityDefinition(newDefinition);
+            return null;
+        }
 
         private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
         {
@@ -66,26 +89,6 @@ namespace Helion.World.Entities.Definition.Composer
         {
             DefinitionFlagApplier.Apply(definition, actorDefinition.Flags, actorDefinition.FlagProperties);
             DefinitionPropertyApplier.Apply(definition, actorDefinition.Properties);
-        }
-
-        private EntityDefinition? GetByName(CIString name)
-        {
-            if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
-                return definition;
-
-            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
-            return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
-        }
-        
-        private EntityDefinition? GetByID(int id)
-        {
-            if (m_editorNumToDefinition.TryGetValue(id, out EntityDefinition? definition))
-                return definition;
-            
-            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
-            var def = actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
-
-            return def;
         }
 
         private bool CreateInheritanceOrderedList(ActorDefinition actorDef, out LinkedList<ActorDefinition> definitions)
