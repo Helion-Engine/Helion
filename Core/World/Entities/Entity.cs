@@ -57,6 +57,7 @@ namespace Helion.World.Entities
         public Entity? OnEntity;
         public Entity? Owner;
         public Entity? BlockingEntity;
+        public bool Refire;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
@@ -232,9 +233,17 @@ namespace Helion.World.Entities
             if (SetStateToLabel("DEATH"))
             {
                 if (Flags.Missile)
+                {
+                    Flags.Missile = false;
                     Velocity = Vec3D.Zero;
-
-                Flags.Solid = false;
+                }
+                else
+                {
+                    Flags.Corpse = true;
+                    Flags.Skullfly = false;
+                    Flags.Solid = false;
+                    Flags.Shootable = false;
+                }
             }
         }
         
