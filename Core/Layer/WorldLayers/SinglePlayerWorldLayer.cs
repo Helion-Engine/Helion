@@ -43,18 +43,20 @@ namespace Helion.Layer.WorldLayers
 
             m_consumeDownKeys = new[]
             {
-                (config.Engine.Controls.MoveForward,  TickCommands.Forward),
-                (config.Engine.Controls.MoveLeft,     TickCommands.Left),
-                (config.Engine.Controls.MoveBackward, TickCommands.Backward),
-                (config.Engine.Controls.MoveRight,    TickCommands.Right),
-                (config.Engine.Controls.Jump,         TickCommands.Jump),
-                (config.Engine.Controls.Crouch,       TickCommands.Crouch),
-                (config.Engine.Controls.Attack,       TickCommands.Attack),
+                (config.Engine.Controls.MoveForward,    TickCommands.Forward),
+                (config.Engine.Controls.MoveLeft,       TickCommands.Left),
+                (config.Engine.Controls.MoveBackward,   TickCommands.Backward),
+                (config.Engine.Controls.MoveRight,      TickCommands.Right),
+                (config.Engine.Controls.Jump,           TickCommands.Jump),
+                (config.Engine.Controls.Crouch,         TickCommands.Crouch),
+                (config.Engine.Controls.Attack,         TickCommands.Attack),
             };
 
             m_consumePressedKeys = new[]
             {
-                (config.Engine.Controls.Use,          TickCommands.Use),
+                (config.Engine.Controls.Use,            TickCommands.Use),
+                (config.Engine.Controls.NextWeapon,     TickCommands.NextWeapon),
+                (config.Engine.Controls.PreviousWeapon, TickCommands.PreviousWeapon),
             };
         }
 
