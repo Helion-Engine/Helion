@@ -35,6 +35,37 @@ namespace Helion.Test.Unit.Util.Container
         }
 
         [TestMethod]
+        public void ReadNullTerminatedString()
+        {
+            byte[] data = { (byte)'a', (byte)'b', (byte)'c', (byte)'D', (byte)'E', (byte)'f', (byte)'\0', 0, (byte)'G' };
+            ByteReader reader = new ByteReader(data);
+
+            Assert.AreEqual("abcDEf", reader.ReadNullTerminatedString());
+
+            data = new byte[] { (byte)'\0', (byte)'b', (byte)'c', (byte)'D', (byte)'E', (byte)'f', (byte)'\0', 0, (byte)'G' };
+            reader = new ByteReader(data);
+
+            Assert.AreEqual("", reader.ReadNullTerminatedString());
+        }
+
+        [TestMethod]
+        public void ReadNullTerminatedStringThrows()
+        {
+            byte[] data = { (byte)'a', (byte)'b', (byte)'c', (byte)'D', (byte)'E', (byte)'f', (byte)'G' };
+            ByteReader reader = new ByteReader(data);
+
+            try
+            {
+                reader.ReadNullTerminatedString();
+                Assert.Fail();
+            }
+            catch
+            { 
+                // We only care that an exception is thrown.
+            }
+        }
+
+        [TestMethod]
         public void ReadEightByteString()
         {
             byte[] data = { (byte)'a', (byte)'b', (byte)'c', (byte)'D', (byte)'E', (byte)'f', 0, 0 };
