@@ -44,6 +44,31 @@ namespace Helion.Util
         }
 
         /// <summary>
+        /// Reads the passed in stream of bytes as a string until a null 
+        /// terminator is reached. This function assumes that there is a
+        /// null terminator in the bytes one is reading.
+        /// </summary>
+        /// <remarks>
+        /// This leaves the ByteReader at the position of the null terminator.
+        /// No null terminator is present in the returned string.
+        /// </remarks>
+        /// <returns>A string representation of the byte stream passed in.
+        /// </returns>
+        public string ReadNullTerminatedString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            char c = (char)ReadByte();
+            while (c != '\0')
+            {
+                stringBuilder.Append(c);
+                c = (char)ReadByte();
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        /// <summary>
         /// Reads the eight bytes of a string, unless it hits a null terminator
         /// to which it returns early. This is intended for raw lump strings
         /// that are always eight characters in length.
