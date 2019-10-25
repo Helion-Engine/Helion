@@ -299,20 +299,22 @@ namespace Helion.World.Physics
 
             if (!shooter.Refire && bulletCount == 1)
             {
-                FireHitscan(shooter, shooter.AngleRadians, pitch, distance);
+                int damage = 5 * ((m_random.NextByte() % 3) + 1);
+                FireHitscan(shooter, shooter.AngleRadians, pitch, distance, damage);
             }
             else
             {
                 for (int i = 0; i < bulletCount; i++)
                 {
+                    int damage = 5 * ((m_random.NextByte() % 3) + 1);
                     double angle = shooter.AngleRadians + (m_random.NextDiff() * spreadAngleRadians / 255);
                     double newPitch = pitch + (m_random.NextDiff() * spreadPitchRadians / 255);
-                    FireHitscan(shooter, angle, newPitch, distance);
+                    FireHitscan(shooter, angle, newPitch, distance, damage);
                 }
             }
         }
 
-        public void FireHitscan(Entity shooter, double angle, double pitch, double distance)
+        public void FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
         {
             Vec3D start = shooter.AttackPosition;
             Vec3D end = start + Vec3D.UnitTimesValue(angle, pitch, distance);
@@ -335,7 +337,7 @@ namespace Helion.World.Physics
                 DebugHitscanTest(bi.Value, intersect);
 
                 if (bi.Value.Entity != null)
-                    bi.Value.Entity.SetDeathState();
+                    DamageEntity(bi.Value.Entity, shooter, damage);
             }
         }
 
@@ -423,6 +425,32 @@ namespace Helion.World.Physics
             {
                 front = bi.Line.Back!.Sector;
                 back = bi.Line.Front.Sector;
+            }
+        }
+
+        private void DamageEntity(Entity target, Entity shooter, int damage)
+        {
+            double angle = shooter.Position.Angle(target.Position);
+            double thrust = damage * 12.5 / target.Properties.Mass;
+
+            if (damage < 40 && damage > target.Health &&
+                target.Position.Z - shooter.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
+            {
+                angle += Math.PI;
+                thrust *= 4;
+            }
+
+            target.Velocity += Vec3D.UnitTimesValue(angle, 0.0, thrust);
+            target.Health -= damage;
+
+            if (target.Health <= 0)
+            {
+                if (target.Health < -target.Properties.Health && target.HasXDeathState())
+                    target.SetXDeathState();
+                else
+                    target.SetDeathState();
+
+                target.Health = 0;
             }
         }
 
@@ -864,8 +892,11 @@ namespace Helion.World.Physics
             {
                 entity.SetDeathState();
 
-                if (entity.BlockingEntity != null)
-                    entity.BlockingEntity.SetDeathState();
+                if (entity.BlockingEntity != null && entity.Properties.Damage > 0)
+                {
+                    int damage = ((m_random.NextByte() % 8) + 1) * entity.Properties.Damage;
+                    DamageEntity(entity.BlockingEntity, entity, damage);
+                }
             }
         }
 

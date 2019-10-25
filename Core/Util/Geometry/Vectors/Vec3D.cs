@@ -67,14 +67,15 @@ namespace Helion.Util.Geometry.Vectors
         public Vec3D Abs() => new Vec3D(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
         public Vec3D Unit() => this / Length();
         public void Normalize() => this /= Length();
-        public double Dot(Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+        public double Dot(in Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
         public double Distance(Vec3D other) => (this - other).Length();
         public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
-        public double Pitch(Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
+        public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
         public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
+        public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
 
         public Vec2D To2D() => new Vec2D(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));

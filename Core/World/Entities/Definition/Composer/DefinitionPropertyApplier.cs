@@ -21,6 +21,9 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.Speed != null)
                 definition.Properties.Speed = properties.Speed.Value;
+
+            if (properties.Damage.Low != null)
+                definition.Properties.Damage = properties.Damage.Low.Value;
         }
     }
 }

@@ -117,5 +117,6 @@ namespace Helion.World.Entities.Definition.Properties
         public int WoundHealth = 6;
         public double XScale = 1.0;
         public double YScale = 1.0;
+        public int Damage = 0;
     }
 }

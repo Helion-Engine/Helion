@@ -231,21 +231,16 @@ namespace Helion.World.Entities
         public void SetDeathState()
         {
             if (SetStateToLabel("DEATH"))
-            {
-                if (Flags.Missile)
-                {
-                    Flags.Missile = false;
-                    Velocity = Vec3D.Zero;
-                }
-                else
-                {
-                    Flags.Corpse = true;
-                    Flags.Skullfly = false;
-                    Flags.Solid = false;
-                    Flags.Shootable = false;
-                }
-            }
+                SetDeath();
         }
+
+        public void SetXDeathState()
+        {
+            if (SetStateToLabel("XDEATH"))
+                SetDeath();
+        }
+
+        public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
         
         public bool SetStateToLabel(string label)
         {
@@ -268,7 +263,23 @@ namespace Helion.World.Entities
             UnlinkFromWorld();
             EntityListNode.Unlink();
         }
-        
+
+        private void SetDeath()
+        {
+            if (Flags.Missile)
+            {
+                Flags.Missile = false;
+                Velocity = Vec3D.Zero;
+            }
+            else
+            {
+                Flags.Corpse = true;
+                Flags.Skullfly = false;
+                Flags.Solid = false;
+                Flags.Shootable = false;
+            }
+        }
+
         private void TickStateFrame()
         {
             Precondition(FrameIndex >= 0 && FrameIndex < Definition.States.Frames.Count, "Out of range frame index for entity");
