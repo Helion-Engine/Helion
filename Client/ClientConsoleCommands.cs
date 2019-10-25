@@ -6,6 +6,9 @@ using Helion.Util.Extensions;
 
 namespace Helion.Client
 {
+    /// <summary>
+    /// The client that runs the engine.
+    /// </summary>
     public partial class Client
     {
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)

@@ -9,18 +9,21 @@ using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Render;
 using Helion.Render.Commands;
-using Helion.Util;
-using Helion.Util.Configuration;
-using Helion.Util.Geometry;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
+using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.Util.Configuration;
+using Helion.Util.Geometry;
 using Helion.Util.Time;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client
 {
+    /// <summary>
+    /// The client that runs the engine.
+    /// </summary>
     public partial class Client : IDisposable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();

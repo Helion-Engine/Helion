@@ -17,10 +17,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BspVisualizer", "BspVisuali
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets", "Assets\Assets.csproj", "{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{8169087F-1C7B-4644-B0DF-655BD44F3B0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{8169087F-1C7B-4644-B0DF-655BD44F3B0F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16} = {9A4A4D4D-7CA6-41E2-9F5E-D803C09F6A16}
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59AC45C4-7426-4F1D-8BB6-9851105B1D5C}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		GlobalSuppressions.cs = GlobalSuppressions.cs
 	EndProjectSection
 EndProject
 Global

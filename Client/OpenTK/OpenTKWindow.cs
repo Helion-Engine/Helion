@@ -217,7 +217,7 @@ namespace Helion.Client.OpenTK
             if (Focused)
             {
                 m_inputAdapter.HandleMouseMovement(deltaX, deltaY);
-                NativeMethods.SetMousePosition(Location.X + WindowDimension.Width / 2, Location.Y + WindowDimension.Height / 2);
+                NativeMethods.SetMousePosition(Location.X + (WindowDimension.Width / 2), Location.Y + (WindowDimension.Height / 2));
             }
         }
 

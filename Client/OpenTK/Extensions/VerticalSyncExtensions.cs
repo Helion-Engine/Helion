@@ -6,7 +6,7 @@ namespace Helion.Client.OpenTK.Extensions
 {
     public static class VerticalSyncExtensions
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public static VSyncMode ToOpenTKVSync(this VerticalSync vsync)
         {
@@ -19,7 +19,7 @@ namespace Helion.Client.OpenTK.Extensions
             case VerticalSync.Adaptive:
                 return VSyncMode.Adaptive;
             default:
-                log.Error("Unknown VSync type, defauling to Off");
+                Log.Error("Unknown VSync type, defauling to Off");
                 goto case VerticalSync.Off;
             }
         }

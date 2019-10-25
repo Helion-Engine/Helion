@@ -1,62 +1,10 @@
-﻿using Helion.Util.Geometry;
-using NLog;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using NLog;
 
 namespace Helion.Client.WinMouse
 {
-    public static class WinMouseConstants
-    {
-        public const int WM_INPUT = 255;
-        public const ushort HID_USAGE_PAGE_GENERIC = 1;
-        public const ushort HID_USAGE_GENERIC_MOUSE = 2;
-        public const uint RIDEV_INPUTSINK = 0x00000100;
-        public const uint RID_INPUT = 0x10000003;
-        public const uint RI_MOUSE_LEFT_BUTTON_DOWN = 0x0001;
-        public const uint RI_MOUSE_LEFT_BUTTON_UP = 0x0002;
-        public const uint RI_MOUSE_MIDDLE_BUTTON_DOWN = 0x0010;
-        public const uint RI_MOUSE_MIDDLE_BUTTON_UP = 0x0020;
-        public const uint RI_MOUSE_RIGHT_BUTTON_DOWN = 0x0004;
-        public const uint RI_MOUSE_RIGHT_BUTTON_UP = 0x0008;
-    };
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RAWINPUTDEVICE
-    {
-        public ushort usUsagePage;
-        public ushort usUsage;
-        public uint dwFlags;
-        public IntPtr hwndTarget;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RAWINPUTHEADER
-    {
-        public uint dwType;
-        public uint dwSize;
-        public IntPtr hDevice;
-        public int wParam;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RAWMOUSE
-    {
-        public ushort usFlags;
-        public uint ulButtons;
-        public uint ulRawButtons;
-        public int lLastX;
-        public int lLastY;
-        public uint ulExtraInformation;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RAWINPUT
-    {
-        public RAWINPUTHEADER header;
-        public RAWMOUSE mouse;
-    }
-
     public static class NativeMethods
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -116,5 +64,56 @@ namespace Helion.Client.WinMouse
 
         [DllImport("User32.dll", SetLastError = true)]
         private static extern bool SetCursorPos(int x, int y);
+
+        public static class WinMouseConstants
+        {
+            public const int WM_INPUT = 255;
+            public const ushort HID_USAGE_PAGE_GENERIC = 1;
+            public const ushort HID_USAGE_GENERIC_MOUSE = 2;
+            public const uint RIDEV_INPUTSINK = 0x00000100;
+            public const uint RID_INPUT = 0x10000003;
+            public const uint RI_MOUSE_LEFT_BUTTON_DOWN = 0x0001;
+            public const uint RI_MOUSE_LEFT_BUTTON_UP = 0x0002;
+            public const uint RI_MOUSE_MIDDLE_BUTTON_DOWN = 0x0010;
+            public const uint RI_MOUSE_MIDDLE_BUTTON_UP = 0x0020;
+            public const uint RI_MOUSE_RIGHT_BUTTON_DOWN = 0x0004;
+            public const uint RI_MOUSE_RIGHT_BUTTON_UP = 0x0008;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RAWINPUTDEVICE
+        {
+            public ushort usUsagePage;
+            public ushort usUsage;
+            public uint dwFlags;
+            public IntPtr hwndTarget;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RAWINPUTHEADER
+        {
+            public uint dwType;
+            public uint dwSize;
+            public IntPtr hDevice;
+            public int wParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RAWMOUSE
+        {
+            public ushort usFlags;
+            public uint ulButtons;
+            public uint ulRawButtons;
+            public int lLastX;
+            public int lLastY;
+            public uint ulExtraInformation;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RAWINPUT
+        {
+            public RAWINPUTHEADER header;
+            public RAWMOUSE mouse;
+        }
     }
 }
