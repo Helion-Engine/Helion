@@ -1,0 +1,21 @@
+﻿ACTOR Weapon : Inventory native
+{
+  Inventory.PickupSound "misc/w_pkup"
+  Weapon.DefaultKickback
+  Weapon.BobSpeed 1.0
+  Weapon.BobRangeX 1.0
+  Weapon.BobRangeY 1.0
+  +WEAPONSPAWN
+  States
+  {
+  LightDone:
+    SHTG E 0 A_Light0
+    Stop
+  }
+  
+  action native A_ZoomFactor(float scale = 1, int flags = 0);
+  const int ZOOM_INSTANT = 1;
+  const int ZOOM_NOSCALETURNING = 2;
+  
+  action native A_SetCrosshair(int xhair);
+}

@@ -761,7 +761,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Explode(Entity entity)
         {
-             // TODO
+            entity.EntityManager.World.PhysicsManager.RadiusExplosion(entity, 128);
         }
 
         private static void A_ExtChase(Entity entity)

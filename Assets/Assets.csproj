@@ -45,6 +45,10 @@
     <Content Include="Assets\Actors\Doom\Corpses.txt" />
     <Content Include="Assets\Actors\Doom\Decorations.txt" />
     <Content Include="Assets\Actors\Doom\Explosive.txt" />
+    <Content Include="Assets\Actors\Doom\Explosives\BFGBall.txt" />
+    <Content Include="Assets\Actors\Doom\Explosives\BFGExtra.txt" />
+    <Content Include="Assets\Actors\Doom\Explosives\PlasmaBall.txt" />
+    <Content Include="Assets\Actors\Doom\Explosives\Rocket.txt" />
     <Content Include="Assets\Actors\Doom\Items\Ammo.txt" />
     <Content Include="Assets\Actors\Doom\Items\Armor.txt" />
     <Content Include="Assets\Actors\Doom\Items\Health.txt" />
@@ -76,6 +80,8 @@
     <Content Include="Assets\Actors\Markers.txt" />
     <Content Include="Assets\Actors\Player.txt" />
     <Content Include="Assets\Actors\Teleport.txt" />
+    <Content Include="Assets\Ammo\Ammo.txt" />
+    <Content Include="Assets\Ammo\Doom\Clip.txt" />
     <Content Include="Assets\Animdefs.txt" />
     <Content Include="Assets\Compatibility.txt" />
     <Content Include="Assets\Decorate.txt" />
@@ -85,10 +91,15 @@
     <Content Include="Assets\Graphics\helion.png" />
     <Content Include="Assets\Licenses\fonts.console.LICENSE" />
     <Content Include="Assets\Licenses\graphics.cursor.LICENSE" />
+    <Content Include="Assets\Weapons\Doom\Chainsaw.txt" />
+    <Content Include="Assets\Weapons\Doom\DoomWeapon.txt" />
+    <Content Include="Assets\Weapons\Doom\Pistol.txt" />
+    <Content Include="Assets\Weapons\Weapon.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Scripts\ZipAssets.ps1" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Client/bin/$(ConfigurationName)/netcoreapp3.0/assets.pk3"

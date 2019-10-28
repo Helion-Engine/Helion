@@ -32,5 +32,7 @@ namespace Helion.Util.RandomGenerators
         }
 
         public byte NextByte() => Random[++m_randomIndex];
+
+        public int NextDiff() => NextByte() - NextByte();
     }
 }

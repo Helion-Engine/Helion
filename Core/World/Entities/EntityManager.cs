@@ -28,7 +28,7 @@ namespace Helion.World.Entities
 
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public readonly SpawnLocations SpawnLocations = new SpawnLocations();
-        private readonly WorldBase m_world;
+        public readonly WorldBase World;
         private readonly SoundManager m_soundManager;
         private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
@@ -39,7 +39,7 @@ namespace Helion.World.Entities
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager,
             SkillLevel skill)
         {
-            m_world = world;
+            World = world;
             m_soundManager = soundManager;
             DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
             m_skill = skill;
@@ -53,7 +53,7 @@ namespace Helion.World.Entities
         public Entity Create(EntityDefinition definition, Vec3D position, double angle, int tid)
         {
             int id = m_entityIdTracker.Next();
-            Sector sector = m_world.BspTree.ToSector(position);
+            Sector sector = World.BspTree.ToSector(position);
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager);
 
             FinishCreatingEntity(entity);
@@ -78,7 +78,7 @@ namespace Helion.World.Entities
 
         public Player CreatePlayer(int playerIndex)
         {
-            EntityDefinition? playerDefinition = DefinitionComposer[Constants.PlayerClass];
+            EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
             if (playerDefinition == null)
             {
                 Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
@@ -102,7 +102,7 @@ namespace Helion.World.Entities
                 if (!ShouldSpawn(mapThing, m_skill))
                     continue;
                 
-                EntityDefinition? definition = DefinitionComposer[mapThing.EditorNumber];
+                EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
                 if (definition == null)
                 {
                     Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.To2D());
@@ -143,8 +143,8 @@ namespace Helion.World.Entities
             
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
-            
-            m_world.Link(entity);
+
+            World.Link(entity);
             
             // More ZDoom compatibility.
             if (entity.Flags.SpawnCeiling)
@@ -191,7 +191,7 @@ namespace Helion.World.Entities
         private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double angle)
         {
             int id = m_entityIdTracker.Next();
-            Sector sector = m_world.BspTree.ToSector(position);
+            Sector sector = World.BspTree.ToSector(position);
             Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, playerNumber);
             
             FinishCreatingEntity(player);

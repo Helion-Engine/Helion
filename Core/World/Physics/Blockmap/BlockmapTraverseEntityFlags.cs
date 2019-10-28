@@ -7,5 +7,6 @@ namespace Helion.World.Physics.Blockmap
     {
         None = 0,
         Shootable = 1,
+        Solid = 2,
     }
 }

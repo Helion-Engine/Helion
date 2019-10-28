@@ -93,7 +93,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public double? SelfDamageFactor;
         public int? SpawnId;
         public string? Species;
-        public double? Speed;
+        public int? Speed;
         public int? SpriteAngle;
         public int? SpriteRotation;
         public int? Stamina;

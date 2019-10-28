@@ -33,6 +33,7 @@ namespace Helion.World.Entities
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
         public readonly EntitySoundChannels SoundChannels;
+        public readonly EntityManager EntityManager;
         public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
@@ -55,11 +56,13 @@ namespace Helion.World.Entities
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
         public Entity? OnEntity;
+        public Entity? Owner;
+        public Entity? BlockingEntity;
+        public bool Refire;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SubsectorNodes = new List<LinkableNode<Entity>>();
-        protected readonly EntityManager EntityManager;
         protected readonly SoundManager SoundManager;
         protected int FrameIndex;
         protected int TicksInFrame;
@@ -67,7 +70,7 @@ namespace Helion.World.Entities
         // Temporary storage variable for handling PhysicsManager.SectorMoveZ
         public double SaveZ;
 
-        public double Height => Definition.Properties.Height;
+        public double Height;
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
         public EntityFlags Flags => Definition.Flags;
@@ -93,6 +96,9 @@ namespace Helion.World.Entities
         public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
             Sector sector, EntityManager entityManager, SoundManager soundManager)
         {
+            Health = definition.Properties.Health;
+            Height = definition.Properties.Height;
+
             Id = id;
             ThingId = thingId;
             Definition = definition;
@@ -109,8 +115,6 @@ namespace Helion.World.Entities
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
 
-            Health = definition.Properties.Health;
-            
             FindInitialFrameIndex();
         }
 
@@ -199,6 +203,8 @@ namespace Helion.World.Entities
             IntersectEntities.Clear();
             IntersectSectors.Clear();
             IntersectSubsectors.Clear();
+
+            BlockingEntity = null;
         }
 
         /// <summary>
@@ -222,11 +228,31 @@ namespace Helion.World.Entities
             if (!SetStateToLabel("SPAWN"))
                 FrameIndex = 0;
         }
+
+        public void SetDeathState()
+        {
+            if (SetStateToLabel("DEATH"))
+                SetDeath();
+        }
+
+        public void SetXDeathState()
+        {
+            if (SetStateToLabel("XDEATH"))
+                SetDeath();
+        }
+
+        public void SetPainState()
+        {
+            SetStateToLabel("PAIN");
+        }
+
+        public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
         
         public bool SetStateToLabel(string label)
         {
             if (Definition.States.Labels.TryGetValue(label, out int index))
             {
+                TicksInFrame = 0;
                 FrameIndex = index;
                 return true;
             }
@@ -244,7 +270,23 @@ namespace Helion.World.Entities
             UnlinkFromWorld();
             EntityListNode.Unlink();
         }
-        
+
+        private void SetDeath()
+        {
+            if (Flags.Missile)
+            {
+                Flags.Missile = false;
+                Velocity = Vec3D.Zero;
+            }
+            else
+            {
+                Flags.Corpse = true;
+                Flags.Skullfly = false;
+                Flags.Solid = false;
+                Flags.Shootable = false;
+            }
+        }
+
         private void TickStateFrame()
         {
             Precondition(FrameIndex >= 0 && FrameIndex < Definition.States.Frames.Count, "Out of range frame index for entity");

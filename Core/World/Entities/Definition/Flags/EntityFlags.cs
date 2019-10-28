@@ -312,6 +312,16 @@ namespace Helion.World.Entities.Definition.Flags
         public bool WindThrust { get => this[EntityFlag.WindThrust]; set => this[EntityFlag.WindThrust] = value; }
         public bool ZdoomTrans { get => this[EntityFlag.ZdoomTrans]; set => this[EntityFlag.ZdoomTrans] = value; }
 
+        public EntityFlags()
+        {
+        }
+
+        public EntityFlags(EntityFlags flags)
+        {
+            for (int i = 0; i < m_bits.Count; i++)
+                m_bits[i] = flags.m_bits[i];
+        }
+
         public bool this[EntityFlag flag]
         {
             get => m_bits[(int)flag];

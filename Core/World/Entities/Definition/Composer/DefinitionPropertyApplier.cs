@@ -18,7 +18,18 @@ namespace Helion.World.Entities.Definition.Composer
             // TODO
             if (properties.Radius != null)
                 definition.Properties.Radius = properties.Radius.Value;
-            // TODO
+
+            if (properties.Speed != null)
+                definition.Properties.Speed = properties.Speed.Value;
+
+            if (properties.Damage.Low != null)
+                definition.Properties.Damage = properties.Damage.Low.Value;
+
+            if (properties.PainChance != null)
+                definition.Properties.PainChance = (int)properties.PainChance.Value.Value;
+
+            if (properties.ProjectileKickBack != null)
+                definition.Properties.ProjectileKickBack = properties.ProjectileKickBack.Value;
         }
     }
 }

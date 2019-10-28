@@ -10,5 +10,7 @@ namespace Helion.World.Entities.Players
         Jump,
         Crouch,
         Use,
+        NextWeapon,
+        PreviousWeapon,
     }
 }

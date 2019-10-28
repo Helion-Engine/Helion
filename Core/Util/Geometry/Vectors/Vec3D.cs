@@ -33,6 +33,16 @@ namespace Helion.Util.Geometry.Vectors
             return MathHelper.AreEqual(self.X, other.X) && MathHelper.AreEqual(self.Y, other.Y) && MathHelper.AreEqual(self.Z, other.Z);
         }
 
+        public static Vec3D UnitTimesValue(double angle, double pitch, double value)
+        {
+            return new Vec3D(Math.Cos(angle) * value, Math.Sin(angle) * value, Math.Tan(pitch) * value);
+        }
+
+        public static Vec3D Unit(double angle, double pitch)
+        {
+            return new Vec3D(Math.Cos(angle), Math.Sin(angle), Math.Tan(pitch));
+        }
+
         public bool EqualTo(Vec3D other, double epsilon = 0.00001)
         {
             return MathHelper.AreEqual(X, other.X, epsilon) && MathHelper.AreEqual(Y, other.Y, epsilon) && MathHelper.AreEqual(Z, other.Z, epsilon);
@@ -57,14 +67,15 @@ namespace Helion.Util.Geometry.Vectors
         public Vec3D Abs() => new Vec3D(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
         public Vec3D Unit() => this / Length();
         public void Normalize() => this /= Length();
-        public double Dot(Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+        public double Dot(in Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
         public double Distance(Vec3D other) => (this - other).Length();
         public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
-        public double Pitch(Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
+        public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
         public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
+        public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
 
         public Vec2D To2D() => new Vec2D(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));

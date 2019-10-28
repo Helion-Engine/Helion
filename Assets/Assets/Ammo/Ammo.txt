@@ -1,0 +1,5 @@
+﻿ACTOR Ammo : Inventory native
+{
+  +INVENTORY.KEEPDEPLETED
+  Inventory.PickupSound "misc/ammo_pkup"
+}

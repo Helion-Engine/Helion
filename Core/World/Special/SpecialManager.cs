@@ -27,16 +27,17 @@ namespace Helion.World.Special
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
-        private readonly DoomRandom m_random = new DoomRandom();
+        private readonly IRandom m_random;
         private readonly PhysicsManager m_physicsManager;
         private readonly SwitchManager m_switchManager;
         private readonly WorldBase m_world;
 
-        public SpecialManager(WorldBase world, PhysicsManager physicsManager, DefinitionEntries definition)
+        public SpecialManager(WorldBase world, PhysicsManager physicsManager, DefinitionEntries definition, IRandom random)
         {
             m_world = world;
             m_physicsManager = physicsManager;
             m_switchManager = new SwitchManager(definition);
+            m_random = random;
 
             StartInitSpecials();
         }
