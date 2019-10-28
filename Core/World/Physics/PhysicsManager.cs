@@ -431,7 +431,9 @@ namespace Helion.World.Physics
 
         private void DamageEntity(Entity target, Entity source, int damage)
         {
-            // TODO remove hard coded kickback with decorate
+            if (!target.Flags.Shootable)
+                return;
+
             double angle = source.Position.Angle(target.Position);
             double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
