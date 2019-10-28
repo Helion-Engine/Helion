@@ -24,6 +24,12 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.Damage.Low != null)
                 definition.Properties.Damage = properties.Damage.Low.Value;
+
+            if (properties.PainChance != null)
+                definition.Properties.PainChance = (int)properties.PainChance.Value.Value;
+
+            if (properties.ProjectileKickBack != null)
+                definition.Properties.ProjectileKickBack = properties.ProjectileKickBack.Value;
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
+using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Boxes
@@ -171,7 +172,13 @@ namespace Helion.Util.Geometry.Boxes
         /// <param name="box">The other box to check against.</param>
         /// <returns>True if they overlap, false if not.</returns>
         [Pure]
-        public bool Overlaps(Box2D box)
+        public bool Overlaps(in Box2D box)
+        {
+            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        }
+
+        [Pure]
+        public bool Overlaps(in EntityBox box)
         {
             return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
         }

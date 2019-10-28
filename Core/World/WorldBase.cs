@@ -33,13 +33,13 @@ namespace Helion.World
         public readonly long CreationTimeNanos;
         public readonly CIString MapName;
         public readonly BlockMap Blockmap;
+        public readonly PhysicsManager PhysicsManager;
         public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly MapGeometry Geometry;
         protected readonly SoundManager SoundManager;
         protected readonly EntityManager EntityManager;
-        protected readonly PhysicsManager PhysicsManager;
         protected readonly SpecialManager SpecialManager;
 
         public IList<Line> Lines => Geometry.Lines;

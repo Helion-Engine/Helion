@@ -260,7 +260,7 @@ namespace Helion.World.Physics
 
         public void FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName)
         {
-            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 100)
+            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
                 return;
 
             m_shootTest = DateTime.Now;
@@ -276,6 +276,7 @@ namespace Helion.World.Physics
             var projectile = m_entityManager.DefinitionComposer.GetByName(projectClassName);
             if (projectile != null)
             {
+                // TODO doom has a special wall explosion check
                 Entity rocket = m_entityManager.Create(projectile, shooter.AttackPosition, shooter.AngleRadians, 0);
                 rocket.Owner = shooter;
                 rocket.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, rocket.Definition.Properties.Speed);
@@ -428,13 +429,14 @@ namespace Helion.World.Physics
             }
         }
 
-        private void DamageEntity(Entity target, Entity shooter, int damage)
+        private void DamageEntity(Entity target, Entity source, int damage)
         {
-            double angle = shooter.Position.Angle(target.Position);
-            double thrust = damage * 12.5 / target.Properties.Mass;
+            // TODO remove hard coded kickback with decorate
+            double angle = source.Position.Angle(target.Position);
+            double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
             if (damage < 40 && damage > target.Health &&
-                target.Position.Z - shooter.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
+                target.Position.Z - source.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
             {
                 angle += Math.PI;
                 thrust *= 4;
@@ -445,13 +447,116 @@ namespace Helion.World.Physics
 
             if (target.Health <= 0)
             {
-                if (target.Health < -target.Properties.Health && target.HasXDeathState())
-                    target.SetXDeathState();
-                else
-                    target.SetDeathState();
-
-                target.Health = 0;
+                SetEntityDeath(target);
             }
+            else
+            {
+                if (m_random.NextByte() < target.Properties.PainChance)
+                    target.SetPainState();
+            }
+        }
+
+        private void SetEntityDeath(Entity entity)
+        {
+            if (entity.Health < -entity.Properties.Health && entity.HasXDeathState())
+                entity.SetXDeathState();
+            else
+                entity.SetDeathState();
+
+            entity.Health = 0;
+            entity.Height = entity.Definition.Properties.Height / 4.0;
+        }
+
+        public void RadiusExplosion(Entity source, int radius)
+        {
+            // Barrels can't use ZDoom physics - TODO better way to check?
+            bool zdoomPhysics = source.Definition.Name != "ExplosiveBarrel";
+            Vec2D pos2D = source.Position.To2D();
+            Vec2D radius2D = new Vec2D(radius, radius);
+            Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
+
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(explosionBox);
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+                if (bi.Entity != null && CheckLineOfSight(source, bi.Entity))
+                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, zdoomPhysics);
+            }
+        }
+
+        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, bool zdoomPhysics)
+        {
+            double dx = Math.Abs(entity.Position.X - source.Position.X);
+            double dy = Math.Abs(entity.Position.Y - source.Position.Y);
+            double distance = Math.Max(dx, dy);
+
+            if (zdoomPhysics)
+            {
+                if (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top)
+                {
+                    double dz;
+                    if (source.Position.Z > entity.Position.Z)
+                        dz = entity.Box.Top - source.Position.Z;
+                    else
+                        dz = entity.Position.Z - source.Position.Z;
+
+                    if (distance <= entity.Radius)
+                        distance = dz;
+                    else
+                    {
+                        distance -= entity.Radius;
+                        distance = Math.Sqrt((distance * distance) + (dz * dz));
+                    }
+                }
+                else
+                {
+                    distance -= entity.Radius;
+                    if (distance < 0.0f)
+                        distance = 0.0f;
+                }
+            }
+            else
+            {
+                distance -= entity.Radius;
+            }
+
+            int damage = (int)(radius - distance);
+
+            if (damage <= 0)
+                return;
+
+            DamageEntity(entity, source, damage);
+
+            if (zdoomPhysics)
+            {
+                // ZDoom applies extra x/y thrust (because reasons?) and incredibly janky z thrust
+                double angle = source.Position.Angle(entity.Position);
+                double thrust = damage * 0.5 / entity.Properties.Mass;
+                double thrustZ = (entity.Position.Z + (entity.Height / 2.0) - source.Position.Z) * thrust;
+
+                thrustZ *= (entity == source.Owner ? 0.8 : 0.5);
+
+                entity.Velocity.X += Math.Cos(angle) * thrust;
+                entity.Velocity.Y += Math.Sin(angle) * thrust;
+                entity.Velocity.Z += thrustZ;
+            }
+        }
+
+        private bool CheckLineOfSight(Entity entity, Entity other)
+        {
+            Vec2D start = entity.Position.To2D();
+            Vec2D end = other.Position.To2D();
+
+            if (start == end)
+                return true;
+
+            Seg2D seg = new Seg2D(start, end);
+            double distance2D = start.Distance(end);
+            double topPitch = entity.Position.Pitch(other.Position.Z + other.Height, distance2D);
+            double bottomPitch = entity.Position.Pitch(other.Position.Z, distance2D);
+
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
+            return GetBlockmapTraversalPitch(intersections, entity.Position, entity, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
         }
 
         private bool IsSkyClipOneSided(Sector sector, double ceilingZ, double floorZ, in Vec3D intersect)
@@ -483,64 +588,13 @@ namespace Helion.World.Physics
 
         public bool GetAutoAimAngle(Entity shooter, Vec3D start, Vec3D end, out double pitch)
         {
-            pitch = 0.0;
-            double topPitch = MaxPitch;
-            double bottomPitch = MinPitch;
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
 
             List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
-            for (int i = 0; i < intersections.Count; i++)
-            {
-                BlockmapIntersect bi = intersections[i];
-
-                if (bi.Line != null)
-                {
-                    if (bi.Line.Back == null)
-                        return false;
-
-                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
-                    if (opening.FloorZ < opening.CeilingZ)
-                    {
-                        double sectorPitch = start.Pitch(opening.FloorZ, bi.Distance2D);
-                        if (sectorPitch > bottomPitch)
-                            bottomPitch = sectorPitch;
-
-                        sectorPitch = start.Pitch(opening.CeilingZ, bi.Distance2D);
-                        if (sectorPitch < topPitch)
-                            topPitch = sectorPitch;
-
-                        if (topPitch <= bottomPitch)
-                            return false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity))
-                {
-                    double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
-                    double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
-
-                    if (thingBottomPitch > topPitch)
-                        return false;
-                    if (thingTopPitch < bottomPitch)
-                        return false;
-
-                    if (thingTopPitch < topPitch)
-                        topPitch = thingTopPitch;
-                    if (thingBottomPitch > bottomPitch)
-                        bottomPitch = thingBottomPitch;
-
-                    pitch = (bottomPitch + topPitch) / 2.0;
-                    return true;
-                }
-            }
-
-            return false;
+            return GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch) == TraversalPitchStatus.PitchSet;
         }
 
         private static int CalculateSteps(Vec2D velocity, double radius)
@@ -592,6 +646,68 @@ namespace Helion.World.Physics
             EntityBox box = new EntityBox(entity.PrevPosition, entity.Radius, entity.Height);
             EntityBox otherBox = new EntityBox(other.PrevPosition, other.Radius, other.Height);
             return box.Overlaps(otherBox);
+        }
+
+        private enum TraversalPitchStatus
+        {
+            Blocked,
+            PitchSet,
+            PitchNotSet,
+        }
+
+        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, Vec3D start, Entity startEntity, double topPitch, double bottomPitch, out double pitch)
+        {
+            pitch = 0.0;
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+
+                if (bi.Line != null)
+                {
+                    if (bi.Line.Back == null)
+                        return TraversalPitchStatus.Blocked;
+
+                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    if (opening.FloorZ < opening.CeilingZ)
+                    {
+                        double sectorPitch = start.Pitch(opening.FloorZ, bi.Distance2D);
+                        if (sectorPitch > bottomPitch)
+                            bottomPitch = sectorPitch;
+
+                        sectorPitch = start.Pitch(opening.CeilingZ, bi.Distance2D);
+                        if (sectorPitch < topPitch)
+                            topPitch = sectorPitch;
+
+                        if (topPitch <= bottomPitch)
+                            return TraversalPitchStatus.Blocked;
+                    }
+                    else
+                    {
+                        return TraversalPitchStatus.Blocked;
+                    }
+                }
+                else if (bi.Entity != null && !ReferenceEquals(startEntity, bi.Entity))
+                {
+                    double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                    double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+
+                    if (thingBottomPitch > topPitch)
+                        return TraversalPitchStatus.Blocked;
+                    if (thingTopPitch < bottomPitch)
+                        return TraversalPitchStatus.Blocked;
+
+                    if (thingTopPitch < topPitch)
+                        topPitch = thingTopPitch;
+                    if (thingBottomPitch > bottomPitch)
+                        bottomPitch = thingBottomPitch;
+
+                    pitch = (bottomPitch + topPitch) / 2.0;
+                    return TraversalPitchStatus.PitchSet;
+                }
+            }
+
+            return TraversalPitchStatus.PitchNotSet;
         }
 
         private bool LineBlocksEntity(Entity entity, Line line)
@@ -890,13 +1006,13 @@ namespace Helion.World.Physics
         {
             if (entity.Flags.Missile)
             {
-                entity.SetDeathState();
-
                 if (entity.BlockingEntity != null && entity.Properties.Damage > 0)
                 {
                     int damage = ((m_random.NextByte() % 8) + 1) * entity.Properties.Damage;
                     DamageEntity(entity.BlockingEntity, entity, damage);
                 }
+
+                SetEntityDeath(entity);
             }
         }
 

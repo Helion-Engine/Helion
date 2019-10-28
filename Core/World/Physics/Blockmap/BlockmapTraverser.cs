@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Blockmap;
@@ -12,7 +13,6 @@ namespace Helion.World.Physics.Blockmap
     {
         private BlockMap m_blockmap;
 
-        private List<BlockmapIntersect> m_intersections = new List<BlockmapIntersect>();
         private HashSet<int> m_lineMap = new HashSet<int>();
         private HashSet<int> m_entityMap = new HashSet<int>();
 
@@ -21,12 +21,37 @@ namespace Helion.World.Physics.Blockmap
             m_blockmap = blockmap;
         }
 
+        public List<BlockmapIntersect> GetBlockmapIntersections(Box2D box)
+        {
+            List<BlockmapIntersect> intersections = new List<BlockmapIntersect>();
+            Vec2D center = new Vec2D(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+            m_entityMap.Clear();
+            m_blockmap.Iterate(box, TraceBox);
+
+            GridIterationStatus TraceBox(Block block)
+            {
+                foreach (Entity entity in block.Entities)
+                {
+                    if (entity.Flags.Solid && entity.Flags.Shootable && box.Overlaps(entity.Box) && !m_entityMap.Contains(entity.Id))
+                    {
+                        m_entityMap.Add(entity.Id);
+                        Vec2D pos = entity.Position.To2D();
+                        intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
+                    }
+                }
+
+                return GridIterationStatus.Continue;
+            }
+
+            return intersections;
+        }
+
         public List<BlockmapIntersect> GetBlockmapIntersections(Seg2D seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
         {
+            List<BlockmapIntersect> intersections = new List<BlockmapIntersect>();
             Vec2D intersect = new Vec2D(0, 0);
             m_lineMap.Clear();
             m_entityMap.Clear();
-            m_intersections.Clear();
             m_blockmap.Iterate(seg, TraceSeg);
 
             GridIterationStatus TraceSeg(Block block)
@@ -44,7 +69,7 @@ namespace Helion.World.Physics.Blockmap
                         {
                             m_lineMap.Add(line.Id);
                             intersect = line.Segment.FromTime(t);
-                            m_intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
+                            intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
                         }
                     }
                 }
@@ -64,7 +89,7 @@ namespace Helion.World.Physics.Blockmap
                         if (!m_entityMap.Contains(entity.Id) && entity.Box.Intersects(seg.Start, seg.End, ref intersect))
                         {
                             m_entityMap.Add(entity.Id);
-                            m_intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
+                            intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
                         }
                     }
                 }
@@ -72,8 +97,8 @@ namespace Helion.World.Physics.Blockmap
                 return GridIterationStatus.Continue;
             }
 
-            m_intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
-            return m_intersections;
+            intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
+            return intersections;
         }
     }
 }

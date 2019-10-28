@@ -77,7 +77,7 @@ namespace Helion.World.Entities.Definition.Properties
         // public PoisonDamageProperty PoisonDamage;
         public string PoisonDamageType = "";
         // public PowerupProperty Powerup;
-        public int ProjectileKickBack;
+        public int ProjectileKickBack = 100;
         public int ProjectilePassHeight;
         public double PushFactor = 0.25;
         // public PuzzleItemProperty PuzzleItem;
