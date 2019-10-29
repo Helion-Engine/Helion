@@ -1,5 +1,3 @@
-using static Helion.Util.Assertion.Assert;
-
 namespace Helion.Util.Container.Linkable
 {
     /// <summary>
@@ -35,13 +33,9 @@ namespace Helion.Util.Container.Linkable
             // Due to how we implemented a linkable list, we need to have some
             // dummy node at the front to emulated a 'pointer to a pointer'
             // which you get in C.
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
-            m_previous = null;
-            Next = null;
-            Value = default;
-#pragma warning restore CS8653
-#pragma warning restore CS8625
+            m_previous = null !;
+            Next = null !;
+            Value = default !;
         }
 
         /// <summary>
@@ -69,15 +63,9 @@ namespace Helion.Util.Container.Linkable
         /// </summary>
         public void Unlink()
         {
-            Precondition(m_previous != null, "Trying to call Unlink() on the first node in the linkable list");
-
-#pragma warning disable CS8601 // Possible null reference assignment.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             if (Next != null)
-                Next.m_previous = m_previous;
-            m_previous.Next = Next;
-#pragma warning restore CS8602
-#pragma warning restore CS8601
+                Next.m_previous = m_previous !;
+            m_previous!.Next = Next;
         }
     }
 }
