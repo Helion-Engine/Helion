@@ -7,7 +7,7 @@ namespace Helion.Maps.Specials.Vanilla
     public static class VanillaLineSpecTranslator
     {
         public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, byte tag,
-            SpecialArgs argsToMutate)
+            ref SpecialArgs argsToMutate)
         {
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);

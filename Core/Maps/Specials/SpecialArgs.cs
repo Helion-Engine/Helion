@@ -6,51 +6,33 @@ namespace Helion.Maps.Specials
     /// A wrapper around five argument values that guarantees no out of range
     /// index errors.
     /// </summary>
-    public class SpecialArgs
+    /// <remarks>
+    /// This is a mutable data structure.
+    /// </remarks>
+    public struct SpecialArgs
     {
-        public const int TotalArgs = 5;
-        
-        private readonly byte[] m_args;
-
-        public byte Arg0
-        {
-            get => m_args[0];
-            set => m_args[0] = value;
-        }
-
-        public byte Arg1
-        {
-            get => m_args[1];
-            set => m_args[1] = value;
-        }
-    
-        public byte Arg2
-        {
-            get => m_args[2];
-            set => m_args[2] = value;
-        }
-    
-        public byte Arg3
-        {
-            get => m_args[3];
-            set => m_args[3] = value;
-        }
-    
-        public byte Arg4
-        {
-            get => m_args[4];
-            set => m_args[4] = value;
-        }
+        public byte Arg0;
+        public byte Arg1;
+        public byte Arg2;
+        public byte Arg3;
+        public byte Arg4;
 
         public SpecialArgs(byte arg0 = 0, byte arg1 = 0, byte arg2 = 0, byte arg3 = 0, byte arg4 = 0)
         {
-            m_args = new[] { arg0, arg1, arg2, arg3, arg4 };
+            Arg0 = arg0;
+            Arg1 = arg1;
+            Arg2 = arg2;
+            Arg3 = arg3;
+            Arg4 = arg4;
         }
 
         public SpecialArgs(SpecialArgs other)
         {
-            m_args = new byte[] { 0, 0, 0, 0, 0 };
-            Array.Copy(other.m_args, m_args, m_args.Length);
+            Arg0 = other.Arg0;
+            Arg1 = other.Arg1;
+            Arg2 = other.Arg2;
+            Arg3 = other.Arg3;
+            Arg4 = other.Arg4;
         }
     }
 }

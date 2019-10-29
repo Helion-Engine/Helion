@@ -13,7 +13,7 @@ namespace Helion.World.Entities.Definition.Properties
         public string ActiveSound = "";
         public double Alpha = 1.0;
         // public AmmoProperty Ammo;
-        public SpecialArgs Args = new SpecialArgs();
+        public SpecialArgs Args = default;
         // public ArmorBonusProperty ArmorBonus;
         // public ArmorPickupProperty ArmorPickup;
         public string AttackSound = "";
