@@ -8,8 +8,8 @@ namespace Helion.World.Geometry.Sectors
     {
         public readonly int Id;
         public readonly SectorPlaneFace Facing;
+        public readonly PlaneD Plane;
         public Sector Sector { get; internal set; }
-        public PlaneD Plane;
         public double Z;
         public double PrevZ;
         public int TextureHandle;

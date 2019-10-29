@@ -117,7 +117,7 @@ namespace Helion.World.Physics
             double startZ = sectorPlane.Z;
             sectorPlane.PrevZ = startZ;
             sectorPlane.Z = destZ;
-            sectorPlane.Plane?.MoveZ(destZ - startZ);
+            sectorPlane.Plane.MoveZ(destZ - startZ);
 
             // Move lower entities first to handle stacked entities
             var entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
@@ -169,7 +169,7 @@ namespace Helion.World.Physics
                         diff = -diff;
 
                     sectorPlane.Z = startZ + diff;
-                    sectorPlane.Plane?.MoveZ(startZ - destZ + diff);
+                    sectorPlane.Plane.MoveZ(startZ - destZ + diff);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in entities)
