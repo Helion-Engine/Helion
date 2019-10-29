@@ -25,7 +25,7 @@ namespace Helion.Util.Geometry.Vectors
             X = vec.X;
             Y = vec.Y;
         }
-
+        
         public static Vec2D operator -(Vec2D self) => new Vec2D(-self.X, -self.Y);
         public static Vec2D operator +(Vec2D self, Vec2D other) => new Vec2D(self.X + other.X, self.Y + other.Y);
         public static Vec2D operator -(Vec2D self, Vec2D other) => new Vec2D(self.X - other.X, self.Y - other.Y);
@@ -37,7 +37,15 @@ namespace Helion.Util.Geometry.Vectors
         public static Vec2D operator /(double value, Vec2D self) => new Vec2D(self.X / value, self.Y / value);
         public static bool operator ==(Vec2D self, Vec2D other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2D self, Vec2D other) => !(self == other);
-        
+
+        /// <summary>
+        /// Takes some radian value and calculates the unit circle vector.
+        /// </summary>
+        /// <param name="radians">The radian angle.</param>
+        /// <returns>A unit vector to a point on a unit circle based on the
+        /// provided angle.</returns>
+        public static Vec2D RadiansToUnit(double radians) => new Vec2D(Math.Cos(radians), Math.Sin(radians));
+
         [Pure]
         public double this[int index] => index == 0 ? X : Y;
 

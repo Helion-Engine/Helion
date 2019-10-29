@@ -20,7 +20,6 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
-using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -36,23 +35,19 @@ namespace Helion.World.Physics
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
-        private const double EntityUseDistance = 64.0; // TODO: Remove when we get decorate!
         private const double SetEntityToFloorSpeedMax = 9;
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
         private const double MinPitch = -80.0 * Math.PI / 180.0;
 
         public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly BspTree m_bspTree;
         private readonly BlockMap m_blockmap;
         private readonly SoundManager m_soundManager;
         private readonly EntityManager m_entityManager;
         private readonly BlockmapTraverser m_blockmapTraverser;
-
-        private LineOpening m_lineOpening = new LineOpening();
-        private IRandom m_random;
-
+        private readonly LineOpening m_lineOpening = new LineOpening();
+        private readonly IRandom m_random;
         private DateTime m_shootTest = DateTime.Now;
 
         /// <summary>
@@ -132,10 +127,7 @@ namespace Helion.World.Physics
                 if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
                     entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
                 {
-                    if (entity.OnEntity == null)
-                        entity.SetZ(destZ, false);
-                    else
-                        entity.SetZ(entity.OnEntity.Box.Top, false);
+                    entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
                 }
 
                 ClampBetweenFloorAndCeiling(entity);
@@ -212,7 +204,7 @@ namespace Helion.World.Physics
             Line? activateLine = null;
             bool hitBlockLine = false;
             Vec2D start = entity.Position.To2D();
-            Vec2D end = new Vec2D(start.X + (Math.Cos(entity.AngleRadians) * EntityUseDistance), start.Y + (Math.Sin(entity.AngleRadians) * EntityUseDistance));
+            Vec2D end = start + (Vec2D.RadiansToUnit(entity.AngleRadians) * entity.Properties.Player.UseRange);
             List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
 
             for (int i = 0; i < intersections.Count; i++)
@@ -723,7 +715,7 @@ namespace Helion.World.Physics
 
         private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
         {
-            string className = bi.Entity == null || (bi.Entity != null && bi.Entity.Definition.Flags.NoBlood) ? "BulletPuff" : "Blood";
+            string className = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood ? "BulletPuff" : "Blood";
             CreateTestPuff(intersect, className);
         }
 
