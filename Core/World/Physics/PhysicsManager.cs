@@ -169,7 +169,7 @@ namespace Helion.World.Physics
                         diff = -diff;
 
                     sectorPlane.Z = startZ + diff;
-                    sectorPlane.Plane.MoveZ(startZ - destZ + diff);
+                    sectorPlane.Plane?.MoveZ(startZ - destZ + diff);
 
                     // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                     foreach (var relinkEntity in entities)
