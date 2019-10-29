@@ -12,7 +12,6 @@ namespace Helion.World.Entities
     {
         private Box3D m_box;
         private Vec3D m_centerBottom;
-        private double m_height;
         private double m_radius;
 
         /// <summary>
@@ -43,6 +42,8 @@ namespace Helion.World.Entities
         /// </summary>
         public Vec3D Position => m_centerBottom;
 
+        public double Height { get; private set; }
+
         /// <summary>
         /// Creates a bounding box at the center bottom position provided.
         /// </summary>
@@ -54,8 +55,8 @@ namespace Helion.World.Entities
         {
             m_box = CreateBoxAtCenterBottom(centerBottom, radius, height);
             m_centerBottom = centerBottom;
-            m_height = height;
             m_radius = radius;
+            Height = height;
         }
 
         /// <summary>
@@ -66,7 +67,7 @@ namespace Helion.World.Entities
         public void MoveTo(Vec3D centerBottomPosition)
         {
             m_centerBottom = centerBottomPosition;
-            m_box = CreateBoxAtCenterBottom(centerBottomPosition, m_radius, m_height);
+            m_box = CreateBoxAtCenterBottom(centerBottomPosition, m_radius, Height);
         }
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace Helion.World.Entities
         {
             m_centerBottom.Z = bottomZ;
             m_box.Min.Z = bottomZ;
-            m_box.Max.Z = bottomZ + m_height;
+            m_box.Max.Z = bottomZ + Height;
         }
 
         /// <summary>
@@ -94,6 +95,16 @@ namespace Helion.World.Entities
             m_box.Max.X = position.X + m_radius;
             m_box.Min.Y = position.Y - m_radius;
             m_box.Max.Y = position.Y + m_radius;
+        }
+
+        /// <summary>
+        /// Sets the height of the box.
+        /// </summary>
+        /// <param name="height">The height to set.</param>
+        public void SetHeight(double height)
+        {
+            Height = height;
+            m_box.Max.Z = m_box.Min.Z + height;
         }
 
         /// <summary>

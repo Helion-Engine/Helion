@@ -70,7 +70,7 @@ namespace Helion.World.Entities
         // Temporary storage variable for handling PhysicsManager.SectorMoveZ
         public double SaveZ;
 
-        public double Height;
+        public double Height => Box.Height;
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
         public EntityFlags Flags => Definition.Flags;
@@ -97,13 +97,12 @@ namespace Helion.World.Entities
             Sector sector, EntityManager entityManager, SoundManager soundManager)
         {
             Health = definition.Properties.Health;
-            Height = definition.Properties.Height;
 
             Id = id;
             ThingId = thingId;
             Definition = definition;
             AngleRadians = angleRadians;
-            Box = new EntityBox(position, Radius, Height);
+            Box = new EntityBox(position, Radius, definition.Properties.Height);
             PrevPosition = Box.Position;
             Sector = sector;
             LowestCeilingZ = sector.Ceiling.Z;
@@ -129,6 +128,15 @@ namespace Helion.World.Entities
         public virtual void SetZ(double z, bool smooth)
         {
             Box.SetZ(z);
+        }
+
+        /// <summary>
+        /// Sets the height of the entity's box.
+        /// </summary>
+        /// <param name="height">The height to set.</param>
+        public void SetHeight(double height)
+        {
+            Box.SetHeight(height);
         }
 
         /// <summary>

@@ -456,7 +456,7 @@ namespace Helion.World.Physics
                 entity.SetDeathState();
 
             entity.Health = 0;
-            entity.Height = entity.Definition.Properties.Height / 4.0;
+            entity.SetHeight(entity.Definition.Properties.Height / 4.0);
         }
 
         public void RadiusExplosion(Entity source, int radius)
