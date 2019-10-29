@@ -503,7 +503,6 @@ namespace Helion.Test.Unit.Util.Parser
             Assert.AreEqual(0, parser.CurrentTokenIndex);
         }
 
-
         [TestMethod]
         public void ConsumeIfDoesntAdvanceOnEOF()
         {

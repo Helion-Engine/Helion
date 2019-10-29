@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Render.Shared.World.ViewClipping;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -320,52 +319,52 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
         [TestMethod]
         public void AddManySpansAndCrossOriginVectorWithClear()
         {
-            Vec2D B = new Vec2D(5, 1);
-            Vec2D C = new Vec2D(3, 1);
-            Vec2D D = new Vec2D(1, 1);
-            Vec2D E = new Vec2D(1, 2);
-            Vec2D F = new Vec2D(0, 1);
-            Vec2D G = new Vec2D(-1, 3);
-            Vec2D I = new Vec2D(-3, 1);
-            Vec2D J = new Vec2D(-1, -1);
-            Vec2D K = new Vec2D(-1, -5);
-            Vec2D L = new Vec2D(1, -3);
-            Vec2D M = new Vec2D(1, -1);
+            Vec2D vecB = new Vec2D(5, 1);
+            Vec2D vecC = new Vec2D(3, 1);
+            Vec2D vecD = new Vec2D(1, 1);
+            Vec2D vecE = new Vec2D(1, 2);
+            Vec2D vecF = new Vec2D(0, 1);
+            Vec2D vecG = new Vec2D(-1, 3);
+            Vec2D vecI = new Vec2D(-3, 1);
+            Vec2D vecJ = new Vec2D(-1, -1);
+            Vec2D vecK = new Vec2D(-1, -5);
+            Vec2D vecL = new Vec2D(1, -3);
+            Vec2D vecM = new Vec2D(1, -1);
             
             ViewClipper clipper = new ViewClipper();
 
-            uint b = clipper.GetDiamondAngle(B);
-            uint c = clipper.GetDiamondAngle(C);
-            uint d = clipper.GetDiamondAngle(D);
-            uint f = clipper.GetDiamondAngle(F);
-            uint g = clipper.GetDiamondAngle(G);
-            uint i = clipper.GetDiamondAngle(I);
-            uint j = clipper.GetDiamondAngle(J);
-            uint k = clipper.GetDiamondAngle(K);
-            uint l = clipper.GetDiamondAngle(L);
+            uint b = clipper.GetDiamondAngle(vecB);
+            uint c = clipper.GetDiamondAngle(vecC);
+            uint d = clipper.GetDiamondAngle(vecD);
+            uint f = clipper.GetDiamondAngle(vecF);
+            uint g = clipper.GetDiamondAngle(vecG);
+            uint i = clipper.GetDiamondAngle(vecI);
+            uint j = clipper.GetDiamondAngle(vecJ);
+            uint k = clipper.GetDiamondAngle(vecK);
+            uint l = clipper.GetDiamondAngle(vecL);
             
             //-----------------------------------------------------------------
             // Add everything in the forward direction
             //-----------------------------------------------------------------
-            clipper.AddLine(B, C);
+            clipper.AddLine(vecB, vecC);
             List<ClipSpan> spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             AssertSpanEquals(spans[0], b, c);
             
-            clipper.AddLine(F, G);
+            clipper.AddLine(vecF, vecG);
             spans = clipper.ToList();
             Assert.AreEqual(2, spans.Count);
             AssertSpanEquals(spans[0], b, c);
             AssertSpanEquals(spans[1], f, g);
             
-            clipper.AddLine(D, L);
+            clipper.AddLine(vecD, vecL);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, d);
             AssertSpanEquals(spans[1], f, g);
             AssertSpanEquals(spans[2], l, uint.MaxValue);
             
-            clipper.AddLine(J, J);
+            clipper.AddLine(vecJ, vecJ);
             spans = clipper.ToList();
             Assert.AreEqual(4, spans.Count);
             AssertSpanEquals(spans[0], 0, d);
@@ -373,7 +372,7 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             AssertSpanEquals(spans[2], j, j);
             AssertSpanEquals(spans[3], l, uint.MaxValue);
 
-            clipper.AddLine(I, I);
+            clipper.AddLine(vecI, vecI);
             spans = clipper.ToList();
             Assert.AreEqual(5, spans.Count);
             AssertSpanEquals(spans[0], 0, d);
@@ -382,21 +381,21 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             AssertSpanEquals(spans[3], j, j);
             AssertSpanEquals(spans[4], l, uint.MaxValue);
             
-            clipper.AddLine(C, I);
+            clipper.AddLine(vecC, vecI);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, i);
             AssertSpanEquals(spans[1], j, j);
             AssertSpanEquals(spans[2], l, uint.MaxValue);
 
-            clipper.AddLine(B, E);
+            clipper.AddLine(vecB, vecE);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, i);
             AssertSpanEquals(spans[1], j, j);
             AssertSpanEquals(spans[2], l, uint.MaxValue);
 
-            clipper.AddLine(K, M);
+            clipper.AddLine(vecK, vecM);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, i);
@@ -410,25 +409,25 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             spans = clipper.ToList();
             Assert.AreEqual(0, spans.Count);
             
-            clipper.AddLine(C, B);
+            clipper.AddLine(vecC, vecB);
             spans = clipper.ToList();
             Assert.AreEqual(1, spans.Count);
             AssertSpanEquals(spans[0], b, c);
             
-            clipper.AddLine(G, F);
+            clipper.AddLine(vecG, vecF);
             spans = clipper.ToList();
             Assert.AreEqual(2, spans.Count);
             AssertSpanEquals(spans[0], b, c);
             AssertSpanEquals(spans[1], f, g);
             
-            clipper.AddLine(L, D);
+            clipper.AddLine(vecL, vecD);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, d);
             AssertSpanEquals(spans[1], f, g);
             AssertSpanEquals(spans[2], l, uint.MaxValue);
             
-            clipper.AddLine(J, J);
+            clipper.AddLine(vecJ, vecJ);
             spans = clipper.ToList();
             Assert.AreEqual(4, spans.Count);
             AssertSpanEquals(spans[0], 0, d);
@@ -436,7 +435,7 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             AssertSpanEquals(spans[2], j, j);
             AssertSpanEquals(spans[3], l, uint.MaxValue);
 
-            clipper.AddLine(I, I);
+            clipper.AddLine(vecI, vecI);
             spans = clipper.ToList();
             Assert.AreEqual(5, spans.Count);
             AssertSpanEquals(spans[0], 0, d);
@@ -445,21 +444,21 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             AssertSpanEquals(spans[3], j, j);
             AssertSpanEquals(spans[4], l, uint.MaxValue);
             
-            clipper.AddLine(I, C);
+            clipper.AddLine(vecI, vecC);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, i);
             AssertSpanEquals(spans[1], j, j);
             AssertSpanEquals(spans[2], l, uint.MaxValue);
 
-            clipper.AddLine(E, B);
+            clipper.AddLine(vecE, vecB);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, i);
             AssertSpanEquals(spans[1], j, j);
             AssertSpanEquals(spans[2], l, uint.MaxValue);
 
-            clipper.AddLine(M, K);
+            clipper.AddLine(vecM, vecK);
             spans = clipper.ToList();
             Assert.AreEqual(3, spans.Count);
             AssertSpanEquals(spans[0], 0, i);
@@ -521,7 +520,6 @@ namespace Helion.Test.Unit.Render.Shared.World.ViewClipping
             Assert.IsFalse(clipper.InsideAnyRange(rightOfTop, bottomOfLeft));
         }
 
-        
         // 1---2---3---4---5---6
         // [_______]   [_______] <-- The ranges we add.
         //     @@@@@@@@@@@@@     <-- Should fail due to the hole from 3 -> 4.

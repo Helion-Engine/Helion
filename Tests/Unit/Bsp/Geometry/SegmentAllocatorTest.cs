@@ -106,7 +106,6 @@ namespace Helion.Test.Unit.Bsp.Geometry
 
             Assert.AreEqual(first.CollinearIndex, second.CollinearIndex);
         }
-        
 
         [TestMethod]
         public void CanSplitSegment()

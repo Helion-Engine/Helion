@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Helion.Test.Unit.Util.Extensions
 {
     [TestClass]
-    public class ListExtensionTest
+    public class ListExtensionsTest
     {
         [TestMethod]
         public void CheckIfEmpty()
@@ -17,7 +17,7 @@ namespace Helion.Test.Unit.Util.Extensions
         [TestMethod]
         public void CheckIfNotEmpty()
         {
-            Assert.IsFalse(new List<int> {1}.Empty());
+            Assert.IsFalse(new List<int> { 1 }.Empty());
         }
 
         [TestMethod]
@@ -33,7 +33,7 @@ namespace Helion.Test.Unit.Util.Extensions
         [TestMethod]
         public void CanCopyListWithElements()
         {
-            List<int> list = new List<int> {0, 1, 2};
+            List<int> list = new List<int> { 0, 1, 2 };
             IList<int> copy = list.Copy();
 
             Assert.AreNotSame(list, copy);
@@ -45,7 +45,7 @@ namespace Helion.Test.Unit.Util.Extensions
         [TestMethod]
         public void IterateInReverse()
         {
-            List<int> list = new List<int> {0, 1, 2};
+            List<int> list = new List<int> { 0, 1, 2 };
             List<int> seen = new List<int>();
             
             list.ForEachReverse(Func);

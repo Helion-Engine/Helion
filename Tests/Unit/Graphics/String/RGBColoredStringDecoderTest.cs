@@ -1,7 +1,7 @@
-using Helion.Graphics.String;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Drawing;
+using Helion.Graphics.String;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Graphics.String
 {
@@ -37,85 +37,49 @@ namespace Helion.Test.Unit.Graphics.String
         [TestMethod]
         public void EmptyString()
         {
-            AssertMatches("", new[]
-                {
-                    Tuple.Create("", ColoredString.DefaultColor),
-                }
-            );
+            AssertMatches("", Tuple.Create("", ColoredString.DefaultColor));
         }
 
         [TestMethod]
         public void NoColorDecoding()
         {
-            AssertMatches("some str", new[]
-                {
-                    Tuple.Create("some str", ColoredString.DefaultColor),
-                }
-            );
+            AssertMatches("some str", Tuple.Create("some str", ColoredString.DefaultColor));
         }
 
         [TestMethod]
         public void SingleColor()
         {
-            AssertMatches(@"a\c[123,45,6]color", new[]
-                {
-                    Tuple.Create("a", Color.White),
-                    Tuple.Create("color", Color.FromArgb(123, 45, 6)),
-                }
-            );
+            AssertMatches(@"a\c[123,45,6]color", Tuple.Create("a", Color.White), Tuple.Create("color", Color.FromArgb(123, 45, 6)));
         }
 
         [TestMethod]
         public void ColorAtEndOfStringDoesNothing()
         {
-            AssertMatches(@"some str\c[1,2,3]", new[]
-                {
-                    Tuple.Create("some str", ColoredString.DefaultColor),
-                }
-            );
+            AssertMatches(@"some str\c[1,2,3]", Tuple.Create("some str", ColoredString.DefaultColor));
         }
 
         [TestMethod]
         public void MultipleColors()
         {
-            AssertMatches(@"\c[123,45,6] \c[0,0,0]some c\c[255,0,255]olor\c[1,2,1]s", new[]
-                {
-                    Tuple.Create(" ", Color.FromArgb(123, 45, 6)),
-                    Tuple.Create("some c", Color.FromArgb(0, 0, 0)),
-                    Tuple.Create("olor", Color.FromArgb(255, 0, 255)),
-                    Tuple.Create("s", Color.FromArgb(1, 2, 1)),
-                }
-            );
+            AssertMatches(@"\c[123,45,6] \c[0,0,0]some c\c[255,0,255]olor\c[1,2,1]s", Tuple.Create(" ", Color.FromArgb(123, 45, 6)), Tuple.Create("some c", Color.FromArgb(0, 0, 0)), Tuple.Create("olor", Color.FromArgb(255, 0, 255)), Tuple.Create("s", Color.FromArgb(1, 2, 1)));
         }
 
         [TestMethod]
         public void MalformedColorCodeIsIgnored()
         {
-            AssertMatches(@"\c[0,0,0hi", new[]
-                {
-                    Tuple.Create(@"\c[0,0,0hi", ColoredString.DefaultColor),
-                }
-            );
+            AssertMatches(@"\c[0,0,0hi", Tuple.Create(@"\c[0,0,0hi", ColoredString.DefaultColor));
         }
 
         [TestMethod]
         public void HigherThan255IsClamped()
         {
-            AssertMatches(@"\c[0,5,982]hi", new[]
-                {
-                    Tuple.Create("hi", Color.FromArgb(0, 5, 255)),
-                }
-            );
+            AssertMatches(@"\c[0,5,982]hi", Tuple.Create("hi", Color.FromArgb(0, 5, 255)));
         }
 
         [TestMethod]
         public void CannotUseNegatives()
         {
-            AssertMatches(@"\c[0,-5,1]hi", new[]
-                {
-                    Tuple.Create(@"\c[0,-5,1]hi", ColoredString.DefaultColor),
-                }
-            );
+            AssertMatches(@"\c[0,-5,1]hi", Tuple.Create(@"\c[0,-5,1]hi", ColoredString.DefaultColor));
         }
     }
 }

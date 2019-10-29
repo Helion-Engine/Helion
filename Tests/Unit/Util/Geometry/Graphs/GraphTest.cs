@@ -110,7 +110,7 @@ namespace Helion.Test.Unit.Util.Geometry.Graphs
         }
     }
 
-    class TestVertex : IGraphVertex
+    internal class TestVertex : IGraphVertex
     {
         public List<TestEdge> Edges = new List<TestEdge>();
         public int Visited;
@@ -126,7 +126,7 @@ namespace Helion.Test.Unit.Util.Geometry.Graphs
         public override string ToString() => Label;
     }
 
-    class TestEdge : IGraphEdge
+    internal class TestEdge : IGraphEdge
     {
         public TestVertex Start;
         public TestVertex End;
@@ -144,7 +144,7 @@ namespace Helion.Test.Unit.Util.Geometry.Graphs
         public override string ToString() => $"{Start} -> {End}";
     }
     
-    class TestGraph : Graph<TestVertex, TestEdge>
+    internal class TestGraph : Graph<TestVertex, TestEdge>
     {
         public readonly HashSet<TestVertex> Vertices = new HashSet<TestVertex>();
         public readonly HashSet<TestEdge> Edges = new HashSet<TestEdge>();

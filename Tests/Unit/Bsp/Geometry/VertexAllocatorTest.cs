@@ -7,12 +7,12 @@ namespace Helion.Test.Unit.Bsp.Geometry
     [TestClass]
     public class VertexAllocatorTest
     {
-        private const double DEFAULT_EPSILON = 0.1;
+        private const double DefaultEpsilon = 0.1;
         
         [TestMethod]
         public void CanAddVerticesAndGetWelding()
         {
-            VertexAllocator vertexAllocator = new VertexAllocator(DEFAULT_EPSILON);
+            VertexAllocator vertexAllocator = new VertexAllocator(DefaultEpsilon);
             Vec2D firstPos = Vec2D.Zero;
             Vec2D secondPos = new Vec2D(0.05, 0.05);
             Vec2D thirdPos = new Vec2D(0.2, 0.05);
@@ -35,7 +35,7 @@ namespace Helion.Test.Unit.Bsp.Geometry
         [TestMethod]
         public void AbleToTryGetValue()
         {
-            VertexAllocator vertexAllocator = new VertexAllocator(DEFAULT_EPSILON);
+            VertexAllocator vertexAllocator = new VertexAllocator(DefaultEpsilon);
             Vec2D vec = new Vec2D(12, 34);
             vertexAllocator.Insert(new Vec2D(1, 2));
             

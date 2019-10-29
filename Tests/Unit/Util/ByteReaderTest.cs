@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ByteReader = Helion.Util.ByteReader;
 
-namespace Helion.Test.Unit.Util.Container
+namespace Helion.Test.Unit.Util
 {
     [TestClass]
     public class ByteReaderTest

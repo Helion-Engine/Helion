@@ -1,11 +1,11 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Helion.Util.Atlas;
 using Helion.Util.Geometry;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Util.Atlas
 {
     [TestClass]
-    public class Atlas2DTest
+    public class AtlasTest
     {
         [TestMethod]
         public void CreateEmptyAtlas()

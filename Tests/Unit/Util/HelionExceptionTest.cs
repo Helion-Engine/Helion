@@ -5,7 +5,7 @@ using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 namespace Helion.Test.Unit.Util
 {
     [TestClass]
-    public class ExceptionTest
+    public class HelionExceptionTest
     {
         [TestMethod]
         public void CreateHelionException()
