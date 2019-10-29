@@ -1006,9 +1006,9 @@ namespace Helion.World.Physics
         {
             if (entity.Flags.Missile)
             {
-                if (entity.BlockingEntity != null && entity.Properties.Damage > 0)
+                if (entity.BlockingEntity != null)
                 {
-                    int damage = ((m_random.NextByte() % 8) + 1) * entity.Properties.Damage;
+                    int damage = entity.Properties.Damage.Get(m_random);
                     DamageEntity(entity.BlockingEntity, entity, damage);
                 }
 

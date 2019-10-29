@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 
 namespace Helion.Resources.Definitions.Decorate.Parser
@@ -334,12 +335,11 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 if (!Peek(')'))
                     throw MakeException("Currently do not support damage expressions yet");
                 Consume(')');
-                
-                return new DamageRangeProperty(exactDamage);
+
+                return new DamageRangeProperty(exactDamage, true);
             }
             
-            int varyingDamage = ConsumeInteger();
-            return new DamageRangeProperty(varyingDamage, varyingDamage * 8);
+            return new DamageRangeProperty(ConsumeInteger(), false);
         }
 
         private SpecialArgs ConsumeSpecialArgs()

@@ -1,4 +1,4 @@
-namespace Helion.Resources.Definitions.Decorate.Properties
+namespace Helion.Resources.Definitions.Decorate.Properties.Enums
 {
     public enum RenderStyle 
     {

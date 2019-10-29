@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Helion.Maps.Specials;
-using Helion.Resources.Definitions.Decorate.Properties;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
+using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.World.Entities.Definition.Properties
 {
@@ -12,10 +14,9 @@ namespace Helion.World.Entities.Definition.Properties
         public DecorateSpecialActivationType Activation = DecorateSpecialActivationType.Default;
         public string ActiveSound = "";
         public double Alpha = 1.0;
-        // public AmmoProperty Ammo;
+        public AmmoProperty Ammo = default;
         public SpecialArgs Args = default;
-        // public ArmorBonusProperty ArmorBonus;
-        // public ArmorPickupProperty ArmorPickup;
+        public ArmorProperty Armor = default;
         public string AttackSound = "";
         public string BloodColor = "";
         public string BloodType = "";
@@ -27,7 +28,7 @@ namespace Helion.World.Entities.Definition.Properties
         public int CameraHeight;
         public int ConversationID = NoID;
         public string CrushPainSound = "";
-        // public DamageRangeProperty Damage;
+        public DamageRangeProperty Damage;
         public double DamageFactor = 1.0;
         public string DamageType = "";
         public double DeathHeight = 20.0 / 4;
@@ -38,7 +39,7 @@ namespace Helion.World.Entities.Definition.Properties
         public int DesignatedTeam;
         public string DistanceCheck = "";
         public int DontHurtShooter;
-        // public DropItemProperty DropItem;
+        public DropItemProperty? DropItem;
         public int ExplosionDamage;
         public int ExplosionRadius;
         public int FastSpeed;
@@ -51,11 +52,11 @@ namespace Helion.World.Entities.Definition.Properties
         public int GibHealth = -1000;
         public double Gravity = 1.0;
         public int Health = 1000;
-        // public HealthPickupProperty HealthPickup;
+        public HealthPickupAutoUse HealthPickupAutoUse = HealthPickupAutoUse.Never;
         public double Height = 16.0;
         public string HitObituary = "";
         public string HowlSound = "";
-        // public InventoryProperty Inventory;
+        public InventoryProperty Inventory = new InventoryProperty();
         public double Mass = 100.0;
         public double MaxDropOffHeight = 24.0;
         public double MaxStepHeight = 24.0;
@@ -67,20 +68,20 @@ namespace Helion.World.Entities.Definition.Properties
         public int MinMissileChance = 200;
         public int MissileHeight;
         public int MissileType;
-        // public MorphProjectileProperty MorphProjectile;
+        public MorphProjectileProperty MorphProjectile = new MorphProjectileProperty();
         public string Obituary = "";
         public int PainChance;
         public string PainSound = "";
         public int PainThreshold;
         public string PainType = "";
-        public PlayerProperty Player;
-        // public PoisonDamageProperty PoisonDamage;
+        public PlayerProperty Player = new PlayerProperty();
+        public PoisonDamageProperty? PoisonDamage;
         public string PoisonDamageType = "";
-        // public PowerupProperty Powerup;
+        public PowerupProperty Powerup = new PowerupProperty();
         public int ProjectileKickBack = 100;
         public int ProjectilePassHeight;
         public double PushFactor = 0.25;
-        // public PuzzleItemProperty PuzzleItem;
+        public PuzzleItemProperty PuzzleItem;
         public double Radius = 20.0;
         public double RadiusDamageFactor;
         public int ReactionTime = 8;
@@ -106,17 +107,16 @@ namespace Helion.World.Entities.Definition.Properties
         public int Threshold;
         public List<string> Translation = new List<string>();
         public int VSpeed;
-        // public Range VisibleAngles;
-        // public Range VisiblePitch;
+        public Range? VisibleAngles;
+        public Range? VisiblePitch;
         public double WallBounceFactor = 0.75;
         public string WallBounceSound = "";
-        // public WeaponPiecesProperty WeaponPieces;
-        // public WeaponProperty Weapons;
+        public WeaponPiecesProperty? WeaponPieces;
+        public WeaponProperty Weapons = new WeaponProperty();
         public int WeaveIndexXY;
         public int WeaveIndexZ;
         public int WoundHealth = 6;
         public double XScale = 1.0;
         public double YScale = 1.0;
-        public int Damage = 0;
     }
 }

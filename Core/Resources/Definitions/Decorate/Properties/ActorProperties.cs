@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Maps.Specials;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
 {

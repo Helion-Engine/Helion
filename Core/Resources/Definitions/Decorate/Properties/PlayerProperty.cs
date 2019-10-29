@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.Resources.Definitions.Decorate.Properties
 {
@@ -7,7 +8,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
     {
         public double? AirCapacity;
         public int? AttackZOffset;
-        public Range ColorRange;
+        public Range? ColorRange;
         public PlayerColorSetProperty? ColorSet;
         public PlayerColorSetFileProperty? ColorSetFile;
         public int? ClearColorSet;

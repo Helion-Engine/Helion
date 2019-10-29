@@ -1,3 +1,5 @@
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
+
 namespace Helion.Resources.Definitions.Decorate.Properties
 {
     public struct MorphProjectileProperty
