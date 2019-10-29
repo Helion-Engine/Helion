@@ -14,11 +14,8 @@ namespace Helion.World.Entities.Players
         public const double ForwardMovementSpeed = 1.5625;
         public const double SideMovementSpeed = 1.25;
         public const double MaxMovement = 30.0;
-        private const double PlayerViewHeight = 42.0;
-        private const double HalfPlayerViewHeight = PlayerViewHeight / 2.0;
         private const double PlayerViewDivider = 8.0;
         private const int JumpDelayTicks = 7;
-        private const double JumpZ = 8.0;
         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
@@ -30,8 +27,8 @@ namespace Helion.World.Entities.Players
         private int m_jumpTics;
         private double m_prevAngle;
         private double m_prevPitch;
-        private double m_viewHeight = PlayerViewHeight;
-        private double m_prevViewHeight = PlayerViewHeight;
+        private double m_viewHeight;
+        private double m_prevViewHeight;
         private double m_deltaViewHeight;
 
         public Player(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
@@ -42,6 +39,8 @@ namespace Helion.World.Entities.Players
             
             PlayerNumber = playerNumber;
             m_prevAngle = AngleRadians;
+            m_viewHeight = definition.Properties.Player.ViewHeight;
+            m_prevViewHeight = m_viewHeight;
         }
 
         public Vec3D GetViewPosition()
@@ -63,7 +62,7 @@ namespace Helion.World.Entities.Players
             if (smooth && Box.Bottom < z)
             {
                 m_viewHeight -= z - Box.Bottom;
-                m_deltaViewHeight = (PlayerViewHeight - m_viewHeight) / PlayerViewDivider;
+                m_deltaViewHeight = (Definition.Properties.Player.ViewHeight - m_viewHeight) / PlayerViewDivider;
                 ClampViewHeight();
             }
             
@@ -72,8 +71,8 @@ namespace Helion.World.Entities.Players
 
         public override void ResetInterpolation()
         {
-            m_viewHeight = PlayerViewHeight;
-            m_prevViewHeight = PlayerViewHeight;
+            m_viewHeight = Definition.Properties.Player.ViewHeight;
+            m_prevViewHeight = m_viewHeight;
             m_deltaViewHeight = 0;
             
             base.ResetInterpolation();
@@ -145,23 +144,26 @@ namespace Helion.World.Entities.Players
 
         private void ClampViewHeight()
         {
-            if (m_viewHeight > PlayerViewHeight)
+            double playerViewHeight = Definition.Properties.Player.ViewHeight;
+            double halfPlayerViewHeight = playerViewHeight / 2;
+            
+            if (m_viewHeight > playerViewHeight)
             {
                 m_deltaViewHeight = 0;
-                m_viewHeight = PlayerViewHeight;
+                m_viewHeight = playerViewHeight;
             }
 
-            if (m_viewHeight < HalfPlayerViewHeight)
-                m_viewHeight = HalfPlayerViewHeight;
+            if (m_viewHeight < halfPlayerViewHeight)
+                m_viewHeight = halfPlayerViewHeight;
 
-            if (m_viewHeight < PlayerViewHeight)
+            if (m_viewHeight < playerViewHeight)
                 m_deltaViewHeight += 0.25;
 
-            double viewHeight = MathHelper.Clamp(m_viewHeight, 0, LowestCeilingZ - HighestFloorZ - 8);
-            if (viewHeight != m_viewHeight)
+            double newViewHeight = MathHelper.Clamp(m_viewHeight, 0, LowestCeilingZ - HighestFloorZ - 8);
+            if (newViewHeight != m_viewHeight)
             {
-                m_prevViewHeight = viewHeight;
-                m_viewHeight = viewHeight;
+                m_prevViewHeight = newViewHeight;
+                m_viewHeight = newViewHeight;
             }
         }
 
@@ -170,7 +172,7 @@ namespace Helion.World.Entities.Players
             if (AbleToJump)
             {
                 m_isJumping = true;
-                Velocity.Z += JumpZ;
+                Velocity.Z += Properties.Player.JumpZ;
             }
         }
 
