@@ -18,6 +18,9 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.Height != null)
                 definition.Properties.Height = properties.Height.Value;
 
+            if (properties.Inventory.Amount != null)
+                definition.Properties.Inventory.Amount = properties.Inventory.Amount.Value;
+
             if (properties.MaxStepHeight != null)
                 definition.Properties.MaxStepHeight = properties.MaxStepHeight.Value;
 

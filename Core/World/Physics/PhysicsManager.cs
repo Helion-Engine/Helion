@@ -1000,10 +1000,16 @@ namespace Helion.World.Physics
         private bool CanMoveTo(Entity entity, Vec2D nextPosition)
         {
             Box2D nextBox = Box2D.CopyToOffset(nextPosition, entity.Radius);
-            return !m_blockmap.Iterate(nextBox, CheckForBlockers);
+            bool blocked = m_blockmap.Iterate(nextBox, CheckForBlockers);
+
+            if (!entity.PickupEntities.Empty())
+                HandlePickups(entity);
+            
+            return !blocked;
 
             GridIterationStatus CheckForBlockers(Block block)
             {
+                // This may need to come after if we want to do plasma bumping.
                 for (int i = 0; i < block.Lines.Count; i++)
                 {
                     Line line = block.Lines[i];
@@ -1018,16 +1024,22 @@ namespace Helion.World.Physics
                     {
                         Entity nextEntity = entityNode.Value;
 
-                        if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(nextBox) &&
-                            entity.Box.OverlapsZ(nextEntity.Box))
+                        if (nextEntity.Box.Overlaps2D(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                         {
-                            if (EntityBlocksEntityZ(entity, nextEntity))
+                            if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
                             {
-                                entity.BlockingEntity = nextEntity;
-                                return GridIterationStatus.Stop;
+                                entity.PickupEntities.Add(nextEntity);
                             }
+                            else if (EntityCanBlockEntity(entity, nextEntity))
+                            {
+                                if (EntityBlocksEntityZ(entity, nextEntity))
+                                {
+                                    entity.BlockingEntity = nextEntity;
+                                    return GridIterationStatus.Stop;
+                                }
 
-                            entity.IntersectEntities.Add(nextEntity);
+                                entity.IntersectEntities.Add(nextEntity);
+                            }
                         }
 
                         entityNode = entityNode.Next;
@@ -1036,6 +1048,33 @@ namespace Helion.World.Physics
                 
                 return GridIterationStatus.Continue;
             }
+        }
+
+        private void HandlePickups(Entity entity)
+        {
+            foreach (Entity item in entity.PickupEntities)
+            {
+                entity.GivePickedUpItem(item);
+                m_entityManager.Destroy(item);
+            }
+            
+            entity.PickupEntities.Clear();
+        }
+
+        private bool EntityCanPickupItem(Entity entity, Entity item)
+        {
+            // TODO: Eventually we need to respect how many items are in the
+            //       inventory so that we don't automatically pick up all the
+            //       items even if we can't anymore (ex: maxed out on ammo).
+            return item.Flags.InventoryItem;
+        }
+
+        private void PerformItemPickup(Entity entity, Entity item)
+        {
+            Precondition(item.Flags.InventoryItem, "Trying to pick up an item that is not an inventory item");
+
+            entity.Inventory.Add(item.Definition, item.Properties.Inventory.Amount);
+            m_entityManager.Destroy(item);
         }
 
         private void MoveTo(Entity entity, Vec2D nextPosition)

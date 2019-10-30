@@ -48,6 +48,7 @@ namespace Helion.World.Entities
         public double LowestCeilingZ;
         public double HighestFloorZ;
         public List<Line> IntersectSpecialLines = new List<Line>();
+        public List<Entity> PickupEntities = new List<Entity>();
         public List<Entity> IntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
@@ -264,6 +265,11 @@ namespace Helion.World.Entities
                 Kill();
             else if (setPainState)
                 FrameState.SetState(FrameStateLabel.Pain);
+        }
+
+        public virtual void GivePickedUpItem(Entity item)
+        {
+            Inventory.Add(item.Definition, item.Properties.Inventory.Amount);
         }
 
         public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");

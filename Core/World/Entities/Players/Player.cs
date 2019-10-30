@@ -20,10 +20,11 @@ namespace Helion.World.Entities.Players
         private const int JumpDelayTicks = 7;
         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
+
         public readonly int PlayerNumber;
         public double PitchRadians;
         public Weapon? Weapon;
+        public int LastPickupGametick;
         public int WeaponIndex = 1; // Temporary test variable
         private bool m_isJumping;
         private int m_jumpTics;
@@ -146,6 +147,14 @@ namespace Helion.World.Entities.Players
 
             ClampViewHeight();
         }
+        
+        public override void GivePickedUpItem(Entity item)
+        {
+            base.GivePickedUpItem(item);
+            
+            Log.Debug("Picked up: {0}", item.Definition.Name);
+            LastPickupGametick = World.Gametick;
+        }
 
         private void AddStartItems()
         {
@@ -154,11 +163,20 @@ namespace Helion.World.Entities.Players
 
             foreach (PlayerStartItem item in Definition.Properties.Player.StartItem)
             {
-                // TODO: Precondition: Item should be an inventory item.
-                // TODO: Give item to player by the amount provided.
+                // TODO: If not an inventory item, don't give.
+                // TODO: Give item.
             }
         }
-        
+
+        public void Jump()
+        {
+            if (AbleToJump)
+            {
+                m_isJumping = true;
+                Velocity.Z += Properties.Player.JumpZ;
+            }
+        }
+
         private void ClampViewHeight()
         {
             double playerViewHeight = Definition.Properties.Player.ViewHeight;
@@ -181,15 +199,6 @@ namespace Helion.World.Entities.Players
             {
                 m_prevViewHeight = newViewHeight;
                 m_viewHeight = newViewHeight;
-            }
-        }
-
-        public void Jump()
-        {
-            if (AbleToJump)
-            {
-                m_isJumping = true;
-                Velocity.Z += Properties.Player.JumpZ;
             }
         }
 
