@@ -1,10 +1,10 @@
 namespace Helion.Resources.Definitions.Decorate.States
 {
-    public class ActionFunction
+    public class ActorActionFunction
     {
         public readonly string FunctionName;
 
-        public ActionFunction(string functionName)
+        public ActorActionFunction(string functionName)
         {
             FunctionName = functionName.ToUpper();
         }

@@ -6,11 +6,11 @@ namespace Helion.Resources.Definitions.Decorate.States
         public readonly int Frame;
         public readonly int Ticks;
         public readonly ActorFrameProperties Properties;
-        public readonly ActionFunction? ActionFunction;
+        public readonly ActorActionFunction? ActionFunction;
         public ActorFlowControl? FlowControl;
 
         public ActorFrame(string sprite, int frame, int ticks, ActorFrameProperties properties, 
-            ActionFunction? actionFunction)
+            ActorActionFunction? actionFunction)
         {
             Sprite = sprite;
             Frame = frame;

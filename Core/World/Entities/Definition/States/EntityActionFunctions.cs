@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using NLog;
 
@@ -6,9 +5,11 @@ namespace Helion.World.Entities.Definition.States
 {
     public static class EntityActionFunctions
     {
+        public delegate void ActionFunction(Entity entity);
+         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private static readonly Dictionary<string, Action<Entity>> ActionFunctions = new Dictionary<string, Action<Entity>>
+        private static readonly Dictionary<string, ActionFunction> ActionFunctions = new Dictionary<string, ActionFunction>
         {
             ["ACS_NAMEDEXECUTE"] = ACS_NamedExecute,
             ["ACS_NAMEDEXECUTEALWAYS"] = ACS_NamedExecuteAlways,
@@ -337,11 +338,11 @@ namespace Helion.World.Entities.Definition.States
             ["A_ZOOMFACTOR"] = A_ZoomFactor,
         };
         
-        public static Action<Entity>? Find(string? actionFuncName)
+        public static ActionFunction? Find(string? actionFuncName)
         {
              if (actionFuncName != null)
              {
-                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out Action<Entity>? func)) 
+                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out ActionFunction? func)) 
                        return func;
                   Log.Warn("Unable to find action function: {0}", actionFuncName);
              }

@@ -6,7 +6,6 @@ using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Cheats;
 using Helion.World.Entities;
@@ -115,10 +114,12 @@ namespace Helion.World.Impl.SinglePlayer
             if (tickCommand.Has(TickCommands.Use))
                 PhysicsManager.EntityUse(Player);
 
-            // TODO remove when decorate weapons are implemented
             if (tickCommand.Has(TickCommands.Attack))
             {
-                switch (Player.Weapon)
+                Player.Weapon?.Fire();
+                
+                // TODO remove when decorate weapons are implemented
+                switch (Player.WeaponIndex)
                 {
                     case 0:
                         PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
@@ -157,15 +158,15 @@ namespace Helion.World.Impl.SinglePlayer
             }
 
             if (tickCommand.Has(TickCommands.NextWeapon))
-                ++Player.Weapon;
+                ++Player.WeaponIndex;
 
             if (tickCommand.Has(TickCommands.PreviousWeapon))
-                --Player.Weapon;
+                --Player.WeaponIndex;
 
-            if (Player.Weapon > 6)
-                Player.Weapon = 0;
-            if (Player.Weapon < 0)
-                Player.Weapon = 6;
+            if (Player.WeaponIndex > 6)
+                Player.WeaponIndex = 0;
+            if (Player.WeaponIndex < 0)
+                Player.WeaponIndex = 6;
         }
         
         protected override void PerformDispose()

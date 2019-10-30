@@ -2,6 +2,7 @@ using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Weapons;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using NLog;
@@ -21,8 +22,8 @@ namespace Helion.World.Entities.Players
         
         public readonly int PlayerNumber;
         public double PitchRadians;
-        // Temporary test variable
-        public int Weapon = 1;
+        public Weapon? Weapon;
+        public int WeaponIndex = 1; // Temporary test variable
         private bool m_isJumping;
         private int m_jumpTics;
         private double m_prevAngle;
@@ -32,8 +33,8 @@ namespace Helion.World.Entities.Players
         private double m_deltaViewHeight;
 
         public Player(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
-            Sector sector, EntityManager entityManager, SoundManager soundManager, int playerNumber) 
-            : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager)
+            Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber) 
+            : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
         {
             Precondition(playerNumber >= 0, "Player number should not be negative");
             
@@ -129,6 +130,7 @@ namespace Helion.World.Entities.Players
         public override void Tick()
         {
             base.Tick();
+            Weapon?.Tick();
             
             m_prevAngle = AngleRadians;
             m_prevPitch = PitchRadians;

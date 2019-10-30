@@ -34,6 +34,7 @@ namespace Helion.World.Entities
         public readonly EntityDefinition Definition;
         public readonly EntitySoundChannels SoundChannels;
         public readonly EntityManager EntityManager;
+        public readonly IWorld World;
         public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
@@ -93,14 +94,16 @@ namespace Helion.World.Entities
         /// entity (so the entity can destroy itself if needed).</param>
         /// <param name="soundManager">The sound manager to which we can play
         /// any sounds with.</param>
+        /// /// <param name="world">The world this entity belongs to.</param>
         public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
-            Sector sector, EntityManager entityManager, SoundManager soundManager)
+            Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world)
         {
             Health = definition.Properties.Health;
 
             Id = id;
             ThingId = thingId;
             Definition = definition;
+            World = world;
             AngleRadians = angleRadians;
             Box = new EntityBox(position, Radius, definition.Properties.Height);
             PrevPosition = Box.Position;
@@ -113,7 +116,7 @@ namespace Helion.World.Entities
             EntityManager = entityManager;
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
-
+            
             FindInitialFrameIndex();
         }
 

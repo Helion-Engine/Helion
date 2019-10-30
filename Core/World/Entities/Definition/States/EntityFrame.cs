@@ -1,6 +1,6 @@
-using System;
 using Helion.Resources.Definitions.Decorate.States;
 using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.Definition.States.EntityActionFunctions;
 
 namespace Helion.World.Entities.Definition.States
 {
@@ -10,12 +10,12 @@ namespace Helion.World.Entities.Definition.States
         public readonly int Frame;
         public readonly int Ticks;
         public readonly EntityFrameProperties Properties;
-        public readonly Action<Entity>? ActionFunction;
+        public readonly ActionFunction? ActionFunction;
         public int NextFrameIndex;
         public ActorStateBranch BranchType;
 
         public EntityFrame(string sprite, int frame, int ticks, EntityFrameProperties properties,
-            Action<Entity>? actionFunction, int nextFrameIndex)
+            ActionFunction? actionFunction, int nextFrameIndex)
         {
             Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");
             

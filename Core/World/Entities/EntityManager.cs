@@ -54,7 +54,7 @@ namespace Helion.World.Entities
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
-            Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager);
+            Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
             FinishCreatingEntity(entity);
 
@@ -192,7 +192,7 @@ namespace Helion.World.Entities
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
-            Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, playerNumber);
+            Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
             
             FinishCreatingEntity(player);
             

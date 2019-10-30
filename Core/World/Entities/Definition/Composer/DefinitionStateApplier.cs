@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Decorate.States;
@@ -7,6 +6,7 @@ using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
 using MoreLinq.Extensions;
 using NLog;
+using static Helion.World.Entities.Definition.States.EntityActionFunctions;
 
 namespace Helion.World.Entities.Definition.Composer
 {
@@ -78,7 +78,7 @@ namespace Helion.World.Entities.Definition.Composer
 
                 int absoluteNextFrameIndex = absoluteFrameOffset + 1;
                 EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
-                Action<Entity>? actionFunction = EntityActionFunctions.Find(frame.ActionFunction?.FunctionName);
+                ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
                 EntityFrame entityFrame = new EntityFrame(frame.Sprite, frame.Frame, frame.Ticks, properties,
                     actionFunction, absoluteNextFrameIndex);
 

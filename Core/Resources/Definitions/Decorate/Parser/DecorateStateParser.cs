@@ -159,7 +159,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             string frames = ConsumeString();
             int ticks = ConsumeActorFrameTicks();
             ActorFrameProperties properties = ConsumeActorFrameKeywordsIfAny();
-            ActionFunction? actionFunction = ConsumeActionFunctionIfAny();
+            ActorActionFunction? actionFunction = ConsumeActionFunctionIfAny();
 
             foreach (char frame in frames)
             {
@@ -198,7 +198,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             }
         }
 
-        private ActionFunction? ConsumeActionFunctionIfAny()
+        private ActorActionFunction? ConsumeActionFunctionIfAny()
         {
             string? text = PeekCurrentText();
             if (text == null)
@@ -212,7 +212,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 string functionName = ConsumeIdentifier();
                 ConsumeActionFunctionArgumentsIfAny();
             
-                return new ActionFunction(functionName);
+                return new ActorActionFunction(functionName);
             }
             
             return null;
