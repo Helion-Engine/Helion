@@ -24,7 +24,7 @@ namespace Helion.World.Entities.Players
         public readonly int PlayerNumber;
         public double PitchRadians;
         public Weapon? Weapon;
-        public int LastPickupGametick;
+        public int LastPickupGametick = int.MinValue / 2;
         public int WeaponIndex = 1; // Temporary test variable
         private bool m_isJumping;
         private int m_jumpTics;

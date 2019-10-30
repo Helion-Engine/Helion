@@ -26,9 +26,11 @@ namespace Helion.Render.Shared.Drawers
         private const int CrosshairLength = 10;
         private const int CrosshairWidth = 4;
         private const int CrosshairHalfWidth = CrosshairWidth / 2;
+        private const int FlashPickupTickDuration = 6;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
+        private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
 
         public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
@@ -37,7 +39,7 @@ namespace Helion.Render.Shared.Drawers
             cmd.ClearDepth();
 
             DrawHud(player, world, viewport, helper);
-            DrawPickupFlash(world, helper);
+            DrawPickupFlash(player, world, viewport, helper);
             DrawDamage(world, helper);
             DrawRecentConsoleMessages(world, console, helper);
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
@@ -80,9 +82,11 @@ namespace Helion.Render.Shared.Drawers
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
-        private static void DrawPickupFlash(WorldBase world, DrawHelper helper)
+        private static void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
-            // TODO
+            int ticksSincePickup = world.Gametick - player.LastPickupGametick;
+            if (ticksSincePickup < FlashPickupTickDuration)
+                helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);    
         }
 
         private static void DrawDamage(WorldBase world, DrawHelper helper)
