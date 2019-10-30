@@ -116,7 +116,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (tickCommand.Has(TickCommands.Attack))
             {
-                Player.Weapon?.Fire();
+                Player.Weapon?.RequestFire();
                 
                 // TODO remove when decorate weapons are implemented
                 switch (Player.WeaponIndex)

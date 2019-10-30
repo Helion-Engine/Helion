@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
@@ -20,8 +19,6 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities
 {
-    // TODO: When the optimized renderer becomes a thing, we can remove subsector stuff (perf boost!)
-    
     /// <summary>
     /// An actor in a world.
     /// </summary>
@@ -34,6 +31,7 @@ namespace Helion.World.Entities
         public readonly EntityDefinition Definition;
         public readonly EntitySoundChannels SoundChannels;
         public readonly EntityManager EntityManager;
+        public readonly FrameState FrameState;
         public readonly IWorld World;
         public double AngleRadians;
         public EntityBox Box;
@@ -67,6 +65,7 @@ namespace Helion.World.Entities
         protected readonly SoundManager SoundManager;
         protected int FrameIndex;
         protected int TicksInFrame;
+        internal bool IsDisposed { get; private set; }
 
         // Temporary storage variable for handling PhysicsManager.SectorMoveZ
         public double SaveZ;
@@ -76,7 +75,7 @@ namespace Helion.World.Entities
         public bool IsFrozen => FrozenTics > 0;
         public EntityFlags Flags => Definition.Flags;
         public EntityProperties Properties => Definition.Properties;
-        public EntityFrame Frame => Definition.States.Frames[FrameIndex];
+        public EntityFrame Frame => FrameState.Frame;
         
         /// <summary>
         /// Creates an entity with the following information.
@@ -103,6 +102,7 @@ namespace Helion.World.Entities
             Id = id;
             ThingId = thingId;
             Definition = definition;
+            FrameState = new FrameState(this, definition, entityManager);
             World = world;
             AngleRadians = angleRadians;
             Box = new EntityBox(position, Radius, definition.Properties.Height);
@@ -116,8 +116,6 @@ namespace Helion.World.Entities
             EntityManager = entityManager;
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
-            
-            FindInitialFrameIndex();
         }
 
         /// <summary>
@@ -226,52 +224,51 @@ namespace Helion.World.Entities
             if (FrozenTics > 0)
                 FrozenTics--;
 
-            TickStateFrame();
+            FrameState.Tick();
             SoundChannels.Tick();
 
             RunDebugSanityChecks();
         }
 
-        private void FindInitialFrameIndex()
+        public void Kill()
         {
-            // Every actor must have at least one frame, so if we can't find
-            // the spawn frame somehow, we'll assume we start at index zero.
-            if (!SetStateToLabel("SPAWN"))
-                FrameIndex = 0;
-        }
+            if (Health < -Properties.Health && HasXDeathState())
+                SetXDeathState();
+            else
+                SetDeathState();
 
+            Health = 0;
+            SetHeight(Definition.Properties.Height / 4.0);
+            // TODO: Player override this and handle its own m_viewHeight?
+        }
+        
         public void SetDeathState()
         {
-            if (SetStateToLabel("DEATH"))
+            if (FrameState.SetState(FrameStateLabel.Death))
                 SetDeath();
         }
 
         public void SetXDeathState()
         {
-            if (SetStateToLabel("XDEATH"))
+            if (FrameState.SetState(FrameStateLabel.XDeath))
                 SetDeath();
         }
 
-        public void SetPainState()
+        public void Damage(int damage, bool setPainState)
         {
-            SetStateToLabel("PAIN");
+            if (damage <= 0)
+                return;
+            
+            Health -= damage;
+
+            if (Health <= 0)
+                Kill();
+            else if (setPainState)
+                FrameState.SetState(FrameStateLabel.Pain);
         }
 
         public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
-        
-        public bool SetStateToLabel(string label)
-        {
-            if (Definition.States.Labels.TryGetValue(label, out int index))
-            {
-                TicksInFrame = 0;
-                FrameIndex = index;
-                return true;
-            }
-                
-            Log.Warn("Unable to find state label '{0}' for actor {1}", label, Definition.Name);
-            return false;
-        }
-        
+
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
 
         public bool CheckOnGround() => HighestFloorZ >= Position.Z;
@@ -280,6 +277,7 @@ namespace Helion.World.Entities
         {
             UnlinkFromWorld();
             EntityListNode.Unlink();
+            IsDisposed = true;
         }
 
         private void SetDeath()
@@ -295,30 +293,6 @@ namespace Helion.World.Entities
                 Flags.Skullfly = false;
                 Flags.Solid = false;
                 Flags.Shootable = false;
-            }
-        }
-
-        private void TickStateFrame()
-        {
-            Precondition(FrameIndex >= 0 && FrameIndex < Definition.States.Frames.Count, "Out of range frame index for entity");
-            
-            EntityFrame frame = Definition.States.Frames[FrameIndex];
-            
-            // TODO: If frame.Ticks == 0, we need to loop and keep consuming frames.
-            if (TicksInFrame == 0)
-                frame.ActionFunction?.Invoke(this);
-            
-            TicksInFrame++;
-            if (TicksInFrame > frame.Ticks)
-            {
-                if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
-                {
-                    EntityManager.Destroy(this);
-                    return;
-                }
-
-                FrameIndex = frame.NextFrameIndex;
-                TicksInFrame = 0;
             }
         }
 

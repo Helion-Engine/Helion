@@ -2,6 +2,7 @@ using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Weapons;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
@@ -42,6 +43,8 @@ namespace Helion.World.Entities.Players
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_prevViewHeight = m_viewHeight;
+            
+            AddStartItems();
         }
 
         public Vec3D GetViewPosition()
@@ -144,6 +147,18 @@ namespace Helion.World.Entities.Players
             ClampViewHeight();
         }
 
+        private void AddStartItems()
+        {
+            if (Definition.Properties.Player.StartItem == null)
+                return;
+
+            foreach (PlayerStartItem item in Definition.Properties.Player.StartItem)
+            {
+                // TODO: Precondition: Item should be an inventory item.
+                // TODO: Give item to player by the amount provided.
+            }
+        }
+        
         private void ClampViewHeight()
         {
             double playerViewHeight = Definition.Properties.Player.ViewHeight;

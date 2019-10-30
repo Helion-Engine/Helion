@@ -435,30 +435,9 @@ namespace Helion.World.Physics
             }
 
             target.Velocity += Vec3D.UnitTimesValue(angle, 0.0, thrust);
-            target.Health -= damage;
-
-            if (target.Health <= 0)
-            {
-                SetEntityDeath(target);
-            }
-            else
-            {
-                if (m_random.NextByte() < target.Properties.PainChance)
-                    target.SetPainState();
-            }
+            target.Damage(damage, true); // TODO:
         }
-
-        private void SetEntityDeath(Entity entity)
-        {
-            if (entity.Health < -entity.Properties.Health && entity.HasXDeathState())
-                entity.SetXDeathState();
-            else
-                entity.SetDeathState();
-
-            entity.Health = 0;
-            entity.SetHeight(entity.Definition.Properties.Height / 4.0);
-        }
-
+        
         public void RadiusExplosion(Entity source, int radius)
         {
             // Barrels can't use ZDoom physics - TODO better way to check?
@@ -1004,7 +983,7 @@ namespace Helion.World.Physics
                     DamageEntity(entity.BlockingEntity, entity, damage);
                 }
 
-                SetEntityDeath(entity);
+                entity.Kill();
             }
         }
 

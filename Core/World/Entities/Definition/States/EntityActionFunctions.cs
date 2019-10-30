@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.World.Entities.Players;
 using NLog;
 
 namespace Helion.World.Entities.Definition.States
@@ -1947,7 +1948,8 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_WeaponReady(Entity entity)
         {
-             // TODO
+             if (entity is Player player && player.Weapon != null)
+                  player.Weapon.ReadyToFire = true;
         }
 
         private static void A_Weave(Entity entity)
