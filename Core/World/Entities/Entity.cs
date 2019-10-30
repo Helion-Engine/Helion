@@ -14,7 +14,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
-using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities
@@ -24,8 +23,6 @@ namespace Helion.World.Entities
     /// </summary>
     public class Entity : IDisposable, ITickable
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
         public readonly int Id;
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
@@ -116,6 +113,8 @@ namespace Helion.World.Entities
             EntityManager = entityManager;
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
+
+            FrameState.SetState(FrameStateLabel.Spawn);
         }
 
         /// <summary>
