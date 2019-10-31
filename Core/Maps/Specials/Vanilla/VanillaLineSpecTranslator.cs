@@ -132,6 +132,7 @@ namespace Helion.Maps.Specials.Vanilla
             case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
             case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
             case VanillaLineSpecialType.S1_RaiseFloorToNextHigherFloor:
+            case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
             case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
             case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
             case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
