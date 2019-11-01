@@ -21,40 +21,35 @@ namespace Helion.World.Physics.Blockmap
             m_blockmap = blockmap;
         }
 
-        public List<BlockmapIntersect> GetBlockmapIntersections(Box2D box)
+        public List<BlockmapIntersect> GetBlockmapIntersections(Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
         {
-            List<BlockmapIntersect> intersections = new List<BlockmapIntersect>();
-            Vec2D center = new Vec2D(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
-            m_entityMap.Clear();
-            m_blockmap.Iterate(box, TraceBox);
-
-            GridIterationStatus TraceBox(Block block)
-            {
-                foreach (Entity entity in block.Entities)
-                {
-                    if (entity.Flags.Solid && entity.Flags.Shootable && box.Overlaps(entity.Box) && !m_entityMap.Contains(entity.Id))
-                    {
-                        m_entityMap.Add(entity.Id);
-                        Vec2D pos = entity.Position.To2D();
-                        intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
-                    }
-                }
-
-                return GridIterationStatus.Continue;
-            }
-
-            return intersections;
+            return Traverse(box, null, flags, entityFlags);
         }
 
         public List<BlockmapIntersect> GetBlockmapIntersections(Seg2D seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
         {
+            return Traverse(null, seg, flags, entityFlags);
+        }
+
+        private List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags)
+        {
             List<BlockmapIntersect> intersections = new List<BlockmapIntersect>();
             Vec2D intersect = new Vec2D(0, 0);
+            Vec2D center = default;
             m_lineMap.Clear();
             m_entityMap.Clear();
-            m_blockmap.Iterate(seg, TraceSeg);
 
-            GridIterationStatus TraceSeg(Block block)
+            if (box != null)
+            {
+                center = new Vec2D(box.Value.Max.X - (box.Value.Width / 2.0), box.Value.Max.Y - (box.Value.Height / 2.0));
+                m_blockmap.Iterate(box.Value, IterateBlock);
+            }
+            else if (seg != null)
+            {
+                m_blockmap.Iterate(seg, IterateBlock);
+            }
+
+            GridIterationStatus IterateBlock(Block block)
             {
                 if ((flags & BlockmapTraverseFlags.Lines) != 0)
                 {
@@ -62,14 +57,20 @@ namespace Helion.World.Physics.Blockmap
                     {
                         Line line = block.Lines[i];
 
-                        if (m_lineMap.Contains(line.Id) || (line.OneSided && !line.Segment.OnRight(seg.Start)))
+                        if (m_lineMap.Contains(line.Id))
                             continue;
 
-                        if (line.Segment.Intersection(seg, out double t))
+                        if (seg != null && line.Segment.Intersection(seg, out double t))
                         {
                             m_lineMap.Add(line.Id);
                             intersect = line.Segment.FromTime(t);
                             intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
+                        }
+                        else if (box != null && line.Segment.Intersects(box.Value))
+                        {
+                            // TODO there currently isn't a way to calculate the intersection/distance... right now the only function that uses it doesn't need it (RadiusExplosion in PhysicsManager)
+                            m_lineMap.Add(line.Id);
+                            intersections.Add(new BlockmapIntersect(line, default, 0.0));
                         }
                     }
                 }
@@ -86,10 +87,19 @@ namespace Helion.World.Physics.Blockmap
                                 continue;
                         }
 
-                        if (!m_entityMap.Contains(entity.Id) && entity.Box.Intersects(seg.Start, seg.End, ref intersect))
+                        if (m_entityMap.Contains(entity.Id))
+                            continue;
+                        
+                        if (seg != null && entity.Box.Intersects(seg.Start, seg.End, ref intersect))
                         {
                             m_entityMap.Add(entity.Id);
                             intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
+                        }
+                        else if (box != null && box.Value.Overlaps(entity.Box))
+                        {
+                            m_entityMap.Add(entity.Id);
+                            Vec2D pos = entity.Position.To2D();
+                            intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
                         }
                     }
                 }
