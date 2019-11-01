@@ -16,13 +16,11 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningsAsErrors>NU1605</WarningsAsErrors>
     <NoWarn>1701;1702;CS8602</NoWarn>
-    <CodeAnalysisRuleSet />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <WarningsAsErrors>NU1605</WarningsAsErrors>
     <NoWarn>1701;1702;CS8602</NoWarn>
-    <CodeAnalysisRuleSet />
   </PropertyGroup>
 
   <ItemGroup>

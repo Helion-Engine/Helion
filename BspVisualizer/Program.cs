@@ -9,7 +9,7 @@ using Helion.Resources.Archives.Locator;
 
 namespace BspVisualizer
 {
-    static class Program
+    internal static class Program
     {
         private static bool NotEnoughArguments(string[] args)
         {
@@ -47,7 +47,7 @@ namespace BspVisualizer
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             if (HandledInvalidArguments(args))
                 return;

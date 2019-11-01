@@ -72,7 +72,7 @@ namespace BspVisualizer
             PaintTextInfo(g, windowBounds);
         }
 
-        void Form1_KeyPress(object? sender, KeyPressEventArgs e)
+        internal void Form1_KeyPress(object? sender, KeyPressEventArgs e)
         {
             bool consumedKey = true;
             bool needsRepaint = true;
