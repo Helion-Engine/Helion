@@ -593,9 +593,6 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             case "INTERPOLATEANGLES":
                 m_currentDefinition.Flags.InterpolateAngles = flagValue;
                 break;
-            case "INVENTORYITEM":
-                m_currentDefinition.Flags.InventoryItem = flagValue;
-                break;
             case "INVISIBLE":
                 m_currentDefinition.Flags.Invisible = flagValue;
                 break;

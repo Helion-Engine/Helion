@@ -124,7 +124,6 @@ namespace Helion.Resources.Definitions.Decorate.Flags
         public bool? InCombat;
         public bool? InterpolateAngles;
         public ActorInventoryFlags Inventory;
-        public bool? InventoryItem;
         public bool? Invisible;
         public bool? Invulnerable;
         public bool? IsMonster;

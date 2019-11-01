@@ -15,8 +15,9 @@ namespace Helion.World.Entities.Definition
         public readonly EntityFlags Flags;
         public readonly EntityProperties Properties;
         public readonly EntityStates States;
+        public readonly List<CIString> ParentClassNames;
 
-        public EntityDefinition(int id, CIString name, int? editorId)
+        public EntityDefinition(int id, CIString name, int? editorId, List<CIString> parentClassNames)
         {
             Precondition(!name.Empty, "Cannot have an entity definition with an empty name");
             
@@ -27,19 +28,26 @@ namespace Helion.World.Entities.Definition
             Flags = new EntityFlags();
             Properties = new EntityProperties();
             States = new EntityStates();
+            ParentClassNames = parentClassNames;
         }
 
-        //TODO hopefully temporary
-        public EntityDefinition(EntityDefinition def)
-        {
-            Id = def.Id;
-            Name = def.Name;
-            EditorId = def.EditorId;
-
-            Flags = new EntityFlags(def.Flags);
-            Properties = def.Properties;
-            States = def.States;
-        }
+        /// <summary>
+        /// Checks if the definition is a descendant or class of the type
+        /// provided.
+        /// </summary>
+        /// <param name="className">The name of the class, which is case
+        /// insensitive.</param>
+        /// <returns>True if it is the type, false if not.</returns>
+        public bool IsType(string className) => ParentClassNames.Contains(className);
+        
+        /// <summary>
+        /// Checks if the definition is a descendant or class of the type
+        /// provided.
+        /// </summary>
+        /// <param name="definitionType">The enumeration type for common types.
+        /// </param>
+        /// <returns>True if it is the type, false if not.</returns>
+        public bool IsType(EntityDefinitionType definitionType) => IsType(definitionType.ToString());
         
         public override string ToString() => $"{Name} (id = {Id}, editorId = {EditorId})";
     }

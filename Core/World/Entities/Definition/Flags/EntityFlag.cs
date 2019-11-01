@@ -304,6 +304,5 @@ namespace Helion.World.Entities.Definition.Flags
         ZdoomTrans = 299,
         // New flags we added.
         IsTeleportSpot = 300,
-        InventoryItem = 301,
     }
 }

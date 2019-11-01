@@ -275,8 +275,6 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Flags.InCombat = flags.InCombat.Value;
             if (flags.InterpolateAngles != null)
                 definition.Flags.InterpolateAngles = flags.InterpolateAngles.Value;
-            if (flags.InventoryItem != null)
-                definition.Flags.InventoryItem = flags.InventoryItem.Value;
             if (flags.Inventory.AdditiveTime != null)
                 definition.Flags.InventoryAdditiveTime = flags.Inventory.AdditiveTime.Value;
             if (flags.Inventory.AlwaysPickup != null)

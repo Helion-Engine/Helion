@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Util;
@@ -37,28 +38,20 @@ namespace Helion.World.Entities.Definition.Composer
 
         public EntityDefinition? GetByName(CIString name)
         {
-            //TODO make this better so we don't need to create a copy of EntityDefinition - this is just so the flags aren't global and can be modified per entity
             if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
-                return new EntityDefinition(definition);
+                return definition;
 
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
-            var newDefinition = actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
-            if (newDefinition != null)
-                return new EntityDefinition(newDefinition);
-            return null;
+            return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
 
         public EntityDefinition? GetByID(int id)
         {
-            //TODO make this better so we don't need to create a copy of EntityDefinition - this is just so the flags aren't global and can be modified per entity
             if (m_editorNumToDefinition.TryGetValue(id, out EntityDefinition? definition))
-                return new EntityDefinition(definition);
+                return definition;
 
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
-            var newDefinition = actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
-            if (newDefinition != null)
-                return new EntityDefinition(newDefinition);
-            return null;
+            return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
 
         private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
@@ -140,7 +133,8 @@ namespace Helion.World.Entities.Definition.Composer
             }
             
             int id = m_indexTracker.Next();
-            EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber);
+            List<CIString> parentClassNames = definitions.Select(d => d.Name).ToList();
+            EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
             ApplyFlagsAndPropertiesFrom(definition, definitions);
             DefinitionStateApplier.Apply(definition, definitions);

@@ -152,7 +152,6 @@ namespace Helion.World.Entities.Players
         {
             base.GivePickedUpItem(item);
             
-            Log.Debug("Picked up: {0}", item.Definition.Name);
             LastPickupGametick = World.Gametick;
         }
 

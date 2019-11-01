@@ -13,6 +13,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -1066,17 +1067,9 @@ namespace Helion.World.Physics
             // TODO: Eventually we need to respect how many items are in the
             //       inventory so that we don't automatically pick up all the
             //       items even if we can't anymore (ex: maxed out on ammo).
-            return item.Flags.InventoryItem;
+            return item.Definition.IsType(EntityDefinitionType.Inventory);
         }
-
-        private void PerformItemPickup(Entity entity, Entity item)
-        {
-            Precondition(item.Flags.InventoryItem, "Trying to pick up an item that is not an inventory item");
-
-            entity.Inventory.Add(item.Definition, item.Properties.Inventory.Amount);
-            m_entityManager.Destroy(item);
-        }
-
+        
         private void MoveTo(Entity entity, Vec2D nextPosition)
         {
             entity.UnlinkFromWorld();

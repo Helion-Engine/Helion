@@ -10,7 +10,7 @@ namespace Helion.World.Entities.Inventories
 
         public void Add(EntityDefinition definition, int amount)
         {
-            if (amount <= 0 || !definition.Flags.InventoryItem)
+            if (amount <= 0)
                 return;
 
             if (Items.TryGetValue(definition.Name, out InventoryItem? item))
