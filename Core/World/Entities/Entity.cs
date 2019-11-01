@@ -27,6 +27,7 @@ namespace Helion.World.Entities
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
         public readonly EntityFlags Flags;
+        public readonly EntityProperties Properties;
         public readonly EntitySoundChannels SoundChannels;
         public readonly EntityManager EntityManager;
         public readonly FrameState FrameState;
@@ -72,7 +73,6 @@ namespace Helion.World.Entities
         public double Height => Box.Height;
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
-        public EntityProperties Properties => Definition.Properties;
         public EntityFrame Frame => FrameState.Frame;
         
         /// <summary>
@@ -101,6 +101,7 @@ namespace Helion.World.Entities
             ThingId = thingId;
             Definition = definition;
             Flags = new EntityFlags(definition.Flags);
+            Properties = new EntityProperties(definition.Properties);
             FrameState = new FrameState(this, definition, entityManager);
             World = world;
             AngleRadians = angleRadians;

@@ -118,5 +118,75 @@ namespace Helion.World.Entities.Definition.Properties
         public int WoundHealth = 6;
         public double XScale = 1.0;
         public double YScale = 1.0;
+
+        public EntityProperties()
+        {
+        }
+        
+        // TODO: Temporary for now, we will need only to invoke this under some situations.
+        //       This also obviously doesn't work for the classes since the reference will
+        //       be copied rather than how struct/value copying works.
+        public EntityProperties(EntityProperties properties) 
+        {
+            Accuracy = properties.Accuracy;
+            ActiveSound = properties.ActiveSound;
+            Ammo = properties.Ammo;
+            Args = properties.Args;
+            Armor = properties.Armor;
+            AttackSound = properties.AttackSound;
+            BloodType = properties.BloodType;
+            BounceFactor = properties.BounceFactor;
+            BounceType = properties.BounceType;
+            BurnHeight = properties.BurnHeight;
+            ConversationID = properties.ConversationID;
+            CrushPainSound = properties.CrushPainSound;
+            DamageFactor = properties.DamageFactor;
+            DeathHeight = properties.DeathHeight;
+            DeathType = properties.DeathType;
+            DefThreshold = properties.DefThreshold;
+            DistanceCheck = properties.DistanceCheck;
+            DropItem = properties.DropItem;
+            ExplosionRadius = properties.ExplosionRadius;
+            FloatBobPhase = properties.FloatBobPhase;
+            FloatSpeed = properties.FloatSpeed;
+            FriendlySeeBlocks = properties.FriendlySeeBlocks;
+            GibHealth = properties.GibHealth;
+            Health = properties.Health;
+            Height = properties.Height;
+            HowlSound = properties.HowlSound;
+            Mass = properties.Mass;
+            MaxStepHeight = properties.MaxStepHeight;
+            MeleeDamage = properties.MeleeDamage;
+            MeleeSound = properties.MeleeSound;
+            MinMissileChance = properties.MinMissileChance;
+            MissileType = properties.MissileType;
+            Obituary = properties.Obituary;
+            PainSound = properties.PainSound;
+            PainType = properties.PainType;
+            PoisonDamage = properties.PoisonDamage;
+            Powerup = properties.Powerup;
+            ProjectileKickBack = properties.ProjectileKickBack;
+            PushFactor = properties.PushFactor;
+            Radius = properties.Radius;
+            ReactionTime = properties.ReactionTime;
+            RenderStyle = properties.RenderStyle;
+            RipLevelMax = properties.RipLevelMax;
+            RipperLevel = properties.RipperLevel;
+            SeeSound = properties.SeeSound;
+            SpawnId = properties.SpawnId;
+            Species = properties.Species;
+            SpriteAngle = properties.SpriteAngle;
+            Stamina = properties.Stamina;
+            StencilColor = properties.StencilColor;
+            TeleFogDestType = properties.TeleFogDestType;
+            Threshold = properties.Threshold;
+            VSpeed = properties.VSpeed;
+            VisiblePitch = properties.VisiblePitch;
+            WallBounceSound = properties.WallBounceSound;
+            Weapons = properties.Weapons;
+            WeaveIndexXY = properties.WeaveIndexXY;
+            WoundHealth = properties.WoundHealth;
+            YScale = properties.YScale;
+        }
     }
 }
