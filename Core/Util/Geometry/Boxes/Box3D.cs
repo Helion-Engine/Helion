@@ -74,6 +74,25 @@ namespace Helion.Util.Geometry.Boxes
         }
 
         /// <summary>
+        /// Checks if the boxes overlap. Touching is not considered to be
+        /// overlapping.
+        /// </summary>
+        /// <param name="center">Center position of the first box.</param>
+        /// <param name="radius">Radius of the first box.</param>
+        /// <param name="height">Height of the first box.</param>
+        /// <param name="otherCenter">Center position of the second box.</param>
+        /// <param name="otherRadius">Radius of the second box.</param>
+        /// <param name="otherHeight">Height of the second box.</param>
+        /// <returns>True if they overlap, false if not.</returns>
+        public static bool Overlaps(in Vec3D center, double radius, double height,
+                in Vec3D otherCenter, double otherRadius, double otherHeight)
+        {
+            return !(center.X - radius >= otherCenter.X + otherRadius || center.X + radius <= otherCenter.X - otherRadius ||
+                 center.Y - radius >= otherCenter.Y + otherRadius || center.Y + radius <= otherCenter.Y - otherRadius ||
+                 center.Z >= otherCenter.Z + otherHeight || center.Z + height <= otherCenter.Z);
+        }
+
+        /// <summary>
         /// Checks if the box contains the point. Being on the edge is not
         /// considered to be containing.
         /// </summary>
@@ -103,7 +122,7 @@ namespace Helion.Util.Geometry.Boxes
         /// </summary>
         /// <param name="box">The other box to check against.</param>
         /// <returns>True if they overlap, false if not.</returns>
-        public bool Overlaps(Box3D box)
+        public bool Overlaps(in Box3D box)
         {
             return !(Min.X >= box.Max.X || Max.X <= box.Min.X || 
                      Min.Y >= box.Max.Y || Max.Y <= box.Min.Y ||
