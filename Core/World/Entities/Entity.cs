@@ -45,16 +45,16 @@ namespace Helion.World.Entities
         public Sector Sector;
         public Sector HighestFloorSector;
         public Sector LowestCeilingSector;
+        // Can be Sector or Entity
+        public object HighestFloorObject;
         public double LowestCeilingZ;
         public double HighestFloorZ;
         public List<Line> IntersectSpecialLines = new List<Line>();
-        public List<Entity> PickupEntities = new List<Entity>();
         public List<Entity> IntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
         public Entity? OnEntity;
         public Entity? Owner;
-        public Entity? BlockingEntity;
         public bool Refire;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
@@ -109,6 +109,7 @@ namespace Helion.World.Entities
             LowestCeilingZ = sector.Ceiling.Z;
             HighestFloorZ = sector.Floor.Z;
             HighestFloorSector = sector;
+            HighestFloorObject = sector;
             LowestCeilingSector = sector;
             OnGround = CheckOnGround();
             EntityManager = entityManager;
@@ -212,8 +213,6 @@ namespace Helion.World.Entities
             IntersectEntities.Clear();
             IntersectSectors.Clear();
             IntersectSubsectors.Clear();
-
-            BlockingEntity = null;
         }
 
         /// <summary>
@@ -263,7 +262,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
                 Kill();
-            else if (setPainState)
+            else if (setPainState && Definition.States.Labels.ContainsKey("PAIN"))
                 FrameState.SetState(FrameStateLabel.Pain);
         }
 
