@@ -34,7 +34,7 @@ namespace Helion.Util
                 return true;
             if (ReferenceEquals(self, null) || ReferenceEquals(other, null))
                 return false;
-            return self.str.Equals(other.str, StringComparison.OrdinalIgnoreCase);
+            return self!.str.Equals(other!.str, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool operator !=(CIString? self, CIString? other)
@@ -48,7 +48,7 @@ namespace Helion.Util
                 return true;
             if (ReferenceEquals(self, null) || ReferenceEquals(other, null))
                 return false;
-            return self.str.Equals(other, StringComparison.OrdinalIgnoreCase);      
+            return self!.str.Equals(other, StringComparison.OrdinalIgnoreCase);
         }
         
         public static bool operator !=(CIString? self, string? other)
