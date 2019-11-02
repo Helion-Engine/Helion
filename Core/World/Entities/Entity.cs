@@ -53,9 +53,11 @@ namespace Helion.World.Entities
         public double HighestFloorZ;
         public List<Line> IntersectSpecialLines = new List<Line>();
         public List<Entity> IntersectEntities = new List<Entity>();
+        public List<Entity> PrevIntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
         public Entity? OnEntity;
+        public Entity? OverEntity;
         public Entity? Owner;
         public bool Refire;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
@@ -207,10 +209,9 @@ namespace Helion.World.Entities
                 BlockmapNodes[i].Unlink();
             BlockmapNodes.Clear();
 
-            // Need to remove this from other intersect entities as they will not remove us unless they move
-            for (int i = 0; i < IntersectEntities.Count; i++)
-                IntersectEntities[i].IntersectEntities.Remove(this);
-            
+            PrevIntersectEntities.Clear();
+            PrevIntersectEntities.AddRange(IntersectEntities);
+
             IntersectSpecialLines.Clear();
             IntersectEntities.Clear();
             IntersectSectors.Clear();
