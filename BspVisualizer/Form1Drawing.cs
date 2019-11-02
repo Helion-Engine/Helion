@@ -43,8 +43,7 @@ namespace BspVisualizer
         {
             bottomLeftCornerDrawer.Add(
                 Color.White, "State: ", 
-                Color.Cyan, bspBuilder.State.ToString()
-            );
+                Color.Cyan, bspBuilder.State.ToString());
         }
 
         private void PaintBackground(Graphics g, Rectangle windowBounds)
@@ -123,12 +122,10 @@ namespace BspVisualizer
             {
                 bottomLeftCornerDrawer.Add(
                     Color.White, "Best segment score: ", 
-                    Color.LightGreen, states.BestSegScore.ToString()
-                );
+                    Color.LightGreen, states.BestSegScore.ToString());
                 bottomLeftCornerDrawer.Add(
                     Color.White, "Best segment: ", 
-                    Color.Cyan, states.BestSplitter.ToString()
-                );
+                    Color.Cyan, states.BestSplitter.ToString());
 
                 DrawSegment(g, redPen, states.BestSplitter);
             }
@@ -139,12 +136,10 @@ namespace BspVisualizer
 
                 bottomLeftCornerDrawer.Add(
                     Color.White, "Current segment score: ", 
-                    Color.LightGreen, states.CurrentSegScore.ToString()
-                );
+                    Color.LightGreen, states.CurrentSegScore.ToString());
                 bottomLeftCornerDrawer.Add(
                     Color.White, $"Current segment ({states.CurrentSegmentIndex} / {states.Segments.Count}): ",
-                    Color.Cyan, currentSegment.ToString()
-                );
+                    Color.Cyan, currentSegment.ToString());
 
                 DrawSegment(g, cyanPen, currentSegment);
             }
@@ -179,12 +174,10 @@ namespace BspVisualizer
 
             bottomLeftCornerDrawer.Add(
                 Color.White, "Substate: ", 
-                Color.Cyan, states.State.ToString()
-            );
+                Color.Cyan, states.State.ToString());
             bottomLeftCornerDrawer.Add(
                 Color.White, "In void: ", 
-                Color.LightGreen, states.VoidStatus.ToString()
-            );
+                Color.LightGreen, states.VoidStatus.ToString());
 
             foreach (BspSegment miniseg in states.Minisegs)
                 DrawSegment(g, redPen, miniseg);
@@ -203,15 +196,13 @@ namespace BspVisualizer
                     Color.White, "Second vertex: ",
                     Color.LightGreen, secondVertex.Position.ToString(),
                     Color.White, "at t = ",
-                    Color.Cyan, secondVertexTime.SplitterTime.ToString()
-                );
+                    Color.Cyan, secondVertexTime.SplitterTime.ToString());
 
                 bottomLeftCornerDrawer.Add(
                     Color.White, "First vertex: ",
                     Color.LightGreen, firstVertex.Position.ToString(),
                     Color.White, "at t = ",
-                    Color.Cyan, firstVertexTime.SplitterTime.ToString()
-                );
+                    Color.Cyan, firstVertexTime.SplitterTime.ToString());
             }
         }
     }

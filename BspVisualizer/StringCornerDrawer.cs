@@ -1,8 +1,8 @@
-﻿using Helion.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
