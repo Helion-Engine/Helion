@@ -8,6 +8,7 @@ sudo: required
 language: csharp
 mono: none
 script:
+  - bash travis-helper.sh 
   - sudo snap alias dotnet-sdk.dotnet dotnet
   - cd Tests
   - dotnet build
