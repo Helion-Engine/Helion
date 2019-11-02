@@ -2,12 +2,15 @@ using System;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
-using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using NLog;
+using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Entities.Weapons
+namespace Helion.World.Entities.Inventories
 {
+    /// <summary>
+    /// A weapon that can be fired by some player.
+    /// </summary>
     public class Weapon : InventoryItem, ITickable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -51,7 +54,8 @@ namespace Helion.World.Entities.Weapons
         public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager) :
             base(definition, 1)
         {
-            // TODO: Check that it extends from Weapon.
+            Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
+            
             m_owner = owner;
             FrameState = new FrameState(owner, definition, entityManager);
             

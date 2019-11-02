@@ -6,7 +6,16 @@ namespace Helion.World.Entities.Inventories
 {
     public class Inventory
     {
+        /// <summary>
+        /// All of the items owned by the player that are not a special type of
+        /// item (ex: weapons, which need more logic).
+        /// </summary>
         public readonly Dictionary<CIString, InventoryItem> Items = new Dictionary<CIString, InventoryItem>();
+        
+        /// <summary>
+        /// All of the weapons owned by the player.
+        /// </summary>
+        public readonly Weapons Weapons = new Weapons();
 
         public void Add(EntityDefinition definition, int amount)
         {
@@ -39,7 +48,12 @@ namespace Helion.World.Entities.Inventories
                     item.Amount -= amount;
                 else
                     Items.Remove(name);
+                return;
             }
+
+            // If we didn't find it, then it's possibly indexed in some other
+            // data structure (ex: weapons).
+            Weapons.Remove(name);
         }
 
         public void RemoveAll(CIString name)

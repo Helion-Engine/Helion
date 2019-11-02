@@ -3,7 +3,7 @@ using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Properties.Components;
-using Helion.World.Entities.Weapons;
+using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using NLog;
