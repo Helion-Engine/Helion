@@ -437,6 +437,13 @@ namespace Helion.World.Physics
 
             target.Velocity += Vec3D.UnitTimesValue(angle, 0.0, thrust);
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
+
+            if (target.Health == 0 && target.OverEntity != null)
+            {
+                HandleStackedEntityPhysics(target);
+                target.UnlinkFromWorld();
+                LinkToWorld(target);
+            }
         }
         
         public void RadiusExplosion(Entity source, int radius)
@@ -532,7 +539,7 @@ namespace Helion.World.Physics
             return GetBlockmapTraversalPitch(intersections, entity.Position, entity, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
         }
 
-        private bool IsSkyClipOneSided(Sector sector, double ceilingZ, double floorZ, in Vec3D intersect)
+        private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)
         {
             if (intersect.Z > ceilingZ && TextureManager.Instance.IsSkyTexture(sector.Ceiling.TextureHandle))
                 return true;
@@ -756,9 +763,14 @@ namespace Helion.World.Physics
                 HandleEntityHit(entity, null, null, entity.LowestCeilingSector.Ceiling);
             }
 
-            if (entity.Box.Bottom < highestFloor)
+            if (entity.Box.Bottom <= highestFloor)
             {
-                entity.OnEntity = entity.IntersectEntities.FirstOrDefault(x => x.Box.Top <= entity.Box.Bottom + entity.Properties.MaxStepHeight);
+                if (entity.Flags.Solid)
+                {
+                    entity.OnEntity = entity.IntersectEntities.FirstOrDefault(x => x.Box.Top <= entity.Box.Bottom + entity.Properties.MaxStepHeight);
+                    if (entity.OnEntity != null)                       
+                        entity.OnEntity.OverEntity = entity;
+                }
 
                 SetEntityOnFloorOrEntity(entity, highestFloor, lastHighestFloorObject != entity.HighestFloorObject);
                 HandleEntityHit(entity, null, null, entity.HighestFloorSector.Floor);
@@ -794,43 +806,47 @@ namespace Helion.World.Physics
 
             entity.OnEntity = null;
 
-            foreach (Entity intersectEntity in entity.IntersectEntities)
+            // Only check against other entities if we are solid
+            if (entity.Flags.Solid)
             {
-                // Check if we are stuck inside this entity and skip because it
-                // is invalid for setting floor/ceiling.
-                if (PreviouslyClipped(entity, intersectEntity))
-                    continue;
-
-                bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
-                bool below = entity.PrevPosition.Z < intersectEntity.Box.Bottom;
-                bool clipped = false;
-                if (above && entity.Box.Bottom < intersectEntity.Box.Top)
-                    clipped = true;
-                else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
-                    clipped = true;
-
-                if (above)
+                foreach (Entity intersectEntity in entity.IntersectEntities)
                 {
-                    // Need to check clipping coming from above, if we're above
-                    // or clipped through then this is our floor.
-                    if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
+                    // Check if we are stuck inside this entity and skip because it
+                    // is invalid for setting floor/ceiling.
+                    if (PreviouslyClipped(entity, intersectEntity))
+                        continue;
+
+                    bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
+                    bool below = entity.PrevPosition.Z < intersectEntity.Box.Bottom;
+                    bool clipped = false;
+                    if (above && entity.Box.Bottom < intersectEntity.Box.Top)
+                        clipped = true;
+                    else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
+                        clipped = true;
+
+                    if (above)
+                    {
+                        // Need to check clipping coming from above, if we're above
+                        // or clipped through then this is our floor.
+                        if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
+                        {
+                            highestFloorEntity = intersectEntity;
+                            highestFloorZ = intersectEntity.Box.Top;
+                        }
+                    }
+                    else if (below)
+                    {
+                        // Same check as above but checking clipping the ceiling.
+                        if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
+                            lowestCeilZ = intersectEntity.Box.Bottom;
+                    }
+
+                    // Need to check if we can step up to this floor.
+                    if (entity.Box.Bottom + entity.Properties.MaxStepHeight >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
                     {
                         highestFloorEntity = intersectEntity;
                         highestFloorZ = intersectEntity.Box.Top;
                     }
-                }
-                else if (below)
-                {
-                    // Same check as above but checking clipping the ceiling.
-                    if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
-                        lowestCeilZ = intersectEntity.Box.Bottom;
-                }
-
-                // Need to check if we can step up to this floor.
-                if (entity.Box.Bottom + entity.Properties.MaxStepHeight >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
-                {
-                    highestFloorEntity = intersectEntity;
-                    highestFloorZ = intersectEntity.Box.Top;
                 }
             }
 
@@ -863,6 +879,15 @@ namespace Helion.World.Physics
             entity.IntersectSectors = sectors.ToList();
             entity.IntersectEntities = entities.ToList();
             entity.IntersectSubsectors = subsectors.ToList();
+
+            // Need to compare what entities we currently intersect with compared to before
+            // If we no longer intersect with an entity then we need to remove ourselves from the intersection list of that entity
+            if (entity.PrevIntersectEntities.Count > 0)
+            {
+                var removeEntities = entity.PrevIntersectEntities.Except(entity.IntersectEntities);
+                foreach (var removeEntity in removeEntities)
+                    removeEntity.IntersectEntities.Remove(entity);
+            }
 
             if (!entity.Flags.NoSector && !entity.NoClip)
             {
@@ -971,6 +996,32 @@ namespace Helion.World.Physics
 
                 ClearVelocityXY(entity);
                 break;
+            }
+
+            if (entity.OverEntity != null)
+                HandleStackedEntityPhysics(entity);
+        }
+
+        private void HandleStackedEntityPhysics(Entity entity)
+        {
+            Entity? currentOverEntity = entity.OverEntity;
+
+            while (currentOverEntity != null)
+            {
+                foreach (var relinkEntity in m_entityManager.Entities)
+                {
+                    if (relinkEntity.OnEntity == entity)
+                    {
+                        relinkEntity.UnlinkFromWorld();
+                        LinkToWorld(relinkEntity);
+                    }
+                }
+
+                entity = currentOverEntity;
+                Entity? next = currentOverEntity.OverEntity;
+                if (currentOverEntity.OverEntity != null && currentOverEntity.OverEntity.OnEntity != entity)
+                    currentOverEntity.OverEntity = null;
+                currentOverEntity = next;
             }
         }
 
@@ -1346,6 +1397,9 @@ namespace Helion.World.Physics
 
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
             ClampBetweenFloorAndCeiling(entity);
+
+            if (entity.OverEntity != null)
+                HandleStackedEntityPhysics(entity);
         }
     }
 }
