@@ -12,7 +12,7 @@ namespace Helion.Util.Container
     {
         bool Empty { get; }
         int Count { get; }
-        V? this[K key] { get; }
+        V this[K key] { get; }
         bool ContainsKey(K key);
     }
 }
