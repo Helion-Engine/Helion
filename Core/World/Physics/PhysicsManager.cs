@@ -626,6 +626,14 @@ namespace Helion.World.Physics
                 other.PrevPosition, other.Radius, other.Height);
         }
 
+        private static bool CanMoveOutOfEntity(Entity entity, Entity other, in Vec2D nextPosition)
+        {
+            Vec2D otherPos = other.Position.To2D();
+            double oldDistance = entity.Position.To2D().Distance(otherPos);
+            double newDistance = nextPosition.Distance(otherPos);
+            return newDistance < oldDistance;
+        }
+
         private enum TraversalPitchStatus
         {
             Blocked,
@@ -1090,40 +1098,41 @@ namespace Helion.World.Physics
                     }
                 }
 
-                if (!(entity.Flags.Solid || entity.Flags.Missile))
-                    return GridIterationStatus.Continue;
-
-                LinkableNode<Entity>? entityNode = block.Entities.Head;
-                while (entityNode != null)
+                if (entity.Flags.Solid || entity.Flags.Missile)
                 {
-                    Entity nextEntity = entityNode.Value;
-
-                    if (nextEntity.Box.Overlaps2D(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
+                    LinkableNode<Entity>? entityNode = block.Entities.Head;
+                    while (entityNode != null)
                     {
-                        if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
+                        Entity nextEntity = entityNode.Value;
+
+                        if (nextEntity.Box.Overlaps2D(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                         {
-                            PerformItemPickup(entity, nextEntity);
-                        }
-                        else if (EntityCanBlockEntity(entity, nextEntity))
-                        {
-                            if (EntityBlocksEntityZ(entity, nextEntity))
+                            if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
                             {
-                                Vec2D otherPos = nextEntity.Position.To2D();
-                                double oldDistance = entity.Position.To2D().Distance(otherPos);
-                                double newDistance = nextPosition.Distance(otherPos);
-                                // If we are stuck inside another entity's box then only allow movement if we try to move out the box
-                                if (newDistance < oldDistance)
-                                {
-                                    HandleEntityHit(entity, null, nextEntity, null);
-                                    return GridIterationStatus.Stop;
-                                }
+                                PerformItemPickup(entity, nextEntity);
                             }
+                            else if (EntityCanBlockEntity(entity, nextEntity))
+                            {
+                                if (EntityBlocksEntityZ(entity, nextEntity))
+                                {
+                                    bool clipped = true;
+                                    // If we are stuck inside another entity's box then only allow movement if we try to move out the box
+                                    if (PreviouslyClipped(entity, nextEntity))
+                                        clipped = CanMoveOutOfEntity(entity, nextEntity, nextPosition);
 
-                            entity.IntersectEntities.Add(nextEntity);
+                                    if (clipped)
+                                    {
+                                        HandleEntityHit(entity, null, nextEntity, null);
+                                        return GridIterationStatus.Stop;
+                                    }
+                                }
+
+                                entity.IntersectEntities.Add(nextEntity);
+                            }
                         }
-                    }
 
-                    entityNode = entityNode.Next;
+                        entityNode = entityNode.Next;
+                    }
                 }
 
                 return GridIterationStatus.Continue;
