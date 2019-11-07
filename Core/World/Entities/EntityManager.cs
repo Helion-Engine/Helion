@@ -44,16 +44,22 @@ namespace Helion.World.Entities
             DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
             m_skill = skill;
         }
-        
+
+        public static bool ZHeightSet(double z)
+        {
+            return z != Fixed.Lowest().ToDouble() && z != 0.0;
+        }
+
         public IEnumerable<Entity> FindByTid(int tid)
         {
             return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
         }
 
-        public Entity Create(EntityDefinition definition, Vec3D position, double angle, int tid)
+        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
+            position.Z = GetPositionZ(sector, in position, zHeight);
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
             FinishCreatingEntity(entity);
@@ -89,14 +95,16 @@ namespace Helion.World.Entities
             if (spawnSpot == null)
             {
                 Log.Warn("No player {0} spawns found, creating player at origin", playerIndex);
-                return CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0);
+                return CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0, 0.0);
             }
 
-            return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, spawnSpot.AngleRadians);
+            return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, spawnSpot.Position.Z, spawnSpot.AngleRadians);
         }
 
         public void PopulateFrom(IMap map)
         {
+            List<Entity> relinkEntities = new List<Entity>();
+
             foreach (IThing mapThing in map.GetThings())
             {
                 if (!ShouldSpawn(mapThing, m_skill))
@@ -110,9 +118,19 @@ namespace Helion.World.Entities
                 }
 
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-                Entity entity = Create(definition, mapThing.Position.ToDouble(), angleRadians, mapThing.ThingId);
-
+                Vec3D position = mapThing.Position.ToDouble();
+                // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
+                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId);
+                if (ZHeightSet(position.Z))
+                    relinkEntities.Add(entity);
                 PostProcessEntity(entity);
+            }
+
+            //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
+            for (int i = 0; i < relinkEntities.Count; i++)
+            {
+                relinkEntities[i].UnlinkFromWorld();
+                World.Link(relinkEntities[i]);
             }
         }
 
@@ -137,9 +155,17 @@ namespace Helion.World.Entities
             }
         }
 
+        private static double GetPositionZ(Sector sector, in Vec3D position, double zHeight)
+        {
+            if (ZHeightSet(zHeight))
+                return zHeight + sector.ToFloorZ(position);
+
+            return position.Z;
+        }
+
         private void FinishCreatingEntity(Entity entity)
         {
-            bool forceToCenterZ = (entity.Position.Z == Fixed.Lowest().ToDouble());
+            bool forceToCenterZ = !ZHeightSet(entity.Position.Z);
             
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
@@ -188,10 +214,11 @@ namespace Helion.World.Entities
             }
         }
         
-        private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double angle)
+        private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
+            position.Z = GetPositionZ(sector, position, zHeight);
             Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
             
             FinishCreatingEntity(player);

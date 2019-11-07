@@ -56,7 +56,9 @@ namespace Helion.World.Entities
         public List<Entity> PrevIntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
+        // The entity we are standing on
         public Entity? OnEntity;
+        // The entity standing on our head
         public Entity? OverEntity;
         public Entity? Owner;
         public bool Refire;
@@ -94,7 +96,7 @@ namespace Helion.World.Entities
         /// <param name="soundManager">The sound manager to which we can play
         /// any sounds with.</param>
         /// /// <param name="world">The world this entity belongs to.</param>
-        public Entity(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
+        public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians, 
             Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world)
         {
             Health = definition.Properties.Health;

@@ -137,7 +137,7 @@ namespace Helion.World.Physics
             for (int i = 0; i < entities.Count; i++)
             {
                 Entity entity = entities[i];
-                SetEntityBoundsZ(entity);
+                ClampBetweenFloorAndCeiling(entity);
 
                 if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
                     continue;
@@ -268,7 +268,7 @@ namespace Helion.World.Physics
             if (projectile != null)
             {
                 // TODO doom has a special wall explosion check
-                Entity rocket = m_entityManager.Create(projectile, shooter.AttackPosition, shooter.AngleRadians, 0);
+                Entity rocket = m_entityManager.Create(projectile, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
                 rocket.Owner = shooter;
                 rocket.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, rocket.Definition.Properties.Speed);
             }
@@ -438,14 +438,19 @@ namespace Helion.World.Physics
             target.Velocity += Vec3D.UnitTimesValue(angle, 0.0, thrust);
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
 
-            if (target.Health == 0 && target.OverEntity != null)
-            {
-                HandleStackedEntityPhysics(target);
-                target.UnlinkFromWorld();
-                LinkToWorld(target);
-            }
+            if (target.Health == 0)
+                HandleEntityDeath(target);
         }
-        
+
+        private void HandleEntityDeath(Entity deathEntity)
+        {
+            for (int i = 0; i < deathEntity.IntersectEntities.Count; i++)
+                deathEntity.IntersectEntities[i].IntersectEntities.Remove(deathEntity);
+
+            if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
+                HandleStackedEntityPhysics(deathEntity);
+        }
+
         public void RadiusExplosion(Entity source, int radius)
         {
             // Barrels can't use ZDoom physics - TODO better way to check?
@@ -717,7 +722,7 @@ namespace Helion.World.Physics
         {
             var puff = m_entityManager.DefinitionComposer.GetByName(className);
             if (puff != null)
-                m_entityManager.Create(puff, intersect, 0.0, 0);
+                m_entityManager.Create(puff, intersect, 0.0, 0.0, 0);
         }
 
         private void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
@@ -775,7 +780,13 @@ namespace Helion.World.Physics
             {
                 if (entity.Flags.Solid)
                 {
-                    entity.OnEntity = entity.IntersectEntities.FirstOrDefault(x => x.Box.Top <= entity.Box.Bottom + entity.Properties.MaxStepHeight);
+                    if (entity.HighestFloorObject != null && entity.HighestFloorObject is Entity)
+                    {
+                        Entity highestEntity = (Entity)entity.HighestFloorObject;
+                        if (highestEntity.Box.Top <= entity.Box.Bottom + entity.Properties.MaxStepHeight)
+                            entity.OnEntity = highestEntity;
+                    }
+
                     if (entity.OnEntity != null)                       
                         entity.OnEntity.OverEntity = entity;
                 }
@@ -1014,6 +1025,12 @@ namespace Helion.World.Physics
         {
             Entity? currentOverEntity = entity.OverEntity;
 
+            if (entity.OnEntity != null)
+            {
+                entity.OnEntity.UnlinkFromWorld();
+                LinkToWorld(entity.OnEntity);
+            }
+
             while (currentOverEntity != null)
             {
                 foreach (var relinkEntity in m_entityManager.Entities)
@@ -1067,6 +1084,8 @@ namespace Helion.World.Physics
                     m_entityManager.Destroy(entity);
                 else
                     entity.Kill();
+
+                HandleEntityDeath(entity);
             }
         }
 

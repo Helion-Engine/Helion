@@ -119,10 +119,10 @@ namespace Helion.World.Geometry.Sectors
             Ceiling.LightLevel = lightLevel;
         }
 
-        public double ToFloorZ(Vec2D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
-        public double ToFloorZ(Vec3D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
-        public double ToCeilingZ(Vec2D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
-        public double ToCeilingZ(Vec3D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
+        public double ToFloorZ(in Vec2D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
+        public double ToFloorZ(in Vec3D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
+        public double ToCeilingZ(in Vec2D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
+        public double ToCeilingZ(in Vec3D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
         
         // TODO use plane values - can probably make these neater and more concise, they are all basically the same function
         // TODO add function to handle WR_RaiseByShortestLowerTexture

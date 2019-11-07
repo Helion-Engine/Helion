@@ -34,7 +34,7 @@ namespace Helion.World.Entities.Players
         private double m_prevViewHeight;
         private double m_deltaViewHeight;
 
-        public Player(int id, int thingId, EntityDefinition definition, Vec3D position, double angleRadians, 
+        public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians, 
             Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber) 
             : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
         {
