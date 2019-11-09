@@ -98,7 +98,7 @@ namespace Helion.World.Entities
                 return CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0, 0.0);
             }
 
-            return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, spawnSpot.Position.Z, spawnSpot.AngleRadians);
+            return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
         }
 
         public void PopulateFrom(IMap map)

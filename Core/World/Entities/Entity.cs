@@ -49,6 +49,7 @@ namespace Helion.World.Entities
         public Sector LowestCeilingSector;
         // Can be Sector or Entity
         public object HighestFloorObject;
+        public object LowestCeilingObject;
         public double LowestCeilingZ;
         public double HighestFloorZ;
         public List<Line> IntersectSpecialLines = new List<Line>();
@@ -78,6 +79,27 @@ namespace Helion.World.Entities
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
         public EntityFrame Frame => FrameState.Frame;
+
+        public double GetMaxStepHeight()
+        {
+            if (Flags.Missile)
+                return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
+
+            return Properties.MaxStepHeight;
+        }
+
+        public bool ApplyGravity()
+        {
+            if (Flags.NoGravity)
+            {
+                if (Flags.IsMonster)
+                    return Health == 0;
+
+                return false;
+            }
+
+            return !OnGround;
+        }
         
         /// <summary>
         /// Creates an entity with the following information.
@@ -117,6 +139,7 @@ namespace Helion.World.Entities
             HighestFloorSector = sector;
             HighestFloorObject = sector;
             LowestCeilingSector = sector;
+            LowestCeilingObject = sector;
             OnGround = CheckOnGround();
             EntityManager = entityManager;
             SoundManager = soundManager;

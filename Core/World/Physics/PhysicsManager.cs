@@ -132,6 +132,12 @@ namespace Helion.World.Physics
                 }
 
                 ClampBetweenFloorAndCeiling(entity);
+
+                double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
+                // Clipped something that wasn't directly on this entity before the move and now it will be
+                // Push the entity up, and the next loop will verify it is legal
+                if (entity.OverEntity == null && thingZ + entity.Height > entity.LowestCeilingZ)
+                    PushUpBlockingEntity(entity);
             }
 
             for (int i = 0; i < entities.Count; i++)
@@ -442,11 +448,21 @@ namespace Helion.World.Physics
                 HandleEntityDeath(target);
         }
 
+        private bool PushUpBlockingEntity(Entity pusher)
+        {
+            // Check if the pusher is blocked by an entity
+            // If true then push that entity up
+            if (!(pusher.LowestCeilingObject is Entity))
+                return false;
+
+            Entity entity = (Entity)pusher.LowestCeilingObject;
+            entity.SetZ(pusher.Box.Top, false);
+
+            return true;
+        }
+
         private void HandleEntityDeath(Entity deathEntity)
         {
-            for (int i = 0; i < deathEntity.IntersectEntities.Count; i++)
-                deathEntity.IntersectEntities[i].IntersectEntities.Remove(deathEntity);
-
             if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
                 HandleStackedEntityPhysics(deathEntity);
         }
@@ -620,7 +636,7 @@ namespace Helion.World.Physics
         
         private static bool EntityBlocksEntityZ(Entity entity, Entity other)
         {
-            double maxStepHeight = entity is Player ? entity.Properties.MaxStepHeight : 0.0;
+            double maxStepHeight = entity.GetMaxStepHeight();
             return other.Box.Top - entity.Box.Bottom > maxStepHeight || 
                    entity.LowestCeilingZ - other.Box.Top < entity.Height;
         }
@@ -773,26 +789,31 @@ namespace Helion.World.Physics
             {
                 entity.SetZ(lowestCeil - entity.Height, false);
                 entity.Velocity.Z = 0;
-                HandleEntityHit(entity, null, null, entity.LowestCeilingSector.Ceiling);
+
+                if (entity.HighestFloorObject is Entity)
+                    HandleEntityHit(entity, null, (Entity)entity.HighestFloorObject, null);
+                else
+                    HandleEntityHit(entity, null, null, entity.LowestCeilingSector.Ceiling);
             }
 
             if (entity.Box.Bottom <= highestFloor)
             {
-                if (entity.Flags.Solid)
+                if (entity.HighestFloorObject != null && entity.HighestFloorObject is Entity)
                 {
-                    if (entity.HighestFloorObject != null && entity.HighestFloorObject is Entity)
-                    {
-                        Entity highestEntity = (Entity)entity.HighestFloorObject;
-                        if (highestEntity.Box.Top <= entity.Box.Bottom + entity.Properties.MaxStepHeight)
-                            entity.OnEntity = highestEntity;
-                    }
-
-                    if (entity.OnEntity != null)                       
-                        entity.OnEntity.OverEntity = entity;
+                    Entity highestEntity = (Entity)entity.HighestFloorObject;
+                    if (highestEntity.Box.Top <= entity.Box.Bottom + entity.GetMaxStepHeight())
+                        entity.OnEntity = highestEntity;
                 }
 
+                if (entity.OnEntity != null)                       
+                    entity.OnEntity.OverEntity = entity;
+
                 SetEntityOnFloorOrEntity(entity, highestFloor, lastHighestFloorObject != entity.HighestFloorObject);
-                HandleEntityHit(entity, null, null, entity.HighestFloorSector.Floor);
+
+                if (entity.HighestFloorObject is Entity)
+                    HandleEntityHit(entity, null, (Entity)entity.HighestFloorObject, null);
+                else
+                    HandleEntityHit(entity, null, null, entity.HighestFloorSector.Floor);
             }
 
             entity.OnGround = entity.Box.Bottom == highestFloor;         
@@ -803,30 +824,34 @@ namespace Helion.World.Physics
             Sector highestFloor = entity.Sector;
             Sector lowestCeiling = entity.Sector;
             Entity? highestFloorEntity = null;
+            Entity? lowestCeilingEntity = null;
             double highestFloorZ = highestFloor.ToFloorZ(entity.Position);
             double lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
-            
-            foreach (Sector sector in entity.IntersectSectors)
-            {
-                double floorZ = sector.ToFloorZ(entity.Position);
-                if (floorZ > highestFloorZ)
-                {
-                    highestFloor = sector;
-                    highestFloorZ = floorZ;
-                }
 
-                double ceilZ = sector.ToCeilingZ(entity.Position);
-                if (ceilZ < lowestCeilZ)
+            if (entity.Flags.CanPass)
+            {
+                foreach (Sector sector in entity.IntersectSectors)
                 {
-                    lowestCeiling = sector;
-                    lowestCeilZ = ceilZ;
+                    double floorZ = sector.ToFloorZ(entity.Position);
+                    if (floorZ > highestFloorZ)
+                    {
+                        highestFloor = sector;
+                        highestFloorZ = floorZ;
+                    }
+
+                    double ceilZ = sector.ToCeilingZ(entity.Position);
+                    if (ceilZ < lowestCeilZ)
+                    {
+                        lowestCeiling = sector;
+                        lowestCeilZ = ceilZ;
+                    }
                 }
             }
 
             entity.OnEntity = null;
 
             // Only check against other entities if we are solid
-            if (entity.Flags.Solid)
+            if (entity.Flags.CanPass)
             {
                 foreach (Entity intersectEntity in entity.IntersectEntities)
                 {
@@ -836,7 +861,7 @@ namespace Helion.World.Physics
                         continue;
 
                     bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
-                    bool below = entity.PrevPosition.Z < intersectEntity.Box.Bottom;
+                    bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
                     bool clipped = false;
                     if (above && entity.Box.Bottom < intersectEntity.Box.Top)
                         clipped = true;
@@ -857,11 +882,14 @@ namespace Helion.World.Physics
                     {
                         // Same check as above but checking clipping the ceiling.
                         if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
+                        {
+                            lowestCeilingEntity = intersectEntity;
                             lowestCeilZ = intersectEntity.Box.Bottom;
+                        }
                     }
 
                     // Need to check if we can step up to this floor.
-                    if (entity.Box.Bottom + entity.Properties.MaxStepHeight >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
+                    if (entity.Box.Bottom + entity.GetMaxStepHeight() >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
                     {
                         highestFloorEntity = intersectEntity;
                         highestFloorZ = intersectEntity.Box.Top;
@@ -878,6 +906,11 @@ namespace Helion.World.Physics
                 entity.HighestFloorObject = highestFloorEntity;
             else
                 entity.HighestFloorObject = highestFloor;
+
+            if (lowestCeilingEntity != null && lowestCeilingEntity.Box.Top < lowestCeiling.ToCeilingZ(entity.Position))
+                entity.LowestCeilingObject = lowestCeilingEntity;
+            else
+                entity.LowestCeilingObject = lowestCeiling;
         }
 
         private void LinkToSectorsAndEntities(Entity entity)
@@ -899,13 +932,23 @@ namespace Helion.World.Physics
             entity.IntersectEntities = entities.ToList();
             entity.IntersectSubsectors = subsectors.ToList();
 
+            if (!entity.Flags.NoBlockmap)
+            {
+                for (int i = 0; i < entity.IntersectEntities.Count; i++)
+                {
+                    Entity intersectEntity = entity.IntersectEntities[i];
+                    if (!intersectEntity.IntersectEntities.Contains(entity))
+                        intersectEntity.IntersectEntities.Add(entity);
+                }
+            }
+
             // Need to compare what entities we currently intersect with compared to before
             // If we no longer intersect with an entity then we need to remove ourselves from the intersection list of that entity
             if (entity.PrevIntersectEntities.Count > 0)
             {
-                var removeEntities = entity.PrevIntersectEntities.Except(entity.IntersectEntities);
-                foreach (var removeEntity in removeEntities)
-                    removeEntity.IntersectEntities.Remove(entity);
+                var removeEntities = entity.PrevIntersectEntities.Except(entity.IntersectEntities).ToList();
+                for (int i = 0; i < removeEntities.Count; i++)
+                    removeEntities[i].IntersectEntities.Remove(entity);
             }
 
             if (!entity.Flags.NoSector && !entity.NoClip)
@@ -1145,8 +1188,6 @@ namespace Helion.World.Physics
                                         return GridIterationStatus.Stop;
                                     }
                                 }
-
-                                entity.IntersectEntities.Add(nextEntity);
                             }
                         }
 
@@ -1417,7 +1458,7 @@ namespace Helion.World.Physics
         {
             if (entity.IsFlying)
                 entity.Velocity.Z *= Friction;
-            else if (!entity.OnGround && !entity.Flags.NoGravity)
+            else if (entity.ApplyGravity())
                 entity.Velocity.Z -= Gravity;
 
             if (entity.Velocity.Z == 0)

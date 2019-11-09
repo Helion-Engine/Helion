@@ -49,7 +49,7 @@ namespace Helion.World.Physics
         
         public bool CanStepUpInto(Entity entity)
         {
-            return entity.Box.Bottom < FloorZ && entity.Box.Bottom >= FloorZ - entity.Properties.MaxStepHeight;
+            return entity.Box.Bottom < FloorZ && entity.Box.Bottom >= FloorZ - entity.GetMaxStepHeight();
         }
 
         public bool Fits(Entity entity) => entity.Height <= OpeningHeight;
