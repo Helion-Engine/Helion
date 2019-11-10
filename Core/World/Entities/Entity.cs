@@ -41,7 +41,6 @@ namespace Helion.World.Entities
         public Inventory Inventory = new Inventory();
         public int Health;
         public int FrozenTics;
-        public bool IsFlying;
         public bool NoClip;
         public bool OnGround;
         public Sector Sector;
@@ -53,8 +52,6 @@ namespace Helion.World.Entities
         public double LowestCeilingZ;
         public double HighestFloorZ;
         public List<Line> IntersectSpecialLines = new List<Line>();
-        public List<Entity> IntersectEntities = new List<Entity>();
-        public List<Entity> PrevIntersectEntities = new List<Entity>();
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
         // The entity we are standing on
@@ -79,27 +76,6 @@ namespace Helion.World.Entities
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
         public EntityFrame Frame => FrameState.Frame;
-
-        public double GetMaxStepHeight()
-        {
-            if (Flags.Missile)
-                return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
-
-            return Properties.MaxStepHeight;
-        }
-
-        public bool ApplyGravity()
-        {
-            if (Flags.NoGravity)
-            {
-                if (Flags.IsMonster)
-                    return Health == 0;
-
-                return false;
-            }
-
-            return !OnGround;
-        }
         
         /// <summary>
         /// Creates an entity with the following information.
@@ -234,11 +210,7 @@ namespace Helion.World.Entities
                 BlockmapNodes[i].Unlink();
             BlockmapNodes.Clear();
 
-            PrevIntersectEntities.Clear();
-            PrevIntersectEntities.AddRange(IntersectEntities);
-
             IntersectSpecialLines.Clear();
-            IntersectEntities.Clear();
             IntersectSectors.Clear();
             IntersectSubsectors.Clear();
         }
@@ -305,6 +277,48 @@ namespace Helion.World.Entities
 
         public bool CheckOnGround() => HighestFloorZ >= Position.Z;
 
+        public List<Entity> GetIntersectingEntities2D()
+        {
+            List<Entity> entities = new List<Entity>();
+
+            foreach (var entity in Sector.Entities)
+            {
+                if (entity.Flags.Solid && entity.Box.Overlaps2D(Box))
+                    entities.Add(entity);
+            }
+
+            return entities;
+        }
+
+        public double GetMaxStepHeight()
+        {
+            if (Flags.Missile)
+                return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
+
+            return Properties.MaxStepHeight;
+        }
+
+        public bool ShouldApplyGravity()
+        {
+            if (Flags.NoGravity)
+            {
+                if (Flags.IsMonster)
+                    return Health == 0;
+
+                return false;
+            }
+
+            return !OnGround;
+        }
+
+        public bool ShouldApplyFriction()
+        {
+            if (Flags.NoFriction || Flags.Missile)
+                return false;
+
+            return Flags.NoGravity || OnGround;
+        }
+
         public void Dispose()
         {
             UnlinkFromWorld();
@@ -325,6 +339,7 @@ namespace Helion.World.Entities
                 Flags.Skullfly = false;
                 Flags.Solid = false;
                 Flags.Shootable = false;
+                Flags.NoGravity = false;
             }
         }
 

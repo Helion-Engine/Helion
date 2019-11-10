@@ -96,7 +96,7 @@ namespace Helion.World.Entities.Players
 
             m_isJumping = false;
 
-            if (hardHit && !IsFlying)
+            if (hardHit && !Flags.NoGravity)
             {
                 SoundManager.CreateSoundOn(this, "DSOOF", SoundChannelType.Voice);
                 m_deltaViewHeight = Velocity.Z / PlayerViewDivider;

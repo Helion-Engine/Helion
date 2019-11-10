@@ -126,7 +126,7 @@ namespace Helion.World.Physics
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
                 if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
-                    entity.OnGround && !entity.IsFlying && entity.HighestFloorSector == sector)
+                    entity.OnGround && !entity.Flags.NoGravity && entity.HighestFloorSector == sector)
                 {
                     entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
                 }
@@ -612,9 +612,6 @@ namespace Helion.World.Physics
 
         private static void ApplyFriction(Entity entity)
         {
-            if (!entity.OnGround && !entity.IsFlying)
-                return;
-
             entity.Velocity.X *= Friction;
             entity.Velocity.Y *= Friction;
         }
@@ -776,7 +773,7 @@ namespace Helion.World.Physics
             // TODO fixme
             if (entity.Definition.Name == "BulletPuff")
                 return;
-            if (entity.NoClip && entity.IsFlying)
+            if (entity.NoClip && entity.Flags.NoGravity)
                 return;
 
             object lastHighestFloorObject = entity.HighestFloorObject;
@@ -853,8 +850,13 @@ namespace Helion.World.Physics
             // Only check against other entities if we are solid
             if (entity.Flags.CanPass)
             {
-                foreach (Entity intersectEntity in entity.IntersectEntities)
+                // Get intersecting entities here
+                // They are not stored in the entity because other entities can move around after this entity has linked
+                List<Entity> intersectEntities = entity.GetIntersectingEntities2D();
+
+                for (int i = 0; i < intersectEntities.Count; i++)
                 {
+                    Entity intersectEntity = intersectEntities[i];
                     // Check if we are stuck inside this entity and skip because it
                     // is invalid for setting floor/ceiling.
                     if (PreviouslyClipped(entity, intersectEntity))
@@ -920,7 +922,6 @@ namespace Helion.World.Physics
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position.To2D());
             Sector centerSector = centerSubsector.Sector;
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
-            HashSet<Entity> entities = new HashSet<Entity>();
             HashSet<Subsector> subsectors = new HashSet<Subsector> { centerSubsector };
             
             // TODO: Can we replace this by iterating over the blocks were already in?
@@ -929,27 +930,7 @@ namespace Helion.World.Physics
 
             entity.Sector = centerSector;
             entity.IntersectSectors = sectors.ToList();
-            entity.IntersectEntities = entities.ToList();
             entity.IntersectSubsectors = subsectors.ToList();
-
-            if (!entity.Flags.NoBlockmap)
-            {
-                for (int i = 0; i < entity.IntersectEntities.Count; i++)
-                {
-                    Entity intersectEntity = entity.IntersectEntities[i];
-                    if (!intersectEntity.IntersectEntities.Contains(entity))
-                        intersectEntity.IntersectEntities.Add(entity);
-                }
-            }
-
-            // Need to compare what entities we currently intersect with compared to before
-            // If we no longer intersect with an entity then we need to remove ourselves from the intersection list of that entity
-            if (entity.PrevIntersectEntities.Count > 0)
-            {
-                var removeEntities = entity.PrevIntersectEntities.Except(entity.IntersectEntities).ToList();
-                for (int i = 0; i < removeEntities.Count; i++)
-                    removeEntities[i].IntersectEntities.Remove(entity);
-            }
 
             if (!entity.Flags.NoSector && !entity.NoClip)
             {
@@ -980,16 +961,6 @@ namespace Helion.World.Physics
                         if (line.Back != null)
                             sectors.Add(line.Back.Sector);
                     }
-                }
-
-                LinkableNode<Entity>? entityNode = block.Entities.Head;
-                while (entityNode != null)
-                {
-                    Entity nextEntity = entityNode.Value;
-                    if (EntityCanBlockEntity(entity, nextEntity) && nextEntity.Box.Overlaps2D(entity.Box))
-                        entities.Add(nextEntity);
-
-                    entityNode = entityNode.Next;
                 }
                 
                 return GridIterationStatus.Continue;
@@ -1450,15 +1421,19 @@ namespace Helion.World.Physics
                 return;
 
             PerformMoveXY(entity);
-            ApplyFriction(entity);
+            if (entity.ShouldApplyFriction())
+                ApplyFriction(entity);
             StopXYMovementIfSmall(entity);
         }
 
         private void MoveZ(Entity entity)
         {
-            if (entity.IsFlying)
+            if (entity.Flags.Missile)
+                entity.Flags.Missile = true;
+
+            if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
-            else if (entity.ApplyGravity())
+            if (entity.ShouldApplyGravity())
                 entity.Velocity.Z -= Gravity;
 
             if (entity.Velocity.Z == 0)

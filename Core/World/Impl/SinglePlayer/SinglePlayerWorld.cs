@@ -89,7 +89,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (tickCommand.Has(TickCommands.Jump))
             {
-                if (Player.IsFlying)
+                if (Player.Flags.NoGravity)
                 {
                     // This z velocity overrides z movement velocity
                     movement.Z = 0;
@@ -103,7 +103,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             if (movement != Vec3D.Zero)
             {
-                if (!Player.OnGround && !Player.IsFlying)
+                if (!Player.OnGround && !Player.Flags.NoGravity)
                     movement *= AirControl;
                 
                 Player.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
@@ -184,7 +184,7 @@ namespace Helion.World.Impl.SinglePlayer
             double y = Math.Sin(player.AngleRadians) * Player.ForwardMovementSpeed;
             double z = 0;
 
-            if (player.IsFlying)
+            if (player.Flags.NoGravity)
                z = Player.ForwardMovementSpeed * player.PitchRadians;
 
             return new Vec3D(x, y, z);
@@ -213,7 +213,7 @@ namespace Helion.World.Impl.SinglePlayer
                 Player.NoClip = cheatEvent.Activated;
                 break;
             case CheatType.Fly:
-                Player.IsFlying = cheatEvent.Activated;
+                Player.Flags.NoGravity = cheatEvent.Activated;
                 break;
             }
         }

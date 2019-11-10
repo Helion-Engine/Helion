@@ -35,6 +35,9 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.Speed != null)
                 definition.Properties.Speed = properties.Speed.Value;
+
+            if (properties.Mass != null)
+                definition.Properties.Mass = properties.Mass.Value;
         }
     }
 }
