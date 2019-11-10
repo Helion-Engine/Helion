@@ -277,17 +277,27 @@ namespace Helion.World.Entities
 
         public bool CheckOnGround() => HighestFloorZ >= Position.Z;
 
+        /// <summary>
+        /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space.
+        /// </summary>
         public List<Entity> GetIntersectingEntities2D()
         {
             List<Entity> entities = new List<Entity>();
 
             foreach (var entity in Sector.Entities)
             {
-                if (entity.Flags.Solid && entity.Box.Overlaps2D(Box))
+                if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
                     entities.Add(entity);
             }
 
             return entities;
+        }
+
+        public bool CanBlockEntity(Entity other)
+        {
+            if (ReferenceEquals(this, other) || Owner == other || !other.Flags.Solid)
+                return false;
+            return other.Flags.Solid;
         }
 
         public double GetMaxStepHeight()

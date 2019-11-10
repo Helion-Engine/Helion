@@ -624,13 +624,6 @@ namespace Helion.World.Physics
                 entity.Velocity.Y = 0;
         }
         
-        private static bool EntityCanBlockEntity(Entity entity, Entity other)
-        {
-            if (ReferenceEquals(entity, other) || entity.Owner == other || !other.Flags.Solid)
-                return false;
-            return other.Flags.Solid;
-        }
-        
         private static bool EntityBlocksEntityZ(Entity entity, Entity other)
         {
             double maxStepHeight = entity.GetMaxStepHeight();
@@ -1144,7 +1137,7 @@ namespace Helion.World.Physics
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
-                            else if (EntityCanBlockEntity(entity, nextEntity))
+                            else if (entity.CanBlockEntity(nextEntity))
                             {
                                 if (EntityBlocksEntityZ(entity, nextEntity))
                                 {
