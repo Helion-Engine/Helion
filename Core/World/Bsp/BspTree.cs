@@ -128,7 +128,7 @@ namespace Helion.World.Bsp
         /// </summary>
         /// <param name="point">The point to get the subsector for.</param>
         /// <returns>The subsector for the provided point.</returns>
-        public Subsector ToSubsector(Vec2D point)
+        public Subsector ToSubsector(in Vec3D point)
         {
             BspNodeCompact node = Root;
 
@@ -154,14 +154,7 @@ namespace Helion.World.Bsp
         /// </summary>
         /// <param name="point">The point to get the sector for.</param>
         /// <returns>The sector for the provided point.</returns>
-        public Sector ToSector(Vec2D point) => ToSubsector(point).Sector;
-        
-        /// <summary>
-        /// Gets the sector that maps onto the point provided.
-        /// </summary>
-        /// <param name="point">The point to get the sector for.</param>
-        /// <returns>The sector for the provided point.</returns>
-        public Sector ToSector(Vec3D point) => ToSubsector(point.To2D()).Sector;
+        public Sector ToSector(in Vec3D point) => ToSubsector(point).Sector;
         
         private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
         {
