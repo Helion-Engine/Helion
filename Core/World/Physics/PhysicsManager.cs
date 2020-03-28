@@ -84,12 +84,13 @@ namespace Helion.World.Physics
         /// Links an entity to the world.
         /// </summary>
         /// <param name="entity">The entity to link.</param>
-        public void LinkToWorld(Entity entity)
+        /// <param name="linkSpecialLines">Will check for special intersecting lines with this entity - see IntersectSpecialLines.</param>
+        public void LinkToWorld(Entity entity, bool linkSpecialLines = false)
         {
             if (!entity.Flags.NoBlockmap)
                 m_blockmap.Link(entity);
             
-            LinkToSectorsAndEntities(entity);
+            LinkToSectors(entity, linkSpecialLines);
             
             ClampBetweenFloorAndCeiling(entity);
         }
@@ -908,18 +909,26 @@ namespace Helion.World.Physics
                 entity.LowestCeilingObject = lowestCeiling;
         }
 
-        private void LinkToSectorsAndEntities(Entity entity)
+        private void LinkToSectors(Entity entity, bool linkSpecialLines)
         {
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
+
+            if (linkSpecialLines)
+            {
+                if (entity.IntersectSpecialLines == null)
+                    entity.IntersectSpecialLines = new List<Line>();
+                else
+                    entity.IntersectSpecialLines.Clear();
+            }
             
-            Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position.To2D());
+            Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
             HashSet<Subsector> subsectors = new HashSet<Subsector> { centerSubsector };
             
             // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
-            m_blockmap.Iterate(box, EntitySectorOverlapFinder);
+            m_blockmap.Iterate(box, SectorOverlapFinder);
 
             entity.Sector = centerSector;
             entity.IntersectSectors = sectors.ToList();
@@ -933,7 +942,7 @@ namespace Helion.World.Physics
                     entity.SubsectorNodes.Add(entity.IntersectSubsectors[i].Link(entity));
             }
 
-            GridIterationStatus EntitySectorOverlapFinder(Block block)
+            GridIterationStatus SectorOverlapFinder(Block block)
             {
                 // Doing iteration over enumeration for performance reasons.
                 for (int i = 0; i < block.Lines.Count; i++)
@@ -941,7 +950,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
-                        if (!entity.NoClip)
+                        if (entity.IntersectSpecialLines != null && !entity.NoClip)
                         {
                             if (line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
                                 entity.IntersectSpecialLines.Add(line);
@@ -1033,20 +1042,14 @@ namespace Helion.World.Physics
             Entity? currentOverEntity = entity.OverEntity;
 
             if (entity.OnEntity != null)
-            {
-                entity.OnEntity.UnlinkFromWorld();
-                LinkToWorld(entity.OnEntity);
-            }
+                ClampBetweenFloorAndCeiling(entity.OnEntity);
 
             while (currentOverEntity != null)
             {
-                foreach (var relinkEntity in m_entityManager.Entities)
+                foreach (var relinkEntity in entity.Sector.Entities)
                 {
                     if (relinkEntity.OnEntity == entity)
-                    {
-                        relinkEntity.UnlinkFromWorld();
-                        LinkToWorld(relinkEntity);
-                    }
+                        ClampBetweenFloorAndCeiling(relinkEntity);
                 }
 
                 entity = currentOverEntity;
@@ -1131,6 +1134,11 @@ namespace Helion.World.Physics
                     {
                         Entity nextEntity = entityNode.Value;
 
+                        if (entity.Box.Bottom >= 120 && entity.Box.Bottom <= 132 && entity.Flags.Missile)
+                        {
+                            entity.Flags.Missile = entity.Flags.Missile;
+                        }
+
                         if (nextEntity.Box.Overlaps2D(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                         {
                             if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
@@ -1184,10 +1192,13 @@ namespace Helion.World.Physics
             Vec2D previousPosition = entity.Position.To2D();
             entity.SetXY(nextPosition);
 
-            LinkToWorld(entity);
+            LinkToWorld(entity, true);
 
-            for (int i = 0; i < entity.IntersectSpecialLines.Count; i++)
-                CheckLineSpecialActivation(entity, entity.IntersectSpecialLines[i], previousPosition);
+            if (entity.IntersectSpecialLines != null)
+            {
+                for (int i = 0; i < entity.IntersectSpecialLines.Count; i++)
+                    CheckLineSpecialActivation(entity, entity.IntersectSpecialLines[i], previousPosition);
+            }
         }
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)

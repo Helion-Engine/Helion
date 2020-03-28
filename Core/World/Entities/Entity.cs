@@ -51,7 +51,7 @@ namespace Helion.World.Entities
         public object LowestCeilingObject;
         public double LowestCeilingZ;
         public double HighestFloorZ;
-        public List<Line> IntersectSpecialLines = new List<Line>();
+        public List<Line>? IntersectSpecialLines;
         public List<Sector> IntersectSectors = new List<Sector>();
         public List<Subsector> IntersectSubsectors = new List<Subsector>();
         // The entity we are standing on
@@ -210,7 +210,6 @@ namespace Helion.World.Entities
                 BlockmapNodes[i].Unlink();
             BlockmapNodes.Clear();
 
-            IntersectSpecialLines.Clear();
             IntersectSectors.Clear();
             IntersectSubsectors.Clear();
         }
