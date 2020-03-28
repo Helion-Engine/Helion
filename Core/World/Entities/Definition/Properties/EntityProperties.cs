@@ -140,6 +140,7 @@ namespace Helion.World.Entities.Definition.Properties
             BurnHeight = properties.BurnHeight;
             ConversationID = properties.ConversationID;
             CrushPainSound = properties.CrushPainSound;
+            Damage = properties.Damage;
             DamageFactor = properties.DamageFactor;
             DeathHeight = properties.DeathHeight;
             DeathType = properties.DeathType;
