@@ -443,6 +443,7 @@ namespace Helion.World.Physics
             }
 
             target.Velocity += Vec3D.UnitTimesValue(angle, 0.0, thrust);
+            target.Velocity.Normalize();
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
 
             if (target.Health == 0)
