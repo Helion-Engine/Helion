@@ -13,6 +13,7 @@ namespace Helion.World.Cheats
         {
             new ChangeLevelCheat(),
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
+            new ExactMatchCheat("God mode", "iddqd", "god", CheatType.God),
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
         };
 
