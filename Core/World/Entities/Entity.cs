@@ -53,13 +53,13 @@ namespace Helion.World.Entities
         public double HighestFloorZ;
         public List<Line>? IntersectSpecialLines;
         public List<Sector> IntersectSectors = new List<Sector>();
-        public List<Subsector> IntersectSubsectors = new List<Subsector>();
         // The entity we are standing on
         public Entity? OnEntity;
         // The entity standing on our head
         public Entity? OverEntity;
         public Entity? Owner;
         public bool Refire;
+        public bool WallExplosion;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
@@ -211,7 +211,6 @@ namespace Helion.World.Entities
             BlockmapNodes.Clear();
 
             IntersectSectors.Clear();
-            IntersectSubsectors.Clear();
         }
 
         /// <summary>
@@ -254,7 +253,7 @@ namespace Helion.World.Entities
 
         public void Damage(int damage, bool setPainState)
         {
-            if (damage <= 0)
+            if (damage <= 0 || Flags.Invulnerable)
                 return;
             
             Health -= damage;

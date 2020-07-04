@@ -271,13 +271,22 @@ namespace Helion.World.Physics
                     pitch = autoAimPitch;
             }
 
-            var projectile = m_entityManager.DefinitionComposer.GetByName(projectClassName);
-            if (projectile != null)
-            {
-                // TODO doom has a special wall explosion check
-                Entity rocket = m_entityManager.Create(projectile, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
-                rocket.Owner = shooter;
-                rocket.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, rocket.Definition.Properties.Speed);
+            var projectileDef = m_entityManager.DefinitionComposer.GetByName(projectClassName);
+            if (projectileDef != null)
+            {               
+                Entity projectile = m_entityManager.Create(projectileDef, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
+                projectile.Owner = shooter;
+                projectile.Velocity = Vec3D.Unit(shooter.AngleRadians, pitch);
+                projectile.Velocity.Normalize();
+                projectile.Velocity.X *= projectile.Definition.Properties.Speed;
+                projectile.Velocity.Y *= projectile.Definition.Properties.Speed;
+                projectile.Velocity.Z *= projectile.Definition.Properties.Speed;
+
+                if (!CanMoveTo(projectile, projectile.Position.To2D() + projectile.Velocity.To2D()))
+                {
+                    projectile.WallExplosion = true;
+                    projectile.SetDeathState();
+                }
             }
         }
 
@@ -432,9 +441,28 @@ namespace Helion.World.Physics
             if (!target.Flags.Shootable)
                 return;
 
+            bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
+            double pitch;
+
+            // Player rocket jumping check, back up the source Z to get a valid pitch
+            // Only done for players, otherwise blowing up enemies will launch them in the air
+            if (zEqual && target is Player && source.Owner == target)
+            {
+                Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
+                pitch = sourcePos.Pitch(target.Position, 1.0);
+            }
+            else
+            {
+                pitch = source.Position.Pitch(target.Position, source.Position.To2D().Distance(target.Position.To2D()));
+            }
+
             double angle = source.Position.Angle(target.Position);
             double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
+            if (source.WallExplosion)
+                angle = source.AngleRadians + Math.PI;
+
+            // Silly vanilla doom feature that allows target to be thrown forward sometimes
             if (damage < 40 && damage > target.Health &&
                 target.Position.Z - source.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
             {
@@ -442,8 +470,11 @@ namespace Helion.World.Physics
                 thrust *= 4;
             }
 
-            target.Velocity += Vec3D.UnitTimesValue(angle, 0.0, thrust);
-            target.Velocity.Normalize();
+            if (target.Box.Overlaps(source.Box) && zEqual)
+                target.Velocity.Z += Math.Tan(pitch) * thrust;
+            else
+                target.Velocity += Vec3D.UnitTimesValue(angle, pitch, thrust);
+
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
 
             if (target.Health == 0)
@@ -524,25 +555,10 @@ namespace Helion.World.Physics
             }
 
             int damage = (int)(radius - distance);
-
             if (damage <= 0)
                 return;
 
             DamageEntity(entity, source, damage);
-
-            if (zdoomPhysics)
-            {
-                // ZDoom applies extra x/y thrust (because reasons?) and incredibly janky z thrust
-                double angle = source.Position.Angle(entity.Position);
-                double thrust = damage * 0.5 / entity.Properties.Mass;
-                double thrustZ = (entity.Position.Z + (entity.Height / 2.0) - source.Position.Z) * thrust;
-
-                thrustZ *= (entity == source.Owner ? 0.8 : 0.5);
-
-                entity.Velocity.X += Math.Cos(angle) * thrust;
-                entity.Velocity.Y += Math.Sin(angle) * thrust;
-                entity.Velocity.Z += thrustZ;
-            }
         }
 
         private bool CheckLineOfSight(Entity entity, Entity other)
@@ -933,14 +949,13 @@ namespace Helion.World.Physics
 
             entity.Sector = centerSector;
             entity.IntersectSectors = sectors.ToList();
-            entity.IntersectSubsectors = subsectors.ToList();
 
             if (!entity.Flags.NoSector && !entity.NoClip)
             {
                 for (int i = 0; i < entity.IntersectSectors.Count; i++)
                     entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
-                for (int i = 0; i < entity.IntersectSubsectors.Count; i++)
-                    entity.SubsectorNodes.Add(entity.IntersectSubsectors[i].Link(entity));
+                foreach (Subsector subsector in subsectors)
+                    entity.SubsectorNodes.Add(subsector.Link(entity));
             }
 
             GridIterationStatus SectorOverlapFinder(Block block)
