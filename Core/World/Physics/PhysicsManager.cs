@@ -441,7 +441,9 @@ namespace Helion.World.Physics
             if (!target.Flags.Shootable)
                 return;
 
+            Vec2D xyDiff = source.Position.To2D() - target.Position.To2D();
             bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
+            bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
             double pitch;
 
             // Player rocket jumping check, back up the source Z to get a valid pitch
@@ -459,9 +461,6 @@ namespace Helion.World.Physics
             double angle = source.Position.Angle(target.Position);
             double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
-            if (source.WallExplosion)
-                angle = source.AngleRadians + Math.PI;
-
             // Silly vanilla doom feature that allows target to be thrown forward sometimes
             if (damage < 40 && damage > target.Health &&
                 target.Position.Z - source.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
@@ -470,10 +469,22 @@ namespace Helion.World.Physics
                 thrust *= 4;
             }
 
-            if (target.Box.Overlaps(source.Box) && zEqual)
-                target.Velocity.Z += Math.Tan(pitch) * thrust;
+            if (source.WallExplosion && source.Owner == target)
+                angle = source.AngleRadians + Math.PI;
+
+            Vec3D velocity = new Vec3D(0.0, 0.0, 0.0);
+            if (xyEqual)
+                velocity.Z = Math.Tan(pitch);
             else
-                target.Velocity += Vec3D.UnitTimesValue(angle, pitch, thrust);
+                velocity = Vec3D.Unit(angle, pitch);
+
+            velocity.Normalize();
+
+            velocity.X *= thrust;
+            velocity.Y *= thrust;
+            velocity.Z *= thrust;
+
+            target.Velocity += velocity;
 
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
 
@@ -1149,11 +1160,6 @@ namespace Helion.World.Physics
                     while (entityNode != null)
                     {
                         Entity nextEntity = entityNode.Value;
-
-                        if (entity.Box.Bottom >= 120 && entity.Box.Bottom <= 132 && entity.Flags.Missile)
-                        {
-                            entity.Flags.Missile = entity.Flags.Missile;
-                        }
 
                         if (nextEntity.Box.Overlaps2D(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
                         {
