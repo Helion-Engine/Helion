@@ -524,7 +524,7 @@ namespace Helion.World.Physics
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
-                if (bi.Entity != null && CheckLineOfSight(source, bi.Entity))
+                if (bi.Entity != null && CheckLineOfSight(bi.Entity, source))
                     ApplyExplosionDamageAndThrust(source, bi.Entity, radius, zdoomPhysics);
             }
         }
@@ -572,7 +572,7 @@ namespace Helion.World.Physics
             DamageEntity(entity, source, damage);
         }
 
-        private bool CheckLineOfSight(Entity entity, Entity other)
+        public bool CheckLineOfSight(Entity entity, Entity other)
         {
             Vec2D start = entity.Position.To2D();
             Vec2D end = other.Position.To2D();
@@ -580,13 +580,14 @@ namespace Helion.World.Physics
             if (start == end)
                 return true;
 
+            Vec3D sightPos = new Vec3D(entity.Position.X, entity.Position.Y, entity.Position.Z + (entity.Height * 0.75));
             Seg2D seg = new Seg2D(start, end);
             double distance2D = start.Distance(end);
-            double topPitch = entity.Position.Pitch(other.Position.Z + other.Height, distance2D);
-            double bottomPitch = entity.Position.Pitch(other.Position.Z, distance2D);
+            double topPitch = sightPos.Pitch(other.Position.Z + other.Height, distance2D);
+            double bottomPitch = sightPos.Pitch(other.Position.Z, distance2D);
 
             List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
-            return GetBlockmapTraversalPitch(intersections, entity.Position, entity, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
+            return GetBlockmapTraversalPitch(intersections, sightPos, entity, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
         }
 
         private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)
@@ -1120,7 +1121,7 @@ namespace Helion.World.Physics
                 if (skyClip)
                     m_entityManager.Destroy(entity);
                 else
-                    entity.Kill();
+                    entity.SetDeathState();
 
                 HandleEntityDeath(entity);
             }
