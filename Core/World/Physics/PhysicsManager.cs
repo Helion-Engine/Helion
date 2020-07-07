@@ -278,9 +278,7 @@ namespace Helion.World.Physics
                 projectile.Owner = shooter;
                 projectile.Velocity = Vec3D.Unit(shooter.AngleRadians, pitch);
                 projectile.Velocity.Normalize();
-                projectile.Velocity.X *= projectile.Definition.Properties.Speed;
-                projectile.Velocity.Y *= projectile.Definition.Properties.Speed;
-                projectile.Velocity.Z *= projectile.Definition.Properties.Speed;
+                projectile.Velocity.Multiply(projectile.Definition.Properties.Speed);
 
                 if (!CanMoveTo(projectile, projectile.Position.To2D() + projectile.Velocity.To2D()))
                 {
@@ -451,7 +449,7 @@ namespace Helion.World.Physics
             if (zEqual && target is Player && source.Owner == target)
             {
                 Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
-                pitch = sourcePos.Pitch(target.Position, 1.0);
+                pitch = sourcePos.Pitch(target.Position, 0.0);
             }
             else
             {
@@ -469,21 +467,22 @@ namespace Helion.World.Physics
                 thrust *= 4;
             }
 
+            Vec3D velocity = Vec3D.Zero;
+
             if (source.WallExplosion && source.Owner == target)
+            {
                 angle = source.AngleRadians + Math.PI;
-
-            Vec3D velocity = new Vec3D(0.0, 0.0, 0.0);
-            if (xyEqual)
-                velocity.Z = Math.Tan(pitch);
+                velocity = Vec3D.Unit(angle, 0.0);
+            }
             else
-                velocity = Vec3D.Unit(angle, pitch);
+            {
+                if (!xyEqual)        
+                    velocity = Vec3D.Unit(angle, 0.0);
+                
+                velocity.Z = Math.Sin(pitch);
+            }
 
-            velocity.Normalize();
-
-            velocity.X *= thrust;
-            velocity.Y *= thrust;
-            velocity.Z *= thrust;
-
+            velocity.Multiply(thrust);
             target.Velocity += velocity;
 
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
