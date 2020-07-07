@@ -77,6 +77,13 @@ namespace Helion.Util.Geometry.Vectors
         public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
         public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
 
+        public void Multiply(double value)
+        {
+            X *= value;
+            Y *= value;
+            Z *= value;
+        }
+
         public Vec2D To2D() => new Vec2D(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));
         public Vector3 ToFloat() => new Vector3((float)X, (float)Y, (float)Z);
