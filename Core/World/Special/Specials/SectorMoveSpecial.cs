@@ -97,6 +97,14 @@ namespace Helion.World.Special.Specials
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
             DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
 
+            if (MoveData.Crush != null)
+            {
+                if (m_direction == MoveDirection.Up)
+                    m_speed = -MoveData.Speed * MoveData.Crush.ReturnFactor;
+                else
+                    m_speed = MoveData.Speed;
+            }
+
             if (m_crushing)
             {
                 m_speed = MoveData.Speed;

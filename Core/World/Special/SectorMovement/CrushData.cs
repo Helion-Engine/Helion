@@ -6,11 +6,13 @@ namespace Helion.World.Special.SectorMovement
     {
         public readonly ZDoomCrushMode CrushMode;
         public readonly int Damage;
+        public readonly double ReturnFactor;
 
-        public CrushData(ZDoomCrushMode crushMode, int damage)
+        public CrushData(ZDoomCrushMode crushMode, int damage, double returnFactor = 1.0)
         {
             CrushMode = crushMode;
             Damage = damage;
+            ReturnFactor = returnFactor;
         }
     }
 }
