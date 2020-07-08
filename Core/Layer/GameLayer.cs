@@ -158,7 +158,8 @@ namespace Helion.Layer
             m_layers.ForEach(layer => layer.Render(renderCommands));
         }
 
-        public int CompareTo(GameLayer other) => Priority.CompareTo(other.Priority);
+        // TODO: Temporary, probably will remove this.
+        public int CompareTo(GameLayer? other) => Priority.CompareTo(other?.Priority);
 
         public void Dispose()
         {

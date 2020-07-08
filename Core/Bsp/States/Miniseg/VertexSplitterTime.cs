@@ -27,6 +27,6 @@ namespace Helion.Bsp.States.Miniseg
             SplitterTime = splitterTime;
         }
         
-        public int CompareTo(VertexSplitterTime other) => SplitterTime.CompareTo(other.SplitterTime);
+        public int CompareTo(VertexSplitterTime? other) => SplitterTime.CompareTo(other?.SplitterTime);
     }
 }

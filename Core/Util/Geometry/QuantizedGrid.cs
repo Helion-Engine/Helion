@@ -16,7 +16,7 @@ namespace Helion.Util.Geometry
         }
 
         /// <summary>
-        /// Checks if there exists some value in range of the coordinates 
+        /// Checks if there exists some value in range of the coordinates
         /// provided.
         /// </summary>
         /// <param name="x">The X value region to check.</param>
@@ -66,7 +66,7 @@ namespace Helion.Util.Geometry
             foreach (int xQuantized in xComponents)
                 if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
                     foreach (int yQuantized in yComponents)
-                        if (yValues.TryGetValue(yQuantized, out T element))
+                        if (yValues.TryGetValue(yQuantized, out var element))
                             return element;
 
             if (grid.TryGetValue(xMiddle, out Dictionary<int, T>? existingYValues))
@@ -98,7 +98,7 @@ namespace Helion.Util.Geometry
             foreach (int xQuantized in xComponents)
                 if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
                     foreach (int yQuantized in yComponents)
-                        if (yValues.TryGetValue(yQuantized, out value))
+                        if (yValues.ContainsKey(yQuantized))
                             return true;
             return false;
         }
