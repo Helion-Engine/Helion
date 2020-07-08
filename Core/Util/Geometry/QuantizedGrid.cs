@@ -60,8 +60,8 @@ namespace Helion.Util.Geometry
         {
             int xMiddle = Quantize(x);
             int yMiddle = Quantize(y);
-            int[] xComponents = new int[] { xMiddle, xMiddle - 1, xMiddle + 1 };
-            int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
+            int[] xComponents = { xMiddle, xMiddle - 1, xMiddle + 1 };
+            int[] yComponents = { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
                 if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
@@ -92,8 +92,8 @@ namespace Helion.Util.Geometry
         {
             int xMiddle = Quantize(x);
             int yMiddle = Quantize(y);
-            int[] xComponents = new int[] { xMiddle, xMiddle - 1, xMiddle + 1 };
-            int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
+            int[] xComponents = { xMiddle, xMiddle - 1, xMiddle + 1 };
+            int[] yComponents = { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
             {
@@ -101,7 +101,7 @@ namespace Helion.Util.Geometry
                 {
                     foreach (int yQuantized in yComponents)
                     {
-                        if (yValues.TryGetValue(yQuantized, out T val))
+                        if (yValues.TryGetValue(yQuantized, out var val))
                         {
                             value = val;
                             return true;
