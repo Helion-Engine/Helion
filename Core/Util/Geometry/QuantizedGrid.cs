@@ -96,10 +96,20 @@ namespace Helion.Util.Geometry
             int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
+            {
                 if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
+                {
                     foreach (int yQuantized in yComponents)
-                        if (yValues.ContainsKey(yQuantized))
+                    {
+                        if (yValues.TryGetValue(yQuantized, out T val))
+                        {
+                            value = val;
                             return true;
+                        }
+                    }
+                }
+            }
+
             return false;
         }
 
