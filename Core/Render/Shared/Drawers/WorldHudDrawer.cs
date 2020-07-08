@@ -31,6 +31,7 @@ namespace Helion.Render.Shared.Drawers
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
         private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
+        private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
 
         public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
@@ -40,7 +41,7 @@ namespace Helion.Render.Shared.Drawers
 
             DrawHud(player, world, viewport, helper);
             DrawPickupFlash(player, world, viewport, helper);
-            DrawDamage(world, helper);
+            DrawDamage(player, world, viewport, helper);
             DrawRecentConsoleMessages(world, console, helper);
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
         }
@@ -89,9 +90,10 @@ namespace Helion.Render.Shared.Drawers
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);    
         }
 
-        private static void DrawDamage(WorldBase world, DrawHelper helper)
+        private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
-            // TODO
+            if (player.DamageCount > 0)
+                helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
         }
 
         private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, DrawHelper helper)

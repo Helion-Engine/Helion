@@ -77,96 +77,99 @@ namespace Helion.World.Impl.SinglePlayer
             if (Player.IsFrozen)
                 return;
 
-            Vec3D movement = Vec3D.Zero;
-            if (tickCommand.Has(TickCommands.Forward))
-                movement += CalculateForwardMovement(Player);
-            if (tickCommand.Has(TickCommands.Backward))
-                movement -= CalculateForwardMovement(Player);
-            if (tickCommand.Has(TickCommands.Right))
-                movement += CalculateStrafeRightMovement(Player);
-            if (tickCommand.Has(TickCommands.Left))
-                movement -= CalculateStrafeRightMovement(Player);
-
-            if (tickCommand.Has(TickCommands.Jump))
+            if (!Player.IsDead)
             {
-                if (Player.Flags.NoGravity)
+                Vec3D movement = Vec3D.Zero;
+                if (tickCommand.Has(TickCommands.Forward))
+                    movement += CalculateForwardMovement(Player);
+                if (tickCommand.Has(TickCommands.Backward))
+                    movement -= CalculateForwardMovement(Player);
+                if (tickCommand.Has(TickCommands.Right))
+                    movement += CalculateStrafeRightMovement(Player);
+                if (tickCommand.Has(TickCommands.Left))
+                    movement -= CalculateStrafeRightMovement(Player);
+
+                if (tickCommand.Has(TickCommands.Jump))
                 {
-                    // This z velocity overrides z movement velocity
-                    movement.Z = 0;
-                    Player.Velocity.Z = Player.ForwardMovementSpeed * 2;
+                    if (Player.Flags.NoGravity)
+                    {
+                        // This z velocity overrides z movement velocity
+                        movement.Z = 0;
+                        Player.Velocity.Z = Player.ForwardMovementSpeed * 2;
+                    }
+                    else
+                    {
+                        Player.Jump();
+                    }
+                }
+
+                if (movement != Vec3D.Zero)
+                {
+                    if (!Player.OnGround && !Player.Flags.NoGravity)
+                        movement *= AirControl;
+
+                    Player.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
+                    Player.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
+                    Player.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
+                }
+
+                if (tickCommand.Has(TickCommands.Attack))
+                {
+                    Player.Weapon?.RequestFire();
+
+                    // TODO remove when decorate weapons are implemented
+                    switch (Player.WeaponIndex)
+                    {
+                        case 0:
+                            PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
+                            break;
+
+                        case 1:
+                            PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim);
+                            break;
+
+                        case 2:
+                            PhysicsManager.FireHitscanBullets(Player, ShotgunBullets, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim);
+                            break;
+
+                        case 3:
+                            PhysicsManager.FireHitscanBullets(Player, SuperShotgunBullets, SuperShotgunSpreadAngle, SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
+                            break;
+
+                        case 4:
+                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
+                            break;
+
+                        case 5:
+                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
+                            break;
+
+                        case 6:
+                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
+                            break;
+                    }
+
+                    Player.Refire = true;
                 }
                 else
                 {
-                    Player.Jump();
+                    Player.Refire = false;
                 }
-            }
 
-            if (movement != Vec3D.Zero)
-            {
-                if (!Player.OnGround && !Player.Flags.NoGravity)
-                    movement *= AirControl;
-                
-                Player.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
-                Player.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
-                Player.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
+                if (tickCommand.Has(TickCommands.NextWeapon))
+                    ++Player.WeaponIndex;
+
+                if (tickCommand.Has(TickCommands.PreviousWeapon))
+                    --Player.WeaponIndex;
+
+                if (Player.WeaponIndex > 6)
+                    Player.WeaponIndex = 0;
+                if (Player.WeaponIndex < 0)
+                    Player.WeaponIndex = 6;
             }
 
             if (tickCommand.Has(TickCommands.Use))
                 PhysicsManager.EntityUse(Player);
-
-            if (tickCommand.Has(TickCommands.Attack))
-            {
-                Player.Weapon?.RequestFire();
-                
-                // TODO remove when decorate weapons are implemented
-                switch (Player.WeaponIndex)
-                {
-                    case 0:
-                        PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
-                        break;
-
-                    case 1:
-                        PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim);
-                        break;
-
-                    case 2:
-                        PhysicsManager.FireHitscanBullets(Player, ShotgunBullets, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim);
-                        break;
-
-                    case 3:
-                        PhysicsManager.FireHitscanBullets(Player, SuperShotgunBullets, SuperShotgunSpreadAngle, SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
-                        break;
-
-                    case 4:
-                        PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
-                        break;
-
-                    case 5:
-                        PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
-                        break;
-
-                    case 6:
-                        PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
-                        break;
-                }
-
-                Player.Refire = true;
-            }
-            else
-            {
-                Player.Refire = false;
-            }
-
-            if (tickCommand.Has(TickCommands.NextWeapon))
-                ++Player.WeaponIndex;
-
-            if (tickCommand.Has(TickCommands.PreviousWeapon))
-                --Player.WeaponIndex;
-
-            if (Player.WeaponIndex > 6)
-                Player.WeaponIndex = 0;
-            if (Player.WeaponIndex < 0)
-                Player.WeaponIndex = 6;
         }
         
         protected override void PerformDispose()
@@ -236,7 +239,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         private void HandleMouseLook(ConsumableInput frameInput)
         {
-            if (Player.IsFrozen)
+            if (Player.IsFrozen || Player.IsDead)
                 return;
 
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();

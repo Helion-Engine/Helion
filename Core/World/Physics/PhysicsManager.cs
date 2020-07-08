@@ -42,6 +42,7 @@ namespace Helion.World.Physics
 
         public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
 
+        private readonly IWorld m_world;
         private readonly BspTree m_bspTree;
         private readonly BlockMap m_blockmap;
         private readonly SoundManager m_soundManager;
@@ -70,8 +71,9 @@ namespace Helion.World.Physics
         /// <param name="soundManager">The sound manager to play sounds from.</param>
         /// <param name="entityManager">entity manager.</param>
         /// <param name="random">Random number generator to use.</param>
-        public PhysicsManager(BspTree bspTree, BlockMap blockmap, SoundManager soundManager, EntityManager entityManager, IRandom random)
+        public PhysicsManager(IWorld world, BspTree bspTree, BlockMap blockmap, SoundManager soundManager, EntityManager entityManager, IRandom random)
         {
+            m_world = world;
             m_bspTree = bspTree;
             m_blockmap = blockmap;
             m_soundManager = soundManager;
@@ -149,7 +151,7 @@ namespace Helion.World.Physics
                 if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
                     continue;
 
-                if (!entity.Flags.CanPass || !entity.Flags.Solid)
+                if (!entity.Flags.Solid || !entity.Flags.Shootable)
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
@@ -159,6 +161,7 @@ namespace Helion.World.Physics
                     if (crush != null)
                     {
                         status = SectorMoveStatus.Crush;
+                        CrushEntity(entity, crush);
                         if (CrusherShouldContinue(status, crush))
                             continue;
                     }
@@ -186,10 +189,29 @@ namespace Helion.World.Physics
             return status;
         }
 
-        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData? crush)
+        private void CrushEntity(Entity entity, CrushData crush)
         {
-            return crush != null && 
-                   crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown &&
+            if ((m_world.Gametick & 3) == 0)
+            {
+                DamageEntity(entity, null, crush.Damage);
+
+                if (!entity.Flags.NoBlood)
+                {
+                    Vec3D pos = entity.Position;
+                    pos.Z += entity.Height / 2;
+                    Entity? blood = CreateEntity(pos, entity.GetBloodType());
+                    if (blood != null)
+                    {
+                        blood.Velocity.X += m_random.NextDiff() / 16.0;
+                        blood.Velocity.Y += m_random.NextDiff() / 16.0;
+                    }
+                }
+            }
+        }
+
+        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData crush)
+        {
+            return (crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown || crush.CrushMode == ZDoomCrushMode.Hexen || crush.CrushMode == ZDoomCrushMode.Compatibility) &&
                    status == SectorMoveStatus.Crush;
         }
 
@@ -434,60 +456,63 @@ namespace Helion.World.Physics
             }
         }
 
-        private void DamageEntity(Entity target, Entity source, int damage)
+        private void DamageEntity(Entity target, Entity? source, int damage)
         {
             if (!target.Flags.Shootable)
                 return;
 
-            Vec2D xyDiff = source.Position.To2D() - target.Position.To2D();
-            bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
-            bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
-            double pitch;
-
-            // Player rocket jumping check, back up the source Z to get a valid pitch
-            // Only done for players, otherwise blowing up enemies will launch them in the air
-            if (zEqual && target is Player && source.Owner == target)
+            if (source != null)
             {
-                Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
-                pitch = sourcePos.Pitch(target.Position, 0.0);
-            }
-            else
-            {
-                pitch = source.Position.Pitch(target.Position, source.Position.To2D().Distance(target.Position.To2D()));
-            }
+                Vec2D xyDiff = source.Position.To2D() - target.Position.To2D();
+                bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
+                bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
+                double pitch;
 
-            double angle = source.Position.Angle(target.Position);
-            double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
+                // Player rocket jumping check, back up the source Z to get a valid pitch
+                // Only done for players, otherwise blowing up enemies will launch them in the air
+                if (zEqual && target is Player && source.Owner == target)
+                {
+                    Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
+                    pitch = sourcePos.Pitch(target.Position, 0.0);
+                }
+                else
+                {
+                    pitch = source.Position.Pitch(target.Position, source.Position.To2D().Distance(target.Position.To2D()));
+                }
 
-            // Silly vanilla doom feature that allows target to be thrown forward sometimes
-            if (damage < 40 && damage > target.Health &&
-                target.Position.Z - source.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
-            {
-                angle += Math.PI;
-                thrust *= 4;
-            }
+                double angle = source.Position.Angle(target.Position);
+                double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
-            Vec3D velocity = Vec3D.Zero;
+                // Silly vanilla doom feature that allows target to be thrown forward sometimes
+                if (damage < 40 && damage > target.Health &&
+                    target.Position.Z - source.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
+                {
+                    angle += Math.PI;
+                    thrust *= 4;
+                }
 
-            if (source.WallExplosion && source.Owner == target)
-            {
-                angle = source.AngleRadians + Math.PI;
-                velocity = Vec3D.Unit(angle, 0.0);
-            }
-            else
-            {
-                if (!xyEqual)        
+                Vec3D velocity = Vec3D.Zero;
+
+                if (source.WallExplosion && source.Owner == target)
+                {
+                    angle = source.AngleRadians + Math.PI;
                     velocity = Vec3D.Unit(angle, 0.0);
-                
-                velocity.Z = Math.Sin(pitch);
-            }
+                }
+                else
+                {
+                    if (!xyEqual)
+                        velocity = Vec3D.Unit(angle, 0.0);
 
-            velocity.Multiply(thrust);
-            target.Velocity += velocity;
+                    velocity.Z = Math.Sin(pitch);
+                }
+
+                velocity.Multiply(thrust);
+                target.Velocity += velocity;
+            }
 
             target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
 
-            if (target.Health == 0)
+            if (target.IsDead)
                 HandleEntityDeath(target);
         }
 
@@ -749,15 +774,16 @@ namespace Helion.World.Physics
 
         private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
         {
-            string className = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood ? "BulletPuff" : "Blood";
-            CreateTestPuff(intersect, className);
+            string className = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood ? "BulletPuff" : bi.Entity.GetBloodType();
+            CreateEntity(intersect, className);
         }
 
-        private void CreateTestPuff(Vec3D intersect, string className)
+        private Entity? CreateEntity(Vec3D intersect, string className)
         {
             var puff = m_entityManager.DefinitionComposer.GetByName(className);
             if (puff != null)
-                m_entityManager.Create(puff, intersect, 0.0, 0.0, 0);
+                return m_entityManager.Create(puff, intersect, 0.0, 0.0, 0);
+            return null;
         }
 
         private void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)

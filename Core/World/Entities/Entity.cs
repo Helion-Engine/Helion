@@ -11,7 +11,6 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
@@ -75,6 +74,7 @@ namespace Helion.World.Entities
         public double Height => Box.Height;
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
+        public bool IsDead => Health == 0;
         public EntityFrame Frame => FrameState.Frame;
         
         /// <summary>
@@ -122,6 +122,14 @@ namespace Helion.World.Entities
             SoundChannels = new EntitySoundChannels(this);
 
             FrameState.SetState(FrameStateLabel.Spawn);
+        }
+
+        public string GetBloodType()
+        {
+            if (!string.IsNullOrEmpty(Definition.Properties.BloodType))
+                return Definition.Properties.BloodType;
+            // TODO doom special cases...
+            return "BLOOD";
         }
 
         /// <summary>
@@ -236,7 +244,6 @@ namespace Helion.World.Entities
 
             Health = 0;
             SetHeight(Definition.Properties.Height / 4.0);
-            // TODO: Player override this and handle its own m_viewHeight?
         }
         
         public void SetDeathState()
@@ -251,10 +258,10 @@ namespace Helion.World.Entities
                 SetDeath();
         }
 
-        public void Damage(int damage, bool setPainState)
+        public virtual bool Damage(int damage, bool setPainState)
         {
             if (damage <= 0 || Flags.Invulnerable)
-                return;
+                return false;
             
             Health -= damage;
 
@@ -262,6 +269,8 @@ namespace Helion.World.Entities
                 Kill();
             else if (setPainState && Definition.States.Labels.ContainsKey("PAIN"))
                 FrameState.SetState(FrameStateLabel.Pain);
+
+            return true;
         }
 
         public virtual void GivePickedUpItem(Entity item)
@@ -334,7 +343,7 @@ namespace Helion.World.Entities
             IsDisposed = true;
         }
 
-        private void SetDeath()
+        protected virtual void SetDeath()
         {
             if (Flags.Missile)
             {

@@ -62,7 +62,7 @@ namespace Helion.World
             Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(audioSystem);            
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
-            PhysicsManager = new PhysicsManager(BspTree, Blockmap, SoundManager, EntityManager, m_random);
+            PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, PhysicsManager, archiveCollection.Definitions, m_random);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
