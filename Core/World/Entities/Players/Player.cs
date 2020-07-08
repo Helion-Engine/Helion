@@ -1,3 +1,4 @@
+using System;
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
@@ -7,7 +8,6 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
-using System;
 
 namespace Helion.World.Entities.Players
 {
@@ -36,17 +36,17 @@ namespace Helion.World.Entities.Players
         private double m_prevViewHeight;
         private double m_deltaViewHeight;
 
-        public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians, 
-            Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber) 
+        public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
+            Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber)
             : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
         {
             Precondition(playerNumber >= 0, "Player number should not be negative");
-            
+
             PlayerNumber = playerNumber;
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_prevViewHeight = m_viewHeight;
-            
+
             AddStartItems();
         }
 
@@ -72,7 +72,7 @@ namespace Helion.World.Entities.Players
                 m_deltaViewHeight = (Definition.Properties.Player.ViewHeight - m_viewHeight) / PlayerViewDivider;
                 ClampViewHeight();
             }
-            
+
             base.SetZ(z, smooth);
         }
 
@@ -81,7 +81,7 @@ namespace Helion.World.Entities.Players
             m_viewHeight = Definition.Properties.Player.ViewHeight;
             m_prevViewHeight = m_viewHeight;
             m_deltaViewHeight = 0;
-            
+
             base.ResetInterpolation();
         }
 
@@ -111,7 +111,7 @@ namespace Helion.World.Entities.Players
             if (AngleRadians < 0)
                 AngleRadians += MathHelper.TwoPi;
         }
-        
+
         public void AddToPitch(double delta)
         {
             const double notQuiteVertical = MathHelper.HalfPi - 0.001;
@@ -132,12 +132,12 @@ namespace Helion.World.Entities.Players
 
             return new Camera(position.ToFloat(), yaw, pitch);
         }
-        
+
         public override void Tick()
         {
             base.Tick();
             Weapon?.Tick();
-            
+
             m_prevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
 
@@ -177,11 +177,11 @@ namespace Helion.World.Entities.Players
                 }
             }
         }
-        
+
         public override void GivePickedUpItem(Entity item)
         {
             base.GivePickedUpItem(item);
-            
+
             LastPickupGametick = World.Gametick;
         }
 

@@ -22,7 +22,7 @@ namespace Helion.World.Special.Specials
         private double m_speed;
         private bool m_crushing;
 
-        public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double start, double dest, 
+        public SectorMoveSpecial(PhysicsManager physicsManager, Sector sector, double start, double dest,
             SectorMoveData specialData)
         {
             Sector = sector;
@@ -53,7 +53,7 @@ namespace Helion.World.Special.Specials
                 DelayTics--;
                 return SpecialTickStatus.Continue;
             }
-            
+
             double destZ = CalculateDestination();
             PerformAndHandleMoveZ(destZ);
 
@@ -93,7 +93,7 @@ namespace Helion.World.Special.Specials
         {
             if (MoveData.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == MoveData.StartDirection))
                 DelayTics = MoveData.Delay;
-                
+
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
             DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
 
@@ -119,7 +119,7 @@ namespace Helion.World.Special.Specials
         private double CalculateDestination()
         {
             double destZ = SectorPlane.Z + m_speed;
-            
+
             if (m_direction == MoveDirection.Down && destZ < DestZ)
                 destZ = DestZ;
             else if (m_direction == MoveDirection.Up && destZ > DestZ)
@@ -130,9 +130,9 @@ namespace Helion.World.Special.Specials
 
         private void PerformAndHandleMoveZ(double destZ)
         {
-            SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType, 
+            SectorMoveStatus status = m_physicsManager.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
                 m_direction, m_speed, destZ, MoveData.Crush);
-            
+
             switch (status)
             {
             case SectorMoveStatus.Blocked:
@@ -140,7 +140,7 @@ namespace Helion.World.Special.Specials
                     FlipMovementDirection();
                 break;
             case SectorMoveStatus.Crush when IsInitCrush:
-                 Sector.ZChanged = true;
+                Sector.ZChanged = true;
                 // TODO: Can we maybe make this into its own class to avoid the null issue?
                 if (MoveData.Crush == null)
                     throw new NullReferenceException("Should never have a null crush component when having a crushing sector");
