@@ -45,7 +45,7 @@ namespace Helion.Client
             m_gcTracker = new GCTracker(config);
             m_console = new HelionConsole(config);
             LogClientInformation();
-            
+
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
             m_audioSystem = new ALAudioSystem(m_archiveCollection);
@@ -70,11 +70,11 @@ namespace Helion.Client
 
             GC.SuppressFinalize(this);
         }
-        
+
         private static void LogClientInformation()
         {
             Log.Info("{0} v{1}", Constants.ApplicationName, Constants.ApplicationVersion);
-            
+
             Log.Info("Processor: {0} {1}", Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER"), RuntimeInformation.OSArchitecture);
             Log.Info("Processor count: {0}", Environment.ProcessorCount);
             Log.Info("OS: {0} {1} (running {2})", Environment.OSVersion, Environment.Is64BitOperatingSystem ? "x64" : "x86", Environment.Is64BitProcess ? "x64" : "x86");
@@ -105,7 +105,7 @@ namespace Helion.Client
         {
             string mapName = GetWarpMapFormat(warpNumber);
             m_console.AddInput($"map {mapName}\n");
-                
+
             // If the map is corrupt, go to the console.
             if (!m_layerManager.Contains(typeof(WorldLayer)))
                 m_layerManager.Add(new ConsoleLayer(m_console));
@@ -178,12 +178,12 @@ namespace Helion.Client
         public static void Main(string[] args)
         {
             WarnIfTieredCompilationEnabled();
-            
+
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
             Logging.Initialize(cmdArgs);
 
             Log.Info($"Initializing {Constants.ApplicationName} v{Constants.ApplicationVersion}");
-            
+
             if (cmdArgs.ErrorWhileParsing)
                 Log.Error("Bad command line arguments, unexpected results may follow");
 
@@ -192,7 +192,7 @@ namespace Helion.Client
                 using (Config config = new Config())
                     using (Client client = new Client(cmdArgs, config))
                         client.Start();
-                
+
                 ForceFinalizersIfDebugMode();
             }
             catch (AssertionException)
@@ -212,7 +212,7 @@ namespace Helion.Client
                 LogManager.Shutdown();
             }
         }
-        
+
         private static void WarnIfTieredCompilationEnabled()
         {
             string? tieredCompilation = null;
