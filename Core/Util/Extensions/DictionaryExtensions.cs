@@ -15,7 +15,7 @@ namespace Helion.Util.Extensions
         /// <typeparam name="V">The value type.</typeparam>
         /// <returns>True if it is, false if not.</returns>
         public static bool Empty<K, V>(this Dictionary<K, V> dictionary) => dictionary.Count == 0;
-        
+
         /// <summary>
         /// Gets the value, or returns the default value provided.
         /// </summary>
@@ -29,7 +29,10 @@ namespace Helion.Util.Extensions
         /// provided as the argument.</returns>
         public static V GetValueOrDefault<K, V>(this Dictionary<K, V> dictionary, K key, V defaultValue)
         {
+            // I'll disable this because I want this to work with any type.
+#pragma warning disable 8600
             return dictionary.TryGetValue(key, out V value) ? value : defaultValue;
+#pragma warning restore 8600
         }
     }
 }
