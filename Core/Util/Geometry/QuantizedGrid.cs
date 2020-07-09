@@ -16,7 +16,7 @@ namespace Helion.Util.Geometry
         }
 
         /// <summary>
-        /// Checks if there exists some value in range of the coordinates 
+        /// Checks if there exists some value in range of the coordinates
         /// provided.
         /// </summary>
         /// <param name="x">The X value region to check.</param>
@@ -60,13 +60,13 @@ namespace Helion.Util.Geometry
         {
             int xMiddle = Quantize(x);
             int yMiddle = Quantize(y);
-            int[] xComponents = new int[] { xMiddle, xMiddle - 1, xMiddle + 1 };
-            int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
+            int[] xComponents = { xMiddle, xMiddle - 1, xMiddle + 1 };
+            int[] yComponents = { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
                 if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
                     foreach (int yQuantized in yComponents)
-                        if (yValues.TryGetValue(yQuantized, out T element))
+                        if (yValues.TryGetValue(yQuantized, out var element))
                             return element;
 
             if (grid.TryGetValue(xMiddle, out Dictionary<int, T>? existingYValues))
@@ -92,14 +92,24 @@ namespace Helion.Util.Geometry
         {
             int xMiddle = Quantize(x);
             int yMiddle = Quantize(y);
-            int[] xComponents = new int[] { xMiddle, xMiddle - 1, xMiddle + 1 };
-            int[] yComponents = new int[] { yMiddle, yMiddle - 1, yMiddle + 1 };
+            int[] xComponents = { xMiddle, xMiddle - 1, xMiddle + 1 };
+            int[] yComponents = { yMiddle, yMiddle - 1, yMiddle + 1 };
 
             foreach (int xQuantized in xComponents)
+            {
                 if (grid.TryGetValue(xQuantized, out Dictionary<int, T>? yValues))
+                {
                     foreach (int yQuantized in yComponents)
-                        if (yValues.TryGetValue(yQuantized, out value))
+                    {
+                        if (yValues.TryGetValue(yQuantized, out var val))
+                        {
+                            value = val;
                             return true;
+                        }
+                    }
+                }
+            }
+
             return false;
         }
 

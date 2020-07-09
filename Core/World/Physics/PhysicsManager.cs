@@ -66,6 +66,7 @@ namespace Helion.World.Physics
         /// Creates a new physics manager which utilizes the arguments for any
         /// collision detection or linking to the world.
         /// </summary>
+        /// <param name="world">The world to operate on.</param>
         /// <param name="bspTree">The BSP tree for the world.</param>
         /// <param name="blockmap">The blockmap for the world.</param>
         /// <param name="soundManager">The sound manager to play sounds from.</param>
@@ -91,9 +92,9 @@ namespace Helion.World.Physics
         {
             if (!entity.Flags.NoBlockmap)
                 m_blockmap.Link(entity);
-            
+
             LinkToSectors(entity, linkSpecialLines);
-            
+
             ClampBetweenFloorAndCeiling(entity);
         }
 
@@ -107,7 +108,7 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorMoveType moveType, 
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorMoveType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush)
         {
             // Save the Z value because we are only checking if the dest is valid
@@ -209,12 +210,6 @@ namespace Helion.World.Physics
             }
         }
 
-        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData crush)
-        {
-            return (crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown || crush.CrushMode == ZDoomCrushMode.Hexen || crush.CrushMode == ZDoomCrushMode.Compatibility) &&
-                   status == SectorMoveStatus.Crush;
-        }
-
         /// <summary>
         /// Executes use logic on the entity. EntityUseActivated event will
         /// fire if the entity activates a line special or is in range to hit
@@ -295,7 +290,7 @@ namespace Helion.World.Physics
 
             var projectileDef = m_entityManager.DefinitionComposer.GetByName(projectClassName);
             if (projectileDef != null)
-            {               
+            {
                 Entity projectile = m_entityManager.Create(projectileDef, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
                 projectile.Owner = shooter;
                 projectile.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
@@ -371,8 +366,8 @@ namespace Helion.World.Physics
         {
             double floorZ, ceilingZ;
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
-                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines, 
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg,
+                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
             for (int i = 0; i < intersections.Count; i++)
@@ -424,6 +419,12 @@ namespace Helion.World.Physics
             }
 
             return null;
+        }
+
+        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData crush)
+        {
+            return (crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown || crush.CrushMode == ZDoomCrushMode.Hexen || crush.CrushMode == ZDoomCrushMode.Compatibility) &&
+                   status == SectorMoveStatus.Crush;
         }
 
         private static void GetSectorPlaneIntersection(in Vec3D start, in Vec3D end, Sector sector, double floorZ, double ceilingZ, ref Vec3D intersect)
@@ -541,7 +542,7 @@ namespace Helion.World.Physics
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
 
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities, 
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -643,7 +644,7 @@ namespace Helion.World.Physics
         {
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
 
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, 
+            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg,
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
@@ -667,7 +668,7 @@ namespace Helion.World.Physics
             entity.Velocity.X *= Friction;
             entity.Velocity.Y *= Friction;
         }
-        
+
         private static void StopXYMovementIfSmall(Entity entity)
         {
             if (Math.Abs(entity.Velocity.X) < MinMovementThreshold)
@@ -675,14 +676,14 @@ namespace Helion.World.Physics
             if (Math.Abs(entity.Velocity.Y) < MinMovementThreshold)
                 entity.Velocity.Y = 0;
         }
-        
+
         private static bool EntityBlocksEntityZ(Entity entity, Entity other)
         {
             double maxStepHeight = entity.GetMaxStepHeight();
-            return other.Box.Top - entity.Box.Bottom > maxStepHeight || 
+            return other.Box.Top - entity.Box.Bottom > maxStepHeight ||
                    entity.LowestCeilingZ - other.Box.Top < entity.Height;
         }
-        
+
         private static bool PreviouslyClipped(Entity entity, Entity other)
         {
             return Box3D.Overlaps(entity.PrevPosition, entity.Radius, entity.Height,
@@ -800,7 +801,7 @@ namespace Helion.World.Physics
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
         {
             if (!entity.OnGround && entity is Player player)
-                player.SetHitZ(IsHardHitZ(entity));         
+                player.SetHitZ(IsHardHitZ(entity));
 
             // Additionally check to smooth camera when stepping up to an entity
             entity.SetZ(floorZ, smoothZ);
@@ -811,7 +812,7 @@ namespace Helion.World.Physics
             // application of jumping after the XY movement instead of before?
             entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
-        
+
         private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
         private void ClampBetweenFloorAndCeiling(Entity entity)
@@ -848,7 +849,7 @@ namespace Helion.World.Physics
                         entity.OnEntity = highestEntity;
                 }
 
-                if (entity.OnEntity != null)                       
+                if (entity.OnEntity != null)
                     entity.OnEntity.OverEntity = entity;
 
                 SetEntityOnFloorOrEntity(entity, highestFloor, lastHighestFloorObject != entity.HighestFloorObject);
@@ -859,7 +860,7 @@ namespace Helion.World.Physics
                     HandleEntityHit(entity, null, null, entity.HighestFloorSector.Floor);
             }
 
-            entity.OnGround = entity.Box.Bottom == highestFloor;         
+            entity.OnGround = entity.Box.Bottom == highestFloor;
         }
 
         private void SetEntityBoundsZ(Entity entity)
@@ -972,12 +973,12 @@ namespace Helion.World.Physics
                 else
                     entity.IntersectSpecialLines.Clear();
             }
-            
+
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
             HashSet<Subsector> subsectors = new HashSet<Subsector> { centerSubsector };
-            
+
             // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
             m_blockmap.Iterate(box, SectorOverlapFinder);
@@ -1009,13 +1010,13 @@ namespace Helion.World.Physics
 
                         foreach (Subsector subsector in line.Subsectors)
                             subsectors.Add(subsector);
-                        
+
                         sectors.Add(line.Front.Sector);
                         if (line.Back != null)
                             sectors.Add(line.Back.Sector);
                     }
                 }
-                
+
                 return GridIterationStatus.Continue;
             }
         }
@@ -1030,7 +1031,7 @@ namespace Helion.World.Physics
 
             return false;
         }
-        
+
         private void ClearVelocityXY(Entity entity)
         {
             entity.Velocity.X = 0;
@@ -1040,7 +1041,7 @@ namespace Helion.World.Physics
         private void PerformMoveXY(Entity entity)
         {
             Precondition(entity.Velocity.To2D() != Vec2D.Zero, "Cannot move with zero horizontal velocity");
-            
+
             int slidesLeft = MaxSlides;
             Vec2D velocity = entity.Velocity.To2D();
 
@@ -1059,12 +1060,12 @@ namespace Helion.World.Physics
             // entity speed.
             int numMoves = CalculateSteps(velocity, entity.Radius);
             Vec2D stepDelta = velocity / numMoves;
-            
+
             for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
             {
                 if (stepDelta == Vec2D.Zero)
                     break;
-                
+
                 Vec2D nextPosition = entity.Position.To2D() + stepDelta;
 
                 if (CanMoveTo(entity, nextPosition))
@@ -1153,10 +1154,10 @@ namespace Helion.World.Physics
         private void HandleNoClip(Entity entity, Vec2D velocity)
         {
             entity.UnlinkFromWorld();
-            
+
             var pos = entity.Position.To2D() + velocity;
             entity.SetXY(pos);
-            
+
             LinkToWorld(entity);
         }
 
@@ -1287,21 +1288,21 @@ namespace Helion.World.Physics
             stepDelta.Y = 0;
             movesLeft = 0;
         }
-        
+
         private BoxCornerTracers CalculateCornerTracers(Box2D currentBox, Vec2D stepDelta)
         {
             Vec2D[] corners;
-            
+
             if (stepDelta.X >= 0)
             {
-                corners = stepDelta.Y >= 0 ? 
-                    new[] { currentBox.TopLeft, currentBox.TopRight, currentBox.BottomRight } : 
+                corners = stepDelta.Y >= 0 ?
+                    new[] { currentBox.TopLeft, currentBox.TopRight, currentBox.BottomRight } :
                     new[] { currentBox.TopRight, currentBox.BottomRight, currentBox.BottomLeft };
             }
             else
             {
-                corners = stepDelta.Y >= 0 ? 
-                    new[] { currentBox.TopRight, currentBox.TopLeft, currentBox.BottomLeft } : 
+                corners = stepDelta.Y >= 0 ?
+                    new[] { currentBox.TopRight, currentBox.TopLeft, currentBox.BottomLeft } :
                     new[] { currentBox.TopLeft, currentBox.BottomLeft, currentBox.BottomRight };
             }
 
@@ -1316,9 +1317,9 @@ namespace Helion.World.Physics
             bool hit = false;
             double hitTime = double.MaxValue;
             Line? blockingLine = null;
-            
+
             m_blockmap.Iterate(cornerTracer, CheckForTracerHit);
-            
+
             if (hit && hitTime < moveInfo.LineIntersectionTime)
                 moveInfo = MoveInfo.From(blockingLine!, hitTime);
 
@@ -1327,17 +1328,17 @@ namespace Helion.World.Physics
                 for (int i = 0; i < block.Lines.Count; i++)
                 {
                     Line line = block.Lines[i];
-                    
-                    if (cornerTracer.Intersection(line.Segment, out double time) && 
+
+                    if (cornerTracer.Intersection(line.Segment, out double time) &&
                         LineBlocksEntity(entity, line) &&
                         time < hitTime)
                     {
                         hit = true;
                         hitTime = time;
-                        blockingLine = line;  
+                        blockingLine = line;
                     }
                 }
-                
+
                 return GridIterationStatus.Continue;
             }
         }
@@ -1362,7 +1363,7 @@ namespace Helion.World.Physics
             CheckCornerTracerIntersection(tracers.First, entity, ref moveInfo);
             CheckCornerTracerIntersection(tracers.Second, entity, ref moveInfo);
             CheckCornerTracerIntersection(tracers.Third, entity, ref moveInfo);
-            
+
             return moveInfo.IntersectionFound;
         }
 
@@ -1370,7 +1371,7 @@ namespace Helion.World.Physics
         {
             Precondition(moveInfo.LineIntersectionTime >= 0, "Blocking line intersection time should never be negative");
             Precondition(moveInfo.IntersectionFound, "Should not be moving close to a line if we didn't hit one");
-            
+
             // If it's close enough that stepping back would move us further
             // back than we currently are (or move us nowhere), we don't need
             // to do anything. This also means the residual step is equal to
@@ -1391,11 +1392,11 @@ namespace Helion.World.Physics
                 MoveTo(entity, closeToLinePosition);
                 return true;
             }
-            
+
             return false;
         }
 
-        private void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta, 
+        private void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta,
             ref int movesLeft)
         {
             // Our slide direction depends on if we're going along with the
@@ -1405,7 +1406,7 @@ namespace Helion.World.Physics
             Vec2D unitDirection = blockingLine.Segment.Delta.Unit();
             if (stepDelta.Dot(unitDirection) < 0)
                 unitDirection = -unitDirection;
-            
+
             // Because we moved up to the wall, it's almost always the case
             // that we didn't make 100% of a step. For example if we have some
             // movement of 5 map units towards a wall and run into the wall at
@@ -1431,7 +1432,7 @@ namespace Helion.World.Physics
             //       enough right now to leave as is.
             entity.Velocity.X = stepProjection.X * Friction;
             entity.Velocity.Y = stepProjection.Y * Friction;
-            
+
             double totalRemainingDistance = ((stepProjection * movesLeft) + residualProjection).Length();
             movesLeft += 1;
             stepDelta = unitDirection * totalRemainingDistance / movesLeft;
@@ -1448,7 +1449,7 @@ namespace Helion.World.Physics
                     entity.Velocity.Y = 0;
                     stepDelta.Y = 0;
                     return true;
-                }                
+                }
             }
             else
             {
@@ -1459,7 +1460,7 @@ namespace Helion.World.Physics
                     entity.Velocity.X = 0;
                     stepDelta.X = 0;
                     return true;
-                }    
+                }
             }
 
             return false;
