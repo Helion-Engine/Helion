@@ -298,9 +298,7 @@ namespace Helion.World.Physics
             {               
                 Entity projectile = m_entityManager.Create(projectileDef, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
                 projectile.Owner = shooter;
-                projectile.Velocity = Vec3D.Unit(shooter.AngleRadians, pitch);
-                projectile.Velocity.Normalize();
-                projectile.Velocity.Multiply(projectile.Definition.Properties.Speed);
+                projectile.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
 
                 if (!CanMoveTo(projectile, projectile.Position.To2D() + projectile.Velocity.To2D()))
                 {
@@ -383,7 +381,7 @@ namespace Helion.World.Physics
 
                 if (bi.Line != null)
                 {
-                    intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
+                    intersect = bi.Intersection.To3D(start.Z + (Math.Sin(pitch) * bi.Distance2D));
 
                     if (bi.Line.Back == null)
                     {
