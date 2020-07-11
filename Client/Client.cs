@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -88,11 +89,22 @@ namespace Helion.Client
 
         private void HandleCommandLineArgs()
         {
-            if (!m_archiveCollection.Load(m_commandLineArgs.Files))
+            List<string> files = new List<string>();
+            if (m_commandLineArgs.Iwad != null)
+                files.Add(m_commandLineArgs.Iwad);
+            files.AddRange(m_commandLineArgs.Files);
+
+            if (!m_archiveCollection.Load(files))
                 Log.Error("Unable to load files at startup");
 
-            if (m_commandLineArgs.Warp != null)
-                HandleWarp(m_commandLineArgs.Warp.Value);
+            if (m_commandLineArgs.Map != null)
+            {
+                Loadmap(m_commandLineArgs.Map);
+            }
+            else if (m_commandLineArgs.Warp != null)
+            {
+                Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+            }
             else
             {
                 // If we're not warping to a map, bring up the console.
@@ -101,9 +113,8 @@ namespace Helion.Client
             }
         }
 
-        private void HandleWarp(int warpNumber)
+        private void Loadmap(string mapName)
         {
-            string mapName = GetWarpMapFormat(warpNumber);
             m_console.AddInput($"map {mapName}\n");
 
             // If the map is corrupt, go to the console.
@@ -186,6 +197,8 @@ namespace Helion.Client
 
             if (cmdArgs.ErrorWhileParsing)
                 Log.Error("Bad command line arguments, unexpected results may follow");
+
+            cmdArgs.Errors.ForEach(x => Log.Error(x));
 
             try
             {
