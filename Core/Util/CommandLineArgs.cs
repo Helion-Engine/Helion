@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using CommandLine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Util
 {
@@ -9,25 +10,18 @@ namespace Helion.Util
     /// </summary>
     public class CommandLineArgs
     {
-        /// <summary>
-        /// Set to true if there was an error while parsing.
-        /// </summary>
-        public bool ErrorWhileParsing = false;
+        public bool ErrorWhileParsing { get; set; }
+        public bool NoWriteToConsole { get; set; }
+        public bool TimestampLogFile { get; set; }
 
-        [Option('f', "file", Required = false, HelpText = "A list of files to load")]
-        public IList<string> Files { get; set; } = new List<string>();
-
-        [Option('l', "log", Required = false, HelpText = "The name of the log file")]
-        public string LogPath { get; set; } = "";
-
-        [Option("nostdout", Required = false, HelpText = "Will not write to stdout")]
-        public bool NoWriteToConsole { get; set; } = false;
-
-        [Option]
-        public bool TimestampLogFile { get; set; } = false;
-
-        [Option("warp", Required = false, HelpText = "The level to warp to")]
+        public List<string> Files { get; set; } = new List<string>();
+        public string? Iwad { get; set; }
+        public string? Map { get; set; }
+        public string? LogPath { get; set; }
         public int? Warp { get; set; }
+        public int? Skill { get; set; }
+
+        public List<string> Errors { get; set; } = new List<string>();
 
         /// <summary>
         /// Parses the command line arguments and returns an object with the
@@ -37,28 +31,54 @@ namespace Helion.Util
         /// <returns>The command line argument results.</returns>
         public static CommandLineArgs Parse(string[] args)
         {
-            CommandLineArgs result = new CommandLineArgs();
+            CommandLineArgs commandLineArgs = new CommandLineArgs();
+            CommandParser parser = new CommandParser(new[] { "-", "+" });
+            List<CommandArg> parsedArgs = parser.Parse(args);
 
-            try
+            foreach (var parsedArg in parsedArgs)
             {
-                CommandLine.Parser.Default
-                    .ParseArguments<CommandLineArgs>(args)
-                    .WithParsed(cmdArgs => result = cmdArgs)
-                    .WithNotParsed(_ => HandleParsingError(result));
-            }
-            catch
-            {
-                HandleParsingError(result);
+                if (IsArgMatch(parsedArg, "-iwad"))
+                    commandLineArgs.Iwad = GetString(commandLineArgs, parsedArg);
+                else if (IsArgMatch(parsedArg, "-file"))
+                    commandLineArgs.Files.AddRange(parsedArg.Values);
+                else if (IsArgMatch(parsedArg, "-log"))
+                    commandLineArgs.LogPath = GetString(commandLineArgs, parsedArg);
+                else if (IsArgMatch(parsedArg, "-warp"))
+                    commandLineArgs.Warp = ParseInt(commandLineArgs, parsedArg);
+                else if (IsArgMatch(parsedArg, "-skill"))
+                    commandLineArgs.Skill = ParseInt(commandLineArgs, parsedArg);
+                else if (IsArgMatch(parsedArg, "+map"))
+                    commandLineArgs.Map = GetString(commandLineArgs, parsedArg);
+                else
+                    commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
             }
 
-            return result;
+            return commandLineArgs;
         }
 
-        private static void HandleParsingError(CommandLineArgs result)
+        private static bool IsArgMatch(CommandArg arg, string str) => arg.Key.Equals(str, StringComparison.OrdinalIgnoreCase);  
+
+        private static string? GetString(CommandLineArgs commandLineArgs, CommandArg arg)
         {
-            result.ErrorWhileParsing = true;
-            System.Console.WriteLine("Unable to parse command line args.");
-            System.Console.WriteLine("Values that would be set by the command line args will be defaulted values!");
+            if (arg.Values.Count == 0)
+            {
+                commandLineArgs.Errors.Add($"No parameter specified for {arg.Key}");
+                return null;
+            }
+
+            return arg.Values.First();
+        }
+
+        private static int? ParseInt(CommandLineArgs commandLineArgs, CommandArg arg)
+        {
+            if (arg.Values.Count == 0)
+                return null;
+
+            if (int.TryParse(arg.Values.First(), out int value))
+                return value;
+
+            commandLineArgs.Errors.Add($"Invalid {arg.Key}: {arg.Values.First()}");
+            return null;
         }
     }
 }

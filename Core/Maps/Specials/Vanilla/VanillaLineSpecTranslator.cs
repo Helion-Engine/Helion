@@ -172,10 +172,10 @@ namespace Helion.Maps.Specials.Vanilla
             case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
             case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
                 argsToMutate.Arg0 = tag;
-                argsToMutate.Arg1 = 0; // Distance above floor
+                argsToMutate.Arg1 = 8; // Distance above floor
                 argsToMutate.Arg2 = GetSectorMoveSpeed(type);
                 argsToMutate.Arg3 = 8; // Damage
-                argsToMutate.Arg4 = (byte)ZDoomCrushMode.DoomWithSlowDown;
+                argsToMutate.Arg4 = (byte)ZDoomCrushMode.DoomNoSlowDown;
                 return ZDoomLineSpecialType.CeilingCrushAndRaiseDist;
 
             case VanillaLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:

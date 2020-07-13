@@ -113,6 +113,9 @@ namespace Helion.World.Physics
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
+            List<Entity> crushEntities = new List<Entity>();
+            Entity? highestBlockEntity = null;
+            double? highestBlockHeight = 0.0;
             SectorMoveStatus status = SectorMoveStatus.Success;
             double startZ = sectorPlane.Z;
             sectorPlane.PrevZ = startZ;
@@ -152,61 +155,105 @@ namespace Helion.World.Physics
                 if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
                     continue;
 
-                if (!entity.Flags.Solid || !entity.Flags.Shootable)
-                    continue;
-
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
 
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
                     if (crush != null)
                     {
+                        if (crush.CrushMode == ZDoomCrushMode.Hexen)
+                        {
+                            highestBlockEntity = entity;
+                            highestBlockHeight = entity.Height;
+                        }
+
                         status = SectorMoveStatus.Crush;
-                        CrushEntity(entity, crush);
-                        if (CrusherShouldContinue(status, crush))
-                            continue;
+                        crushEntities.Add(entity);
                     }
-
-                    // Set the sector Z to the difference of the blocked height
-                    double diff = Math.Abs(startZ - destZ) - (thingZ + entity.Height - entity.LowestCeilingZ);
-                    if (speed < 0)
-                        diff = -diff;
-
-                    sectorPlane.Z = startZ + diff;
-                    sectorPlane.Plane.MoveZ(startZ - destZ + diff);
-
-                    // Entity blocked movement, reset all entities in moving sector after resetting sector Z
-                    foreach (var relinkEntity in entities)
+                    else
                     {
-                        relinkEntity.UnlinkFromWorld();
-                        relinkEntity.SetZ(relinkEntity.SaveZ + diff, false);
-                        LinkToWorld(relinkEntity);
+                        highestBlockEntity = entity;
+                        highestBlockHeight = entity.Height;
+                        status = SectorMoveStatus.Blocked;
                     }
-
-                    return SectorMoveStatus.Blocked;
                 }
             }
+
+            if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead)
+            {
+                double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
+                // Set the sector Z to the difference of the blocked height
+                double diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
+                if (speed < 0)
+                    diff = -diff;
+
+                sectorPlane.Z = startZ + diff;
+                sectorPlane.Plane.MoveZ(startZ - destZ + diff);
+
+                // Entity blocked movement, reset all entities in moving sector after resetting sector Z
+                foreach (var relinkEntity in entities)
+                {
+                    // Check for entities that may be dead from being crushed
+                    if (relinkEntity.IsDisposed)
+                        continue;
+                    relinkEntity.UnlinkFromWorld();
+                    relinkEntity.SetZ(relinkEntity.SaveZ + diff, false);
+                    LinkToWorld(relinkEntity);
+                }
+            }
+
+            if (crush != null && crushEntities.Count > 0)
+                CrushEntities(crushEntities, sector, crush);
 
             return status;
         }
 
-        private void CrushEntity(Entity entity, CrushData crush)
+        private void CrushEntities(List<Entity> crushEntities, Sector sector, CrushData crush)
         {
             if ((m_world.Gametick & 3) == 0)
-            {
-                DamageEntity(entity, null, crush.Damage);
+                return;
 
-                if (!entity.Flags.NoBlood)
+            // Check for stacked entities, so we can crush the stack
+            List<Entity> stackCrush = new List<Entity>();
+            foreach (Entity checkEntity in sector.Entities)
+            {
+                if (checkEntity.OverEntity != null && crushEntities.Contains(checkEntity.OverEntity))
+                    stackCrush.Add(checkEntity);
+            }
+
+            stackCrush = stackCrush.Union(crushEntities).Distinct().ToList();
+
+            foreach (Entity crushEntity in stackCrush)
+            {
+                if (crushEntity.Flags.DontGib)
+                    continue;
+                
+                if (crushEntity.IsDead)
                 {
-                    Vec3D pos = entity.Position;
-                    pos.Z += entity.Height / 2;
-                    Entity? blood = CreateEntity(pos, entity.GetBloodType());
+                    SetToGiblets(crushEntity);
+                }
+                else if (DamageEntity(crushEntity, null, crush.Damage))
+                {
+                    Vec3D pos = crushEntity.Position;
+                    pos.Z += crushEntity.Height / 2;
+                    Entity? blood = CreateEntity(pos, crushEntity.GetBloodType());
                     if (blood != null)
                     {
                         blood.Velocity.X += m_random.NextDiff() / 16.0;
                         blood.Velocity.Y += m_random.NextDiff() / 16.0;
                     }
                 }
+            }
+        }
+
+        private void SetToGiblets(Entity entity)
+        {
+            if (!entity.SetCrushState())
+            {
+                m_entityManager.Destroy(entity);
+                var gibsDef = m_entityManager.DefinitionComposer.GetByName("REALGIBS");
+                if (gibsDef != null)
+                    m_entityManager.Create(gibsDef, entity.Position, 0.0, 0.0, 0);
             }
         }
 
@@ -421,12 +468,6 @@ namespace Helion.World.Physics
             return null;
         }
 
-        private static bool CrusherShouldContinue(SectorMoveStatus status, CrushData crush)
-        {
-            return (crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown || crush.CrushMode == ZDoomCrushMode.Hexen || crush.CrushMode == ZDoomCrushMode.Compatibility) &&
-                   status == SectorMoveStatus.Crush;
-        }
-
         private static void GetSectorPlaneIntersection(in Vec3D start, in Vec3D end, Sector sector, double floorZ, double ceilingZ, ref Vec3D intersect)
         {
             if (intersect.Z < floorZ)
@@ -455,10 +496,10 @@ namespace Helion.World.Physics
             }
         }
 
-        private void DamageEntity(Entity target, Entity? source, int damage)
+        private bool DamageEntity(Entity target, Entity? source, int damage)
         {
             if (!target.Flags.Shootable)
-                return;
+                return false;
 
             if (source != null)
             {
@@ -513,6 +554,8 @@ namespace Helion.World.Physics
 
             if (target.IsDead)
                 HandleEntityDeath(target);
+
+            return true;
         }
 
         private bool PushUpBlockingEntity(Entity pusher)

@@ -103,6 +103,7 @@ namespace Helion.World.Entities
             ThingId = thingId;
             Definition = definition;
             Flags = new EntityFlags(definition.Flags);
+            // TODO there was a reason for Definition.Properties and Properties being different...
             Properties = new EntityProperties(definition.Properties);
             FrameState = new FrameState(this, definition, entityManager);
             World = world;
@@ -256,6 +257,19 @@ namespace Helion.World.Entities
         {
             if (FrameState.SetState(FrameStateLabel.XDeath))
                 SetDeath();
+        }
+
+        public bool SetCrushState()
+        {
+            if (FrameState.SetState(FrameStateLabel.Crush))
+            {
+                Flags.DontGib = true;
+                Flags.Solid = false;
+                SetHeight(0.0);
+                return true;
+            }
+
+            return false;
         }
 
         public virtual bool Damage(int damage, bool setPainState)

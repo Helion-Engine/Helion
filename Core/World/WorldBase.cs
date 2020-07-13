@@ -91,8 +91,8 @@ namespace Helion.World
 
             EntityManager.Entities.ForEach(entity =>
             {
-                entity.Tick();
                 PhysicsManager.Move(entity);
+                entity.Tick();
             });
 
             SpecialManager.Tick();

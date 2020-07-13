@@ -444,6 +444,9 @@ namespace Helion.World.Special
             case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
                 return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
 
+            case ZDoomLineSpecialType.FloorRaiseCrush:
+                return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
+
             case ZDoomLineSpecialType.FloorRaiseByValueTxTy:
                 return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
 
