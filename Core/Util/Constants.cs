@@ -48,6 +48,8 @@ namespace Helion.Util
         /// </summary>
         public static readonly CIString PlayerClass = "DoomPlayer";
 
+        public static readonly string ActorCrushState = "CRUSH";
+
         /// <summary>
         /// The name of the actor class that is at the base of all decorate
         /// inheritance hierarchies.
