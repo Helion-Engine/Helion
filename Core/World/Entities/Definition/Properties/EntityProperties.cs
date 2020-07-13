@@ -162,6 +162,7 @@ namespace Helion.World.Entities.Definition.Properties
             MinMissileChance = properties.MinMissileChance;
             MissileType = properties.MissileType;
             Obituary = properties.Obituary;
+            PainChance = properties.PainChance;
             PainSound = properties.PainSound;
             PainType = properties.PainType;
             PoisonDamage = properties.PoisonDamage;
