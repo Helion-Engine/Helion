@@ -1,5 +1,8 @@
-﻿namespace Helion.World.Special
+﻿using System;
+
+namespace Helion.World.Special
 {
+    [Flags]
     public enum LineActivationType
     {
         Tag = 1,

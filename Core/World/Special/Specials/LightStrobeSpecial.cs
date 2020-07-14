@@ -6,10 +6,10 @@ namespace Helion.World.Special.Specials
     public class LightStrobeSpecial : ISectorSpecial
     {
         public Sector Sector { get; }
-        private short m_maxBright;
-        private short m_minBright;
-        private int m_brightTics;
-        private int m_darkTics;
+        private readonly short m_maxBright;
+        private readonly short m_minBright;
+        private readonly int m_brightTics;
+        private readonly int m_darkTics;
         private int m_delay;
         
         public LightStrobeSpecial(Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
@@ -55,5 +55,7 @@ namespace Helion.World.Special.Specials
         public void Use()
         {
         }
+
+        public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
     }
 }

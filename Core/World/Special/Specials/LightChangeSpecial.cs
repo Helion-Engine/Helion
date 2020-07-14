@@ -6,10 +6,10 @@ namespace Helion.World.Special.Specials
     public class LightChangeSpecial : ISectorSpecial
     {
         public Sector Sector { get; }
-        private short m_lightLevel;
-        private int m_step;
-        private int m_min;
-        private int m_max;
+        private readonly short m_lightLevel;
+        private readonly int m_step;
+        private readonly int m_min;
+        private readonly int m_max;
 
         public LightChangeSpecial(Sector sector, short lightLevel, int fadeTics)
         {
@@ -52,5 +52,7 @@ namespace Helion.World.Special.Specials
         public void Use()
         {
         }
+
+        public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
@@ -10,8 +9,8 @@ namespace Helion.World.Special.Specials
     public class SectorMoveSpecial : ISectorSpecial
     {
         public Sector Sector { get; protected set; }
-        protected readonly SectorMoveData MoveData;
-        protected SectorPlane SectorPlane;
+        public SectorMoveData MoveData { get; protected set; }
+        public SectorPlane SectorPlane { get; protected set; }
         protected double DestZ;
         protected int DelayTics;
         private readonly PhysicsManager m_physicsManager;
@@ -88,6 +87,8 @@ namespace Helion.World.Special.Specials
         public virtual void Use()
         {
         }
+
+        public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Move;
 
         protected void FlipMovementDirection()
         {

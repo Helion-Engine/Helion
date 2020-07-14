@@ -13,10 +13,12 @@ namespace Helion.World.Special
     public class LineSpecial
     {
         public readonly ZDoomLineSpecialType LineSpecialType;
-        public bool Active;
-        private bool m_moveSpecial;
-        private bool m_lightSpecial;
-        private LineActivationType m_lineActivationType;
+        public bool Active { get; set; }
+        private readonly bool m_moveSpecial;
+        private readonly bool m_sectorStopMoveSpecial;
+        private readonly bool m_lightSpecial;
+        private readonly bool m_stopLightSpecial;
+        private readonly LineActivationType m_lineActivationType;
 
         public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any)
         {
@@ -27,7 +29,9 @@ namespace Helion.World.Special
             LineSpecialType = type;
             m_lineActivationType = lineActivationType;
             m_moveSpecial = SetMoveSpecial();
+            m_sectorStopMoveSpecial = SetSectorStopSpecial();
             m_lightSpecial = SetLightSpecial();
+            m_stopLightSpecial = SetStopLightSpecial();
         }
 
         public bool CanActivateByTag => (m_lineActivationType & LineActivationType.Tag) != 0;
@@ -52,7 +56,9 @@ namespace Helion.World.Special
         }
 
         public bool IsSectorMoveSpecial() => m_moveSpecial;
+        public bool IsSectorStopMoveSpecial() => m_sectorStopMoveSpecial;
         public bool IsSectorLightSpecial() => m_lightSpecial;
+        public bool IsSectorStopLightSpecial() => m_stopLightSpecial;
         public bool CanActivateDuringSectorMovement() => LineSpecialType == ZDoomLineSpecialType.DoorOpenClose;
 
         public bool IsTeleport()
@@ -89,10 +95,8 @@ namespace Helion.World.Special
             case ZDoomLineSpecialType.CeilingRaiseByValue:
             case ZDoomLineSpecialType.CeilingCrushRaiseAndLower:
             case ZDoomLineSpecialType.CeilingCrushStayDown:
-            case ZDoomLineSpecialType.CeilingCrushStop:
             case ZDoomLineSpecialType.CeilingCrushRaiseStay:
             case ZDoomLineSpecialType.LiftPerpetual:
-            case ZDoomLineSpecialType.PlatStop:
             case ZDoomLineSpecialType.LiftDownWaitUpStay:
             case ZDoomLineSpecialType.LiftDownValueTimes8:
             case ZDoomLineSpecialType.LiftUpWaitDownStay:
@@ -133,6 +137,18 @@ namespace Helion.World.Special
             return false;
         }
 
+        private bool SetSectorStopSpecial()
+        {
+            switch (LineSpecialType)
+            {
+            case ZDoomLineSpecialType.PlatStop:
+            case ZDoomLineSpecialType.CeilingCrushStop:
+                return true;
+            }
+
+            return false;
+        }
+
         private bool SetLightSpecial()
         {
             switch (LineSpecialType)
@@ -152,6 +168,11 @@ namespace Helion.World.Special
             }
 
             return false;
+        }
+
+        private bool SetStopLightSpecial()
+        {
+            return LineSpecialType == ZDoomLineSpecialType.LightStop;
         }
     }
 }

@@ -41,5 +41,7 @@ namespace Helion.World.Special.Specials
         public void Use()
         {
         }
+
+        public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
     }
 }

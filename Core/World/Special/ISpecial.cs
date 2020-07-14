@@ -4,5 +4,6 @@ namespace Helion.World.Special
     {
         SpecialTickStatus Tick();
         void Use();
+        SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Default;
     }
 }

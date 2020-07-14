@@ -7,8 +7,8 @@ namespace Helion.World.Special.Specials
     {
         public Sector Sector { get; }
         private readonly IRandom m_random;
-        private short m_maxBright;
-        private short m_minBright;
+        private readonly short m_maxBright;
+        private readonly short m_minBright;
         private int m_delay;
 
         public LightFlickerDoomSpecial(Sector sector, IRandom random, short minLightLevel)
@@ -50,5 +50,7 @@ namespace Helion.World.Special.Specials
         public void Use()
         {
         }
+
+        public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
     }
 }

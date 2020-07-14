@@ -50,7 +50,7 @@ namespace Helion.World.Special
             var special = args.ActivateLineSpecial.Special;
             bool specialActivateSuccess;
 
-            if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial())
+            if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial() || special.IsSectorStopMoveSpecial() || special.IsSectorStopLightSpecial())
                 specialActivateSuccess = HandleSectorLineSpecial(args, special);
             else
                 specialActivateSuccess = HandleDefault(args, special, m_world);
@@ -307,7 +307,15 @@ namespace Helion.World.Special
             var lineSpecial = args.ActivateLineSpecial.Special;
             foreach (var sector in sectors)
             {
-                if ((lineSpecial.IsSectorMoveSpecial() && !sector.IsMoving) || lineSpecial.IsSectorLightSpecial())
+                if (lineSpecial.IsSectorStopLightSpecial())
+                {
+                    StopSectorLightSpecials(sector);
+                }
+                else if (lineSpecial.IsSectorStopMoveSpecial() && sector.IsMoving)
+                {
+                    StopSectorMoveSpecials(lineSpecial, sector);
+                }
+                else if ((lineSpecial.IsSectorMoveSpecial() && !sector.IsMoving) || lineSpecial.IsSectorLightSpecial())
                 {
                     ISpecial? sectorSpecial = CreateSectorSpecial(args, special, sector);
                     if (sectorSpecial != null)
@@ -324,6 +332,52 @@ namespace Helion.World.Special
             }
 
             return success;
+        }
+
+        private void StopSectorLightSpecials(Sector sector)
+        {
+            LinkedListNode<ISpecial>? specNode = m_specials.First;
+            while (specNode != null)
+            {
+                if (specNode.Value.SectorBaseSpecialType == SectorBaseSpecialType.Light && specNode.Value is ISectorSpecial sectorSpecial && 
+                    sectorSpecial.Sector.Equals(sector))
+                {
+                    sector.ActiveMoveSpecial = null;
+                    m_specials.Remove(specNode);
+                    m_destroyedMoveSpecials.Add((ISectorSpecial)specNode.Value);
+                }
+
+                specNode = specNode.Next;
+            }
+        }
+
+        private void StopSectorMoveSpecials(LineSpecial lineSpecial, Sector sector)
+        {
+            LinkedListNode<ISpecial>? specNode = m_specials.First;
+            while (specNode != null)
+            {
+                if (specNode.Value.SectorBaseSpecialType == SectorBaseSpecialType.Move && specNode.Value is SectorMoveSpecial sectorMoveSpecial && 
+                    sectorMoveSpecial.Sector.Equals(sector) && IsSectorMoveSpecialMatch(lineSpecial, sectorMoveSpecial))
+                {
+                    sector.ActiveMoveSpecial = null;
+                    m_specials.Remove(specNode);
+                    m_destroyedMoveSpecials.Add(sectorMoveSpecial);
+                }
+
+                specNode = specNode.Next;
+            }
+        }
+
+        private bool IsSectorMoveSpecialMatch(LineSpecial lineSpec, SectorMoveSpecial spec)
+        {
+            if (lineSpec.LineSpecialType == ZDoomLineSpecialType.CeilingCrushStop && spec.MoveData.Crush != null && spec.MoveData.SectorMoveType == SectorMoveType.Ceiling)
+                return true;
+            else if (lineSpec.LineSpecialType == ZDoomLineSpecialType.FloorStopCrush && spec.MoveData.Crush != null && spec.MoveData.SectorMoveType == SectorMoveType.Floor)
+                return true;
+            else if (lineSpec.LineSpecialType == ZDoomLineSpecialType.PlatStop && spec.MoveData.Crush == null && spec.MoveData.SectorMoveType == SectorMoveType.Floor)
+                return true;
+
+            return false;
         }
 
         private ISpecial? CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
@@ -446,6 +500,9 @@ namespace Helion.World.Special
 
             case ZDoomLineSpecialType.FloorRaiseCrush:
                 return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
+
+            case ZDoomLineSpecialType.CeilingCrushStop:
+                break;
 
             case ZDoomLineSpecialType.FloorRaiseByValueTxTy:
                 return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
