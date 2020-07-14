@@ -224,13 +224,11 @@ namespace Helion.World.Physics
             stackCrush = stackCrush.Union(crushEntities).Distinct().ToList();
 
             foreach (Entity crushEntity in stackCrush)
-            {
-                if (crushEntity.Flags.DontGib)
-                    continue;
-                
+            {              
                 if (crushEntity.IsDead)
                 {
-                    SetToGiblets(crushEntity);
+                    if (!crushEntity.Flags.DontGib)
+                        SetToGiblets(crushEntity);
                 }
                 else if (DamageEntity(crushEntity, null, crush.Damage))
                 {
