@@ -91,8 +91,11 @@ namespace Helion.World
 
             EntityManager.Entities.ForEach(entity =>
             {
-                PhysicsManager.Move(entity);
                 entity.Tick();
+
+                // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
+                if (!entity.IsDisposed)
+                    PhysicsManager.Move(entity);
             });
 
             SpecialManager.Tick();
