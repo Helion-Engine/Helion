@@ -37,12 +37,12 @@ namespace Helion.Util
         /// The index of a 'missing' texture in a map.
         /// </summary>
         public static readonly int NoTextureIndex = 0;
-        
+
         /// <summary>
         /// The sky flat texture name.
         /// </summary>
         public static readonly CIString SkyTexture = "F_SKY1";
-        
+
         /// <summary>
         /// The name of the decorate player class.
         /// </summary>
@@ -55,11 +55,17 @@ namespace Helion.Util
         /// inheritance hierarchies.
         /// </summary>
         public static readonly CIString BaseActorClass = "ACTOR";
-        
+
         /// <summary>
         /// The name of the 4 letter sprite that should not be drawn in the
         /// renderer if encountered as a frame.
         /// </summary>
         public static readonly CIString InvisibleSprite = "TNT1";
+
+        /// <summary>
+        /// The texture name of the debug box image for seeing the bounding box
+        /// of things in game.
+        /// </summary>
+        public static readonly CIString DebugBoxTexture = "DEBUGBOX";
     }
 }
