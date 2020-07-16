@@ -29,12 +29,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private bool m_drawDebugBox;
         private double m_tickFraction;
         private Entity? m_cameraEntity;
+        private GLLegacyTexture m_debugBoxTexture;
+        private RenderWorldData m_debugBoxRenderWorldData;
 
         public EntityRenderer(Config config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
         {
             m_config = config;
             m_textureManager = textureManager;
             m_worldDataManager = worldDataManager;
+            m_debugBoxTexture = m_textureManager.NullTexture;
+            m_debugBoxRenderWorldData = m_worldDataManager[m_debugBoxTexture];
         }
 
         public void UpdateTo(WorldBase world)
@@ -48,6 +52,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // invocations to this for every single sprite to avoid overhead
             // of asking the config for a new value every time.
             m_drawDebugBox = m_config.Engine.Developer.RenderDebug;
+            m_textureManager.TryGet(Constants.DebugBoxTexture, ResourceNamespace.Graphics, out m_debugBoxTexture);
+            m_debugBoxRenderWorldData = m_worldDataManager[m_debugBoxTexture];
 
             m_tickFraction = tickFraction;
             m_cameraEntity = cameraEntity;
@@ -143,10 +149,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             Vector3 min = new Vec3D(centerBottom.X - entity.Radius, centerBottom.Y - entity.Radius, centerBottom.Z).ToFloat();
             Vector3 max = new Vec3D(centerBottom.X + entity.Radius, centerBottom.Y + entity.Radius, centerBottom.Z + entity.Height).ToFloat();
 
-            // TODO: Not optimal due to looking up every iteration...
-            m_textureManager.TryGet("DEBUGBOX", ResourceNamespace.Graphics, out var boxTexture);
-            RenderWorldData renderWorldData = m_worldDataManager[boxTexture];
-
             // These are the indices for the corners on the ASCII art further
             // down in the image.
             AddCubeFaces(2, 0, 3, 1);
@@ -170,12 +172,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 LegacyVertex topRightVertex = MakeVertex(topRight, 1.0f, 0.0f);
                 LegacyVertex bottomRightVertex = MakeVertex(bottomRight, 1.0f, 1.0f);
 
-                renderWorldData.Vbo.Add(topLeftVertex);
-                renderWorldData.Vbo.Add(bottomLeftVertex);
-                renderWorldData.Vbo.Add(topRightVertex);
-                renderWorldData.Vbo.Add(topRightVertex);
-                renderWorldData.Vbo.Add(bottomLeftVertex);
-                renderWorldData.Vbo.Add(bottomRightVertex);
+                m_debugBoxRenderWorldData.Vbo.Add(topLeftVertex);
+                m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
+                m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
+                m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
+                m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
+                m_debugBoxRenderWorldData.Vbo.Add(bottomRightVertex);
             }
 
             LegacyVertex MakeVertex(int cornerIndex, float u, float v)
