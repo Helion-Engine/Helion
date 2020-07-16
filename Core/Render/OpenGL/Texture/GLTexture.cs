@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
@@ -33,18 +34,21 @@ namespace Helion.Render.OpenGL.Texture
         /// What type of texture it is with respect to OpenGL.
         /// </summary>
         public readonly TextureTargetType TextureType;
+
+        public readonly ImageMetadata Metadata;
         
         protected readonly IGLFunctions gl;
 
         public int Width => Dimension.Width;
         public int Height => Dimension.Height;
 
-        protected GLTexture(int textureId, string name, Dimension dimension, IGLFunctions functions, 
+        protected GLTexture(int textureId, string name, Dimension dimension, ImageMetadata metadata, IGLFunctions functions, 
             TextureTargetType textureType)
         {
             TextureId = textureId;
             Name = name;
             Dimension = dimension;
+            Metadata = metadata;
             UVInverse = Vector2.One / dimension.ToVector().ToFloat();
             gl = functions;
             TextureType = textureType;

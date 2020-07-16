@@ -110,13 +110,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // We need to find the perpendicular vector from the entity so we
             // know where to place the quad vertices.
             Vector2 rightNormal = viewDirection.OriginRightRotate90().Unit().ToFloat();
-
             Vector2 entityCenterXY = entityCenterBottom.To2D().ToFloat();
+
             Vector2 halfWidth = rightNormal * texture.Dimension.Width / 2;
             Vector2 left = entityCenterXY - halfWidth;
+            left.X += texture.Metadata.Offset.X;
             Vector2 right = entityCenterXY + halfWidth;
 
-            float bottomZ = (float)entityCenterBottom.Z;
+            float bottomZ = (float)entityCenterBottom.Z + texture.Metadata.Offset.Y;
             float topZ = bottomZ + texture.Height;
             float leftU = mirror ? 1.0f : 0.0f;
             float rightU = mirror ? 0.0f : 1.0f;
