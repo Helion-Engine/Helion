@@ -7,7 +7,6 @@ using Helion.Resources.Definitions.Animdefs.Switches;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
-using Helion.Util.Configuration;
 
 namespace Helion.Resources
 {
@@ -21,7 +20,6 @@ namespace Helion.Resources
         private readonly List<Animation> m_animations = new List<Animation>();
         private int m_skyIndex;
 
-        // TODO - Maybe TextureManager shouldn't be an instance class - this is just to get us started.
         public static TextureManager Instance { get; private set; } = null!;
 
         private TextureManager(ArchiveCollection archiveCollection)
