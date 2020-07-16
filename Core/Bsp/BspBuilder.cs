@@ -27,7 +27,7 @@ namespace Helion.Bsp
     public class BspBuilder
     {
         /// <summary>
-        /// A counter which is used to make sure that we don't enter some 
+        /// A counter which is used to make sure that we don't enter some
         /// infinite loop due to any bugs. In a properly implemented builder
         /// this will never be reached.
         /// </summary>
@@ -40,7 +40,7 @@ namespace Helion.Bsp
         public readonly MinisegCreator MinisegCreator;
         public readonly VertexAllocator VertexAllocator;
         public readonly SegmentAllocator SegmentAllocator;
-        private readonly BspConfig BspConfig;
+        private readonly BspConfig m_bspConfig;
         private readonly BspNode m_root = new BspNode();
         private readonly Stack<WorkItem> m_workItems = new Stack<WorkItem>();
         private bool m_foundDegenerateNode;
@@ -54,10 +54,10 @@ namespace Helion.Bsp
 
         public BspBuilder(BspConfig config, IMap map)
         {
-            BspConfig = config;
+            m_bspConfig = config;
             CollinearTracker collinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
             JunctionClassifier junctionClassifier = new JunctionClassifier();
-            
+
             VertexAllocator = new VertexAllocator(config.VertexWeldingEpsilon);
             SegmentAllocator = new SegmentAllocator(VertexAllocator, collinearTracker);
             ConvexChecker = new ConvexChecker();
@@ -126,7 +126,7 @@ namespace Helion.Bsp
 
             if (m_foundDegenerateNode)
                 m_root.StripDegenerateNodes();
-            
+
             return m_root.IsDegenerate ? null : m_root;
         }
 
@@ -179,7 +179,7 @@ namespace Helion.Bsp
                 BspSegment segment = SegmentAllocator.GetOrCreate(start, end, line);
                 segments.Add(segment);
             }
-            
+
             return SegmentChainPruner.Prune(segments);
         }
 
@@ -188,9 +188,9 @@ namespace Helion.Bsp
             WorkItem workItem = new WorkItem(m_root, segments);
             m_workItems.Push(workItem);
         }
-        
+
         /// <summary>
-        /// Takes the convex traversal that was done and adds it to the top BSP 
+        /// Takes the convex traversal that was done and adds it to the top BSP
         /// node on the stack. This effectively creates the subsector.
         /// </summary>
         private void AddConvexTraversalToTopNode()
@@ -321,7 +321,7 @@ namespace Helion.Bsp
 
             string path = currentWorkItem.BranchPath;
 
-            if (BspConfig.BranchRight)
+            if (m_bspConfig.BranchRight)
             {
                 m_workItems.Push(new WorkItem(leftChild, leftSegs, path + "L"));
                 m_workItems.Push(new WorkItem(rightChild, rightSegs, path + "R"));

@@ -91,6 +91,8 @@
     <Content Include="Assets\Fonts.txt" />
     <Content Include="Assets\Fonts\console.ttf" />
     <Content Include="Assets\Graphics\cursor.png" />
+    <Content Include="Assets\Graphics\debugbox.lmp" />
+    <Content Include="Assets\Graphics\debugboxoriginal.png" />
     <Content Include="Assets\Graphics\helion.png" />
     <Content Include="Assets\Licenses\fonts.console.LICENSE" />
     <Content Include="Assets\Licenses\graphics.cursor.LICENSE" />
