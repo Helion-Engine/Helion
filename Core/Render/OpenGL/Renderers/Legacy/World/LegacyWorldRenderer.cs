@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
             new VertexPointerFloatAttribute("lightLevel", 2, 1));
-        
+
         private readonly Config m_config;
         private readonly IGLFunctions gl;
         private readonly GeometryRenderer m_geometryRenderer;
@@ -35,14 +35,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private readonly RenderWorldDataManager m_worldDataManager;
         private readonly ViewClipper m_viewClipper = new ViewClipper();
 
-        public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
+        public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
             m_config = config;
             gl = functions;
             m_worldDataManager = new RenderWorldDataManager(capabilities, gl);
-            m_entityRenderer = new EntityRenderer(textureManager, m_worldDataManager);
-            m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions, 
+            m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
+            m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,
                 textureManager, m_viewClipper, m_worldDataManager);
 
             using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
@@ -70,9 +70,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
         {
             Clear(world, renderInfo);
-            
+
             TraverseBsp(world, renderInfo);
-            
+
             RenderWorldData(renderInfo);
             m_geometryRenderer.Render(renderInfo);
         }
@@ -81,16 +81,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         {
             m_viewClipper.Clear();
             m_worldDataManager.Clear();
-            
+
             m_geometryRenderer.Clear(renderInfo.TickFraction);
             m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);
         }
-        
+
         private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
         {
             Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
             Vec2D viewDirection = renderInfo.Camera.Direction.To2D().ToDouble();
-            
+
             m_viewClipper.Center = position;
             RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);
         }
@@ -99,7 +99,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         {
             if (node.BoundingBox.Contains(position))
                 return false;
-            
+
             (Vec2D first, Vec2D second) = node.BoundingBox.GetSpanningEdge(position);
             return m_viewClipper.InsideAnyRange(first, second);
         }
@@ -109,7 +109,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         {
             if (Occluded(node, position))
                 return;
-            
+
             // TODO: Consider changing to xor trick to avoid branching?
             if (node.Splitter.OnRight(position))
             {
@@ -117,7 +117,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position, viewDirection);
                 else
                     RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, viewDirection, world);
-                
+
                 if (node.IsLeftSubsector)
                     RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position, viewDirection);
                 else
@@ -129,7 +129,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position, viewDirection);
                 else
                     RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, viewDirection, world);
-                
+
                 if (node.IsRightSubsector)
                     RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position, viewDirection);
                 else
@@ -142,24 +142,24 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_geometryRenderer.RenderSubsector(subsector, position);
             m_entityRenderer.RenderSubsector(subsector, position, viewDirection);
         }
-        
+
         private void SetUniforms(RenderInfo renderInfo)
         {
             m_shaderProgram.BoundTexture.Set(gl, 0);
             m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
         }
-        
+
         private void RenderWorldData(RenderInfo renderInfo)
         {
             m_shaderProgram.Bind();
-            
+
             SetUniforms(renderInfo);
             gl.ActiveTexture(TextureUnitType.Zero);
             m_worldDataManager.Draw();
 
             m_shaderProgram.Unbind();
         }
-        
+
         private void ReleaseUnmanagedResources()
         {
             m_shaderProgram.Dispose();

@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities;
@@ -21,15 +22,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         /// </summary>
         private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
 
+        private readonly Config m_config;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly RenderWorldDataManager m_worldDataManager;
         private readonly EntityDrawnTracker m_EntityDrawnTracker = new EntityDrawnTracker();
+        private bool m_drawDebugBox;
         private double m_tickFraction;
         private Entity? m_cameraEntity;
-        private bool m_drawDebugBox = true;
 
-        public EntityRenderer(LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
+        public EntityRenderer(Config config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
         {
+            m_config = config;
             m_textureManager = textureManager;
             m_worldDataManager = worldDataManager;
         }
@@ -41,6 +44,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         public void Clear(WorldBase world, double tickFraction, Entity cameraEntity)
         {
+            // I'm hitching a ride here so we don't keep making a bunch of
+            // invocations to this for every single sprite to avoid overhead
+            // of asking the config for a new value every time.
+            m_drawDebugBox = m_config.Engine.Developer.RenderDebug;
+
             m_tickFraction = tickFraction;
             m_cameraEntity = cameraEntity;
             m_EntityDrawnTracker.Reset(world);
@@ -149,7 +157,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
             void AddCubeFaces(int topLeft, int bottomLeft, int topRight, int bottomRight)
             {
-                // We want to draw it o both sides, not just the front.
+                // We want to draw it to both sides, not just the front.
                 AddCubeFace(topLeft, bottomLeft, topRight, bottomRight);
                 AddCubeFace(topRight, bottomRight, topLeft, bottomLeft);
             }
