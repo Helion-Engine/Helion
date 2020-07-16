@@ -1,10 +1,12 @@
 using System.Drawing;
+using System.IO;
 using Helion.Graphics;
 using Helion.Graphics.Palette;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
+using Helion.Util.Geometry.Vectors;
 using NLog;
 using Image = Helion.Graphics.Image;
 
@@ -28,6 +30,21 @@ namespace Helion.Resources.Images
         public ArchiveImageRetriever(ArchiveCollection archiveCollection)
         {
             m_archiveCollection = archiveCollection;
+        }
+
+        public static bool IsPng(byte[] data)
+        {
+            return data.Length > 8 && data[0] == 137 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G';
+        }
+
+        public static bool IsJpg(byte[] data)
+        {
+            return data.Length > 10 && data[0] == 0xFF && data[1] == 0xD8;
+        }
+
+        public static bool IsBmp(byte[] data)
+        {
+            return data.Length > 14 && data[0] == 'B' && data[1] == 'M';
         }
 
         /// <inheritdoc/>
@@ -100,31 +117,40 @@ namespace Helion.Resources.Images
 
         private Image? ImageFromEntry(Entry entry)
         {
+            Image? image = null;
             byte[] data = entry.ReadData();
-            
-            // TODO: If its a png/jpg/etc, read the format instead.
-            // TODO: If it's a png, make sure to read the offsets from 'grAb'!
 
-            if (PaletteReaders.LikelyFlat(data))
+            if (IsPng(data) || IsBmp(data) || IsJpg(data))
             {
-                PaletteImage? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
-                if (flatPaletteImage != null)
+                try
                 {
-                    Image flatImage = flatPaletteImage.ToImage(m_archiveCollection.Data.Palette);
-                    m_compiledImages.Insert(entry.Path.Name, entry.Namespace, flatImage);
-                    
-                    return flatImage;
+                    image = new Image(new Bitmap(new MemoryStream(data), true), new ImageMetadata(new Vec2I(0, 0), entry.Namespace));
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                if (PaletteReaders.LikelyFlat(data))
+                {
+                    PaletteImage? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
+                    if (flatPaletteImage != null)
+                        image = flatPaletteImage.ToImage(m_archiveCollection.Data.Palette);
+                }
+                else
+                {
+                    PaletteImage? columnPaletteImage = PaletteReaders.ReadColumn(data, entry.Namespace);
+                    if (columnPaletteImage != null)
+                        image = columnPaletteImage.ToImage(m_archiveCollection.Data.Palette);
                 }
             }
 
-            PaletteImage? columnPaletteImage = PaletteReaders.ReadColumn(data, entry.Namespace);
-            if (columnPaletteImage == null) 
-                return null;
-            
-            Image columnImage = columnPaletteImage.ToImage(m_archiveCollection.Data.Palette);
-            m_compiledImages.Insert(entry.Path.Name, entry.Namespace, columnImage);
+            if (image != null)
+                m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
 
-            return columnImage;
+            return image;
         }
     }
 }
