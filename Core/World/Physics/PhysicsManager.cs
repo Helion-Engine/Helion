@@ -727,6 +727,10 @@ namespace Helion.World.Physics
 
         private static bool PreviouslyClipped(Entity entity, Entity other)
         {
+            // Can't check for entities without CanPass as the movement code allows them to potentially clip
+            if (!entity.Flags.CanPass)
+                return false;
+
             return Box3D.Overlaps(entity.PrevPosition, entity.Radius, entity.Height,
                 other.PrevPosition, other.Radius, other.Height);
         }
@@ -913,6 +917,9 @@ namespace Helion.World.Physics
             double highestFloorZ = highestFloor.ToFloorZ(entity.Position);
             double lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
 
+            entity.OnEntity = null;
+
+            // Only check against other entities if CanPass is set (height sensitive clip detection)
             if (entity.Flags.CanPass)
             {
                 foreach (Sector sector in entity.IntersectSectors)
@@ -931,15 +938,8 @@ namespace Helion.World.Physics
                         lowestCeilZ = ceilZ;
                     }
                 }
-            }
 
-            entity.OnEntity = null;
-
-            // Only check against other entities if we are solid
-            if (entity.Flags.CanPass)
-            {
-                // Get intersecting entities here
-                // They are not stored in the entity because other entities can move around after this entity has linked
+                // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 List<Entity> intersectEntities = entity.GetIntersectingEntities2D();
 
                 for (int i = 0; i < intersectEntities.Count; i++)
@@ -1233,20 +1233,17 @@ namespace Helion.World.Physics
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
-                            else if (entity.CanBlockEntity(nextEntity))
+                            else if (entity.CanBlockEntity(nextEntity) && EntityBlocksEntityZ(entity, nextEntity))
                             {
-                                if (EntityBlocksEntityZ(entity, nextEntity))
-                                {
-                                    bool clipped = true;
-                                    // If we are stuck inside another entity's box then only allow movement if we try to move out the box
-                                    if (PreviouslyClipped(entity, nextEntity))
-                                        clipped = CanMoveOutOfEntity(entity, nextEntity, nextPosition);
+                                bool clipped = true;
+                                //If we are stuck inside another entity's box then only allow movement if we try to move out the box
+                                if (PreviouslyClipped(entity, nextEntity))
+                                    clipped = CanMoveOutOfEntity(entity, nextEntity, nextPosition);
 
-                                    if (clipped)
-                                    {
-                                        HandleEntityHit(entity, null, nextEntity, null);
-                                        return GridIterationStatus.Stop;
-                                    }
+                                if (clipped)
+                                {
+                                    HandleEntityHit(entity, null, nextEntity, null);
+                                    return GridIterationStatus.Stop;
                                 }
                             }
                         }
@@ -1520,9 +1517,6 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            if (entity.Flags.Missile)
-                entity.Flags.Missile = true;
-
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
             if (entity.ShouldApplyGravity())
