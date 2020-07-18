@@ -118,9 +118,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             Vector2 rightNormal = viewDirection.OriginRightRotate90().Unit().ToFloat();
             Vector2 entityCenterXY = entityCenterBottom.To2D().ToFloat();
 
+            // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
+            entityCenterXY.X += rightNormal.X * texture.Metadata.Offset.X;
+            entityCenterXY.Y += rightNormal.Y * texture.Metadata.Offset.X;
+
             Vector2 halfWidth = rightNormal * texture.Dimension.Width / 2;
             Vector2 left = entityCenterXY - halfWidth;
-            left.X += texture.Metadata.Offset.X;
             Vector2 right = entityCenterXY + halfWidth;
 
             float bottomZ = (float)entityCenterBottom.Z + texture.Metadata.Offset.Y;
