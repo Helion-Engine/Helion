@@ -36,6 +36,8 @@ namespace Helion.World.Entities.Players
         private double m_prevViewHeight;
         private double m_deltaViewHeight;
 
+        public override double ViewHeight => m_viewHeight;
+
         public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber)
             : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
@@ -98,7 +100,7 @@ namespace Helion.World.Entities.Players
 
             m_isJumping = false;
 
-            if (hardHit && !Flags.NoGravity)
+            if (hardHit && !Flags.NoGravity && !IsDead)
             {
                 SoundManager.CreateSoundOn(this, "DSOOF", SoundChannelType.Voice);
                 m_deltaViewHeight = Velocity.Z / PlayerViewDivider;
