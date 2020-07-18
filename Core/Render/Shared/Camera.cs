@@ -107,8 +107,8 @@ namespace Helion.Render.Shared
         /// <returns>The direction from the yaw/pitch combination.</returns>
         private static Vector3 DirectionFrom(float yawRadians, float pitchRadians)
         {
-            float x = (float)Math.Cos(yawRadians);
-            float y = (float)Math.Sin(yawRadians);
+            float x = (float)(Math.Cos(yawRadians) * Math.Cos(pitchRadians));
+            float y = (float)(Math.Sin(yawRadians) * Math.Cos(pitchRadians));
             float z = (float)Math.Sin(pitchRadians);
             return Vector3.Normalize(new Vector3(x, y, z));
         }

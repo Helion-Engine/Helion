@@ -35,12 +35,12 @@ namespace Helion.Util.Geometry.Vectors
 
         public static Vec3D UnitTimesValue(double angle, double pitch, double value)
         {
-            return new Vec3D(Math.Cos(angle) * value, Math.Sin(angle) * value, Math.Sin(pitch) * value);
+            return new Vec3D(Math.Cos(angle) * Math.Cos(pitch) * value, Math.Sin(angle) * Math.Cos(pitch) * value, Math.Sin(pitch) * value);
         }
 
         public static Vec3D Unit(double angle, double pitch)
         {
-            return new Vec3D(Math.Cos(angle), Math.Sin(angle), Math.Sin(pitch));
+            return new Vec3D(Math.Cos(angle) * Math.Cos(pitch), Math.Sin(angle) * Math.Cos(pitch), Math.Sin(pitch));
         }
 
         public bool EqualTo(Vec3D other, double epsilon = 0.00001)
