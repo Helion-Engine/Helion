@@ -337,13 +337,22 @@ namespace Helion.World.Physics
             if (projectileDef != null)
             {
                 Entity projectile = m_entityManager.Create(projectileDef, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
+                Vec3D velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
+                Vec3D testPos = projectile.Position + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, shooter.Radius - 2.0);
                 projectile.Owner = shooter;
-                projectile.Velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
+                projectile.Velocity = testPos - projectile.Position;
 
-                if (!CanMoveTo(projectile, projectile.Position.To2D() + projectile.Velocity.To2D()))
+                // TryMoveXY will use the velocity of the projectile
+                // Velocity is temporarily set to the test if the movement can reach testPos
+                // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
+                if (!projectile.IsBlocked() && TryMoveXY(projectile))
                 {
-                    projectile.WallExplosion = true;
-                    projectile.SetDeathState();
+                    projectile.Velocity = velocity;
+                }
+                else
+                {
+                    projectile.SetPosition(testPos);
+                    HandleEntityHit(projectile);
                 }
             }
         }
@@ -515,7 +524,11 @@ namespace Helion.World.Physics
                 }
                 else
                 {
-                    pitch = source.Position.Pitch(target.Position, source.Position.To2D().Distance(target.Position.To2D()));
+                    Vec3D sourcePos = source.Position;
+                    sourcePos.Z += source.Height / 2.0;
+                    Vec3D targetPos = target.Position;
+                    targetPos.Z += target.Height / 2.0;
+                    pitch = sourcePos.Pitch(targetPos, sourcePos.To2D().Distance(targetPos.To2D()));
                 }
 
                 double angle = source.Position.Angle(target.Position);
@@ -530,19 +543,10 @@ namespace Helion.World.Physics
                 }
 
                 Vec3D velocity = Vec3D.Zero;
-
-                if (source.WallExplosion && source.Owner == target)
-                {
-                    angle = source.AngleRadians + Math.PI;
+                if (!xyEqual)
                     velocity = Vec3D.Unit(angle, 0.0);
-                }
-                else
-                {
-                    if (!xyEqual)
-                        velocity = Vec3D.Unit(angle, 0.0);
 
-                    velocity.Z = Math.Sin(pitch);
-                }
+                velocity.Z = Math.Sin(pitch);
 
                 velocity.Multiply(thrust);
                 target.Velocity += velocity;
@@ -879,19 +883,18 @@ namespace Helion.World.Physics
                 entity.SetZ(lowestCeil - entity.Height, false);
                 entity.Velocity.Z = 0;
 
-                if (entity.HighestFloorObject is Entity)
-                    HandleEntityHit(entity, null, (Entity)entity.HighestFloorObject, null);
+                if (entity.LowestCeilingObject is Entity blockEntity)
+                    entity.BlockingEntity = blockEntity;
                 else
-                    HandleEntityHit(entity, null, null, entity.LowestCeilingSector.Ceiling);
+                    entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
             }
 
             if (entity.Box.Bottom <= highestFloor)
             {
-                if (entity.HighestFloorObject != null && entity.HighestFloorObject is Entity)
+                if (entity.HighestFloorObject is Entity highestEntity && 
+                    highestEntity.Box.Top <= entity.Box.Bottom + entity.GetMaxStepHeight())
                 {
-                    Entity highestEntity = (Entity)entity.HighestFloorObject;
-                    if (highestEntity.Box.Top <= entity.Box.Bottom + entity.GetMaxStepHeight())
-                        entity.OnEntity = highestEntity;
+                    entity.OnEntity = highestEntity;
                 }
 
                 if (entity.OnEntity != null)
@@ -899,10 +902,10 @@ namespace Helion.World.Physics
 
                 SetEntityOnFloorOrEntity(entity, highestFloor, lastHighestFloorObject != entity.HighestFloorObject);
 
-                if (entity.HighestFloorObject is Entity)
-                    HandleEntityHit(entity, null, (Entity)entity.HighestFloorObject, null);
+                if (entity.HighestFloorObject is Entity blockEntity)
+                    entity.BlockingEntity = blockEntity;
                 else
-                    HandleEntityHit(entity, null, null, entity.HighestFloorSector.Floor);
+                    entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
             }
 
             entity.OnGround = entity.Box.Bottom == highestFloor;
@@ -1079,7 +1082,7 @@ namespace Helion.World.Physics
             entity.Velocity.Y = 0;
         }
 
-        private void PerformMoveXY(Entity entity)
+        private bool TryMoveXY(Entity entity)
         {
             Precondition(entity.Velocity.To2D() != Vec2D.Zero, "Cannot move with zero horizontal velocity");
 
@@ -1089,13 +1092,14 @@ namespace Helion.World.Physics
             if (entity.NoClip)
             {
                 HandleNoClip(entity, velocity);
-                return;
+                return true;
             }
 
             // TODO: Temporary until we know how this actually works.
             if (entity.IsCrushing())
-                return;
+                return false;
 
+            bool success = true;
             // We advance in small steps that are smaller than the radius of
             // the actor so we don't skip over any lines or things due to fast
             // entity speed.
@@ -1122,12 +1126,15 @@ namespace Helion.World.Physics
                     continue;
                 }
 
+                success = false;
                 ClearVelocityXY(entity);
                 break;
             }
 
             if (entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);
+
+            return success;
         }
 
         private void HandleStackedEntityPhysics(Entity entity)
@@ -1153,34 +1160,34 @@ namespace Helion.World.Physics
             }
         }
 
-        private void HandleEntityHit(Entity entity, Line? blockingLine, Entity? blockingEntity, SectorPlane? blockingPlane)
+        private void HandleEntityHit(Entity entity)
         {
             if (entity.Flags.Missile)
             {
-                if (blockingEntity != null)
+                if (entity.BlockingEntity != null)
                 {
                     int damage = entity.Properties.Damage.Get(m_random);
-                    DamageEntity(blockingEntity, entity, damage);
+                    DamageEntity(entity.BlockingEntity, entity, damage);
                 }
 
                 bool skyClip = false;
 
-                if (blockingLine != null)
+                if (entity.BlockingLine != null)
                 {
-                    if (blockingLine.OneSided && IsSkyClipOneSided(blockingLine.Front.Sector, blockingLine.Front.Sector.ToFloorZ(entity.Position),
-                        blockingLine.Front.Sector.ToCeilingZ(entity.Position), entity.Position))
+                    if (entity.BlockingLine.OneSided && IsSkyClipOneSided(entity.BlockingLine.Front.Sector, entity.BlockingLine.Front.Sector.ToFloorZ(entity.Position),
+                        entity.BlockingLine.Front.Sector.ToCeilingZ(entity.Position), entity.Position))
                     {
                         skyClip = true;
                     }
-                    else if (!blockingLine.OneSided)
+                    else if (!entity.BlockingLine.OneSided)
                     {
-                        GetOrderedSectors(blockingLine, entity.Position, out Sector front, out Sector back);
+                        GetOrderedSectors(entity.BlockingLine, entity.Position, out Sector front, out Sector back);
                         if (IsSkyClipTwoSided(front, back, entity.Position))
                             skyClip = true;
                     }
                 }
 
-                if (blockingPlane != null && TextureManager.Instance.IsSkyTexture(blockingPlane.TextureHandle))
+                if (entity.BlockingSectorPlane != null && TextureManager.Instance.IsSkyTexture(entity.BlockingSectorPlane.TextureHandle))
                     skyClip = true;
 
                 if (skyClip)
@@ -1215,7 +1222,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(nextBox) && LineBlocksEntity(entity, line))
                     {
-                        HandleEntityHit(entity, line, null, null);
+                        entity.BlockingLine = line;
                         return GridIterationStatus.Stop;
                     }
                 }
@@ -1242,7 +1249,7 @@ namespace Helion.World.Physics
 
                                 if (clipped)
                                 {
-                                    HandleEntityHit(entity, null, nextEntity, null);
+                                    nextEntity.BlockingEntity = nextEntity;
                                     return GridIterationStatus.Stop;
                                 }
                             }
@@ -1509,7 +1516,8 @@ namespace Helion.World.Physics
             if (entity.Velocity.To2D() == Vec2D.Zero)
                 return;
 
-            PerformMoveXY(entity);
+            if (!TryMoveXY(entity))
+                HandleEntityHit(entity);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);
             StopXYMovementIfSmall(entity);
@@ -1527,6 +1535,9 @@ namespace Helion.World.Physics
 
             entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
             ClampBetweenFloorAndCeiling(entity);
+
+            if (entity.IsBlocked())
+                HandleEntityHit(entity);
 
             if (entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);

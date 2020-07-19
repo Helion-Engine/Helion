@@ -58,7 +58,10 @@ namespace Helion.World.Entities
         public Entity? OverEntity;
         public Entity? Owner;
         public bool Refire;
-        public bool WallExplosion;
+        public Line? BlockingLine;
+        public Entity? BlockingEntity;
+        public SectorPlane? BlockingSectorPlane;
+        public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
@@ -221,6 +224,9 @@ namespace Helion.World.Entities
             BlockmapNodes.Clear();
 
             IntersectSectors.Clear();
+            BlockingLine = null;
+            BlockingEntity = null;
+            BlockingSectorPlane = null;
         }
 
         /// <summary>
