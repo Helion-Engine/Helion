@@ -430,7 +430,7 @@ namespace Helion.World.Physics
 
                 if (bi.Line != null)
                 {
-                    intersect = bi.Intersection.To3D(start.Z + (Math.Sin(pitch) * bi.Distance2D));
+                    intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
 
                     if (bi.Line.Back == null)
                     {
@@ -503,7 +503,7 @@ namespace Helion.World.Physics
             }
         }
 
-        private bool DamageEntity(Entity target, Entity? source, int damage)
+        private bool DamageEntity(Entity target, Entity? source, int damage, bool applyThrustZ = true)
         {
             if (!target.Flags.Shootable)
                 return false;
@@ -513,23 +513,7 @@ namespace Helion.World.Physics
                 Vec2D xyDiff = source.Position.To2D() - target.Position.To2D();
                 bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
                 bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
-                double pitch;
-
-                // Player rocket jumping check, back up the source Z to get a valid pitch
-                // Only done for players, otherwise blowing up enemies will launch them in the air
-                if (zEqual && target is Player && source.Owner == target)
-                {
-                    Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
-                    pitch = sourcePos.Pitch(target.Position, 0.0);
-                }
-                else
-                {
-                    Vec3D sourcePos = source.Position;
-                    sourcePos.Z += source.Height / 2.0;
-                    Vec3D targetPos = target.Position;
-                    targetPos.Z += target.Height / 2.0;
-                    pitch = sourcePos.Pitch(targetPos, sourcePos.To2D().Distance(targetPos.To2D()));
-                }
+                double pitch = 0.0;
 
                 double angle = source.Position.Angle(target.Position);
                 double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
@@ -543,10 +527,34 @@ namespace Helion.World.Physics
                 }
 
                 Vec3D velocity = Vec3D.Zero;
-                if (!xyEqual)
-                    velocity = Vec3D.Unit(angle, 0.0);
 
-                velocity.Z = Math.Sin(pitch);
+                if (applyThrustZ)
+                {
+                    // Player rocket jumping check, back up the source Z to get a valid pitch
+                    // Only done for players, otherwise blowing up enemies will launch them in the air
+                    if (zEqual && target is Player && source.Owner == target)
+                    {
+                        Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
+                        pitch = sourcePos.Pitch(target.Position, 0.0);
+                    }
+                    else if (source.Position.Z < target.Position.Z || source.Position.Z > target.Position.Z + target.Height)
+                    {
+                        Vec3D sourcePos = source.CenterPoint;
+                        Vec3D targetPos = target.Position;
+                        if (source.Position.Z > target.Position.Z + target.Height)
+                            targetPos.Z += target.Height;
+                        pitch = sourcePos.Pitch(targetPos, sourcePos.To2D().Distance(targetPos.To2D()));
+                    }
+
+                    if (!xyEqual)
+                        velocity = Vec3D.Unit(angle, 0.0);
+
+                    velocity.Z = Math.Sin(pitch);
+                }
+                else
+                {
+                    velocity = Vec3D.Unit(angle, 0.0);
+                }
 
                 velocity.Multiply(thrust);
                 target.Velocity += velocity;
@@ -581,8 +589,8 @@ namespace Helion.World.Physics
 
         public void RadiusExplosion(Entity source, int radius)
         {
-            // Barrels can't use ZDoom physics - TODO better way to check?
-            bool zdoomPhysics = source.Definition.Name != "ExplosiveBarrel";
+            // Barrels do not apply Z thrust - TODO better way to check?
+            bool applyThrustZ = source.Definition.Name != "ExplosiveBarrel";
             Vec2D pos2D = source.Position.To2D();
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
@@ -593,51 +601,34 @@ namespace Helion.World.Physics
             {
                 BlockmapIntersect bi = intersections[i];
                 if (bi.Entity != null && CheckLineOfSight(bi.Entity, source))
-                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, zdoomPhysics);
+                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, applyThrustZ);
             }
         }
 
-        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, bool zdoomPhysics)
+        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, bool applyThrustZ)
         {
-            double dx = Math.Abs(entity.Position.X - source.Position.X);
-            double dy = Math.Abs(entity.Position.Y - source.Position.Y);
-            double distance = Math.Max(dx, dy);
+            double distance;
 
-            if (zdoomPhysics)
+            if (applyThrustZ && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top))
             {
-                if (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top)
-                {
-                    double dz;
-                    if (source.Position.Z > entity.Position.Z)
-                        dz = entity.Box.Top - source.Position.Z;
-                    else
-                        dz = entity.Position.Z - source.Position.Z;
+                Vec3D sourcePos = source.Position;
+                Vec3D targetPos = entity.Position;
 
-                    if (distance <= entity.Radius)
-                        distance = dz;
-                    else
-                    {
-                        distance -= entity.Radius;
-                        distance = Math.Sqrt((distance * distance) + (dz * dz));
-                    }
-                }
-                else
-                {
-                    distance -= entity.Radius;
-                    if (distance < 0.0f)
-                        distance = 0.0f;
-                }
+                if (source.Position.Z > entity.Position.Z)
+                    targetPos.Z += entity.Height;
+
+                distance = Math.Max(0.0, sourcePos.Distance(targetPos) - entity.Radius);
             }
             else
             {
-                distance -= entity.Radius;
+                distance = entity.Position.To2D().Distance(source.Position.To2D()) - entity.Radius;
             }
 
             int damage = (int)(radius - distance);
             if (damage <= 0)
                 return;
 
-            DamageEntity(entity, source, damage);
+            DamageEntity(entity, source, damage, applyThrustZ);
         }
 
         public bool CheckLineOfSight(Entity entity, Entity other)
