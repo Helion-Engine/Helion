@@ -3,6 +3,7 @@ using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.World.Cheats;
 
 namespace Helion.Client
 {
@@ -24,7 +25,8 @@ namespace Helion.Client
                 break;
         
             default:
-                Log.Info($"Unknown command: {ccmdArgs.Command}");
+                if (!CheatManager.Instance.HandleCommand(ccmdArgs.Command))
+                    Log.Info($"Unknown command: {ccmdArgs.Command}");
                 break;
             }
         }

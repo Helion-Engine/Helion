@@ -22,6 +22,8 @@ namespace Helion.World.Cheats
 
         public event EventHandler<ICheat>? CheatActivationChanged;
 
+        public static CheatManager Instance { get; } = new CheatManager();
+
         public CheatManager()
         {
             m_cheatLookup = Cheats.ToDictionary(cheat => cheat.CheatType);
@@ -38,6 +40,19 @@ namespace Helion.World.Cheats
 
             Log.Warn("{0} cheat: {1}", cheat.Activated ? "Activated" : "Deactivated", cheat.CheatName);
             CheatActivationChanged?.Invoke(this, cheat);
+        }
+
+        public bool HandleCommand(string command)
+        {
+            var cheat = Cheats.FirstOrDefault(x => command.Equals(x.ConsoleCommand, StringComparison.OrdinalIgnoreCase));
+
+            if (cheat != null)
+            {
+                ActivateCheat(cheat.CheatType);
+                return true;
+            }
+
+            return false;
         }
 
         public void HandleInput(ConsumableInput consumableInput)

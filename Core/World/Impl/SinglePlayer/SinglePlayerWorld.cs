@@ -32,7 +32,6 @@ namespace Helion.World.Impl.SinglePlayer
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly Player Player;
-        private readonly CheatManager m_cheatManager = new CheatManager();
         
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, IMap map)
@@ -42,7 +41,7 @@ namespace Helion.World.Impl.SinglePlayer
             
             Player = EntityManager.CreatePlayer(0);
 
-            m_cheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
+            CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             PhysicsManager.EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
             PhysicsManager.PlayerUseFail += PhysicsManager_PlayerUseFail;
         }
@@ -68,7 +67,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleFrameInput(ConsumableInput frameInput)
         {
-            m_cheatManager.HandleInput(frameInput);
+            CheatManager.Instance.HandleInput(frameInput);
             HandleMouseLook(frameInput);
         }
 
@@ -174,7 +173,7 @@ namespace Helion.World.Impl.SinglePlayer
         
         protected override void PerformDispose()
         {
-            m_cheatManager.CheatActivationChanged -= Instance_CheatActivationChanged;
+            CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
             PhysicsManager.EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
             PhysicsManager.PlayerUseFail -= PhysicsManager_PlayerUseFail;
             
