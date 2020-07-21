@@ -1,5 +1,5 @@
 using Helion.Maps.Components;
-using Helion.Util.Geometry;
+using Helion.Maps.Specials;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Doom.Components
@@ -12,6 +12,8 @@ namespace Helion.Maps.Doom.Components
         public string MiddleTexture { get; set; }
         public string LowerTexture { get; set; }
         public readonly DoomSector Sector;
+
+        public SideScrollData? ScrollData { get; set; }
 
         public DoomSide(int id, Vec2I offset, string upperTexture, string middleTexture, string lowerTexture, 
             DoomSector sector)

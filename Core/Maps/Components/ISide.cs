@@ -1,4 +1,4 @@
-using Helion.Util.Geometry;
+using Helion.Maps.Specials;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Components
@@ -38,5 +38,7 @@ namespace Helion.Maps.Components
         /// </summary>
         /// <returns>The sector this side references.</returns>
         ISector GetSector();
+
+        public SideScrollData? ScrollData { get; set; }
     }
 }

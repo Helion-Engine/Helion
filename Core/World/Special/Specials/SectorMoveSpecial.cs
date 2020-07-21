@@ -141,7 +141,7 @@ namespace Helion.World.Special.Specials
                     FlipMovementDirection();
                 break;
             case SectorMoveStatus.Crush when IsInitCrush:
-                Sector.ZChanged = true;
+                Sector.DataChanged = true;
                 // TODO: Can we maybe make this into its own class to avoid the null issue?
                 if (MoveData.Crush == null)
                     throw new NullReferenceException("Should never have a null crush component when having a crushing sector");
@@ -151,7 +151,7 @@ namespace Helion.World.Special.Specials
                 break;
 
             case SectorMoveStatus.Success:
-                Sector.ZChanged = true;
+                Sector.DataChanged = true;
                 break;
             }
 

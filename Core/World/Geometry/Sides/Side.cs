@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Maps.Specials;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -19,6 +20,8 @@ namespace Helion.World.Geometry.Sides
         public Wall[] Walls { get; protected set; }
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
+
+        public SideScrollData? ScrollData { get; set; }
 
         public Side(int id, Vec2I offset, Wall middle, Sector sector)
         {

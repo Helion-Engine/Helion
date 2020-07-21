@@ -7,7 +7,7 @@ namespace Helion.Render.Shared.World
         public readonly WorldVertex BottomLeft;
         public readonly WorldVertex BottomRight;
 
-        public WallVertices(WorldVertex topLeft, WorldVertex topRight, WorldVertex bottomLeft, WorldVertex bottomRight)
+        public WallVertices(in WorldVertex topLeft, in WorldVertex topRight, in WorldVertex bottomLeft, in WorldVertex bottomRight)
         {
             TopLeft = topLeft;
             TopRight = topRight;

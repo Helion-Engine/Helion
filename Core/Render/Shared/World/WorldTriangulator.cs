@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Helion.Maps.Specials;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
-using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -16,7 +16,7 @@ namespace Helion.Render.Shared.World
 {
     public static class WorldTriangulator
     {
-        public static WallVertices HandleOneSided(Side side, Vector2 textureUVInverse, double tickFraction)
+        public static WallVertices HandleOneSided(Side side, in Vector2 textureUVInverse, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
@@ -32,7 +32,7 @@ namespace Helion.Render.Shared.World
 
             double length = line.Segment.Length();
             double spanZ = topZ - bottomZ;
-            WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ);
+            WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, tickFraction);
             
             WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
             WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
@@ -43,7 +43,7 @@ namespace Helion.Render.Shared.World
         }
 
         public static WallVertices HandleTwoSidedLower(TwoSided facingSide, Side otherSide, 
-            Vector2 textureUVInverse, bool isFrontSide, double tickFraction)
+            in Vector2 textureUVInverse, bool isFrontSide, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
@@ -58,7 +58,7 @@ namespace Helion.Render.Shared.World
             double bottomZ = bottomFlat.PrevZ.Interpolate(bottomFlat.Z, tickFraction);
             
             double length = line.Segment.Length();
-            WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ);
+            WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, tickFraction);
             
             WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
             WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
@@ -69,8 +69,8 @@ namespace Helion.Render.Shared.World
         }
         
         public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide, Side otherSide, 
-            Dimension textureDimension, Vector2 textureUVInverse, double bottomOpeningZ, double topOpeningZ,
-            bool isFrontSide, out bool nothingVisible)
+            in Dimension textureDimension, in Vector2 textureUVInverse, double bottomOpeningZ, double topOpeningZ,
+            bool isFrontSide, out bool nothingVisible, double tickFraction)
         {
             if (topOpeningZ <= bottomOpeningZ)
             {
@@ -89,7 +89,7 @@ namespace Helion.Render.Shared.World
             Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
             Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
             double length = line.Segment.Length();
-            WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan, textureUVInverse);
+            WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan, textureUVInverse, tickFraction);
             
             WorldVertex topLeft = new WorldVertex(left.X, left.Y, drawSpan.VisibleTopZ, uv.TopLeft.X, uv.TopLeft.Y);
             WorldVertex topRight = new WorldVertex(right.X, right.Y, drawSpan.VisibleTopZ, uv.BottomRight.X, uv.TopLeft.Y);
@@ -100,7 +100,7 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, Vector2 textureUVInverse, 
+        public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, in Vector2 textureUVInverse, 
             bool isFrontSide, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -118,7 +118,7 @@ namespace Helion.Render.Shared.World
             // TODO: If unchanging, we can pre-calculate the length.
             double length = line.Segment.Length();
             double spanZ = topZ - bottomZ;
-            WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ);
+            WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, tickFraction);
             
             WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
             WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
@@ -139,7 +139,7 @@ namespace Helion.Render.Shared.World
         /// the subsector.</param>
         /// <param name="verticesToPopulate">An output array where vertices are
         /// written to upon triangulating.</param>
-        public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, Dimension textureDimension, 
+        public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension, 
             double tickFraction, DynamicArray<WorldVertex> verticesToPopulate)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -186,7 +186,7 @@ namespace Helion.Render.Shared.World
         }
         
         private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, double bottomOpeningZ, 
-            double topOpeningZ, Dimension textureDimension)
+            double topOpeningZ, in Dimension textureDimension)
         {
             double topZ = topOpeningZ;
             double bottomZ = topZ - textureDimension.Height;
@@ -206,9 +206,11 @@ namespace Helion.Render.Shared.World
         }
 
         private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length, 
-            Vector2 textureUVInverse, double spanZ)
+            in Vector2 textureUVInverse, double spanZ, double tickFraction)
         {
             Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            if (side.ScrollData != null)
+                offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.MiddlePosition, textureUVInverse, tickFraction);
             float wallSpanU = (float)length * textureUVInverse.U();
             float spanV = (float)spanZ * textureUVInverse.V();
 
@@ -232,9 +234,11 @@ namespace Helion.Render.Shared.World
         }
 
         private static WallUV CalculateTwoSidedLowerWallUV(Line line, Side facingSide, double length, 
-            Vector2 textureUVInverse, double topZ, double bottomZ)
+            in Vector2 textureUVInverse, double topZ, double bottomZ, double tickFraction)
         {
             Vector2 offsetUV = facingSide.Offset.ToFloat() * textureUVInverse;
+            if (facingSide.ScrollData != null)
+                offsetUV += GetScrollOffset(facingSide.ScrollData, SideScrollData.LowerPosition, textureUVInverse, tickFraction);
             float wallSpanU = (float)length * textureUVInverse.U();
 
             float leftU = offsetUV.U();
@@ -263,10 +267,12 @@ namespace Helion.Render.Shared.World
             return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
         }
         
-        private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, MiddleDrawSpan drawSpan,
-            Vector2 textureUVInverse)
+        private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, in MiddleDrawSpan drawSpan,
+            in Vector2 textureUVInverse, double tickFraction)
         {
             Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            if (side.ScrollData != null)
+                offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.MiddlePosition, textureUVInverse, tickFraction);
             float wallSpanU = (float)length * textureUVInverse.U();
             
             float leftU = offsetUV.U();
@@ -285,9 +291,11 @@ namespace Helion.Render.Shared.World
         }
         
         private static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length, 
-            Vector2 textureUVInverse, double spanZ)
+            in Vector2 textureUVInverse, double spanZ, double tickFraction)
         {
             Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            if (side.ScrollData != null)
+                offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.UpperPosition, textureUVInverse, tickFraction);
             float wallSpanU = (float)length * textureUVInverse.U();
             float spanV = (float)spanZ * textureUVInverse.V();
 
@@ -309,8 +317,19 @@ namespace Helion.Render.Shared.World
             
             return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
         }
+
+        private static Vector2 GetScrollOffset(SideScrollData scrollData, int position, in Vector2 textureUVInverse, double tickFraction)
+        {
+            Vector2 lastOffset = scrollData.LastOffset[position].ToFloat();
+
+            Vector2 vec = scrollData.Offset[position].ToFloat() - lastOffset;
+            vec.X *= (float)tickFraction;
+            vec.Y *= (float)tickFraction;
+
+            return (lastOffset + vec) * textureUVInverse;
+        }
         
-        private static Vector2 CalculateFlatUV(Vec2D vertex, Dimension textureDimension)
+        private static Vector2 CalculateFlatUV(in Vec2D vertex, in Dimension textureDimension)
         {
             // TODO: Sector offsets will go here eventually.
             Vector2 uv = vertex.ToFloat() / textureDimension.ToVector().ToFloat();

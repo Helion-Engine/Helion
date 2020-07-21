@@ -88,7 +88,7 @@ namespace Helion.World.Geometry.Sectors
         
         public bool IsMoving => ActiveMoveSpecial != null;
         public bool Has3DFloors => !Floors3D.Empty();
-        public bool ZChanged;
+        public bool DataChanged;
         public bool LightingChanged;
 
         public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,

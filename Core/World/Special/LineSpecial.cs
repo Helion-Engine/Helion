@@ -34,6 +34,19 @@ namespace Helion.World.Special
             m_stopLightSpecial = SetStopLightSpecial();
         }
 
+        public static void ValidateActivationFlags(ZDoomLineSpecialType type, LineFlags flags)
+        {
+            switch (type)
+            {
+                case ZDoomLineSpecialType.ScrollTextureLeft:
+                case ZDoomLineSpecialType.ScrollTextureRight:
+                case ZDoomLineSpecialType.ScrollTextureUp:
+                case ZDoomLineSpecialType.ScrollTextureDown:
+                    flags.ActivationType = ActivationType.LevelStart;
+                    break;
+            }
+        }
+
         public bool CanActivateByTag => (m_lineActivationType & LineActivationType.Tag) != 0;
         public bool CanActivateByBackSide => (m_lineActivationType & LineActivationType.BackSide) != 0;
 

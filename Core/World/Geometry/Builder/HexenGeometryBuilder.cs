@@ -169,6 +169,8 @@ namespace Helion.World.Geometry.Builder
                 LineFlags flags = new LineFlags(hexenLine.Flags);
                 LineSpecial special = new LineSpecial(hexenLine.LineType);
                 SpecialArgs specialArgs = new SpecialArgs(hexenLine.Args);
+
+                LineSpecial.ValidateActivationFlags(special.LineSpecialType, flags);
                 
                 Line line = new Line(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);

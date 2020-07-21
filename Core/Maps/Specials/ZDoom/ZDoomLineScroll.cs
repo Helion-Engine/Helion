@@ -1,8 +1,11 @@
+using System;
+
 namespace Helion.Maps.Specials.ZDoom
 {
+    [Flags]
     public enum ZDoomLineScroll
     {
-        Doom, // TODO verify?
+        All,
         UpperTexture = 1,
         MiddleTexture = 2,
         LowerTexture = 4,
