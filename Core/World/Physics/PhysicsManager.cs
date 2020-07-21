@@ -21,6 +21,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
+using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -503,7 +504,7 @@ namespace Helion.World.Physics
             }
         }
 
-        private bool DamageEntity(Entity target, Entity? source, int damage, bool applyThrustZ = true)
+        public bool DamageEntity(Entity target, Entity? source, int damage, bool applyThrustZ = true)
         {
             if (!target.Flags.Shootable)
                 return false;

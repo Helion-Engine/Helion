@@ -1,4 +1,5 @@
 using System;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
@@ -189,6 +190,9 @@ namespace Helion.World.Entities.Players
 
         public override bool Damage(int damage, bool setPainState)
         {
+            if (Sector.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd && damage >= Health)
+                damage = Health - 1;
+
             bool damageApplied = base.Damage(damage, setPainState);
             if (damageApplied)
             {

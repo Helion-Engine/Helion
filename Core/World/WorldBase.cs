@@ -13,6 +13,7 @@ using Helion.Util.Time;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -49,7 +50,7 @@ namespace Helion.World
         public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
 
-        private DoomRandom m_random = new DoomRandom();
+        private readonly DoomRandom m_random = new DoomRandom();
         
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem, 
             MapGeometry geometry, IMap map)
@@ -63,7 +64,7 @@ namespace Helion.World
             SoundManager = new SoundManager(audioSystem);            
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
-            SpecialManager = new SpecialManager(this, PhysicsManager, archiveCollection.Definitions, m_random);
+            SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
 
             SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
@@ -98,6 +99,12 @@ namespace Helion.World
                     PhysicsManager.Move(entity);
             });
 
+            foreach (Player player in EntityManager.Players)
+            {
+                if (player.Sector.SectorDamageSpecial != null)
+                    player.Sector.SectorDamageSpecial.Tick(player);
+            }
+
             SpecialManager.Tick();
             SoundManager.Tick();
             TextureManager.Instance.Tick();
@@ -119,6 +126,11 @@ namespace Helion.World
         {
             PerformDispose();
             GC.SuppressFinalize(this);
+        }
+
+        public void ExitLevel(LevelChangeType type)
+        {
+            LevelExit?.Invoke(this, new LevelChangeEvent(type));
         }
 
         protected void ChangeToLevel(int number)

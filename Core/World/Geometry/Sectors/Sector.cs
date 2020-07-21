@@ -8,6 +8,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Special;
+using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Sectors
@@ -123,7 +124,9 @@ namespace Helion.World.Geometry.Sectors
         public double ToFloorZ(in Vec3D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
         public double ToCeilingZ(in Vec2D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
         public double ToCeilingZ(in Vec3D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
-        
+
+        public SectorDamageSpecial? SectorDamageSpecial { get; set; }
+
         // TODO use plane values - can probably make these neater and more concise, they are all basically the same function
         // TODO add function to handle WR_RaiseByShortestLowerTexture
         public Sector? GetLowestAdjacentFloor()

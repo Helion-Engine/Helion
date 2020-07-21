@@ -1,3 +1,5 @@
+using Helion.World.Special.Specials;
+
 namespace Helion.Maps.Components
 {
     /// <summary>
@@ -40,5 +42,7 @@ namespace Helion.Maps.Components
         /// The tag lookup ID for the sector.
         /// </summary>
         ushort Tag { get; }
+
+        SectorDamageSpecial? SectorDamageSpecial { get; set; }
     }
 }

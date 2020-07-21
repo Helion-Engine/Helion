@@ -36,6 +36,8 @@ namespace Helion.World.Entities
 
         public readonly EntityDefinitionComposer DefinitionComposer;
 
+        public readonly List<Player> Players = new List<Player>();
+
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager,
             SkillLevel skill)
         {
@@ -98,7 +100,9 @@ namespace Helion.World.Entities
                 return CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0, 0.0);
             }
 
-            return CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
+            Player player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
+            Players.Add(player);
+            return player;
         }
 
         public void PopulateFrom(IMap map)

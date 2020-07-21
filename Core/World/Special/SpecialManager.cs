@@ -28,14 +28,12 @@ namespace Helion.World.Special
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
         private readonly IRandom m_random;
-        private readonly PhysicsManager m_physicsManager;
         private readonly SwitchManager m_switchManager;
         private readonly WorldBase m_world;
 
-        public SpecialManager(WorldBase world, PhysicsManager physicsManager, DefinitionEntries definition, IRandom random)
+        public SpecialManager(WorldBase world, DefinitionEntries definition, IRandom random)
         {
             m_world = world;
-            m_physicsManager = physicsManager;
             m_switchManager = new SwitchManager(definition);
             m_random = random;
 
@@ -64,7 +62,7 @@ namespace Helion.World.Special
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
         {
             sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, 
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, 
                 new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
         
@@ -97,20 +95,20 @@ namespace Helion.World.Special
         public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay)
         {
             double destZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay));
         }
 
         public ISpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
         {
             double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-            return new DoorOpenCloseSpecial(m_physicsManager, sector, destZ, speed, delay);
+            return new DoorOpenCloseSpecial(m_world.PhysicsManager, sector, destZ, speed, delay);
         }
 
         public ISpecial CreateDoorCloseOpenSpecial(Sector sector, double speed, int delay)
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay));
         }
 
@@ -118,21 +116,21 @@ namespace Helion.World.Special
         {
             // TODO handle keys
             double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - VanillaConstants.DoorDestOffset;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay));
         }
 
         public ISpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateDoorCloseSpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
@@ -141,59 +139,59 @@ namespace Helion.World.Special
             double destZ = GetDestZ(sector, sectorDest);
             if (adjust != 0)
                 destZ = destZ + adjust - 128;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateFloorLowerSpecial(Sector sector, double amount, double speed)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0, null, floorChangeTexture));
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, int amount, double speed)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, sector.Ceiling.Z - amount, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, sector.Ceiling.Z - amount, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Down, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateCeilingRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateCeilingRaiseSpecial(Sector sector, int amount, double speed)
         {
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, sector.Ceiling.Z + amount, new SectorMoveData(SectorMoveType.Ceiling,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, sector.Ceiling.Z + amount, new SectorMoveData(SectorMoveType.Ceiling,
                 MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
         {
             double destZ = GetDestZ(sector, SectorDest.NextLowestFloor) + lip;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor,
                 MoveDirection.Down, MoveRepetition.Perpetual, speed, delay));
         }
 
@@ -203,13 +201,13 @@ namespace Helion.World.Special
                 destZ = -destZ;
             
             MoveDirection dir = destZ > plane.Z ? MoveDirection.Up : MoveDirection.Down;
-            return new SectorMoveSpecial(m_physicsManager, sector, plane.Z, destZ, new SectorMoveData(moveType,
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, plane.Z, destZ, new SectorMoveData(moveType,
                 dir, MoveRepetition.None, speed, 0));
         }
 
         public ISpecial CreateStairSpecial(Sector sector, double speed, int height, int delay, bool crush)
         {
-            return new StairSpecial(m_physicsManager, sector, speed, height, delay, crush);
+            return new StairSpecial(m_world.PhysicsManager, sector, speed, height, delay, crush);
         }
 
         private void StartInitSpecials()
@@ -246,50 +244,76 @@ namespace Helion.World.Special
         {
             switch (sector.SectorSpecialType)
             {
-            case ZDoomSectorSpecialType.LightFlickerDoom:
-                AddSpecial(new LightFlickerDoomSpecial(sector, m_random, sector.GetMinLightLevelNeighbor()));
-                break;
+                case ZDoomSectorSpecialType.LightFlickerDoom:
+                    AddSpecial(new LightFlickerDoomSpecial(sector, m_random, sector.GetMinLightLevelNeighbor()));
+                    break;
 
-            case ZDoomSectorSpecialType.LightStrobeFastDoom:
-                AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, false));
-                break;
+                case ZDoomSectorSpecialType.LightStrobeFastDoom:
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, false));
+                    break;
 
-            case ZDoomSectorSpecialType.LightStrobeSlowDoom:
-                AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
-                break;
+                case ZDoomSectorSpecialType.LightStrobeSlowDoom:
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
+                    break;
 
-            case ZDoomSectorSpecialType.LightStrobeHurtDoom:
-                AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
-                break;
+                case ZDoomSectorSpecialType.LightStrobeHurtDoom:
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
+                    break;
 
-            case ZDoomSectorSpecialType.LightGlow:
-                AddSpecial(new LightPulsateSpecial(sector, sector.GetMinLightLevelNeighbor()));
-                break;
+                case ZDoomSectorSpecialType.LightGlow:
+                    AddSpecial(new LightPulsateSpecial(sector, sector.GetMinLightLevelNeighbor()));
+                    break;
 
-            case ZDoomSectorSpecialType.SectorDoorClose30Seconds:
-                AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 30));
-                break;
+                case ZDoomSectorSpecialType.SectorDoorClose30Seconds:
+                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 30));
+                    break;
 
-            case ZDoomSectorSpecialType.DamageEnd:
-                // TODO: Is this supposed to be empty? If so delete this comment.
-                break;
+                case ZDoomSectorSpecialType.LightStrobeSlowSync:
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, true));
+                    break;
 
-            case ZDoomSectorSpecialType.LightStrobeSlowSync:
-                AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, true));
-                break;
+                case ZDoomSectorSpecialType.LightStrobeFastSync:
+                    AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, true));
+                    break;
 
-            case ZDoomSectorSpecialType.LightStrobeFastSync:
-                AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, true));
-                break;
+                case ZDoomSectorSpecialType.DoorRaiseIn5Minutes:
+                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5));
+                    break;
 
-            case ZDoomSectorSpecialType.DoorRaiseIn5Minutes:
-                AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5));
-                break;
-
-            case ZDoomSectorSpecialType.LightFireFlicker:
-                AddSpecial(new LightFireFlickerDoom(sector, m_random, sector.GetMinLightLevelNeighbor()));
-                break;
+                case ZDoomSectorSpecialType.LightFireFlicker:
+                    AddSpecial(new LightFireFlickerDoom(sector, m_random, sector.GetMinLightLevelNeighbor()));
+                    break;
             }
+
+            switch (sector.SectorSpecialType)
+            {
+                case ZDoomSectorSpecialType.DamageNukage:
+                case ZDoomSectorSpecialType.DamageHellslime:
+                case ZDoomSectorSpecialType.LightStrobeHurtDoom:
+                case ZDoomSectorSpecialType.DamageSuperHell:
+                    sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                    break;
+                case ZDoomSectorSpecialType.DamageEnd:
+                    sector.SectorDamageSpecial = new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                    break;
+            }
+        }
+
+        private static int GetDamageAmount(ZDoomSectorSpecialType type)
+        {
+            switch (type)
+            {
+                case ZDoomSectorSpecialType.DamageNukage:
+                    return 5;
+                case ZDoomSectorSpecialType.DamageHellslime:
+                    return 10;
+                case ZDoomSectorSpecialType.LightStrobeHurtDoom:
+                case ZDoomSectorSpecialType.DamageEnd:
+                case ZDoomSectorSpecialType.DamageSuperHell:
+                    return 20;
+            }
+
+            return 0;
         }
 
         private bool HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special, WorldBase world)
@@ -548,25 +572,25 @@ namespace Helion.World.Special
             sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
 
             SectorMoveData moveData = new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, moveData);
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, moveData);
         }
 
         private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZDoomCrushMode crushMode)
         {
             double destZ = sector.Floor.Z + dist;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)));
         }
 
         private ISpecial CreateCeilingCrusherSpecial(Sector sector, double speed, CrushData crushData)
         {
             double destZ = sector.Floor.Z + 8;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, crushData));
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Down, MoveRepetition.Perpetual, speed, 0, crushData));
         }
 
         private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
         {
             double destZ = sector.Ceiling.Z - 8;
-            return new SectorMoveSpecial(m_physicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
+            return new SectorMoveSpecial(m_world.PhysicsManager, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)));
         }
 
         private void HandleFloorDonut(Line line, Sector sector)
