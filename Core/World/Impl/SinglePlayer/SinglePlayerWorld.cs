@@ -238,7 +238,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         private void HandleMouseLook(ConsumableInput frameInput)
         {
-            if (Player.IsFrozen || Player.IsDead)
+            if (Player.IsFrozen || Player.IsDead || WorldState == WorldState.Exit)
                 return;
 
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();

@@ -35,6 +35,7 @@ namespace Helion.World
         public readonly CIString MapName;
         public readonly BlockMap Blockmap;
         public readonly PhysicsManager PhysicsManager;
+        public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
@@ -42,6 +43,9 @@ namespace Helion.World
         protected readonly SoundManager SoundManager;
         protected readonly EntityManager EntityManager;
         protected readonly SpecialManager SpecialManager;
+
+        private int m_exitTicks = 0;
+        private LevelChangeType m_levelChangeType = LevelChangeType.Next;
 
         public IList<Line> Lines => Geometry.Lines;
         public IList<Side> Sides => Geometry.Sides;
@@ -65,8 +69,6 @@ namespace Helion.World
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
-
-            SpecialManager.LevelExit += SpecialManager_LevelExit;
         }
 
         ~WorldBase()
@@ -84,30 +86,40 @@ namespace Helion.World
 
         public void Tick()
         {
-            // We need to do this (for now) because MoveZ and PreviouslyClipped
-            // run into issues if this is not updated properly. If we can do a
-            // resolution to the sector moving up/down with clipping monsters
-            // issue, then this might be able to be handled better later on.
-            EntityManager.Entities.ForEach(entity => entity.PrevPosition = entity.Box.Position);
-
-            EntityManager.Entities.ForEach(entity =>
+            if (WorldState == WorldState.Exit)
             {
-                entity.Tick();
-
-                // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
-                if (!entity.IsDisposed)
-                    PhysicsManager.Move(entity);
-            });
-
-            foreach (Player player in EntityManager.Players)
+                m_exitTicks--;
+                if (m_exitTicks == 0)
+                    LevelExit?.Invoke(this, new LevelChangeEvent(m_levelChangeType));
+            }
+            else if (WorldState == WorldState.Normal)
             {
-                if (player.Sector.SectorDamageSpecial != null)
-                    player.Sector.SectorDamageSpecial.Tick(player);
+                // We need to do this (for now) because MoveZ and PreviouslyClipped
+                // run into issues if this is not updated properly. If we can do a
+                // resolution to the sector moving up/down with clipping monsters
+                // issue, then this might be able to be handled better later on.
+                EntityManager.Entities.ForEach(entity => entity.PrevPosition = entity.Box.Position);
+
+                EntityManager.Entities.ForEach(entity =>
+                {
+                    entity.Tick();
+
+                    // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
+                    if (!entity.IsDisposed)
+                        PhysicsManager.Move(entity);
+                });
+
+                foreach (Player player in EntityManager.Players)
+                {
+                    if (player.Sector.SectorDamageSpecial != null)
+                        player.Sector.SectorDamageSpecial.Tick(player);
+                }
+
+                SoundManager.Tick();
+                TextureManager.Instance.Tick();
             }
 
             SpecialManager.Tick();
-            SoundManager.Tick();
-            TextureManager.Instance.Tick();
 
             Gametick++;
         }
@@ -130,7 +142,12 @@ namespace Helion.World
 
         public void ExitLevel(LevelChangeType type)
         {
-            LevelExit?.Invoke(this, new LevelChangeEvent(type));
+            m_levelChangeType = type;
+            WorldState = WorldState.Exit;
+            m_exitTicks = 15;
+
+            foreach (Player player in EntityManager.Players)
+                player.ResetInterpolation();
         }
 
         protected void ChangeToLevel(int number)
@@ -140,15 +157,8 @@ namespace Helion.World
 
         protected virtual void PerformDispose()
         {
-            SpecialManager.LevelExit -= SpecialManager_LevelExit;
-            
             EntityManager.Dispose();
             SoundManager.Dispose();
-        }
-
-        private void SpecialManager_LevelExit(object? sender, LevelChangeEvent e)
-        {
-            LevelExit?.Invoke(this, e);
         }
     }
 }

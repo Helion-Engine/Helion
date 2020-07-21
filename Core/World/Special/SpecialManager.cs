@@ -20,8 +20,6 @@ namespace Helion.World.Special
 {
     public class SpecialManager : ITickable
     {
-        public event EventHandler<LevelChangeEvent>? LevelExit;
-
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         private const double SpeedFactor = 0.125;
 
@@ -78,13 +76,32 @@ namespace Helion.World.Special
                 m_destroyedMoveSpecials.Clear();
             }
 
-            m_specials.RemoveWhere(spec => spec.Tick() == SpecialTickStatus.Destroy).ForEach(spec =>
+            if (m_world.WorldState == WorldState.Exit)
             {
-                if (spec is ISectorSpecial sectorSpecial)
-                    m_destroyedMoveSpecials.Add(sectorSpecial);
-                if (spec is ExitSpecial)
-                    LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Next));
-            });
+                var node = m_specials.First;
+                while (node != null)
+                {
+                    if (node.Value is SwitchChangeSpecial && node.Value.Tick() == SpecialTickStatus.Destroy)
+                        m_specials.Remove(node);
+
+                    node = node.Next;
+                }
+            }
+            else
+            {
+                var node = m_specials.First;
+                while (node != null)
+                {
+                    if (node.Value.Tick() == SpecialTickStatus.Destroy)
+                    {
+                        m_specials.Remove(node);
+                        if (node.Value is ISectorSpecial sectorSpecial)
+                            m_destroyedMoveSpecials.Add(sectorSpecial);
+                    }
+
+                    node = node.Next;
+                }
+            }
         }
 
         public void AddSpecial(ISpecial special)
@@ -325,7 +342,11 @@ namespace Helion.World.Special
                 return true;
             
             case ZDoomLineSpecialType.ExitNormal:
-                AddSpecial(new ExitSpecial(15));
+                m_world.ExitLevel(LevelChangeType.Next);
+                return true;
+
+            case ZDoomLineSpecialType.ExitSecret:
+                m_world.ExitLevel(LevelChangeType.SecretNext);
                 return true;
             }
 
