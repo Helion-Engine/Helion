@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Helion.Client.OpenAL;
-using Helion.Client.OpenTK;
 using Helion.Input;
 using Helion.Layer;
 using Helion.Layer.WorldLayers;
