@@ -224,21 +224,21 @@ namespace Helion.Util.Geometry.Segments
         }
 
         /// <summary>
-        /// Gets the closest distance from the point provided to this segment.
+        /// Gets the closest point on this segment from the point provided.
         /// </summary>
         /// <param name="point">The point to evaluate.</param>
-        /// <returns>The closest distance.</returns>
-        public double ClosestDistance(Vec2D point)
+        /// <returns>The closest point.</returns>
+        public Vec2D ClosestPoint(Vec2D point)
         {
             // Source: https://math.stackexchange.com/questions/2193720/find-a-point-on-a-line-segment-which-is-the-closest-to-other-point-not-on-the-li
             Vec2D pointToStartDelta = Start - point;
             double t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
 
             if (t <= 0)
-                return point.Distance(Start);
+                return Start;
             if (t >= 1)
-                return point.Distance(End);
-            return point.Distance(FromTime(t));
+                return End;
+            return FromTime(t);
         }
 
         /// <summary>

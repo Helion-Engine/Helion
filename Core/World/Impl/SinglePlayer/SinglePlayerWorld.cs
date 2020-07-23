@@ -34,6 +34,7 @@ namespace Helion.World.Impl.SinglePlayer
         public override Vec3D ListenerPosition => Player.Position;
         public override double ListenerAngle => Player.AngleRadians;
         public override double ListenerPitch => Player.PitchRadians;
+        public override Entity ListenerEntity => Player;
 
         public readonly Player Player;
         

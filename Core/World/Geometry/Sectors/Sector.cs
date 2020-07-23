@@ -95,10 +95,6 @@ namespace Helion.World.Geometry.Sectors
         public bool DataChanged;
         public bool LightingChanged;
 
-        private bool m_boundingBoxSet;
-        private Box2D m_bouindingBox;
-        private Vec2D m_center;
-
         public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
             ZDoomSectorSpecialType sectorSpecial)
         {
@@ -354,54 +350,52 @@ namespace Helion.World.Geometry.Sectors
             return max;
         }
 
-        public Box2D GetBox()
-        {
-            if (!m_boundingBoxSet)
-                SetBoundingBox();
+        public double GetPlaneZ(in Vec2D point, SectorPlaneType type) => type == SectorPlaneType.Floor ? ToFloorZ(point) : ToCeilingZ(point);
 
-            return m_bouindingBox;
+        public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
+        {
+            if (listener.Sector.Equals(this))
+                return listener.Position;
+
+            double z = listener.Position.Z;
+            Vec2D pos2D = listener.Position.To2D();
+            pos2D = GetClosestPointFrom(pos2D);
+
+            if (type == SectorPlaneType.Floor)
+            {
+                double floorZ = ToFloorZ(pos2D);
+                if (floorZ < z)
+                    z = floorZ;
+            }
+            else
+            {
+                double ceilingZ = ToCeilingZ(pos2D);
+                if (ceilingZ > z)
+                    z = ceilingZ;
+            }
+
+            return new Vec3D(pos2D.X, pos2D.Y, z);
         }
 
-        public Vec3D GetCenter(SectorPlaneType type)
+        public Vec2D GetClosestPointFrom(in Vec2D point)
         {
-            if (!m_boundingBoxSet)
-                SetBoundingBox();
-
-            return new Vec3D(m_center.X, m_center.Y, type == SectorPlaneType.Floor ? ToFloorZ(m_center) : ToCeilingZ(m_center));
-        }
-
-        private void SetBoundingBox()
-        {
-            double minX = double.MaxValue;
-            double minY = double.MaxValue;
-            double maxX = double.MinValue;
-            double maxY = double.MinValue;
+            double minDist = double.MaxValue;
+            Line? minLine = null;
 
             foreach (var line in Lines)
             {
-                if (line.Segment.Start.X < minX)
-                    minX = line.Segment.Start.X;
-                if (line.Segment.Start.X > maxX)
-                    maxX = line.Segment.Start.X;
-                if (line.Segment.Start.Y < minY)
-                    minY = line.Segment.Start.Y;
-                if (line.Segment.Start.Y > maxY)
-                    maxY = line.Segment.Start.Y;
-
-                if (line.Segment.End.X < minX)
-                    minX = line.Segment.End.X;
-                if (line.Segment.End.X > maxX)
-                    maxX = line.Segment.End.X;
-                if (line.Segment.End.Y < minY)
-                    minY = line.Segment.End.Y;
-                if (line.Segment.End.Y > maxY)
-                    maxY = line.Segment.End.Y;
+                double dist = line.Segment.ClosestPoint(point).Distance(point);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    minLine = line;
+                }
             }
 
-            m_bouindingBox = new Box2D(new Vec2D(minX, minY), new Vec2D(maxX, maxY));
-            m_center = (new Seg2D(m_bouindingBox.Min, m_bouindingBox.Max)).FromTime(0.5);
+            if (minLine != null)
+                return minLine.Segment.ClosestPoint(point);
 
-            m_boundingBoxSet = true;
+            return Vec2D.Zero;
         }
 
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;

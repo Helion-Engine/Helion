@@ -58,6 +58,7 @@ namespace Helion.World
         public abstract Vec3D ListenerPosition { get; }
         public abstract double ListenerAngle { get; }
         public abstract double ListenerPitch { get; }
+        public abstract Entity ListenerEntity { get; }
 
         private readonly DoomRandom m_random = new DoomRandom();
         

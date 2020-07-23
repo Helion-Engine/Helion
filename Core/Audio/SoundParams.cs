@@ -29,9 +29,7 @@ namespace Helion.Audio
 
         public static SoundParams Create(Sector sector, bool loop = false)
         {
-            Box2D box = sector.GetBox();
-            float reference = Math.Max(box.Width > box.Height ? (float)box.Width : (float)box.Height, 128.0f);
-            return new SoundParams(Attenuation.Default, 1.0f, 1.75f, reference, reference + DefaultMaxDistance, loop);
+            return new SoundParams(Attenuation.Default, 1.0f, 1.75f, 128.0f, DefaultMaxDistance, loop);
         }
 
         public static SoundParams Create(Attenuation attenuation, float reference = 128.0f, float volume = 1.0f, bool loop = false)
@@ -41,7 +39,7 @@ namespace Helion.Audio
                 case Attenuation.None:
                     return new SoundParams(attenuation, volume, 0.0f, 0.0f, 0.0f, loop);
                 case Attenuation.Rapid:
-                    return new SoundParams(attenuation, volume, 2.5f, reference + DefaultMaxDistance, DefaultMaxDistance, loop);
+                    return new SoundParams(attenuation, volume, 2.5f, reference, DefaultMaxDistance, loop);
                 case Attenuation.Default:
                 default:
                     break;

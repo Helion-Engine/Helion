@@ -8,6 +8,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
+using Helion.World.Special.Specials;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
@@ -44,7 +45,22 @@ namespace Helion.World.Sound
             if (m_playingSounds.Empty())
                 return;
 
-            m_playingSounds.RemoveWhere(snd => snd.IsFinished()).ForEach(snd => snd.Dispose());
+            var node = m_playingSounds.First;
+
+            while (node != null)
+            {
+                if (node.Value.IsFinished())
+                {
+                    node.Value.Dispose();
+                    m_playingSounds.Remove(node);
+                }
+                else if (node.Value.SoundSource is Sector sector && sector.ActiveMoveSpecial is SectorMoveSpecial moveSpecial)
+                {
+                    node.Value.SetPosition(sector.GetSoundSource(m_world.ListenerEntity, moveSpecial.MoveData.SectorMoveType).ToFloat());
+                }
+
+                node = node.Next;
+            }
         }
 
         public void Dispose()
@@ -88,7 +104,6 @@ namespace Helion.World.Sound
 
                 node = node.Next;
             }
-
         }
 
         public void CreateSoundOn(Entity entity, string sound, SoundChannelType channel, SoundParams soundParams)
@@ -115,7 +130,7 @@ namespace Helion.World.Sound
         public IAudioSource? CreateSectorSound(Sector sector, SectorPlaneType type, string sound, SoundParams soundParams)
         {
             StopSoundsBySource(sector);
-            return CreateSound(sector, sector.GetCenter(type), Vec3D.Zero, sound, SoundChannelType.Auto, soundParams);
+            return CreateSound(sector, sector.GetSoundSource(m_world.ListenerEntity, type), Vec3D.Zero, sound, SoundChannelType.Auto, soundParams);
         }
 
         private IAudioSource? CreateSound(object? source, in Vec3D pos, in Vec3D velocity, string sound, SoundChannelType channel, SoundParams soundParams)
@@ -131,9 +146,11 @@ namespace Helion.World.Sound
 
             audioSource.SoundSource = source; 
             
-            // TODO do not need to set this when Attenuation.None is working correctly
-            audioSource.SetPosition(pos.ToFloat());
-            audioSource.SetVelocity(velocity.ToFloat());
+            if (soundParams.Attenuation != Attenuation.None)
+            {
+                audioSource.SetPosition(pos.ToFloat());
+                audioSource.SetVelocity(velocity.ToFloat());
+            }
 
             m_playingSounds.AddLast(audioSource);
             audioSource.Play();

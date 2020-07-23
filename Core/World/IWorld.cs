@@ -24,6 +24,7 @@ namespace Helion.World
         Vec3D ListenerPosition { get; }
         double ListenerAngle { get; }
         double ListenerPitch { get; }
+        Entity ListenerEntity { get; }
         
         void Link(Entity entity);
         void Tick();

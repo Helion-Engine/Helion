@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Geometry.Vectors;
@@ -26,7 +27,6 @@ namespace Helion.World.Special.Specials
         private bool m_crushing;
         private bool m_playedReturnSound;
         private bool m_playedStartSound;
-        private IAudioSource? m_audio;
 
         public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
             SectorMoveData specialData)
@@ -74,8 +74,6 @@ namespace Helion.World.Special.Specials
 
             if (SectorPlane.Z == DestZ)
             {
-                PlayStop();
-
                 if (IsNonRepeat)
                 {
                     if (MoveData.FloorChangeTextureHandle != null)
@@ -103,48 +101,35 @@ namespace Helion.World.Special.Specials
 
         private void PlaySound()
         {
-            if (m_audio != null)
-            {
-                if (m_audio.IsPlaying())
-                    m_audio.SetPosition(Sector.GetCenter(MoveData.SectorMoveType).ToFloat());
-                else
-                    m_audio = null;
-            }
-
             if (SectorPlane.Z == DestZ)
+            {
+                if (SoundData.StopSound != null)
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StopSound, SoundParams.Create(Sector));
                 return;
+            }
 
             if (!m_playedStartSound)
             {
                 m_playedStartSound = true;
                 if (SoundData.StartSound != null)
-                    m_audio = m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, SoundParams.Create(Sector));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, SoundParams.Create(Sector));
                 if (SoundData.MovementSound != null)
-                    m_audio = m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, SoundParams.Create(Sector, true));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, SoundParams.Create(Sector, true));
             }
 
             if (m_direction != MoveData.StartDirection && !m_playedReturnSound)
             {
                 m_playedReturnSound = true;
                 if (SoundData.ReturnSound != null)
-                    m_audio = m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.ReturnSound, SoundParams.Create(Sector));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.ReturnSound, SoundParams.Create(Sector));
             }
-        }
-
-        private void PlayStop()
-        {
-            if (SoundData.StopSound != null)
-                m_audio = m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StopSound, SoundParams.Create(Sector));
         }
 
         public virtual void FinalizeDestroy()
         {
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-            {
                 m_world.SoundManager.StopLoopSoundBySource(Sector);
-                m_audio = null;
-            }
         }
 
         public virtual void Use()

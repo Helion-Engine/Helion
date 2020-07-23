@@ -21,6 +21,8 @@ namespace Helion.Audio
         /// </summary>
         void SetPosition(in Vector3 pos);
 
+        Vector3 GetPosition();
+
         /// <summary>
         /// The velocity (in map units) of the audio source.
         /// </summary>
