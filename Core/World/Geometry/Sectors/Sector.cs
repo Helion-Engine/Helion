@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -349,8 +347,6 @@ namespace Helion.World.Geometry.Sectors
 
             return max;
         }
-
-        public double GetPlaneZ(in Vec2D point, SectorPlaneType type) => type == SectorPlaneType.Floor ? ToFloorZ(point) : ToCeilingZ(point);
 
         public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
         {

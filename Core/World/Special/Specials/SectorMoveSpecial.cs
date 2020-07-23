@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Numerics;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
@@ -72,19 +70,16 @@ namespace Helion.World.Special.Specials
 
             PlaySound();
 
-            if (SectorPlane.Z == DestZ)
+            if (SectorPlane.Z == DestZ && IsNonRepeat)
             {
-                if (IsNonRepeat)
+                if (MoveData.FloorChangeTextureHandle != null)
                 {
-                    if (MoveData.FloorChangeTextureHandle != null)
-                    {
-                        Sector.SectorDamageSpecial = null;
-                        Sector.Floor.TextureHandle = MoveData.FloorChangeTextureHandle.Value;
-                    }
-
-                    Sector.ActiveMoveSpecial = null;
-                    return SpecialTickStatus.Destroy;
+                    Sector.SectorDamageSpecial = null;
+                    Sector.Floor.TextureHandle = MoveData.FloorChangeTextureHandle.Value;
                 }
+
+                Sector.ActiveMoveSpecial = null;
+                return SpecialTickStatus.Destroy;
             }
 
             if (IsDelayReturn && SectorPlane.Z == m_startZ)

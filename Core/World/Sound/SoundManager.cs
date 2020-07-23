@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Audio;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -9,7 +8,6 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
-using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Sound

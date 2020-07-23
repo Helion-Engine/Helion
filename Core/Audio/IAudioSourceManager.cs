@@ -1,7 +1,5 @@
-using Helion.Render.Shared;
-using Helion.Util.Geometry.Vectors;
 using System;
-using System.Numerics;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Audio
 {
