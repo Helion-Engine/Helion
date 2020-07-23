@@ -16,6 +16,7 @@
     <DocumentationFile>Core.xml</DocumentationFile>
     <NoWarn>1701;1702;NU1701;CS1591;CS8714</NoWarn>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
