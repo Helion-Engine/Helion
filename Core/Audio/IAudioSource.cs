@@ -19,12 +19,22 @@ namespace Helion.Audio
         /// The location this audio source is to be played it. This is in world
         /// coordinates.
         /// </summary>
-        Vector3 Position { get; set; }
-        
+        void SetPosition(in Vector3 pos);
+
         /// <summary>
         /// The velocity (in map units) of the audio source.
         /// </summary>
-        Vector3 Velocity { get; set; }
+        void SetVelocity(in Vector3 velocity);
+
+        /// <summary>
+        /// The source object of the sound (e.g. entity, sector).
+        /// </summary>
+        object? SoundSource { get; set; }
+
+        /// <summary>
+        /// If this sound should loop after completion.
+        /// </summary>
+        bool Loop { get; set; }
 
         /// <summary>
         /// Starts playing the sound.

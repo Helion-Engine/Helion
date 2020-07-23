@@ -7,8 +7,10 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry.Vectors;
 using MoreLinq;
 using NLog;
+using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client.OpenAL
@@ -17,7 +19,6 @@ namespace Helion.Client.OpenAL
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public IAudioListener Listener { get; } = new ALAudioListener();
         private readonly ArchiveCollection m_archiveCollection;
         private readonly ALAudioSystem m_owner;
         private readonly HashSet<ALAudioSource> m_sources = new HashSet<ALAudioSource>();
@@ -27,6 +28,23 @@ namespace Helion.Client.OpenAL
         {
             m_owner = owner;
             m_archiveCollection = archiveCollection;
+            AL.DistanceModel(ALDistanceModel.ExponentDistanceClamped);
+            AL.Listener(ALListenerf.Gain, 1.0f);
+        }
+
+        public void SetListener(Vec3D pos, double angle, double pitch)
+        {
+            Vec3D vec = Vec3D.Unit(angle, pitch);
+            OpenTK.Vector3 up = new OpenTK.Vector3(0, 0, 1);
+            OpenTK.Vector3 at = new OpenTK.Vector3((float)vec.X, (float)vec.Y, (float)vec.Z);
+
+            AL.Listener(ALListenerfv.Orientation, ref at, ref up);
+            AL.Listener(ALListener3f.Position, (float)pos.X, (float)pos.Y, (float)pos.Z);
+        }
+
+        public void SetListenerVelocity(System.Numerics.Vector3 velocity)
+        {
+            AL.Listener(ALListener3f.Velocity, velocity.X, velocity.Y, velocity.Z);
         }
 
         ~ALAudioSourceManager()
@@ -35,13 +53,13 @@ namespace Helion.Client.OpenAL
             PerformDispose();
         }
 
-        public IAudioSource? Create(string sound)
+        public IAudioSource? Create(string sound, SoundParams soundParams)
         {
             ALBuffer? buffer = GetBuffer(sound);
             if (buffer == null)
                 return null;
             
-            ALAudioSource source = new ALAudioSource(this, buffer);
+            ALAudioSource source = new ALAudioSource(this, buffer, soundParams);
             m_sources.Add(source);
             return source;
         }

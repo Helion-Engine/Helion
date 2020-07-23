@@ -1,13 +1,14 @@
 ﻿using Helion.World.Geometry.Sectors;
-using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
 {
     public class DoorOpenCloseSpecial : SectorMoveSpecial
     {
-        public DoorOpenCloseSpecial(PhysicsManager physicsManager, Sector sector, double dest, double speed, int delay)
-            : base(physicsManager, sector, sector.Floor.Z, dest, new SectorMoveData(SectorMoveType.Ceiling, MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay))
+        public DoorOpenCloseSpecial(WorldBase world, Sector sector, double dest, double speed, int delay)
+            : base(world, sector, sector.Floor.Z, dest, 
+                  new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay), 
+                  new SectorSoundData("DSDOROPN", "DSDORCLS", null))
         {
         }
 

@@ -45,8 +45,8 @@ namespace Helion.World.Sound
                 if (channelSound == null)
                     continue;
                 
-                channelSound.Position = m_owner.Position.ToFloat();
-                channelSound.Velocity = m_owner.Position.ToFloat();
+                channelSound.SetPosition(m_owner.Position.ToFloat());
+                channelSound.SetPosition(m_owner.Position.ToFloat());
             }
         }
 

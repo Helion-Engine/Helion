@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Helion.Client.OpenTK.Extensions;
 using Helion.Client.WinMouse;
 using Helion.Input;
 using Helion.Render;
@@ -16,7 +15,7 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Client.OpenTK
+namespace Helion.Client
 {
     public class OpenTKWindow : GameWindow, IWindow
     {

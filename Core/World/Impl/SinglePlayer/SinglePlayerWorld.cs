@@ -31,6 +31,10 @@ namespace Helion.World.Impl.SinglePlayer
         private const int SuperShotgunBullets = 20;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public override Vec3D ListenerPosition => Player.Position;
+        public override double ListenerAngle => Player.AngleRadians;
+        public override double ListenerPitch => Player.PitchRadians;
+
         public readonly Player Player;
         
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
@@ -233,7 +237,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
             // TODO: Use SNDINFO.
             // TODO: Should this be inside the physics class instead?
-            SoundManager.CreateSoundOn(entity, "DSOOF", SoundChannelType.Voice);
+            SoundManager.CreateSoundOn(entity, "DSOOF", SoundChannelType.Voice, SoundParams.Create(Attenuation.None));
         }
 
         private void HandleMouseLook(ConsumableInput frameInput)

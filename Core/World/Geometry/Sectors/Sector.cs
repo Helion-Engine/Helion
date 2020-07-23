@@ -2,12 +2,15 @@ using System.Collections.Generic;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry.Boxes;
+using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Special;
+using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 
@@ -91,6 +94,10 @@ namespace Helion.World.Geometry.Sectors
         public bool Has3DFloors => !Floors3D.Empty();
         public bool DataChanged;
         public bool LightingChanged;
+
+        private bool m_boundingBoxSet;
+        private Box2D m_bouindingBox;
+        private Vec2D m_center;
 
         public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
             ZDoomSectorSpecialType sectorSpecial)
@@ -345,6 +352,56 @@ namespace Helion.World.Geometry.Sectors
             }
 
             return max;
+        }
+
+        public Box2D GetBox()
+        {
+            if (!m_boundingBoxSet)
+                SetBoundingBox();
+
+            return m_bouindingBox;
+        }
+
+        public Vec3D GetCenter(SectorPlaneType type)
+        {
+            if (!m_boundingBoxSet)
+                SetBoundingBox();
+
+            return new Vec3D(m_center.X, m_center.Y, type == SectorPlaneType.Floor ? ToFloorZ(m_center) : ToCeilingZ(m_center));
+        }
+
+        private void SetBoundingBox()
+        {
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+            double maxX = double.MinValue;
+            double maxY = double.MinValue;
+
+            foreach (var line in Lines)
+            {
+                if (line.Segment.Start.X < minX)
+                    minX = line.Segment.Start.X;
+                if (line.Segment.Start.X > maxX)
+                    maxX = line.Segment.Start.X;
+                if (line.Segment.Start.Y < minY)
+                    minY = line.Segment.Start.Y;
+                if (line.Segment.Start.Y > maxY)
+                    maxY = line.Segment.Start.Y;
+
+                if (line.Segment.End.X < minX)
+                    minX = line.Segment.End.X;
+                if (line.Segment.End.X > maxX)
+                    maxX = line.Segment.End.X;
+                if (line.Segment.End.Y < minY)
+                    minY = line.Segment.End.Y;
+                if (line.Segment.End.Y > maxY)
+                    maxY = line.Segment.End.Y;
+            }
+
+            m_bouindingBox = new Box2D(new Vec2D(minX, minY), new Vec2D(maxX, maxY));
+            m_center = (new Seg2D(m_bouindingBox.Min, m_bouindingBox.Max)).FromTime(0.5);
+
+            m_boundingBoxSet = true;
         }
 
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;

@@ -1,4 +1,7 @@
+using Helion.Render.Shared;
+using Helion.Util.Geometry.Vectors;
 using System;
+using System.Numerics;
 
 namespace Helion.Audio
 {
@@ -24,10 +27,6 @@ namespace Helion.Audio
     /// </remarks>
     public interface IAudioSourceManager : IDisposable
     {
-        /// <summary>
-        /// The listener to which all the sounds are played with respect to.
-        /// </summary>
-        IAudioListener Listener { get; }
         
         /// <summary>
         /// Creates a new audio source from this context. This means when the
@@ -44,6 +43,8 @@ namespace Helion.Audio
         /// <param name="sound">The name of the sound.</param>
         /// <returns>An audio source that we can play the sound from, or null
         /// if it could not be created.</returns>
-        IAudioSource? Create(string sound);
+        IAudioSource? Create(string sound, SoundParams soundParams);
+
+        void SetListener(Vec3D pos, double angle, double pitch);
     }
 }

@@ -2,7 +2,7 @@
 using NLog;
 using OpenTK;
 
-namespace Helion.Client.OpenTK.Extensions
+namespace Helion.Client
 {
     public static class VerticalSyncExtensions
     {

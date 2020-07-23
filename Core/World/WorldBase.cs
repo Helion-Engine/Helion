@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Helion.Audio;
 using Helion.Maps;
 using Helion.Resources;
@@ -8,6 +9,7 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Time;
 using Helion.World.Blockmap;
@@ -35,12 +37,12 @@ namespace Helion.World
         public readonly CIString MapName;
         public readonly BlockMap Blockmap;
         public readonly PhysicsManager PhysicsManager;
+        public readonly SoundManager SoundManager;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly MapGeometry Geometry;
-        protected readonly SoundManager SoundManager;
         protected readonly EntityManager EntityManager;
         protected readonly SpecialManager SpecialManager;
 
@@ -53,6 +55,9 @@ namespace Helion.World
         public IList<Sector> Sectors => Geometry.Sectors;
         public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
+        public abstract Vec3D ListenerPosition { get; }
+        public abstract double ListenerAngle { get; }
+        public abstract double ListenerPitch { get; }
 
         private readonly DoomRandom m_random = new DoomRandom();
         
@@ -65,7 +70,7 @@ namespace Helion.World
             MapName = map.Name;
             Geometry = geometry;
             Blockmap = new BlockMap(Lines);
-            SoundManager = new SoundManager(audioSystem);            
+            SoundManager = new SoundManager(this, audioSystem);            
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);

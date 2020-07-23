@@ -1,4 +1,7 @@
-﻿using Helion.World.Geometry.Lines;
+﻿using Helion.Audio;
+using Helion.Util.Geometry.Vectors;
+using Helion.World.Geometry.Lines;
+using Helion.World.Sound;
 using Helion.World.Special.Switches;
 
 namespace Helion.World.Special.Specials
@@ -6,16 +9,21 @@ namespace Helion.World.Special.Specials
     public class SwitchChangeSpecial : ISpecial
     {
         private readonly SwitchManager m_manager;
+        private readonly SoundManager m_soundManager;
         private readonly Line m_line;
         private bool m_repeat;
         private int m_switchDelayTics;
 
-        public SwitchChangeSpecial(SwitchManager manager, Line line)
+        public SwitchChangeSpecial(SwitchManager manager, SoundManager soundManager, Line line)
         {
             m_manager = manager;
+            m_soundManager = soundManager;
             m_line = line;
             m_repeat = line.Flags.Repeat;
             m_line.Activated = true;
+
+            Vec2D pos = line.Segment.FromTime(0.5);
+            soundManager.CreateSoundAt(pos.To3D(line.Front.Sector.ToFloorZ(pos)), "DSSWTCHN", SoundChannelType.Auto, SoundParams.Create(Attenuation.Default));
         }
 
         public SpecialTickStatus Tick()
@@ -36,7 +44,11 @@ namespace Helion.World.Special.Specials
             }
 
             if (m_line.Flags.Repeat)
+            {
                 m_line.Activated = false;
+                Vec2D pos = m_line.Segment.FromTime(0.5);
+                m_soundManager.CreateSoundAt(pos.To3D(m_line.Front.Sector.ToFloorZ(pos)), "DSSWTCHX", SoundChannelType.Auto, SoundParams.Create(Attenuation.Default));
+            }
 
             return SpecialTickStatus.Destroy;
         }

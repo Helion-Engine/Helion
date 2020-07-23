@@ -109,7 +109,7 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorMoveType moveType,
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush)
         {
             // Save the Z value because we are only checking if the dest is valid
@@ -133,7 +133,7 @@ namespace Helion.World.Physics
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (moveType == SectorMoveType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
+                if (moveType == SectorPlaneType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
                     entity.OnGround && !entity.Flags.NoGravity && entity.HighestFloorSector == sector)
                 {
                     entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
@@ -153,7 +153,7 @@ namespace Helion.World.Physics
                 Entity entity = entities[i];
                 ClampBetweenFloorAndCeiling(entity);
 
-                if ((moveType == SectorMoveType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorMoveType.Floor && direction == MoveDirection.Down))
+                if ((moveType == SectorPlaneType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorPlaneType.Floor && direction == MoveDirection.Down))
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;

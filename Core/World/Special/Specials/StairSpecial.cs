@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
@@ -15,8 +14,8 @@ namespace Helion.World.Special.Specials
         private int m_destroyCount;
         private int m_stairDelayTics;
 
-        public StairSpecial(PhysicsManager physicsManager, Sector sector, double speed, int height, int delay, bool crush) : 
-            base(physicsManager, sector, 0, 0, new SectorMoveData(SectorMoveType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
+        public StairSpecial(WorldBase world, Sector sector, double speed, int height, int delay, bool crush) : 
+            base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
         {
             m_stairHeight = height;
             m_stairDelay = delay; 

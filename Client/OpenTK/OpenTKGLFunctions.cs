@@ -7,7 +7,7 @@ using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using OpenTK.Graphics.OpenGL4;
 
-namespace Helion.Client.OpenTK
+namespace Helion.Client
 {
     public class OpenTKGLFunctions : IGLFunctions
     {

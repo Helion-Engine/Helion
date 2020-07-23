@@ -12,14 +12,39 @@ namespace Helion.Client.OpenAL
         private readonly ALAudioSourceManager m_owner;
         private readonly int m_sourceId;
         private bool m_disposed;
-        
-        public Vector3 Position { get; set; }
-        public Vector3 Velocity { get; set; }
 
-        public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer)
+        public void SetPosition(in Vector3 pos)
+        {
+            AL.Source(m_sourceId, ALSource3f.Position, pos.X, pos.Y, pos.Z);
+        }
+
+        public void SetVelocity(in Vector3 velocity)
+        {
+            AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+        }
+
+        public Vector3 Velocity { get; set; }
+        public object? SoundSource { get; set; }
+        public bool Loop { get; set; }
+
+        public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer, SoundParams soundParams)
         {
             m_owner = owner;
             m_sourceId = AL.GenSource();
+            Loop = soundParams.Loop;
+
+            if (soundParams.Attenuation == Attenuation.None)
+            {
+                AL.Source(m_sourceId, ALSourcef.ReferenceDistance, 0.0f);
+            }
+            else
+            {
+                AL.Source(m_sourceId, ALSourcef.RolloffFactor, soundParams.RolloffFactor);
+                AL.Source(m_sourceId, ALSourcef.ReferenceDistance, soundParams.ReferenceDistance);
+                AL.Source(m_sourceId, ALSourcef.MaxDistance, soundParams.MaxDistance);
+            }
+
+            AL.Source(m_sourceId, ALSourceb.Looping, Loop);
             AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
         }
 
@@ -79,7 +104,7 @@ namespace Helion.Client.OpenAL
             Stop();
             m_owner.Unlink(this);
             AL.DeleteSource(m_sourceId);
-            
+
             m_disposed = true;
         }
     }

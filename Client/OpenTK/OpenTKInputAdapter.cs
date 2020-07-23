@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Input;
 
-namespace Helion.Client.OpenTK
+namespace Helion.Client
 {
     public class OpenTKInputAdapter
     {

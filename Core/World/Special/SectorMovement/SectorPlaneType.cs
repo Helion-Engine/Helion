@@ -1,6 +1,6 @@
 ﻿namespace Helion.World.Special.SectorMovement
 {
-    public enum SectorMoveType
+    public enum SectorPlaneType
     {
         Floor,
         Ceiling,

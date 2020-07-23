@@ -1,4 +1,5 @@
 using System;
+using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
 using Helion.Util;
@@ -103,7 +104,7 @@ namespace Helion.World.Entities.Players
 
             if (hardHit && !Flags.NoGravity && !IsDead)
             {
-                SoundManager.CreateSoundOn(this, "DSOOF", SoundChannelType.Voice);
+                SoundManager.CreateSoundOn(this, "DSOOF", SoundChannelType.Voice, SoundParams.Create(Attenuation.None));
                 m_deltaViewHeight = Velocity.Z / PlayerViewDivider;
             }
         }
