@@ -21,7 +21,6 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
-using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -57,11 +56,6 @@ namespace Helion.World.Physics
         /// Fires when an entity activates a line special with use or by crossing a line.
         /// </summary>
         public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
-
-        /// <summary>
-        /// Fires when the player executes the use command but hits a non-special blocking line.
-        /// </summary>
-        public event EventHandler<Entity>? PlayerUseFail;
 
         /// <summary>
         /// Creates a new physics manager which utilizes the arguments for any
@@ -281,30 +275,36 @@ namespace Helion.World.Physics
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
-                if (bi.Line != null && bi.Line.Segment.OnRight(start))
+                if (bi.Line != null)
                 {
-                    if (bi.Line.HasSpecial)
+                    if (bi.Line.Segment.OnRight(start))
                     {
-                        activateLine = bi.Line;
-                        break;
+                        if (bi.Line.HasSpecial)
+                        {
+                            activateLine = bi.Line;
+                            break;
+                        }
+
+                        if (bi.Line.Back == null)
+                        {
+                            hitBlockLine = true;
+                            break;
+                        }
                     }
 
-                    if (bi.Line.Back == null)
+                    if (bi.Line.Back != null)
                     {
-                        hitBlockLine = true;
-                        break;
-                    }
+                        LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                        if (opening.OpeningHeight <= 0)
+                        {
+                            hitBlockLine = true;
+                            break;
+                        }
 
-                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
-                    if (opening.OpeningHeight <= 0)
-                    {
-                        hitBlockLine = true;
-                        break;
+                        // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
+                        if (!opening.CanPassOrStepThrough(entity))
+                            hitBlockLine = true;
                     }
-
-                    // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
-                    if (!opening.CanPassOrStepThrough(entity))
-                        hitBlockLine = true;
                 }
             }
 
@@ -313,9 +313,9 @@ namespace Helion.World.Physics
                 var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
                 EntityActivatedSpecial?.Invoke(this, args);
             }
-            else if (hitBlockLine && entity is Player)
+            else if (hitBlockLine && entity is Player player)
             {
-                PlayerUseFail?.Invoke(this, entity);
+                player.PlayUseFailSound();
             }
         }
 

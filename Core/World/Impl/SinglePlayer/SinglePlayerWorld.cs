@@ -48,7 +48,6 @@ namespace Helion.World.Impl.SinglePlayer
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             PhysicsManager.EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
-            PhysicsManager.PlayerUseFail += PhysicsManager_PlayerUseFail;
         }
 
         ~SinglePlayerWorld()
@@ -180,7 +179,6 @@ namespace Helion.World.Impl.SinglePlayer
         {
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
             PhysicsManager.EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
-            PhysicsManager.PlayerUseFail -= PhysicsManager_PlayerUseFail;
             
             base.PerformDispose();
         }
@@ -232,13 +230,6 @@ namespace Helion.World.Impl.SinglePlayer
         {
             if (e.ActivateLineSpecial != null)
                 SpecialManager.TryAddActivatedLineSpecial(e);
-        }
-
-        private void PhysicsManager_PlayerUseFail(object? sender, Entity entity)
-        {
-            // TODO: Use SNDINFO.
-            // TODO: Should this be inside the physics class instead?
-            SoundManager.CreateSoundOn(entity, "DSOOF", SoundChannelType.Voice, SoundParams.Create(Attenuation.None));
         }
 
         private void HandleMouseLook(ConsumableInput frameInput)
