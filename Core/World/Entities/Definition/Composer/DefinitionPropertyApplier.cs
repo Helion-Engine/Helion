@@ -38,6 +38,12 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.Mass != null)
                 definition.Properties.Mass = properties.Mass.Value;
+
+            if (properties.DeathSound != null)
+                definition.Properties.DeathSound = properties.DeathSound;
+
+            if (properties.PainSound != null)
+                definition.Properties.PainSound = properties.PainSound;
         }
     }
 }

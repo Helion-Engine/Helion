@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Helion.Audio;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
@@ -258,13 +259,13 @@ namespace Helion.World.Entities
         public void SetDeathState()
         {
             if (FrameState.SetState(FrameStateLabel.Death))
-                SetDeath();
+                SetDeath(false);
         }
 
         public void SetXDeathState()
         {
             if (FrameState.SetState(FrameStateLabel.XDeath))
-                SetDeath();
+                SetDeath(true);
         }
 
         public bool SetCrushState()
@@ -290,7 +291,11 @@ namespace Helion.World.Entities
             if (Health <= 0)
                 Kill();
             else if (setPainState && Definition.States.Labels.ContainsKey("PAIN"))
+            {
                 FrameState.SetState(FrameStateLabel.Pain);
+                if (Definition.Properties.PainSound.Length > 0)
+                    SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, SoundParams.Create(this));
+            }
 
             return true;
         }
@@ -365,8 +370,13 @@ namespace Helion.World.Entities
             IsDisposed = true;
         }
 
-        protected virtual void SetDeath()
+        protected virtual void SetDeath(bool gibbed)
         {
+            if (gibbed)
+                SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, SoundParams.Create(this));
+            else if (Definition.Properties.DeathSound.Length > 0)
+                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, SoundParams.Create(this));
+
             if (Flags.Missile)
             {
                 Flags.Missile = false;

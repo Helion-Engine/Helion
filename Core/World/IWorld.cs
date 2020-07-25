@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
+using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -24,6 +25,7 @@ namespace Helion.World
         double ListenerAngle { get; }
         double ListenerPitch { get; }
         Entity ListenerEntity { get; }
+        IRandom Random { get; }
         
         void Link(Entity entity);
         void Tick();

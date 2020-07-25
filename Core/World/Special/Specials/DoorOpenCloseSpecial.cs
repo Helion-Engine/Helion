@@ -8,7 +8,7 @@ namespace Helion.World.Special.Specials
         public DoorOpenCloseSpecial(WorldBase world, Sector sector, double dest, double speed, int delay)
             : base(world, sector, sector.Floor.Z, dest, 
                   new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay), 
-                  new SectorSoundData("DSDOROPN", "DSDORCLS", null))
+                  new SectorSoundData("doors/dr1_open", "doors/dr1_clos", null))
         {
         }
 

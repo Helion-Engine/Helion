@@ -28,7 +28,7 @@ namespace Helion.Client.OpenAL
         {
             m_owner = owner;
             m_archiveCollection = archiveCollection;
-            AL.DistanceModel(ALDistanceModel.ExponentDistanceClamped);
+            AL.DistanceModel(ALDistanceModel.ExponentDistance);
             AL.Listener(ALListenerf.Gain, 1.0f);
         }
 

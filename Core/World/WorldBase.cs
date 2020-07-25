@@ -39,6 +39,7 @@ namespace Helion.World
         public readonly SoundManager SoundManager;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
+        public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly MapGeometry Geometry;
@@ -70,7 +71,7 @@ namespace Helion.World
             MapName = map.Name;
             Geometry = geometry;
             Blockmap = new BlockMap(Lines);
-            SoundManager = new SoundManager(this, audioSystem);            
+            SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);            
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);

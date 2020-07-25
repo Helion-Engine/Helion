@@ -1,3 +1,4 @@
+using Helion.Resources.Definitions.SoundInfo;
 using System;
 using System.Numerics;
 
@@ -27,6 +28,11 @@ namespace Helion.Audio
         /// The velocity (in map units) of the audio source.
         /// </summary>
         void SetVelocity(in Vector3 velocity);
+
+        /// <summary>
+        /// SoundInfo source for this sound.
+        /// </summary>
+        SoundInfo? SoundInfo { get; set; }
 
         /// <summary>
         /// The source object of the sound (e.g. entity, sector).

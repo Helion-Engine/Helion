@@ -96,6 +96,7 @@
     <Content Include="Assets\Graphics\helion.png" />
     <Content Include="Assets\Licenses\fonts.console.LICENSE" />
     <Content Include="Assets\Licenses\graphics.cursor.LICENSE" />
+    <Content Include="Assets\SndInfo.txt" />
     <Content Include="Assets\Weapons\Doom\Chainsaw.txt" />
     <Content Include="Assets\Weapons\Doom\DoomWeapon.txt" />
     <Content Include="Assets\Weapons\Doom\Pistol.txt" />

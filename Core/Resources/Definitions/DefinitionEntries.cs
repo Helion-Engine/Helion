@@ -8,6 +8,7 @@ using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Fonts;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -27,6 +28,7 @@ namespace Helion.Resources.Definitions
         public readonly DecorateDefinitions Decorate;
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
+        public readonly SoundInfoDefinition SoundInfo = new SoundInfoDefinition();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
@@ -46,6 +48,12 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
+            m_entryNameToAction["SNDINFO"] = entry => ParseSoundInfo(entry);
+        }
+
+        private void ParseSoundInfo(Entry entry)
+        {
+            SoundInfo.Parse(entry);
         }
         
         /// <summary>
