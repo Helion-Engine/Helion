@@ -155,6 +155,7 @@ namespace Helion.World.Sound
             if (soundInfo.Limit > 0 && GetSoundCount(soundInfo) > soundInfo.Limit)
                 return null;
 
+            soundParams.SoundInfo = soundInfo;
             IAudioSource? audioSource = m_audioManager.Create(soundInfo.EntryName, soundParams);
             if (audioSource == null)
                 return null;

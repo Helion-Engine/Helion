@@ -211,29 +211,29 @@ namespace Helion.World.Entities.Players
             if (!IsDead)
             {
                 if (Health < 26)
-                    SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Auto, SoundParams.Create(this));
+                    SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Auto, new SoundParams(this));
                 else if (Health < 51)
-                    SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Auto, SoundParams.Create(this));
+                    SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Auto, new SoundParams(this));
                 else if (Health < 76)
-                    SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Auto, SoundParams.Create(this));
+                    SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Auto, new SoundParams(this));
                 else
-                    SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Auto, SoundParams.Create(this));
+                    SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Auto, new SoundParams(this));
             }
         }
 
         public void PlayGruntSound()
         {
-            SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Auto, SoundParams.Create(this));
+            SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Auto, new SoundParams(this));
         }
 
         public void PlayUseFailSound()
         {
-            SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Auto, SoundParams.Create(this));
+            SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Auto, new SoundParams(this));
         }
 
         public void PlayLandSound()
         {
-            SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Auto, SoundParams.Create(this));
+            SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Auto, new SoundParams(this));
         }
 
         public string GetGenderString() => "male";
@@ -243,9 +243,9 @@ namespace Helion.World.Entities.Players
             base.SetDeath(gibbed);
 
             if (gibbed)
-                SoundManager.CreateSoundOn(this, "*xdeath", SoundChannelType.Auto, SoundParams.Create(this));
+                SoundManager.CreateSoundOn(this, "*xdeath", SoundChannelType.Auto, new SoundParams(this));
             else
-                SoundManager.CreateSoundOn(this, "*death", SoundChannelType.Auto, SoundParams.Create(this));
+                SoundManager.CreateSoundOn(this, "*death", SoundChannelType.Auto, new SoundParams(this));
 
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
         }

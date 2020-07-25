@@ -99,7 +99,7 @@ namespace Helion.World.Special.Specials
             if (SectorPlane.Z == DestZ)
             {
                 if (SoundData.StopSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StopSound, SoundParams.Create(Sector));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StopSound, new SoundParams(Sector));
                 return;
             }
 
@@ -107,16 +107,16 @@ namespace Helion.World.Special.Specials
             {
                 m_playedStartSound = true;
                 if (SoundData.StartSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, SoundParams.Create(Sector));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, new SoundParams(Sector));
                 if (SoundData.MovementSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, SoundParams.Create(Sector, true));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, new SoundParams(Sector, true));
             }
 
             if (m_direction != MoveData.StartDirection && !m_playedReturnSound)
             {
                 m_playedReturnSound = true;
                 if (SoundData.ReturnSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.ReturnSound, SoundParams.Create(Sector));
+                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.ReturnSound, new SoundParams(Sector));
             }
         }
 
@@ -144,7 +144,7 @@ namespace Helion.World.Special.Specials
             DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
 
             if (m_direction == MoveData.StartDirection && SoundData.StartSound != null)
-                m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, SoundParams.Create(Sector));
+                m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, new SoundParams(Sector));
 
             if (MoveData.Crush != null)
             {

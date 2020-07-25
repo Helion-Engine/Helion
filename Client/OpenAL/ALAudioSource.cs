@@ -3,6 +3,8 @@ using System.Numerics;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
@@ -10,8 +12,13 @@ namespace Helion.Client.OpenAL
 {
     public class ALAudioSource : IAudioSource
     {
-        private static readonly ALSourcef SourceRadius = (ALSourcef)0x1031;
-        private static readonly ALSourcei SourceDistanceModel = (ALSourcei)53248; 
+        private const float DefaultRolloff = 2.5f;
+        private const float DefaultReference = 296.0f;
+        private const float DefaultMaxDistance = 1752.0f;
+        private const float DefaultRadius = 32.0f;
+
+        private const ALSourcef SourceRadius = (ALSourcef)0x1031;
+        private const ALSourcei SourceDistanceModel = (ALSourcei)53248; 
 
         private readonly ALAudioSourceManager m_owner;
         private readonly int m_sourceId;
@@ -42,25 +49,42 @@ namespace Helion.Client.OpenAL
         public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer, SoundParams soundParams)
         {
             m_owner = owner;
-            m_sourceId = AL.GenSource();
             Loop = soundParams.Loop;
 
-            if (soundParams.Attenuation == Attenuation.None)
+            float rolloffFactor = DefaultRolloff;
+            float referenceDistance = DefaultReference;
+            float maxDistance = DefaultMaxDistance;
+            float radius = DefaultRadius;
+
+            if (soundParams.SoundSource is Entity entity)
+                radius = (float)entity.Radius + 16.0f;
+            else if (soundParams.SoundSource is Sector)
+                radius = 128.0f;
+
+            switch (soundParams.Attenuation)
             {
-                // Max out the distance to prevent directional sound from taking effect
-                AL.Source(m_sourceId, SourceRadius, 65536.0f);
-                AL.Source(m_sourceId, ALSourcef.ReferenceDistance, 0.0f);
-            }
-            else
-            {
-                AL.Source(m_sourceId, ALSourcef.RolloffFactor, soundParams.RolloffFactor);
-                AL.Source(m_sourceId, ALSourcef.ReferenceDistance, soundParams.ReferenceDistance);
-                AL.Source(m_sourceId, SourceRadius, soundParams.Radius);
-                AL.Source(m_sourceId, ALSourcef.MaxDistance, soundParams.MaxDistance);
+                case Attenuation.None:
+                    // Max out the distance to prevent directional sound from taking effect
+                    radius = 65536.0f;
+                    referenceDistance = 0.0f;
+                    maxDistance = 0.0f;
+                    rolloffFactor = 0.0f;
+                    break;
+                case Attenuation.Rapid:
+                    rolloffFactor = DefaultRolloff * 2.0f;
+                    break;
+                case Attenuation.Default:
+                default:
+                    break;
             }
 
+            m_sourceId = AL.GenSource();
+            AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
+            AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
+            AL.Source(m_sourceId, SourceRadius, radius);
+            AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
+            AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
             AL.Source(m_sourceId, ALSourceb.Looping, Loop);
-            AL.Source(m_sourceId, ALSourcef.Pitch, soundParams.Pitch);
             AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
         }
 

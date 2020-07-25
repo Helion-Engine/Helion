@@ -1,4 +1,5 @@
 using System;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Audio
@@ -25,7 +26,7 @@ namespace Helion.Audio
     /// </remarks>
     public interface IAudioSourceManager : IDisposable
     {
-        
+
         /// <summary>
         /// Creates a new audio source from this context. This means when the
         /// context is disposed, so will this sound.
@@ -39,7 +40,7 @@ namespace Helion.Audio
         /// memory.
         /// </remarks>
         /// <param name="sound">The name of the sound.</param>
-        /// <returns>An audio source that we can play the sound from, or null
+        /// <param name="soundParams">Information for this sound.</param>
         /// if it could not be created.</returns>
         IAudioSource? Create(string sound, SoundParams soundParams);
 

@@ -6,6 +6,7 @@ using Helion.Client.OpenAL.Components;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 using MoreLinq;

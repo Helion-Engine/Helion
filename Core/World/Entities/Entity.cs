@@ -294,7 +294,7 @@ namespace Helion.World.Entities
             {
                 FrameState.SetState(FrameStateLabel.Pain);
                 if (Definition.Properties.PainSound.Length > 0)
-                    SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, SoundParams.Create(this));
+                    SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, new SoundParams(this));
             }
 
             return true;
@@ -373,9 +373,9 @@ namespace Helion.World.Entities
         protected virtual void SetDeath(bool gibbed)
         {
             if (gibbed)
-                SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, SoundParams.Create(this));
+                SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, new SoundParams(this));
             else if (Definition.Properties.DeathSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, SoundParams.Create(this));
+                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, new SoundParams(this));
 
             if (Flags.Missile)
             {
