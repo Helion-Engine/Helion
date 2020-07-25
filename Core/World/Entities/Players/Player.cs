@@ -242,11 +242,13 @@ namespace Helion.World.Entities.Players
         {
             base.SetDeath(gibbed);
 
+            string deathSound = "*death";
             if (gibbed)
-                SoundManager.CreateSoundOn(this, "*xdeath", SoundChannelType.Auto, new SoundParams(this));
-            else
-                SoundManager.CreateSoundOn(this, "*death", SoundChannelType.Auto, new SoundParams(this));
+                deathSound = "*gibbed";
+            else if (Health <= -50)  
+                deathSound = "*xdeath";
 
+            SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Auto, new SoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
         }
 
