@@ -1,5 +1,4 @@
 using System;
-using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Audio
@@ -41,7 +40,7 @@ namespace Helion.Audio
         /// </remarks>
         /// <param name="sound">The name of the sound.</param>
         /// <param name="soundParams">Information for this sound.</param>
-        /// if it could not be created.</returns>
+        /// <returns>null if it could not be created.</returns>
         IAudioSource? Create(string sound, SoundParams soundParams);
 
         void SetListener(Vec3D pos, double angle, double pitch);

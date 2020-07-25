@@ -13,7 +13,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Physics;
-using Helion.World.Sound;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

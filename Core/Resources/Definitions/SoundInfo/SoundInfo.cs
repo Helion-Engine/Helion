@@ -1,6 +1,4 @@
-﻿using Helion.World.Entities.Players;
-
-namespace Helion.Resources.Definitions.SoundInfo
+﻿namespace Helion.Resources.Definitions.SoundInfo
 {
     public class SoundInfo
     {
