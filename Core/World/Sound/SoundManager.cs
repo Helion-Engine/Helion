@@ -152,7 +152,7 @@ namespace Helion.World.Sound
 
             if (soundInfo == null)
                 return null;
-            if (soundInfo.Limit > 0 && GetSoundCount(soundInfo) > soundInfo.Limit)
+            if (soundInfo.Limit > 0 && GetSoundCount(soundInfo) >= soundInfo.Limit)
                 return null;
 
             soundParams.SoundInfo = soundInfo;
