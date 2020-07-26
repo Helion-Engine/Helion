@@ -26,9 +26,19 @@ namespace Helion.World.Special
         private readonly SwitchManager m_switchManager;
         private readonly WorldBase m_world;
 
-        private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, "plats/pt1_stop", "plats/pt1_mid");
-        private static SectorSoundData GetLiftSound() => new SectorSoundData("plats/pt1_strt", "plats/pt1_strt", "plats/pt1_stop");
-        private static SectorSoundData GetCrusherSound() => new SectorSoundData(null, null, null, "plats/pt1_mid");
+        public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
+        {
+            if (speed >= 64)
+                return new SectorSoundData(reverse ? Constants.DoorCloseFastSound : Constants.DoorOpenFastSound, 
+                    reverse ? Constants.DoorOpenFastSound : Constants.DoorCloseFastSound, null);
+            else
+                return new SectorSoundData(reverse ? Constants.DoorCloseSlowSound : Constants.DoorOpenSlowSound, 
+                    reverse ? Constants.DoorOpenSlowSound : Constants.DoorCloseSlowSound, null);
+        }
+
+        private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
+        private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
+        private static SectorSoundData GetCrusherSound() => new SectorSoundData(null, null, null, Constants.PlatMoveSound);
 
         public SpecialManager(WorldBase world, DefinitionEntries definition, IRandom random)
         {
@@ -130,29 +140,26 @@ namespace Helion.World.Special
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), new SectorSoundData("doors/dr1_clos", "doors/dr1_open", null));
+                MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), GetDoorSound(speed, true));
         }
 
         public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
         {
-            // TODO handle keys
             double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - VanillaConstants.DoorDestOffset;
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), new SectorSoundData("doors/dr1_open", "doors/dr1_clos", null));
+            return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, key);
         }
 
         public ISpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Up, MoveRepetition.None, speed, 0), new SectorSoundData("doors/dr1_open", null, null));
+            return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, 0);
         }
 
         public ISpecial CreateDoorCloseSpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), new SectorSoundData("doors/dr1_clos", null, null));
+                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDoorSound(speed));
         }
 
         public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0)

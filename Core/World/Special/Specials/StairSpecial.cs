@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Helion.Audio;
+using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
@@ -15,7 +17,8 @@ namespace Helion.World.Special.Specials
         private int m_stairDelayTics;
 
         public StairSpecial(WorldBase world, Sector sector, double speed, int height, int delay, bool crush) : 
-            base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0))
+            base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), 
+                new SectorSoundData(null, null, Constants.PlatStopSound, null))
         {
             m_stairHeight = height;
             m_stairDelay = delay; 
@@ -30,7 +33,7 @@ namespace Helion.World.Special.Specials
             }
             while (nextSector != null);
 
-            m_sectors.ForEach(sec => sec.ActiveMoveSpecial = this);
+            m_sectors.ForEach(sec => InitSector(sec));
         }
 
         // TODO verify me - PrevZ probably doesn't work right
@@ -83,6 +86,12 @@ namespace Helion.World.Special.Specials
                     return line.Back.Sector;
 
             return null;
+        }
+
+        private void InitSector(Sector sector)
+        {
+            m_world.SoundManager.CreateSectorSound(sector, MoveData.SectorMoveType, Constants.PlatMoveSound, new SoundParams(Sector, true));
+            sector.ActiveMoveSpecial = this;
         }
     }
 }

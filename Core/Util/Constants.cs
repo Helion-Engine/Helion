@@ -67,5 +67,17 @@ namespace Helion.Util
         /// of things in game.
         /// </summary>
         public static readonly CIString DebugBoxTexture = "DEBUGBOX";
+
+        public static readonly string PlatStartSound = "plats/pt1_stop";
+        public static readonly string PlatStopSound = "plats/pt1_mid";
+        public static readonly string PlatMoveSound = "plats/pt1_mid";
+
+        public static readonly string DoorOpenSlowSound = "doors/dr1_open";
+        public static readonly string DoorCloseSlowSound = "doors/dr1_clos";
+        public static readonly string DoorOpenFastSound = "doors/dr2_open";
+        public static readonly string DoorCloseFastSound = "doors/dr2_clos";
+
+        public static readonly string SwitchNormSound = "switches/normbutn";
+        public static readonly string SwitchExitSound = "switches/exitbutn";
     }
 }

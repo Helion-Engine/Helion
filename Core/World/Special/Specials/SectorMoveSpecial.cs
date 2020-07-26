@@ -14,12 +14,12 @@ namespace Helion.World.Special.Specials
         public SectorMoveData MoveData { get; protected set; }
         public SectorSoundData SoundData { get; protected set; }
         public SectorPlane SectorPlane { get; protected set; }
-        protected double DestZ;
-        protected int DelayTics;
-        private readonly WorldBase m_world;
+        protected readonly WorldBase m_world;
         private readonly double m_startZ;
         private readonly double m_minZ;
         private readonly double m_maxZ;
+        protected double DestZ;
+        protected int DelayTics;
         private MoveDirection m_direction;
         private double m_speed;
         private bool m_crushing;

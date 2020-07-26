@@ -72,7 +72,18 @@ namespace Helion.World.Special
         public bool IsSectorStopMoveSpecial() => m_sectorStopMoveSpecial;
         public bool IsSectorLightSpecial() => m_lightSpecial;
         public bool IsSectorStopLightSpecial() => m_stopLightSpecial;
-        public bool CanActivateDuringSectorMovement() => LineSpecialType == ZDoomLineSpecialType.DoorOpenClose;
+
+        public bool CanActivateDuringSectorMovement()
+        {
+            switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.DoorOpenClose:
+                case ZDoomLineSpecialType.DoorLockedRaise:
+                    return true;
+            }
+
+            return false;
+        }
 
         public bool IsTeleport()
         {

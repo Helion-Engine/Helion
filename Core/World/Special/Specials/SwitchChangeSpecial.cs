@@ -1,4 +1,5 @@
 ﻿using Helion.Audio;
+using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
@@ -23,7 +24,7 @@ namespace Helion.World.Special.Specials
             m_line.Activated = true;
 
             Vec2D pos = line.Segment.FromTime(0.5);
-            soundManager.CreateSoundAt(pos.To3D(line.Front.Sector.ToFloorZ(pos)), "switches/normbutn", SoundChannelType.Auto, new SoundParams(Attenuation.Default));
+            soundManager.CreateSoundAt(pos.To3D(line.Front.Sector.ToFloorZ(pos)), Constants.SwitchNormSound, SoundChannelType.Auto, new SoundParams(Attenuation.Default));
         }
 
         public SpecialTickStatus Tick()
@@ -47,7 +48,7 @@ namespace Helion.World.Special.Specials
             {
                 m_line.Activated = false;
                 Vec2D pos = m_line.Segment.FromTime(0.5);
-                m_soundManager.CreateSoundAt(pos.To3D(m_line.Front.Sector.ToFloorZ(pos)), "switches/normbutn", SoundChannelType.Auto, new SoundParams(Attenuation.Default));
+                m_soundManager.CreateSoundAt(pos.To3D(m_line.Front.Sector.ToFloorZ(pos)), Constants.SwitchNormSound, SoundChannelType.Auto, new SoundParams(Attenuation.Default));
             }
 
             return SpecialTickStatus.Destroy;
