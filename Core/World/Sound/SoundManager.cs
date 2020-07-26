@@ -27,6 +27,7 @@ namespace Helion.World.Sound
         private readonly IAudioSourceManager m_audioManager;
         private readonly IWorld m_world;
         private readonly SoundInfoDefinition m_soundInfo;
+        private readonly List<IAudioSource> m_soundsToPlay = new List<IAudioSource>();
         
         public SoundManager(IWorld world, IAudioSystem audioSystem, SoundInfoDefinition soundInfo)
         {
@@ -41,6 +42,12 @@ namespace Helion.World.Sound
             ReleaseUnmanagedResources();
         }
 
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
         public void Tick()
         {
             m_audioManager.SetListener(m_world.ListenerPosition, m_world.ListenerAngle, m_world.ListenerPitch);
@@ -48,10 +55,13 @@ namespace Helion.World.Sound
             if (m_playingSounds.Empty())
                 return;
 
-            var node = m_playingSounds.First;
+            PlaySounds();
 
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            LinkedListNode<IAudioSource>? nextNode;
             while (node != null)
             {
+                nextNode = node.Next;
                 if (node.Value.IsFinished())
                 {
                     node.Value.Dispose();
@@ -67,14 +77,17 @@ namespace Helion.World.Sound
                     node.Value.SetPosition(sector.GetSoundSource(m_world.ListenerEntity, moveSpecial.MoveData.SectorMoveType).ToFloat());
                 }
 
-                node = node.Next;
+                node = nextNode;
             }
         }
 
-        public void Dispose()
+        private void PlaySounds()
         {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
+            if (m_soundsToPlay.Count == 0)
+                return;
+
+            m_audioManager.PlayGroup(m_soundsToPlay);
+            m_soundsToPlay.Clear();
         }
 
         private void ReleaseUnmanagedResources()
@@ -170,7 +183,7 @@ namespace Helion.World.Sound
             }
 
             m_playingSounds.AddLast(audioSource);
-            audioSource.Play();
+            m_soundsToPlay.Add(audioSource);
             IncrementSound(soundInfo);
             return audioSource;
         }
