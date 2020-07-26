@@ -64,6 +64,15 @@ namespace Helion.Client.OpenAL
             return source;
         }
 
+        public void PlayGroup(List<IAudioSource> audioSources)
+        {
+            int[] ids = new int[audioSources.Count];
+            for (int i = 0; i < audioSources.Count; i++)
+                ids[i] = ((ALAudioSource)audioSources[i]).ID;
+
+            AL.SourcePlay(ids.Length, ids);
+        }
+
         private ALBuffer? GetBuffer(string sound)
         {
             string upperSound = sound.ToUpper();

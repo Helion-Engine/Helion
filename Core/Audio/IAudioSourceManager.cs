@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Audio
@@ -44,5 +45,6 @@ namespace Helion.Audio
         IAudioSource? Create(string sound, SoundParams soundParams);
 
         void SetListener(Vec3D pos, double angle, double pitch);
+        void PlayGroup(List<IAudioSource> audioSources);
     }
 }

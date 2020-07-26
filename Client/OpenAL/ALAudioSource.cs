@@ -45,6 +45,7 @@ namespace Helion.Client.OpenAL
         public SoundInfo? SoundInfo { get; set; }
         public object? SoundSource { get; set; }
         public bool Loop { get; set; }
+        public int ID => m_sourceId;
 
         public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer, SoundParams soundParams)
         {
