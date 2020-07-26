@@ -69,6 +69,8 @@ namespace Helion.World.Special
                     GetSwitchType(args.ActivateLineSpecial.Special)));
             }
 
+            args.ActivateLineSpecial.Activated = true;
+
             return specialActivateSuccess;
         }
 

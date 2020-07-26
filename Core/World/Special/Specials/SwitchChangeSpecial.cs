@@ -21,7 +21,6 @@ namespace Helion.World.Special.Specials
             m_soundManager = soundManager;
             m_line = line;
             m_repeat = line.Flags.Repeat;
-            m_line.Activated = true;
 
             if (type == SwitchType.Exit)
             {
