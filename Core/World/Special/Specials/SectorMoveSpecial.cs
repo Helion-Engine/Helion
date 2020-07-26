@@ -3,7 +3,6 @@ using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
@@ -89,7 +88,7 @@ namespace Helion.World.Special.Specials
             }
 
             if (SectorPlane.Z == DestZ)
-                FlipMovementDirection();
+                FlipMovementDirection(false);
 
             return SpecialTickStatus.Continue;
         }
@@ -133,9 +132,9 @@ namespace Helion.World.Special.Specials
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Move;
 
-        protected void FlipMovementDirection()
+        protected void FlipMovementDirection(bool blocked)
         {
-            if (MoveData.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == MoveData.StartDirection))
+            if (!blocked && (MoveData.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == MoveData.StartDirection)))
                 DelayTics = MoveData.Delay;
 
             m_playedReturnSound = false;
@@ -186,7 +185,7 @@ namespace Helion.World.Special.Specials
             {
             case SectorMoveStatus.Blocked:
                 if (MoveData.MoveRepetition != MoveRepetition.None)
-                    FlipMovementDirection();
+                    FlipMovementDirection(true);
                 break;
             case SectorMoveStatus.Crush when IsInitCrush:
                 Sector.DataChanged = true;

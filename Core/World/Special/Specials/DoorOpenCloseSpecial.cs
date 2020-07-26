@@ -25,7 +25,7 @@ namespace Helion.World.Special.Specials
             // immediately bring it back down. Either way we need to set delay
             // to 0, because this effect needs to work immediately.
             if (DelayTics == 0)
-                FlipMovementDirection();
+                FlipMovementDirection(false);
             DelayTics = 0;
         }
     }
