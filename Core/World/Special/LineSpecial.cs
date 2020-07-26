@@ -4,6 +4,7 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Physics;
+using MoreLinq.Extensions;
 
 namespace Helion.World.Special
 {
@@ -79,6 +80,18 @@ namespace Helion.World.Special
             {
                 case ZDoomLineSpecialType.DoorOpenClose:
                 case ZDoomLineSpecialType.DoorLockedRaise:
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsExitSpecial()
+        {
+           switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.ExitNormal:
+                case ZDoomLineSpecialType.ExitSecret:
                     return true;
             }
 

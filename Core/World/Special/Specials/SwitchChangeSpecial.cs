@@ -15,7 +15,7 @@ namespace Helion.World.Special.Specials
         private bool m_repeat;
         private int m_switchDelayTics;
 
-        public SwitchChangeSpecial(SwitchManager manager, SoundManager soundManager, Line line)
+        public SwitchChangeSpecial(SwitchManager manager, SoundManager soundManager, Line line, SwitchType type)
         {
             m_manager = manager;
             m_soundManager = soundManager;
@@ -23,8 +23,21 @@ namespace Helion.World.Special.Specials
             m_repeat = line.Flags.Repeat;
             m_line.Activated = true;
 
-            Vec2D pos = line.Segment.FromTime(0.5);
-            soundManager.CreateSoundAt(pos.To3D(line.Front.Sector.ToFloorZ(pos)), Constants.SwitchNormSound, SoundChannelType.Auto, new SoundParams(Attenuation.Default));
+            if (type == SwitchType.Exit)
+            {
+                // The level is about to exit so everything will be stopped
+                // Force play the switch exit sound and Tick to switch the line texture
+                IAudioSource? sound = soundManager.CreateSoundAt(Vec3D.Zero, Constants.SwitchExitSound, 
+                    SoundChannelType.Auto, new SoundParams(Attenuation.None));
+                sound?.Play();
+                Tick();
+            }
+            else
+            {
+                Vec2D pos = line.Segment.FromTime(0.5);
+                soundManager.CreateSoundAt(pos.To3D(line.Front.Sector.ToFloorZ(pos)), Constants.SwitchNormSound,
+                    SoundChannelType.Auto, new SoundParams(Attenuation.Default));
+            }
         }
 
         public SpecialTickStatus Tick()

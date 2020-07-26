@@ -121,11 +121,11 @@ namespace Helion.World
                         player.Sector.SectorDamageSpecial.Tick(player);
                 }
 
-                SoundManager.Tick();
+                SpecialManager.Tick();
                 TextureManager.Instance.Tick();
             }
 
-            SpecialManager.Tick();
+            SoundManager.Tick();
 
             Gametick++;
         }
@@ -148,6 +148,7 @@ namespace Helion.World
 
         public void ExitLevel(LevelChangeType type)
         {
+            SoundManager.ClearSounds();
             m_levelChangeType = type;
             WorldState = WorldState.Exit;
             m_exitTicks = 15;

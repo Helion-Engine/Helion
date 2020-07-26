@@ -10,6 +10,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
+using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Sound
@@ -81,6 +82,16 @@ namespace Helion.World.Sound
             }
         }
 
+        public void ClearSounds()
+        {
+            m_playingSounds.ForEach(sound =>
+            {
+                if (sound.IsPlaying())
+                    sound.Stop();
+                sound.Dispose();
+            });
+        }
+
         private void PlaySounds()
         {
             if (m_soundsToPlay.Count == 0)
@@ -143,9 +154,9 @@ namespace Helion.World.Sound
             //entity.SoundChannels.Add(audioSource, channel);
         }
 
-        public void CreateSoundAt(in Vec3D pos, string sound, SoundChannelType channel, SoundParams soundParams)
+        public IAudioSource? CreateSoundAt(in Vec3D pos, string sound, SoundChannelType channel, SoundParams soundParams)
         {
-            CreateSound(null, pos, Vec3D.Zero, sound, channel, soundParams);
+            return CreateSound(null, pos, Vec3D.Zero, sound, channel, soundParams);
         }
 
         public IAudioSource? CreateSectorSound(Sector sector, SectorPlaneType type, string sound, SoundParams soundParams)

@@ -15,6 +15,7 @@ namespace Helion.World
     public interface IWorld : IDisposable
     {
         int Gametick { get; }
+        WorldState WorldState { get; }
         IList<Line> Lines { get; }
         IList<Side> Sides { get; }
         IList<Wall> Walls { get; }

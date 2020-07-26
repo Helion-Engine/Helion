@@ -65,10 +65,18 @@ namespace Helion.World.Special
             if (specialActivateSuccess && args.ActivationContext == ActivationContext.UseLine && 
                 !args.ActivateLineSpecial.Activated && m_switchManager.IsLineSwitch(args.ActivateLineSpecial))
             {
-                AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial));
+                AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial, 
+                    GetSwitchType(args.ActivateLineSpecial.Special)));
             }
 
             return specialActivateSuccess;
+        }
+
+        private static SwitchType GetSwitchType(LineSpecial lineSpecial)
+        {
+            if (lineSpecial.IsExitSpecial())
+                return SwitchType.Exit;
+            return SwitchType.Default;
         }
 
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
