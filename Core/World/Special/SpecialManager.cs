@@ -161,7 +161,7 @@ namespace Helion.World.Special
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDoorSound(speed));
+                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDoorSound(speed, true));
         }
 
         public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0)
