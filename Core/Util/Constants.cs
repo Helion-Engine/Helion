@@ -68,8 +68,8 @@ namespace Helion.Util
         /// </summary>
         public static readonly CIString DebugBoxTexture = "DEBUGBOX";
 
-        public static readonly string PlatStartSound = "plats/pt1_stop";
-        public static readonly string PlatStopSound = "plats/pt1_mid";
+        public static readonly string PlatStartSound = "plats/pt1_strt";
+        public static readonly string PlatStopSound = "plats/pt1_stop";
         public static readonly string PlatMoveSound = "plats/pt1_mid";
 
         public static readonly string DoorOpenSlowSound = "doors/dr1_open";
