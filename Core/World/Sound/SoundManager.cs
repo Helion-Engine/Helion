@@ -53,10 +53,10 @@ namespace Helion.World.Sound
         {
             m_audioManager.SetListener(m_world.ListenerPosition, m_world.ListenerAngle, m_world.ListenerPitch);
 
+            PlaySounds();
+
             if (m_playingSounds.Empty())
                 return;
-
-            PlaySounds();
 
             LinkedListNode<IAudioSource>? node = m_playingSounds.First;
             LinkedListNode<IAudioSource>? nextNode;
@@ -97,6 +97,9 @@ namespace Helion.World.Sound
             if (m_soundsToPlay.Count == 0)
                 return;
 
+            for (int i = 0; i < m_soundsToPlay.Count; i++)
+                m_playingSounds.AddLast(m_soundsToPlay[i]);
+
             m_audioManager.PlayGroup(m_soundsToPlay);
             m_soundsToPlay.Clear();
         }
@@ -106,7 +109,7 @@ namespace Helion.World.Sound
             m_audioManager.Dispose();
         }
 
-        public void StopSoundsBySource(object source)
+        private void StopSoundsBySource(object source)
         {
             var node = m_playingSounds.First;
 
@@ -143,8 +146,6 @@ namespace Helion.World.Sound
             // Because this (should) mutate the current playing sounds by doing
             // removal if a sound is on that channel via destruction, then the sound
             entity.SoundChannels.DestroyChannelSound(channel);
-
-            StopSoundsBySource(entity);
             CreateSound(entity, entity.Position, entity.Velocity, sound, channel, soundParams);
 
             // TODO entity.SoundChannels.Add causes openAL to completely break
@@ -161,7 +162,6 @@ namespace Helion.World.Sound
 
         public IAudioSource? CreateSectorSound(Sector sector, SectorPlaneType type, string sound, SoundParams soundParams)
         {
-            StopSoundsBySource(sector);
             return CreateSound(sector, sector.GetSoundSource(m_world.ListenerEntity, type), Vec3D.Zero, sound, SoundChannelType.Auto, soundParams);
         }
 
@@ -193,10 +193,25 @@ namespace Helion.World.Sound
                 audioSource.SetVelocity(velocity.ToFloat());
             }
 
-            m_playingSounds.AddLast(audioSource);
-            m_soundsToPlay.Add(audioSource);
+            if (audioSource.SoundSource != null)
+                StopSoundsBySource(audioSource.SoundSource);
+            AddSoundToPlay(audioSource);
             IncrementSound(soundInfo);
             return audioSource;
+        }
+
+        private void AddSoundToPlay(IAudioSource audioSource)
+        {
+            for (int i = 0; i < m_soundsToPlay.Count; i++)
+            {
+                if (ReferenceEquals(audioSource.SoundSource, m_soundsToPlay[i].SoundSource))
+                {
+                    m_soundsToPlay[i] = audioSource;
+                    return;
+                }
+            }
+
+            m_soundsToPlay.Add(audioSource);
         }
 
         private SoundInfo? GetSoundInfo(object? source, string sound)
