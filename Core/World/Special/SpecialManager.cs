@@ -103,9 +103,11 @@ namespace Helion.World.Special
             }
             else
             {
-                var node = m_specials.First;
+                LinkedListNode<ISpecial>? node = m_specials.First;
+                LinkedListNode<ISpecial>? nextNode;
                 while (node != null)
                 {
+                    nextNode = node.Next;
                     if (node.Value.Tick() == SpecialTickStatus.Destroy)
                     {
                         m_specials.Remove(node);
@@ -113,7 +115,7 @@ namespace Helion.World.Special
                             m_destroyedMoveSpecials.Add(sectorSpecial);
                     }
 
-                    node = node.Next;
+                    node = nextNode;
                 }
             }
         }
