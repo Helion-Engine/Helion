@@ -1,3 +1,5 @@
+using Helion.Maps.Specials;
+
 namespace Helion.Maps.Shared
 {
     public class MapLineFlags
@@ -13,13 +15,6 @@ namespace Helion.Maps.Shared
         public const ushort AlwaysDrawAutomapMask = 0x0100;
         public const ushort PassUseMask = 0x0200;
         public const ushort RepeatSpecialMask = 0x0200;
-        public const ushort ActivatedByUseMask = 0x0400;
-        public const ushort ActivatedCrossedByMonsterMask = 0x0800;
-        public const ushort ActivatedByImpactMask = 0x0C00;
-        public const ushort ActivatedByPushMask = 0x1000;
-        public const ushort ActivatedProjectileCrossMask = 0x1400;
-        public const ushort ActivatedByUsePassThroughMask = 0x1800;
-        public const ushort ActivatedByPlayersAndMonstersMask = 0x2000;
         public const ushort BlockPlayersMask = 0x4000;
         public const ushort BlockEverythingMask = 0x8000;
         
@@ -33,15 +28,10 @@ namespace Helion.Maps.Shared
         public bool AlwaysDrawAutomap;
         public bool PassUse;
         public bool RepeatSpecial;
-        public bool ActivatedByUse;
-        public bool ActivatedCrossedByMonster;
-        public bool ActivatedByImpact;
-        public bool ActivatedByPush;
-        public bool ActivatedProjectileCross;
-        public bool ActivatedByUsePassThrough;
-        public bool ActivatedByPlayersAndMonsters;
         public bool BlockPlayers;
         public bool BlockEverything;
+
+        public ActivationType ActivationType;
 
         private MapLineFlags(ushort flags)
         {
@@ -68,15 +58,9 @@ namespace Helion.Maps.Shared
             return new MapLineFlags(flags)
             {
                 RepeatSpecial = (flags & RepeatSpecialMask) == RepeatSpecialMask,
-                ActivatedByUse = (flags & ActivatedByUseMask) == ActivatedByUseMask,
-                ActivatedCrossedByMonster = (flags & ActivatedCrossedByMonsterMask) == ActivatedCrossedByMonsterMask,
-                ActivatedByImpact = (flags & ActivatedByImpactMask) == ActivatedByImpactMask,
-                ActivatedByPush = (flags & ActivatedByPushMask) == ActivatedByPushMask,
-                ActivatedProjectileCross = (flags & ActivatedProjectileCrossMask) == ActivatedProjectileCrossMask,
-                ActivatedByUsePassThrough = (flags & ActivatedByUsePassThroughMask) == ActivatedByUsePassThroughMask,
-                ActivatedByPlayersAndMonsters = (flags & ActivatedByPlayersAndMonstersMask) == ActivatedByPlayersAndMonstersMask,
                 BlockPlayers = (flags & BlockPlayersMask) == BlockPlayersMask,
                 BlockEverything = (flags & BlockEverythingMask) == BlockEverythingMask,
+                ActivationType = (ActivationType)((flags & 0x1C00) >> 10)
             };
         }
     }

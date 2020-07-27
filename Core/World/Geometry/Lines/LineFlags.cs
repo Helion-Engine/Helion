@@ -28,10 +28,7 @@ namespace Helion.World.Geometry.Lines
             
             BlockSound = flags.BlockSound;
 
-            if (flags.ActivatedByUse)
-                ActivationType = ActivationType.PlayerUse;
-            else
-                ActivationType = ActivationType.None;
+            ActivationType = flags.ActivationType;
             Repeat = flags.RepeatSpecial;
         }
     }
