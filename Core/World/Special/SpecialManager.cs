@@ -63,8 +63,7 @@ namespace Helion.World.Special
             else
                 specialActivateSuccess = HandleDefault(args, special, m_world);
 
-            if (specialActivateSuccess && args.ActivationContext == ActivationContext.UseLine && 
-                !args.ActivateLineSpecial.Activated && m_switchManager.IsLineSwitch(args.ActivateLineSpecial))
+            if (specialActivateSuccess && ShouldCreateSwitchSpecial(args))
             {
                 AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial, 
                     GetSwitchType(args.ActivateLineSpecial.Special)));
@@ -73,6 +72,14 @@ namespace Helion.World.Special
             args.ActivateLineSpecial.Activated = true;
 
             return specialActivateSuccess;
+        }
+
+        private bool ShouldCreateSwitchSpecial(EntityActivateSpecialEventArgs args)
+        {
+            if (args.ActivationContext == ActivationContext.CrossLine)
+                return false;
+
+            return !args.ActivateLineSpecial.Activated && m_switchManager.IsLineSwitch(args.ActivateLineSpecial);
         }
 
         private static SwitchType GetSwitchType(LineSpecial lineSpecial)
