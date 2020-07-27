@@ -154,6 +154,11 @@ namespace Helion.World.Physics
 
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
+                    // Corpses can be crushed but are flagged as not solid
+                    // Things like bullets and blood will have both flags false so ignore them
+                    if (!entity.Flags.Solid && !entity.Flags.Corpse)
+                        continue;
+
                     if (crush != null)
                     {
                         if (crush.CrushMode == ZDoomCrushMode.Hexen)
@@ -167,6 +172,13 @@ namespace Helion.World.Physics
                     }
                     else
                     {
+                        // Need to gib things even when not crushing and do not count as blocking
+                        if (entity.Flags.Corpse && !entity.Flags.DontGib)
+                        {
+                            SetToGiblets(entity);
+                            continue;
+                        }
+
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
                         status = SectorMoveStatus.Blocked;
