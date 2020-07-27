@@ -28,7 +28,8 @@ namespace Helion.World.Special
 
         public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
         {
-            if (speed >= 64)
+            // This speed is already translated into map units - 64 * 0.125 = 8
+            if (speed >= 8)
                 return new SectorSoundData(reverse ? Constants.DoorCloseFastSound : Constants.DoorOpenFastSound, 
                     reverse ? Constants.DoorOpenFastSound : Constants.DoorCloseFastSound, null);
             else
