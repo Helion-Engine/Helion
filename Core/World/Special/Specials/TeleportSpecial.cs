@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Helion.Audio;
+using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Sound;
 
 namespace Helion.World.Special.Specials
 {
@@ -29,8 +32,18 @@ namespace Helion.World.Special.Specials
             if (teleportSpot == null)
                 return SpecialTickStatus.Destroy;
 
-            CreateTeleportFogAt(entity);
+            CreateTeleportFogAt(entity.Position);
+            Teleport(entity, teleportSpot);
 
+            Entity? teleport = CreateTeleportFogAt(entity.Position + (Vec3D.Unit(entity.AngleRadians, 0.0) * TeleportOffsetDist));
+            if (teleport != null)
+                m_world.SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
+
+            return SpecialTickStatus.Destroy;
+        }
+
+        private void Teleport(Entity entity, Entity teleportSpot)
+        {
             entity.UnlinkFromWorld();
 
             entity.FrozenTics = TeleportFreezeTicks;
@@ -40,29 +53,19 @@ namespace Helion.World.Special.Specials
             if (entity is Player player)
                 player.PitchRadians = 0;
 
-            m_world.Link(entity);
-
             entity.ResetInterpolation();
             entity.OnGround = entity.CheckOnGround();
-            
-            CreateDestinationTeleportFogAt(entity);
 
-            return SpecialTickStatus.Destroy;
+            m_world.Link(entity);
         }
 
-        private void CreateTeleportFogAt(Entity entity)
+        private Entity? CreateTeleportFogAt(in Vec3D pos)
         {
-            // TODO: Spawn it slightly in front of the entity based on the angle.
-            // TODO: Make a sound!
-        }
+            EntityDefinition? definition = m_world.EntityManager.DefinitionComposer.GetByName("TeleportFog");
+            if (definition != null)
+                return m_world.EntityManager.Create(definition, pos, 0.0, 0.0, 0);
 
-        private void CreateDestinationTeleportFogAt(Entity entity)
-        {
-            // TODO: Switch to a LUT when the time comes.
-            Vec3D offset = new Vec3D(Math.Sin(entity.AngleRadians), Math.Cos(entity.AngleRadians), 0) * TeleportOffsetDist;
-
-            // TODO: Spawn thing
-            // TODO: Make a sound!
+            return null;
         }
 
         public void Use()

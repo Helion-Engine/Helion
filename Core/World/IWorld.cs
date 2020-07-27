@@ -9,6 +9,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Sound;
 
 namespace Helion.World
 {
@@ -27,7 +28,9 @@ namespace Helion.World
         double ListenerPitch { get; }
         Entity ListenerEntity { get; }
         IRandom Random { get; }
-        
+        EntityManager EntityManager { get; }
+        SoundManager SoundManager { get; }
+
         void Link(Entity entity);
         void Tick();
         IEnumerable<Sector> FindBySectorTag(int tag);

@@ -36,14 +36,12 @@ namespace Helion.World
         public readonly CIString MapName;
         public readonly BlockMap Blockmap;
         public readonly PhysicsManager PhysicsManager;
-        public readonly SoundManager SoundManager;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
         public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly MapGeometry Geometry;
-        protected readonly EntityManager EntityManager;
         protected readonly SpecialManager SpecialManager;
 
         private int m_exitTicks = 0;
@@ -55,6 +53,8 @@ namespace Helion.World
         public IList<Sector> Sectors => Geometry.Sectors;
         public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
+        public EntityManager EntityManager { get; }
+        public SoundManager SoundManager { get; }
         public abstract Vec3D ListenerPosition { get; }
         public abstract double ListenerAngle { get; }
         public abstract double ListenerPitch { get; }

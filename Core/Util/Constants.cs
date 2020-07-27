@@ -79,5 +79,7 @@ namespace Helion.Util
 
         public static readonly string SwitchNormSound = "switches/normbutn";
         public static readonly string SwitchExitSound = "switches/exitbutn";
+
+        public static readonly string TeleportSound = "misc/teleport";
     }
 }
