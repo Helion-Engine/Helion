@@ -580,6 +580,10 @@ namespace Helion.World.Special
             case ZDoomLineSpecialType.CeilingCrushRaiseAndLower:
                 return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2, 0.5));
 
+            case ZDoomLineSpecialType.CeilingCrushStayDown:
+                return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2, 0.5), 
+                    MoveRepetition.None);
+
             case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
                 return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
 
@@ -634,11 +638,11 @@ namespace Helion.World.Special
                 MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound());
         }
 
-        private ISpecial CreateCeilingCrusherSpecial(Sector sector, double speed, CrushData crushData)
+        private ISpecial CreateCeilingCrusherSpecial(Sector sector, double speed, CrushData crushData, MoveRepetition repetition = MoveRepetition.Perpetual)
         {
             double destZ = sector.Floor.Z + 8;
-            return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Down, 
-                MoveRepetition.Perpetual, speed, 0, crushData), GetCrusherSound());
+            return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Down,
+                repetition, speed, 0, crushData), GetCrusherSound());
         }
 
         private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
