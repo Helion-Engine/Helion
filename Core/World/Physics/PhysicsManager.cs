@@ -217,7 +217,7 @@ namespace Helion.World.Physics
 
         private void CrushEntities(List<Entity> crushEntities, Sector sector, CrushData crush)
         {
-            if ((m_world.Gametick & 3) == 0)
+            if (crush.Damage == 0 || (m_world.Gametick & 3) == 0)
                 return;
 
             // Check for stacked entities, so we can crush the stack
@@ -518,7 +518,7 @@ namespace Helion.World.Physics
 
         public bool DamageEntity(Entity target, Entity? source, int damage, bool applyThrustZ = true)
         {
-            if (!target.Flags.Shootable)
+            if (!target.Flags.Shootable || damage == 0)
                 return false;
 
             if (source != null)
