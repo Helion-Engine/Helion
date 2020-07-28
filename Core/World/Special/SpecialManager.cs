@@ -39,7 +39,7 @@ namespace Helion.World.Special
 
         private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
         private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
-        private static SectorSoundData GetCrusherSound() => new SectorSoundData(null, null, null, Constants.PlatMoveSound);
+        private static SectorSoundData GetCrusherSound(bool repeat = true) => new SectorSoundData(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
 
         public SpecialManager(WorldBase world, DefinitionEntries definition, IRandom random)
         {
@@ -649,7 +649,7 @@ namespace Helion.World.Special
         {
             double destZ = sector.Ceiling.Z - 8;
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, 
-                MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound());
+                MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound(false));
         }
 
         private void HandleFloorDonut(Line line, Sector sector)
