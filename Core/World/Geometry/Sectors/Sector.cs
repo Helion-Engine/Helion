@@ -350,13 +350,15 @@ namespace Helion.World.Geometry.Sectors
 
         public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
         {
-            if (listener.Sector.Equals(this))
-                return listener.Position;
-
-            double z = listener.Position.Z;
             Vec2D pos2D = listener.Position.To2D();
+            if (listener.Sector.Equals(this))
+                return pos2D.To3D(type == SectorPlaneType.Floor ? ToFloorZ(pos2D) : ToCeilingZ(pos2D));
+
+            double z = listener.Position.Z;     
             pos2D = GetClosestPointFrom(pos2D);
 
+            // Check if the player z is in line with the lower/upper of the moving sector
+            // If this is so set the z to the player z so the sound doesn't attenuate on z axis
             if (type == SectorPlaneType.Floor)
             {
                 double floorZ = ToFloorZ(pos2D);
