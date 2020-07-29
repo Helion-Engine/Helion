@@ -3,9 +3,8 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
-    public class LightFireFlickerDoom : ISectorSpecial
+    public class LightFireFlickerDoom : SectorSpecialBase
     {
-        public Sector Sector { get; }
         private readonly IRandom m_random;
         private readonly short m_minBright;
         private readonly short m_maxBright;
@@ -19,7 +18,7 @@ namespace Helion.World.Special.Specials
             m_maxBright = Sector.LightLevel;
         }
 
-        public SpecialTickStatus Tick()
+        public override SpecialTickStatus Tick()
         {
             Sector.LightingChanged = true;
 
@@ -39,14 +38,6 @@ namespace Helion.World.Special.Specials
             m_delay = 4;
 
             return SpecialTickStatus.Continue;
-        }
-
-        public void FinalizeDestroy()
-        {
-        }
-
-        public void Use()
-        {
         }
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;

@@ -24,6 +24,7 @@ namespace Helion.World.Special.Specials
         private bool m_crushing;
         private bool m_playedReturnSound;
         private bool m_playedStartSound;
+        private bool m_paused;
 
         public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
             SectorMoveData specialData)
@@ -48,15 +49,14 @@ namespace Helion.World.Special.Specials
             m_minZ = Math.Min(m_startZ, DestZ);
             m_maxZ = Math.Max(m_startZ, DestZ);
 
-            // Doom starts with the delay on perpetual movement
-            if (MoveData.MoveRepetition == MoveRepetition.Perpetual)
-                DelayTics = MoveData.Delay;
-
             Sector.ActiveMoveSpecial = this;
         }
 
         public virtual SpecialTickStatus Tick()
         {
+            if (m_paused)
+                return SpecialTickStatus.Continue;
+
             if (DelayTics > 0)
             {
                 SectorPlane.PrevZ = SectorPlane.Z;
@@ -128,6 +128,17 @@ namespace Helion.World.Special.Specials
 
         public virtual void Use()
         {
+        }
+
+        public void Pause()
+        {
+            SectorPlane.PrevZ = SectorPlane.Z;
+            m_paused = true;
+        }
+
+        public void UnPause()
+        {
+            m_paused = false;
         }
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Move;

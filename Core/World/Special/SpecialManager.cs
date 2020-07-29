@@ -238,27 +238,11 @@ namespace Helion.World.Special
 
         public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
         {
-            double lowestZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
-            double highestZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
-
-            double startZ, destZ;
-            MoveDirection direction;
-
-            if (lowestZ < sector.Floor.Z)
-            {
-                startZ = highestZ;
-                destZ = lowestZ;
-                direction = MoveDirection.Down;
-            }
-            else
-            {
-                startZ = lowestZ;
-                destZ = highestZ;
-                direction = MoveDirection.Up;
-            }
+            double startZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
+            double destZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
 
             return new SectorMoveSpecial(m_world, sector, startZ + lip, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                direction, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
+                MoveDirection.Up, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
         }
 
         public ISpecial CreateSectorMoveSpecial(Sector sector, SectorPlane plane, SectorPlaneType moveType, double speed, double destZ, byte negative)
@@ -418,19 +402,28 @@ namespace Helion.World.Special
                 {
                     StopSectorMoveSpecials(lineSpecial, sector);
                 }
-                else if ((lineSpecial.IsSectorMoveSpecial() && !sector.IsMoving) || lineSpecial.IsSectorLightSpecial())
+                else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
+                    args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
                 {
+                    sector.ActiveMoveSpecial.Use();
+                }
+                else if (lineSpecial.IsSectorMoveSpecial() || lineSpecial.IsSectorLightSpecial())
+                {
+                    if (lineSpecial.IsSectorMoveSpecial() && sector.ActiveMoveSpecial != null)
+                    {
+                        if (lineSpecial.CanActivateDuringSectorMovement())
+                            sector.ActiveMoveSpecial.UnPause();
+
+                        success = true;
+                        continue;
+                    }
+
                     ISpecial? sectorSpecial = CreateSectorSpecial(args, special, sector);
                     if (sectorSpecial != null)
                     {
                         success = true;
                         AddSpecial(sectorSpecial);
                     }
-                }
-                else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
-                    args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
-                {
-                    sector.ActiveMoveSpecial.Use();
                 }
             }
 
@@ -462,9 +455,16 @@ namespace Helion.World.Special
                 if (specNode.Value.SectorBaseSpecialType == SectorBaseSpecialType.Move && specNode.Value is SectorMoveSpecial sectorMoveSpecial && 
                     sectorMoveSpecial.Sector.Equals(sector) && IsSectorMoveSpecialMatch(lineSpecial, sectorMoveSpecial))
                 {
-                    sector.ActiveMoveSpecial = null;
-                    m_specials.Remove(specNode);
-                    m_destroyedMoveSpecials.Add(sectorMoveSpecial);
+                    if (lineSpecial.LineSpecialType == ZDoomLineSpecialType.PlatStop)
+                    {
+                        sectorMoveSpecial.Pause();
+                    }
+                    else
+                    {
+                        sector.ActiveMoveSpecial = null;
+                        m_specials.Remove(specNode);
+                        m_destroyedMoveSpecials.Add(sectorMoveSpecial);
+                    }
                 }
 
                 specNode = specNode.Next;

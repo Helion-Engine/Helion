@@ -3,11 +3,10 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
-    public class LightPulsateSpecial : ISectorSpecial
+    public class LightPulsateSpecial : SectorSpecialBase
     {
         private const int DoomPulsateValue = 8;
 
-        public Sector Sector { get; }
         private readonly short m_maxBright;
         private readonly short m_minBright;
         private int m_inc;
@@ -21,7 +20,7 @@ namespace Helion.World.Special.Specials
             m_inc = -DoomPulsateValue;
         }
 
-        public SpecialTickStatus Tick()
+        public override SpecialTickStatus Tick()
         {
             Sector.LightingChanged = true;
             int lightLevel = Sector.LightLevel + m_inc;
@@ -32,14 +31,6 @@ namespace Helion.World.Special.Specials
                 m_inc = -m_inc;
 
             return SpecialTickStatus.Continue;
-        }
-
-        public void FinalizeDestroy()
-        {
-        }
-
-        public void Use()
-        {
         }
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;

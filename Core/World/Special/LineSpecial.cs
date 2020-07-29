@@ -80,6 +80,8 @@ namespace Helion.World.Special
             {
                 case ZDoomLineSpecialType.DoorOpenClose:
                 case ZDoomLineSpecialType.DoorLockedRaise:
+                case ZDoomLineSpecialType.LiftPerpetual:
+                case ZDoomLineSpecialType.PlatPerpetualRaiseLip:
                     return true;
             }
 
