@@ -143,7 +143,7 @@ namespace Helion.World.Special.Specials
             DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
 
             if (m_direction == MoveData.StartDirection && SoundData.StartSound != null)
-                m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, new SoundParams(Sector));
+                m_playedStartSound = false;
 
             if (MoveData.Crush != null)
             {
