@@ -53,13 +53,16 @@ namespace Helion.Resources.Images
             Image? compiledImage = m_compiledImages.Get(name, priorityNamespace);
             if (compiledImage != null)
                 return compiledImage;
+            
+            Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, priorityNamespace);
+            if (entry != null)
+                return ImageFromEntry(entry);
 
             TextureDefinition? definition = m_archiveCollection.Definitions.Textures.Get(name, priorityNamespace);
             if (definition != null)
                 return ImageFromDefinition(definition);
-            
-            Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, priorityNamespace);
-            return entry != null ? ImageFromEntry(entry) : null;
+
+            return null;
         }
         
         /// <inheritdoc/>
