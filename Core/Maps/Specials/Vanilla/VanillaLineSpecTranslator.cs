@@ -51,6 +51,7 @@ namespace Helion.Maps.Specials.Vanilla
 
             case VanillaLineSpecialType.D1_OpenBlueKeyStay:
             case VanillaLineSpecialType.SR_OpenBlueKeyFastStay:
+            case VanillaLineSpecialType.S1_OpenBlueKeyFastStay:
             case VanillaLineSpecialType.D1_OpenRedKeyStay:
             case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
             case VanillaLineSpecialType.S1_OpenRedKeyFastStay:
