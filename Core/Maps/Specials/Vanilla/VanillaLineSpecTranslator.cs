@@ -475,7 +475,9 @@ namespace Helion.Maps.Specials.Vanilla
             case VanillaLineSpecialType.W1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
             case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
             case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-                    return VanillaConstants.SectorSlowSpeed;
+            case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
+            case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
+                return VanillaConstants.SectorSlowSpeed;
 
             case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
             case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
@@ -489,14 +491,12 @@ namespace Helion.Maps.Specials.Vanilla
             case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
             case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
             case VanillaLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
-            case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
             case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
             case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
             case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
             case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
             case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
             case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
-            case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
             case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
             case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
             case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
