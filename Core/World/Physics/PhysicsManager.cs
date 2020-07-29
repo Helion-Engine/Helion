@@ -42,12 +42,13 @@ namespace Helion.World.Physics
 
         public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
 
+        public BlockmapTraverser BlockmapTraverser { get; private set; }
+
         private readonly IWorld m_world;
         private readonly BspTree m_bspTree;
         private readonly BlockMap m_blockmap;
         private readonly SoundManager m_soundManager;
         private readonly EntityManager m_entityManager;
-        private readonly BlockmapTraverser m_blockmapTraverser;
         private readonly LineOpening m_lineOpening = new LineOpening();
         private readonly IRandom m_random;
         private DateTime m_shootTest = DateTime.Now;
@@ -75,7 +76,7 @@ namespace Helion.World.Physics
             m_soundManager = soundManager;
             m_entityManager = entityManager;
             m_random = random;
-            m_blockmapTraverser = new BlockmapTraverser(m_blockmap);
+            BlockmapTraverser = new BlockmapTraverser(m_blockmap);
         }
 
         /// <summary>
@@ -282,7 +283,7 @@ namespace Helion.World.Physics
             bool hitBlockLine = false;
             Vec2D start = entity.Position.To2D();
             Vec2D end = start + (Vec2D.RadiansToUnit(entity.AngleRadians) * entity.Properties.Player.UseRange);
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -433,7 +434,7 @@ namespace Helion.World.Physics
         {
             double floorZ, ceilingZ;
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg,
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
@@ -608,7 +609,7 @@ namespace Helion.World.Physics
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
 
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -658,7 +659,7 @@ namespace Helion.World.Physics
             double topPitch = sightPos.Pitch(other.Position.Z + other.Height, distance2D);
             double bottomPitch = sightPos.Pitch(other.Position.Z, distance2D);
 
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
             return GetBlockmapTraversalPitch(intersections, sightPos, entity, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
         }
 
@@ -693,7 +694,7 @@ namespace Helion.World.Physics
         {
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
 
-            List<BlockmapIntersect> intersections = m_blockmapTraverser.GetBlockmapIntersections(seg,
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 

@@ -21,6 +21,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special;
 using MoreLinq;
@@ -59,6 +60,7 @@ namespace Helion.World
         public abstract double ListenerAngle { get; }
         public abstract double ListenerPitch { get; }
         public abstract Entity ListenerEntity { get; }
+        public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
 
         private readonly DoomRandom m_random = new DoomRandom();
         
