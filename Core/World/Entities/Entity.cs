@@ -245,6 +245,12 @@ namespace Helion.World.Entities
             RunDebugSanityChecks();
         }
 
+        public void ForceGib()
+        {
+            Health = -Properties.Health - 1;
+            Kill();
+        }
+
         public void Kill()
         {
             if (Health < -Properties.Health && HasXDeathState())

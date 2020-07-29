@@ -2,11 +2,13 @@
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
+using System.Collections.Generic;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 
 namespace Helion.World.Special.Specials
@@ -57,6 +59,22 @@ namespace Helion.World.Special.Specials
             entity.OnGround = entity.CheckOnGround();
 
             m_world.Link(entity);
+
+            TelefragBlockingEntities(entity);
+        }
+
+        private void TelefragBlockingEntities(Entity entity)
+        {
+            List<BlockmapIntersect> intersections = m_world.BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), BlockmapTraverseFlags.Entities, 
+                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+                if (ReferenceEquals(entity, bi.Entity))
+                    continue;
+                bi.Entity!.ForceGib();
+            }
         }
 
         private Entity? CreateTeleportFogAt(in Vec3D pos)
