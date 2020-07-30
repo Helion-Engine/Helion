@@ -176,20 +176,20 @@ namespace Helion.World.Geometry.Sectors
             return highestSector;
         }
 
-        public Sector? GetLowestAdjacentCeiling()
+        public Sector? GetLowestAdjacentCeiling(bool includeThis)
         {
             double lowestZ = double.MaxValue;
             Sector? lowestSector = null;
 
             foreach (var line in Lines)
             {
-                if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z < lowestZ)
+                if ((includeThis || line.Front.Sector != this) && line.Front.Sector.Ceiling.Z < lowestZ)
                 {
                     lowestSector = line.Front.Sector;
                     lowestZ = lowestSector.Ceiling.Z;
                 }
 
-                if (line.Back != null && line.Back.Sector != this && line.Back.Sector.Ceiling.Z < lowestZ)
+                if (line.Back != null && (includeThis || line.Back.Sector != this) && line.Back.Sector.Ceiling.Z < lowestZ)
                 {
                     lowestSector = line.Back.Sector;
                     lowestZ = lowestSector.Ceiling.Z;
