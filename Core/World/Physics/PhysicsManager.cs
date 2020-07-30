@@ -1035,7 +1035,7 @@ namespace Helion.World.Physics
             entity.Sector = centerSector;
             entity.IntersectSectors = sectors.ToList();
 
-            if (!entity.Flags.NoSector && !entity.NoClip)
+            if (!entity.Flags.NoSector)
             {
                 for (int i = 0; i < entity.IntersectSectors.Count; i++)
                     entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
