@@ -199,7 +199,9 @@ namespace Helion.World.Special
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
-            double destZ = GetDestZ(sector, sectorDest);
+            // There is a single type that raises to lowest adjacent ceiling
+            // Need to include this sector's height in the check so the floor doesn't run through the ceiling
+            double destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
                 MoveDirection.Up, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
         }
@@ -694,30 +696,33 @@ namespace Helion.World.Special
             return new List<Sector>();
         }
 
-        private double GetDestZ(Sector sector, SectorDest destination)
+        private double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)
         {
             switch (destination)
             {
-            case SectorDest.LowestAdjacentFloor:
-                return GetLowestFloorDestZ(sector);
-            case SectorDest.HighestAdjacentFloor:
-                return GetHighestFloorDestZ(sector);
-            case SectorDest.LowestAdjacentCeiling:
-                return GetLowestCeilingDestZ(sector);
-            case SectorDest.HighestAdjacentCeiling:
-                return GetHighestCeilingDestZ(sector);
-            case SectorDest.NextLowestFloor:
-                return GetNextLowestFloorDestZ(sector);
-            case SectorDest.NextLowestCeiling:
-                return GetNextLowestCeilingDestZ(sector);
-            case SectorDest.NextHighestFloor:
-                return GetNextHighestFloorDestZ(sector);
-            case SectorDest.NextHighestCeiling:
-                return GetNextHighestCeilingDestZ(sector);
-            case SectorDest.Floor:
-                return sector.Floor.Z;
-            case SectorDest.Ceiling:
-                return sector.Ceiling.Z;
+                case SectorDest.LowestAdjacentFloor:
+                    return GetLowestFloorDestZ(sector);
+                case SectorDest.HighestAdjacentFloor:
+                    return GetHighestFloorDestZ(sector);
+                case SectorDest.LowestAdjacentCeiling:
+                    return GetLowestCeilingDestZ(sector, includeThis);
+                case SectorDest.HighestAdjacentCeiling:
+                    return GetHighestCeilingDestZ(sector);
+                case SectorDest.NextLowestFloor:
+                    return GetNextLowestFloorDestZ(sector);
+                case SectorDest.NextLowestCeiling:
+                    return GetNextLowestCeilingDestZ(sector);
+                case SectorDest.NextHighestFloor:
+                    return GetNextHighestFloorDestZ(sector);
+                case SectorDest.NextHighestCeiling:
+                    return GetNextHighestCeilingDestZ(sector);
+                case SectorDest.Floor:
+                    return sector.Floor.Z;
+                case SectorDest.Ceiling:
+                    return sector.Ceiling.Z;
+                case SectorDest.None:
+                default:
+                    break;
             }
 
             return 0;
@@ -759,9 +764,9 @@ namespace Helion.World.Special
             return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
-        private double GetLowestCeilingDestZ(Sector sector)
+        private double GetLowestCeilingDestZ(Sector sector, bool includeThis)
         {
-            Sector? destSector = sector.GetLowestAdjacentCeiling();
+            Sector? destSector = sector.GetLowestAdjacentCeiling(includeThis);
             return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
         }
 
