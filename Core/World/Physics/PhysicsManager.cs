@@ -218,7 +218,7 @@ namespace Helion.World.Physics
 
         private void CrushEntities(List<Entity> crushEntities, Sector sector, CrushData crush)
         {
-            if (crush.Damage == 0 || (m_world.Gametick & 3) == 0)
+            if (crush.Damage == 0 || (m_world.Gametick & 3) != 0)
                 return;
 
             // Check for stacked entities, so we can crush the stack
