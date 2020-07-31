@@ -7,6 +7,7 @@ namespace Helion.World.Special
         Sector Sector { get; }
         void FinalizeDestroy();
         void Pause();
-        void UnPause();
+        void Resume();
+        bool IsPaused { get; }
     }
 }

@@ -398,11 +398,13 @@ namespace Helion.World.Special
             {
                 if (lineSpecial.IsSectorStopLightSpecial())
                 {
-                    StopSectorLightSpecials(sector);
+                    if (StopSectorLightSpecials(sector))
+                        success = true;
                 }
                 else if (lineSpecial.IsSectorStopMoveSpecial() && sector.IsMoving)
                 {
-                    StopSectorMoveSpecials(lineSpecial, sector);
+                    if (StopSectorMoveSpecials(lineSpecial, sector))
+                        success = true;
                 }
                 else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
                     args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
@@ -411,12 +413,14 @@ namespace Helion.World.Special
                 }
                 else if (lineSpecial.IsSectorMoveSpecial() || lineSpecial.IsSectorLightSpecial())
                 {
-                    if (lineSpecial.IsSectorMoveSpecial() && sector.ActiveMoveSpecial != null)
+                    if (lineSpecial.IsSectorMoveSpecial() && sector.ActiveMoveSpecial is SectorMoveSpecial sectorMoveSpecial)
                     {
-                        if (lineSpecial.CanActivateDuringSectorMovement())
-                            sector.ActiveMoveSpecial.UnPause();
-
-                        success = true;
+                        if (lineSpecial.CanPause() && sectorMoveSpecial.IsPaused)
+                        {
+                            success = true;
+                            sector.ActiveMoveSpecial.Resume();
+                        }
+                        
                         continue;
                     }
 
@@ -432,12 +436,17 @@ namespace Helion.World.Special
             return success;
         }
 
-        private void StopSectorLightSpecials(Sector sector)
+        private bool StopSectorLightSpecials(Sector sector)
         {
+            bool success = false;
             LinkedListNode<ISpecial>? specNode = m_specials.First;
+            LinkedListNode<ISpecial>? nextNode;
             while (specNode != null)
             {
-                if (specNode.Value.SectorBaseSpecialType == SectorBaseSpecialType.Light && specNode.Value is ISectorSpecial sectorSpecial && 
+                success = true;
+                nextNode = specNode.Next;
+                ISpecial spec = specNode.Value;
+                if (spec.SectorBaseSpecialType == SectorBaseSpecialType.Light && spec is ISectorSpecial sectorSpecial && 
                     sectorSpecial.Sector.Equals(sector))
                 {
                     sector.ActiveMoveSpecial = null;
@@ -445,44 +454,58 @@ namespace Helion.World.Special
                     m_destroyedMoveSpecials.Add((ISectorSpecial)specNode.Value);
                 }
 
-                specNode = specNode.Next;
+                specNode = nextNode;
             }
+
+            return success;
         }
 
-        private void StopSectorMoveSpecials(LineSpecial lineSpecial, Sector sector)
+        private bool StopSectorMoveSpecials(LineSpecial lineSpecial, Sector sector)
         {
+            bool success = false;
             LinkedListNode<ISpecial>? specNode = m_specials.First;
+            LinkedListNode<ISpecial>? nextNode;
             while (specNode != null)
             {
-                if (specNode.Value.SectorBaseSpecialType == SectorBaseSpecialType.Move && specNode.Value is SectorMoveSpecial sectorMoveSpecial && 
+                nextNode = specNode.Next;
+                ISpecial spec = specNode.Value;
+                if (spec.SectorBaseSpecialType == SectorBaseSpecialType.Move && spec is SectorMoveSpecial sectorMoveSpecial && 
                     sectorMoveSpecial.Sector.Equals(sector) && IsSectorMoveSpecialMatch(lineSpecial, sectorMoveSpecial))
                 {
-                    if (lineSpecial.LineSpecialType == ZDoomLineSpecialType.PlatStop)
+                    if (lineSpecial.CanPause())
                     {
-                        sectorMoveSpecial.Pause();
+                        if (!sectorMoveSpecial.IsPaused)
+                        {
+                            success = true;
+                            sectorMoveSpecial.Pause();
+                        }
                     }
                     else
                     {
+                        success = true;
                         sector.ActiveMoveSpecial = null;
                         m_specials.Remove(specNode);
                         m_destroyedMoveSpecials.Add(sectorMoveSpecial);
                     }
                 }
 
-                specNode = specNode.Next;
+                specNode = nextNode;
             }
+
+            return success;
         }
 
         private bool IsSectorMoveSpecialMatch(LineSpecial lineSpec, SectorMoveSpecial spec)
         {
-            if (lineSpec.LineSpecialType == ZDoomLineSpecialType.CeilingCrushStop && spec.MoveData.Crush != null && spec.MoveData.SectorMoveType == SectorPlaneType.Ceiling)
-                return true;
-            else if (lineSpec.LineSpecialType == ZDoomLineSpecialType.FloorStopCrush && spec.MoveData.Crush != null && spec.MoveData.SectorMoveType == SectorPlaneType.Floor)
-                return true;
-            else if (lineSpec.LineSpecialType == ZDoomLineSpecialType.PlatStop && spec.MoveData.Crush == null && spec.MoveData.SectorMoveType == SectorPlaneType.Floor)
-                return true;
+            SectorMoveData data = spec.MoveData;
 
-            return false;
+            return lineSpec.LineSpecialType switch
+            {
+                ZDoomLineSpecialType.CeilingCrushStop => data.Crush != null && data.SectorMoveType == SectorPlaneType.Ceiling,
+                ZDoomLineSpecialType.FloorCrushStop => data.Crush != null && data.SectorMoveType == SectorPlaneType.Floor,
+                ZDoomLineSpecialType.PlatStop => data.Crush == null && data.MoveRepetition == MoveRepetition.Perpetual && data.SectorMoveType == SectorPlaneType.Floor,
+                _ => false,
+            };
         }
 
         private ISpecial? CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
@@ -667,7 +690,7 @@ namespace Helion.World.Special
 
         private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
         {
-            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - 8;
+            double destZ = GetDestZ(sector, SectorDest.Ceiling) - 8;
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, 
                 MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound(false));
         }

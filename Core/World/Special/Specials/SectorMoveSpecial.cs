@@ -13,18 +13,20 @@ namespace Helion.World.Special.Specials
         public SectorMoveData MoveData { get; protected set; }
         public SectorSoundData SoundData { get; protected set; }
         public SectorPlane SectorPlane { get; protected set; }
+        public bool IsPaused { get; private set; }
+
         protected readonly WorldBase m_world;
+        protected double DestZ;
+        protected int DelayTics;
+
         private readonly double m_startZ;
         private readonly double m_minZ;
         private readonly double m_maxZ;
-        protected double DestZ;
-        protected int DelayTics;
         private MoveDirection m_direction;
         private double m_speed;
         private bool m_crushing;
         private bool m_playedReturnSound;
         private bool m_playedStartSound;
-        private bool m_paused;
 
         public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
             SectorMoveData specialData)
@@ -54,7 +56,7 @@ namespace Helion.World.Special.Specials
 
         public virtual SpecialTickStatus Tick()
         {
-            if (m_paused)
+            if (IsPaused)
                 return SpecialTickStatus.Continue;
 
             if (DelayTics > 0)
@@ -132,13 +134,17 @@ namespace Helion.World.Special.Specials
 
         public void Pause()
         {
+            IsPaused = true;
             SectorPlane.PrevZ = SectorPlane.Z;
-            m_paused = true;
+            if (SoundData.MovementSound != null)
+                m_world.SoundManager.StopLoopSoundBySource(Sector);
         }
 
-        public void UnPause()
+        public void Resume()
         {
-            m_paused = false;
+            IsPaused = false;
+            if (SoundData.MovementSound != null)
+                m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, new SoundParams(Sector, true));
         }
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Move;

@@ -17,7 +17,8 @@ namespace Helion.World.Special
         {
             // Unused
         }
-        public virtual void UnPause()
+
+        public virtual void Resume()
         {
             // Unused
         }
@@ -26,5 +27,7 @@ namespace Helion.World.Special
         {
             // Unused
         }
+
+        public virtual bool IsPaused { get; }
     }
 }

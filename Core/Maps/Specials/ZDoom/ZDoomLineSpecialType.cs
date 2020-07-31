@@ -48,7 +48,7 @@ namespace Helion.Maps.Specials.ZDoom
         CeilingCrushStayDown,
         CeilingCrushStop,
         CeilingCrushRaiseStay,
-        FloorStopCrush,
+        FloorCrushStop,
         CeilingMoveToValue,
         SectorAttach3DMidtex,
         BreakableGlass,
