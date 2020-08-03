@@ -24,7 +24,6 @@ namespace Helion.World.Sound
         public const int MaxConcurrentSounds = 32;
         
         private readonly LinkedList<IAudioSource> m_playingSounds = new LinkedList<IAudioSource>();
-        private readonly Dictionary<SoundInfo, int> m_activeSounds = new Dictionary<SoundInfo, int>();
         private readonly IAudioSourceManager m_audioManager;
         private readonly IWorld m_world;
         private readonly SoundInfoDefinition m_soundInfo;
@@ -66,8 +65,7 @@ namespace Helion.World.Sound
                 if (node.Value.IsFinished())
                 {
                     node.Value.Dispose();
-                    m_playingSounds.Remove(node);
-                    DecrementSound(node.Value.SoundInfo);
+                    m_playingSounds.Remove(node.Value);
                 }
                 else if (node.Value.SoundSource is Entity entity)
                 {
@@ -118,6 +116,7 @@ namespace Helion.World.Sound
                 if (ReferenceEquals(source, node.Value.SoundSource))
                 {
                     node.Value.Stop();
+                    node.Value.Dispose();
                     m_playingSounds.Remove(node);
                 }
 
@@ -134,6 +133,7 @@ namespace Helion.World.Sound
                 if (node.Value.Loop && ReferenceEquals(source, node.Value.SoundSource))
                 {
                     node.Value.Stop();
+                    node.Value.Dispose();
                     m_playingSounds.Remove(node);
                 }
 
@@ -196,7 +196,6 @@ namespace Helion.World.Sound
             if (audioSource.SoundSource != null)
                 StopSoundsBySource(audioSource.SoundSource);
             AddSoundToPlay(audioSource);
-            IncrementSound(soundInfo);
             return audioSource;
         }
 
@@ -231,33 +230,23 @@ namespace Helion.World.Sound
             return soundInfo;
         }
 
-        private void IncrementSound(SoundInfo? soundInfo)
-        {
-            if (soundInfo == null)
-                return;
-
-            if (!m_activeSounds.ContainsKey(soundInfo))
-                m_activeSounds[soundInfo] = 0;
-
-            int count = m_activeSounds[soundInfo] + 1;
-            m_activeSounds[soundInfo] = count;
-        }
-
-        private void DecrementSound(SoundInfo? soundInfo)
-        {
-            if (soundInfo == null)
-                return;
-
-            int count = m_activeSounds[soundInfo] - 1;
-            m_activeSounds[soundInfo] = count;
-        }
-
         public int GetSoundCount(SoundInfo? soundInfo)
         {
-            if (soundInfo != null && m_activeSounds.TryGetValue(soundInfo, out int count))
-                return count;
+            if (soundInfo == null)
+                return 0;
 
-            return 0;
+            int count = 0;
+            var node = m_playingSounds.First;
+
+            while (node != null)
+            {
+                if (soundInfo.Equals(node.Value.SoundInfo))
+                    count++;
+
+                node = node.Next;
+            }
+
+            return count;
         }
     }
 }
