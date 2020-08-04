@@ -81,5 +81,14 @@ namespace Helion.Util
         public static readonly string SwitchExitSound = "switches/exitbutn";
 
         public static readonly string TeleportSound = "misc/teleport";
+
+        public const double EntityShootDistance = 8192.0;
+        public const double EntityMeleeDistance = 64.0;
+        public const double DefaultSpreadAngle = 5.6 * Math.PI / 180.0;
+        public const double SuperShotgunSpreadAngle = 11.2 * Math.PI / 180.0;
+        public const double SuperShotgunSpreadPitch = 7.1 * Math.PI / 180.0;
+        public const int ShotgunBullets = 7;
+        public const int SuperShotgunBullets = 20;
+        public const double PosRandomSpread = 11.2060547 * Math.PI / 180;
     }
 }

@@ -21,13 +21,6 @@ namespace Helion.World.Impl.SinglePlayer
     public class SinglePlayerWorld : WorldBase
     {
         private const double AirControl = 0.00390625;
-        private const double EntityShootDistance = 8192.0;
-        private const double EntityMeleeDistance = 64.0;
-        private const double DefaultSpreadAngle = 5.6 * Math.PI / 180.0;
-        private const double SuperShotgunSpreadAngle = 11.2 * Math.PI / 180.0;
-        private const double SuperShotgunSpreadPitch = 7.1 * Math.PI / 180.0;
-        private const int ShotgunBullets = 7;
-        private const int SuperShotgunBullets = 20;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public override Vec3D ListenerPosition => Player.Position;
@@ -123,31 +116,31 @@ namespace Helion.World.Impl.SinglePlayer
                     switch (Player.WeaponIndex)
                     {
                         case 0:
-                            PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
+                            PhysicsManager.FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 1:
-                            PhysicsManager.FireHitscanBullets(Player, 1, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim);
+                            PhysicsManager.FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 2:
-                            PhysicsManager.FireHitscanBullets(Player, ShotgunBullets, DefaultSpreadAngle, 0.0, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim);
+                            PhysicsManager.FireHitscanBullets(Player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 3:
-                            PhysicsManager.FireHitscanBullets(Player, SuperShotgunBullets, SuperShotgunSpreadAngle, SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
+                            PhysicsManager.FireHitscanBullets(Player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 4:
-                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
+                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
                             break;
 
                         case 5:
-                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
+                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
                             break;
 
                         case 6:
-                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
+                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
                             break;
                     }
 

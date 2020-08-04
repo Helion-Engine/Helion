@@ -57,7 +57,7 @@ namespace Helion.World.Entities
             return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
         }
 
-        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid)
+        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool forceToFloor = false)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
@@ -65,6 +65,10 @@ namespace Helion.World.Entities
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
             FinishCreatingEntity(entity);
+            // If there is no zHeight then force to the floor 
+            // Vanilla maps like E1M1 need this for the shotgun guys behind techpillars to be on the floor
+            if (forceToFloor && !ZHeightSet(zHeight))
+                position.Z = sector.ToFloorZ(entity.Position);
 
             return entity;
         }
@@ -124,7 +128,8 @@ namespace Helion.World.Entities
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
                 Vec3D position = mapThing.Position.ToDouble();
                 // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId);
+                // Doom forces things to the floor on map init - forceToFloor = true
+                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
                 if (ZHeightSet(position.Z))
                     relinkEntities.Add(entity);
                 PostProcessEntity(entity);
@@ -159,7 +164,7 @@ namespace Helion.World.Entities
             }
         }
 
-        private static double GetPositionZ(Sector sector, in Vec3D position, double zHeight)
+        private static double GetPositionZ(Sector sector, in Vec3D position, double zHeight, bool forceToFloor = false)
         {
             if (ZHeightSet(zHeight))
                 return zHeight + sector.ToFloorZ(position);

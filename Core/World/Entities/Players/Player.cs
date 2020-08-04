@@ -189,12 +189,12 @@ namespace Helion.World.Entities.Players
             LastPickupGametick = World.Gametick;
         }
 
-        public override bool Damage(int damage, bool setPainState)
+        public override bool Damage(Entity? entity, int damage, bool setPainState)
         {
             if (Sector.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd && damage >= Health)
                 damage = Health - 1;
 
-            bool damageApplied = base.Damage(damage, setPainState);
+            bool damageApplied = base.Damage(entity, damage, setPainState);
             if (damageApplied)
             {
                 PlayPainSound();

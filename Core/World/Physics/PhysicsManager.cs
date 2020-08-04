@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -47,7 +49,6 @@ namespace Helion.World.Physics
         private readonly IWorld m_world;
         private readonly BspTree m_bspTree;
         private readonly BlockMap m_blockmap;
-        private readonly SoundManager m_soundManager;
         private readonly EntityManager m_entityManager;
         private readonly LineOpening m_lineOpening = new LineOpening();
         private readonly IRandom m_random;
@@ -73,7 +74,6 @@ namespace Helion.World.Physics
             m_world = world;
             m_bspTree = bspTree;
             m_blockmap = blockmap;
-            m_soundManager = soundManager;
             m_entityManager = entityManager;
             m_random = random;
             BlockmapTraverser = new BlockmapTraverser(m_blockmap);
@@ -307,7 +307,7 @@ namespace Helion.World.Physics
 
                     if (bi.Line.Back != null)
                     {
-                        LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                        LineOpening opening = GetLineOpening(bi.Intersection, bi.Line);
                         if (opening.OpeningHeight <= 0)
                         {
                             hitBlockLine = true;
@@ -334,10 +334,13 @@ namespace Helion.World.Physics
 
         public void FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName)
         {
-            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
-                return;
+            if (shooter is Player)
+            {
+                if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
+                    return;
 
-            m_shootTest = DateTime.Now;
+                m_shootTest = DateTime.Now;
+            }
 
             if (autoAim)
             {
@@ -355,6 +358,8 @@ namespace Helion.World.Physics
                 Vec3D testPos = projectile.Position + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, shooter.Radius - 2.0);
                 projectile.Owner = shooter;
                 projectile.Velocity = testPos - projectile.Position;
+
+                projectile.PlaySeeSound();
 
                 // TryMoveXY will use the velocity of the projectile
                 // Velocity is temporarily set to the test if the movement can reach testPos
@@ -476,7 +481,7 @@ namespace Helion.World.Physics
                         return bi;
                     }
 
-                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    LineOpening opening = GetLineOpening(bi.Intersection, bi.Line);
                     if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                         return bi;
                 }
@@ -517,12 +522,14 @@ namespace Helion.World.Physics
             }
         }
 
-        public bool DamageEntity(Entity target, Entity? source, int damage, bool applyThrustZ = true)
+        public bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical)
         {
             if (!target.Flags.Shootable || damage == 0)
                 return false;
 
-            if (source != null)
+            Vec3D thrustVelocity = Vec3D.Zero;
+
+            if (source != null && thrust != Thrust.None)
             {
                 Vec2D xyDiff = source.Position.To2D() - target.Position.To2D();
                 bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
@@ -530,19 +537,17 @@ namespace Helion.World.Physics
                 double pitch = 0.0;
 
                 double angle = source.Position.Angle(target.Position);
-                double thrust = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
+                double thrustAmount = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
                 // Silly vanilla doom feature that allows target to be thrown forward sometimes
                 if (damage < 40 && damage > target.Health &&
                     target.Position.Z - source.Position.Z > 64 && (m_random.NextByte() & 1) != 0)
                 {
                     angle += Math.PI;
-                    thrust *= 4;
+                    thrustAmount *= 4;
                 }
 
-                Vec3D velocity = Vec3D.Zero;
-
-                if (applyThrustZ)
+                if (thrust == Thrust.HorizontalAndVertical)
                 {
                     // Player rocket jumping check, back up the source Z to get a valid pitch
                     // Only done for players, otherwise blowing up enemies will launch them in the air
@@ -561,20 +566,20 @@ namespace Helion.World.Physics
                     }
 
                     if (!xyEqual)
-                        velocity = Vec3D.Unit(angle, 0.0);
+                        thrustVelocity = Vec3D.Unit(angle, 0.0);
 
-                    velocity.Z = Math.Sin(pitch);
+                    thrustVelocity.Z = Math.Sin(pitch);
                 }
                 else
                 {
-                    velocity = Vec3D.Unit(angle, 0.0);
+                    thrustVelocity = Vec3D.Unit(angle, 0.0);
                 }
 
-                velocity.Multiply(thrust);
-                target.Velocity += velocity;
+                thrustVelocity.Multiply(thrustAmount);
             }
 
-            target.Damage(damage, m_random.NextByte() < target.Properties.PainChance);
+            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || (target is Player && target.Flags.Invulnerable))
+                target.Velocity += thrustVelocity;
 
             if (target.IsDead)
                 HandleEntityDeath(target);
@@ -604,7 +609,7 @@ namespace Helion.World.Physics
         public void RadiusExplosion(Entity source, int radius)
         {
             // Barrels do not apply Z thrust - TODO better way to check?
-            bool applyThrustZ = source.Definition.Name != "ExplosiveBarrel";
+            Thrust thrust = source.Definition.Name == "ExplosiveBarrel" ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
             Vec2D pos2D = source.Position.To2D();
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
@@ -615,15 +620,15 @@ namespace Helion.World.Physics
             {
                 BlockmapIntersect bi = intersections[i];
                 if (bi.Entity != null && CheckLineOfSight(bi.Entity, source))
-                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, applyThrustZ);
+                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust);
             }
         }
 
-        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, bool applyThrustZ)
+        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
         {
             double distance;
 
-            if (applyThrustZ && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top))
+            if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top))
             {
                 Vec3D sourcePos = source.Position;
                 Vec3D targetPos = entity.Position;
@@ -642,25 +647,25 @@ namespace Helion.World.Physics
             if (damage <= 0)
                 return;
 
-            DamageEntity(entity, source, damage, applyThrustZ);
+            DamageEntity(entity, source, damage, thrust);
         }
 
-        public bool CheckLineOfSight(Entity entity, Entity other)
+        public bool CheckLineOfSight(Entity from, Entity to)
         {
-            Vec2D start = entity.Position.To2D();
-            Vec2D end = other.Position.To2D();
+            Vec2D start = from.Position.To2D();
+            Vec2D end = to.Position.To2D();
 
             if (start == end)
                 return true;
 
-            Vec3D sightPos = new Vec3D(entity.Position.X, entity.Position.Y, entity.Position.Z + (entity.Height * 0.75));
+            Vec3D sightPos = new Vec3D(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
             Seg2D seg = new Seg2D(start, end);
             double distance2D = start.Distance(end);
-            double topPitch = sightPos.Pitch(other.Position.Z + other.Height, distance2D);
-            double bottomPitch = sightPos.Pitch(other.Position.Z, distance2D);
+            double topPitch = sightPos.Pitch(to.Position.Z + to.Height, distance2D);
+            double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
-            return GetBlockmapTraversalPitch(intersections, sightPos, entity, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
+            return GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
         }
 
         private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)
@@ -772,7 +777,7 @@ namespace Helion.World.Physics
                     if (bi.Line.Back == null)
                         return TraversalPitchStatus.Blocked;
 
-                    LineOpening opening = GetLineOpening(bi.Line.Front.Sector, bi.Line.Back.Sector);
+                    LineOpening opening = GetLineOpening(bi.Intersection, bi.Line);
                     if (opening.FloorZ < opening.CeilingZ)
                     {
                         double sectorPitch = start.Pitch(opening.FloorZ, bi.Distance2D);
@@ -821,8 +826,14 @@ namespace Helion.World.Physics
             if (line.Back == null)
                 return false;
 
-            LineOpening opening = GetLineOpening(line.Front.Sector, line.Back.Sector);
-            return !opening.CanPassOrStepThrough(entity);
+            LineOpening opening = GetLineOpening(entity.Position.To2D(), line);
+            if (!opening.CanPassOrStepThrough(entity))
+            {
+                entity.DropOffZ = opening.DropOffZ;
+                return true;
+            }
+
+            return false;
         }
 
         private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
@@ -846,9 +857,9 @@ namespace Helion.World.Physics
             intersect.Y = start.Y + (Math.Sin(angle) * distXY);
         }
 
-        private LineOpening GetLineOpening(Sector front, Sector back)
+        private LineOpening GetLineOpening(in Vec2D position, Line line)
         {
-            m_lineOpening.Set(front, back);
+            m_lineOpening.Set(position, line);
             return m_lineOpening;
         }
 
@@ -1087,7 +1098,7 @@ namespace Helion.World.Physics
             entity.Velocity.Y = 0;
         }
 
-        private bool TryMoveXY(Entity entity)
+        public bool TryMoveXY(Entity entity)
         {
             Precondition(entity.Velocity.To2D() != Vec2D.Zero, "Cannot move with zero horizontal velocity");
 
@@ -1118,7 +1129,7 @@ namespace Helion.World.Physics
 
                 Vec2D nextPosition = entity.Position.To2D() + stepDelta;
 
-                if (CanMoveTo(entity, nextPosition))
+                if (IsPositionValid(entity, nextPosition))
                 {
                     MoveTo(entity, nextPosition);
                     continue;
@@ -1167,6 +1178,8 @@ namespace Helion.World.Physics
 
         private void HandleEntityHit(Entity entity)
         {
+            entity.Hit();
+
             if (entity.Flags.Missile)
             {
                 if (entity.BlockingEntity != null)
@@ -1214,9 +1227,9 @@ namespace Helion.World.Physics
             LinkToWorld(entity);
         }
 
-        private bool CanMoveTo(Entity entity, Vec2D nextPosition)
+        public bool IsPositionValid(Entity entity, Vec2D position)
         {
-            Box2D nextBox = Box2D.CopyToOffset(nextPosition, entity.Radius);
+            Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
             return !m_blockmap.Iterate(nextBox, CheckForBlockers);
 
             GridIterationStatus CheckForBlockers(Block block)
@@ -1250,11 +1263,11 @@ namespace Helion.World.Physics
                                 bool clipped = true;
                                 //If we are stuck inside another entity's box then only allow movement if we try to move out the box
                                 if (PreviouslyClipped(entity, nextEntity))
-                                    clipped = CanMoveOutOfEntity(entity, nextEntity, nextPosition);
+                                    clipped = CanMoveOutOfEntity(entity, nextEntity, position);
 
                                 if (clipped)
                                 {
-                                    nextEntity.BlockingEntity = nextEntity;
+                                    entity.BlockingEntity = nextEntity;
                                     return GridIterationStatus.Stop;
                                 }
                             }
@@ -1437,7 +1450,7 @@ namespace Helion.World.Physics
             residualStep = stepDelta - usedStepDelta;
 
             Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
-            if (CanMoveTo(entity, closeToLinePosition))
+            if (IsPositionValid(entity, closeToLinePosition))
             {
                 MoveTo(entity, closeToLinePosition);
                 return true;
@@ -1493,7 +1506,7 @@ namespace Helion.World.Physics
             if (axis == Axis2D.X)
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
-                if (CanMoveTo(entity, nextPosition))
+                if (IsPositionValid(entity, nextPosition))
                 {
                     MoveTo(entity, nextPosition);
                     entity.Velocity.Y = 0;
@@ -1504,7 +1517,7 @@ namespace Helion.World.Physics
             else
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
-                if (CanMoveTo(entity, nextPosition))
+                if (IsPositionValid(entity, nextPosition))
                 {
                     MoveTo(entity, nextPosition);
                     entity.Velocity.X = 0;
@@ -1535,10 +1548,11 @@ namespace Helion.World.Physics
             if (entity.ShouldApplyGravity())
                 entity.Velocity.Z -= Gravity;
 
-            if (entity.Velocity.Z == 0)
+            double floatZ = entity.GetEnemyFloatMove();
+            if (entity.Velocity.Z == 0 && floatZ == 0)
                 return;
 
-            entity.SetZ(entity.Position.Z + entity.Velocity.Z, false);
+            entity.SetZ(entity.Position.Z + entity.Velocity.Z + floatZ, false);
             ClampBetweenFloorAndCeiling(entity);
 
             if (entity.IsBlocked())

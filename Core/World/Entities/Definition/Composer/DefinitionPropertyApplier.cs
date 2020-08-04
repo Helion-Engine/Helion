@@ -39,11 +39,29 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.Mass != null)
                 definition.Properties.Mass = properties.Mass.Value;
 
+            if (properties.MeleeRange != null)
+                definition.Properties.MeleeRange = properties.MeleeRange.Value;
+
+            if (properties.MeleeDamage != null)
+                definition.Properties.MeleeDamage = properties.MeleeDamage.Value;
+
             if (properties.DeathSound != null)
                 definition.Properties.DeathSound = properties.DeathSound;
 
             if (properties.PainSound != null)
                 definition.Properties.PainSound = properties.PainSound;
+
+            if (properties.SeeSound != null)
+                definition.Properties.SeeSound = properties.SeeSound;
+
+            if (properties.AttackSound != null)
+                definition.Properties.AttackSound = properties.AttackSound;
+
+            if (properties.MeleeSound != null)
+                definition.Properties.MeleeSound = properties.MeleeSound;
+
+            if (properties.ActiveSound != null)
+                definition.Properties.ActiveSound = properties.ActiveSound;
         }
     }
 }

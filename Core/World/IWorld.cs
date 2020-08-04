@@ -9,6 +9,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 
@@ -32,6 +33,7 @@ namespace Helion.World
         EntityManager EntityManager { get; }
         SoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
+        PhysicsManager PhysicsManager { get; }
 
         void Link(Entity entity);
         void Tick();

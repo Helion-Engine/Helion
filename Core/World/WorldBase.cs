@@ -4,6 +4,7 @@ using Helion.Audio;
 using Helion.Maps;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
@@ -36,7 +37,7 @@ namespace Helion.World
         public readonly long CreationTimeNanos;
         public readonly CIString MapName;
         public readonly BlockMap Blockmap;
-        public readonly PhysicsManager PhysicsManager;
+        public PhysicsManager PhysicsManager { get; }
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
         public IRandom Random => m_random;
@@ -83,6 +84,29 @@ namespace Helion.World
         {
             FailedToDispose(this);
             PerformDispose();
+        }
+
+        public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
+        {
+            for (int i = 0; i < EntityManager.Players.Count; i++)
+            {
+                Player player = EntityManager.Players[i];
+
+                if (!allaround)
+                {
+                    Vec2D entityLookingVector = Vec2D.RadiansToUnit(entity.AngleRadians);
+                    Vec2D entityToTarget = player.Position.To2D() - entity.Position.To2D();
+
+                    // Not in front 180 FOV
+                    if (entityToTarget.Dot(entityLookingVector) < 0)
+                        return null;
+                }
+
+                if (!player.IsDead && PhysicsManager.CheckLineOfSight(entity, player))
+                    return player;
+            }
+
+            return null;
         }
 
         public void Link(Entity entity)

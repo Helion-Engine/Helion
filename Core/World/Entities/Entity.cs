@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
@@ -10,6 +11,7 @@ using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -21,8 +23,14 @@ namespace Helion.World.Entities
     /// <summary>
     /// An actor in a world.
     /// </summary>
-    public class Entity : IDisposable, ITickable
+    public partial class Entity : IDisposable, ITickable
     {
+        public const double NoDropOff = double.MaxValue;
+        private const double Speed = 47000 / 65536.0;
+        public const double FloatSpeed = 4.0;
+
+    
+
         public readonly int Id;
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
@@ -37,11 +45,12 @@ namespace Helion.World.Entities
         public Vec3D PrevPosition;
         public Vec3D Position => Box.Position;
         public Vec3D CenterPoint => new Vec3D(Box.Position.X, Box.Position.Y, Box.Position.Z + (Height / 2));
-        public Vec3D AttackPosition => new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
+        public Vec3D AttackPosition => Flags.IsMonster ? CenterPoint : new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
         public Vec3D Velocity = Vec3D.Zero;
         public Inventory Inventory = new Inventory();
         public int Health;
         public int FrozenTics;
+        public int MoveCount;
         public bool NoClip;
         public bool OnGround;
         public Sector Sector;
@@ -52,6 +61,7 @@ namespace Helion.World.Entities
         public object LowestCeilingObject;
         public double LowestCeilingZ;
         public double HighestFloorZ;
+        public double DropOffZ;
         public List<Line>? IntersectSpecialLines;
         public List<Sector> IntersectSectors = new List<Sector>();
         // The entity we are standing on
@@ -63,12 +73,13 @@ namespace Helion.World.Entities
         public Line? BlockingLine;
         public Entity? BlockingEntity;
         public SectorPlane? BlockingSectorPlane;
+        public Entity? Target;
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SubsectorNodes = new List<LinkableNode<Entity>>();
-        protected readonly SoundManager SoundManager;
+        public readonly SoundManager SoundManager;
         protected int FrameIndex;
         protected int TicksInFrame;
         internal bool IsDisposed { get; private set; }
@@ -130,6 +141,10 @@ namespace Helion.World.Entities
 
             FrameState.SetState(FrameStateLabel.Spawn);
         }
+
+        public double AttackPitchTo(Entity entity) => AttackPosition.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
+
+        public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.To2D().Distance(entity.Position.To2D()));
 
         public string GetBloodType()
         {
@@ -229,6 +244,7 @@ namespace Helion.World.Entities
             BlockingLine = null;
             BlockingEntity = null;
             BlockingSectorPlane = null;
+            DropOffZ = NoDropOff;
         }
 
         /// <summary>
@@ -261,6 +277,26 @@ namespace Helion.World.Entities
             Health = 0;
             SetHeight(Definition.Properties.Height / 4.0);
         }
+
+        public void SetSpawnState()
+        {
+            FrameState.SetState(FrameStateLabel.Spawn);
+        }
+
+        public void SetSeeState()
+        {
+            FrameState.SetState(FrameStateLabel.See);
+        }
+
+        public void SetMissileState()
+        {
+            FrameState.SetState(FrameStateLabel.Missile);
+        }
+
+        public void SetMeleeState()
+        {
+            FrameState.SetState(FrameStateLabel.Melee);
+        }
         
         public void SetDeathState()
         {
@@ -287,16 +323,62 @@ namespace Helion.World.Entities
             return false;
         }
 
-        public virtual bool Damage(int damage, bool setPainState)
+        public void PlaySeeSound()
+        {
+            if (Definition.Properties.SeeSound.Length > 0)
+                SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto, new SoundParams(this));
+        }
+
+        public void PlayAttackSound()
+        {
+            if (Properties.AttackSound.Length > 0)
+                SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, new SoundParams(this));
+        }
+
+        public void PlayActiveSound()
+        {
+            if (Properties.ActiveSound.Length > 0)
+                SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, new SoundParams(this));
+        }
+        
+        public CIString GetSpeciesName()
+        {
+            if (Definition.ParentClassNames.Count < 2)
+                return string.Empty;
+
+            return Definition.ParentClassNames[^1];
+        }
+
+        public virtual bool CanDamage(Entity source)
+        {
+            if (source.Owner == null)
+                return true;
+
+            return !ReferenceEquals(this, source.Owner) && !GetSpeciesName().Equals(source.Owner.GetSpeciesName());
+        }
+
+        public virtual bool Damage(Entity? source, int damage, bool setPainState)
         {
             if (damage <= 0 || Flags.Invulnerable)
                 return false;
-            
+
+            if (source != null)
+            {
+                if (!CanDamage(source))
+                    return false;
+
+                Entity damageSource = source.Owner ?? source;
+                if (!damageSource.IsDead)
+                    Target = damageSource;
+            }
+
             Health -= damage;
 
             if (Health <= 0)
+            {
                 Kill();
-            else if (setPainState && Definition.States.Labels.ContainsKey("PAIN"))
+            }
+            else if (setPainState && !Flags.Skullfly && Definition.States.Labels.ContainsKey("PAIN"))
             {
                 FrameState.SetState(FrameStateLabel.Pain);
                 if (Definition.Properties.PainSound.Length > 0)
@@ -311,8 +393,9 @@ namespace Helion.World.Entities
             Inventory.Add(item.Definition, item.Properties.Inventory.Amount);
         }
 
+        public bool HasMissileState() => Definition.States.Labels.ContainsKey("MISSILE");
+        public bool HasMeleeState() => Definition.States.Labels.ContainsKey("MELEE");
         public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
-
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
 
         public bool CheckOnGround() => HighestFloorZ >= Position.Z;
@@ -342,6 +425,9 @@ namespace Helion.World.Entities
 
         public double GetMaxStepHeight()
         {
+            if (Flags.IsMonster && Flags.Float)
+                return 0.0;
+
             if (Flags.Missile)
                 return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
 
@@ -363,10 +449,26 @@ namespace Helion.World.Entities
 
         public bool ShouldApplyFriction()
         {
-            if (Flags.NoFriction || Flags.Missile)
+            if (Flags.NoFriction || Flags.Missile || Flags.Skullfly)
                 return false;
 
             return Flags.NoGravity || OnGround;
+        }
+
+        public void Hit()
+        {
+            if (Flags.Skullfly)
+            {
+                if (BlockingEntity != null)
+                {
+                    int damage = Properties.Damage.Get(World.Random);
+                    EntityManager.World.PhysicsManager.DamageEntity(BlockingEntity, this, damage, Thrust.Horizontal);
+                }
+
+                Flags.Skullfly = false;
+                Velocity = Vec3D.Zero;            
+                SetSpawnState();
+            }
         }
 
         public void Dispose()
