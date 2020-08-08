@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Container.Linkable;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
 
@@ -25,11 +25,8 @@ namespace Helion.World.Entities
     /// </summary>
     public partial class Entity : IDisposable, ITickable
     {
-        public const double NoDropOff = double.MaxValue;
         private const double Speed = 47000 / 65536.0;
         public const double FloatSpeed = 4.0;
-
-    
 
         public readonly int Id;
         public readonly int ThingId;
@@ -61,7 +58,6 @@ namespace Helion.World.Entities
         public object LowestCeilingObject;
         public double LowestCeilingZ;
         public double HighestFloorZ;
-        public double DropOffZ;
         public List<Line>? IntersectSpecialLines;
         public List<Sector> IntersectSectors = new List<Sector>();
         // The entity we are standing on
@@ -74,6 +70,7 @@ namespace Helion.World.Entities
         public Entity? BlockingEntity;
         public SectorPlane? BlockingSectorPlane;
         public Entity? Target;
+
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
@@ -244,7 +241,6 @@ namespace Helion.World.Entities
             BlockingLine = null;
             BlockingEntity = null;
             BlockingSectorPlane = null;
-            DropOffZ = NoDropOff;
         }
 
         /// <summary>
@@ -401,7 +397,7 @@ namespace Helion.World.Entities
         public bool CheckOnGround() => HighestFloorZ >= Position.Z;
 
         /// <summary>
-        /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space.
+        /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space, only from the current Sector.
         /// </summary>
         public List<Entity> GetIntersectingEntities2D()
         {
@@ -410,6 +406,26 @@ namespace Helion.World.Entities
             foreach (var entity in Sector.Entities)
             {
                 if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
+                    entities.Add(entity);
+            }
+
+            return entities;
+        }
+
+        public List<Entity> GetIntersectingEntities2D(Vec2D position, BlockmapTraverser traverser)
+        {
+            List<Entity> entities = new List<Entity>();
+            Box2D box = Box2D.CopyToOffset(position, Radius);
+            List<BlockmapIntersect> intersections = traverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities, 
+                BlockmapTraverseEntityFlags.Solid);
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                Entity? entity = intersections[i].Entity;
+                if (entity == null)
+                    continue;
+
+                if (CanBlockEntity(entity) && entity.Box.Overlaps2D(box))
                     entities.Add(entity);
             }
 
@@ -425,9 +441,6 @@ namespace Helion.World.Entities
 
         public double GetMaxStepHeight()
         {
-            if (Flags.IsMonster && Flags.Float)
-                return 0.0;
-
             if (Flags.Missile)
                 return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
 
@@ -453,6 +466,49 @@ namespace Helion.World.Entities
                 return false;
 
             return Flags.NoGravity || OnGround;
+        }
+
+        public bool ShouldCheckDropOff() => !Flags.Float && !Flags.Dropoff;
+        // Allow drop off when monsters have momentum
+        public bool CheckDropOff(TryMoveData tryMove)
+        {
+            if (!ShouldCheckDropOff() || !m_enemyMove)
+                return true;
+
+            // Walking on things test
+            for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
+            {
+                Entity entity = tryMove.IntersectEntities2D[i];
+                if (BlocksEntityZ(entity, tryMove.LowestCeilingZ))
+                {
+                    return false;
+                }
+                else
+                {
+                    if (entity.Box.Top > tryMove.DropOffZ)
+                        tryMove.DropOffZ = entity.Box.Top;
+                }
+            }
+
+            if (tryMove.IntersectEntities2D.Count == 0 && tryMove.DropOffEntity != null)
+                return false;
+
+            return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
+        }
+
+        public bool BlocksEntityZ(Entity other)
+        {
+            return BlocksEntityZ(other, LowestCeilingZ);
+        }
+
+        private bool BlocksEntityZ(Entity other, double lowestCeilingZ)
+        {
+            if (ReferenceEquals(this, other))
+                return false;
+
+            double maxStepHeight = GetMaxStepHeight();
+            return other.Box.Top - Box.Bottom > maxStepHeight ||
+                   lowestCeilingZ - other.Box.Top < Height;
         }
 
         public void Hit()

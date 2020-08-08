@@ -76,6 +76,7 @@ namespace Helion.Util.Geometry.Vectors
         public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
         public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
         public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
+        public double Angle(in Vec2D other) => Math.Atan2(other.Y - Y, other.X - X);
 
         public void Multiply(double value)
         {

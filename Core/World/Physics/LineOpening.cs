@@ -72,13 +72,6 @@ namespace Helion.World.Physics
             if (!Fits(entity) || entity.Box.Top > CeilingZ)
                 return false;
 
-            // Block monsters and things with no dropoff if the drop is higher than the step height
-            if (!entity.Flags.Float && entity.IsEnemyMove && (entity.Flags.Monster || entity.Flags.NoDropoff) && 
-                Math.Abs(entity.Position.Z - DropOffZ) > entity.GetMaxStepHeight())
-            {
-                return false;
-            }
-
             if (entity.Box.Bottom < FloorZ)
                 return CanStepUpInto(entity);
             

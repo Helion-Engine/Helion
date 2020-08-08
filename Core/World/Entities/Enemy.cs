@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Util.Assertion;
 using Helion.Util.Geometry.Vectors;
+using Helion.World.Physics;
 
 namespace Helion.World.Entities
 {
@@ -32,9 +33,9 @@ namespace Helion.World.Entities
         private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
         private MoveDir m_direction = MoveDir.None;
+        private bool m_enemyMove;
 
         public bool BlockFloating;
-        public bool IsEnemyMove;
 
         public bool SetNewTarget(bool allaround)
         {
@@ -172,31 +173,23 @@ namespace Helion.World.Entities
             if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
                 return false;
 
-            Vec3D saveVelocity = Velocity;
             // TODO get speed from definition, currently it is always zero
             double speedX = SpeedX[(int)m_direction] * 8;
             double speedY = SpeedY[(int)m_direction] * 8;
-            Velocity.X = speedX;
-            Velocity.Y = speedY;
 
-            Vec3D oldPos = Position;
-            Vec3D nextPos = new Vec3D(Position.X + speedX, Position.Y + speedY, 0);
+            Vec2D nextPos = new Vec2D(Position.X + speedX, Position.Y + speedY);
             AngleRadians = Position.Angle(nextPos);
 
-            // TODO would like to refactor out IsEnemyMove
-            IsEnemyMove = true;
-            bool success = EntityManager.World.PhysicsManager.TryMoveXY(this);
-            IsEnemyMove = false;
-            Velocity = saveVelocity;
-
-            if (!success)
+            m_enemyMove = true;
+            TryMoveData tryMove = EntityManager.World.PhysicsManager.TryMoveXY(this, nextPos, false);
+            m_enemyMove = false;
+            if (!tryMove.Success)
             {
-                if (Flags.Float && DropOffZ != NoDropOff)
+                if (Flags.Float && tryMove.HighestBlockingFloorZ != TryMoveData.NoBlockingFloor && Position.Z != tryMove.HighestBlockingFloorZ)
                 {
                     BlockFloating = true;
-                    Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < DropOffZ ? FloatSpeed : -FloatSpeed));
-
-                    if (pos.Z < HighestFloorZ || pos.Z > LowestCeilingZ)
+                    Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestBlockingFloorZ ? FloatSpeed : -FloatSpeed));
+                    if (pos.Z < tryMove.HighestFloorZ || pos.Z > tryMove.LowestCeilingZ)
                         return false;
 
                     SetPosition(pos);
@@ -208,23 +201,13 @@ namespace Helion.World.Entities
                 BlockFloating = false;
             }
 
-            // TODO may be able to clean this up, but after TryMoveXY the z may cause the dropoff to get the enemy stuck so we need to verify again
-            if (success && !Flags.Float)
+            if (tryMove.Success && !Flags.Float)
             {
-                Vec3D newPos = new Vec3D(Position.X, Position.Y, HighestFloorZ);
-
-                IsEnemyMove = true;
-                success = EntityManager.World.PhysicsManager.IsPositionValid(this, newPos.To2D());
-                IsEnemyMove = false;
-                if (success)
-                    SetPosition(newPos);
+                Vec3D newPos = new Vec3D(Position.X, Position.Y, tryMove.HighestFloorZ);
+                SetPosition(newPos);
             }
 
-            // TODO refactor TryMoveXY to not actually move the entity
-            if (!success)
-                SetPosition(oldPos);
-
-            return success;
+            return tryMove.Success;
         }
 
         public double GetEnemyFloatMove()

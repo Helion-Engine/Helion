@@ -357,14 +357,11 @@ namespace Helion.World.Physics
                 Vec3D velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
                 Vec3D testPos = projectile.Position + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, shooter.Radius - 2.0);
                 projectile.Owner = shooter;
-                projectile.Velocity = testPos - projectile.Position;
-
                 projectile.PlaySeeSound();
 
                 // TryMoveXY will use the velocity of the projectile
-                // Velocity is temporarily set to the test if the movement can reach testPos
                 // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-                if (!projectile.IsBlocked() && TryMoveXY(projectile))
+                if (!projectile.IsBlocked() && TryMoveXY(projectile, testPos.To2D(), true).Success)
                 {
                     projectile.Velocity = velocity;
                 }
@@ -732,13 +729,6 @@ namespace Helion.World.Physics
                 entity.Velocity.Y = 0;
         }
 
-        private static bool EntityBlocksEntityZ(Entity entity, Entity other)
-        {
-            double maxStepHeight = entity.GetMaxStepHeight();
-            return other.Box.Top - entity.Box.Bottom > maxStepHeight ||
-                   entity.LowestCeilingZ - other.Box.Top < entity.Height;
-        }
-
         private static bool PreviouslyClipped(Entity entity, Entity other)
         {
             // Can't check for entities without CanPass as the movement code allows them to potentially clip
@@ -819,7 +809,7 @@ namespace Helion.World.Physics
             return TraversalPitchStatus.PitchNotSet;
         }
 
-        private bool LineBlocksEntity(Entity entity, Line line)
+        private bool LineBlocksEntity(Entity entity, Line line, TryMoveData? tryMove)
         {
             if (line.BlocksEntity(entity))
                 return true;
@@ -827,12 +817,15 @@ namespace Helion.World.Physics
                 return false;
 
             LineOpening opening = GetLineOpening(entity.Position.To2D(), line);
+            tryMove?.SetIntersectionData(opening);
+
             if (!opening.CanPassOrStepThrough(entity))
             {
-                entity.DropOffZ = opening.DropOffZ;
+                tryMove?.SetBlockingData(opening);
                 return true;
             }
 
+            tryMove?.SetNonBlockingData(opening);
             return false;
         }
 
@@ -1098,59 +1091,75 @@ namespace Helion.World.Physics
             entity.Velocity.Y = 0;
         }
 
-        public bool TryMoveXY(Entity entity)
+        public TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
         {
-            Precondition(entity.Velocity.To2D() != Vec2D.Zero, "Cannot move with zero horizontal velocity");
-
-            int slidesLeft = MaxSlides;
-            Vec2D velocity = entity.Velocity.To2D();
+            TryMoveData tryMoveData = new TryMoveData(position);
 
             if (entity.NoClip)
             {
-                HandleNoClip(entity, velocity);
-                return true;
+                HandleNoClip(entity, position);
+                tryMoveData.Success = true;
+                return tryMoveData;
             }
 
-            // TODO: Temporary until we know how this actually works.
             if (entity.IsCrushing())
-                return false;
+            {
+                tryMoveData.Success = false;
+                return tryMoveData;
+            }
 
             bool success = true;
-            // We advance in small steps that are smaller than the radius of
-            // the actor so we don't skip over any lines or things due to fast
-            // entity speed.
-            int numMoves = CalculateSteps(velocity, entity.Radius);
-            Vec2D stepDelta = velocity / numMoves;
+            //entity.DropOffZ = entity.HighestFloorZ;
+            //entity.HighestBlockingFloorZ = Entity.NoBlockingFloor;
+            //entity.HighestFloorZ = entity.Sector.ToFloorZ(entity.Position.To2D());
 
-            for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
+            if (stepMove)
             {
-                if (stepDelta == Vec2D.Zero)
+                // We advance in small steps that are smaller than the radius of
+                // the actor so we don't skip over any lines or things due to fast
+                // entity speed.
+                int slidesLeft = MaxSlides;
+                Vec2D velocity = position - entity.Position.To2D();
+                int numMoves = CalculateSteps(velocity, entity.Radius);
+                Vec2D stepDelta = velocity / numMoves;
+
+                for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
+                {
+                    if (stepDelta == Vec2D.Zero)
+                        break;
+
+                    Vec2D nextPosition = entity.Position.To2D() + stepDelta;
+
+                    if (IsPositionValid(entity, nextPosition, tryMoveData))
+                    {
+                        MoveTo(entity, nextPosition);
+                        continue;
+                    }
+
+                    if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
+                    {
+                        HandleSlide(entity, ref stepDelta, ref movesLeft);
+                        slidesLeft--;
+                        continue;
+                    }
+
+                    success = false;
+                    ClearVelocityXY(entity);
                     break;
-
-                Vec2D nextPosition = entity.Position.To2D() + stepDelta;
-
-                if (IsPositionValid(entity, nextPosition))
-                {
-                    MoveTo(entity, nextPosition);
-                    continue;
                 }
-
-                if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
-                {
-                    HandleSlide(entity, ref stepDelta, ref movesLeft);
-                    slidesLeft--;
-                    continue;
-                }
-
-                success = false;
-                ClearVelocityXY(entity);
-                break;
+            }
+            else
+            {
+                success = IsPositionValid(entity, position, tryMoveData);
+                if (success)
+                    MoveTo(entity, position);
             }
 
-            if (entity.OverEntity != null)
+            if (success && entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);
 
-            return success;
+            tryMoveData.Success = success;
+            return tryMoveData;
         }
 
         private void HandleStackedEntityPhysics(Entity entity)
@@ -1217,20 +1226,41 @@ namespace Helion.World.Physics
             }
         }
 
-        private void HandleNoClip(Entity entity, Vec2D velocity)
+        private void HandleNoClip(Entity entity, Vec2D position)
         {
             entity.UnlinkFromWorld();
-
-            var pos = entity.Position.To2D() + velocity;
-            entity.SetXY(pos);
-
+            entity.SetXY(position);
             LinkToWorld(entity);
         }
 
-        public bool IsPositionValid(Entity entity, Vec2D position)
+        public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData? tryMove)
         {
+            if (tryMove != null)
+            {
+                tryMove.HighestFloorZ = entity.Sector.ToFloorZ(position);
+                tryMove.LowestCeilingZ = entity.Sector.ToCeilingZ(position);
+                tryMove.DropOffZ = entity.HighestFloorZ;
+                if (entity.HighestFloorObject is Entity highFloorEntity)
+                    tryMove.DropOffEntity = highFloorEntity;
+            }
+
             Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
-            return !m_blockmap.Iterate(nextBox, CheckForBlockers);
+            if (!m_blockmap.Iterate(nextBox, CheckForBlockers))
+            {
+                if (tryMove != null)
+                {
+                    ClampBetweenFloorAndCeiling(entity);
+                    tryMove.HighestFloorZ = entity.HighestFloorZ;
+                    tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+
+                    if (!entity.CheckDropOff(tryMove))
+                        return false;
+                }
+
+                return true;
+            }
+
+            return false;
 
             GridIterationStatus CheckForBlockers(Block block)
             {
@@ -1238,7 +1268,7 @@ namespace Helion.World.Physics
                 for (int i = 0; i < block.Lines.Count; i++)
                 {
                     Line line = block.Lines[i];
-                    if (line.Segment.Intersects(nextBox) && LineBlocksEntity(entity, line))
+                    if (line.Segment.Intersects(nextBox) && LineBlocksEntity(entity, line, tryMove))
                     {
                         entity.BlockingLine = line;
                         return GridIterationStatus.Stop;
@@ -1247,19 +1277,27 @@ namespace Helion.World.Physics
 
                 if (entity.Flags.Solid || entity.Flags.Missile)
                 {
-                    LinkableNode<Entity>? entityNode = block.Entities.Head;
-                    while (entityNode != null)
+                    for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                     {
                         Entity nextEntity = entityNode.Value;
+                        if (ReferenceEquals(entity, nextEntity))
+                            continue;
 
-                        if (nextEntity.Box.Overlaps2D(nextBox) && entity.Box.OverlapsZ(nextEntity.Box))
+                        if (nextEntity.Box.Overlaps2D(nextBox))
                         {
+                            tryMove?.IntersectEntities2D.Add(nextEntity);
+                            if (!entity.Box.OverlapsZ(nextEntity.Box))
+                                continue;
+
                             if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
-                            else if (entity.CanBlockEntity(nextEntity) && EntityBlocksEntityZ(entity, nextEntity))
+                            else if (entity.CanBlockEntity(nextEntity))
                             {
+                                if (!entity.BlocksEntityZ(nextEntity))
+                                    continue;
+
                                 bool clipped = true;
                                 //If we are stuck inside another entity's box then only allow movement if we try to move out the box
                                 if (PreviouslyClipped(entity, nextEntity))
@@ -1272,8 +1310,6 @@ namespace Helion.World.Physics
                                 }
                             }
                         }
-
-                        entityNode = entityNode.Next;
                     }
                 }
 
@@ -1295,7 +1331,7 @@ namespace Helion.World.Physics
             m_entityManager.Destroy(item);
         }
 
-        private void MoveTo(Entity entity, Vec2D nextPosition)
+        public void MoveTo(Entity entity, Vec2D nextPosition)
         {
             entity.UnlinkFromWorld();
 
@@ -1393,7 +1429,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
 
                     if (cornerTracer.Intersection(line.Segment, out double time) &&
-                        LineBlocksEntity(entity, line) &&
+                        LineBlocksEntity(entity, line, null) &&
                         time < hitTime)
                     {
                         hit = true;
@@ -1450,7 +1486,7 @@ namespace Helion.World.Physics
             residualStep = stepDelta - usedStepDelta;
 
             Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
-            if (IsPositionValid(entity, closeToLinePosition))
+            if (IsPositionValid(entity, closeToLinePosition, null))
             {
                 MoveTo(entity, closeToLinePosition);
                 return true;
@@ -1506,7 +1542,7 @@ namespace Helion.World.Physics
             if (axis == Axis2D.X)
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
-                if (IsPositionValid(entity, nextPosition))
+                if (IsPositionValid(entity, nextPosition, null))
                 {
                     MoveTo(entity, nextPosition);
                     entity.Velocity.Y = 0;
@@ -1517,7 +1553,7 @@ namespace Helion.World.Physics
             else
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
-                if (IsPositionValid(entity, nextPosition))
+                if (IsPositionValid(entity, nextPosition, null))
                 {
                     MoveTo(entity, nextPosition);
                     entity.Velocity.X = 0;
@@ -1534,7 +1570,7 @@ namespace Helion.World.Physics
             if (entity.Velocity.To2D() == Vec2D.Zero)
                 return;
 
-            if (!TryMoveXY(entity))
+            if (!TryMoveXY(entity, (entity.Position + entity.Velocity).To2D()).Success)
                 HandleEntityHit(entity);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);
