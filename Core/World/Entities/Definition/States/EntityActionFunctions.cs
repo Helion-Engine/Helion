@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Helion.Audio;
+using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
+using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using NLog;
 using NLog.Targets;
@@ -422,7 +426,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BabyMetal(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "baby/walk", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_BarrelDestroy(Entity entity)
@@ -452,32 +456,119 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BrainAwake(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "brain/sight", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
         private static void A_BrainDie(Entity entity)
         {
-             // TODO
+            entity.World.ExitLevel(LevelChangeType.Next);
         }
 
         private static void A_BrainExplode(Entity entity)
         {
-             // TODO
+            Vec3D pos = new Vec3D(entity.Position.X + (entity.World.Random.NextDiff() * 2048), 
+                entity.Position.Y, 128 + (entity.World.Random.NextByte() * 2));
+            BrainExplodeRocket(entity.EntityManager, pos);
         }
 
         private static void A_BrainPain(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "brain/pain", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
         private static void A_BrainScream(Entity entity)
         {
-             // TODO
+            for (double x = entity.Position.X - 196; x < entity.Position.X + 320; x += 8)
+            {
+                Vec3D pos = new Vec3D(x, entity.Position.Y - 320, 128 + entity.World.Random.NextByte() + 1);
+                BrainExplodeRocket(entity.EntityManager, pos);
+            }
+
+            entity.SoundManager.CreateSoundOn(entity, "brain/death", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+        }
+
+        private static void BrainExplodeRocket(EntityManager entityManager, in Vec3D pos)
+        {
+            Entity? rocket = entityManager.Create("Rocket", pos);
+            if (rocket != null)
+            {
+                rocket.FrameState.SetState("BrainExplode");
+                rocket.Velocity.Z = (entityManager.World.Random.NextByte() << 9) / 65536.0;
+            }
         }
 
         private static void A_BrainSpit(Entity entity)
         {
-             // TODO
+            List<Entity> targets = entity.World.GetBossTargets();
+            if (targets.Count == 0)
+                return;
+
+            Entity target = targets[entity.World.CurrentBossTarget++];
+            entity.World.CurrentBossTarget %= targets.Count;
+
+            double pitch = entity.PitchTo(target);
+            Entity? spawnShot = entity.World.PhysicsManager.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
+            if (spawnShot != null)
+            {
+                spawnShot.Flags.NoClip = true;
+                spawnShot.AngleRadians = entity.Position.Angle(target.Position);
+                spawnShot.Velocity = Vec3D.UnitTimesValue(spawnShot.AngleRadians, pitch, spawnShot.Definition.Properties.Speed);
+                spawnShot.Target = target;
+                spawnShot.ReactionTime = (int)(entity.Position.Distance(target.Position) / spawnShot.Definition.Properties.Speed / (spawnShot.Frame.Ticks*2));
+            }
+
+            entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+        }
+
+        private static void A_SpawnFly(Entity entity)
+        {
+            if (entity.Target == null)
+            {
+                entity.EntityManager.Destroy(entity);
+                return;
+            }
+
+            if (--entity.ReactionTime > 0)
+                return;
+
+            entity.EntityManager.Create("ArchvileFire", entity.Target.Position);
+            entity.SoundManager.CreateSoundOn(entity.Target, "misc/teleport", SoundChannelType.Auto, new SoundParams(entity));
+
+            Entity? enemy = entity.EntityManager.Create(GetRandomBossSpawn(entity.World.Random), entity.Target.Position);
+            if (enemy != null)
+            {
+                enemy.SetNewTarget(true);
+                entity.World.TelefragBlockingEntities(enemy);
+            }
+
+            entity.EntityManager.Destroy(entity);
+        }
+
+        private static string GetRandomBossSpawn(IRandom random)
+        {
+            byte value = random.NextByte();
+            if (value < 50)
+                return "DoomImp";
+            else if (value < 90)
+                return "Demon";
+            else if (value < 120)
+                return "Spectre";
+            else if (value < 130)
+                return "PainElemental";
+            else if (value < 160)
+                return "Cacodemon";
+            else if (value < 162)
+                return "Archvile";
+            else if (value < 172)
+                return "Revenant";
+            else if (value < 192)
+                return "Arachnotron";
+            else if (value < 222)
+                return "Fatso";
+            else if (value < 246)
+                return "HellKnight";
+
+            return "BaronOfHell";
         }
 
         private static void A_BruisAttack(Entity entity)
@@ -488,17 +579,21 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 10;
-                entity.EntityManager.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, new SoundParams(entity));
                 return;
             }
 
-            entity.EntityManager.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "BaronBall");
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "BaronBall");
         }
 
         private static void A_BspiAttack(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
         }
 
         private static void A_BulletAttack(Entity entity)
@@ -513,12 +608,12 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_CPosAttack(Entity entity)
         {
-             // TODO
+            PosessedAttack(entity, 1, true);
         }
 
         private static void A_CPosRefire(Entity entity)
         {
-             // TODO
+            Refire(entity, 40);
         }
 
         private static void A_CStaffMissileSlither(Entity entity)
@@ -755,7 +850,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.EntityManager.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
                 Constants.EntityShootDistance, false, "Rocket");
         }
 
@@ -821,7 +916,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Explode(Entity entity)
         {
-            entity.EntityManager.World.PhysicsManager.RadiusExplosion(entity, 128);
+            entity.World.PhysicsManager.RadiusExplosion(entity, 128);
         }
 
         private static void A_ExtChase(Entity entity)
@@ -884,27 +979,61 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FatAttack1(Entity entity)
         {
-             // TODO
+            FatAttack(entity, 0.0, Constants.MancSpread);
         }
 
         private static void A_FatAttack2(Entity entity)
         {
-             // TODO
+            FatAttack(entity, 0.0, -Constants.MancSpread * 2);
         }
 
         private static void A_FatAttack3(Entity entity)
         {
-             // TODO
+            FatAttack(entity, -Constants.MancSpread / 2, Constants.MancSpread / 2);
+        }
+
+        private static void FatAttack(Entity entity, double fireSpread1, double fireSpread2)
+        {
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+            double baseAngle = entity.AngleRadians;
+
+            entity.AngleRadians = baseAngle + fireSpread1;
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+                Constants.EntityShootDistance, false, "FatShot");
+
+            entity.AngleRadians = baseAngle + fireSpread2;
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+                Constants.EntityShootDistance, false, "FatShot");
+
+            entity.AngleRadians = baseAngle;
         }
 
         private static void A_FatRaise(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity.Target);
+            entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_Fire(Entity entity)
         {
-             // TODO
+            if (entity.Target == null || entity.Tracer == null)
+                return;
+
+            if (!entity.World.PhysicsManager.CheckLineOfSight(entity.Target, entity.Tracer))
+                return;
+
+            Vec3D newPos = entity.Tracer.Position;
+            Vec3D unit = Vec3D.Unit(entity.Tracer.AngleRadians, 0.0);
+            newPos.X += unit.X * 24;
+            newPos.Y += unit.Y * 24;
+
+            entity.SetPosition(newPos);
         }
 
         private static void A_FireAssaultGun(Entity entity)
@@ -929,7 +1058,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireCrackle(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "vile/firecrkl", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_FireCustomMissile(Entity entity)
@@ -1037,12 +1166,12 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 6) + 1) * 10;
-                entity.EntityManager.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.PlayAttackSound();
                 return;
             }
 
-            entity.EntityManager.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
                 Constants.EntityShootDistance, false, "CacodemonBall");
         }
 
@@ -1053,7 +1182,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Hoof(Entity entity)
         {
-            entity.EntityManager.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_IceGuyDie(Entity entity)
@@ -1258,7 +1387,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Metal(Entity entity)
         {
-            entity.EntityManager.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_MissileAttack(Entity entity)
@@ -1333,12 +1462,36 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_PainAttack(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+            A_PainShootSkull(entity, entity.AngleRadians);
         }
 
         private static void A_PainDie(Entity entity)
         {
-             // TODO
+            A_PainShootSkull(entity, entity.AngleRadians + MathHelper.HalfPi);
+            A_PainShootSkull(entity, entity.AngleRadians + MathHelper.Pi);
+            A_PainShootSkull(entity, entity.AngleRadians + MathHelper.Pi + MathHelper.HalfPi);
+        }
+
+        private static void A_PainShootSkull(Entity entity, double angle)
+        {
+            Entity? skull = entity.EntityManager.Create("LostSoul", entity.Position);
+
+            double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
+            Vec3D unit = Vec3D.UnitTimesValue(angle, 0.0, step);
+            Vec2D tryPos = (skull.Position + unit).To2D();
+
+            if (!entity.World.PhysicsManager.TryMoveXY(skull, tryPos, false).Success)
+            {
+                skull.SetDeathState();
+                return;
+            }
+
+            skull.Target = entity.Target;
+            A_SkullAttack(skull);
         }
 
         private static void A_PlaySound(Entity entity)
@@ -1368,15 +1521,20 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_PosAttack(Entity entity)
         {
+            PosessedAttack(entity, 1, true);
+        }
+
+        private static void PosessedAttack(Entity entity, int bullets, bool attackSound)
+        {
             if (entity.Target == null)
                 return;
 
-            A_FaceTarget(entity);
+            if (attackSound)
+                entity.PlayAttackSound();
 
-            double test = entity.EntityManager.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
-            entity.AngleRadians += test;
-            entity.PlayAttackSound();
-            entity.EntityManager.World.PhysicsManager.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0, 
+            A_FaceTarget(entity);
+            entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
+            entity.World.PhysicsManager.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0,
                 entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false);
         }
 
@@ -1517,7 +1675,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_SPosAttack(Entity entity)
         {
-             // TODO
+            PosessedAttack(entity, 3, false);
         }
 
         private static void A_SargAttack(Entity entity)
@@ -1529,8 +1687,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity.CheckMissileRange())
             {
                 entity.PlayAttackSound();
-                int damage = ((entity.EntityManager.World.Random.NextByte() % 10) + 1) * 4;
-                entity.EntityManager.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                int damage = ((entity.World.Random.NextByte() % 10) + 1) * 4;
+                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
             }
         }
 
@@ -1796,17 +1954,38 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_SkelFist(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+
+            if (entity.InMeleeRange(entity.Target))
+            {
+                int damage = ((entity.World.Random.NextByte() % 10) + 1) * 6;
+                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, new SoundParams(entity));
+            }
         }
 
         private static void A_SkelMissile(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            Entity? fireball = entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+                Constants.EntityShootDistance, false, "RevenantTracer", 16);
+
+            if (fireball != null)
+                fireball.Tracer = entity.Target;
         }
 
         private static void A_SkelWhoosh(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+            entity.SoundManager.CreateSoundOn(entity, "skeleton/swing", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_SkullAttack(Entity entity)
@@ -1841,11 +2020,6 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
-        private static void A_SpawnFly(Entity entity)
-        {
-             // TODO
-        }
-
         private static void A_SpawnItem(Entity entity)
         {
              // TODO
@@ -1868,18 +2042,23 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_SpawnSound(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
         private static void A_SpidRefire(Entity entity)
         {
+            Refire(entity, 10);
+        }
+
+        private static void Refire(Entity entity, int randomChance)
+        {
             A_FaceTarget(entity);
 
-            if (entity.EntityManager.World.Random.NextByte() < 10)
+            if (entity.World.Random.NextByte() < randomChance)
                 return;
 
-            if (entity.Target == null || entity.Target.IsDead || 
-                !entity.EntityManager.World.PhysicsManager.CheckLineOfSight(entity, entity.Target))
+            if (entity.Target == null || entity.Target.IsDead ||
+                !entity.World.PhysicsManager.CheckLineOfSight(entity, entity.Target))
             {
                 entity.SetSeeState();
             }
@@ -1887,13 +2066,7 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_SPosAttackUseAtkSound(Entity entity)
         {
-            if (entity.Target == null)
-                return;
-
-            A_FaceTarget(entity);
-            entity.PlayAttackSound();
-            entity.EntityManager.World.PhysicsManager.FireHitscanBullets(entity, 3, Constants.DefaultSpreadAngle, 0, 
-                entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false);
+            PosessedAttack(entity, 3, true);
         }
 
         private static void A_SprayDecal(Entity entity)
@@ -1903,7 +2076,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_StartFire(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "vile/firestrt", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_Stop(Entity entity)
@@ -1963,7 +2136,71 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Tracer(Entity entity)
         {
-             // TODO
+            if (entity.Tracer == null || entity.Tracer.IsDead)
+                return;
+
+            if ((entity.World.Gametick & 3) != 0)
+                return;
+
+            //TODO Tracer smoke randomizes tics
+            entity.EntityManager.Create("BulletPuff", entity.Position);
+            entity.EntityManager.Create("RevenantTracerSmoke", entity.Position);
+
+            SetTracerAngle(entity);
+
+            double z = entity.Velocity.Z;
+            entity.Velocity = Vec3D.UnitTimesValue(entity.AngleRadians, 0.0, entity.Definition.Properties.Speed);
+            entity.Velocity.Z = z;
+
+            double distance = entity.Position.To2D().ApproximateDistance(entity.Tracer.Position.To2D());
+            double slope = GetTracerSlope(entity.Tracer.Position.Z + 40 - entity.Position.Z, distance, entity.Definition.Properties.Speed);
+
+            if (slope < entity.Velocity.Z)
+                entity.Velocity.Z -= 0.125;
+            else
+                entity.Velocity.Z += 0.125;
+        }
+
+        private static void SetTracerAngle(Entity entity)
+        {
+            if (entity.Tracer == null)
+                return;
+            // Doom's angles were always 0-360 and did not allow negatives (thank you arithmetic overflow)
+            // To keep this code familiar GetPositiveAngle will keep angle between 0 and 2pi
+            double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(entity.Tracer.Position));
+            double currentAngle = MathHelper.GetPositiveAngle(entity.AngleRadians);
+            double diff = MathHelper.GetPositiveAngle(exact - currentAngle);
+
+            if (!MathHelper.AreEqual(exact, currentAngle))
+            {
+                if (diff > Math.PI)
+                {
+                    entity.AngleRadians = MathHelper.GetPositiveAngle(entity.AngleRadians - Constants.TracerAngle);
+                    if (MathHelper.GetPositiveAngle(exact - entity.AngleRadians) < Math.PI)
+                        entity.AngleRadians = exact;
+                }
+                else
+                {
+                    entity.AngleRadians = MathHelper.GetPositiveAngle(entity.AngleRadians + Constants.TracerAngle);
+                    if (MathHelper.GetPositiveAngle(exact - entity.AngleRadians) > Math.PI)
+                        entity.AngleRadians = exact;
+                }
+            }
+        }
+
+        private static double GetTracerSlope(double z, double distance, double speed)
+        {
+            // Doom used incredibly janky math for this... divisions were used on fixed point
+            // We have to convert everything to fixed point and back to keep the same tracer behavior
+            int fixedZ = MathHelper.ToFixed(z);
+            int fixedDist = MathHelper.ToFixed(distance);
+            int fixedSpeed = MathHelper.ToFixed(speed);
+
+            fixedDist /= fixedSpeed;
+            if (fixedDist < 1)
+                fixedDist = 1;
+
+            return (fixedZ / fixedDist) / 65536.0;
         }
 
         private static void A_Tracer2(Entity entity)
@@ -1986,12 +2223,12 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
-                entity.EntityManager.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, new SoundParams(entity));
                 return;
             }
 
-            entity.EntityManager.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
+            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
                 Constants.EntityShootDistance, false, "DoomImpBall");
         }
 
@@ -2042,22 +2279,84 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_VileAttack(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+
+            if (!entity.World.PhysicsManager.CheckLineOfSight(entity, entity.Target))
+                return;
+
+            entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.PhysicsManager.DamageEntity(entity.Target, entity, 20, Thrust.Horizontal);
+            entity.Target.Velocity.Z = 1000.0 / entity.Target.Definition.Properties.Mass;
+
+            if (entity.Tracer == null)
+                return;
+
+            Vec3D newPos = entity.Tracer.Position;
+            Vec3D unit = Vec3D.Unit(entity.Tracer.AngleRadians, 0.0);
+            newPos.X -= unit.X * 24;
+            newPos.Y -= unit.Y * 24;
+
+            entity.Tracer.SetPosition(newPos);
+            entity.World.PhysicsManager.RadiusExplosion(entity.Tracer, 70);
         }
 
         private static void A_VileChase(Entity entity)
         {
-             // TODO
+            Vec3D oldPos = entity.Position;
+            Vec3D pos = entity.Position;
+            Vec2D nextPos = entity.GetNextEnemyPos();
+            pos.X = nextPos.X;
+            pos.Y = nextPos.Y;
+            entity.SetPosition(pos);
+
+            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), 
+                BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+
+                if (bi.Entity == null || !bi.Entity.HasRaiseState())
+                    continue;
+
+                Entity? saveTarget = entity.Target;
+                entity.Target = bi.Entity;
+                A_FaceTarget(entity);
+                entity.Target = saveTarget;
+                entity.SetHealState();
+
+                entity.SoundManager.CreateSoundOn(bi.Entity, "vile/raise", SoundChannelType.Auto, new SoundParams(entity));
+                bi.Entity.SetRaiseState();
+                break;
+            }
+
+            entity.SetPosition(oldPos);
+            A_Chase(entity);
         }
 
         private static void A_VileStart(Entity entity)
         {
-             // TODO
+            entity.SoundManager.CreateSoundOn(entity, "vile/start", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_VileTarget(Entity entity)
         {
-             // TODO
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+            Entity? fire = entity.EntityManager.Create("ArchvileFire", entity.Position);
+            if (fire != null)
+            {
+                fire.Owner = entity;
+                entity.Tracer = fire;
+                fire.Target = entity;
+                fire.Tracer = entity.Target;
+                A_Fire(fire);
+            }
         }
 
         private static void A_Wander(Entity entity)

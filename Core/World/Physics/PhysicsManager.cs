@@ -242,7 +242,7 @@ namespace Helion.World.Physics
                 {
                     Vec3D pos = crushEntity.Position;
                     pos.Z += crushEntity.Height / 2;
-                    Entity? blood = CreateEntity(pos, crushEntity.GetBloodType());
+                    Entity? blood = m_entityManager.Create(crushEntity.GetBloodType(), pos);
                     if (blood != null)
                     {
                         blood.Velocity.X += m_random.NextDiff() / 16.0;
@@ -257,9 +257,7 @@ namespace Helion.World.Physics
             if (!entity.SetCrushState())
             {
                 m_entityManager.Destroy(entity);
-                var gibsDef = m_entityManager.DefinitionComposer.GetByName("REALGIBS");
-                if (gibsDef != null)
-                    m_entityManager.Create(gibsDef, entity.Position, 0.0, 0.0, 0);
+                m_entityManager.Create("REALGIBS", entity.Position);
             }
         }
 
@@ -332,19 +330,21 @@ namespace Helion.World.Physics
             }
         }
 
-        public void FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName)
+        public Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
             if (shooter is Player)
             {
                 if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
-                    return;
+                    return null;
 
                 m_shootTest = DateTime.Now;
             }
 
+            Vec3D start = shooter.AttackPosition;
+            start.Z += zOffset;
+
             if (autoAim)
             {
-                Vec3D start = shooter.AttackPosition;
                 Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
                 if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
                     pitch = autoAimPitch;
@@ -353,7 +353,7 @@ namespace Helion.World.Physics
             var projectileDef = m_entityManager.DefinitionComposer.GetByName(projectClassName);
             if (projectileDef != null)
             {
-                Entity projectile = m_entityManager.Create(projectileDef, shooter.AttackPosition, 0.0, shooter.AngleRadians, 0);
+                Entity projectile = m_entityManager.Create(projectileDef, start, 0.0, shooter.AngleRadians, 0);
                 Vec3D velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
                 Vec3D testPos = projectile.Position + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, shooter.Radius - 2.0);
                 projectile.Owner = shooter;
@@ -361,9 +361,10 @@ namespace Helion.World.Physics
 
                 // TryMoveXY will use the velocity of the projectile
                 // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-                if (!projectile.IsBlocked() && TryMoveXY(projectile, testPos.To2D(), true).Success)
+                if (projectile.Flags.NoClip || (!projectile.IsBlocked() && TryMoveXY(projectile, testPos.To2D(), true).Success))
                 {
                     projectile.Velocity = velocity;
+                    return projectile;
                 }
                 else
                 {
@@ -371,6 +372,8 @@ namespace Helion.World.Physics
                     HandleEntityHit(projectile);
                 }
             }
+
+            return null;
         }
 
         public void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim)
@@ -832,15 +835,7 @@ namespace Helion.World.Physics
         private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
         {
             string className = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood ? "BulletPuff" : bi.Entity.GetBloodType();
-            CreateEntity(intersect, className);
-        }
-
-        private Entity? CreateEntity(Vec3D intersect, string className)
-        {
-            var puff = m_entityManager.DefinitionComposer.GetByName(className);
-            if (puff != null)
-                return m_entityManager.Create(puff, intersect, 0.0, 0.0, 0);
-            return null;
+            m_entityManager.Create(className, intersect);
         }
 
         private void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
@@ -878,7 +873,7 @@ namespace Helion.World.Physics
             // TODO fixme
             if (entity.Definition.Name == "BulletPuff")
                 return;
-            if (entity.NoClip && entity.Flags.NoGravity)
+            if (entity.Flags.NoClip && entity.Flags.NoGravity)
                 return;
 
             object lastHighestFloorObject = entity.HighestFloorObject;
@@ -1055,7 +1050,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
-                        if (entity.IntersectSpecialLines != null && !entity.NoClip)
+                        if (entity.IntersectSpecialLines != null && !entity.Flags.NoClip)
                         {
                             if (line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
                                 entity.IntersectSpecialLines.Add(line);
@@ -1095,7 +1090,7 @@ namespace Helion.World.Physics
         {
             TryMoveData tryMoveData = new TryMoveData(position);
 
-            if (entity.NoClip)
+            if (entity.Flags.NoClip)
             {
                 HandleNoClip(entity, position);
                 tryMoveData.Success = true;
@@ -1109,9 +1104,6 @@ namespace Helion.World.Physics
             }
 
             bool success = true;
-            //entity.DropOffZ = entity.HighestFloorZ;
-            //entity.HighestBlockingFloorZ = Entity.NoBlockingFloor;
-            //entity.HighestFloorZ = entity.Sector.ToFloorZ(entity.Position.To2D());
 
             if (stepMove)
             {
@@ -1249,9 +1241,10 @@ namespace Helion.World.Physics
             {
                 if (tryMove != null)
                 {
-                    ClampBetweenFloorAndCeiling(entity);
-                    tryMove.HighestFloorZ = entity.HighestFloorZ;
-                    tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+                    // TODO we may need something like this for when walking on other things
+                    //ClampBetweenFloorAndCeiling(entity);
+                    //tryMove.HighestFloorZ = entity.HighestFloorZ;
+                    //tryMove.LowestCeilingZ = entity.LowestCeilingZ;
 
                     if (!entity.CheckDropOff(tryMove))
                         return false;
@@ -1570,6 +1563,9 @@ namespace Helion.World.Physics
             if (entity.Velocity.To2D() == Vec2D.Zero)
                 return;
 
+            if (entity.Definition.Name == "SpawnShot")
+                entity.Velocity.Z = entity.Velocity.Z;
+
             if (!TryMoveXY(entity, (entity.Position + entity.Velocity).To2D()).Success)
                 HandleEntityHit(entity);
             if (entity.ShouldApplyFriction())
@@ -1579,6 +1575,9 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
+            if (entity.Definition.Name == "SpawnShot")
+                entity.Velocity.Z = entity.Velocity.Z;
+
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
             if (entity.ShouldApplyGravity())

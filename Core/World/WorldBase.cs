@@ -183,6 +183,34 @@ namespace Helion.World
                 player.ResetInterpolation();
         }
 
+        public List<Entity> GetBossTargets()
+        {
+            List<Entity> targets = new List<Entity>();
+            EntityManager.Entities.ForEach(entity =>
+            {
+                if (entity.Definition.Name == "BOSSTARGET")
+                    targets.Add(entity);
+            });
+
+            return targets;
+        }
+
+        public int CurrentBossTarget { get; set; }
+
+        public void TelefragBlockingEntities(Entity entity)
+        {
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), BlockmapTraverseFlags.Entities,
+                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
+
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                BlockmapIntersect bi = intersections[i];
+                if (ReferenceEquals(entity, bi.Entity))
+                    continue;
+                bi.Entity!.ForceGib();
+            }
+        }
+
         protected void ChangeToLevel(int number)
         {
             LevelExit?.Invoke(this, new LevelChangeEvent(number));

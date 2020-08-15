@@ -305,5 +305,31 @@ namespace Helion.Util
         {
             return first < second ? (first, second) : (second, first);
         }
+
+        /// <summary>
+        /// Converts double value to fixed point integer 16.16.
+        /// </summary>
+        /// <param name="value">Double value to convert.</param>
+        /// <returns>Fixed point integer in 16.16 format.</returns>
+        public static int ToFixed(double value)
+        {
+            return (int)(value * (1 << 16));
+        }
+
+        /// <summary>
+        /// Takes a radian angle and ensures the angle is between 0 and 2pi.
+        /// E.g. -6 degrees would return 354 degrees.
+        /// </summary>
+        /// <param name="angleRadians">The radian angle.</param>
+        /// <returns>Angle between 0 and 2pi.</returns>
+        public static double GetPositiveAngle(double angleRadians)
+        {
+            if (angleRadians < 0)
+                return TwoPi + angleRadians;
+            else if (angleRadians > TwoPi)
+                return angleRadians - TwoPi;
+            return angleRadians;
+        }
+
     }
 }

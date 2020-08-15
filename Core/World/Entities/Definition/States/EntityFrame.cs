@@ -8,7 +8,7 @@ namespace Helion.World.Entities.Definition.States
     {
         public readonly string Sprite;
         public readonly int Frame;
-        public readonly int Ticks;
+        public int Ticks { get; private set; }
         public readonly EntityFrameProperties Properties;
         public readonly ActionFunction? ActionFunction;
         public int NextFrameIndex;
@@ -27,6 +27,8 @@ namespace Helion.World.Entities.Definition.States
             NextFrameIndex = nextFrameIndex;
             BranchType = ActorStateBranch.None;
         }
+
+        public void SetTicks(int tics) => Ticks = tics;
         
         public override string ToString() => $"{Sprite} {Frame} {Ticks} action={ActionFunction != null} flow={BranchType}]";
     }

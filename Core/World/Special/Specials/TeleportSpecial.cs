@@ -59,22 +59,7 @@ namespace Helion.World.Special.Specials
             entity.OnGround = entity.CheckOnGround();
 
             m_world.Link(entity);
-
-            TelefragBlockingEntities(entity);
-        }
-
-        private void TelefragBlockingEntities(Entity entity)
-        {
-            List<BlockmapIntersect> intersections = m_world.BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), BlockmapTraverseFlags.Entities, 
-                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
-
-            for (int i = 0; i < intersections.Count; i++)
-            {
-                BlockmapIntersect bi = intersections[i];
-                if (ReferenceEquals(entity, bi.Entity))
-                    continue;
-                bi.Entity!.ForceGib();
-            }
+            m_world.TelefragBlockingEntities(entity);
         }
 
         private Entity? CreateTeleportFogAt(in Vec3D pos)

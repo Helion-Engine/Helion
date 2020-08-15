@@ -11,10 +11,10 @@ namespace Helion.World.Physics.Blockmap
 {
     public class BlockmapTraverser
     {
-        private BlockMap m_blockmap;
+        private readonly BlockMap m_blockmap;
 
-        private HashSet<int> m_lineMap = new HashSet<int>();
-        private HashSet<int> m_entityMap = new HashSet<int>();
+        private readonly HashSet<int> m_lineMap = new HashSet<int>();
+        private readonly HashSet<int> m_entityMap = new HashSet<int>();
 
         public BlockmapTraverser(BlockMap blockmap)
         {
@@ -84,6 +84,8 @@ namespace Helion.World.Physics.Blockmap
                             if ((entityFlags & BlockmapTraverseEntityFlags.Shootable) != 0 && !entity.Flags.Shootable)
                                 continue;
                             if ((entityFlags & BlockmapTraverseEntityFlags.Solid) != 0 && !entity.Flags.Solid)
+                                continue;
+                            if ((entityFlags & BlockmapTraverseEntityFlags.Corpse) != 0 && !entity.Flags.Corpse)
                                 continue;
                         }
 

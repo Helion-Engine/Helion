@@ -31,7 +31,7 @@ namespace Helion.World.Entities
         public readonly int Id;
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
-        public readonly EntityFlags Flags;
+        public EntityFlags Flags { get; protected set; }
         public readonly EntityProperties Properties;
         public readonly EntitySoundChannels SoundChannels;
         public readonly EntityManager EntityManager;
@@ -47,8 +47,8 @@ namespace Helion.World.Entities
         public Inventory Inventory = new Inventory();
         public int Health;
         public int FrozenTics;
+        public int ReactionTime;
         public int MoveCount;
-        public bool NoClip;
         public bool OnGround;
         public Sector Sector;
         public Sector HighestFloorSector;
@@ -70,6 +70,7 @@ namespace Helion.World.Entities
         public Entity? BlockingEntity;
         public SectorPlane? BlockingSectorPlane;
         public Entity? Target;
+        public Entity? Tracer;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
@@ -319,6 +320,21 @@ namespace Helion.World.Entities
             return false;
         }
 
+        public void SetRaiseState()
+        {
+            if (FrameState.SetState(FrameStateLabel.Raise))
+            {
+                Health = Definition.Properties.Health;
+                SetHeight(Definition.Properties.Height);
+                Flags = new EntityFlags(Definition.Flags);
+            }
+        }
+
+        public void SetHealState()
+        {
+            FrameState.SetState(FrameStateLabel.Heal);
+        }
+
         public void PlaySeeSound()
         {
             if (Definition.Properties.SeeSound.Length > 0)
@@ -392,6 +408,7 @@ namespace Helion.World.Entities
         public bool HasMissileState() => Definition.States.Labels.ContainsKey("MISSILE");
         public bool HasMeleeState() => Definition.States.Labels.ContainsKey("MELEE");
         public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
+        public bool HasRaiseState() => Definition.States.Labels.ContainsKey("RAISE");
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
 
         public bool CheckOnGround() => HighestFloorZ >= Position.Z;

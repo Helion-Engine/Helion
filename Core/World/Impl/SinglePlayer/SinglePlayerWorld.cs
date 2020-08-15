@@ -207,7 +207,7 @@ namespace Helion.World.Impl.SinglePlayer
             switch (cheatEvent.CheatType)
             {
             case CheatType.NoClip:
-                Player.NoClip = cheatEvent.Activated;
+                Player.Flags.NoClip = cheatEvent.Activated;
                 break;
             case CheatType.Fly:
                 Player.Flags.NoGravity = cheatEvent.Activated;

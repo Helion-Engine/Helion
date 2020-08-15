@@ -83,6 +83,16 @@ namespace Helion.Util.Geometry.Vectors
         
         [Pure]
         public double Distance(Vec2D other) => (this - other).Length();
+
+        public double ApproximateDistance(Vec2D other)
+        {
+            double dx = Math.Abs(X - other.X);
+            double dy = Math.Abs(Y - other.Y);
+
+            if (dx < dy)
+                return dx + dy - (dx / 2);
+            return dx + dy - (dy / 2);
+        }
         
         [Pure]
         public Vec2D Interpolate(Vec2D end, double t) => this + (t * (end - this));

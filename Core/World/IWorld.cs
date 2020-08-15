@@ -39,5 +39,9 @@ namespace Helion.World
         void Tick();
         IEnumerable<Sector> FindBySectorTag(int tag);
         IEnumerable<Entity> FindByTid(int tid);
+        void ExitLevel(LevelChangeType type);
+        List<Entity> GetBossTargets();
+        int CurrentBossTarget { get; set; }
+        void TelefragBlockingEntities(Entity entity);
     }
 }

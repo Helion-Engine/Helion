@@ -57,6 +57,14 @@ namespace Helion.World.Entities
             return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
         }
 
+        public Entity? Create(string className, in Vec3D pos)
+        {
+            var def = DefinitionComposer.GetByName(className);
+            if (def != null)
+                return Create(def, pos, 0.0, 0.0, 0);
+            return null;
+        }
+
         public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool forceToFloor = false)
         {
             int id = m_entityIdTracker.Next();

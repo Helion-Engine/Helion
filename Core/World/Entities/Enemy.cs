@@ -168,16 +168,23 @@ namespace Helion.World.Entities
             m_direction = MoveDir.None;
         }
 
+        public Vec2D GetNextEnemyPos()
+        {
+            if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
+                return Position.To2D();
+
+            double speedX = SpeedX[(int)m_direction] * Definition.Properties.Speed;
+            double speedY = SpeedY[(int)m_direction] * Definition.Properties.Speed;
+
+            return new Vec2D(Position.X + speedX, Position.Y + speedY);
+        }
+
         public bool MoveEnemy()
         {
             if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
                 return false;
 
-            // TODO get speed from definition, currently it is always zero
-            double speedX = SpeedX[(int)m_direction] * 8;
-            double speedY = SpeedY[(int)m_direction] * 8;
-
-            Vec2D nextPos = new Vec2D(Position.X + speedX, Position.Y + speedY);
+            Vec2D nextPos = GetNextEnemyPos();
             AngleRadians = Position.Angle(nextPos);
 
             m_enemyMove = true;
