@@ -1,5 +1,6 @@
 ﻿using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Special.Specials
@@ -69,7 +70,7 @@ namespace Helion.World.Special.Specials
             }
         }
 
-        public void Use()
+        public void Use(Entity entity)
         {
         }
     }

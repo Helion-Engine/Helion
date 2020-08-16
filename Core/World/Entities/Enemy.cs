@@ -263,7 +263,21 @@ namespace Helion.World.Entities
         private bool TryWalk()
         {
             if (!MoveEnemy())
+            {
+                if (IntersectSpecialLines != null && IntersectSpecialLines.Count > 0)
+                {
+                    bool success = false;
+                    for (int i = 0; i < IntersectSpecialLines.Count; i++)
+                    {
+                        if (World.PhysicsManager.UseSpecialLine(this, IntersectSpecialLines[i]))
+                            success = true;
+                    }
+
+                    return success;
+                }
+
                 return false;
+            }
 
             MoveCount = EntityManager.World.Random.NextByte() & 15;
             return true;

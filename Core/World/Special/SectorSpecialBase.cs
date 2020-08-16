@@ -1,4 +1,5 @@
-﻿using Helion.World.Geometry.Sectors;
+﻿using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special
 {
@@ -23,7 +24,7 @@ namespace Helion.World.Special
             // Unused
         }
 
-        public virtual void Use()
+        public virtual void Use(Entity entity)
         {
             // Unused
         }

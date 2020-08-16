@@ -319,15 +319,19 @@ namespace Helion.World.Physics
                 }
             }
 
-            if (activateLine != null && activateLine.Special.CanActivate(entity, activateLine.Flags, ActivationContext.UseLine))
-            {
-                var args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, activateLine);
-                EntityActivatedSpecial?.Invoke(this, args);
-            }
-            else if (hitBlockLine && entity is Player player)
-            {
+            bool activateSuccess = activateLine != null && UseSpecialLine(entity, activateLine);
+            if (!activateSuccess && hitBlockLine && entity is Player player)
                 player.PlayUseFailSound();
-            }
+        }
+
+        public bool UseSpecialLine(Entity entity, Line line)
+        {
+            if (!line.Special.CanActivate(entity, line, ActivationContext.UseLine))
+                return false;
+
+            EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, line);
+            EntityActivatedSpecial?.Invoke(this, args);
+            return true;
         }
 
         public Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
@@ -419,7 +423,7 @@ namespace Helion.World.Physics
             if (bi != null)
             {
                 Line? line = bi.Value.Line;
-                if (line != null && line.HasSpecial && line.Special.CanActivate(shooter, line.Flags, ActivationContext.ProjectileHitLine))
+                if (line != null && line.HasSpecial && line.Special.CanActivate(shooter, line, ActivationContext.ProjectileHitLine))
                 {
                     var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, line);
                     EntityActivatedSpecial?.Invoke(this, args);
@@ -1015,12 +1019,7 @@ namespace Helion.World.Physics
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
 
             if (linkSpecialLines)
-            {
-                if (entity.IntersectSpecialLines == null)
-                    entity.IntersectSpecialLines = new List<Line>();
-                else
-                    entity.IntersectSpecialLines.Clear();
-            }
+                entity.IntersectSpecialLines.Clear();
 
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
@@ -1050,7 +1049,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
-                        if (entity.IntersectSpecialLines != null && !entity.Flags.NoClip)
+                        if (linkSpecialLines && !entity.Flags.NoClip)
                         {
                             if (line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
                                 entity.IntersectSpecialLines.Add(line);
@@ -1261,10 +1260,16 @@ namespace Helion.World.Physics
                 for (int i = 0; i < block.Lines.Count; i++)
                 {
                     Line line = block.Lines[i];
-                    if (line.Segment.Intersects(nextBox) && LineBlocksEntity(entity, line, tryMove))
+                    if (line.Segment.Intersects(nextBox))
                     {
-                        entity.BlockingLine = line;
-                        return GridIterationStatus.Stop;
+                        if (!entity.Flags.NoClip && line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
+                            entity.IntersectSpecialLines.Add(line);
+
+                        if (LineBlocksEntity(entity, line, tryMove))
+                        {
+                            entity.BlockingLine = line;
+                            return GridIterationStatus.Stop;
+                        }
                     }
                 }
 
@@ -1342,7 +1347,7 @@ namespace Helion.World.Physics
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
         {
-            if (!line.Special.CanActivate(entity, line.Flags, ActivationContext.CrossLine))
+            if (!line.Special.CanActivate(entity, line, ActivationContext.CrossLine))
                 return;
 
             bool fromFront = line.Segment.OnRight(previousPosition);

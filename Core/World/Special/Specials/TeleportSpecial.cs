@@ -71,7 +71,7 @@ namespace Helion.World.Special.Specials
             return null;
         }
 
-        public void Use()
+        public void Use(Entity entity)
         {
         }
 

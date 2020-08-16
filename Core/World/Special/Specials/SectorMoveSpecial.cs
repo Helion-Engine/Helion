@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
+using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
@@ -128,7 +129,7 @@ namespace Helion.World.Special.Specials
                 m_world.SoundManager.StopLoopSoundBySource(Sector);
         }
 
-        public virtual void Use()
+        public virtual void Use(Entity entity)
         {
         }
 

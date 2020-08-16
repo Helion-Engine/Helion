@@ -409,7 +409,7 @@ namespace Helion.World.Special
                 else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
                     args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
                 {
-                    sector.ActiveMoveSpecial.Use();
+                    sector.ActiveMoveSpecial.Use(args.Entity);
                 }
                 else if (lineSpecial.IsSectorMoveSpecial() || lineSpecial.IsSectorLightSpecial())
                 {

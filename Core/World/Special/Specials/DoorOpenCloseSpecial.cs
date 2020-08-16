@@ -1,4 +1,6 @@
-﻿using Helion.World.Geometry.Sectors;
+﻿using Helion.World.Entities;
+using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
@@ -15,9 +17,9 @@ namespace Helion.World.Special.Specials
             Key = key;
         }
 
-        public override void Use()
+        public override void Use(Entity entity)
         {
-            if (MoveData.MoveRepetition == MoveRepetition.None)
+            if (MoveData.MoveRepetition == MoveRepetition.None || !(entity is Player))
                 return;
 
             // If the delay is zero then flip the door direction. Otherwise we

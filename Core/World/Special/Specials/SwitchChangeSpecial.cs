@@ -1,6 +1,7 @@
 ﻿using Helion.Audio;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
 using Helion.World.Special.Switches;
@@ -66,7 +67,7 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Destroy;
         }
 
-        public void Use()
+        public void Use(Entity entity)
         {
         }
     }

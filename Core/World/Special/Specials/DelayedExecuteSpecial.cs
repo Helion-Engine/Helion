@@ -1,4 +1,5 @@
-﻿using Helion.World.Geometry.Sectors;
+﻿using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
 {
@@ -28,7 +29,7 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Destroy;
         }
 
-        public void Use()
+        public void Use(Entity entity)
         {
         }
     }
