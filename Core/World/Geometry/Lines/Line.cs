@@ -74,7 +74,7 @@ namespace Helion.World.Geometry.Lines
         /// otherwise.</returns>
         public bool BlocksEntity(Entity entity)
         {
-            return OneSided || (entity is Player && Flags.Blocking.Players);
+            return OneSided || (entity.Flags.Monster && Flags.Blocking.Monsters) || (entity is Player && Flags.Blocking.Players);
         }
     }
 }
