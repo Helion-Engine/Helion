@@ -690,7 +690,7 @@ namespace Helion.World.Special
 
         private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
         {
-            double destZ = GetDestZ(sector, SectorDest.Ceiling) - 8;
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - 8;
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, 
                 MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound(false));
         }
