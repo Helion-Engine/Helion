@@ -179,16 +179,19 @@ namespace Helion.World.Entities
             return new Vec2D(Position.X + speedX, Position.Y + speedY);
         }
 
-        public bool MoveEnemy()
+        public bool MoveEnemy(out TryMoveData? tryMove)
         {
             if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
+            {
+                tryMove = null;
                 return false;
+            }
 
             Vec2D nextPos = GetNextEnemyPos();
             AngleRadians = Position.Angle(nextPos);
 
             m_enemyMove = true;
-            TryMoveData tryMove = EntityManager.World.PhysicsManager.TryMoveXY(this, nextPos, false);
+            tryMove = EntityManager.World.PhysicsManager.TryMoveXY(this, nextPos, false);
             m_enemyMove = false;
             if (!tryMove.Success)
             {
@@ -262,14 +265,14 @@ namespace Helion.World.Entities
 
         private bool TryWalk()
         {
-            if (!MoveEnemy())
+            if (!MoveEnemy(out TryMoveData? tryMove))
             {
-                if (IntersectSpecialLines != null && IntersectSpecialLines.Count > 0)
+                if (tryMove != null && tryMove.IntersectSpecialLines.Count > 0)
                 {
                     bool success = false;
-                    for (int i = 0; i < IntersectSpecialLines.Count; i++)
+                    for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
                     {
-                        if (World.PhysicsManager.UseSpecialLine(this, IntersectSpecialLines[i]))
+                        if (World.PhysicsManager.ActivateSpecialLine(this, tryMove.IntersectSpecialLines[i], ActivationContext.UseLine))
                             success = true;
                     }
 

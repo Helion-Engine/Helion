@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -23,6 +21,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
+using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics
@@ -83,13 +82,13 @@ namespace Helion.World.Physics
         /// Links an entity to the world.
         /// </summary>
         /// <param name="entity">The entity to link.</param>
-        /// <param name="linkSpecialLines">Will check for special intersecting lines with this entity - see IntersectSpecialLines.</param>
-        public void LinkToWorld(Entity entity, bool linkSpecialLines = false)
+        /// <param name="tryMove">Optional data used for when linking during movement.</param>
+        public void LinkToWorld(Entity entity, TryMoveData? tryMove = null)
         {
             if (!entity.Flags.NoBlockmap)
                 m_blockmap.Link(entity);
 
-            LinkToSectors(entity, linkSpecialLines);
+            LinkToSectors(entity, tryMove);
 
             ClampBetweenFloorAndCeiling(entity);
         }
@@ -319,17 +318,26 @@ namespace Helion.World.Physics
                 }
             }
 
-            bool activateSuccess = activateLine != null && UseSpecialLine(entity, activateLine);
+            bool activateSuccess = activateLine != null && ActivateSpecialLine(entity, activateLine, ActivationContext.UseLine);
             if (!activateSuccess && hitBlockLine && entity is Player player)
                 player.PlayUseFailSound();
         }
 
-        public bool UseSpecialLine(Entity entity, Line line)
+        /// <summary>
+        /// Attempts to activate a line special given the entity, line, and context.
+        /// </summary>
+        /// <remarks>
+        /// Does not do any range checking. Only verifies if the entity can activate the line special in this context.
+        /// </remarks>
+        /// <param name="entity">The entity to execute special.</param>
+        /// <param name="line">The line containing the special to execute.</param>
+        /// <param name="context">The ActivationContext to attempt to execute the special.</param>
+        public bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
         {
-            if (!line.Special.CanActivate(entity, line, ActivationContext.UseLine))
+            if (!line.Special.CanActivate(entity, line, context))
                 return false;
 
-            EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(ActivationContext.UseLine, entity, line);
+            EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(context, entity, line);
             EntityActivatedSpecial?.Invoke(this, args);
             return true;
         }
@@ -373,7 +381,7 @@ namespace Helion.World.Physics
                 else
                 {
                     projectile.SetPosition(testPos);
-                    HandleEntityHit(projectile);
+                    HandleEntityHit(projectile, null);
                 }
             }
 
@@ -591,17 +599,15 @@ namespace Helion.World.Physics
             return true;
         }
 
-        private bool PushUpBlockingEntity(Entity pusher)
+        private void PushUpBlockingEntity(Entity pusher)
         {
             // Check if the pusher is blocked by an entity
             // If true then push that entity up
             if (!(pusher.LowestCeilingObject is Entity))
-                return false;
+                return;
 
             Entity entity = (Entity)pusher.LowestCeilingObject;
             entity.SetZ(pusher.Box.Top, false);
-
-            return true;
         }
 
         private void HandleEntityDeath(Entity deathEntity)
@@ -1014,12 +1020,9 @@ namespace Helion.World.Physics
                 entity.LowestCeilingObject = lowestCeiling;
         }
 
-        private void LinkToSectors(Entity entity, bool linkSpecialLines)
+        private void LinkToSectors(Entity entity, TryMoveData? tryMove)
         {
             Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
-
-            if (linkSpecialLines)
-                entity.IntersectSpecialLines.Clear();
 
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
@@ -1049,11 +1052,8 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
-                        if (linkSpecialLines && !entity.Flags.NoClip)
-                        {
-                            if (line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
-                                entity.IntersectSpecialLines.Add(line);
-                        }
+                        if (tryMove != null && !entity.Flags.NoClip && line.HasSpecial)
+                            tryMove.AddIntersectSpecialLine(line);
 
                         foreach (Subsector subsector in line.Subsectors)
                             subsectors.Add(subsector);
@@ -1066,17 +1066,6 @@ namespace Helion.World.Physics
 
                 return GridIterationStatus.Continue;
             }
-        }
-
-        private bool FindLine(List<Line> lines, int id)
-        {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (lines[i].Id == id)
-                    return true;
-            }
-
-            return false;
         }
 
         private void ClearVelocityXY(Entity entity)
@@ -1123,14 +1112,15 @@ namespace Helion.World.Physics
 
                     if (IsPositionValid(entity, nextPosition, tryMoveData))
                     {
-                        MoveTo(entity, nextPosition);
+                        MoveTo(entity, nextPosition, tryMoveData);
                         continue;
                     }
 
                     if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
                     {
-                        HandleSlide(entity, ref stepDelta, ref movesLeft);
+                        HandleSlide(entity, ref stepDelta, ref movesLeft, tryMoveData);
                         slidesLeft--;
+                        success = false;
                         continue;
                     }
 
@@ -1143,7 +1133,7 @@ namespace Helion.World.Physics
             {
                 success = IsPositionValid(entity, position, tryMoveData);
                 if (success)
-                    MoveTo(entity, position);
+                    MoveTo(entity, position, tryMoveData);
             }
 
             if (success && entity.OverEntity != null)
@@ -1176,12 +1166,18 @@ namespace Helion.World.Physics
             }
         }
 
-        private void HandleEntityHit(Entity entity)
+        private void HandleEntityHit(Entity entity, TryMoveData? tryMove)
         {
             entity.Hit();
 
             if (entity.Flags.Missile)
             {
+                if (tryMove != null)
+                {
+                    for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
+                        ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.ProjectileHitLine);
+                }
+
                 if (entity.BlockingEntity != null)
                 {
                     int damage = entity.Properties.Damage.Get(m_random);
@@ -1214,6 +1210,11 @@ namespace Helion.World.Physics
                     entity.SetDeathState();
 
                 HandleEntityDeath(entity);
+            }
+            else if (tryMove != null && entity is Player)
+            {
+                for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
+                    ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.PlayerPushesWall);
             }
         }
 
@@ -1262,8 +1263,8 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(nextBox))
                     {
-                        if (!entity.Flags.NoClip && line.HasSpecial && !FindLine(entity.IntersectSpecialLines, line.Id))
-                            entity.IntersectSpecialLines.Add(line);
+                        if (tryMove != null && !entity.Flags.NoClip && line.HasSpecial)
+                            tryMove.AddIntersectSpecialLine(line);
 
                         if (LineBlocksEntity(entity, line, tryMove))
                         {
@@ -1329,20 +1330,17 @@ namespace Helion.World.Physics
             m_entityManager.Destroy(item);
         }
 
-        public void MoveTo(Entity entity, Vec2D nextPosition)
+        public void MoveTo(Entity entity, Vec2D nextPosition, TryMoveData tryMove)
         {
             entity.UnlinkFromWorld();
 
             Vec2D previousPosition = entity.Position.To2D();
             entity.SetXY(nextPosition);
 
-            LinkToWorld(entity, true);
+            LinkToWorld(entity, tryMove);
 
-            if (entity.IntersectSpecialLines != null)
-            {
-                for (int i = 0; i < entity.IntersectSpecialLines.Count; i++)
-                    CheckLineSpecialActivation(entity, entity.IntersectSpecialLines[i], previousPosition);
-            }
+            for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
+                CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
         }
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
@@ -1356,26 +1354,23 @@ namespace Helion.World.Physics
                 if (line.Special.IsTeleport() && !fromFront)
                     return;
 
-                EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(
-                    ActivationContext.CrossLine, entity, line);
+                EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(ActivationContext.CrossLine, entity, line);
                 EntityActivatedSpecial?.Invoke(this, args);
             }
         }
 
-        private void HandleSlide(Entity entity, ref Vec2D stepDelta, ref int movesLeft)
+        private void HandleSlide(Entity entity, ref Vec2D stepDelta, ref int movesLeft, TryMoveData tryMove)
         {
-            if (FindClosestBlockingLine(entity, stepDelta, out MoveInfo moveInfo))
+            if (FindClosestBlockingLine(entity, stepDelta, out MoveInfo moveInfo) &&
+                MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep, tryMove))
             {
-                if (MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep))
-                {
-                    ReorientToSlideAlong(entity, moveInfo.BlockingLine!, residualStep, ref stepDelta, ref movesLeft);
-                    return;
-                }
+                ReorientToSlideAlong(entity, moveInfo.BlockingLine!, residualStep, ref stepDelta, ref movesLeft);
+                return;
             }
 
-            if (AttemptAxisMove(entity, stepDelta, Axis2D.Y))
+            if (AttemptAxisMove(entity, stepDelta, Axis2D.Y, tryMove))
                 return;
-            if (AttemptAxisMove(entity, stepDelta, Axis2D.X))
+            if (AttemptAxisMove(entity, stepDelta, Axis2D.X, tryMove))
                 return;
 
             // If we cannot find the line or thing that is blocking us, then we
@@ -1464,7 +1459,7 @@ namespace Helion.World.Physics
             return moveInfo.IntersectionFound;
         }
 
-        private bool MoveCloseToBlockingLine(Entity entity, Vec2D stepDelta, MoveInfo moveInfo, out Vec2D residualStep)
+        private bool MoveCloseToBlockingLine(Entity entity, Vec2D stepDelta, MoveInfo moveInfo, out Vec2D residualStep, TryMoveData tryMove)
         {
             Precondition(moveInfo.LineIntersectionTime >= 0, "Blocking line intersection time should never be negative");
             Precondition(moveInfo.IntersectionFound, "Should not be moving close to a line if we didn't hit one");
@@ -1486,7 +1481,7 @@ namespace Helion.World.Physics
             Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
             if (IsPositionValid(entity, closeToLinePosition, null))
             {
-                MoveTo(entity, closeToLinePosition);
+                MoveTo(entity, closeToLinePosition, tryMove);
                 return true;
             }
 
@@ -1535,14 +1530,14 @@ namespace Helion.World.Physics
             stepDelta = unitDirection * totalRemainingDistance / movesLeft;
         }
 
-        private bool AttemptAxisMove(Entity entity, Vec2D stepDelta, Axis2D axis)
+        private bool AttemptAxisMove(Entity entity, Vec2D stepDelta, Axis2D axis, TryMoveData tryMove)
         {
             if (axis == Axis2D.X)
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
                 if (IsPositionValid(entity, nextPosition, null))
                 {
-                    MoveTo(entity, nextPosition);
+                    MoveTo(entity, nextPosition, tryMove);
                     entity.Velocity.Y = 0;
                     stepDelta.Y = 0;
                     return true;
@@ -1553,7 +1548,7 @@ namespace Helion.World.Physics
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
                 if (IsPositionValid(entity, nextPosition, null))
                 {
-                    MoveTo(entity, nextPosition);
+                    MoveTo(entity, nextPosition, tryMove);
                     entity.Velocity.X = 0;
                     stepDelta.X = 0;
                     return true;
@@ -1568,11 +1563,9 @@ namespace Helion.World.Physics
             if (entity.Velocity.To2D() == Vec2D.Zero)
                 return;
 
-            if (entity.Definition.Name == "SpawnShot")
-                entity.Velocity.Z = entity.Velocity.Z;
-
-            if (!TryMoveXY(entity, (entity.Position + entity.Velocity).To2D()).Success)
-                HandleEntityHit(entity);
+            TryMoveData tryMove = TryMoveXY(entity, (entity.Position + entity.Velocity).To2D());
+            if (!tryMove.Success)
+                HandleEntityHit(entity, tryMove);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);
             StopXYMovementIfSmall(entity);
@@ -1580,9 +1573,6 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
-            if (entity.Definition.Name == "SpawnShot")
-                entity.Velocity.Z = entity.Velocity.Z;
-
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
             if (entity.ShouldApplyGravity())
@@ -1596,7 +1586,7 @@ namespace Helion.World.Physics
             ClampBetweenFloorAndCeiling(entity);
 
             if (entity.IsBlocked())
-                HandleEntityHit(entity);
+                HandleEntityHit(entity, null);
 
             if (entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);

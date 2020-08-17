@@ -11,6 +11,7 @@ namespace Helion.World.Physics
         CrossLine,
         UseLine,
         ProjectileHitLine,
+        PlayerPushesWall
     }
 
     /// <summary>

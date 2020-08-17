@@ -57,15 +57,25 @@ namespace Helion.World.Special
         /// </summary>
         public bool CanActivate(Entity entity, Line line, ActivationContext context)
         {
+            if (Active)
+                return false;
+
             LineFlags flags = line.Flags;
-            if (entity.Flags.IsMonster)
+            if (entity.Flags.Missile)
+            {
+                if (context == ActivationContext.ProjectileHitLine)
+                    return flags.ActivationType == ActivationType.ProjectileHitsWall || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
+                else if (context == ActivationContext.CrossLine)
+                    return flags.ActivationType == ActivationType.ProjectileCrossesLine || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
+            }
+            else if (entity.Flags.IsMonster)
             {
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.MonsterLineCross;
                 else if (context == ActivationContext.UseLine)
                     return flags.ActivationType == ActivationType.PlayerUse && line.Special.MonsterCanUse();
             }
-            if (!Active && entity is Player)
+            else if (entity is Player)
             {
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.PlayerLineCross;
@@ -73,6 +83,8 @@ namespace Helion.World.Special
                     return flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
                 else if (context == ActivationContext.ProjectileHitLine)
                     return flags.ActivationType == ActivationType.ProjectileHitsWall;
+                else if (context == ActivationContext.PlayerPushesWall)
+                    return flags.ActivationType == ActivationType.PlayerPushesWall;
             }
 
             return false;

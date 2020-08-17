@@ -665,7 +665,7 @@ namespace Helion.World.Entities.Definition.States
 
             entity.MoveCount--;
 
-            if (entity.MoveCount < 0 || !entity.MoveEnemy())
+            if (entity.MoveCount < 0 || !entity.MoveEnemy(out TryMoveData? _))
                 entity.SetNewChaseDirection();
 
             if (entity.MoveCount == 0 && entity.HasMissileState() && entity.CheckMissileRange())

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Physics
 {
@@ -18,6 +19,7 @@ namespace Helion.World.Physics
         public Entity? DropOffEntity;
 
         public List<Entity> IntersectEntities2D = new List<Entity>();
+        public List<Line> IntersectSpecialLines = new List<Line>();
 
         public TryMoveData(Vec2D position)
         {
@@ -45,6 +47,23 @@ namespace Helion.World.Physics
                 HighestFloorZ = opening.FloorZ;
             if (opening.CeilingZ < LowestCeilingZ)
                 LowestCeilingZ = opening.CeilingZ;
+        }
+
+        public void AddIntersectSpecialLine(Line line)
+        {
+            if (!FindLine(IntersectSpecialLines, line.Id))
+                IntersectSpecialLines.Add(line);
+        }
+
+        private static bool FindLine(List<Line> lines, int id)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].Id == id)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

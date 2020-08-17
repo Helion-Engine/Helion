@@ -58,7 +58,6 @@ namespace Helion.World.Entities
         public object LowestCeilingObject;
         public double LowestCeilingZ;
         public double HighestFloorZ;
-        public List<Line> IntersectSpecialLines = new List<Line>();
         public List<Sector> IntersectSectors = new List<Sector>();
         // The entity we are standing on
         public Entity? OnEntity;
@@ -239,7 +238,6 @@ namespace Helion.World.Entities
             BlockmapNodes.Clear();
 
             IntersectSectors.Clear();
-            IntersectSpecialLines.Clear();
             BlockingLine = null;
             BlockingEntity = null;
             BlockingSectorPlane = null;
