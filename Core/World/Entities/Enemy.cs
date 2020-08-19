@@ -37,13 +37,35 @@ namespace Helion.World.Entities
 
         public bool BlockFloating;
 
+        public bool ValidEnemyTarget(Entity? entity) => entity != null && !entity.IsDead;
+
         public bool SetNewTarget(bool allaround)
         {
-            Entity? newTarget;
-            if (Target != null && !Target.IsDead)
+            Entity? newTarget = null;
+            if (ValidEnemyTarget(Target))
+            {
                 newTarget = Target;
+            }
             else
-                newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+            {
+                if (Sector.SoundTarget != null && ValidEnemyTarget(Sector.SoundTarget))
+                {
+                    if (Flags.Ambush)
+                    {
+                        // Ambush enemies will set target based on SoundTarget reguardless of FOV.
+                        if (EntityManager.World.PhysicsManager.CheckLineOfSight(this, Sector.SoundTarget))
+                            newTarget = Sector.SoundTarget;
+                    }
+                    else
+                    {
+                        newTarget = Sector.SoundTarget;
+                    }
+                }
+                else
+                {
+                    newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+                }
+            }
 
             if (newTarget != null)
             {

@@ -64,6 +64,7 @@ namespace Helion.World
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
 
         private readonly DoomRandom m_random = new DoomRandom();
+        private int m_soundCount;
         
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem, 
             MapGeometry geometry, IMap map)
@@ -107,6 +108,40 @@ namespace Helion.World
             }
 
             return null;
+        }
+
+        public void NoiseAlert(Entity target)
+        {
+            m_soundCount++;
+            RecursiveSound(target, target.Sector, 0);
+        }
+
+        public void RecursiveSound(Entity target, Sector sector, int block)
+        {
+            if (sector.SoundValidationCount == m_soundCount && sector.SoundBlock <= block + 1)
+                return;
+
+            sector.SoundValidationCount = m_soundCount;
+            sector.SoundBlock = block + 1;
+            sector.SoundTarget = target;
+
+            foreach (Line line in sector.Lines)
+            {
+                if (line.Back == null || !LineOpening.IsOpen(line))
+                    continue;
+
+                Sector other = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
+                if (line.Flags.BlockSound)
+                {
+                    // Has to cross two block sound lines to stop. This is how it was designed.
+                    if (block == 0)
+                        RecursiveSound(target, other, 1);
+                }
+                else
+                {
+                    RecursiveSound(target, other, block);
+                }
+            }
         }
 
         public void Link(Entity entity)

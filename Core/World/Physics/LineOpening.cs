@@ -31,6 +31,16 @@ namespace Helion.World.Physics
 
         public double DropOffZ;
 
+        public static bool IsOpen(Line line)
+        {
+            Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");
+
+            Sector front = line.Front.Sector;
+            Sector back = line.Back!.Sector;
+
+            return Math.Min(front.Ceiling.Z, back.Ceiling.Z) - Math.Max(front.Floor.Z, back.Floor.Z) > 0;
+        }
+
         public LineOpening()
         {
             CeilingZ = 0;

@@ -93,6 +93,10 @@ namespace Helion.World.Geometry.Sectors
         public bool DataChanged;
         public bool LightingChanged;
 
+        public int SoundValidationCount;
+        public int SoundBlock;
+        public Entity? SoundTarget;
+
         public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
             ZDoomSectorSpecialType sectorSpecial)
         {
