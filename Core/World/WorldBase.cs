@@ -98,9 +98,10 @@ namespace Helion.World
                     Vec2D entityLookingVector = Vec2D.RadiansToUnit(entity.AngleRadians);
                     Vec2D entityToTarget = player.Position.To2D() - entity.Position.To2D();
 
-                    // Not in front 180 FOV
-                    if (entityToTarget.Dot(entityLookingVector) < 0)
-                        return null;
+                    // Not in front 180 FOV or MeleeRange
+                    if (entityToTarget.Dot(entityLookingVector) < 0 && 
+                        entity.Position.ApproximateDistance2D(player.Position) > Constants.EntityMeleeDistance)
+                        continue;
                 }
 
                 if (!player.IsDead && PhysicsManager.CheckLineOfSight(entity, player))

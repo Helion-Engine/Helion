@@ -2152,7 +2152,7 @@ namespace Helion.World.Entities.Definition.States
             entity.Velocity = Vec3D.UnitTimesValue(entity.AngleRadians, 0.0, entity.Definition.Properties.Speed);
             entity.Velocity.Z = z;
 
-            double distance = entity.Position.To2D().ApproximateDistance(entity.Tracer.Position.To2D());
+            double distance = entity.Position.ApproximateDistance2D(entity.Tracer.Position);
             double slope = GetTracerSlope(entity.Tracer.Position.Z + 40 - entity.Position.Z, distance, entity.Definition.Properties.Speed);
 
             if (slope < entity.Velocity.Z)

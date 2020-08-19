@@ -247,7 +247,7 @@ namespace Helion.World.Entities
             if (Target == null || !Flags.IsMonster || !Flags.Float || Flags.Skullfly || BlockFloating)
                 return 0.0;
 
-            double distance = Position.To2D().Distance(Target.Position.To2D());
+            double distance = Position.ApproximateDistance2D(Target.Position);
             double dz = (Target.Position.Z - Position.Z + (Height / 2)) * 3;
 
             if (dz < 0 && distance < -dz)
@@ -263,7 +263,7 @@ namespace Helion.World.Entities
             if (entity == null || Properties.MeleeRange == 0)
                 return false;
 
-            double distance = Position.To2D().Distance(entity.Position.To2D());
+            double distance = Position.ApproximateDistance2D(entity.Position);
 
             if (distance >= Properties.MeleeRange + Radius)
                 return false;

@@ -85,6 +85,16 @@ namespace Helion.Util.Geometry.Vectors
             Z *= value;
         }
 
+        public double ApproximateDistance2D(in Vec3D other)
+        {
+            double dx = Math.Abs(X - other.X);
+            double dy = Math.Abs(Y - other.Y);
+
+            if (dx < dy)
+                return dx + dy - (dx / 2);
+            return dx + dy - (dy / 2);
+        }
+
         public Vec2D To2D() => new Vec2D(X, Y);
         public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));
         public Vector3 ToFloat() => new Vector3((float)X, (float)Y, (float)Z);
