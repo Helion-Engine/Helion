@@ -73,7 +73,7 @@ namespace Helion.World.Special
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.MonsterLineCross;
                 else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse && line.Special.MonsterCanUse();
+                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && line.Special.MonsterCanUse();
             }
             else if (entity is Player)
             {
