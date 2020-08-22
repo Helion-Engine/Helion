@@ -45,6 +45,18 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.MeleeDamage != null)
                 definition.Properties.MeleeDamage = properties.MeleeDamage.Value;
 
+            if (properties.MeleeThreshold.HasValue)
+                definition.Properties.MeleeThreshold = properties.MeleeThreshold.Value;
+
+            if (properties.MaxTargetRange.HasValue)
+                definition.Properties.MaxTargetRange = properties.MaxTargetRange.Value;
+
+            if (properties.MinMissileChance.HasValue)
+                definition.Properties.MinMissileChance = properties.MinMissileChance.Value;
+
+            if (properties.ReactionTime.HasValue)
+                definition.Properties.ReactionTime = properties.ReactionTime.Value;
+
             if (properties.DeathSound != null)
                 definition.Properties.DeathSound = properties.DeathSound;
 

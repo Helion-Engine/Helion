@@ -160,6 +160,8 @@ namespace Helion.World.Entities.Definition.Properties
             MeleeDamage = properties.MeleeDamage;
             MeleeSound = properties.MeleeSound;
             MinMissileChance = properties.MinMissileChance;
+            MaxTargetRange = properties.MaxTargetRange;
+            MeleeThreshold = properties.MeleeThreshold;
             MissileType = properties.MissileType;
             Obituary = properties.Obituary;
             PainChance = properties.PainChance;

@@ -47,7 +47,6 @@ namespace Helion.World.Entities
         public Inventory Inventory = new Inventory();
         public int Health;
         public int FrozenTics;
-        public int ReactionTime;
         public int MoveCount;
         public bool OnGround;
         public Sector Sector;
@@ -384,6 +383,7 @@ namespace Helion.World.Entities
             }
 
             Health -= damage;
+            Properties.ReactionTime = 0;
 
             if (Health <= 0)
             {
@@ -391,6 +391,7 @@ namespace Helion.World.Entities
             }
             else if (setPainState && !Flags.Skullfly && Definition.States.Labels.ContainsKey("PAIN"))
             {
+                Flags.JustHit = true;
                 FrameState.SetState(FrameStateLabel.Pain);
                 if (Definition.Properties.PainSound.Length > 0)
                     SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, new SoundParams(this));

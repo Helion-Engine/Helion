@@ -514,7 +514,7 @@ namespace Helion.World.Entities.Definition.States
                 spawnShot.AngleRadians = entity.Position.Angle(target.Position);
                 spawnShot.Velocity = Vec3D.UnitTimesValue(spawnShot.AngleRadians, pitch, spawnShot.Definition.Properties.Speed);
                 spawnShot.Target = target;
-                spawnShot.ReactionTime = (int)(entity.Position.Distance(target.Position) / spawnShot.Definition.Properties.Speed / (spawnShot.Frame.Ticks*2));
+                spawnShot.Properties.ReactionTime = (int)(entity.Position.Distance(target.Position) / spawnShot.Definition.Properties.Speed / (spawnShot.Frame.Ticks*2));
             }
 
             entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
@@ -528,7 +528,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            if (--entity.ReactionTime > 0)
+            if (--entity.Properties.ReactionTime > 0)
                 return;
 
             entity.EntityManager.Create("ArchvileFire", entity.Target.Position);
@@ -643,7 +643,9 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Chase(Entity entity)
         {
-            // TODO reaction time
+            if (entity.Properties.ReactionTime > 0)
+                entity.Properties.ReactionTime--;
+
             if (entity.Target == null || entity.Target.IsDead)
             {
                 if (!entity.SetNewTarget(true))
@@ -654,6 +656,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Flags.JustAttacked)
             {
                 entity.Flags.JustAttacked = false;
+                entity.SetNewChaseDirection();
                 return;
             }
 

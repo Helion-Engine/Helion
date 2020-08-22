@@ -1,4 +1,5 @@
 ﻿using System;
+using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Physics;
@@ -20,6 +21,19 @@ namespace Helion.World.Entities
             SouthEast,
             None
         }
+
+        private static readonly double[] MoveAngles = new[]
+        {
+            0.0,
+            MathHelper.QuarterPi,
+            MathHelper.HalfPi,
+            MathHelper.HalfPi + MathHelper.QuarterPi,
+            MathHelper.Pi,
+            MathHelper.Pi + MathHelper.QuarterPi,
+            MathHelper.Pi + MathHelper.HalfPi,
+            MathHelper.Pi + MathHelper.HalfPi + MathHelper.QuarterPi,
+            0.0
+        };
 
         private static readonly MoveDir[] OppositeDirections = new[]
         {
@@ -210,7 +224,8 @@ namespace Helion.World.Entities
             }
 
             Vec2D nextPos = GetNextEnemyPos();
-            AngleRadians = Position.Angle(nextPos);
+            // TODO Doom has 'turn towards movement direction if not there yet'
+            AngleRadians = MoveAngles[(int)m_direction];
 
             m_enemyMove = true;
             tryMove = EntityManager.World.PhysicsManager.TryMoveXY(this, nextPos, false);
@@ -282,7 +297,34 @@ namespace Helion.World.Entities
             if (Target == null || !EntityManager.World.PhysicsManager.CheckLineOfSight(this, Target))
                 return false;
 
-            return true;
+            if (Flags.JustHit)
+            {
+                Flags.JustHit = false;
+                return true;
+            }
+
+            if (Properties.ReactionTime > 0)
+                return false;
+
+            double distance = Position.ApproximateDistance2D(Target.Position);
+
+            if (!HasMeleeState())
+                distance -= 128;
+
+            if (HasMeleeState() && distance < Definition.Properties.MeleeThreshold)
+                return false;
+
+            if (Definition.Flags.MissileMore)
+                distance /= 2;
+            if (Definition.Flags.MissileEvenMore)
+                distance /= 8;
+
+            if (Definition.Properties.MaxTargetRange > 0 && distance > Definition.Properties.MaxTargetRange)
+                return false;
+
+            // TODO use game skill when implemented, changes this chance
+            distance = Math.Min(distance, Definition.Properties.MinMissileChance);
+            return World.Random.NextByte() >= distance;
         }
 
         private bool TryWalk()
