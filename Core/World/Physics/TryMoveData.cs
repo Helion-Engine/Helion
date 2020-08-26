@@ -7,13 +7,11 @@ namespace Helion.World.Physics
 {
     public class TryMoveData
     {
-        public const double NoBlockingFloor = double.MinValue;
-
         public Vec2D Position;
         public bool Success;
+        public bool CanFloat;
         public double LowestCeilingZ;
         public double HighestFloorZ;
-        public double HighestBlockingFloorZ = NoBlockingFloor;
         public double DropOffZ;
 
         public Entity? DropOffEntity;
@@ -33,16 +31,7 @@ namespace Helion.World.Physics
                 DropOffZ = opening.DropOffZ;
                 DropOffEntity = null;
             }
-        }
 
-        public void SetBlockingData(LineOpening opening)
-        {
-            if (opening.FloorZ > HighestBlockingFloorZ)
-                HighestBlockingFloorZ = opening.FloorZ;
-        }
-
-        public void SetNonBlockingData(LineOpening opening)
-        {
             if (opening.FloorZ > HighestFloorZ)
                 HighestFloorZ = opening.FloorZ;
             if (opening.CeilingZ < LowestCeilingZ)

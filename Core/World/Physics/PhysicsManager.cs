@@ -832,14 +832,7 @@ namespace Helion.World.Physics
             LineOpening opening = GetLineOpening(entity.Position.To2D(), line);
             tryMove?.SetIntersectionData(opening);
 
-            if (!opening.CanPassOrStepThrough(entity))
-            {
-                tryMove?.SetBlockingData(opening);
-                return true;
-            }
-
-            tryMove?.SetNonBlockingData(opening);
-            return false;
+            return !opening.CanPassOrStepThrough(entity);
         }
 
         private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
@@ -1077,6 +1070,7 @@ namespace Helion.World.Physics
         public TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
         {
             TryMoveData tryMoveData = new TryMoveData(position);
+            entity.BlockingLine = null;
 
             if (entity.Flags.NoClip)
             {
@@ -1236,24 +1230,29 @@ namespace Helion.World.Physics
                     tryMove.DropOffEntity = highFloorEntity;
             }
 
+            bool success = false;
             Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
             if (!m_blockmap.Iterate(nextBox, CheckForBlockers))
+                success = true;
+
+            if (tryMove != null)
             {
-                if (tryMove != null)
-                {
-                    // TODO we may need something like this for when walking on other things
-                    //ClampBetweenFloorAndCeiling(entity);
-                    //tryMove.HighestFloorZ = entity.HighestFloorZ;
-                    //tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+                tryMove.HighestFloorZ = entity.HighestFloorZ;
+                tryMove.LowestCeilingZ = entity.LowestCeilingZ;
 
-                    if (!entity.CheckDropOff(tryMove))
-                        return false;
-                }
+                if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
+                    return false;
 
-                return true;
+                if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height)
+                    return false;
+
+                tryMove.CanFloat = true;
+
+                if (!entity.CheckDropOff(tryMove))
+                    return false;
             }
 
-            return false;
+            return success;
 
             GridIterationStatus CheckForBlockers(Block block)
             {

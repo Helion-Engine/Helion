@@ -232,13 +232,10 @@ namespace Helion.World.Entities
             m_enemyMove = false;
             if (!tryMove.Success)
             {
-                if (Flags.Float && tryMove.HighestBlockingFloorZ != TryMoveData.NoBlockingFloor && Position.Z != tryMove.HighestBlockingFloorZ)
+                if (Flags.Float && tryMove.CanFloat)
                 {
                     BlockFloating = true;
-                    Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestBlockingFloorZ ? FloatSpeed : -FloatSpeed));
-                    if (pos.Z < tryMove.HighestFloorZ || pos.Z > tryMove.LowestCeilingZ)
-                        return false;
-
+                    Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
                     SetPosition(pos);
                     return true;
                 }
