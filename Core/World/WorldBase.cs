@@ -162,12 +162,6 @@ namespace Helion.World
             }
             else if (WorldState == WorldState.Normal)
             {
-                // We need to do this (for now) because MoveZ and PreviouslyClipped
-                // run into issues if this is not updated properly. If we can do a
-                // resolution to the sector moving up/down with clipping monsters
-                // issue, then this might be able to be handled better later on.
-                EntityManager.Entities.ForEach(entity => entity.PrevPosition = entity.Box.Position);
-
                 EntityManager.Entities.ForEach(entity =>
                 {
                     entity.Tick();

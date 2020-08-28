@@ -69,7 +69,23 @@ namespace Helion.World.Physics
             else
                 DropOffZ = front.Floor.Z;
         }
-        
+
+        public void SetTop(Entity other)
+        {
+            CeilingZ = other.LowestCeilingZ;
+            FloorZ = other.Position.Z + other.Height;
+            OpeningHeight = CeilingZ - FloorZ;
+            DropOffZ = FloorZ;
+        }
+
+        public void SetBottom(Entity other)
+        {
+            CeilingZ = other.Position.Z;
+            FloorZ = other.HighestFloorZ;
+            OpeningHeight = CeilingZ - FloorZ;
+            DropOffZ = FloorZ;
+        }
+
         public bool CanStepUpInto(Entity entity)
         {
             return entity.Box.Bottom < FloorZ && entity.Box.Bottom >= FloorZ - entity.GetMaxStepHeight();

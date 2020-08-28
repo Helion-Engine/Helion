@@ -742,16 +742,6 @@ namespace Helion.World.Physics
                 entity.Velocity.Y = 0;
         }
 
-        private static bool PreviouslyClipped(Entity entity, Entity other)
-        {
-            // Can't check for entities without CanPass as the movement code allows them to potentially clip
-            if (!entity.Flags.CanPass)
-                return false;
-
-            return Box3D.Overlaps(entity.PrevPosition, entity.Radius, entity.Height,
-                other.PrevPosition, other.Radius, other.Height);
-        }
-
         private static bool CanMoveOutOfEntity(Entity entity, Entity other, in Vec2D nextPosition)
         {
             Vec2D otherPos = other.Position.To2D();
@@ -913,7 +903,7 @@ namespace Helion.World.Physics
                     entity.BlockingEntity = blockEntity;
                 else
                     entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
-            }
+            }    
 
             entity.OnGround = entity.Box.Bottom == highestFloor;
         }
@@ -955,10 +945,6 @@ namespace Helion.World.Physics
                 for (int i = 0; i < intersectEntities.Count; i++)
                 {
                     Entity intersectEntity = intersectEntities[i];
-                    // Check if we are stuck inside this entity and skip because it
-                    // is invalid for setting floor/ceiling.
-                    if (PreviouslyClipped(entity, intersectEntity))
-                        continue;
 
                     bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
                     bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
@@ -1223,9 +1209,9 @@ namespace Helion.World.Physics
         {
             if (tryMove != null)
             {
-                tryMove.HighestFloorZ = entity.Sector.ToFloorZ(position);
-                tryMove.LowestCeilingZ = entity.Sector.ToCeilingZ(position);
-                tryMove.DropOffZ = entity.HighestFloorZ;
+                tryMove.HighestFloorZ = entity.HighestFloorZ;
+                tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+                tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
                 if (entity.HighestFloorObject is Entity highFloorEntity)
                     tryMove.DropOffEntity = highFloorEntity;
             }
@@ -1237,9 +1223,6 @@ namespace Helion.World.Physics
 
             if (tryMove != null)
             {
-                tryMove.HighestFloorZ = entity.HighestFloorZ;
-                tryMove.LowestCeilingZ = entity.LowestCeilingZ;
-
                 if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
                     return false;
 
@@ -1298,7 +1281,7 @@ namespace Helion.World.Physics
 
                                 bool clipped = true;
                                 //If we are stuck inside another entity's box then only allow movement if we try to move out the box
-                                if (PreviouslyClipped(entity, nextEntity))
+                                if (entity.Box.Overlaps(nextEntity.Box))
                                     clipped = CanMoveOutOfEntity(entity, nextEntity, position);
 
                                 if (clipped)

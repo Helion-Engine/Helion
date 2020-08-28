@@ -247,6 +247,8 @@ namespace Helion.World.Entities
         /// </summary>
         public virtual void Tick()
         {
+            PrevPosition = Position;
+
             if (FrozenTics > 0)
                 FrozenTics--;
 
@@ -492,19 +494,17 @@ namespace Helion.World.Entities
             if (!ShouldCheckDropOff() || !m_enemyMove)
                 return true;
 
+            if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge)
+                return false;
+
             // Walking on things test
             for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
             {
                 Entity entity = tryMove.IntersectEntities2D[i];
-                if (BlocksEntityZ(entity, tryMove.LowestCeilingZ))
-                {
-                    return false;
-                }
-                else
-                {
-                    if (entity.Box.Top > tryMove.DropOffZ)
-                        tryMove.DropOffZ = entity.Box.Top;
-                }
+                if (!CanBlockEntity(entity))
+                    continue;
+                if (entity.Box.Top > tryMove.DropOffZ)
+                    tryMove.DropOffZ = entity.Box.Top;
             }
 
             if (tryMove.IntersectEntities2D.Count == 0 && tryMove.DropOffEntity != null)
@@ -515,17 +515,23 @@ namespace Helion.World.Entities
 
         public bool BlocksEntityZ(Entity other)
         {
-            return BlocksEntityZ(other, LowestCeilingZ);
+            return BlocksEntityZ(other, null);
         }
 
-        private bool BlocksEntityZ(Entity other, double lowestCeilingZ)
+        private bool BlocksEntityZ(Entity other, TryMoveData? tryMove)
         {
             if (ReferenceEquals(this, other))
                 return false;
 
-            double maxStepHeight = GetMaxStepHeight();
-            return other.Box.Top - Box.Bottom > maxStepHeight ||
-                   lowestCeilingZ - other.Box.Top < Height;
+            LineOpening openingTop = new LineOpening();
+            openingTop.SetTop(other);
+            tryMove?.SetIntersectionData(openingTop);
+
+            LineOpening openingBottom = new LineOpening();
+            openingBottom.SetBottom(other);
+            tryMove?.SetIntersectionData(openingBottom);
+
+            return !openingTop.CanPassOrStepThrough(this) && !openingBottom.CanPassOrStepThrough(this);
         }
 
         public void Hit()
