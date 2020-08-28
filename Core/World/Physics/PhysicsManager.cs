@@ -1276,7 +1276,7 @@ namespace Helion.World.Physics
                             }
                             else if (entity.CanBlockEntity(nextEntity))
                             {
-                                if (!entity.BlocksEntityZ(nextEntity))
+                                if (!entity.BlocksEntityZ(nextEntity, tryMove))
                                     continue;
 
                                 bool clipped = true;

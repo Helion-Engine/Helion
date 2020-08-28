@@ -513,25 +513,23 @@ namespace Helion.World.Entities
             return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
         }
 
-        public bool BlocksEntityZ(Entity other)
-        {
-            return BlocksEntityZ(other, null);
-        }
-
-        private bool BlocksEntityZ(Entity other, TryMoveData? tryMove)
+        public bool BlocksEntityZ(Entity other, TryMoveData? tryMove)
         {
             if (ReferenceEquals(this, other))
                 return false;
 
-            LineOpening openingTop = new LineOpening();
-            openingTop.SetTop(other);
-            tryMove?.SetIntersectionData(openingTop);
+            LineOpening openTop = new LineOpening();
+            openTop.SetTop(other);
 
-            LineOpening openingBottom = new LineOpening();
-            openingBottom.SetBottom(other);
-            tryMove?.SetIntersectionData(openingBottom);
+            LineOpening openBottom = new LineOpening();
+            openBottom.SetBottom(other);
 
-            return !openingTop.CanPassOrStepThrough(this) && !openingBottom.CanPassOrStepThrough(this);
+            if (Position.Z + Height > other.Position.Z)
+                tryMove?.SetIntersectionData(openTop);
+            else
+                tryMove?.SetIntersectionData(openBottom);
+
+            return !openTop.CanPassOrStepThrough(this) && !openBottom.CanPassOrStepThrough(this);
         }
 
         public void Hit()
