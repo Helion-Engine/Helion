@@ -11,6 +11,7 @@ using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -363,10 +364,10 @@ namespace Helion.World.Entities
 
         public virtual bool CanDamage(Entity source)
         {
-            if (source.Owner == null)
+            if (source is Player)
                 return true;
 
-            return !ReferenceEquals(this, source.Owner) && !GetSpeciesName().Equals(source.Owner.GetSpeciesName());
+            return !GetSpeciesName().Equals(source.GetSpeciesName());
         }
 
         public virtual bool Damage(Entity? source, int damage, bool setPainState)
@@ -376,10 +377,10 @@ namespace Helion.World.Entities
 
             if (source != null)
             {
-                if (!CanDamage(source))
-                    return false;
-
                 Entity damageSource = source.Owner ?? source;
+                if (!CanDamage(damageSource))
+                    return false;
+                
                 if (!damageSource.IsDead)
                     Target = damageSource;
             }
