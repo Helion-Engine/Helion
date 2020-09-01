@@ -1687,9 +1687,9 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            if (entity.CheckMissileRange())
+            entity.PlayAttackSound();
+            if (entity.InMeleeRange(entity.Target))
             {
-                entity.PlayAttackSound();
                 int damage = ((entity.World.Random.NextByte() % 10) + 1) * 4;
                 entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
             }
