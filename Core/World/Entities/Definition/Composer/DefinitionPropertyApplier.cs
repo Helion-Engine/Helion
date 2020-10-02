@@ -26,7 +26,7 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.PainChance != null)
                 definition.Properties.PainChance = (int)properties.PainChance.Value.Value;
-            
+
             if (properties.ProjectileKickBack != null)
                 definition.Properties.ProjectileKickBack = properties.ProjectileKickBack.Value;
 
@@ -74,6 +74,14 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.ActiveSound != null)
                 definition.Properties.ActiveSound = properties.ActiveSound;
+
+            if (properties.DropItem.ClassName != null)
+            {
+                byte probability = properties.DropItem.Probability.HasValue ? properties.DropItem.Probability.Value : Properties.Components.DropItemProperty.DefaultProbability;
+                int amount = properties.DropItem.Amount.HasValue ? properties.DropItem.Amount.Value : Properties.Components.DropItemProperty.DefaultAmount;
+                definition.Properties.DropItem = new Properties.Components.DropItemProperty(properties.DropItem.ClassName,
+                    probability, amount);
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -614,6 +615,20 @@ namespace Helion.World.Physics
         {
             if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
                 HandleStackedEntityPhysics(deathEntity);
+
+            if (deathEntity.Definition.Properties.DropItem != null && 
+                (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
+                    m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
+            {
+                for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
+                {
+                    Vec3D pos = deathEntity.Position;
+                    pos.Z += deathEntity.Definition.Properties.Height / 2;
+                    Entity? dropItem = m_entityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
+                    if (dropItem != null)
+                        dropItem.Velocity.Z += 4;
+                }
+            }
         }
 
         public void RadiusExplosion(Entity source, int radius)
