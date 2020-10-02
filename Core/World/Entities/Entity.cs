@@ -454,7 +454,7 @@ namespace Helion.World.Entities
 
         public bool CanBlockEntity(Entity other)
         {
-            if (ReferenceEquals(this, other) || Owner == other || !other.Flags.Solid)
+            if (ReferenceEquals(this, other) || Owner == other || !other.Flags.Solid || other.Flags.NoClip)
                 return false;
             return other.Flags.Solid;
         }
