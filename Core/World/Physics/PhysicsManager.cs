@@ -954,46 +954,53 @@ namespace Helion.World.Physics
                     }
                 }
 
-                // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-                List<Entity> intersectEntities = entity.GetIntersectingEntities2D();
-
-                for (int i = 0; i < intersectEntities.Count; i++)
+                if (!entity.Init)
                 {
-                    Entity intersectEntity = intersectEntities[i];
+                    // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
+                    List<Entity> intersectEntities = entity.GetIntersectingEntities2D();
 
-                    bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
-                    bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
-                    bool clipped = false;
-                    if (above && entity.Box.Bottom < intersectEntity.Box.Top)
-                        clipped = true;
-                    else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
-                        clipped = true;
-
-                    if (above)
+                    for (int i = 0; i < intersectEntities.Count; i++)
                     {
-                        // Need to check clipping coming from above, if we're above
-                        // or clipped through then this is our floor.
-                        if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
+                        Entity intersectEntity = intersectEntities[i];
+
+                        bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
+                        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
+                        bool clipped = false;
+                        if (above && entity.Box.Bottom < intersectEntity.Box.Top)
+                            clipped = true;
+                        else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
+                            clipped = true;
+
+                        // If clipped with this entity and moving out, then ignore
+                        if (clipped && CanMoveOutOfEntity(entity, intersectEntity, entity.Position.To2D()))
+                            continue;
+
+                        if (above)
+                        {
+                            // Need to check clipping coming from above, if we're above
+                            // or clipped through then this is our floor.
+                            if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
+                            {
+                                highestFloorEntity = intersectEntity;
+                                highestFloorZ = intersectEntity.Box.Top;
+                            }
+                        }
+                        else if (below)
+                        {
+                            // Same check as above but checking clipping the ceiling.
+                            if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
+                            {
+                                lowestCeilingEntity = intersectEntity;
+                                lowestCeilZ = intersectEntity.Box.Bottom;
+                            }
+                        }
+
+                        // Need to check if we can step up to this floor.
+                        if (entity.Box.Bottom + entity.GetMaxStepHeight() >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
                         {
                             highestFloorEntity = intersectEntity;
                             highestFloorZ = intersectEntity.Box.Top;
                         }
-                    }
-                    else if (below)
-                    {
-                        // Same check as above but checking clipping the ceiling.
-                        if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
-                        {
-                            lowestCeilingEntity = intersectEntity;
-                            lowestCeilZ = intersectEntity.Box.Bottom;
-                        }
-                    }
-
-                    // Need to check if we can step up to this floor.
-                    if (entity.Box.Bottom + entity.GetMaxStepHeight() >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
-                    {
-                        highestFloorEntity = intersectEntity;
-                        highestFloorZ = intersectEntity.Box.Top;
                     }
                 }
             }
@@ -1293,7 +1300,7 @@ namespace Helion.World.Physics
                             }
                             else if (entity.CanBlockEntity(nextEntity))
                             {
-                                if (!entity.BlocksEntityZ(nextEntity, tryMove))
+                                if (!entity.BlocksEntityZ(nextEntity, out LineOpening? lineOpening))
                                     continue;
 
                                 bool clipped = true;
@@ -1303,6 +1310,8 @@ namespace Helion.World.Physics
 
                                 if (clipped)
                                 {
+                                    if (lineOpening != null)
+                                        tryMove?.SetIntersectionData(lineOpening);
                                     entity.BlockingEntity = nextEntity;
                                     return GridIterationStatus.Stop;
                                 }

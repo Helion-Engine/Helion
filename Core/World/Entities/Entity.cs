@@ -70,6 +70,7 @@ namespace Helion.World.Entities
         public SectorPlane? BlockingSectorPlane;
         public Entity? Target;
         public Entity? Tracer;
+        public bool Init = true;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
@@ -514,10 +515,13 @@ namespace Helion.World.Entities
             return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
         }
 
-        public bool BlocksEntityZ(Entity other, TryMoveData? tryMove)
+        public bool BlocksEntityZ(Entity other, out LineOpening? lineOpening)
         {
             if (ReferenceEquals(this, other))
+            {
+                lineOpening = null;
                 return false;
+            }
 
             LineOpening openTop = new LineOpening();
             openTop.SetTop(other);
@@ -526,9 +530,9 @@ namespace Helion.World.Entities
             openBottom.SetBottom(other);
 
             if (Position.Z + Height > other.Position.Z)
-                tryMove?.SetIntersectionData(openTop);
+                lineOpening = openTop;
             else
-                tryMove?.SetIntersectionData(openBottom);
+                lineOpening = openBottom;
 
             return !openTop.CanPassOrStepThrough(this) && !openBottom.CanPassOrStepThrough(this);
         }
