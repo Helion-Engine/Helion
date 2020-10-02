@@ -1209,7 +1209,9 @@ namespace Helion.World.Physics
         {
             if (tryMove != null)
             {
-                tryMove.HighestFloorZ = entity.HighestFloorZ;
+                // Have to be careful with HighestFloorZ here
+                // Setting to Position.Z works with walking on bridges and enemies clipped into ledges
+                tryMove.HighestFloorZ = entity.Position.Z;
                 tryMove.LowestCeilingZ = entity.LowestCeilingZ;
                 tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
                 if (entity.HighestFloorObject is Entity highFloorEntity)
