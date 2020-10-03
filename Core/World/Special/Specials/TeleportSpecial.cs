@@ -2,13 +2,11 @@
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
-using System.Collections.Generic;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 
 namespace Helion.World.Special.Specials
