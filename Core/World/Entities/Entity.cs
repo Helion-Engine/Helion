@@ -49,7 +49,6 @@ namespace Helion.World.Entities
         public int Health;
         public int FrozenTics;
         public int MoveCount;
-        public bool OnGround;
         public Sector Sector;
         public Sector HighestFloorSector;
         public Sector LowestCeilingSector;
@@ -64,13 +63,15 @@ namespace Helion.World.Entities
         // The entity standing on our head
         public Entity? OverEntity;
         public Entity? Owner;
-        public bool Refire;
         public Line? BlockingLine;
         public Entity? BlockingEntity;
         public SectorPlane? BlockingSectorPlane;
         public Entity? Target;
         public Entity? Tracer;
+
         public bool Init = true;
+        public bool OnGround;
+        public bool Refire;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
