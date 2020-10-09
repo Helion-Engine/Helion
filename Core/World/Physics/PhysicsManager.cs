@@ -987,7 +987,7 @@ namespace Helion.World.Physics
                     else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
                         clipped = true;
 
-                    if (!above && !below && !sectors)
+                    if (!above && !below && !sectors && !intersectEntity.Flags.ActLikeBridge)
                     {
                         entity.ClippedEntity = intersectEntity;
                         intersectEntity.ClippedEntity = entity;
