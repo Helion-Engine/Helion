@@ -613,7 +613,7 @@ namespace Helion.World.Physics
 
         private void HandleEntityDeath(Entity deathEntity)
         {
-            if (deathEntity.OnEntity != null || deathEntity.OverEntity != null || deathEntity.ClippedEntity != null)
+            if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
                 HandleStackedEntityPhysics(deathEntity);
 
             if (deathEntity.Definition.Properties.DropItem != null && 
@@ -944,10 +944,8 @@ namespace Helion.World.Physics
             double highestFloorZ = highestFloor.ToFloorZ(entity.Position);
             double lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
 
-            Entity? clippedEntity = entity.ClippedEntity;
-
             entity.OnEntity = null;
-            entity.ClippedEntity = null;
+            entity.ClippedWithEntity = false;
 
             // Only check against other entities if CanPass is set (height sensitive clip detection)
             if (entity.Flags.CanPass)
@@ -989,14 +987,15 @@ namespace Helion.World.Physics
 
                     if (!above && !below && !sectors && !intersectEntity.Flags.ActLikeBridge)
                     {
-                        entity.ClippedEntity = intersectEntity;
-                        intersectEntity.ClippedEntity = entity;
+                        entity.ClippedWithEntity = true;
+                        // ZDoom-ism
+                        if (entity.Position.Z > intersectEntity.Position.Z + (intersectEntity.Height / 2))
+                        {
+                            highestFloorEntity = intersectEntity;
+                            highestFloorZ = intersectEntity.Box.Top;
+                        }
                         continue;
                     }
-
-                    // If clipped with this entity and moving out, then ignore
-                    if (clipped && CanMoveOutOfEntity(entity, intersectEntity, entity.Position.To2D()))
-                        continue;
 
                     if (above)
                     {
@@ -1041,9 +1040,6 @@ namespace Helion.World.Physics
                 entity.LowestCeilingObject = lowestCeilingEntity;
             else
                 entity.LowestCeilingObject = lowestCeiling;
-
-            if (clippedEntity != null && entity.ClippedEntity != clippedEntity)
-                clippedEntity.ClippedEntity = null;
 
             entity.CheckOnGround();
         }
@@ -1165,7 +1161,7 @@ namespace Helion.World.Physics
                     MoveTo(entity, position, tryMoveData);
             }
 
-            if (success && (entity.OverEntity != null || entity.ClippedEntity != null))
+            if (success && entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);
 
             tryMoveData.Success = success;
@@ -1184,7 +1180,7 @@ namespace Helion.World.Physics
                 foreach (var relinkEntity in entity.Sector.Entities)
                 {
                     if (relinkEntity.OnEntity == entity)
-                        ClampBetweenFloorAndCeiling(relinkEntity);
+                        ClampBetweenFloorAndCeiling(relinkEntity, false);
                 }
 
                 entity = currentOverEntity;
@@ -1192,15 +1188,6 @@ namespace Helion.World.Physics
                 if (currentOverEntity.OverEntity != null && currentOverEntity.OverEntity.OnEntity != entity)
                     currentOverEntity.OverEntity = null;
                 currentOverEntity = next;
-            }
-
-            if (entity.ClippedEntity != null)
-            {
-                foreach (var relinkEntity in entity.Sector.Entities)
-                {
-                    if (relinkEntity.ClippedEntity == entity)
-                        ClampBetweenFloorAndCeiling(relinkEntity, false);
-                }
             }
         }
 
@@ -1645,7 +1632,7 @@ namespace Helion.World.Physics
             if (entity.IsBlocked())
                 HandleEntityHit(entity, null);
 
-            if (entity.OverEntity != null || entity.ClippedEntity != null)
+            if (entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);
         }
     }

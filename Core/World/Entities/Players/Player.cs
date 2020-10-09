@@ -296,19 +296,6 @@ namespace Helion.World.Entities.Players
             m_viewHeight = MathHelper.Clamp(m_viewHeight, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
         }
 
-        private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !ClippedWithEntity();
-
-        private bool ClippedWithEntity()
-        {
-            var entities = GetIntersectingEntities2D();
-
-            for (int i = 0; i < entities.Count; i++)
-            {
-                if (BlocksEntityZ(entities[i], out _))
-                    return true;
-            }
-
-            return false;
-        }
+        private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !IsClippedWithEntity();
     }
 }

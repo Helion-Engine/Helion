@@ -62,8 +62,6 @@ namespace Helion.World.Entities
         public Entity? OnEntity;
         // The entity standing on our head.
         public Entity? OverEntity;
-        // An entity we are clipped with. Should not apply gravity.
-        public Entity? ClippedEntity;
         public Entity? Owner;
         public Line? BlockingLine;
         public Entity? BlockingEntity;
@@ -73,6 +71,8 @@ namespace Helion.World.Entities
 
         public bool OnGround;
         public bool Refire;
+        // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
+        public bool ClippedWithEntity;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
@@ -479,7 +479,16 @@ namespace Helion.World.Entities
                 return false;
             }
 
-            return !OnGround && ClippedEntity == null;
+            // If still clipped with another entity then do not apply gravity
+            if (ClippedWithEntity)
+            {
+                if (IsClippedWithEntity())
+                    return false;
+
+                ClippedWithEntity = false;
+            }
+
+            return !OnGround;
         }
 
         public bool ShouldApplyFriction()
@@ -488,6 +497,19 @@ namespace Helion.World.Entities
                 return false;
 
             return Flags.NoGravity || OnGround;
+        }
+
+        public bool IsClippedWithEntity()
+        {
+            List<Entity> entities = GetIntersectingEntities2D();
+
+            for (int i = 0; i < entities.Count; i++)
+            {
+                if (entities[i].Box.OverlapsZ(Box))
+                    return true;
+            }
+
+            return false;
         }
 
         public bool ShouldCheckDropOff() => !Flags.Float && !Flags.Dropoff;
