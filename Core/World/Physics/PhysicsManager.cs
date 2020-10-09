@@ -950,7 +950,7 @@ namespace Helion.World.Physics
             entity.ClippedEntity = null;
 
             // Only check against other entities if CanPass is set (height sensitive clip detection)
-            if (entity.Flags.CanPass && !entity.Init)
+            if (entity.Flags.CanPass)
             {
                 if (sectors)
                 {

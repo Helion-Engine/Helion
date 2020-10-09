@@ -71,7 +71,6 @@ namespace Helion.World.Entities
         public Entity? Target;
         public Entity? Tracer;
 
-        public bool Init = true;
         public bool OnGround;
         public bool Refire;
 
