@@ -58,10 +58,12 @@ namespace Helion.World.Entities
         public double LowestCeilingZ;
         public double HighestFloorZ;
         public List<Sector> IntersectSectors = new List<Sector>();
-        // The entity we are standing on
+        // The entity we are standing on.
         public Entity? OnEntity;
-        // The entity standing on our head
+        // The entity standing on our head.
         public Entity? OverEntity;
+        // An entity we are clipped with. Should not apply gravity.
+        public Entity? ClippedEntity;
         public Entity? Owner;
         public Line? BlockingLine;
         public Entity? BlockingEntity;
@@ -133,7 +135,7 @@ namespace Helion.World.Entities
             HighestFloorObject = sector;
             LowestCeilingSector = sector;
             LowestCeilingObject = sector;
-            OnGround = CheckOnGround();
+            CheckOnGround();
             EntityManager = entityManager;
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
@@ -415,8 +417,7 @@ namespace Helion.World.Entities
         public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
         public bool HasRaiseState() => Definition.States.Labels.ContainsKey("RAISE");
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
-
-        public bool CheckOnGround() => HighestFloorZ >= Position.Z;
+        public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
 
         /// <summary>
         /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space, only from the current Sector.
@@ -479,7 +480,7 @@ namespace Helion.World.Entities
                 return false;
             }
 
-            return !OnGround;
+            return !OnGround && ClippedEntity == null;
         }
 
         public bool ShouldApplyFriction()
@@ -588,6 +589,11 @@ namespace Helion.World.Entities
         {
             if (Position.Z < PhysicsManager.LowestPossibleZ)
                 Fail($"Entity #{Id} ({Definition.Name}) has fallen too far, did you forget +NOGRAVITY with something like +NOSECTOR/+NOBLOCKMAP?");
+        }
+
+        public override string ToString()
+        {
+            return $"[{Definition}] [{Position}]";
         }
     }
 }

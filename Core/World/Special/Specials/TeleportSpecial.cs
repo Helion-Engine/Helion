@@ -54,10 +54,12 @@ namespace Helion.World.Special.Specials
                 player.PitchRadians = 0;
 
             entity.ResetInterpolation();
-            entity.OnGround = entity.CheckOnGround();
+            entity.CheckOnGround();
 
+            entity.Init = true;
             m_world.Link(entity);
             m_world.TelefragBlockingEntities(entity);
+            entity.Init = false;
         }
 
         private Entity? CreateTeleportFogAt(in Vec3D pos)

@@ -76,7 +76,10 @@ namespace Helion.World.Entities
             // If there is no zHeight then force to the floor 
             // Vanilla maps like E1M1 need this for the shotgun guys behind techpillars to be on the floor
             if (forceToFloor && !ZHeightSet(zHeight))
+            {
                 position.Z = sector.ToFloorZ(entity.Position);
+                entity.OnGround = true;
+            }
 
             return entity;
         }
@@ -172,7 +175,7 @@ namespace Helion.World.Entities
             }
         }
 
-        private static double GetPositionZ(Sector sector, in Vec3D position, double zHeight, bool forceToFloor = false)
+        private static double GetPositionZ(Sector sector, in Vec3D position, double zHeight)
         {
             if (ZHeightSet(zHeight))
                 return zHeight + sector.ToFloorZ(position);
