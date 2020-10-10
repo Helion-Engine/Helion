@@ -84,14 +84,15 @@ namespace Helion.World.Physics
         /// </summary>
         /// <param name="entity">The entity to link.</param>
         /// <param name="tryMove">Optional data used for when linking during movement.</param>
-        public void LinkToWorld(Entity entity, TryMoveData? tryMove = null, bool sectors = true)
+        /// <param name="clampToLinkedSectors">If the entity should be clamped between linked sectors. If false then on the current Sector ceiling/floor will be used. (Doom compatibility)</param>
+        public void LinkToWorld(Entity entity, TryMoveData? tryMove = null, bool clampToLinkedSectors = true)
         {
             if (!entity.Flags.NoBlockmap)
                 m_blockmap.Link(entity);
 
             LinkToSectors(entity, tryMove);
 
-            ClampBetweenFloorAndCeiling(entity, sectors);
+            ClampBetweenFloorAndCeiling(entity, clampToLinkedSectors);
         }
 
         /// <summary>
@@ -886,7 +887,7 @@ namespace Helion.World.Physics
 
         private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
-        private void ClampBetweenFloorAndCeiling(Entity entity, bool sectors = true)
+        private void ClampBetweenFloorAndCeiling(Entity entity, bool clampToLinkedSectors = true)
         {
             // TODO fixme
             if (entity.Definition.Name == "BulletPuff")
@@ -895,7 +896,7 @@ namespace Helion.World.Physics
                 return;
 
             object lastHighestFloorObject = entity.HighestFloorObject;
-            SetEntityBoundsZ(entity, sectors);
+            SetEntityBoundsZ(entity, clampToLinkedSectors);
 
             double lowestCeil = entity.LowestCeilingZ;
             double highestFloor = entity.HighestFloorZ;
@@ -935,7 +936,7 @@ namespace Helion.World.Physics
             }
         }
 
-        private void SetEntityBoundsZ(Entity entity, bool sectors)
+        private void SetEntityBoundsZ(Entity entity, bool clampToLinkedSectors)
         {
             Sector highestFloor = entity.Sector;
             Sector lowestCeiling = entity.Sector;
@@ -950,7 +951,7 @@ namespace Helion.World.Physics
             // Only check against other entities if CanPass is set (height sensitive clip detection)
             if (entity.Flags.CanPass)
             {
-                if (sectors)
+                if (clampToLinkedSectors)
                 {
                     foreach (Sector sector in entity.IntersectSectors)
                     {
@@ -985,7 +986,7 @@ namespace Helion.World.Physics
                     else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
                         clipped = true;
 
-                    if (!above && !below && !sectors && !intersectEntity.Flags.ActLikeBridge)
+                    if (!above && !below && !clampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
                     {
                         entity.ClippedWithEntity = true;
                         // ZDoom-ism
@@ -994,6 +995,7 @@ namespace Helion.World.Physics
                             highestFloorEntity = intersectEntity;
                             highestFloorZ = intersectEntity.Box.Top;
                         }
+
                         continue;
                     }
 

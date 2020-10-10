@@ -65,7 +65,7 @@ namespace Helion.World.Entities
             return null;
         }
 
-        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool forceToFloor = false)
+        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
@@ -73,14 +73,6 @@ namespace Helion.World.Entities
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
             FinishCreatingEntity(entity);
-            // If there is no zHeight then force to the floor 
-            // Vanilla maps like E1M1 need this for the shotgun guys behind techpillars to be on the floor
-            if (forceToFloor && !ZHeightSet(zHeight))
-            {
-                position.Z = sector.ToFloorZ(entity.Position);
-                entity.OnGround = true;
-            }
-
             return entity;
         }
 
@@ -139,9 +131,8 @@ namespace Helion.World.Entities
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
                 Vec3D position = mapThing.Position.ToDouble();
                 // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-                // Doom forces things to the floor on map init - forceToFloor = true
-                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
-                if (ZHeightSet(position.Z))
+                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId);
+                if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                     relinkEntities.Add(entity);
                 PostProcessEntity(entity);
             }
@@ -162,16 +153,16 @@ namespace Helion.World.Entities
             
             switch (skill)
             {
-            case SkillLevel.VeryEasy:
-            case SkillLevel.Easy:
-                return mapThing.Flags.Easy;
-            case SkillLevel.Medium:
-                return mapThing.Flags.Medium;
-            case SkillLevel.Hard:
-            case SkillLevel.Nightmare:
-                return mapThing.Flags.Hard;
-            default:
-                return false;
+                case SkillLevel.VeryEasy:
+                case SkillLevel.Easy:
+                    return mapThing.Flags.Easy;
+                case SkillLevel.Medium:
+                    return mapThing.Flags.Medium;
+                case SkillLevel.Hard:
+                case SkillLevel.Nightmare:
+                    return mapThing.Flags.Hard;
+                default:
+                    return false;
             }
         }
 
@@ -184,38 +175,16 @@ namespace Helion.World.Entities
         }
 
         private void FinishCreatingEntity(Entity entity)
-        {
-            bool forceToCenterZ = !ZHeightSet(entity.Position.Z);
-            
+        {          
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
 
             World.Link(entity);
-            
-            // More ZDoom compatibility.
+
             if (entity.Flags.SpawnCeiling)
             {
-                double ceilZ = entity.LowestCeilingZ;
-                entity.SetZ(ceilZ - entity.Height, false);
-            }
-            
-            // Apparently things that are spawned without a specific Z value
-            // are forced to their center sector floor Z, regardless of whether
-            // or not their bounding box intersects geometry or things.
-            if (forceToCenterZ)
-            {
-                // This is a mixture of both ZDoom compatibility for ceilings
-                // and vanilla compatibility as seen in the above comment.
-                if (entity.Flags.SpawnCeiling)
-                {
-                    double ceilZ = entity.Sector.Ceiling.Z;
-                    entity.SetZ(ceilZ - entity.Height, false);
-                }
-                else
-                {
-                    double floorZ = entity.Sector.ToFloorZ(entity.Position);
-                    entity.SetZ(floorZ, false);   
-                }
+                double offset = ZHeightSet(entity.Position.Z) ? -entity.Position.Z : 0;
+                entity.SetZ(entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset, false);
             }
 
             entity.ResetInterpolation();
