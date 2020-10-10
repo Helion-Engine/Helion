@@ -1112,6 +1112,13 @@ namespace Helion.World.Physics
                 return tryMoveData;
             }
 
+            if (entity.ClippedWithEntity && entity.IsClippedWithEntity())
+            {
+                tryMoveData.Success = false;
+                entity.Velocity = Vec3D.Zero;
+                return tryMoveData;
+            }
+
             if (entity.IsCrushing())
             {
                 tryMoveData.Success = false;
