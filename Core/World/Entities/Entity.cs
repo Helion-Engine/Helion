@@ -499,8 +499,14 @@ namespace Helion.World.Entities
             return Flags.NoGravity || OnGround;
         }
 
+        /// <summary>
+        /// Validates ClippedWithEntity. Iterates through the intersecting entities in the sector.
+        /// </summary>
         public bool IsClippedWithEntity()
         {
+            if (!Flags.Solid)
+                return false;
+
             List<Entity> entities = GetIntersectingEntities2D();
 
             for (int i = 0; i < entities.Count; i++)
