@@ -156,11 +156,6 @@ namespace Helion.World.Physics
 
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
-                    // Corpses can be crushed but are flagged as not solid
-                    // Things like bullets and blood will have both flags false so ignore them
-                    if (!entity.Flags.Solid && !entity.Flags.Corpse)
-                        continue;
-
                     if (crush != null)
                     {
                         if (crush.CrushMode == ZDoomCrushMode.Hexen)
@@ -180,6 +175,15 @@ namespace Helion.World.Physics
                             SetToGiblets(entity);
                             continue;
                         }
+
+                        if (entity.Flags.Dropped)
+                        {
+                            m_entityManager.Destroy(entity);
+                            continue;
+                        }
+
+                        if (!entity.Flags.Solid)
+                            continue;
 
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -627,7 +631,10 @@ namespace Helion.World.Physics
                     pos.Z += deathEntity.Definition.Properties.Height / 2;
                     Entity? dropItem = m_entityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
                     if (dropItem != null)
+                    {
+                        dropItem.Flags.Dropped = true;
                         dropItem.Velocity.Z += 4;
+                    }
                 }
             }
         }
@@ -948,29 +955,29 @@ namespace Helion.World.Physics
             entity.OnEntity = null;
             entity.ClippedWithEntity = false;
 
+            if (clampToLinkedSectors)
+            {
+                foreach (Sector sector in entity.IntersectSectors)
+                {
+                    double floorZ = sector.ToFloorZ(entity.Position);
+                    if (floorZ > highestFloorZ)
+                    {
+                        highestFloor = sector;
+                        highestFloorZ = floorZ;
+                    }
+
+                    double ceilZ = sector.ToCeilingZ(entity.Position);
+                    if (ceilZ < lowestCeilZ)
+                    {
+                        lowestCeiling = sector;
+                        lowestCeilZ = ceilZ;
+                    }
+                }
+            }
+
             // Only check against other entities if CanPass is set (height sensitive clip detection)
             if (entity.Flags.CanPass)
             {
-                if (clampToLinkedSectors)
-                {
-                    foreach (Sector sector in entity.IntersectSectors)
-                    {
-                        double floorZ = sector.ToFloorZ(entity.Position);
-                        if (floorZ > highestFloorZ)
-                        {
-                            highestFloor = sector;
-                            highestFloorZ = floorZ;
-                        }
-
-                        double ceilZ = sector.ToCeilingZ(entity.Position);
-                        if (ceilZ < lowestCeilZ)
-                        {
-                            lowestCeiling = sector;
-                            lowestCeilZ = ceilZ;
-                        }
-                    }
-                }
-
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 List<Entity> intersectEntities = entity.GetIntersectingEntities2D();
 
