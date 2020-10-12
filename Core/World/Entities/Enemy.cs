@@ -224,8 +224,6 @@ namespace Helion.World.Entities
             }
 
             Vec2D nextPos = GetNextEnemyPos();
-            // TODO Doom has 'turn towards movement direction if not there yet'
-            AngleRadians = MoveAngles[(int)m_direction];
 
             m_enemyMove = true;
             tryMove = EntityManager.World.PhysicsManager.TryMoveXY(this, nextPos, false);
@@ -249,6 +247,12 @@ namespace Helion.World.Entities
             {
                 Vec3D newPos = new Vec3D(Position.X, Position.Y, tryMove.HighestFloorZ);
                 SetPosition(newPos);
+            }
+            
+            if (tryMove.Success)
+            {
+                // TODO Doom has 'turn towards movement direction if not there yet'
+                AngleRadians = MoveAngles[(int)m_direction];
             }
 
             return tryMove.Success;
