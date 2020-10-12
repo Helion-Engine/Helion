@@ -765,14 +765,6 @@ namespace Helion.World.Physics
                 entity.Velocity.Y = 0;
         }
 
-        private static bool CanMoveOutOfEntity(Entity entity, Entity other, in Vec2D nextPosition)
-        {
-            Vec2D otherPos = other.Position.To2D();
-            double oldDistance = entity.Position.To2D().Distance(otherPos);
-            double newDistance = nextPosition.Distance(otherPos);
-            return newDistance > oldDistance;
-        }
-
         private enum TraversalPitchStatus
         {
             Blocked,
@@ -909,9 +901,6 @@ namespace Helion.World.Physics
             double highestFloor = entity.HighestFloorZ;
             double floorZ = entity.Sector.ToFloorZ(entity.Position);
 
-            bool checkSetToFloor = !(entity.Box.Top > lowestCeil &&
-                 floorZ >= lowestCeil - entity.Height);
-
             if (lowestCeil - entity.Height >= floorZ && entity.Box.Top > lowestCeil)
             {
                 entity.Velocity.Z = 0;
@@ -923,7 +912,7 @@ namespace Helion.World.Physics
                     entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
             }
 
-            if (checkSetToFloor && entity.Box.Bottom <= highestFloor)
+            if (entity.Box.Bottom <= highestFloor)
             {
                 if (entity.HighestFloorObject is Entity highestEntity &&
                     highestEntity.Box.Top <= entity.Box.Bottom + entity.GetMaxStepHeight())
@@ -996,13 +985,6 @@ namespace Helion.World.Physics
                     if (!above && !below && !clampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
                     {
                         entity.ClippedWithEntity = true;
-                        // ZDoom-ism
-                        if (entity.Position.Z > intersectEntity.Position.Z + (intersectEntity.Height / 2))
-                        {
-                            highestFloorEntity = intersectEntity;
-                            highestFloorZ = intersectEntity.Box.Top;
-                        }
-
                         continue;
                     }
 
@@ -1351,20 +1333,12 @@ namespace Helion.World.Physics
                                 if (!entity.BlocksEntityZ(nextEntity, out LineOpening? lineOpening))
                                     continue;
 
-                                bool clipped = true;
-                                //If we are stuck inside another entity's box then only allow movement if we try to move out the box
-                                if (entity.Box.Overlaps(nextEntity.Box))
-                                    clipped = !CanMoveOutOfEntity(entity, nextEntity, position);
-
-                                if (clipped)
-                                {
-                                    if (lineOpening != null)
-                                        tryMove?.SetIntersectionData(lineOpening);
-                                    if (tryMove != null)
-                                        tryMove.Success = false;
-                                    entity.BlockingEntity = nextEntity;
-                                    return GridIterationStatus.Stop;
-                                }
+                                if (lineOpening != null)
+                                    tryMove?.SetIntersectionData(lineOpening);
+                                if (tryMove != null)
+                                    tryMove.Success = false;
+                                entity.BlockingEntity = nextEntity;
+                                return GridIterationStatus.Stop;
                             }
                         }
                     }
