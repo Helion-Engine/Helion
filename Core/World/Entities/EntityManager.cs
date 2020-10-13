@@ -65,12 +65,19 @@ namespace Helion.World.Entities
             return null;
         }
 
-        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid)
+        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, in position, zHeight);
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
+
+            // This only needs to happen on map population
+            if (init && !ZHeightSet(zHeight))
+            {
+                entity.SetZ(entity.Sector.ToFloorZ(position), false);
+                entity.PrevPosition = entity.Position;
+            }
 
             FinishCreatingEntity(entity);
             return entity;
@@ -131,7 +138,7 @@ namespace Helion.World.Entities
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
                 Vec3D position = mapThing.Position.ToDouble();
                 // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId);
+                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
                 if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                     relinkEntities.Add(entity);
                 PostProcessEntity(entity);
@@ -142,6 +149,7 @@ namespace Helion.World.Entities
             {
                 relinkEntities[i].UnlinkFromWorld();
                 World.Link(relinkEntities[i]);
+                relinkEntities[i].PrevPosition = relinkEntities[i].Position;
             }
         }
 
