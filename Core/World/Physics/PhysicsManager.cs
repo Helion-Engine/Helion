@@ -138,10 +138,15 @@ namespace Helion.World.Physics
                 ClampBetweenFloorAndCeiling(entity);
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-                // Clipped something that wasn't directly on this entity before the move and now it will be
-                // Push the entity up, and the next loop will verify it is legal
-                if (entity.OverEntity == null && thingZ + entity.Height > entity.LowestCeilingZ)
-                    PushUpBlockingEntity(entity);
+                if (thingZ + entity.Height > entity.LowestCeilingZ)
+                {
+                    if (moveType == SectorPlaneType.Ceiling)
+                        PushDownBlockingEntities(entity);
+                    // Clipped something that wasn't directly on this entity before the move and now it will be
+                    // Push the entity up, and the next loop will verify it is legal
+                    else if (entity.OverEntity == null)
+                        PushUpBlockingEntity(entity);
+                }
             }
 
             for (int i = 0; i < entities.Count; i++)
@@ -607,13 +612,34 @@ namespace Helion.World.Physics
 
         private void PushUpBlockingEntity(Entity pusher)
         {
-            // Check if the pusher is blocked by an entity
-            // If true then push that entity up
             if (!(pusher.LowestCeilingObject is Entity))
                 return;
 
             Entity entity = (Entity)pusher.LowestCeilingObject;
             entity.SetZ(pusher.Box.Top, false);
+        }
+
+        private void PushDownBlockingEntities(Entity pusher)
+        {
+            // Because of how ClampBetweenFloorAndCeiling works, try to push down the entire stack and stop when something clips a floor
+            if (pusher.HighestFloorObject is Sector && pusher.HighestFloorZ > pusher.LowestCeilingZ - pusher.Height)
+                return;
+
+            pusher.SetZ(pusher.LowestCeilingZ - pusher.Height, false);
+
+            if (pusher.OnEntity != null)
+            {
+                Entity? current = pusher.OnEntity;
+                while (current != null)
+                {
+                    if (current.HighestFloorObject is Sector && current.HighestFloorZ > pusher.Box.Bottom - current.Height)
+                        return;
+
+                    current.SetZ(pusher.Box.Bottom - current.Height, false);
+                    pusher = current;
+                    current = pusher.OnEntity;
+                }
+            }
         }
 
         private void HandleEntityDeath(Entity deathEntity)
@@ -1101,7 +1127,7 @@ namespace Helion.World.Physics
                 return tryMoveData;
             }
 
-            if (entity.ClippedWithEntity && entity.IsClippedWithEntity())
+            if (entity.ClippedWithEntity && !entity.OnGround && entity.IsClippedWithEntity())
             {
                 tryMoveData.Success = false;
                 entity.Velocity = Vec3D.Zero;
