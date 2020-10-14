@@ -2145,10 +2145,7 @@ namespace Helion.World.Entities.Definition.States
             if ((entity.World.Gametick & 3) != 0)
                 return;
 
-            //TODO Tracer smoke randomizes tics
-            entity.EntityManager.Create("BulletPuff", entity.Position);
-            entity.EntityManager.Create("RevenantTracerSmoke", entity.Position);
-
+            SpawnTracerPuff(entity);
             SetTracerAngle(entity);
 
             double z = entity.Velocity.Z;
@@ -2162,6 +2159,21 @@ namespace Helion.World.Entities.Definition.States
                 entity.Velocity.Z -= 0.125;
             else
                 entity.Velocity.Z += 0.125;
+        }
+
+        private const double TracerPuffRandZ = (1 << 10) / 65536.0;
+
+        private static void SpawnTracerPuff(Entity entity)
+        {
+            entity.EntityManager.Create("RevenantTracerSmoke", entity.Position);
+
+            Entity? puff = entity.EntityManager.Create("BulletPuff", entity.Position);
+            if (puff != null)
+            {
+                puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * TracerPuffRandZ), false);
+                puff.FrameState.SetTics(entity.World.Random.NextByte() & 3);
+                puff.Velocity.Z = 1;
+            }
         }
 
         private static void SetTracerAngle(Entity entity)
