@@ -138,8 +138,6 @@ namespace Helion.World.Entities
             EntityManager = entityManager;
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
-
-            FrameState.SetState(FrameStateLabel.Spawn);
         }
 
         public double AttackPitchTo(Entity entity) => AttackPosition.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));

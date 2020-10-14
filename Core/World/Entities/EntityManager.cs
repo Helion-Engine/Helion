@@ -196,6 +196,7 @@ namespace Helion.World.Entities
             }
 
             entity.ResetInterpolation();
+            entity.SetSpawnState();
         }
 
         private void PostProcessEntity(Entity entity)
