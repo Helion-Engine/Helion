@@ -9,6 +9,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
@@ -404,9 +405,43 @@ namespace Helion.World.Entities
             return true;
         }
 
-        public virtual void GivePickedUpItem(Entity item)
+        public virtual bool GivePickedUpItem(Entity item)
         {
-            Inventory.Add(item.Definition, item.Properties.Inventory.Amount);
+            var invData = item.Definition.Properties.Inventory;
+
+            if (item.Definition.ParentClassNames.Contains("HEALTH"))
+            {
+                int max = GetMaxAmount(item.Definition);
+                if (!item.Flags.InventoryAlwaysPickup && Health >= max)
+                    return false;
+
+                if (Health > max)
+                    return true;
+
+                Health = MathHelper.Clamp(Health + invData.Amount, 0, max);
+                return true;
+            }
+
+            return Inventory.Add(item.Definition, invData.Amount);
+        }
+
+        private int GetMaxAmount(EntityDefinition def)
+        {
+            // TODO these are usually defaults. Defaults come from MAPINFO and not yet implemented.
+            switch (def.Name.ToString())
+            {
+                case "ARMORBONUS":
+                case "HEALTHBONUS":
+                case "SOULSPHERE":
+                    return 200;
+                case "STIMPACK":
+                case "MEDIKIT":
+                    return 100;
+                default:
+                    break;
+            }
+
+            return 0;
         }
 
         public bool HasMissileState() => Definition.States.Labels.ContainsKey("MISSILE");
