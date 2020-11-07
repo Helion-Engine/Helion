@@ -43,33 +43,39 @@ namespace Helion.Util.Configuration
             
             switch (newValue)
             {
-            case bool newBoolValue:
-                if (value is bool boolValue)
-                    return boolValue != newBoolValue;
-                Fail($"Unexpected argument type, expected a boolean but got {typeof(T)}");
-                return true;
+                case bool newBoolValue:
+                    if (value is bool boolValue)
+                        return boolValue != newBoolValue;
+                    Fail($"Unexpected argument type, expected a boolean but got {typeof(T)}");
+                    return true;
+
+                case float newFloatValue:
+                    if (value is float floatValue)
+                        return !MathHelper.AreEqual(newFloatValue, floatValue);
+                    Fail($"Unexpected argument type, expected a float but got {typeof(T)}");
+                    return true;
+
+                case double newDoubleValue:
+                    if (value is double doubleValue)
+                        return !MathHelper.AreEqual(doubleValue, newDoubleValue);
+                    Fail($"Unexpected argument type, expected a double but got {typeof(T)}");
+                    return true;
         
-            case double newDoubleValue:
-                if (value is double doubleValue)
-                    return !MathHelper.AreEqual(doubleValue, newDoubleValue);
-                Fail($"Unexpected argument type, expected a double but got {typeof(T)}");
-                return true;
+                case int newIntValue:
+                    if (value is int intValue)
+                        return intValue != newIntValue;
+                    Fail($"Unexpected argument type, expected an int but got {typeof(T)}");
+                    return true;
         
-            case int newIntValue:
-                if (value is int intValue)
-                    return intValue != newIntValue;
-                Fail($"Unexpected argument type, expected an int but got {typeof(T)}");
-                return true;
+                case string newStringValue:
+                    if (value is string stringValue)
+                        return stringValue != newStringValue;
+                    Fail($"Unexpected argument type, expected a string but got {typeof(T)}");
+                    return true;
         
-            case string newStringValue:
-                if (value is string stringValue)
-                    return stringValue != newStringValue;
-                Fail($"Unexpected argument type, expected a string but got {typeof(T)}");
-                return true;
-        
-            default:
-                Fail($"Unexpected config value type: {typeof(T)}");
-                return true;
+                default:
+                    Fail($"Unexpected config value type: {typeof(T)}");
+                    return true;
             }
         }
     }

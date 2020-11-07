@@ -75,7 +75,8 @@ namespace Helion.World
             MapName = map.Name;
             Geometry = geometry;
             Blockmap = new BlockMap(Lines);
-            SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);            
+            SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
+            SoundManager.SetVolume(Config.Engine.Audio.Volume);
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);

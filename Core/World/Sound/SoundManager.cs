@@ -22,9 +22,10 @@ namespace Helion.World.Sound
         /// more sounds will be ignored.
         /// </summary>
         public const int MaxConcurrentSounds = 32;
-        
+
+        public readonly IAudioSourceManager AudioManager;
+
         private readonly LinkedList<IAudioSource> m_playingSounds = new LinkedList<IAudioSource>();
-        private readonly IAudioSourceManager m_audioManager;
         private readonly IWorld m_world;
         private readonly SoundInfoDefinition m_soundInfo;
         private readonly List<IAudioSource> m_soundsToPlay = new List<IAudioSource>();
@@ -32,7 +33,7 @@ namespace Helion.World.Sound
         public SoundManager(IWorld world, IAudioSystem audioSystem, SoundInfoDefinition soundInfo)
         {
             m_world = world;
-            m_audioManager = audioSystem.CreateContext();
+            AudioManager = audioSystem.CreateContext();
             m_soundInfo = soundInfo;
         }
 
@@ -48,9 +49,14 @@ namespace Helion.World.Sound
             GC.SuppressFinalize(this);
         }
 
+        public void SetVolume(float volume)
+        {
+            AudioManager.SetVolume(volume);
+        }
+
         public void Tick()
         {
-            m_audioManager.SetListener(m_world.ListenerPosition, m_world.ListenerAngle, m_world.ListenerPitch);
+            AudioManager.SetListener(m_world.ListenerPosition, m_world.ListenerAngle, m_world.ListenerPitch);
 
             PlaySounds();
 
@@ -98,13 +104,13 @@ namespace Helion.World.Sound
             for (int i = 0; i < m_soundsToPlay.Count; i++)
                 m_playingSounds.AddLast(m_soundsToPlay[i]);
 
-            m_audioManager.PlayGroup(m_soundsToPlay);
+            AudioManager.PlayGroup(m_soundsToPlay);
             m_soundsToPlay.Clear();
         }
 
         private void ReleaseUnmanagedResources()
         {
-            m_audioManager.Dispose();
+            AudioManager.Dispose();
         }
 
         private void StopSoundsBySource(object source)
@@ -180,7 +186,7 @@ namespace Helion.World.Sound
                 return null;
 
             soundParams.SoundInfo = soundInfo;
-            IAudioSource? audioSource = m_audioManager.Create(soundInfo.EntryName, soundParams);
+            IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, soundParams);
             if (audioSource == null)
                 return null;
 

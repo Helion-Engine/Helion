@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
@@ -23,12 +24,30 @@ namespace Helion.Client
             case "MAP":
                 HandleMap(ccmdArgs.Args);
                 break;
-        
+
+            case "VOLUME":
+                SetVolume(ccmdArgs.Args);
+                break;
+
             default:
                 if (!CheatManager.Instance.HandleCommand(ccmdArgs.Command))
                     Log.Info($"Unknown command: {ccmdArgs.Command}");
                 break;
             }
+        }
+
+        private void SetVolume(IList<string> args)
+        {
+            if (args.Empty() || !float.TryParse(args[0], out float volume))
+            {
+                Log.Info("Usage: volume <volume>");
+                return;
+            }
+
+            m_config.Engine.Audio.Volume.Set(volume);
+
+            if (m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? singlePlayerWorld) && singlePlayerWorld != null)
+                singlePlayerWorld.World.SoundManager.SetVolume(volume);
         }
 
         private void HandleMap(IList<string> args)

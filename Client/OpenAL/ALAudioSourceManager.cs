@@ -32,6 +32,11 @@ namespace Helion.Client.OpenAL
             AL.Listener(ALListenerf.Gain, 1.0f);
         }
 
+        public void SetVolume(float volume)
+        {
+            AL.Listener(ALListenerf.Gain, volume);
+        }
+
         public void SetListener(Vec3D pos, double angle, double pitch)
         {
             Vec3D vec = Vec3D.Unit(angle, pitch);

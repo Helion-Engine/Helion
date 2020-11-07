@@ -14,5 +14,6 @@ namespace Helion.Util.Configuration.Components
         public readonly EngineControlConfig Controls = new EngineControlConfig();
         public readonly EngineRenderConfig Render = new EngineRenderConfig();
         public readonly EngineWindowConfig Window = new EngineWindowConfig();
+        public readonly EngineAudioConfig Audio = new EngineAudioConfig();
     }
 }

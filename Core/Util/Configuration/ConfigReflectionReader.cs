@@ -139,7 +139,14 @@ namespace Helion.Util.Configuration
                     fail = true;
                 break;
 
-            case ConfigValue<int> intNode:
+                case ConfigValue<float> floatNode:
+                    if (float.TryParse(value, out float floatValue))
+                        floatNode.Set(floatValue);
+                    else
+                        fail = true;
+                    break;
+
+                case ConfigValue<int> intNode:
                 if (int.TryParse(value, out int intValue))
                     intNode.Set(intValue);
                 else
