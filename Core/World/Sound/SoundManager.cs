@@ -35,6 +35,13 @@ namespace Helion.World.Sound
             m_world = world;
             AudioManager = audioSystem.CreateContext();
             m_soundInfo = soundInfo;
+
+            audioSystem.DeviceChanging += AudioSystem_DeviceChanging;
+        }
+
+        private void AudioSystem_DeviceChanging(object? sender, EventArgs e)
+        {
+            ClearSounds();
         }
 
         ~SoundManager()
@@ -47,11 +54,6 @@ namespace Helion.World.Sound
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
-        }
-
-        public void SetVolume(float volume)
-        {
-            AudioManager.SetVolume(volume);
         }
 
         public void Tick()

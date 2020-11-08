@@ -38,7 +38,7 @@ namespace Helion.Util.Configuration
                     return $"{value}.0";
             }
 
-            return configValue.ToString()?.ToLower() ?? "?";
+            return configValue.ToString() ?? "?";
         }
 
         private static void PopulateIniKeysRecursively(object configNode, KeyDataCollection keyData, string keySoFar = "")

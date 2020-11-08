@@ -14,23 +14,53 @@ namespace Helion.Client.OpenAL
 {
     public class ALAudioSystem : IAudioSystem
     {
+        public event EventHandler DeviceChanging;
+
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool PrintedALInfo;
 
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HashSet<ALAudioSourceManager> m_sourceManagers = new HashSet<ALAudioSourceManager>();
-        private readonly ALDevice m_alDevice;
-        private readonly ALContext m_alContext;
         private readonly ISet<string> m_extensions = new HashSet<string>();
+        private ALDevice m_alDevice;
+        private ALContext m_alContext;
 
-        public ALAudioSystem(ArchiveCollection archiveCollection)
+        public ALAudioSystem(ArchiveCollection archiveCollection, string deviceName)
         {
             m_archiveCollection = archiveCollection;
-            m_alDevice = new ALDevice();
+            m_alDevice = new ALDevice(deviceName);
             m_alContext = new ALContext(m_alDevice);
-            
+
             PrintOpenALInfo();
             DiscoverExtensions();
+        }
+
+        public IList<string> GetDeviceNames()
+        {
+            IList<string> devices = Alc.GetString(IntPtr.Zero, AlcGetStringList.AllDevicesSpecifier);
+            devices.Insert(0, IAudioSystem.DefaultAudioDevice);
+            return devices;
+        }
+
+        public string GetDeviceName()
+        {
+            return m_alDevice.DeviceName;
+        }
+
+        public void SetDevice(string deviceName)
+        {
+            DeviceChanging?.Invoke(this, EventArgs.Empty);
+
+            m_alContext.Dispose();
+            m_alDevice.Dispose();
+
+            m_alDevice = new ALDevice(deviceName);
+            m_alContext = new ALContext(m_alDevice);
+        }
+
+        public void SetVolume(float volume)
+        {
+            AL.Listener(ALListenerf.Gain, volume);
         }
 
         [Conditional("DEBUG")]
@@ -41,7 +71,7 @@ namespace Helion.Client.OpenAL
                 Fail($"Unexpected OpenAL error: {error}");
         }
 
-        private static void PrintOpenALInfo()
+        private void PrintOpenALInfo()
         {
             if (PrintedALInfo)
                 return;
@@ -50,6 +80,9 @@ namespace Helion.Client.OpenAL
             Log.Info("OpenAL Vendor: {0}", AL.Get(ALGetString.Vendor));
             Log.Info("OpenAL Renderer: {0}", AL.Get(ALGetString.Renderer));
             Log.Info("OpenAL Extensions: {0}", AL.Get(ALGetString.Extensions).Split(' ').Length);
+
+            foreach (string device in GetDeviceNames())
+                Log.Info($"Device: {device}");
 
             PrintedALInfo = true;
         }

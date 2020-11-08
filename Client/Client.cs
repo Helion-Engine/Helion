@@ -48,7 +48,8 @@ namespace Helion.Client
 
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_audioSystem = new ALAudioSystem(m_archiveCollection);
+            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device);
+            m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
             m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;

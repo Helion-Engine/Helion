@@ -1,4 +1,5 @@
-﻿using Helion.Util.Configuration.Attributes;
+﻿using Helion.Audio;
+using Helion.Util.Configuration.Attributes;
 
 namespace Helion.Util.Configuration.Components
 {
@@ -6,5 +7,6 @@ namespace Helion.Util.Configuration.Components
     public class EngineAudioConfig
     {
         public readonly ConfigValue<float> Volume = new ConfigValue<float>(1.0f);
+        public readonly ConfigValue<string> Device = new ConfigValue<string>(IAudioSystem.DefaultAudioDevice);
     }
 }

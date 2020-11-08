@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
@@ -17,23 +16,64 @@ namespace Helion.Client
         {
             switch (ccmdArgs.Command.ToUpper())
             {
-            case "EXIT":
-                m_window.Close();
-                break;
+                case "EXIT":
+                    m_window.Close();
+                    break;
 
-            case "MAP":
-                HandleMap(ccmdArgs.Args);
-                break;
+                case "MAP":
+                    HandleMap(ccmdArgs.Args);
+                    break;
 
-            case "VOLUME":
-                SetVolume(ccmdArgs.Args);
-                break;
+                case "VOLUME":
+                    SetVolume(ccmdArgs.Args);
+                    break;
 
-            default:
-                if (!CheatManager.Instance.HandleCommand(ccmdArgs.Command))
-                    Log.Info($"Unknown command: {ccmdArgs.Command}");
-                break;
+                case "AUDIODEVICE":
+                    HandleAudioDevice(ccmdArgs.Args);
+                    break;
+
+                case "AUDIODEVICES":
+                    PrintAudioDevices();
+                    break;
+
+                default:
+                    if (!CheatManager.Instance.HandleCommand(ccmdArgs.Command))
+                        Log.Info($"Unknown command: {ccmdArgs.Command}");
+                    break;
             }
+        }
+
+        private void PrintAudioDevices()
+        {
+            int num = 1;
+            foreach (string device in m_audioSystem.GetDeviceNames())
+                Log.Info($"{num++}. {device}");
+        }
+
+        private void HandleAudioDevice(IList<string> args)
+        {
+            if (args.Empty())
+            {
+                Log.Info(m_audioSystem.GetDeviceName());
+                return;
+            }
+                
+            if (!int.TryParse(args[0], out int deviceIndex))
+                return;
+
+            deviceIndex--;
+            IList<string> deviceNames = m_audioSystem.GetDeviceNames();
+            if (deviceIndex < 0 || deviceIndex >= deviceNames.Count)
+                return;
+
+            SetAudioDevice(deviceNames[deviceIndex]);
+        }
+
+        private void SetAudioDevice(string deviceName)
+        {
+            m_config.Engine.Audio.Device.Set(deviceName);
+            m_audioSystem.SetDevice(deviceName);
+            m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
         }
 
         private void SetVolume(IList<string> args)
@@ -45,9 +85,7 @@ namespace Helion.Client
             }
 
             m_config.Engine.Audio.Volume.Set(volume);
-
-            if (m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? singlePlayerWorld) && singlePlayerWorld != null)
-                singlePlayerWorld.World.SoundManager.SetVolume(volume);
+            m_audioSystem.SetVolume(volume);
         }
 
         private void HandleMap(IList<string> args)

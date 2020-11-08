@@ -29,12 +29,23 @@ namespace Helion.Client.OpenAL
             m_owner = owner;
             m_archiveCollection = archiveCollection;
             AL.DistanceModel(ALDistanceModel.ExponentDistance);
-            AL.Listener(ALListenerf.Gain, 1.0f);
+
+            owner.DeviceChanging += Owner_DeviceChanging;
         }
 
-        public void SetVolume(float volume)
+        private void Owner_DeviceChanging(object? sender, EventArgs e)
         {
-            AL.Listener(ALListenerf.Gain, volume);
+            foreach (var source in m_sources.ToList())
+            {
+                Unlink(source);
+                source.Stop();
+                source.Dispose();
+            }
+
+            foreach (var buffer in m_nameToBuffer.Values)
+                buffer.Dispose();
+
+            m_nameToBuffer.Clear();
         }
 
         public void SetListener(Vec3D pos, double angle, double pitch)
@@ -110,7 +121,7 @@ namespace Helion.Client.OpenAL
 
         internal void Unlink(ALAudioSource source)
         {
-            m_sources.Remove(source);
+            m_sources.Remove(source);  
         }
 
         private void PerformDispose()

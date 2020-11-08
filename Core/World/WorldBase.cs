@@ -4,7 +4,6 @@ using Helion.Audio;
 using Helion.Maps;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
@@ -76,7 +75,6 @@ namespace Helion.World
             Geometry = geometry;
             Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
-            SoundManager.SetVolume(Config.Engine.Audio.Volume);
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);

@@ -44,8 +44,6 @@ namespace Helion.Audio
         /// <returns>null if it could not be created.</returns>
         IAudioSource? Create(string sound, SoundParams soundParams);
 
-        // Range of 0.0 - 1.0
-        void SetVolume(float volume);
         void SetListener(Vec3D pos, double angle, double pitch);
         void PlayGroup(List<IAudioSource> audioSources);
     }
