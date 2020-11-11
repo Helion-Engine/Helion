@@ -41,9 +41,6 @@ namespace Helion.World.Geometry.Builder
                 return null;
             }
 
-            bspTree.ConnectSubsectorsToSectors();
-            bspTree.ConnectSubsectorsToSidesAndLines();
-
             return new MapGeometry(builder, bspTree);
         }
 

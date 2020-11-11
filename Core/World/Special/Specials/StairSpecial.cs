@@ -81,9 +81,12 @@ namespace Helion.World.Special.Specials
 
         private static Sector? GetNextSector(Sector start, int floorpic)
         {
-            foreach (Line line in start.Lines)
+            for (int i = 0; i < start.Lines.Count; i++)
+            {
+                Line line = start.Lines[i];
                 if (line.Back != null && line.Front.Sector == start && line.Back.Sector.Floor.TextureHandle == floorpic)
                     return line.Back.Sector;
+            }
 
             return null;
         }

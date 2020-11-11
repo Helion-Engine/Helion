@@ -39,9 +39,12 @@ namespace Helion.World.Special.Specials
 
         private static Sector? GetDestSector(Sector startSector, Sector raiseSector)
         {
-            foreach (Line line in raiseSector.Lines)
+            for (int i = 0; i < raiseSector.Lines.Count; i++)
+            {
+                Line line = raiseSector.Lines[i];
                 if (line.Back != null && line.Back.Sector != startSector)
                     return line.Back.Sector;
+            }
 
             return null;
         }

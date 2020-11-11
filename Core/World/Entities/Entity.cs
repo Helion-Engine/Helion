@@ -78,7 +78,7 @@ namespace Helion.World.Entities
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
-        protected internal List<LinkableNode<Entity>> SubsectorNodes = new List<LinkableNode<Entity>>();
+        protected internal LinkableNode<Entity>? SubsectorNode;
         public readonly SoundManager SoundManager;
         protected int FrameIndex;
         protected int TicksInFrame;
@@ -228,11 +228,9 @@ namespace Helion.World.Entities
             // lingering elements in the list.
             for (int i = 0; i < SectorNodes.Count; i++)
                 SectorNodes[i].Unlink();
+            SubsectorNode?.Unlink();
             SectorNodes.Clear();
-            
-            for (int i = 0; i < SubsectorNodes.Count; i++)
-                SubsectorNodes[i].Unlink();
-            SubsectorNodes.Clear();
+            SubsectorNode = null;
             
             for (int i = 0; i < BlockmapNodes.Count; i++)
                 BlockmapNodes[i].Unlink();

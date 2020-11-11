@@ -288,27 +288,5 @@ namespace Helion.World.Bsp
             BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, splitter, box);
             Nodes = new[] { root };
         }
-
-        public void ConnectSubsectorsToSectors()
-        {
-            Subsectors.ForEach(subsector => subsector.Sector.Subsectors.Add(subsector));
-        }
-
-        public void ConnectSubsectorsToSidesAndLines()
-        {
-            foreach (Subsector subsector in Subsectors)
-            {
-                foreach (SubsectorSegment seg in subsector.ClockwiseEdges)
-                {
-                    if (seg.Side == null)
-                        continue;
-
-                    seg.Side.Subsectors.Add(subsector);
-                    seg.Side.SubsectorSegments.Add(seg);
-                    seg.Side.Line.Subsectors.Add(subsector);
-                    seg.Side.Line.SubsectorSegments.Add(seg);
-                }
-            }
-        }
     }
 }

@@ -6,7 +6,6 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -49,12 +48,7 @@ namespace Helion.World.Geometry.Sectors
         /// <summary>
         /// All the lines that this sector may influence in some way.
         /// </summary>
-        public readonly HashSet<Line> Lines = new HashSet<Line>();
-        
-        /// <summary>
-        /// All of the subsectors that are part of this sector.
-        /// </summary>
-        public readonly HashSet<Subsector> Subsectors = new HashSet<Subsector>();
+        public readonly List<Line> Lines = new List<Line>();
         
         /// <summary>
         /// All the 3D floors that exist for this sector.
@@ -139,8 +133,9 @@ namespace Helion.World.Geometry.Sectors
             double lowestZ = double.MaxValue;
             Sector? lowestSector = null;
 
-            foreach (Line line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Floor.Z < lowestZ)
                 {
                     lowestSector = line.Front.Sector;
@@ -162,8 +157,9 @@ namespace Helion.World.Geometry.Sectors
             double highestZ = double.MinValue;
             Sector? highestSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Floor.Z > highestZ)
                 {
                     highestSector = line.Front.Sector;
@@ -185,8 +181,9 @@ namespace Helion.World.Geometry.Sectors
             double lowestZ = double.MaxValue;
             Sector? lowestSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if ((includeThis || line.Front.Sector != this) && line.Front.Sector.Ceiling.Z < lowestZ)
                 {
                     lowestSector = line.Front.Sector;
@@ -208,8 +205,9 @@ namespace Helion.World.Geometry.Sectors
             double highestZ = double.MinValue;
             Sector? highestSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > highestZ)
                 {
                     highestSector = line.Front.Sector;
@@ -231,8 +229,9 @@ namespace Helion.World.Geometry.Sectors
             double currentZ = double.MinValue;
             Sector? currentSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Floor.Z < Floor.Z && line.Front.Sector.Floor.Z > currentZ)
                 {
                     currentSector = line.Front.Sector;
@@ -255,8 +254,9 @@ namespace Helion.World.Geometry.Sectors
             double currentZ = double.MinValue;
             Sector? currentSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z < Ceiling.Z && line.Front.Sector.Ceiling.Z > currentZ)
                 {
                     currentSector = line.Front.Sector;
@@ -279,8 +279,9 @@ namespace Helion.World.Geometry.Sectors
             double currentZ = double.MaxValue;
             Sector? currentSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Floor.Z > Floor.Z && line.Front.Sector.Floor.Z < currentZ)
                 {
                     currentSector = line.Front.Sector;
@@ -303,8 +304,9 @@ namespace Helion.World.Geometry.Sectors
             double currentZ = double.MaxValue;
             Sector? currentSector = null;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > Ceiling.Z && line.Front.Sector.Ceiling.Z < currentZ)
                 {
                     currentSector = line.Front.Sector;
@@ -326,8 +328,9 @@ namespace Helion.World.Geometry.Sectors
         {
             short min = LightLevel;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.LightLevel < min)
                     min = line.Front.Sector.LightLevel;
                 if (line.Back != null && line.Back.Sector != this && line.Back.Sector.LightLevel < min)
@@ -341,8 +344,9 @@ namespace Helion.World.Geometry.Sectors
         {
             short max = LightLevel;
 
-            foreach (var line in Lines)
+            for (int i = 0; i < Lines.Count; i++)
             {
+                Line line = Lines[i];
                 if (line.Front.Sector != this && line.Front.Sector.LightLevel > max)
                     max = line.Front.Sector.LightLevel;
                 if (line.Back != null && line.Back.Sector != this && line.Back.Sector.LightLevel > max)

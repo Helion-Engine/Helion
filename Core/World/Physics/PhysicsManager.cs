@@ -1068,21 +1068,21 @@ namespace Helion.World.Physics
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
             HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
-            HashSet<Subsector> subsectors = new HashSet<Subsector> { centerSubsector };
 
             // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
             m_blockmap.Iterate(box, SectorOverlapFinder);
 
             entity.Sector = centerSector;
-            entity.IntersectSectors = sectors.ToList();
+            foreach (Sector sector in sectors)
+                entity.IntersectSectors.Add(sector);
 
             if (!entity.Flags.NoSector)
             {
                 for (int i = 0; i < entity.IntersectSectors.Count; i++)
                     entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
-                foreach (Subsector subsector in subsectors)
-                    entity.SubsectorNodes.Add(subsector.Link(entity));
+
+                entity.SubsectorNode = centerSubsector.Link(entity);
             }
 
             GridIterationStatus SectorOverlapFinder(Block block)
@@ -1096,10 +1096,8 @@ namespace Helion.World.Physics
                         if (tryMove != null && !entity.Flags.NoClip && line.HasSpecial)
                             tryMove.AddIntersectSpecialLine(line);
 
-                        foreach (Subsector subsector in line.Subsectors)
-                            subsectors.Add(subsector);
-
                         sectors.Add(line.Front.Sector);
+
                         if (line.Back != null)
                             sectors.Add(line.Back.Sector);
                     }

@@ -125,8 +125,9 @@ namespace Helion.World
             sector.SoundBlock = block + 1;
             sector.SoundTarget = target;
 
-            foreach (Line line in sector.Lines)
+            for (int i = 0; i < sector.Lines.Count; i++)
             {
+                Line line = sector.Lines[i];
                 if (line.Back == null || !LineOpening.IsOpen(line))
                     continue;
 
