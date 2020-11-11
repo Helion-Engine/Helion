@@ -182,11 +182,15 @@ namespace Helion.World.Entities.Players
             }
         }
 
-        public override void GivePickedUpItem(Entity item)
+        public override bool GivePickedUpItem(Entity item)
         {
-            base.GivePickedUpItem(item);
+            if (base.GivePickedUpItem(item))
+            {
+                LastPickupGametick = World.Gametick;
+                return true;
+            }
 
-            LastPickupGametick = World.Gametick;
+            return false;
         }
 
         public override bool Damage(Entity? entity, int damage, bool setPainState)

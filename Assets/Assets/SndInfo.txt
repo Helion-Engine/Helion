@@ -417,6 +417,10 @@ misc/spawn			dsitmbk		// Item respawn
 misc/chat			dsradio		// Doom 2 chat sound
 misc/chat2			dstink		// Chat sound for everything else
 
+$alias misc/health_pkup		misc/i_pkup
+$alias misc/armor_pkup		misc/i_pkup
+$alias misc/ammo_pkup		misc/i_pkup
+
 $limit misc/i_pkup		1
 $limit misc/k_pkup		1
 $limit misc/w_pkup		1

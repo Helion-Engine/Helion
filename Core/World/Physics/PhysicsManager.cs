@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Util.Container.Linkable;
@@ -50,6 +51,7 @@ namespace Helion.World.Physics
         private readonly BspTree m_bspTree;
         private readonly BlockMap m_blockmap;
         private readonly EntityManager m_entityManager;
+        private readonly SoundManager m_soundManager;
         private readonly LineOpening m_lineOpening = new LineOpening();
         private readonly IRandom m_random;
         private DateTime m_shootTest = DateTime.Now;
@@ -74,6 +76,7 @@ namespace Helion.World.Physics
             m_world = world;
             m_bspTree = bspTree;
             m_blockmap = blockmap;
+            m_soundManager = soundManager;
             m_entityManager = entityManager;
             m_random = random;
             BlockmapTraverser = new BlockmapTraverser(m_blockmap);
@@ -1382,8 +1385,16 @@ namespace Helion.World.Physics
 
         private void PerformItemPickup(Entity entity, Entity item)
         {
-            entity.GivePickedUpItem(item);
-            m_entityManager.Destroy(item);
+            if (entity.GivePickedUpItem(item))
+            {
+                if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+                {
+                    m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
+                        new SoundParams(Attenuation.Default));
+                }
+
+                m_entityManager.Destroy(item);
+            }
         }
 
         public void MoveTo(Entity entity, Vec2D nextPosition, TryMoveData tryMove)

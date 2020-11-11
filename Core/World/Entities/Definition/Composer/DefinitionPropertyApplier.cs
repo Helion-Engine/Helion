@@ -21,6 +21,12 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.Inventory.Amount != null)
                 definition.Properties.Inventory.Amount = properties.Inventory.Amount.Value;
 
+            if (properties.Inventory.PickupSound != null)
+                definition.Properties.Inventory.PickupSound = properties.Inventory.PickupSound;
+
+            if (properties.Inventory.PickupMessage != null)
+                definition.Properties.Inventory.PickupMessage = properties.Inventory.PickupMessage;
+
             if (properties.MaxStepHeight != null)
                 definition.Properties.MaxStepHeight = properties.MaxStepHeight.Value;
 

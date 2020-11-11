@@ -10,22 +10,24 @@ namespace Helion.World.Entities.Inventories
         /// All of the items owned by the player that are not a special type of
         /// item (ex: weapons, which need more logic).
         /// </summary>
-        public readonly Dictionary<CIString, InventoryItem> Items = new Dictionary<CIString, InventoryItem>();
+        private readonly Dictionary<CIString, InventoryItem> Items = new Dictionary<CIString, InventoryItem>();
         
         /// <summary>
         /// All of the weapons owned by the player.
         /// </summary>
         public readonly Weapons Weapons = new Weapons();
 
-        public void Add(EntityDefinition definition, int amount)
+        public bool Add(EntityDefinition definition, int amount)
         {
             if (amount <= 0)
-                return;
+                return false;
 
             if (Items.TryGetValue(definition.Name, out InventoryItem? item))
                 item.Amount += amount;
             else
                 Items[definition.Name] = new InventoryItem(definition, amount);
+
+            return true;
         }
 
         public void Clear()

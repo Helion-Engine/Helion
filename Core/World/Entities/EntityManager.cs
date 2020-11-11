@@ -218,6 +218,10 @@ namespace Helion.World.Entities
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, position, zHeight);
             Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
+
+            var armor = DefinitionComposer.GetByName("ARMOR");
+            if (armor != null)
+                player.Inventory.Add(armor, 0);
             
             FinishCreatingEntity(player);
             
