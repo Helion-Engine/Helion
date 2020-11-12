@@ -1,4 +1,5 @@
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.Definition.States.EntityActionFunctions;
 
@@ -9,6 +10,7 @@ namespace Helion.World.Entities.Definition.States
         public readonly string Sprite;
         public readonly int Frame;
         public int Ticks { get; private set; }
+        public bool IsInvisible { get; private set; }
         public readonly EntityFrameProperties Properties;
         public readonly ActionFunction? ActionFunction;
         public int NextFrameIndex;
@@ -26,6 +28,7 @@ namespace Helion.World.Entities.Definition.States
             ActionFunction = actionFunction;
             NextFrameIndex = nextFrameIndex;
             BranchType = ActorStateBranch.None;
+            IsInvisible = sprite == Constants.InvisibleSprite;
         }
 
         public void SetTicks(int tics) => Ticks = tics;

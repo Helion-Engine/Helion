@@ -105,9 +105,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         private bool ShouldNotDraw(Entity entity)
         {
-            return m_EntityDrawnTracker.HasDrawn(entity) ||
-                   ReferenceEquals(m_cameraEntity, entity) ||
-                   entity.Frame.Sprite == Constants.InvisibleSprite;
+            return entity.Frame.IsInvisible ||
+                    m_EntityDrawnTracker.HasDrawn(entity) ||
+                    ReferenceEquals(m_cameraEntity, entity);           
         }
 
         private void AddSpriteQuad(in Vec2D viewDirection, in Vec3D entityCenterBottom, Entity entity,
