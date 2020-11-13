@@ -334,14 +334,8 @@ namespace Helion.World.Entities
             {
                 if (tryMove != null && tryMove.IntersectSpecialLines.Count > 0)
                 {
-                    bool success = false;
                     for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
-                    {
-                        if (World.PhysicsManager.ActivateSpecialLine(this, tryMove.IntersectSpecialLines[i], ActivationContext.UseLine))
-                            success = true;
-                    }
-
-                    return success;
+                        World.PhysicsManager.ActivateSpecialLine(this, tryMove.IntersectSpecialLines[i], ActivationContext.UseLine);
                 }
 
                 return false;
