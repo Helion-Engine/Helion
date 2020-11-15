@@ -646,6 +646,14 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Properties.ReactionTime > 0)
                 entity.Properties.ReactionTime--;
 
+            if (entity.Properties.Threshold > 0)
+            {
+                if (entity.Target == null || entity.Target.IsDead)
+                    entity.Properties.Threshold = 0;
+                else
+                    entity.Properties.Threshold--;
+            }
+
             if (entity.Target == null || entity.Target.IsDead)
             {
                 if (!entity.SetNewTarget(true))

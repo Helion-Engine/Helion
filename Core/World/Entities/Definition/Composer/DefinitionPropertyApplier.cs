@@ -63,6 +63,12 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.ReactionTime.HasValue)
                 definition.Properties.ReactionTime = properties.ReactionTime.Value;
 
+            if (properties.Threshold.HasValue)
+                definition.Properties.Threshold = properties.Threshold.Value;
+
+            if (properties.DefThreshold.HasValue)
+                definition.Properties.DefThreshold = properties.DefThreshold.Value;
+
             if (properties.DeathSound != null)
                 definition.Properties.DeathSound = properties.DeathSound;
 

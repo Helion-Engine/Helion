@@ -33,7 +33,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public string? DeathSound;
         public string? DeathType;
         public string? Decal;
-        public int? DefThreshold;
+        public int? DefThreshold = 100;
         public int? DesignatedTeam;
         public string? DistanceCheck;
         public DropItemProperty DropItem = default;

@@ -139,6 +139,8 @@ namespace Helion.World.Entities
             EntityManager = entityManager;
             SoundManager = soundManager;
             SoundChannels = new EntitySoundChannels(this);
+
+            Properties.Threshold = 0;
         }
 
         public double AttackPitchTo(Entity entity) => AttackPosition.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
@@ -380,9 +382,14 @@ namespace Helion.World.Entities
                 Entity damageSource = source.Owner ?? source;
                 if (!CanDamage(damageSource))
                     return false;
-                
-                if (!damageSource.IsDead)
+
+                if (Properties.Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
+                {
+                    if (!Flags.QuickToRetaliate)
+                        Properties.Threshold = Properties.DefThreshold;
                     Target = damageSource;
+                    SetSeeState();
+                }
             }
 
             Health -= damage;
