@@ -17,8 +17,6 @@ namespace Helion.World.Special
         private readonly bool m_moveSpecial;
         private readonly bool m_sectorStopMoveSpecial;
         private readonly bool m_lightSpecial;
-        private readonly bool m_stopLightSpecial;
-        private readonly bool m_monsterCanUse;
         private readonly LineActivationType m_lineActivationType;
 
         public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any)
@@ -32,8 +30,6 @@ namespace Helion.World.Special
             m_moveSpecial = SetMoveSpecial();
             m_sectorStopMoveSpecial = SetSectorStopSpecial();
             m_lightSpecial = SetLightSpecial();
-            m_stopLightSpecial = SetStopLightSpecial();
-            m_monsterCanUse = SetMonsterCanUse();
         }
 
         public static void ValidateActivationFlags(ZDoomLineSpecialType type, LineFlags flags)
@@ -70,10 +66,14 @@ namespace Helion.World.Special
             }
             else if (entity.Flags.IsMonster)
             {
+                if (line.Flags.Secret)
+                    return false;
+
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.MonsterLineCross;
                 else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && line.Special.MonsterCanUse();
+                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
+                        line.Special.MonsterCanUse();
             }
             else if (entity is Player)
             {
@@ -93,8 +93,8 @@ namespace Helion.World.Special
         public bool IsSectorMoveSpecial() => m_moveSpecial;
         public bool IsSectorStopMoveSpecial() => m_sectorStopMoveSpecial;
         public bool IsSectorLightSpecial() => m_lightSpecial;
-        public bool IsSectorStopLightSpecial() => m_stopLightSpecial;
-        public bool MonsterCanUse() => m_monsterCanUse;
+        public bool IsSectorStopLightSpecial() => LineSpecialType == ZDoomLineSpecialType.LightStop;
+        public bool MonsterCanUse() => LineSpecialType == ZDoomLineSpecialType.DoorOpenClose;
 
         public bool CanActivateDuringSectorMovement()
         {
@@ -240,24 +240,6 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.LightMinNeighbor:
                 case ZDoomLineSpecialType.LightMaxNeighbor:
                 return true;
-            }
-
-            return false;
-        }
-
-        private bool SetStopLightSpecial()
-        {
-            return LineSpecialType == ZDoomLineSpecialType.LightStop;
-        }
-
-        private bool SetMonsterCanUse()
-        {
-            switch (LineSpecialType)
-            {
-                case ZDoomLineSpecialType.DoorOpenClose:
-                case ZDoomLineSpecialType.DoorOpenStay:
-                case ZDoomLineSpecialType.DoorLockedRaise:
-                    return true;
             }
 
             return false;
