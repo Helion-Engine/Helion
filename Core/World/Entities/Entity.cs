@@ -9,7 +9,6 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
-using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
@@ -388,7 +387,8 @@ namespace Helion.World.Entities
                     if (!Flags.QuickToRetaliate)
                         Properties.Threshold = Properties.DefThreshold;
                     Target = damageSource;
-                    SetSeeState();
+                    if (HasSeeState() && FrameState.IsState(FrameStateLabel.Spawn))
+                        SetSeeState();
                 }
             }
 
@@ -399,7 +399,7 @@ namespace Helion.World.Entities
             {
                 Kill();
             }
-            else if (setPainState && !Flags.Skullfly && Definition.States.Labels.ContainsKey("PAIN"))
+            else if (setPainState && !Flags.Skullfly && HasPainState())
             {
                 Flags.JustHit = true;
                 FrameState.SetState(FrameStateLabel.Pain);
@@ -453,6 +453,8 @@ namespace Helion.World.Entities
         public bool HasMeleeState() => Definition.States.Labels.ContainsKey("MELEE");
         public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
         public bool HasRaiseState() => Definition.States.Labels.ContainsKey("RAISE");
+        public bool HasSeeState() => Definition.States.Labels.ContainsKey("SEE");
+        public bool HasPainState() => Definition.States.Labels.ContainsKey("PAIN");
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
         public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
 
