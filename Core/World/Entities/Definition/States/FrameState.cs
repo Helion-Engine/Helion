@@ -41,6 +41,14 @@ namespace Helion.World.Entities.Definition.States
             return false;
         }
 
+        public bool IsState(FrameStateLabel label)
+        {
+            if (m_definition.States.Labels.TryGetValue(label.ToString(), out int index))
+                return m_frameIndex == index;
+
+            return false;
+        }
+
         public void SetTics(int tics)
         {
             if (tics < 1)
