@@ -12,6 +12,7 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
+using Helion.World.Special.SectorMovement;
 
 namespace Helion.World
 {
@@ -33,7 +34,6 @@ namespace Helion.World
         EntityManager EntityManager { get; }
         SoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
-        PhysicsManager PhysicsManager { get; }
 
         void Link(Entity entity);
         void Tick();
@@ -43,5 +43,17 @@ namespace Helion.World
         List<Entity> GetBossTargets();
         int CurrentBossTarget { get; set; }
         void TelefragBlockingEntities(Entity entity);
+        bool EntityUse(Entity entity);
+        bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
+        Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
+        void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
+        void FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
+        bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical);
+        void HandleEntityHit(Entity entity, TryMoveData? tryMove);
+        bool CheckLineOfSight(Entity from, Entity to);
+        void RadiusExplosion(Entity source, int radius);
+        TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
+        SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
+            MoveDirection direction, double speed, double destZ, CrushData? crush);
     }
 }

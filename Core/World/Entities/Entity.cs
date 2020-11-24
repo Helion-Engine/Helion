@@ -365,7 +365,7 @@ namespace Helion.World.Entities
 
         public virtual bool CanDamage(Entity source)
         {
-            if (source is Player)
+            if (source is Player || !Flags.IsMonster)
                 return true;
 
             return !GetSpeciesName().Equals(source.GetSpeciesName());
@@ -613,7 +613,7 @@ namespace Helion.World.Entities
                 if (BlockingEntity != null)
                 {
                     int damage = Properties.Damage.Get(World.Random);
-                    EntityManager.World.PhysicsManager.DamageEntity(BlockingEntity, this, damage, Thrust.Horizontal);
+                    EntityManager.World.DamageEntity(BlockingEntity, this, damage, Thrust.Horizontal);
                 }
 
                 Flags.Skullfly = false;

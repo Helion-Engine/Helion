@@ -39,7 +39,7 @@ namespace Helion.World.Impl.SinglePlayer
             Player = EntityManager.CreatePlayer(0);
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
-            PhysicsManager.EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+            EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
         }
 
         ~SinglePlayerWorld()
@@ -117,31 +117,31 @@ namespace Helion.World.Impl.SinglePlayer
                     switch (Player.WeaponIndex)
                     {
                         case 0:
-                            PhysicsManager.FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
+                            FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 1:
-                            PhysicsManager.FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
+                            FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 2:
-                            PhysicsManager.FireHitscanBullets(Player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
+                            FireHitscanBullets(Player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 3:
-                            PhysicsManager.FireHitscanBullets(Player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
+                            FireHitscanBullets(Player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
                             break;
 
                         case 4:
-                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
+                            FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
                             break;
 
                         case 5:
-                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
+                            FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
                             break;
 
                         case 6:
-                            PhysicsManager.FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
+                            FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
                             break;
                     }
 
@@ -165,13 +165,13 @@ namespace Helion.World.Impl.SinglePlayer
             }
 
             if (tickCommand.Has(TickCommands.Use))
-                PhysicsManager.EntityUse(Player);
+                EntityUse(Player);
         }
-        
+
         protected override void PerformDispose()
         {
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
-            PhysicsManager.EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
+            EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
             
             base.PerformDispose();
         }

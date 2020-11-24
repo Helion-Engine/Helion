@@ -67,7 +67,7 @@ namespace Helion.World.Entities
                     if (Flags.Ambush)
                     {
                         // Ambush enemies will set target based on SoundTarget reguardless of FOV.
-                        if (EntityManager.World.PhysicsManager.CheckLineOfSight(this, Sector.SoundTarget))
+                        if (EntityManager.World.CheckLineOfSight(this, Sector.SoundTarget))
                             newTarget = Sector.SoundTarget;
                     }
                     else
@@ -226,7 +226,7 @@ namespace Helion.World.Entities
             Vec2D nextPos = GetNextEnemyPos();
 
             m_enemyMove = true;
-            tryMove = EntityManager.World.PhysicsManager.TryMoveXY(this, nextPos, false);
+            tryMove = World.TryMoveXY(this, nextPos, false);
             m_enemyMove = false;
             if (!tryMove.Success)
             {
@@ -287,7 +287,7 @@ namespace Helion.World.Entities
             if (!Flags.NoVerticalMeleeRange && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))
                 return false;
 
-            if (!EntityManager.World.PhysicsManager.CheckLineOfSight(this, entity))
+            if (!EntityManager.World.CheckLineOfSight(this, entity))
                 return false;
 
             return true;
@@ -295,7 +295,7 @@ namespace Helion.World.Entities
 
         public bool CheckMissileRange()
         {
-            if (Target == null || !EntityManager.World.PhysicsManager.CheckLineOfSight(this, Target))
+            if (Target == null || !EntityManager.World.CheckLineOfSight(this, Target))
                 return false;
 
             if (Flags.JustHit)
@@ -335,7 +335,7 @@ namespace Helion.World.Entities
                 if (tryMove != null && tryMove.IntersectSpecialLines.Count > 0)
                 {
                     for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
-                        World.PhysicsManager.ActivateSpecialLine(this, tryMove.IntersectSpecialLines[i], ActivationContext.UseLine);
+                        World.ActivateSpecialLine(this, tryMove.IntersectSpecialLines[i], ActivationContext.UseLine);
                 }
 
                 return false;

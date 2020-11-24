@@ -507,7 +507,7 @@ namespace Helion.World.Entities.Definition.States
             entity.World.CurrentBossTarget %= targets.Count;
 
             double pitch = entity.PitchTo(target);
-            Entity? spawnShot = entity.World.PhysicsManager.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
+            Entity? spawnShot = entity.World.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
             if (spawnShot != null)
             {
                 spawnShot.Flags.NoClip = true;
@@ -579,12 +579,12 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 10;
-                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, new SoundParams(entity));
                 return;
             }
 
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "BaronBall");
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "BaronBall");
         }
 
         private static void A_BspiAttack(Entity entity)
@@ -593,7 +593,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
         }
 
         private static void A_BulletAttack(Entity entity)
@@ -861,7 +861,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
                 Constants.EntityShootDistance, false, "Rocket");
         }
 
@@ -927,7 +927,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Explode(Entity entity)
         {
-            entity.World.PhysicsManager.RadiusExplosion(entity, 128);
+            entity.World.RadiusExplosion(entity, 128);
         }
 
         private static void A_ExtChase(Entity entity)
@@ -1012,11 +1012,11 @@ namespace Helion.World.Entities.Definition.States
             double baseAngle = entity.AngleRadians;
 
             entity.AngleRadians = baseAngle + fireSpread1;
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
                 Constants.EntityShootDistance, false, "FatShot");
 
             entity.AngleRadians = baseAngle + fireSpread2;
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
                 Constants.EntityShootDistance, false, "FatShot");
 
             entity.AngleRadians = baseAngle;
@@ -1036,7 +1036,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Target == null || entity.Tracer == null)
                 return;
 
-            if (!entity.World.PhysicsManager.CheckLineOfSight(entity.Target, entity.Tracer))
+            if (!entity.World.CheckLineOfSight(entity.Target, entity.Tracer))
                 return;
 
             Vec3D newPos = entity.Tracer.Position;
@@ -1177,12 +1177,12 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 6) + 1) * 10;
-                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.PlayAttackSound();
                 return;
             }
 
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
                 Constants.EntityShootDistance, false, "CacodemonBall");
         }
 
@@ -1495,7 +1495,7 @@ namespace Helion.World.Entities.Definition.States
             Vec3D unit = Vec3D.UnitTimesValue(angle, 0.0, step);
             Vec2D tryPos = (skull.Position + unit).To2D();
 
-            if (!entity.World.PhysicsManager.TryMoveXY(skull, tryPos, false).Success)
+            if (!entity.World.TryMoveXY(skull, tryPos, false).Success)
             {
                 skull.SetDeathState();
                 return;
@@ -1545,7 +1545,7 @@ namespace Helion.World.Entities.Definition.States
 
             A_FaceTarget(entity);
             entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
-            entity.World.PhysicsManager.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0,
+            entity.World.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0,
                 entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false);
         }
 
@@ -1699,7 +1699,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.World.Random.NextByte() % 10) + 1) * 4;
-                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
             }
         }
 
@@ -1973,7 +1973,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.World.Random.NextByte() % 10) + 1) * 6;
-                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, new SoundParams(entity));
             }
         }
@@ -1983,7 +1983,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Target == null)
                 return;
 
-            Entity? fireball = entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            Entity? fireball = entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
                 Constants.EntityShootDistance, false, "RevenantTracer", 16);
 
             if (fireball != null)
@@ -2069,7 +2069,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             if (entity.Target == null || entity.Target.IsDead ||
-                !entity.World.PhysicsManager.CheckLineOfSight(entity, entity.Target))
+                !entity.World.CheckLineOfSight(entity, entity.Target))
             {
                 entity.SetSeeState();
             }
@@ -2246,12 +2246,12 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
-                entity.World.PhysicsManager.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, new SoundParams(entity));
                 return;
             }
 
-            entity.World.PhysicsManager.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
+            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
                 Constants.EntityShootDistance, false, "DoomImpBall");
         }
 
@@ -2307,11 +2307,11 @@ namespace Helion.World.Entities.Definition.States
 
             A_FaceTarget(entity);
 
-            if (!entity.World.PhysicsManager.CheckLineOfSight(entity, entity.Target))
+            if (!entity.World.CheckLineOfSight(entity, entity.Target))
                 return;
 
             entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, new SoundParams(entity));
-            entity.World.PhysicsManager.DamageEntity(entity.Target, entity, 20, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, 20, Thrust.Horizontal);
             entity.Target.Velocity.Z = 1000.0 / entity.Target.Definition.Properties.Mass;
 
             if (entity.Tracer == null)
@@ -2323,7 +2323,7 @@ namespace Helion.World.Entities.Definition.States
             newPos.Y -= unit.Y * 24;
 
             entity.Tracer.SetPosition(newPos);
-            entity.World.PhysicsManager.RadiusExplosion(entity.Tracer, 70);
+            entity.World.RadiusExplosion(entity.Tracer, 70);
         }
 
         private static void A_VileChase(Entity entity)

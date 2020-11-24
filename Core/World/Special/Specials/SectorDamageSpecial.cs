@@ -22,7 +22,7 @@ namespace Helion.World.Special.Specials
             if (player.Position.Z != m_sector.ToFloorZ(player.Position) || (m_world.Gametick & 31) != 0)
                 return;
 
-            m_world.PhysicsManager.DamageEntity(player, null, m_damage);
+            m_world.DamageEntity(player, null, m_damage);
         }
     }
 }
