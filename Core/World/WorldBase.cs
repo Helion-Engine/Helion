@@ -694,6 +694,11 @@ namespace Helion.World
             LevelExit?.Invoke(this, new LevelChangeEvent(number));
         }
 
+        protected void ResetLevel()
+        {
+            LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Reset));
+        }
+
         protected virtual void PerformDispose()
         {
             EntityManager.Dispose();

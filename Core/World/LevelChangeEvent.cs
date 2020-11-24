@@ -28,5 +28,6 @@ namespace Helion.World
         Next,
         SecretNext,
         SpecificLevel,
+        Reset
     }
 }

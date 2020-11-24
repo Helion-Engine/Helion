@@ -153,27 +153,27 @@ namespace Helion.Layer.WorldLayers
 
         private void World_LevelExit(object? sender, LevelChangeEvent e)
         { 
-            // Eventually we would do intermission stuff here.
-
-            Log.Debug("Loading next level...");
-
             switch (e.ChangeType)
             {
-            case LevelChangeType.Next:
-                string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
-                LoadMap(nextLevelName);
-                break;
+                case LevelChangeType.Next:
+                    string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
+                    LoadMap(nextLevelName);
+                    break;
             
-            case LevelChangeType.SecretNext:
-                // TODO: When we have MAPINFO working, we can do this.
-                Log.Warn("Change level to secret type to be implemented...");
-                break;
+                case LevelChangeType.SecretNext:
+                    // TODO: When we have MAPINFO working, we can do this.
+                    Log.Warn("Change level to secret type to be implemented...");
+                    break;
             
-            case LevelChangeType.SpecificLevel:
-                // TODO: Need to figure out this ExMx situation...
-                string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
-                LoadMap($"MAP{levelNumber}");
-                break;
+                case LevelChangeType.SpecificLevel:
+                    // TODO: Need to figure out this ExMx situation...
+                    string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
+                    LoadMap($"MAP{levelNumber}");
+                    break;
+
+                case LevelChangeType.Reset:
+                    LoadMap(m_world.MapName.ToString());
+                    break;
             }
         }
 

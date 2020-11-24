@@ -168,6 +168,14 @@ namespace Helion.World.Impl.SinglePlayer
                 EntityUse(Player);
         }
 
+        public override bool EntityUse(Entity entity)
+        {
+            if (entity is Player && entity.IsDead)
+                ResetLevel();
+
+            return base.EntityUse(entity);
+        }
+
         protected override void PerformDispose()
         {
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
