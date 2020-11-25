@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Helion.Input;
 using NLog;
 
@@ -18,7 +19,7 @@ namespace Helion.World.Cheats
         };
 
         private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
-        private string m_currentCheat = "";
+        private StringBuilder m_currentCheat = new StringBuilder();
 
         public event EventHandler<ICheat>? CheatActivationChanged;
 
@@ -27,6 +28,12 @@ namespace Helion.World.Cheats
         public CheatManager()
         {
             m_cheatLookup = Cheats.ToDictionary(cheat => cheat.CheatType);
+        }
+
+        public void Clear()
+        {
+            foreach (var value in m_cheatLookup.Values)
+                value.Activated = false;
         }
 
         public void ActivateCheat(CheatType cheatType)
@@ -59,20 +66,21 @@ namespace Helion.World.Cheats
         {
             foreach (char key in consumableInput.PeekTypedCharacters())
             {
-                m_currentCheat += key.ToString();
+                m_currentCheat.Append(key);
+                string cheatString = m_currentCheat.ToString();
 
-                if (Cheats.Any(x => x.PartialMatch(m_currentCheat)))
+                if (Cheats.Any(x => x.PartialMatch(cheatString)))
                 {
-                    ICheat? cheat = Cheats.FirstOrDefault(x => x.IsMatch(m_currentCheat));
+                    ICheat? cheat = Cheats.FirstOrDefault(x => x.IsMatch(cheatString));
                     if (cheat != null)
                     {
                         ActivateCheat(cheat.CheatType);
-                        m_currentCheat = "";
+                        m_currentCheat.Clear();
                     }
                 }
                 else
                 {
-                    m_currentCheat = "";
+                    m_currentCheat.Clear();
                 }
             }
         }
