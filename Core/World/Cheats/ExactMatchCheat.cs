@@ -1,4 +1,6 @@
-﻿namespace Helion.World.Cheats
+﻿using System;
+
+namespace Helion.World.Cheats
 {
     public class ExactMatchCheat : ICheat
     {
@@ -23,8 +25,8 @@
             CheatType = cheatType;
         }
 
-        public bool IsMatch(string str) => m_code.Equals(str);
+        public bool IsMatch(string str) => m_code.Equals(str, StringComparison.InvariantCultureIgnoreCase);
 
-        public bool PartialMatch(string str) => m_code.StartsWith(str);
+        public bool PartialMatch(string str) => m_code.StartsWith(str, StringComparison.InvariantCultureIgnoreCase);
     }
 }
