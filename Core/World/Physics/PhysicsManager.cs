@@ -703,13 +703,21 @@ namespace Helion.World.Physics
 
         public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData? tryMove)
         {
+            if (!(entity is Player) && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
+                return false;
+
             if (tryMove != null)
             {
-                tryMove.HighestFloorZ = entity.HighestFloorZ;
                 tryMove.LowestCeilingZ = entity.LowestCeilingZ;
-                tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
                 if (entity.HighestFloorObject is Entity highFloorEntity)
-                    tryMove.DropOffEntity = highFloorEntity;
+                {
+                    tryMove.HighestFloorZ = highFloorEntity.Box.Top;
+                    tryMove.DropOffZ = entity.Sector.ToFloorZ(position);           
+                }
+                else
+                {
+                    tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
+                }
             }
 
             if (tryMove != null)
