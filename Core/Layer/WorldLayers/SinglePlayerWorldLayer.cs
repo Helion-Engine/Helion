@@ -11,6 +11,7 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Time;
 using Helion.World;
+using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
@@ -74,10 +75,11 @@ namespace Helion.Layer.WorldLayers
             if (world == null)
                 return null;
 
+            CheatManager.Instance.Clear();
             return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world);
         }
 
-        public void LoadMap(string mapName)
+        public void LoadMap(string mapName, bool keepPlayer)
         {
             IMap? map = ArchiveCollection.FindMap(mapName);
             if (map == null)
@@ -86,7 +88,13 @@ namespace Helion.Layer.WorldLayers
                 return;
             }
 
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, AudioSystem, map);
+            Player? existingPlayer = null;
+            if (keepPlayer && !m_world.Player.IsDead)
+                existingPlayer = m_world.Player;
+            else
+                CheatManager.Instance.Clear();
+
+            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, AudioSystem, map, existingPlayer);
             if (world == null)
             {
                 Log.Error("Unable to load map {0}", mapName);
@@ -157,7 +165,7 @@ namespace Helion.Layer.WorldLayers
             {
                 case LevelChangeType.Next:
                     string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
-                    LoadMap(nextLevelName);
+                    LoadMap(nextLevelName, true);
                     break;
             
                 case LevelChangeType.SecretNext:
@@ -168,11 +176,11 @@ namespace Helion.Layer.WorldLayers
                 case LevelChangeType.SpecificLevel:
                     // TODO: Need to figure out this ExMx situation...
                     string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
-                    LoadMap($"MAP{levelNumber}");
+                    LoadMap($"MAP{levelNumber}", false);
                     break;
 
                 case LevelChangeType.Reset:
-                    LoadMap(m_world.MapName.ToString());
+                    LoadMap(m_world.MapName.ToString(), false);
                     break;
             }
         }

@@ -31,12 +31,14 @@ namespace Helion.World.Impl.SinglePlayer
         public readonly Player Player;
         
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, IMap map)
+            MapGeometry geometry, IMap map, Player? existingPlayer = null)
             : base(config, archiveCollection, audioSystem, geometry, map)
         {
             EntityManager.PopulateFrom(map);
-            
+
             Player = EntityManager.CreatePlayer(0);
+            if (existingPlayer != null)
+                Player.CopyProperties(existingPlayer);
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
@@ -49,7 +51,7 @@ namespace Helion.World.Impl.SinglePlayer
         }
 
         public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, 
-            IAudioSystem audioSystem, IMap map)
+            IAudioSystem audioSystem, IMap map, Player? existingPlayer = null)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map);
             if (geometry == null)
@@ -58,7 +60,7 @@ namespace Helion.World.Impl.SinglePlayer
                 return null;
             }
             
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map);
+            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map, existingPlayer);
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)

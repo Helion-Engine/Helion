@@ -33,7 +33,7 @@ namespace Helion.World.Entities
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
         public EntityFlags Flags { get; protected set; }
-        public readonly EntityProperties Properties;
+        public EntityProperties Properties;
         public readonly EntitySoundChannels SoundChannels;
         public readonly EntityManager EntityManager;
         public readonly FrameState FrameState;
@@ -140,6 +140,14 @@ namespace Helion.World.Entities
             SoundChannels = new EntitySoundChannels(this);
 
             Properties.Threshold = 0;
+        }
+
+        public void CopyProperties(Entity entity)
+        {
+            Properties = entity.Properties;
+            Flags = entity.Flags;
+            Inventory = entity.Inventory;
+            Health = entity.Health;
         }
 
         public double AttackPitchTo(Entity entity) => AttackPosition.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
