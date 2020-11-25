@@ -572,7 +572,7 @@ namespace Helion.World.Entities
             for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
             {
                 Entity entity = tryMove.IntersectEntities2D[i];
-                if (!CanBlockEntity(entity))
+                if (!CanBlockEntity(entity) || !entity.Flags.ActLikeBridge)
                     continue;
                 if (entity.Box.Top > tryMove.DropOffZ)
                     tryMove.DropOffZ = entity.Box.Top;
