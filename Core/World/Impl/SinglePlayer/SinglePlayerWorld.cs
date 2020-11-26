@@ -241,14 +241,17 @@ namespace Helion.World.Impl.SinglePlayer
                 return;
 
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
-            Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
-            moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
-            moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
+            if (pixelsMoved.X != 0 || pixelsMoved.Y != 0)
+            {
+                Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
+                moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
+                moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
 
-            Player.AddToYaw(moveDelta.X);
+                Player.AddToYaw(moveDelta.X);
 
-            if (Config.Engine.Mouse.MouseLook)
-                Player.AddToPitch(moveDelta.Y);
+                if (Config.Engine.Mouse.MouseLook)
+                    Player.AddToPitch(moveDelta.Y);
+            }
         }
     }
 }
