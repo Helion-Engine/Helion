@@ -111,9 +111,7 @@ namespace Helion.World.Entities.Players
 
         public void AddToYaw(double delta)
         {
-            AngleRadians = (AngleRadians + delta) % MathHelper.TwoPi;
-            if (AngleRadians < 0)
-                AngleRadians += MathHelper.TwoPi;
+            AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
         }
 
         public void AddToPitch(double delta)
