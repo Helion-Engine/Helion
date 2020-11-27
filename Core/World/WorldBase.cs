@@ -338,6 +338,13 @@ namespace Helion.World
             return true;
         }
 
+        public bool GetAutoAimEntity(Entity shooter, double angle, double distance, out double pitch, out Entity? entity)
+        {
+            Vec3D start = shooter.AttackPosition;
+            Vec3D end = start + Vec3D.UnitTimesValue(angle, 0, distance);
+            return GetAutoAimAngle(shooter, start, end, out pitch, out entity);
+        }
+
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
             Vec3D start = shooter.AttackPosition;
@@ -346,7 +353,7 @@ namespace Helion.World
             if (autoAim)
             {
                 Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
-                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
                     pitch = autoAimPitch;
             }
 
@@ -382,7 +389,7 @@ namespace Helion.World
             {
                 Vec3D start = shooter.AttackPosition;
                 Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
-                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch))
+                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
                     pitch = autoAimPitch;
             }
 
@@ -629,7 +636,7 @@ namespace Helion.World
             double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
-            return GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _) != TraversalPitchStatus.Blocked;
+            return GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
         }
 
         public virtual void RadiusExplosion(Entity source, int radius)
@@ -712,7 +719,7 @@ namespace Helion.World
             intersect.Y = start.Y + (Math.Sin(angle) * distXY);
         }
 
-        private bool GetAutoAimAngle(Entity shooter, Vec3D start, Vec3D end, out double pitch)
+        private bool GetAutoAimAngle(Entity shooter, Vec3D start, Vec3D end, out double pitch, out Entity? entity)
         {
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
 
@@ -720,7 +727,7 @@ namespace Helion.World
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
-            return GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch) == TraversalPitchStatus.PitchSet;
+            return GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity) == TraversalPitchStatus.PitchSet;
         }
 
         private enum TraversalPitchStatus
@@ -730,9 +737,11 @@ namespace Helion.World
             PitchNotSet,
         }
 
-        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, Vec3D start, Entity startEntity, double topPitch, double bottomPitch, out double pitch)
+        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, Vec3D start, Entity startEntity, double topPitch, double bottomPitch, 
+            out double pitch, out Entity? entity)
         {
             pitch = 0.0;
+            entity = null;
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -778,6 +787,7 @@ namespace Helion.World
                         bottomPitch = thingBottomPitch;
 
                     pitch = (bottomPitch + topPitch) / 2.0;
+                    entity = bi.Entity;
                     return TraversalPitchStatus.PitchSet;
                 }
             }

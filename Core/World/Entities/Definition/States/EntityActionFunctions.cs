@@ -427,8 +427,7 @@ namespace Helion.World.Entities.Definition.States
             for (int i = 0; i < 40; i++)
             {
                 double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
-                Entity? hitEntity = entity.World.FireHitscan(entity.Owner, angle, 0, Constants.EntityShootDistance, damage: 0);
-                if (hitEntity == null)
+                if (!entity.World.GetAutoAimEntity(entity.Owner, angle, Constants.EntityShootDistance, out _, out Entity? hitEntity) || hitEntity == null)
                     continue;
 
                 int damage = 0;
