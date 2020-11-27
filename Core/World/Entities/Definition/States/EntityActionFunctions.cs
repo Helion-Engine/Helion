@@ -13,7 +13,6 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using NLog;
-using NLog.Targets;
 
 namespace Helion.World.Entities.Definition.States
 {
@@ -416,12 +415,29 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BFGSound(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_BFGSpray(Entity entity)
         {
-             // TODO
+            if (entity.Owner == null)
+                return;
+
+            for (int i = 0; i < 40; i++)
+            {
+                double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
+                Entity? hitEntity = entity.World.FireHitscan(entity.Owner, angle, 0, Constants.EntityShootDistance, damage: 0);
+                if (hitEntity == null)
+                    continue;
+
+                int damage = 0;
+                for (int j = 0; j < 15; j++)
+                    damage += (entity.World.Random.NextByte() & 7) + 1;
+
+                entity.World.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
+                entity.World.DamageEntity(hitEntity, entity, damage, Thrust.Horizontal);
+            }
         }
 
         private static void A_BabyMetal(Entity entity)
@@ -797,7 +813,8 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_CloseShotgun2(Entity entity)
         {
-             // TODO
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", SoundChannelType.Auto, new SoundParams(entity));
+            A_ReFire(entity);
         }
 
         private static void A_ComboAttack(Entity entity)
@@ -1054,7 +1071,12 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireBFG(Entity entity)
         {
-             // TODO
+            // TODO not sure of difference between A_FireBFG and A_FireOldBFG
+            if (entity is Player player)
+            {
+                player.Weapon?.SetFlashState();
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
+            }
         }
 
         private static void A_FireBullets(Entity entity)
@@ -1064,7 +1086,13 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireCGun(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
+                player.Weapon?.SetFlashState();
+                player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+                    player.PitchRadians, Constants.EntityShootDistance, false);
+            }
         }
 
         private static void A_FireCrackle(Entity entity)
@@ -1079,22 +1107,41 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireMissile(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                player.Weapon?.SetFlashState();
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "Rocket");
+            }
         }
 
         private static void A_FireOldBFG(Entity entity)
         {
-             // TODO
+            // TODO not sure of difference between A_FireBFG and A_FireOldBFG
+            if (entity is Player player)
+            {
+                player.Weapon?.SetFlashState();
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
+            }
         }
 
         private static void A_FirePistol(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
+                player.Weapon?.SetFlashState();
+                player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+                    player.PitchRadians, Constants.EntityShootDistance, false);
+            }
         }
 
         private static void A_FirePlasma(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                player.Weapon?.SetFlashState();
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "PlasmaBall");
+            }
         }
 
         private static void A_FireProjectile(Entity entity)
@@ -1109,12 +1156,24 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireShotgun(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", SoundChannelType.Auto, new SoundParams(entity));
+                player.Weapon?.SetFlashState();
+                player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, 
+                    player.PitchRadians, Constants.EntityShootDistance, false);
+            }
         }
 
         private static void A_FireShotgun2(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", SoundChannelType.Auto, new SoundParams(entity));
+                player.Weapon?.SetFlashState();
+                player.World.FireHitscanBullets(player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
+                    player.PitchRadians, Constants.EntityShootDistance, false);
+            }
         }
 
         private static void A_FreezeDeath(Entity entity)
@@ -1313,22 +1372,26 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Light(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+                player.ExtraLight = 0;
         }
 
         private static void A_Light0(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+                player.ExtraLight = 1;
         }
 
         private static void A_Light1(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+                player.ExtraLight = 2;
         }
 
         private static void A_Light2(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+                player.ExtraLight = 3;
         }
 
         private static void A_LightInverse(Entity entity)
@@ -1338,7 +1401,7 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_LoadShotgun2(Entity entity)
         {
-             // TODO
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", SoundChannelType.Auto, new SoundParams(entity));
         }
         
         private static void A_Log(Entity entity)
@@ -1438,7 +1501,7 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_OpenShotgun2(Entity entity)
         {
-             // TODO
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", SoundChannelType.Auto, new SoundParams(entity));
         }
 
         private static void A_Overlay(Entity entity)
@@ -1561,7 +1624,18 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Punch(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                // TODO berserk
+                int damage = 2 * player.World.Random.NextByte() % 10 + 1;
+                Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
+                if (hitEntity != null)
+                {
+                    // TODO random angle
+                    player.World.SoundManager.CreateSoundOn(entity, "player/male/fist", SoundChannelType.Auto, new SoundParams(entity));
+                    player.AngleRadians = player.Position.Angle(hitEntity.Position);
+                }
+            }
         }
 
         private static void A_Quake(Entity entity)
@@ -1626,7 +1700,18 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_ReFire(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                if (player.CanFireWeapon())
+                {
+                    player.Refire = true;
+                    player.Weapon?.SetFireState();
+                }
+                else
+                {
+                    player.Refire = false;
+                }
+            }
         }
 
         private static void A_RearrangePointers(Entity entity)
@@ -1705,7 +1790,20 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Saw(Entity entity)
         {
-             // TODO
+            if (entity is Player player)
+            {
+                int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
+                Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
+                if (hitEntity == null)
+                {
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", SoundChannelType.Auto, new SoundParams(entity));
+                }
+                else
+                {
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", SoundChannelType.Auto, new SoundParams(entity));
+                    player.AngleRadians = player.Position.Angle(hitEntity.Position);
+                }
+            }
         }
 
         private static void A_ScaleVelocity(Entity entity)
@@ -2399,8 +2497,13 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_WeaponReady(Entity entity)
         {
-             if (entity is Player player && player.Weapon != null)
-                  player.Weapon.ReadyToFire = true;
+            if (entity is Player player && player.Weapon != null)
+            {
+                player.Weapon.ReadyToFire = true;
+
+                if (player.Weapon.Definition.Name == "CHAINSAW" && player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawidle", SoundChannelType.Auto, new SoundParams(entity));
+            }
         }
 
         private static void A_Weave(Entity entity)

@@ -58,6 +58,13 @@ namespace Helion.Layer.WorldLayers
                 (config.Engine.Controls.Use,            TickCommands.Use),
                 (config.Engine.Controls.NextWeapon,     TickCommands.NextWeapon),
                 (config.Engine.Controls.PreviousWeapon, TickCommands.PreviousWeapon),
+                (config.Engine.Controls.WeaponSlot1,    TickCommands.WeaponSlot1),
+                (config.Engine.Controls.WeaponSlot2,    TickCommands.WeaponSlot2),
+                (config.Engine.Controls.WeaponSlot3,    TickCommands.WeaponSlot3),
+                (config.Engine.Controls.WeaponSlot4,    TickCommands.WeaponSlot4),
+                (config.Engine.Controls.WeaponSlot5,    TickCommands.WeaponSlot5),
+                (config.Engine.Controls.WeaponSlot6,    TickCommands.WeaponSlot6),
+                (config.Engine.Controls.WeaponSlot7,    TickCommands.WeaponSlot7),
             };
         }
 

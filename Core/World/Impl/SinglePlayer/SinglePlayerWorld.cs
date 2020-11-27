@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using Helion.Audio;
 using Helion.Input;
@@ -9,6 +10,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Cheats;
 using Helion.World.Entities;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
@@ -71,6 +73,8 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleTickCommand(TickCommand tickCommand)
         {
+            Player.TickCommand = tickCommand;
+
             if (Player.IsFrozen)
                 return;
 
@@ -114,40 +118,6 @@ namespace Helion.World.Impl.SinglePlayer
                 {
                     Player.Weapon?.RequestFire();
                     NoiseAlert(Player);
-
-                    // TODO remove when decorate weapons are implemented
-                    switch (Player.WeaponIndex)
-                    {
-                        case 0:
-                            FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityMeleeDistance, Config.Engine.Gameplay.AutoAim);
-                            break;
-
-                        case 1:
-                            FireHitscanBullets(Player, 1, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
-                            break;
-
-                        case 2:
-                            FireHitscanBullets(Player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim);
-                            break;
-
-                        case 3:
-                            FireHitscanBullets(Player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch, Player.PitchRadians, 8192.0, Config.Engine.Gameplay.AutoAim);
-                            break;
-
-                        case 4:
-                            FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "Rocket");
-                            break;
-
-                        case 5:
-                            FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "PlasmaBall");
-                            break;
-
-                        case 6:
-                            FireProjectile(Player, Player.PitchRadians, Constants.EntityShootDistance, Config.Engine.Gameplay.AutoAim, "BFGBall");
-                            break;
-                    }
-
-                    Player.Refire = true;
                 }
                 else
                 {
@@ -155,19 +125,72 @@ namespace Helion.World.Impl.SinglePlayer
                 }
 
                 if (tickCommand.Has(TickCommands.NextWeapon))
-                    ++Player.WeaponIndex;
+                {
+                    var slot = Player.Inventory.Weapons.GetNextSlot(Player);
+                    ChangePlayerWeaponSlot(slot);
+                }
+                else if (tickCommand.Has(TickCommands.PreviousWeapon))
+                {
+                    var slot = Player.Inventory.Weapons.GetPreviousSlot(Player);
+                    ChangePlayerWeaponSlot(slot);
+                }
+                else if (GetWeaponSlotCommand(tickCommand) != TickCommands.None)
+                {
+                    TickCommands weaponSlotCommand = GetWeaponSlotCommand(tickCommand);
+                    int slot = GetWeaponSlot(weaponSlotCommand);
+                    Weapon? weapon;
+                    if (Player.WeaponSlot == slot)
+                    {
+                        int subslotCount = Player.Inventory.Weapons.GetSubSlots(slot);
+                        int subslot = (Player.WeaponSubSlot + 1) % subslotCount;
+                        weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, subslot);
+                    }
+                    else
+                    {
+                        weapon = Player.Inventory.Weapons.GetWeapon(Player, slot);
+                    }
 
-                if (tickCommand.Has(TickCommands.PreviousWeapon))
-                    --Player.WeaponIndex;
-
-                if (Player.WeaponIndex > 6)
-                    Player.WeaponIndex = 0;
-                if (Player.WeaponIndex < 0)
-                    Player.WeaponIndex = 6;
+                    if (weapon != null && weapon != Player.Weapon)
+                        Player.ChangeWeapon(weapon);
+                }
             }
 
             if (tickCommand.Has(TickCommands.Use))
                 EntityUse(Player);
+        }
+
+        private int GetWeaponSlot(TickCommands tickCommand)
+        {
+            return (int)tickCommand - (int)TickCommands.WeaponSlot1 + 1;
+        }
+
+        private static readonly TickCommands[] WeaponSlotCommands = new TickCommands[]
+        {
+            TickCommands.WeaponSlot1,
+            TickCommands.WeaponSlot2,
+            TickCommands.WeaponSlot3,
+            TickCommands.WeaponSlot4,
+            TickCommands.WeaponSlot5,
+            TickCommands.WeaponSlot6,
+            TickCommands.WeaponSlot7,
+        };
+
+        private TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
+        {
+            TickCommands? command = WeaponSlotCommands.FirstOrDefault(x => tickCommand.Has(x));
+            if (command != null)
+                return command.Value;
+            return TickCommands.None;
+        }
+
+        private void ChangePlayerWeaponSlot((int, int) slot)
+        {
+            if (slot.Item1 != Player.WeaponSlot || slot.Item2 != Player.WeaponSubSlot)
+            {
+                var weapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Item1, slot.Item2);
+                if (weapon != null)
+                    Player.ChangeWeapon(weapon);
+            }
         }
 
         public override bool EntityUse(Entity entity)
@@ -217,15 +240,28 @@ namespace Helion.World.Impl.SinglePlayer
             
             switch (cheatEvent.CheatType)
             {
-            case CheatType.NoClip:
-                Player.Flags.NoClip = cheatEvent.Activated;
-                break;
-            case CheatType.Fly:
-                Player.Flags.NoGravity = cheatEvent.Activated;
-                break;
-            case CheatType.God:
-                Player.Flags.Invulnerable = cheatEvent.Activated;
-                break;
+                case CheatType.NoClip:
+                    Player.Flags.NoClip = cheatEvent.Activated;
+                    break;
+                case CheatType.Fly:
+                    Player.Flags.NoGravity = cheatEvent.Activated;
+                    break;
+                case CheatType.God:
+                    Player.Flags.Invulnerable = cheatEvent.Activated;
+                    break;
+                case CheatType.GiveAll:
+                    GiveAllWepaons();
+                    break;
+            }
+        }
+
+        private void GiveAllWepaons()
+        {
+            foreach (CIString name in Weapons.GetWeaponDefinitionNames())
+            {
+                var weapon = EntityManager.DefinitionComposer.GetByName(name);
+                if (weapon != null)
+                    Player.GiveWeapon(weapon);
             }
         }
 

@@ -1,6 +1,7 @@
 using Helion.Graphics.String;
 using Helion.Resources;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Shared
 {
@@ -25,7 +26,8 @@ namespace Helion.Render.Shared
         /// is optional.</param>
         /// <returns>The dimension of the image.</returns>
         Dimension GetImageDimension(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global);
-        
+        Vec2I GetImageOffset(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global);
+
         /// <summary>
         /// Gets the vertical height of the font, which is the tallest
         /// character that can be rendered from the bottom.

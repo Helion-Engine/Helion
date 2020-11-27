@@ -11,6 +11,7 @@ using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
 using Helion.World;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using MoreLinq;
 
@@ -50,6 +51,38 @@ namespace Helion.Render.Shared.Drawers
         {
             DrawHudHealth(player, viewport, helper);
             DrawHudCrosshair(viewport, helper);
+
+            if (player.Weapon != null)
+            {
+                DrawHudWeapon(player.Weapon.FrameState, viewport, helper);
+                if (player.Weapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
+                    DrawHudWeapon(player.Weapon.FlashState, viewport, helper);
+            }
+        }
+
+        private static void DrawHudWeapon(FrameState frameState, Dimension viewport, DrawHelper helper)
+        {
+            string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
+            if (helper.ImageExists(sprite))
+            {
+                Dimension dimension = helper.DrawInfoProvider.GetImageDimension(sprite);
+                // TODO verify - Doom appears to have some hardcoded Y offset (because reasons?)
+                Vec2I offset = helper.DrawInfoProvider.GetImageOffset(sprite);
+                offset.Y -= 32;
+                ScaleDimensions(viewport, ref dimension.Width, ref dimension.Height);
+                ScaleDimensions(viewport, ref offset.X, ref offset.Y);
+                // Translate doom image offset to OpenGL coordinates
+                helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2),
+                    -offset.Y - dimension.Height, dimension.Width, dimension.Height);
+            }
+        }
+
+        private static void ScaleDimensions(Dimension viewport, ref int width, ref int height)
+        {
+            float scaleWidth = viewport.Width / 320.0f;
+            float scaleHeight = viewport.Height / 200.0f;
+            width = (int)(width * scaleWidth);
+            height = (int)(height * scaleHeight);
         }
 
         private static void DrawHudHealth(Player player, Dimension viewport, DrawHelper helper)

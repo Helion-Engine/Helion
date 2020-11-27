@@ -47,7 +47,7 @@ namespace Helion.World
         bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
         Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
-        void FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
+        Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
         bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical);
         void HandleEntityHit(Entity entity, TryMoveData? tryMove);
         bool CheckLineOfSight(Entity from, Entity to);

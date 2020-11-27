@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -23,7 +22,6 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
-using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics

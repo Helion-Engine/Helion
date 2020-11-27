@@ -115,8 +115,26 @@ namespace Helion.World.Entities
             }
 
             Player player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
+            SetDefaultInventory(player);
             Players.Add(player);
             return player;
+        }
+
+        private void SetDefaultInventory(Player player)
+        {
+            GiveWeapon(player, "FIST");
+            GiveWeapon(player, "PISTOL");
+
+            var weapon = player.Inventory.Weapons.GetWeapon("PISTOL");
+            if (weapon != null)
+                player.ChangeWeapon(weapon);
+        }
+
+        private void GiveWeapon(Player player, string name)
+        {
+            var weapon = DefinitionComposer.GetByName(name);
+            if (weapon != null)
+                player.GiveWeapon(weapon);
         }
 
         public void PopulateFrom(IMap map)

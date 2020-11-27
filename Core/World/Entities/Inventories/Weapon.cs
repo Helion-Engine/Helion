@@ -19,6 +19,7 @@ namespace Helion.World.Entities.Inventories
         /// The current state of the weapon.
         /// </summary>
         public readonly FrameState FrameState;
+        public readonly FrameState FlashState;
         
         /// <summary>
         /// True if this gun is eligible to fire, false if not.
@@ -47,7 +48,6 @@ namespace Helion.World.Entities.Inventories
         /// </summary>
         public double PrevRaiseFraction { get; private set; }
 
-        private readonly Player m_owner;
         private bool m_tryingToFire;
         private double m_raiseFraction;
 
@@ -55,9 +55,9 @@ namespace Helion.World.Entities.Inventories
             base(definition, 1)
         {
             Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
-            
-            m_owner = owner;
+
             FrameState = new FrameState(owner, definition, entityManager);
+            FlashState = new FrameState(owner, definition, entityManager, false);
             
             if (!FrameState.SetState(FrameStateLabel.Ready))
                 Log.Warn("Unable to find Ready state for weapon {0}", definition.Name);
@@ -76,6 +76,16 @@ namespace Helion.World.Entities.Inventories
             m_tryingToFire = true;
         }
 
+        public void SetFireState()
+        {
+            FrameState.SetState("FIRE");
+        }
+
+        public void SetFlashState()
+        {
+            FlashState.SetState("FLASH");
+        }
+
         public void Tick()
         {
             PrevRaiseFraction = m_raiseFraction;
@@ -86,9 +96,10 @@ namespace Helion.World.Entities.Inventories
             // TODO: Weapon raise/lower.
 
             ReadyToFire = false;
-            m_tryingToFire = false;
+            m_tryingToFire = false; 
             
             FrameState.Tick();
+            FlashState.Tick();
         }
         
         private void SetToFireState()

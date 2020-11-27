@@ -142,7 +142,7 @@ namespace Helion.World.Entities
             Properties.Threshold = 0;
         }
 
-        public void CopyProperties(Entity entity)
+        public virtual void CopyProperties(Entity entity)
         {
             Properties = entity.Properties;
             Flags = entity.Flags;

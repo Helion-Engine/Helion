@@ -25,10 +25,12 @@ namespace Helion.World.Entities.Players
 
         public readonly int PlayerNumber;
         public double PitchRadians;
-        public Weapon? Weapon;
         public int LastPickupGametick = int.MinValue / 2;
-        public int WeaponIndex = 1; // Temporary test variable
         public int DamageCount = 0;
+        public TickCommand TickCommand;
+        // TODO implement effect on world
+        public int ExtraLight;
+
         private bool m_isJumping;
         private int m_jumpTics;
         private int m_deathTics;
@@ -37,6 +39,10 @@ namespace Helion.World.Entities.Players
         private double m_viewHeight;
         private double m_prevViewHeight;
         private double m_deltaViewHeight;
+
+        public Weapon? Weapon { get; private set; }
+        public int WeaponSlot { get; private set; }
+        public int WeaponSubSlot { get; private set; }
 
         public override double ViewHeight => m_viewHeight;
 
@@ -52,6 +58,18 @@ namespace Helion.World.Entities.Players
             m_prevViewHeight = m_viewHeight;
 
             AddStartItems();
+        }
+
+        public override void CopyProperties(Entity entity)
+        {
+            if (entity is Player player)
+            {
+                Weapon = player.Weapon;
+                WeaponSlot = player.WeaponSlot;
+                WeaponSubSlot = player.WeaponSubSlot;
+            }
+
+            base.CopyProperties(entity);
         }
 
         public Vec3D GetViewPosition()
@@ -182,7 +200,7 @@ namespace Helion.World.Entities.Players
 
         public override bool GivePickedUpItem(Entity item)
         {
-            if (base.GivePickedUpItem(item))
+            if (GiveWeapon(item.Definition) || base.GivePickedUpItem(item))
             {
                 LastPickupGametick = World.Gametick;
                 return true;
@@ -191,12 +209,39 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
-        public override bool Damage(Entity? entity, int damage, bool setPainState)
+        public bool GiveWeapon(EntityDefinition definition)
+        {
+            if (definition.ParentClassNames.Contains("WEAPON") && !Inventory.Weapons.OwnsWeapon(definition.Name))
+            {
+                Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
+                return addedWeapon != null;
+            }
+
+            return false;
+        }
+
+        public void ChangeWeapon(Weapon weapon)
+        {
+            var slot = Weapons.GetWeaponSlot(weapon.Definition);
+            if (Inventory.Weapons.OwnsWeapon(weapon.Definition.Name))
+            {
+                WeaponSlot = slot.Item1;
+                WeaponSubSlot = slot.Item2;
+                Weapon = weapon;
+            }
+        }
+
+        public bool CanFireWeapon()
+        {
+            return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack);
+        }
+
+        public override bool Damage(Entity? source, int damage, bool setPainState)
         {
             if (Sector.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd && damage >= Health)
                 damage = Health - 1;
 
-            bool damageApplied = base.Damage(entity, damage, setPainState);
+            bool damageApplied = base.Damage(source, damage, setPainState);
             if (damageApplied)
             {
                 PlayPainSound();

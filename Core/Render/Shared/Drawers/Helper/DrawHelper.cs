@@ -11,18 +11,18 @@ namespace Helion.Render.Shared.Drawers.Helper
         private const float Opaque = 1.0f;
         private static readonly Color NoColor = Color.Transparent;
 
+        public readonly IImageDrawInfoProvider DrawInfoProvider;
         private readonly RenderCommands m_renderCommands;
-        private readonly IImageDrawInfoProvider m_drawInfoProvider;
 
         public DrawHelper(RenderCommands renderCommands)
         {
             m_renderCommands = renderCommands;
-            m_drawInfoProvider = renderCommands.ImageDrawInfoProvider;
+            DrawInfoProvider = renderCommands.ImageDrawInfoProvider;
         }
         
-        public bool ImageExists(string name) => m_drawInfoProvider.ImageExists(name);
+        public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);
 
-        public int FontHeight(string fontName) => m_drawInfoProvider.GetFontHeight(fontName);
+        public int FontHeight(string fontName) => DrawInfoProvider.GetFontHeight(fontName);
         
         public void Pixel(int x, int y, Color color)
         {
@@ -51,13 +51,13 @@ namespace Helion.Render.Shared.Drawers.Helper
 
         public void Image(string name, int x, int y)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, NoColor, Opaque);
         }
         
         public void Image(string name, int x, int y, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, NoColor, Opaque);
         }
         
@@ -68,37 +68,37 @@ namespace Helion.Render.Shared.Drawers.Helper
 
         public void Image(string name, int x, int y, Alignment align)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, NoColor, Opaque);
         }
         
         public void Image(string name, int x, int y, Alignment align, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, NoColor, Opaque);
         }
 
         public void Image(string name, int x, int y, Color color)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, color, Opaque);
         }
         
         public void Image(string name, int x, int y, Color color, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, color, Opaque);
         }
 
         public void Image(string name, int x, int y, float alpha)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, NoColor, alpha);
         }
         
         public void Image(string name, int x, int y, float alpha, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, NoColor, alpha);
         }
 
@@ -119,37 +119,37 @@ namespace Helion.Render.Shared.Drawers.Helper
         
         public void Image(string name, int x, int y, Alignment align, Color color)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, color, Opaque);
         }
         
         public void Image(string name, int x, int y, Alignment align, Color color, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, color, Opaque);
         }
         
         public void Image(string name, int x, int y, Alignment align, float alpha)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, NoColor, alpha);
         }
         
         public void Image(string name, int x, int y, Alignment align, float alpha, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, NoColor, alpha);
         }
         
         public void Image(string name, int x, int y, Color color, float alpha)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, color, alpha);
         }
         
         public void Image(string name, int x, int y, Color color, float alpha, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, color, alpha);
         }
         
@@ -170,13 +170,13 @@ namespace Helion.Render.Shared.Drawers.Helper
         
         public void Image(string name, int x, int y, Alignment align, Color color, float alpha)
         {
-            var (width, height) = m_drawInfoProvider.GetImageDimension(name);
+            var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, color, alpha);
         }
         
         public void Image(string name, int x, int y, Alignment align, Color color, float alpha, out Dimension area)
         {
-            area = m_drawInfoProvider.GetImageDimension(name);
+            area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, color, alpha);
         }
         
@@ -330,7 +330,7 @@ namespace Helion.Render.Shared.Drawers.Helper
         public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, int maxWidth, bool wrap, float alpha, out Dimension drawArea)
         {
-            drawArea = m_drawInfoProvider.GetDrawArea(text, font, fontSize, maxWidth, wrap);
+            drawArea = DrawInfoProvider.GetDrawArea(text, font, fontSize, maxWidth, wrap);
             (int width, int height) = drawArea;
             
             int left = x;

@@ -57,7 +57,6 @@ namespace Helion.World
 
         private int m_exitTicks = 0;
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
-        private DateTime m_shootTest = DateTime.Now;
 
         public IList<Line> Lines => Geometry.Lines;
         public IList<Side> Sides => Geometry.Sides;
@@ -341,14 +340,6 @@ namespace Helion.World
 
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
-            if (shooter is Player)
-            {
-                if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 500)
-                    return null;
-
-                m_shootTest = DateTime.Now;
-            }
-
             Vec3D start = shooter.AttackPosition;
             start.Z += zOffset;
 
@@ -387,11 +378,6 @@ namespace Helion.World
 
         public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim)
         {
-            if (DateTime.Now.Subtract(m_shootTest).TotalMilliseconds < 200)
-                return;
-
-            m_shootTest = DateTime.Now;
-
             if (autoAim)
             {
                 Vec3D start = shooter.AttackPosition;
@@ -417,7 +403,7 @@ namespace Helion.World
             }
         }
 
-        public virtual void FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
+        public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
         {
             Vec3D start = shooter.AttackPosition;
             Vec3D end = start + Vec3D.UnitTimesValue(angle, pitch, distance);
@@ -434,14 +420,22 @@ namespace Helion.World
                     EntityActivatedSpecial?.Invoke(this, args);
                 }
 
-                // Only move closer on a line hit
-                if (bi.Value.Entity == null && bi.Value.Sector == null)
-                    MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-                DebugHitscanTest(bi.Value, intersect);
+                if (damage > 0)
+                {
+                    // Only move closer on a line hit
+                    if (bi.Value.Entity == null && bi.Value.Sector == null)
+                        MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
+                    DebugHitscanTest(bi.Value, intersect);
+                }
 
                 if (bi.Value.Entity != null)
+                {
                     DamageEntity(bi.Value.Entity, shooter, damage);
+                    return bi.Value.Entity;
+                }
             }
+
+            return null;
         }
 
         public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, ref Vec3D intersect)

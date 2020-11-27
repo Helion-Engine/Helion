@@ -17,5 +17,12 @@ namespace Helion.Util.Configuration.Components
         public readonly ConfigValue<InputKey> Attack = new ConfigValue<InputKey>(InputKey.MouseLeft);
         public readonly ConfigValue<InputKey> NextWeapon = new ConfigValue<InputKey>(InputKey.Up);
         public readonly ConfigValue<InputKey> PreviousWeapon = new ConfigValue<InputKey>(InputKey.Down);
+        public readonly ConfigValue<InputKey> WeaponSlot1 = new ConfigValue<InputKey>(InputKey.One);
+        public readonly ConfigValue<InputKey> WeaponSlot2 = new ConfigValue<InputKey>(InputKey.Two);
+        public readonly ConfigValue<InputKey> WeaponSlot3 = new ConfigValue<InputKey>(InputKey.Three);
+        public readonly ConfigValue<InputKey> WeaponSlot4 = new ConfigValue<InputKey>(InputKey.Four);
+        public readonly ConfigValue<InputKey> WeaponSlot5 = new ConfigValue<InputKey>(InputKey.Five);
+        public readonly ConfigValue<InputKey> WeaponSlot6 = new ConfigValue<InputKey>(InputKey.Six);
+        public readonly ConfigValue<InputKey> WeaponSlot7 = new ConfigValue<InputKey>(InputKey.Seven);
     }
 }

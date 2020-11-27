@@ -19,12 +19,14 @@ namespace Helion.World.Entities.Definition.States
         private readonly EntityManager m_entityManager;
         private int m_frameIndex;
         private int m_tics;
+        private bool m_destroyOnStop;
 
-        public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager)
+        public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager, bool destroyOnStop = true)
         {
             m_entity = entity;
             m_definition = definition;
             m_entityManager = entityManager;
+            m_destroyOnStop = destroyOnStop;
         }
 
         public bool SetState(FrameStateLabel label) => SetState(label.ToString());
@@ -82,7 +84,8 @@ namespace Helion.World.Entities.Definition.States
                     // entity should be removed from the map.
                     if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
                     {
-                        m_entityManager.Destroy(m_entity);
+                        if (m_destroyOnStop)
+                            m_entityManager.Destroy(m_entity);
                         return;
                     }
 
