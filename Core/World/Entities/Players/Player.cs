@@ -41,8 +41,11 @@ namespace Helion.World.Entities.Players
         private double m_deltaViewHeight;
 
         public Weapon? Weapon { get; private set; }
+        public Weapon? PendingWeapon { get; private set; }
+        public Weapon? AnimationWeapon { get; private set; }
         public int WeaponSlot { get; private set; }
         public int WeaponSubSlot { get; private set; }
+        public Vec2I WeaponOffset;
 
         public override double ViewHeight => m_viewHeight;
 
@@ -156,7 +159,7 @@ namespace Helion.World.Entities.Players
         public override void Tick()
         {
             base.Tick();
-            Weapon?.Tick();
+            AnimationWeapon?.Tick();
 
             m_prevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
@@ -227,13 +230,48 @@ namespace Helion.World.Entities.Players
             {
                 WeaponSlot = slot.Item1;
                 WeaponSubSlot = slot.Item2;
-                Weapon = weapon;
+                bool hadWeapon = Weapon != null;
+                PendingWeapon = weapon;
+
+                if (!hadWeapon)
+                {
+                    Weapon = PendingWeapon;
+                    AnimationWeapon = PendingWeapon;
+                    WeaponOffset.Y = Constants.WeaponBottom;
+                }
+
+                LowerWeapon();
             }
         }
 
         public bool CanFireWeapon()
         {
             return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack);
+        }
+
+        public void LowerWeapon()
+        {
+            if (Weapon == null)
+                return;
+
+            if (Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
+                Weapon.FrameState.SetState("DESELECT");
+        }
+
+        public void BringupWeapon()
+        {
+            if (PendingWeapon == null)
+                return;
+
+            AnimationWeapon = PendingWeapon;
+            PendingWeapon = null;
+            WeaponOffset.Y = Constants.WeaponBottom;
+            AnimationWeapon.FrameState.SetState("SELECT");
+        }
+
+        public void SetWeaponUp()
+        {
+            Weapon = AnimationWeapon;
         }
 
         public override bool Damage(Entity? source, int damage, bool setPainState)
@@ -249,6 +287,9 @@ namespace Helion.World.Entities.Players
                 DamageCount = Math.Min(DamageCount, Definition.Properties.Health);
                 DamageCount = (int)((float)DamageCount / Definition.Properties.Health * 100);
             }
+
+            if (IsDead)
+                LowerWeapon();
 
             return damageApplied;
         }

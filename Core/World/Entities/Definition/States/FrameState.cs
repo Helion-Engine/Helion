@@ -31,6 +31,14 @@ namespace Helion.World.Entities.Definition.States
 
         public bool SetState(FrameStateLabel label) => SetState(label.ToString());
 
+        public EntityFrame? GetStateFrame(string label)
+        {
+            if (m_definition.States.Labels.TryGetValue(label, out int index))
+                return m_definition.States.Frames[index];
+
+            return null;
+        }
+
         public bool SetState(string label)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
@@ -38,7 +46,7 @@ namespace Helion.World.Entities.Definition.States
                 SetFrameIndex(index);
                 return true;
             }
-
+            
             Log.Warn("Unable to find state label '{0}' for actor {1}", label, m_definition.Name);
             return false;
         }

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Helion.Audio;
-using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
@@ -1443,11 +1439,6 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
-        private static void A_Lower(Entity entity)
-        {
-             // TODO
-        }
-
         private static void A_M_Saw(Entity entity)
         {
              // TODO
@@ -1672,9 +1663,51 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
+        private static void A_Lower(Entity entity)
+        {
+            if (entity is Player player && player.AnimationWeapon != null)
+            {
+                player.WeaponOffset.Y += Constants.WeaponLowerSpeed;
+                if (player.WeaponOffset.Y < Constants.WeaponBottom)
+                    return;
+
+                if (player.IsDead)
+                {
+                    player.WeaponOffset.Y = Constants.WeaponBottom;
+                    player.AnimationWeapon.FrameState.SetState("NULL");
+                    return;
+                }
+
+                player.BringupWeapon();
+            }
+        }
+
         private static void A_Raise(Entity entity)
         {
-             // TODO
+            if (entity is Player player && player.AnimationWeapon != null)
+            {
+                player.WeaponOffset.Y -= Constants.WeaponRaiseSpeed;
+                if (player.WeaponOffset.Y > Constants.WeaponTop)
+                    return;
+
+                player.SetWeaponUp();
+                player.WeaponOffset.Y = Constants.WeaponTop;
+                player.AnimationWeapon.SetReadyState();
+            }
+        }
+
+        private static void A_WeaponReady(Entity entity)
+        {
+            if (entity is Player player && player.Weapon != null)
+            {
+                player.Weapon.ReadyToFire = true;
+
+                if (player.PendingWeapon != null || player.IsDead)
+                    player.LowerWeapon();
+
+                if (player.Weapon.Definition.Name == "CHAINSAW" && player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawidle", SoundChannelType.Auto, new SoundParams(entity));
+            }
         }
 
         private static void A_RaiseChildren(Entity entity)
@@ -2492,17 +2525,6 @@ namespace Helion.World.Entities.Definition.States
         private static void A_WeaponOffset(Entity entity)
         {
              // TODO
-        }
-
-        private static void A_WeaponReady(Entity entity)
-        {
-            if (entity is Player player && player.Weapon != null)
-            {
-                player.Weapon.ReadyToFire = true;
-
-                if (player.Weapon.Definition.Name == "CHAINSAW" && player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawidle", SoundChannelType.Auto, new SoundParams(entity));
-            }
         }
 
         private static void A_Weave(Entity entity)

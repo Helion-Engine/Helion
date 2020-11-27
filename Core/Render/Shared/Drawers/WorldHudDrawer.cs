@@ -52,28 +52,30 @@ namespace Helion.Render.Shared.Drawers
             DrawHudHealth(player, viewport, helper);
             DrawHudCrosshair(viewport, helper);
 
-            if (player.Weapon != null)
+            if (player.AnimationWeapon != null)
             {
-                DrawHudWeapon(player.Weapon.FrameState, viewport, helper);
-                if (player.Weapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player.Weapon.FlashState, viewport, helper);
+                DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
+                if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
+                    DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
             }
         }
 
-        private static void DrawHudWeapon(FrameState frameState, Dimension viewport, DrawHelper helper)
+        private static void DrawHudWeapon(Player player, FrameState frameState, Dimension viewport, DrawHelper helper)
         {
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
             if (helper.ImageExists(sprite))
             {
                 Dimension dimension = helper.DrawInfoProvider.GetImageDimension(sprite);
-                // TODO verify - Doom appears to have some hardcoded Y offset (because reasons?)
                 Vec2I offset = helper.DrawInfoProvider.GetImageOffset(sprite);
-                offset.Y -= 32;
+                Vec2I frameOffset = player.WeaponOffset;
+
                 ScaleDimensions(viewport, ref dimension.Width, ref dimension.Height);
                 ScaleDimensions(viewport, ref offset.X, ref offset.Y);
+                ScaleDimensions(viewport, ref frameOffset.X, ref frameOffset.Y);
                 // Translate doom image offset to OpenGL coordinates
                 helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2),
-                    -offset.Y - dimension.Height, dimension.Width, dimension.Height);
+                    -offset.Y - dimension.Height + frameOffset.Y, 
+                    dimension.Width, dimension.Height);
             }
         }
 

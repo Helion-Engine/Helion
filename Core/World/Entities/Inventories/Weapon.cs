@@ -56,7 +56,7 @@ namespace Helion.World.Entities.Inventories
         {
             Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
 
-            FrameState = new FrameState(owner, definition, entityManager);
+            FrameState = new FrameState(owner, definition, entityManager, false);
             FlashState = new FrameState(owner, definition, entityManager, false);
             
             if (!FrameState.SetState(FrameStateLabel.Ready))
@@ -84,6 +84,11 @@ namespace Helion.World.Entities.Inventories
         public void SetFlashState()
         {
             FlashState.SetState("FLASH");
+        }
+
+        public void SetReadyState()
+        {
+            FrameState.SetState("READY");
         }
 
         public void Tick()

@@ -92,5 +92,10 @@ namespace Helion.Util
         public const double PosRandomSpread = 11.2060547 * Math.PI / 180;
         public const double MancSpread = Math.PI / 16;
         public const double TracerAngle = 16.0 * Math.PI / 180;
+
+        public const int WeaponLowerSpeed = 6;
+        public const int WeaponRaiseSpeed = 6;
+        public const int WeaponBottom = 128;
+        public const int WeaponTop = 32;
     }
 }
