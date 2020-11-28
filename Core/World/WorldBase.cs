@@ -347,6 +347,9 @@ namespace Helion.World
 
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
+            if (shooter is Player player)
+                player.DescreaseAmmo();
+
             Vec3D start = shooter.AttackPosition;
             start.Z += zOffset;
 
@@ -385,6 +388,9 @@ namespace Helion.World
 
         public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim)
         {
+            if (shooter is Player player)
+                player.DescreaseAmmo();
+
             if (autoAim)
             {
                 Vec3D start = shooter.AttackPosition;

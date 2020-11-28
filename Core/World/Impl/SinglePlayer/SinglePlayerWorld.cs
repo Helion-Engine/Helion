@@ -114,8 +114,8 @@ namespace Helion.World.Impl.SinglePlayer
 
                 if (tickCommand.Has(TickCommands.Attack))
                 {
-                    Player.Weapon?.RequestFire();
-                    NoiseAlert(Player);
+                    if (Player.FireWeapon())
+                        NoiseAlert(Player);
                 }
                 else
                 {

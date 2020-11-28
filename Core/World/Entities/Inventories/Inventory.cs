@@ -24,9 +24,19 @@ namespace Helion.World.Entities.Inventories
                 return false;
 
             if (Items.TryGetValue(definition.Name, out InventoryItem? item))
+            {
+                if (item.Amount >= definition.Properties.Inventory.MaxAmount)
+                    return false;
+
                 item.Amount += amount;
+                if (item.Amount > definition.Properties.Inventory.MaxAmount)
+                    item.Amount = definition.Properties.Inventory.MaxAmount;
+                return true;
+            }
             else
+            {
                 Items[definition.Name] = new InventoryItem(definition, amount);
+            }
 
             return true;
         }

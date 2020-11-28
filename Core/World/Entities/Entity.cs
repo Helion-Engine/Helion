@@ -417,14 +417,14 @@ namespace Helion.World.Entities
             return true;
         }
 
-        public virtual bool GivePickedUpItem(Entity item)
+        public virtual bool GivePickedUpItem(EntityDefinition definition, EntityFlags? flags)
         {
-            var invData = item.Definition.Properties.Inventory;
+            var invData = definition.Properties.Inventory;
 
-            if (item.Definition.ParentClassNames.Contains("HEALTH"))
+            if (definition.ParentClassNames.Contains("HEALTH"))
             {
-                int max = GetMaxAmount(item.Definition);
-                if (!item.Flags.InventoryAlwaysPickup && Health >= max)
+                int max = GetMaxAmount(definition);
+                if (flags != null && !flags.InventoryAlwaysPickup && Health >= max)
                     return false;
 
                 if (Health > max)
@@ -433,8 +433,16 @@ namespace Helion.World.Entities
                 Health = MathHelper.Clamp(Health + invData.Amount, 0, max);
                 return true;
             }
+            else if (definition.ParentClassNames.Contains("WEAPON"))
+            {
+                EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+                if (ammoDef != null)
+                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive);
 
-            return Inventory.Add(item.Definition, invData.Amount);
+                return false;
+            }
+
+            return Inventory.Add(definition, invData.Amount);
         }
 
         private int GetMaxAmount(EntityDefinition def)

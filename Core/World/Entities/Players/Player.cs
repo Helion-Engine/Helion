@@ -5,6 +5,7 @@ using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Inventories;
 using Helion.World.Geometry.Sectors;
@@ -208,9 +209,9 @@ namespace Helion.World.Entities.Players
             }
         }
 
-        public override bool GivePickedUpItem(Entity item)
+        public override bool GivePickedUpItem(EntityDefinition definition, EntityFlags? flags)
         {
-            if (GiveWeapon(item.Definition) || base.GivePickedUpItem(item))
+            if (GiveWeapon(definition) || base.GivePickedUpItem(definition, flags))
             {
                 LastPickupGametick = World.Gametick;
                 return true;
@@ -224,6 +225,7 @@ namespace Helion.World.Entities.Players
             if (definition.ParentClassNames.Contains("WEAPON") && !Inventory.Weapons.OwnsWeapon(definition.Name))
             {
                 Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
+                base.GivePickedUpItem(definition, null);
                 return addedWeapon != null;
             }
 
@@ -251,9 +253,26 @@ namespace Helion.World.Entities.Players
             }
         }
 
+        public bool FireWeapon()
+        {
+            if (!CheckAmmo())
+                return false;
+
+            Weapon?.RequestFire();
+            return true;
+        }
+
+        public bool CheckAmmo()
+        {
+            if (Weapon == null)
+                return false;
+
+            return Inventory.Amount(Weapon.Definition.Properties.Weapons.AmmoType) >= Weapon.Definition.Properties.Weapons.AmmoUse;
+        }
+
         public bool CanFireWeapon()
         {
-            return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack);
+            return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack) && CheckAmmo();
         }
 
         public void LowerWeapon()
@@ -279,6 +298,14 @@ namespace Helion.World.Entities.Players
         public void SetWeaponUp()
         {
             Weapon = AnimationWeapon;
+        }
+
+        public void DescreaseAmmo()
+        {
+            if (Weapon == null)
+                return;
+
+            Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, Weapon.Definition.Properties.Weapons.AmmoUse);
         }
 
         public override bool Damage(Entity? source, int damage, bool setPainState)

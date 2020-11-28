@@ -21,6 +21,9 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.Inventory.Amount != null)
                 definition.Properties.Inventory.Amount = properties.Inventory.Amount.Value;
 
+            if (properties.Inventory.MaxAmount != null)
+                definition.Properties.Inventory.MaxAmount = properties.Inventory.MaxAmount.Value;
+
             if (properties.Inventory.PickupSound != null)
                 definition.Properties.Inventory.PickupSound = properties.Inventory.PickupSound;
 
@@ -94,6 +97,27 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Properties.DropItem = new Properties.Components.DropItemProperty(properties.DropItem.ClassName,
                     probability, amount);
             }
+
+            if (properties.Weapons.AmmoType != null)
+                definition.Properties.Weapons.AmmoType = properties.Weapons.AmmoType;
+            if (properties.Weapons.AmmoType1 != null)
+                definition.Properties.Weapons.AmmoType1 = properties.Weapons.AmmoType1;
+            if (properties.Weapons.AmmoType2 != null)
+                definition.Properties.Weapons.AmmoType2 = properties.Weapons.AmmoType2;
+
+            if (properties.Weapons.AmmoUse.HasValue)
+                definition.Properties.Weapons.AmmoUse = properties.Weapons.AmmoUse.Value;
+            if (properties.Weapons.AmmoUse1.HasValue)
+                definition.Properties.Weapons.AmmoUse1 = properties.Weapons.AmmoUse1.Value;
+            if (properties.Weapons.AmmoUse2.HasValue)
+                definition.Properties.Weapons.AmmoUse2 = properties.Weapons.AmmoUse2.Value;
+
+            if (properties.Weapons.AmmoGive.HasValue)
+                definition.Properties.Weapons.AmmoGive = properties.Weapons.AmmoGive.Value;
+            if (properties.Weapons.AmmoGive1.HasValue)
+                definition.Properties.Weapons.AmmoGive1 = properties.Weapons.AmmoGive1.Value;
+            if (properties.Weapons.AmmoGive2.HasValue)
+                definition.Properties.Weapons.AmmoGive2 = properties.Weapons.AmmoGive2.Value;
         }
     }
 }
