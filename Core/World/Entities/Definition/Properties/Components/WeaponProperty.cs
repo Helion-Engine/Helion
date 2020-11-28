@@ -23,7 +23,7 @@ namespace Helion.World.Entities.Definition.Properties.Components
         public int MinSelectionAmmo1;
         public int MinSelectionAmmo2;
         public string ReadySound = "";
-        public int SelectionOrder;
+        public int SelectionOrder = int.MaxValue;
         public string SisterWeapon = "";
         public int SlotNumber;
         public double SlotPriority;

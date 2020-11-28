@@ -1741,6 +1741,8 @@ namespace Helion.World.Entities.Definition.States
                 }
                 else
                 {
+                    if (!player.CheckAmmo())
+                        player.TrySwitchWeapon();
                     player.Refire = false;
                 }
             }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
@@ -211,7 +212,19 @@ namespace Helion.World.Entities.Players
 
         public override bool GivePickedUpItem(EntityDefinition definition, EntityFlags? flags)
         {
-            if (GiveWeapon(definition) || base.GivePickedUpItem(definition, flags))
+            bool success = GiveWeapon(definition);
+            if (success)
+            {
+                CheckAutoSwitchWeapon(definition);
+            }
+            else
+            {
+                success = base.GivePickedUpItem(definition, flags);
+                if (success && IsWeapon(definition))
+                    CheckAutoSwitchWeapon(definition);
+            }
+
+            if (success)
             {
                 LastPickupGametick = World.Gametick;
                 return true;
@@ -220,9 +233,30 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
+        private void CheckAutoSwitchWeapon(EntityDefinition definition)
+        {
+            PendingWeapon = Inventory.Weapons.GetWeapon(definition.Name);
+        }
+
+        /// <summary>
+        /// Switches to the best available weapon based on Definition.Properties.Weapons.SelectionOrder / has enough ammo to fire.
+        /// </summary>
+        public void TrySwitchWeapon()
+        {
+            var weapons = Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
+            foreach (Weapon weapon in weapons)
+            {
+                if (weapon != Weapon && CheckAmmo(weapon))
+                {
+                    ChangeWeapon(weapon);
+                    break;
+                }
+            }
+        }
+
         public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true)
         {
-            if (definition.ParentClassNames.Contains("WEAPON") && !Inventory.Weapons.OwnsWeapon(definition.Name))
+            if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition.Name))
             {
                 Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
                 if (giveDefaultAmmo)
@@ -264,12 +298,24 @@ namespace Helion.World.Entities.Players
             return true;
         }
 
+
+        /// <summary>
+        /// Checks if the player's current weapon has enough ammo to fire at least once.
+        /// </summary>
         public bool CheckAmmo()
         {
             if (Weapon == null)
                 return false;
 
-            return Inventory.Amount(Weapon.Definition.Properties.Weapons.AmmoType) >= Weapon.Definition.Properties.Weapons.AmmoUse;
+            return CheckAmmo(Weapon);
+        }
+
+        /// <summary>
+        /// Checks if the weapon has enough ammo to fire at least once.
+        /// </summary>
+        public bool CheckAmmo(Weapon weapon)
+        {
+            return Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) >= weapon.Definition.Properties.Weapons.AmmoUse;
         }
 
         public bool CanFireWeapon()
@@ -286,9 +332,12 @@ namespace Helion.World.Entities.Players
                 ForceLowerWeapon();
         }
 
+        private static bool IsWeapon(EntityDefinition definition) => definition.ParentClassNames.Contains("WEAPON");
+
         private void ForceLowerWeapon()
         {
-            Weapon.FrameState.SetState("DESELECT");
+            if (Weapon != null)
+                Weapon.FrameState.SetState("DESELECT");
         }
 
         public void BringupWeapon()

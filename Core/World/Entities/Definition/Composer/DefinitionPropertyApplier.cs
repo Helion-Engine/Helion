@@ -118,6 +118,9 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Properties.Weapons.AmmoGive1 = properties.Weapons.AmmoGive1.Value;
             if (properties.Weapons.AmmoGive2.HasValue)
                 definition.Properties.Weapons.AmmoGive2 = properties.Weapons.AmmoGive2.Value;
+
+            if (properties.Weapons.SelectionOrder.HasValue)
+                definition.Properties.Weapons.SelectionOrder = properties.Weapons.SelectionOrder.Value;
         }
     }
 }
