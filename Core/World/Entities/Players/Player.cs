@@ -235,6 +235,10 @@ namespace Helion.World.Entities.Players
 
         private void CheckAutoSwitchWeapon(EntityDefinition definition)
         {
+            Weapon? newWeapon = Inventory.Weapons.GetWeapon(definition.Name);
+            if (newWeapon == null || newWeapon == Weapon)
+                return;
+
             PendingWeapon = Inventory.Weapons.GetWeapon(definition.Name);
         }
 
