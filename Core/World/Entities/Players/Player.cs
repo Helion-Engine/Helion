@@ -283,7 +283,12 @@ namespace Helion.World.Entities.Players
                 return;
 
             if (Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
-                Weapon.FrameState.SetState("DESELECT");
+                ForceLowerWeapon();
+        }
+
+        private void ForceLowerWeapon()
+        {
+            Weapon.FrameState.SetState("DESELECT");
         }
 
         public void BringupWeapon()
@@ -325,7 +330,7 @@ namespace Helion.World.Entities.Players
             }
 
             if (IsDead)
-                LowerWeapon();
+                ForceLowerWeapon();
 
             return damageApplied;
         }
