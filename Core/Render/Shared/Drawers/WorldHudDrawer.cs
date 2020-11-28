@@ -33,6 +33,8 @@ namespace Helion.Render.Shared.Drawers
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
         private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
+        private static readonly string HudFont = "LargeHudFont";
+        private static readonly int Padding = 4;
 
         public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
@@ -50,6 +52,7 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealth(player, viewport, helper);
+            DrawHudAmmo(player, viewport, helper);
             DrawHudCrosshair(viewport, helper);
 
             if (player.AnimationWeapon != null)
@@ -91,8 +94,8 @@ namespace Helion.Render.Shared.Drawers
         {
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
-            int x = 4;
-            int y = viewport.Height - 4;
+            int x = Padding;
+            int y = viewport.Height - Padding;
             helper.Image("MEDIA0", x, y, Alignment.BottomLeft, out Dimension medkitArea);
 
             // We will draw the health numbers with the same height as the
@@ -103,9 +106,33 @@ namespace Helion.Render.Shared.Drawers
             // the future!
             int fontHeight = Math.Max(16, medkitArea.Height);
             
-            x += medkitArea.Width + 4;
+            x += medkitArea.Width + Padding;
             int health = Math.Max(0, player.Health);
-            helper.Text(Color.Red, health.ToString(), "LargeHudFont", fontHeight, x, y, Alignment.BottomLeft, out _);
+            helper.Text(Color.Red, health.ToString(), HudFont, fontHeight, x, y, Alignment.BottomLeft, out _);
+        }
+
+        private static void DrawHudAmmo(Player player, Dimension viewport, DrawHelper helper)
+        {
+            if (player.Weapon == null || player.Weapon.Definition.Properties.Weapons.AmmoType.Length == 0)
+                return;
+
+            int x = viewport.Width - Padding;
+            int y = viewport.Height - Padding;
+
+            int ammo = player.Inventory.Amount(player.Weapon.Definition.Properties.Weapons.AmmoType);
+            ColoredString colorString = ColoredStringBuilder.From(Color.Red, ammo.ToString());
+
+            Dimension textRect = helper.DrawInfoProvider.GetDrawArea(colorString, HudFont, 19);
+
+            if (player.Weapon.AmmoSprite.Length > 0 && helper.ImageExists(player.Weapon.AmmoSprite))
+            {
+                Dimension dimension = helper.DrawInfoProvider.GetImageDimension(player.Weapon.AmmoSprite);
+                x -= dimension.Width;
+                helper.Image(player.Weapon.AmmoSprite, x, y - dimension.Height);
+            }
+
+            x = x - textRect.Width - Padding;
+            helper.Text(colorString, HudFont, 19, x, y, Alignment.BottomLeft, out _);
         }
 
         private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
