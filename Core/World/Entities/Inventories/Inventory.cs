@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Util;
@@ -23,7 +24,9 @@ namespace Helion.World.Entities.Inventories
             if (amount <= 0)
                 return false;
 
-            if (Items.TryGetValue(definition.Name, out InventoryItem? item))
+            CIString name = GetBaseInventoryName(definition);
+
+            if (Items.TryGetValue(name, out InventoryItem? item))
             {
                 if (item.Amount >= definition.Properties.Inventory.MaxAmount)
                     return false;
@@ -31,14 +34,24 @@ namespace Helion.World.Entities.Inventories
                 item.Amount += amount;
                 if (item.Amount > definition.Properties.Inventory.MaxAmount)
                     item.Amount = definition.Properties.Inventory.MaxAmount;
+
                 return true;
             }
             else
             {
-                Items[definition.Name] = new InventoryItem(definition, amount);
+                Items[name] = new InventoryItem(definition, amount);
             }
 
             return true;
+        }
+
+        private static CIString GetBaseInventoryName(EntityDefinition definition)
+        {
+            int index = definition.ParentClassNames.IndexOf("AMMO");
+            if (index > 0 && index < definition.ParentClassNames.Count - 1)
+                return definition.ParentClassNames[index + 1];
+
+            return definition.Name;
         }
 
         public void Clear()

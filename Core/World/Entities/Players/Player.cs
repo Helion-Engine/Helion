@@ -71,7 +71,7 @@ namespace Helion.World.Entities.Players
                 foreach (var item in player.Inventory.GetInventoryItems())
                     Inventory.Add(item.Definition, item.Amount);
                 foreach (var weapon in player.Inventory.Weapons.GetWeapons())
-                    GiveWeapon(weapon.Definition);
+                    GiveWeapon(weapon.Definition, false);
                 if (player.Weapon != null)
                 {
                     Weapon? setWeapon = Inventory.Weapons.GetWeapon(player.Weapon.Definition.Name);
@@ -220,12 +220,14 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
-        public bool GiveWeapon(EntityDefinition definition)
+        public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true)
         {
             if (definition.ParentClassNames.Contains("WEAPON") && !Inventory.Weapons.OwnsWeapon(definition.Name))
             {
                 Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
-                base.GivePickedUpItem(definition, null);
+                if (giveDefaultAmmo)
+                    base.GivePickedUpItem(definition, null);
+
                 return addedWeapon != null;
             }
 

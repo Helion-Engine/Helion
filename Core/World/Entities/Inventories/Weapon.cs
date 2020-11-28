@@ -20,6 +20,9 @@ namespace Helion.World.Entities.Inventories
         /// </summary>
         public readonly FrameState FrameState;
         public readonly FrameState FlashState;
+
+        public readonly EntityDefinition? AmmoDefinition;
+        public readonly string AmmoSprite;
         
         /// <summary>
         /// True if this gun is eligible to fire, false if not.
@@ -58,6 +61,10 @@ namespace Helion.World.Entities.Inventories
 
             FrameState = new FrameState(owner, definition, entityManager, false);
             FlashState = new FrameState(owner, definition, entityManager, false);
+
+            AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+            if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
+                AmmoSprite = AmmoDefinition.States.Frames[frame].Sprite + "A0";
             
             if (!FrameState.SetState(FrameStateLabel.Ready))
                 Log.Warn("Unable to find Ready state for weapon {0}", definition.Name);
