@@ -161,6 +161,9 @@ namespace Helion.World.Entities
                 Vec3D position = mapThing.Position.ToDouble();
                 // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
                 Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
+                if (mapThing.Flags.Ambush)
+                    entity.Flags.Ambush = mapThing.Flags.Ambush;
+
                 if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                     relinkEntities.Add(entity);
                 PostProcessEntity(entity);
