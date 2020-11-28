@@ -38,9 +38,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
             EntityManager.PopulateFrom(map);
 
-            Player = EntityManager.CreatePlayer(0);
-            if (existingPlayer != null)
-                Player.CopyProperties(existingPlayer);
+            Player = EntityManager.CreatePlayer(0, existingPlayer);
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;

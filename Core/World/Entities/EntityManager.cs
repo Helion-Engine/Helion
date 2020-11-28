@@ -98,7 +98,7 @@ namespace Helion.World.Entities
             entity.Dispose();
         }
 
-        public Player CreatePlayer(int playerIndex)
+        public Player CreatePlayer(int playerIndex, Player? existingPlayer = null)
         {
             EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
             if (playerDefinition == null)
@@ -115,7 +115,11 @@ namespace Helion.World.Entities
             }
 
             Player player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
-            SetDefaultInventory(player);
+            if (existingPlayer != null)
+                player.CopyProperties(existingPlayer);
+            else
+                SetDefaultInventory(player);
+
             Players.Add(player);
             return player;
         }

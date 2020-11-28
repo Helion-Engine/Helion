@@ -146,7 +146,6 @@ namespace Helion.World.Entities
         {
             Properties = entity.Properties;
             Flags = entity.Flags;
-            Inventory = entity.Inventory;
             Health = entity.Health;
         }
 

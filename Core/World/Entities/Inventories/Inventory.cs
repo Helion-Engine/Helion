@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 
@@ -57,6 +58,8 @@ namespace Helion.World.Entities.Inventories
             // data structure (ex: weapons).
             Weapons.Remove(name);
         }
+
+        public List<InventoryItem> GetInventoryItems() => Items.Values.ToList();
 
         public void RemoveAll(CIString name)
         {

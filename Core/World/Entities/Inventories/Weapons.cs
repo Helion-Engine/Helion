@@ -184,6 +184,14 @@ namespace Helion.World.Entities.Inventories
             return null;
         }
 
+        public List<Weapon> GetWeapons()
+        {
+            List<Weapon> allWeapons = new List<Weapon>();
+            foreach (var weapons in m_weaponSlots.Values)
+                allWeapons.AddRange(weapons.Values);
+            return allWeapons;
+        }
+
         public Weapon? GetWeapon(Player player, int slot, int subslot = -1)
         {
             if (slot == player.WeaponSlot && subslot == -1)

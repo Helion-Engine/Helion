@@ -67,9 +67,16 @@ namespace Helion.World.Entities.Players
         {
             if (entity is Player player)
             {
-                Weapon = player.Weapon;
-                WeaponSlot = player.WeaponSlot;
-                WeaponSubSlot = player.WeaponSubSlot;
+                foreach (var item in player.Inventory.GetInventoryItems())
+                    Inventory.Add(item.Definition, item.Amount);
+                foreach (var weapon in player.Inventory.Weapons.GetWeapons())
+                    GiveWeapon(weapon.Definition);
+                if (player.Weapon != null)
+                {
+                    Weapon? setWeapon = Inventory.Weapons.GetWeapon(player.Weapon.Definition.Name);
+                    if (setWeapon != null)
+                        ChangeWeapon(setWeapon);
+                }
             }
 
             base.CopyProperties(entity);
