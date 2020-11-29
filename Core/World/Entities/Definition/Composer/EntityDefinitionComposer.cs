@@ -35,6 +35,10 @@ namespace Helion.World.Entities.Definition.Composer
         public EntityDefinitionComposer(ArchiveCollection archiveCollection)
         {
             m_archiveCollection = archiveCollection;
+
+            // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
+            foreach (ActorDefinition definition in m_archiveCollection.Definitions.Decorate.GetActorDefinitions())
+                ComposeNewDefinition(definition);
         }
 
         public EntityDefinition? GetByName(CIString name)

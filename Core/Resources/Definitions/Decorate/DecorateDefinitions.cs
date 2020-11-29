@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -17,6 +18,8 @@ namespace Helion.Resources.Definitions.Decorate
         
         public ActorDefinition? this[CIString name] => m_definitions.TryGetValue(name, out ActorDefinition? def) ? def : null;
         public ActorDefinition? this[int editorNum] => m_definitionsByEditorNumber.TryGetValue(editorNum, out ActorDefinition? def) ? def : null;
+
+        public List<ActorDefinition> GetActorDefinitions() => m_definitions.Values.ToList();
 
         public DecorateDefinitions(ArchiveCollection archiveCollection)
         {
