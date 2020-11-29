@@ -97,6 +97,9 @@ namespace Helion.Client
             if (!m_archiveCollection.Load(files))
                 Log.Error("Unable to load files at startup");
 
+            if (m_commandLineArgs.Skill.HasValue)
+                SetSkill(m_commandLineArgs.Skill.Value);
+
             if (m_commandLineArgs.Map != null)
             {
                 Loadmap(m_commandLineArgs.Map);
@@ -111,6 +114,14 @@ namespace Helion.Client
                 if (!m_layerManager.Contains(typeof(ConsoleLayer)))
                     m_layerManager.Add(new ConsoleLayer(m_console));
             }
+        }
+
+        private void SetSkill(int value)
+        {
+            if (value > 0 && value < 6)
+                m_config.Engine.Game.Skill.Set((Maps.Shared.SkillLevel)value - 1);
+            else
+                Log.Info($"Invalid skill level: {value}");
         }
 
         private void Loadmap(string mapName)
