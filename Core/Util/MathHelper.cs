@@ -324,12 +324,10 @@ namespace Helion.Util
         /// <returns>Angle between 0 and 2pi.</returns>
         public static double GetPositiveAngle(double angleRadians)
         {
+            angleRadians %= TwoPi;
             if (angleRadians < 0)
                 return TwoPi + angleRadians;
-            else if (angleRadians > TwoPi)
-                return angleRadians - TwoPi;
             return angleRadians;
         }
-
     }
 }
