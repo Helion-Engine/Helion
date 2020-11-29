@@ -28,13 +28,13 @@ namespace Helion.Render.Shared.Drawers
         private const int CrosshairWidth = 4;
         private const int CrosshairHalfWidth = CrosshairWidth / 2;
         private const int FlashPickupTickDuration = 6;
+        private const int Padding = 4;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
         private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
         private static readonly string HudFont = "LargeHudFont";
-        private static readonly int Padding = 4;
 
         public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
@@ -72,22 +72,14 @@ namespace Helion.Render.Shared.Drawers
                 Vec2I offset = helper.DrawInfoProvider.GetImageOffset(sprite);
                 Vec2I frameOffset = player.WeaponOffset;
 
-                ScaleDimensions(viewport, ref dimension.Width, ref dimension.Height);
-                ScaleDimensions(viewport, ref offset.X, ref offset.Y);
-                ScaleDimensions(viewport, ref frameOffset.X, ref frameOffset.Y);
+                DrawHelper.ScaleImageDimensions(viewport, ref dimension.Width, ref dimension.Height);
+                DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
+                DrawHelper.ScaleImageOffset(viewport, ref frameOffset.X, ref frameOffset.Y);
                 // Translate doom image offset to OpenGL coordinates
                 helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2),
                     -offset.Y - dimension.Height + frameOffset.Y, 
                     dimension.Width, dimension.Height);
             }
-        }
-
-        private static void ScaleDimensions(Dimension viewport, ref int width, ref int height)
-        {
-            float scaleWidth = viewport.Width / 320.0f;
-            float scaleHeight = viewport.Height / 200.0f;
-            width = (int)(width * scaleWidth);
-            height = (int)(height * scaleHeight);
         }
 
         private static void DrawHudHealthAndArmor(Player player, Dimension viewport, DrawHelper helper)
