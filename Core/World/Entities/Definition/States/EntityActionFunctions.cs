@@ -1543,6 +1543,8 @@ namespace Helion.World.Entities.Definition.States
         private static void A_PainShootSkull(Entity entity, double angle)
         {
             Entity? skull = entity.EntityManager.Create("LostSoul", entity.Position);
+            if (skull == null)
+                return;
 
             double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
             Vec3D unit = Vec3D.UnitTimesValue(angle, 0.0, step);
@@ -1617,7 +1619,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 // TODO berserk
-                int damage = 2 * player.World.Random.NextByte() % 10 + 1;
+                int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
                 Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity != null)
                 {

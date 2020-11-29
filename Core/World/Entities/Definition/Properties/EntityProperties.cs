@@ -63,7 +63,7 @@ namespace Helion.World.Entities.Definition.Properties
         public int MaxTargetRange;
         public int MeleeDamage;
         public int MeleeRange = 44;
-        public string MeleeSound;
+        public string MeleeSound = "";
         public int MeleeThreshold;
         public int MinMissileChance = 200;
         public int MissileHeight;

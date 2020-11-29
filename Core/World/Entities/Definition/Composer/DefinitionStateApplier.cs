@@ -224,6 +224,7 @@ namespace Helion.World.Entities.Definition.Composer
                     {
                         Log.Error("Unable to resolve goto label '{0}' in actor '{1}', actor is likely malformed", upperLabel, definition.Name);
                     }
+
                     continue;
                 }
                 

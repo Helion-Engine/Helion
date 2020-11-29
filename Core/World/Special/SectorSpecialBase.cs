@@ -11,7 +11,7 @@ namespace Helion.World.Special
 
         public virtual void FinalizeDestroy()
         {
-
+            // Unused
         }
 
         public virtual void Pause()

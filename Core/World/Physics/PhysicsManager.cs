@@ -77,7 +77,7 @@ namespace Helion.World.Physics
         /// </summary>
         /// <param name="entity">The entity to link.</param>
         /// <param name="tryMove">Optional data used for when linking during movement.</param>
-        /// <param name="clampToLinkedSectors">If the entity should be clamped between linked sectors. If false then on the current Sector ceiling/floor will be used. (Doom compatibility)</param>
+        /// <param name="clampToLinkedSectors">If the entity should be clamped between linked sectors. If false then on the current Sector ceiling/floor will be used. (Doom compatibility).</param>
         public void LinkToWorld(Entity entity, TryMoveData? tryMove = null, bool clampToLinkedSectors = true)
         {
             if (!entity.Flags.NoBlockmap)

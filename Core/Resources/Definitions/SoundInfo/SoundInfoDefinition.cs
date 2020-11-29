@@ -11,11 +11,10 @@ namespace Helion.Resources.Definitions.SoundInfo
         private readonly Dictionary<string, SoundInfo> m_lookup = new Dictionary<string, SoundInfo>();
         private readonly Dictionary<string, List<string>> m_randomLookup = new Dictionary<string, List<string>>();
 
-        private int m_pitchShiftRange = 0;
-
         private readonly List<string> m_tokens = new List<string>();
         private bool m_multiLineComment;
         private int m_index = 0;
+        private int m_pitchShiftRange = 0;
 
         public SoundInfoDefinition()
         {

@@ -125,19 +125,19 @@ namespace Helion.Util.Configuration
 
             switch (configValueNode)
             {
-            case ConfigValue<bool> boolNode:
-                if (bool.TryParse(value, out bool boolValue))
-                    boolNode.Set(boolValue);
-                else
-                    fail = true;
-                break;
+                case ConfigValue<bool> boolNode:
+                    if (bool.TryParse(value, out bool boolValue))
+                        boolNode.Set(boolValue);
+                    else
+                        fail = true;
+                    break;
 
-            case ConfigValue<double> doubleNode:
-                if (double.TryParse(value, out double doubleValue))
-                    doubleNode.Set(doubleValue);
-                else
-                    fail = true;
-                break;
+                case ConfigValue<double> doubleNode:
+                    if (double.TryParse(value, out double doubleValue))
+                        doubleNode.Set(doubleValue);
+                    else
+                        fail = true;
+                    break;
 
                 case ConfigValue<float> floatNode:
                     if (float.TryParse(value, out float floatValue))
@@ -147,22 +147,22 @@ namespace Helion.Util.Configuration
                     break;
 
                 case ConfigValue<int> intNode:
-                if (int.TryParse(value, out int intValue))
-                    intNode.Set(intValue);
-                else
-                    fail = true;
-                break;
+                    if (int.TryParse(value, out int intValue))
+                        intNode.Set(intValue);
+                    else
+                        fail = true;
+                    break;
 
-            case ConfigValue<string> stringNode:
-                if (value != null)
-                    stringNode.Set(value);
-                else
-                    fail = true;
-                break;
+                case ConfigValue<string> stringNode:
+                    if (value != null)
+                        stringNode.Set(value);
+                    else
+                        fail = true;
+                    break;
 
-            default:
-                Log.Warn("Unknown config field type: '{0}'", lowerKeyName);
-                break;
+                default:
+                    Log.Warn("Unknown config field type: '{0}'", lowerKeyName);
+                    break;
             }
 
             if (fail)

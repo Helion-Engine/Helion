@@ -26,7 +26,6 @@ namespace Helion.Audio
     /// </remarks>
     public interface IAudioSourceManager : IDisposable
     {
-
         /// <summary>
         /// Creates a new audio source from this context. This means when the
         /// context is disposed, so will this sound.
