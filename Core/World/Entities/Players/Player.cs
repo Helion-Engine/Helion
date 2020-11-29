@@ -212,16 +212,17 @@ namespace Helion.World.Entities.Players
 
         public override bool GiveItem(EntityDefinition definition, EntityFlags? flags)
         {
+            bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
             if (success)
             {
-                CheckAutoSwitchWeapon(definition);
+                CheckAutoSwitchWeapon(definition, ownedWeapon);
             }
             else
             {
                 success = base.GiveItem(definition, flags);
                 if (success && IsWeapon(definition))
-                    CheckAutoSwitchWeapon(definition);
+                    CheckAutoSwitchWeapon(definition, ownedWeapon);
             }
 
             if (success)
@@ -233,10 +234,13 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
-        private void CheckAutoSwitchWeapon(EntityDefinition definition)
+        private void CheckAutoSwitchWeapon(EntityDefinition definition, bool ownedWeapon)
         {
+            if (ownedWeapon)
+                return;
+
             Weapon? newWeapon = Inventory.Weapons.GetWeapon(definition.Name);
-            if (newWeapon == null || newWeapon == Weapon)
+            if (newWeapon == null)
                 return;
 
             PendingWeapon = Inventory.Weapons.GetWeapon(definition.Name);
