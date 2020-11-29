@@ -51,7 +51,7 @@ namespace Helion.Render.Shared.Drawers
         
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
-            DrawHudHealth(player, viewport, helper);
+            DrawHudHealthAndArmor(player, viewport, helper);
             DrawHudAmmo(player, viewport, helper);
             DrawHudCrosshair(viewport, helper);
 
@@ -90,7 +90,7 @@ namespace Helion.Render.Shared.Drawers
             height = (int)(height * scaleHeight);
         }
 
-        private static void DrawHudHealth(Player player, Dimension viewport, DrawHelper helper)
+        private static void DrawHudHealthAndArmor(Player player, Dimension viewport, DrawHelper helper)
         {
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
@@ -105,10 +105,21 @@ namespace Helion.Render.Shared.Drawers
             // clamp it to be at least 16. Let's get a more robust solution in
             // the future!
             int fontHeight = Math.Max(16, medkitArea.Height);
-            
-            x += medkitArea.Width + Padding;
             int health = Math.Max(0, player.Health);
-            helper.Text(Color.Red, health.ToString(), HudFont, fontHeight, x, y, Alignment.BottomLeft, out _);
+            helper.Text(Color.Red, health.ToString(), HudFont, fontHeight, x + medkitArea.Width + Padding, y, Alignment.BottomLeft, out Dimension healthArea);
+
+            if (player.Armor > 0)
+            {
+                y -= healthArea.Height + Padding;
+
+                if (player.ArmorProperties != null && helper.ImageExists(player.ArmorProperties.Inventory.Icon))
+                {
+                    helper.Image(player.ArmorProperties.Inventory.Icon, x, y, Alignment.BottomLeft, out Dimension armorArea);
+                    x += armorArea.Width + Padding;
+                }
+
+                helper.Text(Color.Red, player.Armor.ToString(), HudFont, fontHeight, x, y, Alignment.BottomLeft, out _);
+            }
         }
 
         private static void DrawHudAmmo(Player player, Dimension viewport, DrawHelper helper)
