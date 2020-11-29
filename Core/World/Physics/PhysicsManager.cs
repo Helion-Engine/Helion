@@ -817,7 +817,7 @@ namespace Helion.World.Physics
 
         private void PerformItemPickup(Entity entity, Entity item)
         {
-            if (entity.GivePickedUpItem(item.Definition, item.Flags))
+            if (entity.GiveItem(item.Definition, item.Flags))
             {
                 if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
                 {

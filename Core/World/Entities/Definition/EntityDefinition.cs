@@ -16,6 +16,7 @@ namespace Helion.World.Entities.Definition
         public readonly EntityProperties Properties;
         public readonly EntityStates States;
         public readonly List<CIString> ParentClassNames;
+        private readonly HashSet<CIString> ParentClassLookup = new HashSet<CIString>();
 
         public EntityDefinition(int id, CIString name, int? editorId, List<CIString> parentClassNames)
         {
@@ -29,6 +30,7 @@ namespace Helion.World.Entities.Definition
             Properties = new EntityProperties();
             States = new EntityStates();
             ParentClassNames = parentClassNames;
+            parentClassNames.ForEach(x => ParentClassLookup.Add(x));
         }
 
         /// <summary>
@@ -38,7 +40,7 @@ namespace Helion.World.Entities.Definition
         /// <param name="className">The name of the class, which is case
         /// insensitive.</param>
         /// <returns>True if it is the type, false if not.</returns>
-        public bool IsType(string className) => ParentClassNames.Contains(className);
+        public bool IsType(string className) => ParentClassLookup.Contains(className);
         
         /// <summary>
         /// Checks if the definition is a descendant or class of the type

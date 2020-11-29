@@ -65,7 +65,9 @@ namespace Helion.World.Entities.Inventories
             AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
             if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
                 AmmoSprite = AmmoDefinition.States.Frames[frame].Sprite + "A0";
-            
+            else
+                AmmoSprite = string.Empty;
+
             if (!FrameState.SetState(FrameStateLabel.Ready))
                 Log.Warn("Unable to find Ready state for weapon {0}", definition.Name);
         }

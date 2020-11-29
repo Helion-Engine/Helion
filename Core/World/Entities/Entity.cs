@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Helion.Audio;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
@@ -9,6 +10,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
@@ -47,6 +49,8 @@ namespace Helion.World.Entities
         public Vec3D Velocity = Vec3D.Zero;
         public Inventory Inventory = new Inventory();
         public int Health;
+        public int Armor;
+        public EntityProperties? ArmorProperties;
         public int FrozenTics;
         public int MoveCount;
         public Sector Sector;
@@ -147,6 +151,8 @@ namespace Helion.World.Entities
             Properties = entity.Properties;
             Flags = entity.Flags;
             Health = entity.Health;
+            Armor = entity.Armor;
+            ArmorProperties = entity.ArmorProperties;
         }
 
         public double AttackPitchTo(Entity entity) => AttackPosition.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
@@ -399,6 +405,8 @@ namespace Helion.World.Entities
                 }
             }
 
+            damage = ApplyArmorDamage(damage);
+
             Health -= damage;
             Properties.ReactionTime = 0;
 
@@ -417,23 +425,41 @@ namespace Helion.World.Entities
             return true;
         }
 
-        public virtual bool GivePickedUpItem(EntityDefinition definition, EntityFlags? flags)
+        private int ApplyArmorDamage(int damage)
+        {
+            if (ArmorProperties == null || Armor == 0)
+                return damage;
+            if (ArmorProperties.Armor.SavePercent == 0)
+                return damage;
+
+            int armorDamage = (int)(damage * (ArmorProperties.Armor.SavePercent / 100.0));
+            if (Armor < armorDamage)
+                armorDamage = Armor;
+
+            Armor -= armorDamage;
+            damage = MathHelper.Clamp(damage - armorDamage, 0, damage);
+            return damage;
+        }
+
+        public virtual bool GiveItem(EntityDefinition definition, EntityFlags? flags)
         {
             var invData = definition.Properties.Inventory;
+            bool isHealth = definition.IsType("HEALTH");
+            bool isArmor = definition.IsType("ARMOR");
 
-            if (definition.ParentClassNames.Contains("HEALTH"))
+            if (isHealth)
             {
-                int max = GetMaxAmount(definition);
-                if (flags != null && !flags.InventoryAlwaysPickup && Health >= max)
-                    return false;
-
-                if (Health > max)
-                    return true;
-
-                Health = MathHelper.Clamp(Health + invData.Amount, 0, max);
-                return true;
+                return AddHealthOrArmor(definition, flags, ref Health, invData.Amount);
             }
-            else if (definition.ParentClassNames.Contains("WEAPON"))
+            else if (isArmor)
+            {
+                bool success = AddHealthOrArmor(definition, flags, ref Armor, definition.Properties.Armor.SaveAmount);
+                if (success)
+                    ArmorProperties = GetArmorProperties(definition);
+                return success;
+            }
+
+            if (IsWeapon(definition))
             {
                 EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
                 if (ammoDef != null)
@@ -445,6 +471,40 @@ namespace Helion.World.Entities
             return Inventory.Add(definition, invData.Amount);
         }
 
+        private EntityProperties? GetArmorProperties(EntityDefinition definition)
+        {
+            bool isArmorBonus = definition.IsType("BASICARMORBONUS");
+
+            // Armor bonus keeps current property
+            if (ArmorProperties != null && isArmorBonus)
+                return ArmorProperties;
+
+            // Find matching armor definition when picking up armor bonus with no armor
+            if (ArmorProperties == null && isArmorBonus)
+            {
+                IList<EntityDefinition> definitions = World.EntityManager.DefinitionComposer.GetEntityDefinitions();
+                EntityDefinition? armorDef = definitions.FirstOrDefault(x => x.Properties.Armor.SavePercent == definition.Properties.Armor.SavePercent &&
+                    x.IsType("BASICARMORPICKUP"));
+
+                if (armorDef != null)
+                    return armorDef.Properties;
+            }
+
+            return definition.Properties;
+        }
+
+        private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount)
+        {
+            int max = GetMaxAmount(definition);
+            if (flags != null && !flags.InventoryAlwaysPickup && value >= max)
+                return false;
+
+            value = MathHelper.Clamp(value + amount, 0, max);
+            return true;
+        }
+
+        protected static bool IsWeapon(EntityDefinition definition) => definition.IsType("WEAPON");
+
         private int GetMaxAmount(EntityDefinition def)
         {
             // TODO these are usually defaults. Defaults come from MAPINFO and not yet implemented.
@@ -453,7 +513,10 @@ namespace Helion.World.Entities
                 case "ARMORBONUS":
                 case "HEALTHBONUS":
                 case "SOULSPHERE":
+                case "MEGASPHERE":
+                case "BLUEARMOR":
                     return 200;
+                case "GREENARMOR":
                 case "STIMPACK":
                 case "MEDIKIT":
                     return 100;

@@ -210,7 +210,7 @@ namespace Helion.World.Entities.Players
             }
         }
 
-        public override bool GivePickedUpItem(EntityDefinition definition, EntityFlags? flags)
+        public override bool GiveItem(EntityDefinition definition, EntityFlags? flags)
         {
             bool success = GiveWeapon(definition);
             if (success)
@@ -219,7 +219,7 @@ namespace Helion.World.Entities.Players
             }
             else
             {
-                success = base.GivePickedUpItem(definition, flags);
+                success = base.GiveItem(definition, flags);
                 if (success && IsWeapon(definition))
                     CheckAutoSwitchWeapon(definition);
             }
@@ -264,7 +264,7 @@ namespace Helion.World.Entities.Players
             {
                 Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
                 if (giveDefaultAmmo)
-                    base.GivePickedUpItem(definition, null);
+                    base.GiveItem(definition, null);
 
                 return addedWeapon != null;
             }
@@ -302,7 +302,6 @@ namespace Helion.World.Entities.Players
             return true;
         }
 
-
         /// <summary>
         /// Checks if the player's current weapon has enough ammo to fire at least once.
         /// </summary>
@@ -335,8 +334,6 @@ namespace Helion.World.Entities.Players
             if (Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
                 ForceLowerWeapon();
         }
-
-        private static bool IsWeapon(EntityDefinition definition) => definition.ParentClassNames.Contains("WEAPON");
 
         private void ForceLowerWeapon()
         {

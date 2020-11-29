@@ -29,6 +29,7 @@ namespace Helion.World.Entities.Definition.Composer
         private readonly ArchiveCollection m_archiveCollection;
         private readonly AvailableIndexTracker m_indexTracker = new AvailableIndexTracker();
         private readonly Dictionary<CIString, EntityDefinition> m_definitions = new Dictionary<CIString, EntityDefinition>();
+        private readonly List<EntityDefinition> m_listDefinitions = new List<EntityDefinition>();
         private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new Dictionary<int, EntityDefinition>();
 
         public EntityDefinitionComposer(ArchiveCollection archiveCollection)
@@ -44,6 +45,8 @@ namespace Helion.World.Entities.Definition.Composer
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
+
+        public IList<EntityDefinition> GetEntityDefinitions() => m_listDefinitions.AsReadOnly();
 
         public EntityDefinition? GetByID(int id)
         {
@@ -143,6 +146,7 @@ namespace Helion.World.Entities.Definition.Composer
 
             // TODO: Handle 'replaces'.
 
+            m_listDefinitions.Add(definition);
             m_definitions[definition.Name] = definition;
             if (definition.EditorId != null)
                 m_editorNumToDefinition[definition.EditorId.Value] = definition;

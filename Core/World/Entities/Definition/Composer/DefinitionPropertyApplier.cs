@@ -30,6 +30,18 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.Inventory.PickupMessage != null)
                 definition.Properties.Inventory.PickupMessage = properties.Inventory.PickupMessage;
 
+            if (properties.Inventory.Icon != null)
+                definition.Properties.Inventory.Icon = properties.Inventory.Icon;
+
+            if (properties.Armor.SaveAmount.HasValue)
+                definition.Properties.Armor.SaveAmount = properties.Armor.SaveAmount.Value;
+
+            if (properties.Armor.MaxSaveAmount.HasValue)
+                definition.Properties.Armor.MaxSaveAmount = properties.Armor.MaxSaveAmount.Value;
+
+            if (properties.Armor.SavePercent.HasValue)
+                definition.Properties.Armor.SavePercent = properties.Armor.SavePercent.Value;
+
             if (properties.MaxStepHeight != null)
                 definition.Properties.MaxStepHeight = properties.MaxStepHeight.Value;
 
