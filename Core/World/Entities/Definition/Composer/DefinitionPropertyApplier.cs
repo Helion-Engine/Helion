@@ -133,6 +133,13 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.Weapons.SelectionOrder.HasValue)
                 definition.Properties.Weapons.SelectionOrder = properties.Weapons.SelectionOrder.Value;
+
+            if (properties.Ammo.BackpackAmount.HasValue)
+                definition.Properties.Ammo.BackpackAmount = properties.Ammo.BackpackAmount.Value;
+            if (properties.Ammo.BackpackMaxAmount.HasValue)
+                definition.Properties.Ammo.BackpackMaxAmount = properties.Ammo.BackpackMaxAmount.Value;
+            if (properties.Ammo.DropAmount.HasValue)
+                definition.Properties.Ammo.DropAmount = properties.Ammo.DropAmount.Value;
         }
     }
 }

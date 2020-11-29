@@ -2,11 +2,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Util;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 
 namespace Helion.World.Entities.Inventories
 {
     public class Inventory
     {
+        public static readonly CIString AmmoClassName = "AMMO";
+        public static readonly CIString BackPackBaseClassName = "BACKPACKITEM";
+        public static readonly CIString WeaponClassName = "WEAPON";
+        public static readonly CIString HealthClassName = "HEALTH";
+        public static readonly CIString ArmorClassName = "ARMOR";
+        public static readonly CIString BasicArmorBonusClassName = "BASICARMORBONUS";
+        public static readonly CIString BasicArmorPickupClassName = "BASICARMORPICKUP";
+
         /// <summary>
         /// All of the items owned by the player that are not a special type of
         /// item (ex: weapons, which need more logic).
@@ -18,21 +27,33 @@ namespace Helion.World.Entities.Inventories
         /// </summary>
         public readonly Weapons Weapons = new Weapons();
 
+        public static CIString GetBaseInventoryName(EntityDefinition definition)
+        {
+            int index = definition.ParentClassNames.IndexOf(AmmoClassName);
+            if (index > 0 && index < definition.ParentClassNames.Count - 1)
+                return definition.ParentClassNames[index + 1];
+
+            return definition.Name;
+        }
+
         public bool Add(EntityDefinition definition, int amount)
         {
             if (amount <= 0)
                 return false;
 
             CIString name = GetBaseInventoryName(definition);
+            int maxAmount = definition.Properties.Inventory.MaxAmount;
+            if (definition.IsType(AmmoClassName) && HasItemOfClass(BackPackBaseClassName) && definition.Properties.Ammo.BackpackMaxAmount > maxAmount)
+                maxAmount = definition.Properties.Ammo.BackpackMaxAmount;
 
             if (Items.TryGetValue(name, out InventoryItem? item))
             {
-                if (item.Amount >= definition.Properties.Inventory.MaxAmount)
+                if (item.Amount >= maxAmount)
                     return false;
 
                 item.Amount += amount;
-                if (item.Amount > definition.Properties.Inventory.MaxAmount)
-                    item.Amount = definition.Properties.Inventory.MaxAmount;
+                if (item.Amount > maxAmount)
+                    item.Amount = maxAmount;
 
                 return true;
             }
@@ -44,13 +65,20 @@ namespace Helion.World.Entities.Inventories
             return true;
         }
 
-        private static CIString GetBaseInventoryName(EntityDefinition definition)
+        public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)
         {
-            int index = definition.ParentClassNames.IndexOf("AMMO");
-            if (index > 0 && index < definition.ParentClassNames.Count - 1)
-                return definition.ParentClassNames[index + 1];
+            HashSet<CIString> addedBaseNames = new HashSet<CIString>();
+            List<EntityDefinition> ammoDefinitions = definitionComposer.GetEntityDefinitions()
+                .Where(x => x.IsType(AmmoClassName) && x.Properties.Ammo.BackpackAmount > 0).ToList();
+            foreach (EntityDefinition ammo in ammoDefinitions)
+            {
+                CIString baseName = GetBaseInventoryName(ammo);
+                if (addedBaseNames.Contains(baseName))
+                    continue;
 
-            return definition.Name;
+                Add(ammo, ammo.Properties.Ammo.BackpackAmount);
+                addedBaseNames.Add(baseName);
+            }
         }
 
         public void Clear()
@@ -58,7 +86,9 @@ namespace Helion.World.Entities.Inventories
             Items.Clear();
         }
 
-        public bool Contains(CIString name) => Items.ContainsKey(name);
+        public bool HasItem(CIString name) => Items.ContainsKey(name);
+
+        public bool HasItemOfClass(CIString name) => Items.Any(x => x.Value.Definition.IsType(name));
         
         public int Amount(CIString name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
 

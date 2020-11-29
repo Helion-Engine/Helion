@@ -10,7 +10,6 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
-using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
@@ -444,8 +443,8 @@ namespace Helion.World.Entities
         public virtual bool GiveItem(EntityDefinition definition, EntityFlags? flags)
         {
             var invData = definition.Properties.Inventory;
-            bool isHealth = definition.IsType("HEALTH");
-            bool isArmor = definition.IsType("ARMOR");
+            bool isHealth = definition.IsType(Inventory.HealthClassName);
+            bool isArmor = definition.IsType(Inventory.ArmorClassName);
 
             if (isHealth)
             {
@@ -468,12 +467,15 @@ namespace Helion.World.Entities
                 return false;
             }
 
+            if (definition.IsType(Inventory.BackPackBaseClassName))
+                Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
+
             return Inventory.Add(definition, invData.Amount);
         }
 
         private EntityProperties? GetArmorProperties(EntityDefinition definition)
         {
-            bool isArmorBonus = definition.IsType("BASICARMORBONUS");
+            bool isArmorBonus = definition.IsType(Inventory.BasicArmorBonusClassName);
 
             // Armor bonus keeps current property
             if (ArmorProperties != null && isArmorBonus)
@@ -484,7 +486,7 @@ namespace Helion.World.Entities
             {
                 IList<EntityDefinition> definitions = World.EntityManager.DefinitionComposer.GetEntityDefinitions();
                 EntityDefinition? armorDef = definitions.FirstOrDefault(x => x.Properties.Armor.SavePercent == definition.Properties.Armor.SavePercent &&
-                    x.IsType("BASICARMORPICKUP"));
+                    x.IsType(Inventory.BasicArmorPickupClassName));
 
                 if (armorDef != null)
                     return armorDef.Properties;
@@ -503,7 +505,7 @@ namespace Helion.World.Entities
             return true;
         }
 
-        protected static bool IsWeapon(EntityDefinition definition) => definition.IsType("WEAPON");
+        protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
 
         private int GetMaxAmount(EntityDefinition def)
         {

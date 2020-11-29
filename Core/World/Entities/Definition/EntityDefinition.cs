@@ -40,7 +40,7 @@ namespace Helion.World.Entities.Definition
         /// <param name="className">The name of the class, which is case
         /// insensitive.</param>
         /// <returns>True if it is the type, false if not.</returns>
-        public bool IsType(string className) => ParentClassLookup.Contains(className);
+        public bool IsType(CIString className) => ParentClassLookup.Contains(className);
         
         /// <summary>
         /// Checks if the definition is a descendant or class of the type

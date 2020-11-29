@@ -12,6 +12,7 @@ using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Entities.Spawn;
 using Helion.World.Geometry.Sectors;
@@ -129,16 +130,25 @@ namespace Helion.World.Entities
             GiveWeapon(player, "FIST");
             GiveWeapon(player, "PISTOL");
 
+            GiveAmmo(player, "CLIP", 50);
+
             var weapon = player.Inventory.Weapons.GetWeapon("PISTOL");
             if (weapon != null)
                 player.ChangeWeapon(weapon);
+        }
+
+        private void GiveAmmo(Player player, string name, int amount)
+        {
+            var ammo = DefinitionComposer.GetByName(name);
+            if (ammo != null)
+                player.Inventory.Add(ammo, 50);
         }
 
         private void GiveWeapon(Player player, string name)
         {
             var weapon = DefinitionComposer.GetByName(name);
             if (weapon != null)
-                player.GiveWeapon(weapon);
+                player.GiveWeapon(weapon, false);
         }
 
         public void PopulateFrom(IMap map)
@@ -244,7 +254,7 @@ namespace Helion.World.Entities
             position.Z = GetPositionZ(sector, position, zHeight);
             Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
 
-            var armor = DefinitionComposer.GetByName("ARMOR");
+            var armor = DefinitionComposer.GetByName(Inventory.ArmorClassName);
             if (armor != null)
                 player.Inventory.Add(armor, 0);
             
