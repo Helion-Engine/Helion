@@ -215,9 +215,15 @@ namespace Helion.World.Entities.Definition.Composer
                 if (upperParent.Empty())
                 {
                     if (masterLabelTable.TryGetValue(upperLabel, out int offset))
-                        entityFrame.NextFrameIndex = offset;
+                    {
+                        entityFrame.NextFrameIndex = offset + flowControl.Offset;
+                        if (entityFrame.NextFrameIndex < 0 || entityFrame.NextFrameIndex >= definition.States.Frames.Count)
+                            Log.Error($"Invalid goto offset '{upperLabel}' in actor '{definition.Name}'");
+                    }
                     else
+                    {
                         Log.Error("Unable to resolve goto label '{0}' in actor '{1}', actor is likely malformed", upperLabel, definition.Name);
+                    }
                     continue;
                 }
                 
