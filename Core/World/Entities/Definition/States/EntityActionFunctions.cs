@@ -1620,10 +1620,11 @@ namespace Helion.World.Entities.Definition.States
             {
                 // TODO berserk
                 int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
+                double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
                 Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity != null)
                 {
-                    // TODO random angle
+                    player.AngleRadians = angle;
                     player.World.SoundManager.CreateSoundOn(entity, "player/male/fist", SoundChannelType.Auto, new SoundParams(entity));
                     player.AngleRadians = player.Position.Angle(hitEntity.Position);
                 }
@@ -1829,13 +1830,15 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
-                Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
+                double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
+                Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity == null)
                 {
                     player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", SoundChannelType.Auto, new SoundParams(entity));
                 }
                 else
                 {
+                    player.AngleRadians = angle;
                     player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", SoundChannelType.Auto, new SoundParams(entity));
                     player.AngleRadians = player.Position.Angle(hitEntity.Position);
                 }
