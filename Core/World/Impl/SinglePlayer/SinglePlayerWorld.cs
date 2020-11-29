@@ -261,6 +261,8 @@ namespace Helion.World.Impl.SinglePlayer
                 if (weapon != null)
                     Player.GiveWeapon(weapon);
             }
+
+            Player.Inventory.GiveAllAmmo(EntityManager.DefinitionComposer);
         }
 
         private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)

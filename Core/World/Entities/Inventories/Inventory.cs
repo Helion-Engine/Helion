@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Util;
@@ -68,8 +69,7 @@ namespace Helion.World.Entities.Inventories
         public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)
         {
             HashSet<CIString> addedBaseNames = new HashSet<CIString>();
-            List<EntityDefinition> ammoDefinitions = definitionComposer.GetEntityDefinitions()
-                .Where(x => x.IsType(AmmoClassName) && x.Properties.Ammo.BackpackAmount > 0).ToList();
+            List<EntityDefinition> ammoDefinitions = GetAmmoTypes(definitionComposer).Where(x => x.Properties.Ammo.BackpackAmount > 0).ToList();
             foreach (EntityDefinition ammo in ammoDefinitions)
             {
                 CIString baseName = GetBaseInventoryName(ammo);
@@ -79,6 +79,21 @@ namespace Helion.World.Entities.Inventories
                 Add(ammo, ammo.Properties.Ammo.BackpackAmount);
                 addedBaseNames.Add(baseName);
             }
+        }
+
+        public void GiveAllAmmo(EntityDefinitionComposer definitionComposer)
+        {
+            EntityDefinition? backpackDef = definitionComposer.GetByName(BackPackBaseClassName);
+            if (backpackDef != null)
+                Add(backpackDef, 1);
+            List<EntityDefinition> ammoDefinitions = GetAmmoTypes(definitionComposer).ToList();
+            foreach (EntityDefinition ammo in ammoDefinitions)
+                Add(ammo, Math.Max(ammo.Properties.Ammo.BackpackMaxAmount, ammo.Properties.Inventory.Amount));
+        }
+
+        private static IEnumerable<EntityDefinition> GetAmmoTypes(EntityDefinitionComposer definitionComposer)
+        {
+            return definitionComposer.GetEntityDefinitions().Where(x => x.IsType(AmmoClassName));
         }
 
         public void Clear()
