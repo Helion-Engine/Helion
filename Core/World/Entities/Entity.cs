@@ -76,6 +76,7 @@ namespace Helion.World.Entities
         public bool Refire;
         // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
         public bool ClippedWithEntity;
+        public bool MoveLinked;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();

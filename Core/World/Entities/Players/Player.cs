@@ -58,6 +58,9 @@ namespace Helion.World.Entities.Players
             Precondition(playerNumber >= 0, "Player number should not be negative");
 
             PlayerNumber = playerNumber;
+            // Going to default to true for players, otherwise jumping without moving X/Y can allow for clipping through ceilings
+            // See PhysicsManager.MoveZ
+            MoveLinked = true;
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_prevViewHeight = m_viewHeight;

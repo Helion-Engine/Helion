@@ -1062,7 +1062,9 @@ namespace Helion.World.Physics
                 return;
 
             TryMoveData tryMove = TryMoveXY(entity, (entity.Position + entity.Velocity).To2D());
-            if (!tryMove.Success)
+            if (tryMove.Success)
+                entity.MoveLinked = true;
+            else
                 m_world.HandleEntityHit(entity, tryMove);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);
@@ -1083,7 +1085,8 @@ namespace Helion.World.Physics
             double newZ = entity.Position.Z + entity.Velocity.Z + floatZ;
             entity.SetZ(newZ, false);
 
-            ClampBetweenFloorAndCeiling(entity, false);
+            // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
+            ClampBetweenFloorAndCeiling(entity, entity.MoveLinked);
 
             if (entity.IsBlocked())
                 m_world.HandleEntityHit(entity, null);
