@@ -378,10 +378,19 @@ namespace Helion.World.Entities
 
         public virtual bool CanDamage(Entity source)
         {
-            if (source is Player || !Flags.IsMonster)
+            Entity damageSource = source.Owner ?? source;
+
+            if (damageSource is Player || !Flags.IsMonster)
                 return true;
 
-            return !GetSpeciesName().Equals(source.GetSpeciesName());
+            // Not a projectile, always damage
+            if (source.Owner == null)
+                return true;
+
+            if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
+                return false;
+
+            return true;
         }
 
         public virtual bool Damage(Entity? source, int damage, bool setPainState)
@@ -392,7 +401,7 @@ namespace Helion.World.Entities
             if (source != null)
             {
                 Entity damageSource = source.Owner ?? source;
-                if (!CanDamage(damageSource))
+                if (!CanDamage(source))
                     return false;
 
                 if (Properties.Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
