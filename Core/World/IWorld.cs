@@ -19,6 +19,7 @@ namespace Helion.World
     public interface IWorld : IDisposable
     {
         int Gametick { get; }
+        double Gravity { get; }
         WorldState WorldState { get; }
         IList<Line> Lines { get; }
         IList<Side> Sides { get; }
@@ -50,7 +51,7 @@ namespace Helion.World
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
         bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical);
-        void HandleEntityHit(Entity entity, TryMoveData? tryMove);
+        void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
         bool CheckLineOfSight(Entity from, Entity to);
         void RadiusExplosion(Entity source, int radius);
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);

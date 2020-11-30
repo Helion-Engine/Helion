@@ -48,6 +48,7 @@ namespace Helion.World
         public readonly BlockMap Blockmap;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
+        public double Gravity { get; private set; } = 1.0;
         public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
@@ -379,7 +380,7 @@ namespace Helion.World
                 else
                 {
                     projectile.SetPosition(testPos);
-                    HandleEntityHit(projectile, null);
+                    HandleEntityHit(projectile, velocity, null);
                 }
             }
 
@@ -575,9 +576,9 @@ namespace Helion.World
             return true;
         }
 
-        public virtual void HandleEntityHit(Entity entity, TryMoveData? tryMove)
+        public virtual void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
         {
-            entity.Hit();
+            entity.Hit(previousVelocity);
 
             if (entity.Flags.Missile)
             {

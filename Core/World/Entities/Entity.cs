@@ -687,7 +687,7 @@ namespace Helion.World.Entities
             return !openTop.CanPassOrStepThrough(this) && !openBottom.CanPassOrStepThrough(this);
         }
 
-        public void Hit()
+        public virtual void Hit(in Vec3D velocity)
         {
             if (Flags.Skullfly)
             {

@@ -33,7 +33,6 @@ namespace Helion.World.Physics
     public class PhysicsManager
     {
         private const int MaxSlides = 3;
-        private const double Gravity = 1.0;
         private const double Friction = 0.90625;
         private const double SlideStepBackTime = 1.0 / 32.0;
         private const double MinMovementThreshold = 0.06;
@@ -376,9 +375,6 @@ namespace Helion.World.Physics
 
         private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
         {
-            if (!entity.OnGround && entity is Player player)
-                player.SetHitZ(IsHardHitZ(entity));
-
             // Additionally check to smooth camera when stepping up to an entity
             entity.SetZ(floorZ, smoothZ);
 
@@ -388,8 +384,6 @@ namespace Helion.World.Physics
             // application of jumping after the XY movement instead of before?
             entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
         }
-
-        private bool IsHardHitZ(Entity entity) => entity.Velocity.Z < -(Gravity * 8);
 
         private void ClampBetweenFloorAndCeiling(Entity entity, bool clampToLinkedSectors = true)
         {
@@ -1065,7 +1059,7 @@ namespace Helion.World.Physics
             if (tryMove.Success)
                 entity.MoveLinked = true;
             else
-                m_world.HandleEntityHit(entity, tryMove);
+                m_world.HandleEntityHit(entity, entity.Velocity, tryMove);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);
             StopXYMovementIfSmall(entity);
@@ -1076,12 +1070,13 @@ namespace Helion.World.Physics
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
             if (entity.ShouldApplyGravity())
-                entity.Velocity.Z -= Gravity;
+                entity.Velocity.Z -= m_world.Gravity;
 
             double floatZ = entity.GetEnemyFloatMove();
             if (entity.Velocity.Z == 0 && floatZ == 0)
                 return;
 
+            Vec3D previousVelocity = entity.Velocity;
             double newZ = entity.Position.Z + entity.Velocity.Z + floatZ;
             entity.SetZ(newZ, false);
 
@@ -1089,7 +1084,7 @@ namespace Helion.World.Physics
             ClampBetweenFloorAndCeiling(entity, entity.MoveLinked);
 
             if (entity.IsBlocked())
-                m_world.HandleEntityHit(entity, null);
+                m_world.HandleEntityHit(entity, previousVelocity, null);
 
             if (entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);

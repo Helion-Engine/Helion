@@ -113,6 +113,28 @@ namespace Helion.World.Entities.Players
             base.SetZ(z, smooth);
         }
 
+        public override void Hit(in Vec3D velocity)
+        {
+            if (BlockingSectorPlane != null && OnGround)
+            {
+                // If we're airborne and just landed on the ground, we need a delay
+                // for jumping. This should only happen if we've coming down from a manual jump.
+                if (m_isJumping)
+                    m_jumpTics = JumpDelayTicks;
+
+                m_isJumping = false;
+
+                bool hardHit = velocity.Z < -(World.Gravity * 8);
+                if (hardHit && !Flags.NoGravity && !IsDead)
+                {
+                    PlayLandSound();
+                    m_deltaViewHeight = velocity.Z / PlayerViewDivider;
+                }
+            }
+
+            base.Hit(velocity);
+        }
+
         public override void ResetInterpolation()
         {
             m_viewHeight = Definition.Properties.Player.ViewHeight;
@@ -120,26 +142,6 @@ namespace Helion.World.Entities.Players
             m_deltaViewHeight = 0;
 
             base.ResetInterpolation();
-        }
-
-        /// <summary>
-        /// Sets the entity hitting the floor / another entity.
-        /// </summary>
-        /// <param name="hardHit">If the player hit hard and should crouch down a bit and grunt.</param>
-        public void SetHitZ(bool hardHit)
-        {
-            // If we're airborne and just landed on the ground, we need a delay
-            // for jumping. This should only happen if we've coming down from a manual jump.
-            if (m_isJumping)
-                m_jumpTics = JumpDelayTicks;
-
-            m_isJumping = false;
-
-            if (hardHit && !Flags.NoGravity && !IsDead)
-            {
-                PlayLandSound();
-                m_deltaViewHeight = Velocity.Z / PlayerViewDivider;
-            }
         }
 
         public void AddToYaw(double delta)
