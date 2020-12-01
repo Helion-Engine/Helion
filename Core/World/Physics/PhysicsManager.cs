@@ -590,6 +590,7 @@ namespace Helion.World.Physics
         {
             TryMoveData tryMoveData = new TryMoveData(position);
             entity.BlockingLine = null;
+            entity.BlockingEntity = null;
 
             if (entity.Flags.NoClip)
             {
@@ -632,6 +633,7 @@ namespace Helion.World.Physics
 
                     if (IsPositionValid(entity, nextPosition, tryMoveData))
                     {
+                        entity.MoveLinked = true;
                         MoveTo(entity, nextPosition, tryMoveData);
                         continue;
                     }
@@ -653,7 +655,10 @@ namespace Helion.World.Physics
             {
                 success = IsPositionValid(entity, position, tryMoveData);
                 if (success)
+                {
+                    entity.MoveLinked = true;
                     MoveTo(entity, position, tryMoveData);
+                }
             }
 
             if (success && entity.OverEntity != null)
@@ -695,7 +700,7 @@ namespace Helion.World.Physics
 
         public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData? tryMove)
         {
-            if (!(entity is Player) && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
+            if (!entity.Flags.Float && !(entity is Player) && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
                 return false;
 
             if (tryMove != null)
@@ -725,7 +730,7 @@ namespace Helion.World.Physics
                 if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
                     return false;
 
-                if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height)
+                if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
                     return false;
 
                 tryMove.CanFloat = true;
@@ -1056,9 +1061,7 @@ namespace Helion.World.Physics
                 return;
 
             TryMoveData tryMove = TryMoveXY(entity, (entity.Position + entity.Velocity).To2D());
-            if (tryMove.Success)
-                entity.MoveLinked = true;
-            else
+            if (!tryMove.Success)
                 m_world.HandleEntityHit(entity, entity.Velocity, tryMove);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);

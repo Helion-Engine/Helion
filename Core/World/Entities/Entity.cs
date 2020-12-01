@@ -676,7 +676,8 @@ namespace Helion.World.Entities
 
         public bool BlocksEntityZ(Entity other, out LineOpening? lineOpening)
         {
-            if (ReferenceEquals(this, other))
+            bool blocks = Box.OverlapsZ(other.Box);
+            if (ReferenceEquals(this, other) || !blocks)
             {
                 lineOpening = null;
                 return false;
@@ -692,6 +693,10 @@ namespace Helion.World.Entities
                 lineOpening = openTop;
             else
                 lineOpening = openBottom;
+
+            // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
+            if (blocks && Flags.IsMonster)
+                return true;
 
             return !openTop.CanPassOrStepThrough(this) && !openBottom.CanPassOrStepThrough(this);
         }
