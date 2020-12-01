@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
@@ -123,6 +124,10 @@ namespace Helion.World.Geometry.Sectors
         public double ToFloorZ(in Vec3D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
         public double ToCeilingZ(in Vec2D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
         public double ToCeilingZ(in Vec3D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
+
+        // TODO implement when slopes exist
+        public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
+        public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
 
         public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
@@ -356,6 +361,37 @@ namespace Helion.World.Geometry.Sectors
             return max;
         }
 
+        public double GetShortestLower(TextureManager textureManager)
+        {
+            double min = double.MaxValue;
+            double floorZ = Floor.Z;
+
+            // Doom didn't check if there was actually a lower texture set
+            // It would use index zero which was AASHITTY with a 64 height causing it to max out at 64
+            // TODO compatibility option
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                Line line = Lines[i];
+                if (line.TwoSided)
+                {
+                    TwoSided twoSided = (TwoSided)line.Front;
+                    var texture = textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle);
+                    if (texture.Image != null && texture.Image.Height < min)
+                        min = texture.Image.Height;
+
+                    if (line.Back != null)
+                    {
+                        twoSided = (TwoSided)line.Back;
+                        texture = textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle);
+                        if (texture.Image != null && texture.Image.Height < min)
+                            min = texture.Image.Height;
+                    }
+                }
+            }
+
+            return min;
+        }
+
         public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
         {
             Vec2D pos2D = listener.Position.To2D();
@@ -366,7 +402,7 @@ namespace Helion.World.Geometry.Sectors
             pos2D = GetClosestPointFrom(pos2D);
 
             // Check if the player z is in line with the lower/upper of the moving sector
-            // If this is so set the z to the player z so the sound doesn't attenuate on z axis
+            // This is set to the player z so the sound doesn't attenuate on z axis
             if (type == SectorPlaneType.Floor)
             {
                 double floorZ = ToFloorZ(pos2D);

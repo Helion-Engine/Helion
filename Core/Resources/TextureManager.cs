@@ -119,6 +119,24 @@ namespace Helion.Resources
         }
 
         /// <summary>
+        /// Get a texture by index, checks if the index is null and returns Doom's zero indexed texture (usually AASHITTY)
+        /// This function is only intended to be used for vanilla compatibility like FloorRaiseByTexture
+        /// </summary>
+        /// <param name="index">The index of the texture.</param>
+        /// <returns>Returns a texture at the given index. If the texture is
+        /// animated it's current animation texture will be returned.</returns>
+        public Texture GetNullCompatibilityTexture(int index)
+        {
+            if (index == Constants.NoTextureIndex)
+            {
+                Util.Assertion.Assert.Invariant(m_textures.Length > 1, "Invalid textures count");
+                return m_textures[m_translations[1]];
+            }
+
+            return m_textures[m_translations[index]];
+        }
+
+        /// <summary>
         /// Get a sprite rotation.
         /// </summary>
         /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
@@ -189,6 +207,13 @@ namespace Helion.Resources
             {
                 m_textures[index] = new Texture(texture.Name, texture.Namespace, index);
                 index++;
+            }
+
+            // Load AASHITTY for information purposes - FloorRaiseByTexture needs it to emulate vanilla bug
+            if (m_textures.Length > 1)
+            {
+                Texture shitty = m_textures[1];
+                shitty.Image = m_imageRetriever.GetOnly(shitty.Name, shitty.Namespace);
             }
 
             // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.

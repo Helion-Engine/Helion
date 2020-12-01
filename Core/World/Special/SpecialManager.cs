@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
 using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
@@ -663,12 +665,18 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.LightMaxNeighbor:
                     return CreateLightChangeSpecial(sector, sector.GetMaxLightLevelNeighbor());
 
-                case ZDoomLineSpecialType.FloorDonut:
-                    HandleFloorDonut(line, sector);
-                    break;
+                case ZDoomLineSpecialType.FloorRaiseByTexture:
+                    return CreateFloorRaiseByTextureSpecial(sector, line.Args.Arg1 * SpeedFactor);
             }
 
             return null;
+        }
+
+        private ISpecial? CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
+        {
+            double destZ = sector.Floor.Z + sector.GetShortestLower(TextureManager.Instance);
+            SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
         }
 
         private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)
