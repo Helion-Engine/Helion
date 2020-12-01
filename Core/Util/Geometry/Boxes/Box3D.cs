@@ -37,7 +37,7 @@ namespace Helion.Util.Geometry.Boxes
         /// </summary>
         /// <param name="min">The bottom left point.</param>
         /// <param name="max">The top right point.</param>
-        public Box3D(Vec3D min, Vec3D max)
+        public Box3D(in Vec3D min, in Vec3D max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");

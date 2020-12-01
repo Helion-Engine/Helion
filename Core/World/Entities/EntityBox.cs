@@ -51,7 +51,7 @@ namespace Helion.World.Entities
         /// </param>
         /// <param name="radius">The radius of the box.</param>
         /// <param name="height">The height of the box.</param>
-        public EntityBox(Vec3D centerBottom, double radius, double height)
+        public EntityBox(in Vec3D centerBottom, double radius, double height)
         {
             m_box = CreateBoxAtCenterBottom(centerBottom, radius, height);
             m_centerBottom = centerBottom;
@@ -64,7 +64,7 @@ namespace Helion.World.Entities
         /// </summary>
         /// <param name="centerBottomPosition">The position, which is the
         /// center bottom point.</param>
-        public void MoveTo(Vec3D centerBottomPosition)
+        public void MoveTo(in Vec3D centerBottomPosition)
         {
             m_centerBottom = centerBottomPosition;
             m_box = CreateBoxAtCenterBottom(centerBottomPosition, m_radius, Height);
@@ -86,7 +86,7 @@ namespace Helion.World.Entities
         /// Sets the position to the new location provided.
         /// </summary>
         /// <param name="position">The position to set to.</param>
-        public void SetXY(Vec2D position)
+        public void SetXY(in Vec2D position)
         {
             m_centerBottom.X = position.X;
             m_centerBottom.Y = position.Y;
@@ -119,7 +119,7 @@ namespace Helion.World.Entities
         /// </summary>
         /// <param name="other">The other entity to check against.</param>
         /// <returns>True if they overlap, false if not.</returns>
-        public bool Overlaps(EntityBox other) => m_box.Overlaps(other.m_box);
+        public bool Overlaps(in EntityBox other) => m_box.Overlaps(other.m_box);
 
         /// <summary>
         /// Checks if the boxes overlap using X/Y coordinates only. Touching is not considered to be
@@ -127,7 +127,7 @@ namespace Helion.World.Entities
         /// </summary>
         /// <param name="other">The other entity to check against.</param>
         /// <returns>True if they overlap on X/Y, false if not.</returns>
-        public bool Overlaps2D(EntityBox other)
+        public bool Overlaps2D(in EntityBox other)
         {
             // This is the same as Box2 Overlaps
             // This is for performance so we do not have a construct a new Box2D everytime we want to check 2D bounds on a 3D box
@@ -140,7 +140,7 @@ namespace Helion.World.Entities
         /// </summary>
         /// <param name="other">The other Box2d to check against.</param>
         /// <returns>True if they overlap on X/Y, false if not.</returns>
-        public bool Overlaps2D(Box2D other)
+        public bool Overlaps2D(in Box2D other)
         {
             // Same as previous Overlaps2d, convienence function to not construct more Box2D objects
             return !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
@@ -152,12 +152,12 @@ namespace Helion.World.Entities
         /// </summary>
         /// <param name="box">The other box to check.</param>
         /// <returns>True if there is some overlap, false if not.</returns>
-        public bool OverlapsZ(EntityBox box) => Top > box.Bottom && Bottom < box.Top;
+        public bool OverlapsZ(in EntityBox box) => Top > box.Bottom && Bottom < box.Top;
 
         /// <inheritdoc/>
         public override string ToString() => $"{m_box}";
 
-        private static Box3D CreateBoxAtCenterBottom(Vec3D centerBottom, double radius, double height)
+        private static Box3D CreateBoxAtCenterBottom(in Vec3D centerBottom, double radius, double height)
         {
             Vec3D min = new Vec3D(centerBottom.X - radius, centerBottom.Y - radius, centerBottom.Z);
             Vec3D max = new Vec3D(centerBottom.X + radius, centerBottom.Y + radius, centerBottom.Z + height);
