@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Helion.Client.OpenAL;
@@ -26,6 +28,7 @@ namespace Helion.Client
     /// </summary>
     public partial class Client : IDisposable
     {
+        private const int StopwatchFrequencyValue = 1000000;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs m_commandLineArgs;
@@ -37,6 +40,8 @@ namespace Helion.Client
         private readonly GameLayerManager m_layerManager;
         private readonly ALAudioSystem m_audioSystem;
         private readonly FpsTracker m_fpsTracker = new FpsTracker();
+        private readonly Stopwatch m_fpsLimit = new Stopwatch();
+        private int m_fpsLimitValue = 0;
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
@@ -45,6 +50,7 @@ namespace Helion.Client
             m_gcTracker = new GCTracker(config);
             m_console = new HelionConsole(config);
             LogClientInformation();
+            SetFPSLimit();
 
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
@@ -58,6 +64,13 @@ namespace Helion.Client
         ~Client()
         {
             FailedToDispose(this);
+        }
+
+        private void SetFPSLimit()
+        {
+            if (m_config.Engine.Render.MaxFPS > 0)
+                m_fpsLimitValue = StopwatchFrequencyValue / m_config.Engine.Render.MaxFPS;
+            m_fpsLimit.Start();
         }
 
         public void Dispose()
@@ -89,31 +102,76 @@ namespace Helion.Client
 
         private void HandleCommandLineArgs()
         {
-            List<string> files = new List<string>();
-            if (m_commandLineArgs.Iwad != null)
-                files.Add(m_commandLineArgs.Iwad);
-            files.AddRange(m_commandLineArgs.Files);
-
-            if (!m_archiveCollection.Load(files))
-                Log.Error("Unable to load files at startup");
+            LoadFiles(out string? iwad);
 
             if (m_commandLineArgs.Skill.HasValue)
                 SetSkill(m_commandLineArgs.Skill.Value);
 
+            CheckLoadMap(iwad);
+        }
+
+        private void CheckLoadMap(string? iwad)
+        {
             if (m_commandLineArgs.Map != null)
-            {
                 Loadmap(m_commandLineArgs.Map);
-            }
             else if (m_commandLineArgs.Warp != null)
-            {
                 Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+            else
+                Loadmap(GetDefaultMap(iwad));
+        }
+
+        private void LoadFiles(out string? iwad)
+        {
+            List<string> files = new List<string>();
+            iwad = LoadIWad(files);
+            files.AddRange(m_commandLineArgs.Files);
+
+            if (!m_archiveCollection.Load(files))
+                Log.Error("Unable to load files at startup");
+        }
+
+        private string? LoadIWad(List<string> files)
+        {
+            if (m_commandLineArgs.Iwad == null)
+            {
+                List<string> wadFiles = Directory.GetFiles(Directory.GetCurrentDirectory())
+                    .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase)).ToList();
+                string? iwad = GetIWad(wadFiles);
+                if (iwad == null)
+                    Log.Error("No IWAD found!");
+                else
+                    files.Add(iwad);
+
+                return iwad;
             }
             else
             {
-                // If we're not warping to a map, bring up the console.
-                if (!m_layerManager.Contains(typeof(ConsoleLayer)))
-                    m_layerManager.Add(new ConsoleLayer(m_console));
+                files.Add(m_commandLineArgs.Iwad);
+                return m_commandLineArgs.Iwad;
             }
+        }
+
+        private static string? GetIWad(List<string> files)
+        {
+            string[] names = new string[] { "DOOM2", "PLUTONIA", "DOOM", "DOOM1" };
+            foreach (string name in names)
+            {
+                string? find = files.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (find != null)
+                    return find;
+            }
+
+            return null;
+        }
+
+        private string GetDefaultMap(string? iwad)
+        {
+            // TODO temporary until mapinfo is implemented
+            string? name = Path.GetFileNameWithoutExtension(iwad);
+            if (name != null && (name.Equals("DOOM1") || name.Equals("DOOM")))
+                return "E1M1";
+
+            return "MAP01";
         }
 
         private void SetSkill(int value)
@@ -171,10 +229,14 @@ namespace Helion.Client
 
             HandleInput();
             RunLogic();
-            Render();
-            m_window.SwapBuffers();
 
-            m_fpsTracker.FinishFrame();
+            if (m_fpsLimitValue <= 0 || m_fpsLimit.ElapsedTicks * StopwatchFrequencyValue / Stopwatch.Frequency >= m_fpsLimitValue)
+            {
+                m_fpsLimit.Restart();
+                Render();
+                m_window.SwapBuffers();
+                m_fpsTracker.FinishFrame();
+            }
         }
 
         private void Start()
