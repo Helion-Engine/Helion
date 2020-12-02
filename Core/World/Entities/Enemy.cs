@@ -260,7 +260,7 @@ namespace Helion.World.Entities
 
         public double GetEnemyFloatMove()
         {
-            if (Target == null || !Flags.IsMonster || !Flags.Float || Flags.Skullfly || BlockFloating)
+            if (IsDead || Target == null || !Flags.IsMonster || !Flags.Float || Flags.Skullfly || BlockFloating)
                 return 0.0;
 
             double distance = Position.ApproximateDistance2D(Target.Position);
