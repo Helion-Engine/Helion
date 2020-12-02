@@ -444,7 +444,7 @@ namespace Helion.World
 
                 if (bi.Value.Entity != null)
                 {
-                    DamageEntity(bi.Value.Entity, shooter, damage);
+                    DamageEntity(bi.Value.Entity, shooter, damage, Thrust.Horizontal);
                     return bi.Value.Entity;
                 }
             }
