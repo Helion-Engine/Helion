@@ -1542,20 +1542,19 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_PainShootSkull(Entity entity, double angle)
         {
-            Vec3D pos = entity.Position;
-            pos.Z += 8;
-            Entity? skull = entity.EntityManager.Create("LostSoul", entity.Position);
+            Vec3D skullPos = entity.Position;
+            skullPos.Z += 8;
+            Entity? skull = entity.EntityManager.Create("LostSoul", skullPos);
             if (skull == null)
                 return;
 
-            skull.Owner = entity;
             double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
-            Vec3D unit = Vec3D.UnitTimesValue(angle, 0.0, step);
-            Vec2D tryPos = (skull.Position + unit).To2D();
+            skullPos += Vec3D.UnitTimesValue(angle, 0.0, step);
+            skull.SetPosition(skullPos);
 
-            if (!entity.World.TryMoveXY(skull, tryPos, false).Success)
+            if (!entity.World.TryMoveXY(skull, skullPos.To2D(), false).Success)
             {
-                skull.SetDeathState();
+                skull.Kill();
                 return;
             }
 

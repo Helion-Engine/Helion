@@ -602,12 +602,7 @@ namespace Helion.World.Entities
         public bool ShouldApplyGravity()
         {
             if (Flags.NoGravity)
-            {
-                if (Flags.IsMonster)
-                    return Health == 0;
-
                 return false;
-            }
 
             // If still clipped with another entity then do not apply gravity
             if (ClippedWithEntity)
@@ -742,7 +737,8 @@ namespace Helion.World.Entities
                 Flags.Skullfly = false;
                 Flags.Solid = false;
                 Flags.Shootable = false;
-                Flags.NoGravity = false;
+                if (!Flags.DontFall)
+                    Flags.NoGravity = false;
             }
         }
 
