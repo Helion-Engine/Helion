@@ -17,11 +17,13 @@
     <NoWarn>1701;1702;NU1701;CS1591;CS8714</NoWarn>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>0</WarningLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>1701;1702;NU1701</NoWarn>
+    <NoWarn>1701;1702;NU1701;CS1591;CS8714</NoWarn>
+    <WarningLevel>0</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
