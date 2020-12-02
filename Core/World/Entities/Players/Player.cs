@@ -355,6 +355,9 @@ namespace Helion.World.Entities.Players
             if (PendingWeapon == null)
                 return;
 
+            if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
+                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Auto, new SoundParams(this));            
+
             AnimationWeapon = PendingWeapon;
             PendingWeapon = null;
             WeaponOffset.Y = Constants.WeaponBottom;
