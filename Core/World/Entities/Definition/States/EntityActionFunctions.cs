@@ -1708,8 +1708,12 @@ namespace Helion.World.Entities.Definition.States
                 if (player.PendingWeapon != null || player.IsDead)
                     player.LowerWeapon();
 
-                if (player.Weapon.Definition.Name == "CHAINSAW" && player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawidle", SoundChannelType.Auto, new SoundParams(entity));
+                if (player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 && 
+                    player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
+                {
+                    player.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound, 
+                        SoundChannelType.Auto, new SoundParams(entity));
+                }
             }
         }
 

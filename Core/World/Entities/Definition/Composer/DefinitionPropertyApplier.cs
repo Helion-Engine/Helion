@@ -133,6 +133,10 @@ namespace Helion.World.Entities.Definition.Composer
 
             if (properties.Weapons.SelectionOrder.HasValue)
                 definition.Properties.Weapons.SelectionOrder = properties.Weapons.SelectionOrder.Value;
+            if (properties.Weapons.ReadySound != null)
+                definition.Properties.Weapons.ReadySound = properties.Weapons.ReadySound;
+            if (properties.Weapons.UpSound != null)
+                definition.Properties.Weapons.UpSound = properties.Weapons.UpSound;
 
             if (properties.Ammo.BackpackAmount.HasValue)
                 definition.Properties.Ammo.BackpackAmount = properties.Ammo.BackpackAmount.Value;
