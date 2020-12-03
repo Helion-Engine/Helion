@@ -423,7 +423,8 @@ namespace Helion.World.Entities.Definition.States
             for (int i = 0; i < 40; i++)
             {
                 double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
-                if (!entity.World.GetAutoAimEntity(entity.Owner, angle, Constants.EntityShootDistance, out _, out Entity? hitEntity) || hitEntity == null)
+                if (!entity.World.GetAutoAimEntity(entity.Owner, entity.Owner.HitscanAttackPos, angle, Constants.EntityShootDistance, out _, 
+                    out Entity? hitEntity) || hitEntity == null)
                     continue;
 
                 int damage = 0;
@@ -595,7 +596,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "BaronBall");
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "BaronBall");
         }
 
         private static void A_BspiAttack(Entity entity)
@@ -604,7 +605,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
         }
 
         private static void A_BulletAttack(Entity entity)
@@ -873,7 +874,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "Rocket");
         }
 
@@ -1024,11 +1025,11 @@ namespace Helion.World.Entities.Definition.States
             double baseAngle = entity.AngleRadians;
 
             entity.AngleRadians = baseAngle + fireSpread1;
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "FatShot");
 
             entity.AngleRadians = baseAngle + fireSpread2;
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "FatShot");
 
             entity.AngleRadians = baseAngle;
@@ -1236,7 +1237,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), 
                 Constants.EntityShootDistance, false, "CacodemonBall");
         }
 
@@ -1601,9 +1602,12 @@ namespace Helion.World.Entities.Definition.States
                 entity.PlayAttackSound();
 
             A_FaceTarget(entity);
+
+            // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
+            entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
             entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
-            entity.World.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0,
-                entity.AttackPitchTo(entity.Target), Constants.EntityShootDistance, false);
+            entity.World.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0, 
+                pitch, Constants.EntityShootDistance, false);
         }
 
         private static void A_Print(Entity entity)
@@ -2126,7 +2130,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Target == null)
                 return;
 
-            Entity? fireball = entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target),
+            Entity? fireball = entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "RevenantTracer", 16);
 
             if (fireball != null)
@@ -2150,7 +2154,7 @@ namespace Helion.World.Entities.Definition.States
             entity.PlayAttackSound();
             A_FaceTarget(entity);
 
-            entity.Velocity = Vec3D.UnitTimesValue(entity.AngleRadians, entity.AttackPitchTo(entity.Target), 20);
+            entity.Velocity = Vec3D.UnitTimesValue(entity.AngleRadians, entity.PitchTo(entity.CenterPoint, entity.Target), 20);
             entity.Flags.Skullfly = true;
         }
 
@@ -2394,7 +2398,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            entity.World.FireProjectile(entity, entity.AttackPitchTo(entity.Target), 
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), 
                 Constants.EntityShootDistance, false, "DoomImpBall");
         }
 

@@ -71,7 +71,7 @@ namespace Helion.Util.Geometry.Vectors
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
         public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
-        public double Distance(Vec3D other) => (this - other).Length();
+        public double Distance(in Vec3D other) => (this - other).Length();
         public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
         public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
         public double Pitch(double z, double length) => Math.Atan2(z - Z, length);

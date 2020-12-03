@@ -339,11 +339,10 @@ namespace Helion.World
             return true;
         }
 
-        public bool GetAutoAimEntity(Entity shooter, double angle, double distance, out double pitch, out Entity? entity)
+        public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity)
         {
-            Vec3D start = shooter.AttackPosition;
             Vec3D end = start + Vec3D.UnitTimesValue(angle, 0, distance);
-            return GetAutoAimAngle(shooter, start, end, out pitch, out entity);
+            return GetAutoAimAngle(startEntity, start, end, out pitch, out entity);
         }
 
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
@@ -351,7 +350,7 @@ namespace Helion.World
             if (shooter is Player player)
                 player.DescreaseAmmo();
 
-            Vec3D start = shooter.AttackPosition;
+            Vec3D start = shooter.ProjectileAttackPos;
             start.Z += zOffset;
 
             if (autoAim)
@@ -394,7 +393,7 @@ namespace Helion.World
 
             if (autoAim)
             {
-                Vec3D start = shooter.AttackPosition;
+                Vec3D start = shooter.HitscanAttackPos;
                 Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
                 if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
                     pitch = autoAimPitch;
@@ -419,7 +418,7 @@ namespace Helion.World
 
         public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
         {
-            Vec3D start = shooter.AttackPosition;
+            Vec3D start = shooter.HitscanAttackPos;
             Vec3D end = start + Vec3D.UnitTimesValue(angle, pitch, distance);
             Vec3D intersect = new Vec3D(0, 0, 0);
 
@@ -726,7 +725,7 @@ namespace Helion.World
             intersect.Y = start.Y + (Math.Sin(angle) * distXY);
         }
 
-        private bool GetAutoAimAngle(Entity shooter, Vec3D start, Vec3D end, out double pitch, out Entity? entity)
+        private bool GetAutoAimAngle(Entity shooter, in Vec3D start, in Vec3D end, out double pitch, out Entity? entity)
         {
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
 
@@ -744,7 +743,7 @@ namespace Helion.World
             PitchNotSet,
         }
 
-        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, Vec3D start, Entity startEntity, double topPitch, double bottomPitch, 
+        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double topPitch, double bottomPitch, 
             out double pitch, out Entity? entity)
         {
             pitch = 0.0;

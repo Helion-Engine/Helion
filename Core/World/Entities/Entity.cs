@@ -44,7 +44,8 @@ namespace Helion.World.Entities
         public Vec3D PrevPosition;
         public Vec3D Position => Box.Position;
         public Vec3D CenterPoint => new Vec3D(Box.Position.X, Box.Position.Y, Box.Position.Z + (Height / 2));
-        public Vec3D AttackPosition => Flags.IsMonster ? CenterPoint : new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
+        public Vec3D ProjectileAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + 32);
+        public Vec3D HitscanAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
         public Vec3D Velocity = Vec3D.Zero;
         public Inventory Inventory = new Inventory();
         public int Health;
@@ -155,9 +156,8 @@ namespace Helion.World.Entities
             ArmorProperties = entity.ArmorProperties;
         }
 
-        public double AttackPitchTo(Entity entity) => AttackPosition.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
-
         public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.To2D().Distance(entity.Position.To2D()));
+        public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
 
         public string GetBloodType()
         {

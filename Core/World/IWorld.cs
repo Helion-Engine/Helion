@@ -46,7 +46,7 @@ namespace Helion.World
         void TelefragBlockingEntities(Entity entity);
         bool EntityUse(Entity entity);
         bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
-        bool GetAutoAimEntity(Entity shooter, double angle, double distance, out double pitch, out Entity? entity);
+        bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
         Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
