@@ -94,7 +94,20 @@ namespace Helion.Client.OpenAL
             FailedToDispose(this);
             PerformDispose();
         }
-        
+
+        public override int GetHashCode()
+        {
+            return m_sourceId;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ALAudioSource audioSource)
+                return audioSource.m_sourceId == m_sourceId;
+
+            return false;
+        }
+
         public void Play()
         {
             if (!m_disposed)
@@ -141,8 +154,7 @@ namespace Helion.Client.OpenAL
         {
             if (m_disposed)
                 return;
-            
-            Stop();
+
             m_owner.Unlink(this);
             AL.DeleteSource(m_sourceId);
 
