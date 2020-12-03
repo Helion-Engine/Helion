@@ -6,6 +6,7 @@ using Helion.Client.OpenAL.Components;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 using MoreLinq;
@@ -23,6 +24,8 @@ namespace Helion.Client.OpenAL
         private readonly ALAudioSystem m_owner;
         private readonly HashSet<ALAudioSource> m_sources = new HashSet<ALAudioSource>();
         private readonly Dictionary<string, ALBuffer> m_nameToBuffer = new Dictionary<string, ALBuffer>();
+
+        private DynamicArray<int> m_playGroup = new DynamicArray<int>();
 
         public ALAudioSourceManager(ALAudioSystem owner, ArchiveCollection archiveCollection)
         {
@@ -81,12 +84,12 @@ namespace Helion.Client.OpenAL
         }
 
         public void PlayGroup(List<IAudioSource> audioSources)
-        {
-            int[] ids = new int[audioSources.Count];
+        {        
             for (int i = 0; i < audioSources.Count; i++)
-                ids[i] = ((ALAudioSource)audioSources[i]).ID;
+               m_playGroup.Add(((ALAudioSource)audioSources[i]).ID);
 
-            AL.SourcePlay(ids.Length, ids);
+            AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
+            m_playGroup.Clear();
         }
 
         private ALBuffer? GetBuffer(string sound)
