@@ -92,8 +92,7 @@ namespace Helion.World.Sound
         {
             m_playingSounds.ForEach(sound =>
             {
-                if (sound.IsPlaying())
-                    sound.Stop();
+                sound.Stop();
                 sound.Dispose();
             });
         }
@@ -117,10 +116,11 @@ namespace Helion.World.Sound
 
         private void StopSoundsBySource(object source)
         {
-            var node = m_playingSounds.First;
-
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            LinkedListNode<IAudioSource>? nextNode;
             while (node != null)
             {
+                nextNode = node.Next;
                 if (ReferenceEquals(source, node.Value.SoundSource))
                 {
                     node.Value.Stop();
@@ -128,16 +128,17 @@ namespace Helion.World.Sound
                     m_playingSounds.Remove(node);
                 }
 
-                node = node.Next;
+                node = nextNode;
             }
         }
 
         public void StopLoopSoundBySource(object source)
         {
-            var node = m_playingSounds.First;
-
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            LinkedListNode<IAudioSource>? nextNode;
             while (node != null)
             {
+                nextNode = node.Next;
                 if (node.Value.Loop && ReferenceEquals(source, node.Value.SoundSource))
                 {
                     node.Value.Stop();
@@ -145,7 +146,7 @@ namespace Helion.World.Sound
                     m_playingSounds.Remove(node);
                 }
 
-                node = node.Next;
+                node = nextNode;
             }
         }
 
@@ -213,6 +214,7 @@ namespace Helion.World.Sound
             {
                 if (ReferenceEquals(audioSource.SoundSource, m_soundsToPlay[i].SoundSource))
                 {
+                    m_soundsToPlay[i].Dispose();
                     m_soundsToPlay[i] = audioSource;
                     return;
                 }
