@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
@@ -225,9 +226,13 @@ namespace Helion.World.Entities.Players
             }
             else
             {
+                bool isAmmo = IsAmmo(definition);
+                int count = Inventory.Amount(definition.Name);
                 success = base.GiveItem(definition, flags);
                 if (success && IsWeapon(definition))
                     CheckAutoSwitchWeapon(definition, ownedWeapon);
+                else if (success && isAmmo)
+                    CheckAutoSwitchAmmo(definition, count);
             }
 
             if (success)
@@ -237,6 +242,30 @@ namespace Helion.World.Entities.Players
             }
 
             return false;
+        }
+
+        private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)
+        {
+            // TODO the hardcoded checks are probably defined somewhere
+            if (Weapon != null && Weapon.Definition.Name != "FIST" && Weapon.Definition.Name != "PISTOL")
+                return;
+
+            CIString name = Inventory.GetBaseInventoryName(ammoDef);
+            Weapon? ammoWeapon = GetSelectionOrderedWeapons().FirstOrDefault(x => x.AmmoDefinition != null && x.AmmoDefinition.Name == name);
+            if (ammoWeapon != null)
+            {
+                if (CheckAmmo(ammoWeapon, oldCount))
+                    return;
+
+                if (Weapon == null ||
+                    ammoWeapon.Definition.Properties.Weapons.SelectionOrder < Weapon.Definition.Properties.Weapons.SelectionOrder)
+                {
+                    // Only switch to rocket launcher on fist (see above todo)
+                    if (Weapon != null && Weapon.Definition.Name == "FIST" && ammoWeapon.Definition.Name == "ROCKETLAUNCHER")
+                        return;
+                    ChangeWeapon(ammoWeapon);
+                }
+            }
         }
 
         private void CheckAutoSwitchWeapon(EntityDefinition definition, bool ownedWeapon)
@@ -256,7 +285,7 @@ namespace Helion.World.Entities.Players
         /// </summary>
         public void TrySwitchWeapon()
         {
-            var weapons = Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
+            var weapons = GetSelectionOrderedWeapons();
             foreach (Weapon weapon in weapons)
             {
                 if (weapon != Weapon && CheckAmmo(weapon))
@@ -266,6 +295,8 @@ namespace Helion.World.Entities.Players
                 }
             }
         }
+
+        private IEnumerable<Weapon> GetSelectionOrderedWeapons() => Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
 
         public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true)
         {
@@ -289,15 +320,15 @@ namespace Helion.World.Entities.Players
                 WeaponSlot = slot.Item1;
                 WeaponSubSlot = slot.Item2;
                 bool hadWeapon = Weapon != null;
-                PendingWeapon = weapon;
 
-                if (!hadWeapon)
+                if (!hadWeapon && PendingWeapon == null)
                 {
-                    Weapon = PendingWeapon;
-                    AnimationWeapon = PendingWeapon;
+                    Weapon = weapon;
+                    AnimationWeapon = weapon;
                     WeaponOffset.Y = Constants.WeaponBottom;
                 }
 
+                PendingWeapon = weapon;
                 LowerWeapon();
             }
         }
@@ -325,9 +356,12 @@ namespace Helion.World.Entities.Players
         /// <summary>
         /// Checks if the weapon has enough ammo to fire at least once.
         /// </summary>
-        public bool CheckAmmo(Weapon weapon)
+        public bool CheckAmmo(Weapon weapon, int ammoCount = -1)
         {
-            return Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) >= weapon.Definition.Properties.Weapons.AmmoUse;
+            if (ammoCount == -1)
+                ammoCount = Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
+
+            return ammoCount >= weapon.Definition.Properties.Weapons.AmmoUse;
         }
 
         public bool CanFireWeapon()

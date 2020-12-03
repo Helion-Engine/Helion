@@ -516,6 +516,7 @@ namespace Helion.World.Entities
         }
 
         protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
+        protected static bool IsAmmo(EntityDefinition definition) => definition.IsType(Inventory.AmmoClassName);
 
         private int GetMaxAmount(EntityDefinition def)
         {
