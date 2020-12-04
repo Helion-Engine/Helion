@@ -228,15 +228,13 @@ namespace Helion.World.Entities
             m_enemyMove = true;
             tryMove = World.TryMoveXY(this, nextPos, false);
             m_enemyMove = false;
-            if (!tryMove.Success)
+
+            if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
             {
-                if (Flags.Float && tryMove.CanFloat)
-                {
-                    BlockFloating = true;
-                    Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
-                    SetPosition(pos);
-                    return true;
-                }
+                BlockFloating = true;
+                Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
+                SetPosition(pos);
+                return true;
             }
             else
             {
