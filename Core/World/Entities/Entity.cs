@@ -550,16 +550,19 @@ namespace Helion.World.Entities
         public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
 
         /// <summary>
-        /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space, only from the current Sector.
+        /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.
         /// </summary>
         public List<Entity> GetIntersectingEntities2D()
         {
             List<Entity> entities = new List<Entity>();
 
-            foreach (var entity in Sector.Entities)
+            for (int i = 0; i < IntersectSectors.Count; i++)
             {
-                if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
-                    entities.Add(entity);
+                foreach (var entity in IntersectSectors[i].Entities)
+                {
+                    if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
+                        entities.Add(entity);
+                }
             }
 
             return entities;
