@@ -589,9 +589,6 @@ namespace Helion.World.Physics
         public TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
         {
             TryMoveData tryMoveData = new TryMoveData(position);
-            entity.BlockingLine = null;
-            entity.BlockingEntity = null;
-
             if (entity.Flags.NoClip)
             {
                 HandleNoClip(entity, position);
@@ -709,7 +706,7 @@ namespace Helion.World.Physics
                 if (entity.HighestFloorObject is Entity highFloorEntity)
                 {
                     tryMove.HighestFloorZ = highFloorEntity.Box.Top;
-                    tryMove.DropOffZ = entity.Sector.ToFloorZ(position);           
+                    tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
                 }
                 else
                 {
@@ -722,6 +719,8 @@ namespace Helion.World.Physics
 
             bool success = false;
             Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
+            entity.BlockingLine = null;
+            entity.BlockingEntity = null;
             if (!m_blockmap.Iterate(nextBox, CheckForBlockers))
                 success = true;
 
