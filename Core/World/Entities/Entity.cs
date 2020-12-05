@@ -568,12 +568,17 @@ namespace Helion.World.Entities
             return entities;
         }
 
-        public List<Entity> GetIntersectingEntities2D(Vec2D position, BlockmapTraverser traverser)
+        /// <summary>
+        /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 3D space traversing the block map.
+        /// </summary>
+        /// <param name="position">The position to check this entity against.</param>
+        /// <param name="traverser">The BlockmapTraverser to use.</param>
+        /// <param name="entityTraverseFlags">Flags to check against for traversal of the block map.</param>
+        public List<Entity> GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags)
         {
             List<Entity> entities = new List<Entity>();
-            Box2D box = Box2D.CopyToOffset(position, Radius);
-            List<BlockmapIntersect> intersections = traverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities, 
-                BlockmapTraverseEntityFlags.Solid);
+            EntityBox box = new EntityBox(position, Radius, Height);
+            List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box.To2D(), BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -581,7 +586,7 @@ namespace Helion.World.Entities
                 if (entity == null)
                     continue;
 
-                if (CanBlockEntity(entity) && entity.Box.Overlaps2D(box))
+                if (CanBlockEntity(entity) && box.Overlaps(entity.Box))
                     entities.Add(entity);
             }
 
@@ -673,6 +678,13 @@ namespace Helion.World.Entities
             return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
         }
 
+        /// <summary>
+        /// Checks if another entity can block this entity on the Z axis. 
+        /// This is not just box overlap checking, will check if this entity can step onto the other.
+        /// Sets a LineOpening using the entities similar to sector intersection.
+        /// </summary>
+        /// <param name="other">The potential blocking entity.</param>
+        /// <param name="lineOpening">The LineOpening to set.</param>
         public bool BlocksEntityZ(Entity other, out LineOpening? lineOpening)
         {
             bool blocks = Box.OverlapsZ(other.Box);

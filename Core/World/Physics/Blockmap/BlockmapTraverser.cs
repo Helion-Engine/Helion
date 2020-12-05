@@ -21,7 +21,7 @@ namespace Helion.World.Physics.Blockmap
             m_blockmap = blockmap;
         }
 
-        public List<BlockmapIntersect> GetBlockmapIntersections(Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
+        public List<BlockmapIntersect> GetBlockmapIntersections(in Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
         {
             return Traverse(box, null, flags, entityFlags);
         }

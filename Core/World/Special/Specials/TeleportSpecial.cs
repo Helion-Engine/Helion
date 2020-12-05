@@ -7,6 +7,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 
 namespace Helion.World.Special.Specials
@@ -32,18 +33,21 @@ namespace Helion.World.Special.Specials
             if (teleportSpot == null)
                 return SpecialTickStatus.Destroy;
 
-            CreateTeleportFogAt(entity.Position);
-            Teleport(entity, teleportSpot);
-
-            Entity? teleport = CreateTeleportFogAt(entity.Position + (Vec3D.Unit(entity.AngleRadians, 0.0) * TeleportOffsetDist));
-            if (teleport != null)
-                m_world.SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
+            if (Teleport(entity, teleportSpot))
+            {
+                Entity? teleport = CreateTeleportFogAt(entity.Position + (Vec3D.Unit(entity.AngleRadians, 0.0) * TeleportOffsetDist));
+                if (teleport != null)
+                    m_world.SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
+            }
 
             return SpecialTickStatus.Destroy;
         }
 
-        private void Teleport(Entity entity, Entity teleportSpot)
+        private bool Teleport(Entity entity, Entity teleportSpot)
         {
+            if (!CanTeleport(entity, teleportSpot))
+                return false;
+
             entity.UnlinkFromWorld();
 
             entity.FrozenTics = TeleportFreezeTicks;
@@ -58,6 +62,16 @@ namespace Helion.World.Special.Specials
 
             m_world.Link(entity);
             m_world.TelefragBlockingEntities(entity);
+
+            return true;
+        }
+
+        private bool CanTeleport(Entity teleportEntity, Entity teleportSpot)
+        {
+            if (teleportEntity is Player)
+                return true;
+
+            return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count > 0;
         }
 
         private Entity? CreateTeleportFogAt(in Vec3D pos)

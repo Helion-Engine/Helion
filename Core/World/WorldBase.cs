@@ -240,16 +240,9 @@ namespace Helion.World
 
         public void TelefragBlockingEntities(Entity entity)
         {
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), BlockmapTraverseFlags.Entities,
-                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
-
-            for (int i = 0; i < intersections.Count; i++)
-            {
-                BlockmapIntersect bi = intersections[i];
-                if (ReferenceEquals(entity, bi.Entity))
-                    continue;
-                bi.Entity!.ForceGib();
-            }
+            List<Entity> blockingEntities = entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
+            for (int i = 0; i < blockingEntities.Count; i++)
+                blockingEntities[i].ForceGib();
         }
 
         /// <summary>

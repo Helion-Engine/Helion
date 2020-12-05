@@ -134,7 +134,7 @@ namespace Helion.Util.Geometry.Boxes
         /// <param name="offset">The absolute center coordinate.</param>
         /// <param name="radius">The radius of the box.</param>
         /// <returns>The box at the position.</returns>
-        public static Box2D CopyToOffset(Vec2D offset, double radius)
+        public static Box2D CopyToOffset(in Vec2D offset, double radius)
         {
             Vec2D newMin = new Vec2D(offset.X - radius, offset.Y - radius);
             Vec2D newMax = new Vec2D(offset.X + radius, offset.Y + radius);
