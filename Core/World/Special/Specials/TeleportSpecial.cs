@@ -71,7 +71,7 @@ namespace Helion.World.Special.Specials
             if (teleportEntity is Player)
                 return true;
 
-            return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count > 0;
+            return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count == 0;
         }
 
         private Entity? CreateTeleportFogAt(in Vec3D pos)
