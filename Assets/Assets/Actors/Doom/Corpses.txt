@@ -1,3 +1,17 @@
+actor GibbedMarine
+{
+  States
+  {
+  Spawn:
+    PLAY W -1
+    Stop
+  }
+}
+
+actor GibbedCorpse : GibbedMarine 10
+{
+}
+
 actor GibbedMarineExtra : GibbedMarine 12
 {
 }
