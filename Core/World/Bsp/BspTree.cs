@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Bsp;
+using Helion.Bsp.Builder.GLBSP;
+using Helion.Bsp.External;
 using Helion.Bsp.Node;
 using Helion.Maps;
 using Helion.Maps.Components;
+using Helion.Resources.Archives;
+using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Locator;
 using Helion.Util;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
@@ -84,10 +90,10 @@ namespace Helion.World.Bsp
         /// <param name="builder">The geometry builder for the map.</param>
         /// <returns>A built BSP tree, or a null value if the geometry for the
         /// map is corrupt beyond repair.</returns>
-        public static BspTree? Create(IMap map, GeometryBuilder builder)
+        public static BspTree? Create(IMap map, GeometryBuilder builder, IBspBuilder bspBuilder)
         {
             BspNode? root = null;
-            
+
             // Currently the BSP builder has a fair amount of state, and having
             // it detect errors, roll back, and try to repair a map mid-stream
             // while resetting all of its data structures is a lot of work.
@@ -100,7 +106,6 @@ namespace Helion.World.Bsp
             // algorithms are.
             try
             {
-                BspBuilder bspBuilder = new BspBuilder(map);
                 root = bspBuilder.Build();
             }
             catch

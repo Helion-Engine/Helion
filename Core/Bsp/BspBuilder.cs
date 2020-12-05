@@ -24,7 +24,7 @@ namespace Helion.Bsp
     /// it is possible to apply threading to each stage itself since those are
     /// 'embarrassingly parallel'.
     /// </remarks>
-    public class BspBuilder
+    public class BspBuilder : IBspBuilder
     {
         /// <summary>
         /// A counter which is used to make sure that we don't enter some

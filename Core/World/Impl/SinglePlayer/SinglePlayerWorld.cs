@@ -53,7 +53,7 @@ namespace Helion.World.Impl.SinglePlayer
         public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, 
             IAudioSystem audioSystem, IMap map, Player? existingPlayer = null)
         {
-            MapGeometry? geometry = GeometryBuilder.Create(map);
+            MapGeometry? geometry = GeometryBuilder.Create(map, config);
             if (geometry == null)
             {
                 Log.Error("Cannot make single player world, geometry is malformed");

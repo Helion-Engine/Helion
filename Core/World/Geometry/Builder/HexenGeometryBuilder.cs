@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Bsp;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen;
 using Helion.Maps.Hexen.Components;
@@ -23,7 +24,7 @@ namespace Helion.World.Geometry.Builder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
-        public static MapGeometry? Create(HexenMap map)
+        public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder)
         {
             GeometryBuilder builder = new GeometryBuilder();
             
@@ -33,7 +34,7 @@ namespace Helion.World.Geometry.Builder
             BspTree? bspTree;
             try
             {
-                bspTree = BspTree.Create(map, builder);
+                bspTree = BspTree.Create(map, builder, bspBuilder);
                 if (bspTree == null)
                     return null;
             }

@@ -5,6 +5,7 @@ using Helion.Maps.Doom.Components;
 using Helion.Maps.Doom.Components.Types;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials.Vanilla;
+using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
@@ -34,6 +35,7 @@ namespace Helion.Maps.Doom
         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public Archive Archive { get; }
         public string Name { get; }
         public MapType MapType => MapType.Doom;
         public readonly ReadOnlyDictionary<int, DoomLine> Lines;
@@ -43,11 +45,12 @@ namespace Helion.Maps.Doom
         public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
         public readonly IReadOnlyList<DoomNode> Nodes;
 
-        private DoomMap(string name, ReadOnlyDictionary<int, DoomVertex> vertices, 
+        private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices, 
             ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides, 
             ReadOnlyDictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomThing> things,
             IReadOnlyList<DoomNode> nodes)
         {
+            Archive = archive;
             Name = name;
             Vertices = vertices;
             Sectors = sectors;
@@ -65,7 +68,7 @@ namespace Helion.Maps.Doom
         /// do mutation to the geometry if not null.</param>
         /// <returns>The compiled map, or null if the map was malformed due to
         /// missing or bad data.</returns>
-        public static DoomMap? Create(MapEntryCollection map, CompatibilityMapDefinition? compatibility)
+        public static DoomMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
         {
             ReadOnlyDictionary<int, DoomVertex>? vertices = CreateVertices(map.Vertices);
             if (vertices == null)
@@ -90,7 +93,7 @@ namespace Helion.Maps.Doom
             IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes);
 
             string mapName = map.Name.ToString().ToUpper();
-            return new DoomMap(mapName, vertices, sectors, sides, lines, things, nodes);
+            return new DoomMap(archive, mapName, vertices, sectors, sides, lines, things, nodes);
         }
         
         public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
