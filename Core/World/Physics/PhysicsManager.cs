@@ -467,12 +467,15 @@ namespace Helion.World.Physics
             if (entity.Flags.CanPass)
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-                List<Entity> intersectEntities = entity.GetIntersectingEntities2D();
+                List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), 
+                    BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid);
 
-                for (int i = 0; i < intersectEntities.Count; i++)
+                for (int i = 0; i < intersections.Count; i++)
                 {
-                    Entity intersectEntity = intersectEntities[i];
+                    if (intersections[i].Entity == null)
+                        continue;
 
+                    Entity intersectEntity = intersections[i].Entity;
                     bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
                     bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
                     bool clipped = false;
