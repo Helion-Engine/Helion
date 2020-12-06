@@ -178,7 +178,7 @@ namespace Helion.World.Sound
         {
             Precondition((int)channel < EntitySoundChannels.MaxChannels, "ZDoom extra channel flags unsupported currently");
 
-            if (m_playingSounds.Count >= MaxConcurrentSounds)
+            if (m_playingSounds.Count + m_soundsToPlay.Count >= MaxConcurrentSounds)
                 return null;
 
             SoundInfo? soundInfo = GetSoundInfo(source, sound);
