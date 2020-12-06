@@ -464,7 +464,7 @@ namespace Helion.World.Physics
             }
 
             // Only check against other entities if CanPass is set (height sensitive clip detection)
-            if (entity.Flags.CanPass)
+            if (entity.Flags.CanPass && !entity.Flags.NoClip)
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), 
@@ -472,7 +472,7 @@ namespace Helion.World.Physics
 
                 for (int i = 0; i < intersections.Count; i++)
                 {
-                    if (intersections[i].Entity == null)
+                    if (intersections[i].Entity == null || intersections[i].Entity.Flags.NoClip)
                         continue;
 
                     Entity intersectEntity = intersections[i].Entity;
