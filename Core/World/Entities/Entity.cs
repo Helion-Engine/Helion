@@ -552,17 +552,19 @@ namespace Helion.World.Entities
         /// <summary>
         /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.
         /// </summary>
-        public List<Entity> GetIntersectingEntities2D()
+        public List<Entity> GetIntersectingEntities2D(BlockmapTraverseEntityFlags entityTraverseFlags)
         {
             List<Entity> entities = new List<Entity>();
+            List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(Box.To2D(), BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
-            for (int i = 0; i < IntersectSectors.Count; i++)
+            for (int i = 0; i < intersections.Count; i++)
             {
-                foreach (var entity in IntersectSectors[i].Entities)
-                {
-                    if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
-                        entities.Add(entity);
-                }
+                Entity? entity = intersections[i].Entity;
+                if (entity == null)
+                    continue;
+
+                if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
+                    entities.Add(entity);
             }
 
             return entities;
@@ -641,7 +643,7 @@ namespace Helion.World.Entities
             if (!Flags.Solid)
                 return false;
 
-            List<Entity> entities = GetIntersectingEntities2D();
+            List<Entity> entities = GetIntersectingEntities2D(BlockmapTraverseEntityFlags.Solid);
 
             for (int i = 0; i < entities.Count; i++)
             {
