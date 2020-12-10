@@ -41,6 +41,14 @@ namespace Helion.World.Physics
             return Math.Min(front.Ceiling.Z, back.Ceiling.Z) - Math.Max(front.Floor.Z, back.Floor.Z) > 0;
         }
 
+        public static double GetOpeningHeight(Line line)
+        {
+            Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");
+
+            return Math.Min(line.Front.Sector.Ceiling.Z, line.Back!.Sector.Ceiling.Z) -
+                Math.Max(line.Front.Sector.Floor.Z, line.Back!.Sector.Floor.Z);
+        }
+
         public LineOpening()
         {
             CeilingZ = 0;

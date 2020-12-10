@@ -21,6 +21,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
+using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
@@ -123,8 +124,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             for (int i = 0; i < edges.Count; i++)
             {
                 SubsectorSegment edge = edges[i];
-                if (edge.Line == null || m_lineDrawnTracker.HasDrawn(edge.Line))
+                if (edge.Line == null)
                     continue;
+
+                if (m_lineDrawnTracker.HasDrawn(edge.Line))
+                {
+                    AddLineClip(edge);
+                    continue;
+                }
 
                 bool onFrontSide = edge.Line.Segment.OnRight(position);
                 if (!onFrontSide && edge.Line.OneSided)
@@ -137,9 +144,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 RenderSide(side, onFrontSide);
                 
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
-                if (edge.Line.OneSided)
-                    m_viewClipper.AddLine(edge.Start, edge.End);
+                AddLineClip(edge);
             }
+        }
+
+        private void AddLineClip(SubsectorSegment edge)
+        {
+            if (edge.Line.OneSided)
+                m_viewClipper.AddLine(edge.Start, edge.End);
+            else if(LineOpening.GetOpeningHeight(edge.Line) <= 0)
+                m_viewClipper.AddLine(edge.Start, edge.End);
         }
 
         private void RenderSide(Side side, bool isFrontSide)
