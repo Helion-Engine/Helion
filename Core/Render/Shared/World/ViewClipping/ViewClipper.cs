@@ -106,7 +106,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// <param name="vertex">The vertex to convert to a diamond angle.</param>
         /// <returns>The diamond angle for the vertex. This will be zero if it
         /// is equal to the <see cref="Center"/>.</returns>
-        public uint GetDiamondAngle(Vec2D vertex) => ToDiamondAngle(Center, vertex);
+        public uint GetDiamondAngle(in Vec2D vertex) => ToDiamondAngle(Center, vertex);
         
         /// <summary>
         /// Clears all the clip ranges.
@@ -126,7 +126,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// </summary>
         /// <param name="first">The first vertex of a line segment.</param>
         /// <param name="second">The second vertex of a line segment.</param>
-        public void AddLine(Vec2D first, Vec2D second)
+        public void AddLine(in Vec2D first, in Vec2D second)
         {
             (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(GetDiamondAngle(first), GetDiamondAngle(second));
             
@@ -145,7 +145,7 @@ namespace Helion.Render.Shared.World.ViewClipping
         /// <param name="first">The first vertex of a line segment.</param>
         /// <param name="second">The second vertex of a line segment.</param>
         /// <returns>True if they are in a range, false if not.</returns>
-        public bool InsideAnyRange(Vec2D first, Vec2D second)
+        public bool InsideAnyRange(in Vec2D first, in Vec2D second)
         {
             if (m_nodes.Empty())
                 return false;
