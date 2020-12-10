@@ -12,6 +12,7 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configuration;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Bsp;
@@ -95,19 +96,19 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);
         }
 
-        private bool Occluded(in BspNodeCompact node, in Vec2D position)
+        private bool Occluded(in Box2D box, in Vec2D position)
         {
-            if (node.BoundingBox.Contains(position))
+            if (box.Contains(position))
                 return false;
 
-            (Vec2D first, Vec2D second) = node.BoundingBox.GetSpanningEdge(position);
+            (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
             return m_viewClipper.InsideAnyRange(first, second);
         }
 
         private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec2D position, in Vec2D viewDirection,
             WorldBase world)
         {
-            if (Occluded(node, position))
+            if (Occluded(node.BoundingBox, position))
                 return;
 
             // TODO: Consider changing to xor trick to avoid branching?
@@ -139,6 +140,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         private void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
         {
+            if (Occluded(subsector.BoundingBox, position))
+                return;
+
             m_geometryRenderer.RenderSubsector(subsector, position);
             m_entityRenderer.RenderSubsector(subsector, position, viewDirection);
         }
