@@ -4,6 +4,7 @@ using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Align;
+using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -39,7 +40,7 @@ namespace Helion.Render.Shared.Drawers
         public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
             DrawHelper helper = new DrawHelper(cmd);
-            
+
             cmd.ClearDepth();
 
             DrawHud(player, world, viewport, helper);
@@ -48,7 +49,7 @@ namespace Helion.Render.Shared.Drawers
             DrawRecentConsoleMessages(world, console, helper);
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
         }
-        
+
         private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealthAndArmor(player, viewport, helper);
@@ -65,7 +66,11 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawHudWeapon(Player player, FrameState frameState, Dimension viewport, DrawHelper helper)
         {
+            int lightLevel = (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel) * 255);
+            Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
+
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
+
             if (helper.ImageExists(sprite))
             {
                 Dimension dimension = helper.DrawInfoProvider.GetImageDimension(sprite);
@@ -77,8 +82,8 @@ namespace Helion.Render.Shared.Drawers
                 DrawHelper.ScaleImageOffset(viewport, ref frameOffset.X, ref frameOffset.Y);
                 // Translate doom image offset to OpenGL coordinates
                 helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2),
-                    -offset.Y - dimension.Height + frameOffset.Y, 
-                    dimension.Width, dimension.Height);
+                    -offset.Y - dimension.Height + frameOffset.Y,
+                    dimension.Width, dimension.Height, lightLevelColor);
             }
         }
 
@@ -143,7 +148,7 @@ namespace Helion.Render.Shared.Drawers
             Vec2I center = viewport.ToVector() / 2;
             Vec2I horizontalStart = center - new Vec2I(CrosshairLength, CrosshairHalfWidth);
             Vec2I verticalStart = center - new Vec2I(CrosshairHalfWidth, CrosshairLength);
-            
+
             helper.FillRect(horizontalStart.X, horizontalStart.Y, CrosshairLength * 2, CrosshairHalfWidth * 2, Color.LawnGreen);
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
@@ -152,7 +157,7 @@ namespace Helion.Render.Shared.Drawers
         {
             int ticksSincePickup = world.Gametick - player.LastPickupGametick;
             if (ticksSincePickup < FlashPickupTickDuration)
-                helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);    
+                helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
         }
 
         private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
@@ -187,10 +192,10 @@ namespace Helion.Render.Shared.Drawers
                 msgs.Push((msg.Message, CalculateFade(timeSinceMessage)));
                 messagesDrawn++;
             }
-            
+
             msgs.ForEach(pair =>
             {
-                helper.Text(pair.msg, "SmallFont", 16, LeftOffset, offsetY, Alignment.TopLeft, 
+                helper.Text(pair.msg, "SmallFont", 16, LeftOffset, offsetY, Alignment.TopLeft,
                             pair.alpha, out Dimension drawArea);
                 offsetY += drawArea.Height + MessageSpacing;
             });
@@ -207,7 +212,7 @@ namespace Helion.Render.Shared.Drawers
                 return;
 
             int y = 0;
-            
+
             string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";
             helper.Text(Color.White, avgFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension avgArea);
             y += avgArea.Height + FpsMessageSpacing;

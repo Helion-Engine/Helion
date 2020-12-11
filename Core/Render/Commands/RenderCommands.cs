@@ -30,12 +30,12 @@ namespace Helion.Render.Commands
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
         }
-        
+
         public void Clear()
         {
             m_commands.Add(ClearRenderCommand.All());
         }
-        
+
         public void ClearDepth()
         {
             m_commands.Add(ClearRenderCommand.DepthOnly());
@@ -43,14 +43,14 @@ namespace Helion.Render.Commands
 
         public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color, float alpha)
         {
-            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), color, alpha));
+            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), Color.Transparent, color, alpha));
         }
 
         public void FillRect(Rectangle rectangle, Color color, float alpha)
         {
             m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
         }
-        
+
         public void DrawText(ColoredString text, string font, int fontSize, int x, int y, int width, int height,
             TextAlignment textAlign, float alpha)
         {
@@ -73,7 +73,7 @@ namespace Helion.Render.Commands
         }
 
         public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);
-        
+
         public IReadOnlyList<IRenderCommand> GetCommands() => m_commands.AsReadOnly();
     }
 }
