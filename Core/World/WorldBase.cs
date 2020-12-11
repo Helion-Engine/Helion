@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Maps;
 using Helion.Resources;
@@ -628,13 +629,19 @@ namespace Helion.World
             if (start == end)
                 return true;
 
-            Vec3D sightPos = new Vec3D(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
             Seg2D seg = new Seg2D(start, end);
+
+            List<BlockmapIntersect> intersections = BlockmapTraverser.Traverse(null, seg, BlockmapTraverseFlags.Lines | BlockmapTraverseFlags.StopOnOneSidedLine, 
+                BlockmapTraverseEntityFlags.None, out bool hitOneSidedLine);
+            if (hitOneSidedLine)
+                return false;
+
+            Vec3D sightPos = new Vec3D(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
             double distance2D = start.Distance(end);
             double topPitch = sightPos.Pitch(to.Position.Z + to.Height, distance2D);
             double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg, BlockmapTraverseFlags.Lines);
+
             return GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
         }
 

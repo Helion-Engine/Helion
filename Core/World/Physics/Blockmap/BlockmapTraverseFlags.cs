@@ -7,5 +7,6 @@ namespace Helion.World.Physics.Blockmap
     {
         Entities = 1,
         Lines = 2,
+        StopOnOneSidedLine = 4
     }
 }

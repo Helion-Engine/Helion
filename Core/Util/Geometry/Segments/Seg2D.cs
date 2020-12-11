@@ -38,7 +38,7 @@ namespace Helion.Util.Geometry.Segments
         /// </summary>
         /// <param name="start">The starting point.</param>
         /// <param name="end">The ending point.</param>
-        public Seg2D(Vec2D start, Vec2D end) : base(start, end)
+        public Seg2D(in Vec2D start, in Vec2D end) : base(start, end)
         {
             DeltaInverse = new Vec2D(1.0f / Delta.X, 1.0f / Delta.Y);
             Box = MakeBox(start, end);
@@ -69,7 +69,7 @@ namespace Helion.Util.Geometry.Segments
         /// <param name="epsilon">An optional comparison value.</param>
         /// <returns>The side the third point is on relative to the first and
         /// the second point.</returns>
-        public static Rotation Rotation(Vec2D first, Vec2D second, Vec2D third, double epsilon = 0.000001)
+        public static Rotation Rotation(in Vec2D first, in Vec2D second, in Vec2D third, double epsilon = 0.000001)
         {
             return new Seg2DBase(first, second).ToSide(third, epsilon);
         }
@@ -84,7 +84,7 @@ namespace Helion.Util.Geometry.Segments
         /// </remarks>
         /// <param name="point">The point to get the time for.</param>
         /// <returns>The time the point is on this segment.</returns>
-        public double ToTime(Vec2D point)
+        public double ToTime(in Vec2D point)
         {
             if (!MathHelper.IsZero(Delta.X))
                 return (point.X - Start.X) * DeltaInverse.X;
@@ -96,7 +96,7 @@ namespace Helion.Util.Geometry.Segments
         /// </summary>
         /// <param name="seg">The segment to check.</param>
         /// <returns>True if they overlap, false otherwise.</returns>
-        public bool Overlaps(Seg2DBase seg)
+        public bool Overlaps(in Seg2DBase seg)
         {
             double tStart = ToTime(seg.Start);
             double tEnd = ToTime(seg.End);
@@ -108,7 +108,7 @@ namespace Helion.Util.Geometry.Segments
         /// </summary>
         /// <param name="box">The box to check.</param>
         /// <returns>True if it intersects, false if not.</returns>
-        public bool Intersects(Box2D box)
+        public bool Intersects(in Box2D box)
         {
             if (!Box.Overlaps(box))
                 return false;
@@ -128,14 +128,14 @@ namespace Helion.Util.Geometry.Segments
             }
         }
 
-        private static Box2D MakeBox(Vec2D start, Vec2D end)
+        private static Box2D MakeBox(in Vec2D start, in Vec2D end)
         {
             return new Box2D(
                 new Vec2D(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y)),
                 new Vec2D(Math.Max(start.X, end.X), Math.Max(start.Y, end.Y)));
         }
 
-        private static SegmentDirection CalculateDirection(Vec2D delta)
+        private static SegmentDirection CalculateDirection(in Vec2D delta)
         {
             if (MathHelper.IsZero(delta.X))
                 return SegmentDirection.Vertical;

@@ -23,21 +23,24 @@ namespace Helion.World.Physics.Blockmap
 
         public List<BlockmapIntersect> GetBlockmapIntersections(in Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
         {
-            return Traverse(box, null, flags, entityFlags);
+            return Traverse(box, null, flags, entityFlags, out _);
         }
 
         public List<BlockmapIntersect> GetBlockmapIntersections(Seg2D seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
         {
-            return Traverse(null, seg, flags, entityFlags);
+            return Traverse(null, seg, flags, entityFlags,  out _);
         }
 
-        private List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags)
+        public List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, out bool hitOneSidedLine)
         {
             List<BlockmapIntersect> intersections = new List<BlockmapIntersect>();
-            Vec2D intersect = new Vec2D(0, 0);
+            Vec2D intersect = Vec2D.Zero;
             Vec2D center = default;
             m_lineMap.Clear();
             m_entityMap.Clear();
+
+            bool stopOnOneSidedLine = (flags & BlockmapTraverseFlags.StopOnOneSidedLine) != 0;
+            bool hitOneSidedIterate = false;
 
             if (box != null)
             {
@@ -49,6 +52,8 @@ namespace Helion.World.Physics.Blockmap
                 m_blockmap.Iterate(seg, IterateBlock);
             }
 
+            hitOneSidedLine = hitOneSidedIterate;
+
             GridIterationStatus IterateBlock(Block block)
             {
                 if ((flags & BlockmapTraverseFlags.Lines) != 0)
@@ -56,7 +61,6 @@ namespace Helion.World.Physics.Blockmap
                     for (int i = 0; i < block.Lines.Count; i++)
                     {
                         Line line = block.Lines[i];
-
                         if (m_lineMap.Contains(line.Id))
                             continue;
 
@@ -64,6 +68,21 @@ namespace Helion.World.Physics.Blockmap
                         {
                             m_lineMap.Add(line.Id);
                             intersect = line.Segment.FromTime(t);
+
+                            if (stopOnOneSidedLine)
+                            {
+                                if (line.OneSided)
+                                {
+                                    hitOneSidedIterate = true;
+                                    return GridIterationStatus.Stop;
+                                }
+                                else if (LineOpening.GetOpeningHeight(line) <= 0)
+                                {
+                                    hitOneSidedIterate = true;
+                                    return GridIterationStatus.Stop;
+                                }
+                            }
+
                             intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
                         }
                         else if (box != null && line.Segment.Intersects(box.Value))
@@ -91,7 +110,7 @@ namespace Helion.World.Physics.Blockmap
 
                         if (m_entityMap.Contains(entity.Id))
                             continue;
-                        
+
                         if (seg != null && entity.Box.Intersects(seg.Start, seg.End, ref intersect))
                         {
                             m_entityMap.Add(entity.Id);
