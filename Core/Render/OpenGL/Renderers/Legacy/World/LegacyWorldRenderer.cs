@@ -16,6 +16,7 @@ using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Bsp;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -147,9 +148,20 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_entityRenderer.RenderSubsector(subsector, position, viewDirection);
         }
 
+        private static (float mix, float value) GetLightLevelWeaponModifier(RenderInfo renderInfo)
+        {
+            if (renderInfo.ViewerEntity is not Player player)
+                return (0.0f, 1.0f);
+            return player.AnimationWeapon.FlashState.Frame.Properties.Bright ? (1.0f, 1.0f) : (0.0f, 1.0f);
+        }
+
         private void SetUniforms(RenderInfo renderInfo)
         {
+            (float mix, float value) = GetLightLevelWeaponModifier(renderInfo);
+
             m_shaderProgram.BoundTexture.Set(gl, 0);
+            m_shaderProgram.LightLevelMix.Set(gl, mix);
+            m_shaderProgram.LightLevelValue.Set(gl, value);
             m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
         }
 

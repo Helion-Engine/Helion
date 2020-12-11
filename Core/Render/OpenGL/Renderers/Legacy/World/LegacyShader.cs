@@ -9,9 +9,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
     public class LegacyShader : ShaderProgram
     {
         public readonly UniformInt BoundTexture = new UniformInt();
+        public readonly UniformFloat LightLevelMix = new UniformFloat();
+        public readonly UniformFloat LightLevelValue = new UniformFloat();
         public readonly UniformMatrix4 Mvp = new UniformMatrix4();
 
-        public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) : 
+        public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
             base(functions, builder, attributes)
         {
         }
@@ -37,7 +39,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     gl_Position = mvp * vec4(pos, 1.0);
                 }
             ";
-            
+
             const string fragmentShaderText = @"
                 #version 130
 
@@ -46,6 +48,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 out vec4 fragColor;
 
+                uniform float lightLevelMix;
+                uniform float lightLevelValue;
                 uniform sampler2D boundTexture;
 
                 float calculateLightLevel() {
@@ -62,7 +66,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 	                    }
                     }
   
-                    return clamp(lightLevel, 0.0, 1.0);
+                    return mix(clamp(lightLevel, 0.0, 1.0), lightLevelValue, lightLevelMix);
                 }
 
                 void main() {
@@ -73,7 +77,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                         discard;
                 }
             ";
-            
+
             VertexShaderComponent vertexShaderComponent = new VertexShaderComponent(functions, vertexShaderText);
             FragmentShaderComponent fragmentShaderComponent = new FragmentShaderComponent(functions, fragmentShaderText);
             return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);

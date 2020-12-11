@@ -56,19 +56,19 @@ namespace Helion.Render.Shared.Drawers
             DrawHudAmmo(player, viewport, helper);
             DrawHudCrosshair(viewport, helper);
 
-            if (player.AnimationWeapon != null)
-            {
-                DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
-                if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
-            }
+            if (player.AnimationWeapon == null)
+                return;
+
+            DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
+            if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
+                DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
         }
 
         private static void DrawHudWeapon(Player player, FrameState frameState, Dimension viewport, DrawHelper helper)
         {
-            int lightLevel = (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel) * 255);
+            bool bright = player.AnimationWeapon.FlashState.Frame.Properties.Bright;
+            int lightLevel = bright ? 255 : (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel) * 255);
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
-
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 
             if (helper.ImageExists(sprite))
