@@ -43,5 +43,15 @@ namespace Helion.Render.Commands.Types
             MultiplyColor = Color.Transparent;
             AreaIsTextureDimension = false;
         }
+
+        public DrawImageCommand(CIString textureName, Rectangle drawArea, Color mixColor, Color multiplyColor, float alpha = 1.0f)
+        {
+            TextureName = textureName;
+            DrawArea = drawArea;
+            Alpha = alpha;
+            MixColor = mixColor;
+            MultiplyColor = multiplyColor;
+            AreaIsTextureDimension = false;
+        }
     }
 }
