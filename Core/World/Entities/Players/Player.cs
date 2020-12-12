@@ -335,7 +335,7 @@ namespace Helion.World.Entities.Players
 
         public bool FireWeapon()
         {
-            if (!CheckAmmo())
+            if (!CheckAmmo() || PendingWeapon != null)
                 return false;
 
             Weapon?.RequestFire();

@@ -1747,6 +1747,12 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
+                if (player.PendingWeapon != null)
+                {
+                    player.Refire = false;
+                    return;
+                }
+
                 if (player.CanFireWeapon())
                 {
                     player.Refire = true;
