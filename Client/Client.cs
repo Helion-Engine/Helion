@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Helion.Client.OpenAL;
 using Helion.Input;
 using Helion.Layer;
@@ -261,8 +260,6 @@ namespace Helion.Client
 
         public static void Main(string[] args)
         {
-            WarnIfTieredCompilationEnabled();
-
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
             Logging.Initialize(cmdArgs);
 
@@ -296,34 +293,6 @@ namespace Helion.Client
             finally
             {
                 LogManager.Shutdown();
-            }
-        }
-
-        private static void WarnIfTieredCompilationEnabled()
-        {
-            string? tieredCompilation = null;
-
-            try
-            {
-                tieredCompilation = Environment.GetEnvironmentVariable("COMPlus_TieredCompilation");
-            }
-            catch
-            {
-                Log.Error("Unable to check for tiered compilation in the environment");
-            }
-
-            if (tieredCompilation == null || (int.TryParse(tieredCompilation, out int value) && value != 0))
-            {
-                string message = "Missing critical performance environmental variable. Set the following:\n" +
-                                 "\n" +
-                                 "    COMPlus_TieredCompilation = 0\n" +
-                                 "\n" +
-                                 "This environmental variable is needed because (as of .NET Core 3.0 preview) " +
-                                 "the tiered JIT compilation causes microstuttering when playing the game. " +
-                                 "This bug may be resolved in later versions of .NET however.\n" +
-                                 "\n" +
-                                 "If you are not a developer and see this message, contact a developer immediately.";
-                MessageBox.Show(message, "Helion Critical Performance Issue", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
