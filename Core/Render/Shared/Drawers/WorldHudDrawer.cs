@@ -54,20 +54,22 @@ namespace Helion.Render.Shared.Drawers
         {
             DrawHudHealthAndArmor(player, viewport, helper);
             DrawHudAmmo(player, viewport, helper);
+
+            if (player.AnimationWeapon != null)
+            {
+                DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
+                if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
+                    DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
+            }
+
             DrawHudCrosshair(viewport, helper);
-
-            if (player.AnimationWeapon == null)
-                return;
-
-            DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
-            if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
         }
 
         private static void DrawHudWeapon(Player player, FrameState frameState, Dimension viewport, DrawHelper helper)
         {
-            bool bright = player.AnimationWeapon.FlashState.Frame.Properties.Bright;
-            int lightLevel = bright ? 255 : (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel) * 255);
+            int lightLevel = frameState.Frame.Properties.Bright ?  255 :
+                (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
+
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 

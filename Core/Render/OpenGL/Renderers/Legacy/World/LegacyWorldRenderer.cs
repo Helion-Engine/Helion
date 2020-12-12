@@ -11,6 +11,7 @@ using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
@@ -150,9 +151,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         private static (float mix, float value) GetLightLevelWeaponModifier(RenderInfo renderInfo)
         {
-            if (renderInfo.ViewerEntity is not Player player)
+            if (renderInfo.ViewerEntity is Player player)              
+                return (player.ExtraLight * Constants.ExtraLightFactor / 256.0f, 1.0f);
+            else
                 return (0.0f, 1.0f);
-            return player.AnimationWeapon.FlashState.Frame.Properties.Bright ? (1.0f, 1.0f) : (0.0f, 1.0f);
         }
 
         private void SetUniforms(RenderInfo renderInfo)

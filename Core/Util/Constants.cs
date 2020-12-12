@@ -98,5 +98,7 @@ namespace Helion.Util
         public const int WeaponRaiseSpeed = 6;
         public const int WeaponBottom = 128;
         public const int WeaponTop = 32;
+
+        public const int ExtraLightFactor = 32;
     }
 }

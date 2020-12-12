@@ -1368,26 +1368,27 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Light(Entity entity)
         {
-            if (entity is Player player)
-                player.ExtraLight = 0;
+            // TODO this is based on decorate parameters
+            //if (entity is Player player)
+            //    player.ExtraLight = 0;
         }
 
         private static void A_Light0(Entity entity)
         {
             if (entity is Player player)
-                player.ExtraLight = 1;
+                player.ExtraLight = 0;
         }
 
         private static void A_Light1(Entity entity)
         {
             if (entity is Player player)
-                player.ExtraLight = 2;
+                player.ExtraLight = 1;
         }
 
         private static void A_Light2(Entity entity)
         {
             if (entity is Player player)
-                player.ExtraLight = 3;
+                player.ExtraLight = 2;
         }
 
         private static void A_LightInverse(Entity entity)
