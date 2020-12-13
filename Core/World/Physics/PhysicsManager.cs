@@ -845,7 +845,7 @@ namespace Helion.World.Physics
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
         {
-            if (!line.Special.CanActivate(entity, line, ActivationContext.CrossLine))
+            if (!m_world.CanActivate(entity, line, ActivationContext.CrossLine))
                 return;
 
             bool fromFront = line.Segment.OnRight(previousPosition);

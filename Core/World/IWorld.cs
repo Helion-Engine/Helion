@@ -5,6 +5,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -45,6 +46,7 @@ namespace Helion.World
         int CurrentBossTarget { get; set; }
         void TelefragBlockingEntities(Entity entity);
         bool EntityUse(Entity entity);
+        bool CanActivate(Entity entity, Line line, ActivationContext context);
         bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
         bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
         Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
@@ -57,5 +59,6 @@ namespace Helion.World
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush);
+        void DisplayMessage(Player player, string message);
     }
 }

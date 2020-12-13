@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
@@ -152,10 +153,10 @@ namespace Helion.World.Geometry.Builder
                 Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
                 LineFlags flags = new LineFlags(doomLine.Flags);
                 SpecialArgs specialArgs = default;
-                ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, (byte)doomLine.SectorTag, ref specialArgs);
+                ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, (byte)doomLine.SectorTag, 
+                    ref specialArgs, out LineSpecialCompatibility? compatibility);
                 LineActivationType activationType = VanillaLineSpecTranslator.GetLineTagActivation(doomLine.LineType);
-                LineSpecial special = new LineSpecial(zdoomType, activationType);
-                
+                LineSpecial special = new LineSpecial(zdoomType, activationType, compatibility);              
                 Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
                 builder.MapLines[line.MapId] = line;

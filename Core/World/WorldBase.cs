@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Maps;
+using Helion.Maps.Specials.Compatibility;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Decorate.Locks;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
@@ -29,6 +31,7 @@ using Helion.World.Sound;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using MoreLinq;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World
@@ -37,6 +40,8 @@ namespace Helion.World
     {
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
         private const double MinPitch = -80.0 * Math.PI / 180.0;
+
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Fires when an entity activates a line special with use or by crossing a line.
@@ -314,6 +319,27 @@ namespace Helion.World
             return activateSuccess;
         }
 
+        public bool CanActivate(Entity entity, Line line, ActivationContext context)
+        {
+            bool success = line.Special.CanActivate(entity, line, context, 
+                ArchiveCollection.Definitions.LockDefininitions, out LockDef? lockFail);
+            if (entity is Player player && lockFail != null)
+            {
+                player.PlayUseFailSound();
+                DisplayMessage(player, GetLockFailMessage(line, lockFail));
+            }
+            return success;
+        }
+
+        private string GetLockFailMessage(Line line, LockDef lockDef)
+        {
+            if (line.Special.LineSpecialCompatibility != null && 
+                line.Special.LineSpecialCompatibility.CompatibilityType == LineSpecialCompatibilityType.KeyObject)
+                return $"You need a {lockDef.Message} to activate this object.";
+            else
+                return $"You need a {lockDef.Message} to open this door.";
+        }
+
         /// <summary>
         /// Attempts to activate a line special given the entity, line, and context.
         /// </summary>
@@ -325,7 +351,7 @@ namespace Helion.World
         /// <param name="context">The ActivationContext to attempt to execute the special.</param>
         public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
         {
-            if (!line.Special.CanActivate(entity, line, context))
+            if (!CanActivate(entity, line, context))
                 return false;
 
             EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(context, entity, line);
@@ -421,7 +447,7 @@ namespace Helion.World
             if (bi != null)
             {
                 Line? line = bi.Value.Line;
-                if (line != null && line.HasSpecial && line.Special.CanActivate(shooter, line, ActivationContext.ProjectileHitLine))
+                if (line != null && line.HasSpecial && CanActivate(shooter, line, ActivationContext.ProjectileHitLine))
                 {
                     var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, line);
                     EntityActivatedSpecial?.Invoke(this, args);
@@ -669,6 +695,11 @@ namespace Helion.World
         public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, direction, speed, destZ, crush);
+
+        public virtual void DisplayMessage(Player player, string message)
+        {
+            Log.Info(message);
+        }
 
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
         {

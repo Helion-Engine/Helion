@@ -117,9 +117,14 @@ namespace Helion.World.Entities
 
             Player player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
             if (existingPlayer != null)
+            {
                 player.CopyProperties(existingPlayer);
+                player.Inventory.ClearKeys();
+            }
             else
+            {
                 SetDefaultInventory(player);
+            }
 
             Players.Add(player);
             return player;

@@ -248,12 +248,13 @@ namespace Helion.World.Impl.SinglePlayer
                     Player.Flags.Invulnerable = cheatEvent.Activated;
                     break;
                 case CheatType.GiveAll:
-                    GiveAllWepaons();
+                    GiveAllWeapons();
+                    Player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
                     break;
             }
         }
 
-        private void GiveAllWepaons()
+        private void GiveAllWeapons()
         {
             foreach (CIString name in Weapons.GetWeaponDefinitionNames())
             {

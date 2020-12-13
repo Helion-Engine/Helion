@@ -1,8 +1,12 @@
+using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.Decorate.Locks;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 
 namespace Helion.World.Special
@@ -12,20 +16,24 @@ namespace Helion.World.Special
     /// </summary>
     public class LineSpecial
     {
+        public const int NoLock = 0;
+
         public readonly ZDoomLineSpecialType LineSpecialType;
+        public readonly LineSpecialCompatibility LineSpecialCompatibility;
         public bool Active { get; set; }
         private readonly bool m_moveSpecial;
         private readonly bool m_sectorStopMoveSpecial;
         private readonly bool m_lightSpecial;
         private readonly LineActivationType m_lineActivationType;
 
-        public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any)
+        public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, null)
         {
         }
 
-        public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType)
+        public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility? compatibility)
         {
             LineSpecialType = type;
+            LineSpecialCompatibility = compatibility;
             m_lineActivationType = lineActivationType;
             m_moveSpecial = SetMoveSpecial();
             m_sectorStopMoveSpecial = SetSectorStopSpecial();
@@ -45,14 +53,28 @@ namespace Helion.World.Special
             }
         }
 
+        public static LineSpecialCompatibility? GetCompatibility(HexenLine hexenLine)
+        {
+            if (hexenLine.LineType == ZDoomLineSpecialType.DoorLockedRaise)
+            {
+                LineSpecialCompatibilityType type = hexenLine.Args.Arg0 == Sector.NoTag ?
+                    LineSpecialCompatibilityType.KeyDoor : LineSpecialCompatibilityType.KeyObject;
+
+                return new LineSpecialCompatibility() { CompatibilityType = type };
+            }
+
+            return null;
+        }
+
         public bool CanActivateByTag => (m_lineActivationType & LineActivationType.Tag) != 0;
         public bool CanActivateByBackSide => (m_lineActivationType & LineActivationType.BackSide) != 0;
 
         /// <summary>
         /// Returns true if the given entity can activate this special given the activation context.
         /// </summary>
-        public bool CanActivate(Entity entity, Line line, ActivationContext context)
+        public bool CanActivate(Entity entity, Line line, ActivationContext context, LockDefinitions lockDefinitions, out LockDef? lockFail)
         {
+            lockFail = null;
             if (Active)
                 return false;
 
@@ -75,16 +97,30 @@ namespace Helion.World.Special
                     return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
                         line.Special.MonsterCanUse();
             }
-            else if (entity is Player)
+            else if (entity is Player player)
             {
+                bool contextSuccess = false;
+
                 if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.PlayerLineCross;
+                    contextSuccess = flags.ActivationType == ActivationType.PlayerLineCross;
                 else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
+                    contextSuccess = flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
                 else if (context == ActivationContext.ProjectileHitLine)
-                    return flags.ActivationType == ActivationType.ProjectileHitsWall;
+                    contextSuccess = flags.ActivationType == ActivationType.ProjectileHitsWall;
                 else if (context == ActivationContext.PlayerPushesWall)
-                    return flags.ActivationType == ActivationType.PlayerPushesWall;
+                    contextSuccess = flags.ActivationType == ActivationType.PlayerPushesWall;
+
+                if (contextSuccess && line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
+                {
+                    LockDef? lockDef = lockDefinitions.GetLockDef(line.Args.Arg3);
+                    if (lockDef == null || !player.Inventory.HasAnyItem(lockDef.KeyDefinitionNames))
+                    {
+                        lockFail = lockDef;
+                        return false;
+                    }
+                }
+
+                return contextSuccess;
             }
 
             return false;
