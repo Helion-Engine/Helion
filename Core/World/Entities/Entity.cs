@@ -8,6 +8,7 @@ using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -450,7 +451,7 @@ namespace Helion.World.Entities
             return damage;
         }
 
-        public virtual bool GiveItem(EntityDefinition definition, EntityFlags? flags)
+        public virtual bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
         {
             var invData = definition.Properties.Inventory;
             bool isHealth = definition.IsType(Inventory.HealthClassName);
@@ -481,6 +482,15 @@ namespace Helion.World.Entities
                 Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
 
             return Inventory.Add(definition, invData.Amount);
+        }
+
+        public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
+        {
+            var armor = definitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
+                .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
+
+            if (armor.Any())
+                GiveItem(armor.First(), null, pickupFlash:false);
         }
 
         private EntityProperties? GetArmorProperties(EntityDefinition definition)

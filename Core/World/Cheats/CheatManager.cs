@@ -16,7 +16,8 @@ namespace Helion.World.Cheats
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
             new ExactMatchCheat("God mode", "iddqd", "god", CheatType.God),
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
-            new ExactMatchCheat("Very happy weapons", "idkfa", "idkfa", CheatType.GiveAll),
+            new ExactMatchCheat("Ammo (no keys) added", "idfa", "idfa", CheatType.GiveAllNoKeys),
+            new ExactMatchCheat("Very happy ammo added", "idkfa", "idkfa", CheatType.GiveAll),
         };
 
         private readonly Dictionary<CheatType, ICheat> m_cheatLookup;

@@ -1,14 +1,17 @@
+using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 using Helion.World.Special;
+using System;
 
 namespace Helion.Maps.Specials.Vanilla
 {
     public static class VanillaLineSpecTranslator
     {
         public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, byte tag,
-            ref SpecialArgs argsToMutate)
+            ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility)
         {
+            compatibility = null;
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);
 
@@ -61,10 +64,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.DR_OpenBlueKeyClose:
                 case VanillaLineSpecialType.DR_OpenRedKeyClose:
                 case VanillaLineSpecialType.DR_OpenYellowKeyClose:
-                    argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = GetSectorMoveSpeed(type);
-                    argsToMutate.Arg2 = GetDelay(type);
-                    argsToMutate.Arg3 = GetDoorKey(type);
+                    compatibility = new LineSpecialCompatibility();
+                    HandleDoor(type, tag, ref argsToMutate, ref compatibility);
                     return ZDoomLineSpecialType.DoorLockedRaise;
 
                 case VanillaLineSpecialType.W1_DoorOpenClose:
@@ -316,6 +317,30 @@ namespace Helion.Maps.Specials.Vanilla
             }
 
             return ZDoomLineSpecialType.None;
+        }
+
+        private static void HandleDoor(VanillaLineSpecialType type, byte tag, ref SpecialArgs argsToMutate, ref LineSpecialCompatibility compatibility)
+        {
+            switch (type)
+            {
+                case VanillaLineSpecialType.D1_OpenBlueKeyStay:
+                case VanillaLineSpecialType.D1_OpenRedKeyStay:
+                case VanillaLineSpecialType.D1_OpenYellowKeyStay:
+                case VanillaLineSpecialType.DR_OpenBlueKeyClose:
+                case VanillaLineSpecialType.DR_OpenRedKeyClose:
+                case VanillaLineSpecialType.DR_OpenYellowKeyClose:
+                    compatibility.CompatibilityType = LineSpecialCompatibilityType.KeyDoor;
+                    break;
+
+                default:
+                    compatibility.CompatibilityType = LineSpecialCompatibilityType.KeyObject;
+                    break;
+            }
+
+            argsToMutate.Arg0 = tag;
+            argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+            argsToMutate.Arg2 = GetDelay(type);
+            argsToMutate.Arg3 = GetDoorKey(type);
         }
 
         public static LineActivationType GetLineTagActivation(VanillaLineSpecialType type)

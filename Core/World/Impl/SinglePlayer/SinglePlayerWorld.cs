@@ -247,13 +247,21 @@ namespace Helion.World.Impl.SinglePlayer
                 case CheatType.God:
                     Player.Flags.Invulnerable = cheatEvent.Activated;
                     break;
+                case CheatType.GiveAllNoKeys:
+                    GiveAllWeapons();
+                    GiveMaxHealth();
+                    Player.GiveBestArmor(EntityManager.DefinitionComposer);
+                    break;
                 case CheatType.GiveAll:
-                    GiveAllWepaons();
+                    GiveAllWeapons();
+                    GiveMaxHealth();
+                    Player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
+                    Player.GiveBestArmor(EntityManager.DefinitionComposer);
                     break;
             }
         }
 
-        private void GiveAllWepaons()
+        private void GiveAllWeapons()
         {
             foreach (CIString name in Weapons.GetWeaponDefinitionNames())
             {
@@ -263,6 +271,12 @@ namespace Helion.World.Impl.SinglePlayer
             }
 
             Player.Inventory.GiveAllAmmo(EntityManager.DefinitionComposer);
+        }
+
+        private void GiveMaxHealth()
+        {
+            if (Player.Health < Player.Definition.Properties.Health)
+                Player.Health = Player.Definition.Properties.Health;
         }
 
         private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)

@@ -7,6 +7,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
+using Helion.Resources.Definitions.Decorate.Locks;
 using Helion.Resources.Definitions.Fonts;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
@@ -29,6 +30,7 @@ namespace Helion.Resources.Definitions
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
         public readonly SoundInfoDefinition SoundInfo = new SoundInfoDefinition();
+        public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 

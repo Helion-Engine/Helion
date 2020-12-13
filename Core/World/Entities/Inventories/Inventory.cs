@@ -16,12 +16,14 @@ namespace Helion.World.Entities.Inventories
         public static readonly CIString ArmorClassName = "ARMOR";
         public static readonly CIString BasicArmorBonusClassName = "BASICARMORBONUS";
         public static readonly CIString BasicArmorPickupClassName = "BASICARMORPICKUP";
+        public static readonly CIString KeyClassName = "KEY";
 
         /// <summary>
         /// All of the items owned by the player that are not a special type of
         /// item (ex: weapons, which need more logic).
         /// </summary>
         private readonly Dictionary<CIString, InventoryItem> Items = new Dictionary<CIString, InventoryItem>();
+        private readonly List<InventoryItem> Keys = new List<InventoryItem>();
         
         /// <summary>
         /// All of the weapons owned by the player.
@@ -47,9 +49,11 @@ namespace Helion.World.Entities.Inventories
             if (definition.IsType(AmmoClassName) && HasItemOfClass(BackPackBaseClassName) && definition.Properties.Ammo.BackpackMaxAmount > maxAmount)
                 maxAmount = definition.Properties.Ammo.BackpackMaxAmount;
 
+            bool isKey = definition.IsType(KeyClassName);
+
             if (Items.TryGetValue(name, out InventoryItem? item))
             {
-                if (item.Amount >= maxAmount)
+                if (isKey || item.Amount >= maxAmount)
                     return false;
 
                 item.Amount += amount;
@@ -60,7 +64,14 @@ namespace Helion.World.Entities.Inventories
             }
             else
             {
-                Items[name] = new InventoryItem(definition, amount);
+                InventoryItem inventoryItem = new InventoryItem(definition, isKey ? 1 : amount);
+                Items[name] = inventoryItem;
+
+                if (isKey)
+                {
+                    Keys.Add(inventoryItem);
+                    SortKeys();
+                }
             }
 
             return true;
@@ -91,17 +102,27 @@ namespace Helion.World.Entities.Inventories
                 Add(ammo, Math.Max(ammo.Properties.Ammo.BackpackMaxAmount, ammo.Properties.Inventory.Amount));
         }
 
-        private static IEnumerable<EntityDefinition> GetAmmoTypes(EntityDefinitionComposer definitionComposer)
+        public void GiveAllKeys(EntityDefinitionComposer definitionComposer)
         {
-            return definitionComposer.GetEntityDefinitions().Where(x => x.IsType(AmmoClassName));
+            List<EntityDefinition> keys = definitionComposer.GetEntityDefinitions().Where(x => x.IsType(KeyClassName) && x.EditorId.HasValue).ToList();
+            keys.ForEach(x => Add(x, 1));
+        }
+
+        public void ClearKeys()
+        {
+            Keys.ForEach(x => Items.Remove(x.Definition.Name));
+            Keys.Clear();
         }
 
         public void Clear()
         {
             Items.Clear();
+            Keys.Clear();
         }
 
         public bool HasItem(CIString name) => Items.ContainsKey(name);
+
+        public bool HasAnyItem(IEnumerable<CIString> names) => names.Any(x => HasItem(x));
 
         public bool HasItemOfClass(CIString name) => Items.Any(x => x.Value.Definition.IsType(name));
         
@@ -118,6 +139,13 @@ namespace Helion.World.Entities.Inventories
                     item.Amount -= amount;
                 else
                     Items.Remove(name);
+
+                if (item.Definition.IsType(KeyClassName))
+                {
+                    Keys.Remove(item);
+                    SortKeys();
+                }
+
                 return;
             }
 
@@ -127,10 +155,21 @@ namespace Helion.World.Entities.Inventories
         }
 
         public List<InventoryItem> GetInventoryItems() => Items.Values.ToList();
+        public List<InventoryItem> GetKeys() => Keys;
 
         public void RemoveAll(CIString name)
         {
             Items.Remove(name);
+        }
+
+        private static IEnumerable<EntityDefinition> GetAmmoTypes(EntityDefinitionComposer definitionComposer)
+        {
+            return definitionComposer.GetEntityDefinitions().Where(x => x.IsType(AmmoClassName));
+        }
+
+        private void SortKeys()
+        {
+            Keys.Sort((i1, i2) => i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value));
         }
     }
 }

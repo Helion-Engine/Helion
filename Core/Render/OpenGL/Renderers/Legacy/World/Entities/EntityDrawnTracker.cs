@@ -13,11 +13,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         public void Reset(WorldBase world)
         {
-            int maxEntityId = world.Entities.Max(entity => entity.Id);
+            int maxEntityId = world.Entities.Max(entity => entity.Id) + 1;
             if (maxEntityId > m_maxEntityId)
             {
                 m_maxEntityId = maxEntityId;
-                m_entityWasDrawn = new BitArray(m_maxEntityId + 1);
+                m_entityWasDrawn = new BitArray(m_maxEntityId);
             }
             
             m_entityWasDrawn.SetAll(false);

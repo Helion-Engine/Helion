@@ -30,6 +30,7 @@ namespace Helion.Render.Shared.Drawers
         private const int CrosshairHalfWidth = CrosshairWidth / 2;
         private const int FlashPickupTickDuration = 6;
         private const int Padding = 4;
+        private const int KeyWidth = 16;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
@@ -43,16 +44,17 @@ namespace Helion.Render.Shared.Drawers
 
             cmd.ClearDepth();
 
-            DrawHud(player, world, viewport, helper);
+            int y = DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
+            DrawHud(y, player, world, viewport, helper);
             DrawPickupFlash(player, world, viewport, helper);
             DrawDamage(player, world, viewport, helper);
             DrawRecentConsoleMessages(world, console, helper);
-            DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
         }
-
-        private static void DrawHud(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        
+        private static void DrawHud(int topRightY, Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealthAndArmor(player, viewport, helper);
+            DrawHudKeys(topRightY, player, viewport, helper);
             DrawHudAmmo(player, viewport, helper);
 
             if (player.AnimationWeapon != null)
@@ -63,6 +65,24 @@ namespace Helion.Render.Shared.Drawers
             }
 
             DrawHudCrosshair(viewport, helper);
+        }
+
+        private static void DrawHudKeys(int y, Player player, Dimension viewport, DrawHelper helper)
+        {
+            var keys = player.Inventory.GetKeys();
+            y += Padding;
+
+            foreach (var key in keys)
+            {
+                string icon = key.Definition.Properties.Inventory.Icon;
+                if (!helper.ImageExists(icon))
+                    continue;
+
+                Dimension dimension = helper.DrawInfoProvider.GetImageDimension(icon);
+                int height = (int)(KeyWidth / dimension.AspectRatio);
+                helper.Image(icon, viewport.Width - Padding - KeyWidth, y, KeyWidth, height);
+                y += height + Padding;
+            }
         }
 
         private static void DrawHudWeapon(Player player, FrameState frameState, Dimension viewport, DrawHelper helper)
@@ -208,10 +228,10 @@ namespace Helion.Render.Shared.Drawers
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }
 
-        private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker, DrawHelper helper)
+        private static int DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker, DrawHelper helper)
         {
             if (!config.Engine.Render.ShowFPS)
-                return;
+                return 0;
 
             int y = 0;
 
@@ -224,7 +244,9 @@ namespace Helion.Render.Shared.Drawers
             y += maxArea.Height + FpsMessageSpacing;
 
             string minFps = $"Min FPS: {(int)Math.Round(fpsTracker.MinFramesPerSecond)}";
-            helper.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out _);
+            helper.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension minArea);
+
+            return y + minArea.Height;
         }
 
         private static float CalculateFade(long timeSinceMessage)
