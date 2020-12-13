@@ -216,7 +216,7 @@ namespace Helion.World.Entities.Players
             }
         }
 
-        public override bool GiveItem(EntityDefinition definition, EntityFlags? flags)
+        public override bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
         {
             bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
@@ -235,7 +235,7 @@ namespace Helion.World.Entities.Players
                     CheckAutoSwitchAmmo(definition, count);
             }
 
-            if (success)
+            if (success && pickupFlash)
             {
                 LastPickupGametick = World.Gametick;
                 return true;
