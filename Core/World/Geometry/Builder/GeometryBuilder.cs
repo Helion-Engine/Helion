@@ -30,7 +30,7 @@ namespace Helion.World.Geometry.Builder
         public readonly List<Wall> Walls = new List<Wall>();
         public readonly List<Sector> Sectors = new List<Sector>();
         public readonly List<SectorPlane> SectorPlanes = new List<SectorPlane>();
-        
+
         /// <summary>
         /// A cached dictionary that maps the line ID number onto a line from
         /// the map this was parsed from.
@@ -42,7 +42,7 @@ namespace Helion.World.Geometry.Builder
         /// map corruption, line removal, etc.
         /// </remarks>
         public readonly Dictionary<int, Line> MapLines = new Dictionary<int, Line>();
-        
+
         internal GeometryBuilder()
         {
         }
@@ -51,6 +51,7 @@ namespace Helion.World.Geometry.Builder
         /// Creates world geometry from a map.
         /// </summary>
         /// <param name="map">The map to turn into world geometry.</param>
+        /// <param name="config">The player config data.</param>
         /// <returns>A map geometry object if it was parsed and created right,
         /// otherwise null if it failed.</returns>
         public static MapGeometry? Create(IMap map, Config config)
@@ -75,7 +76,7 @@ namespace Helion.World.Geometry.Builder
             return CreateInternalBspBuilder(map, config);
         }
 
-        private static IBspBuilder CreateZdbspBuilder(IMap map, Config config)
+        private static IBspBuilder? CreateZdbspBuilder(IMap map, Config config)
         {
             if (!ZdbspDownloader.HasZdbsp())
             {

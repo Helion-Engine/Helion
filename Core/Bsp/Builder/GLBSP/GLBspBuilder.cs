@@ -51,7 +51,7 @@ namespace Helion.Bsp.Builder.GLBSP
         private readonly MapEntryCollection m_mapEntryCollection;
         private readonly BspConfig m_bspConfig;
 
-        
+
         public GLBspBuilder(IMap map, MapEntryCollection mapEntryCollection) : this(map, mapEntryCollection, new BspConfig())
         {
         }
@@ -66,7 +66,8 @@ namespace Helion.Bsp.Builder.GLBSP
         public BspNode? Build()
         {
             if (m_mapEntryCollection.GLVertices == null || m_mapEntryCollection.GLSegments == null ||
-                m_mapEntryCollection.GLSubsectors == null || m_mapEntryCollection.GLNodes == null)
+                m_mapEntryCollection.GLSubsectors == null || m_mapEntryCollection.GLNodes == null ||
+                m_mapEntryCollection.Nodes == null)
             {
                 return null;
             }
@@ -140,22 +141,22 @@ namespace Helion.Bsp.Builder.GLBSP
             short upperY = reader.ReadInt16();
             return new GLVertex(new Fixed(upperX, lowerX), new Fixed(upperY, lowerY));
         }
-        
+
         private static Box2D ReadNodeBox(ByteReader reader)
         {
             short top = reader.ReadInt16();
             short bottom = reader.ReadInt16();
             short left = reader.ReadInt16();
             short right = reader.ReadInt16();
-            
+
             return new Box2D(new Vec2D(left, bottom), new Vec2D(right, top));
         }
 
         private Vec2D GetVertex(uint index, IMap map, uint vertexMask)
         {
-            if ((index & vertexMask) == 0) 
+            if ((index & vertexMask) == 0)
                 return map.GetVertices()[(int)index].Position;
-            
+
             int glVertexIndex = (int)(index & ~vertexMask);
             return glVertices[glVertexIndex].ToDouble();
         }
@@ -171,7 +172,7 @@ namespace Helion.Bsp.Builder.GLBSP
             ILine line = map.GetLines()[(int)lineId];
             int frontSectorId = line.GetFront().GetSector().Id;
             int bacKSectorId = line.GetBack()?.GetSector().Id ?? BspSegment.NoSectorId;
-            
+
             return new BspSegment(bspStart, bspEnd, 0, line);
         }
 
@@ -183,7 +184,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 return new SubsectorEdge(segment.Start, segment.End);
 
             ILine line = map.GetLines()[segment.Line.Id];
-            
+
             bool isFront = segment.SameDirection(line.EndPosition - line.StartPosition);
             int sectorId = isFront ? line.GetFront().GetSector().Id : line.GetBack().GetSector().Id;
 
@@ -197,20 +198,20 @@ namespace Helion.Bsp.Builder.GLBSP
                 int subsectorNodeIndex = (int)(index & ~subsectorMask);
                 return subsectorNodes[subsectorNodeIndex];
             }
-            
+
             return RecursivelyReadNodes(nodes, index, subsectorMask, map);
         }
-        
+
         private BspNode RecursivelyReadNodes(List<GLNode> nodes, uint index, uint subsectorMask, IMap map)
         {
             GLNode node = nodes[(int)index];
             BspNode right = RecursivelyReadNodeOrSubsector(nodes, node.RightChild, subsectorMask, map);
             BspNode left = RecursivelyReadNodeOrSubsector(nodes, node.LeftChild, subsectorMask, map);
             BspSegment splitter = MakeBspSegment(node.Splitter.Start, node.Splitter.End, GLSegmentIsMiniseg, map);
-            
+
             return new BspNode(left, right, splitter);
         }
-        
+
         private void ReadVerticesV2(byte[] data)
         {
             if ((data.Length - 4) % GLVertex.Bytes != 0)
@@ -229,7 +230,7 @@ namespace Helion.Bsp.Builder.GLBSP
 
         // Only difference is the header being "gNd5", but we don't care.
         private void ReadVerticesV5(byte[] data) => ReadVerticesV2(data);
-        
+
         private void ReadSegmentsV1(byte[] data, IMap map)
         {
             if (data.Length % GLSegmentV1Bytes != 0)
@@ -240,7 +241,7 @@ namespace Helion.Bsp.Builder.GLBSP
 
             int numSegments = data.Length / GLSegmentV1Bytes;
             ByteReader reader = new ByteReader(data);
-            
+
             for (int i = 0; i < numSegments; i++)
             {
                 Vec2D start = GetVertex(reader.ReadUInt16(), map, GLSegmentV1VertexIsGL);
@@ -248,7 +249,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 ushort lineId = reader.ReadUInt16();
                 reader.Advance(2); // Don't care about 'is front side' (right now).
                 reader.Advance(2); // Don't care about partner segs (right now).
-                
+
                 segments.Add(MakeBspSegment(start, end, lineId, map));
             }
         }
@@ -259,7 +260,7 @@ namespace Helion.Bsp.Builder.GLBSP
             stream.Read(bytes, 0, bytes.Length);
 
             GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-            T obj = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            T obj = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T))!;
             handle.Free();
             return obj;
         }
@@ -290,7 +291,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 segments.Add(MakeBspSegment(start, end, lineId, map));
             }
         }
-        
+
         private void ReadSubsectorsV1(byte[] data, IMap map)
         {
             if (data.Length % GLSubsectorV1Bytes != 0)
@@ -355,7 +356,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 subsectorNodes.Add(new BspNode(edges));
             }
         }
-        
+
         private void ReadNodesV1(byte[] data, IMap map)
         {
             if (data.Length % GLNodesV1Bytes != 0)
@@ -363,7 +364,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 log.Error("Cannot read GLNODES V1 entry, corrupt size");
                 throw new HelionException("Corrupt GL_NODES entry");
             }
-            
+
             if (data.Length == 0)
             {
                 log.Error("Cannot read GLNODES V1 entry, no nodes present");
@@ -381,7 +382,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 Seg2D splitter = new Seg2D(splitterStart, splitterStart + delta);
                 Box2D rightBox = ReadNodeBox(reader);
                 Box2D leftBox = ReadNodeBox(reader);
-                
+
                 nodes.Add(new GLNode(splitter, rightBox, leftBox, reader.ReadUInt16(), reader.ReadUInt16()));
             }
 
@@ -395,7 +396,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 log.Error("Cannot read GLNODES V4 entry, corrupt size");
                 throw new HelionException("Corrupt GL_NODES entry");
             }
-            
+
             if (data.Length == 0)
             {
                 log.Error("Cannot read GLNODES V4 entry, no nodes present");
@@ -413,7 +414,7 @@ namespace Helion.Bsp.Builder.GLBSP
                 Seg2D splitter = new Seg2D(splitterStart, splitterStart + delta);
                 Box2D rightBox = ReadNodeBox(reader);
                 Box2D leftBox = ReadNodeBox(reader);
-                
+
                 nodes.Add(new GLNode(splitter, rightBox, leftBox, reader.ReadUInt32(), reader.ReadUInt32()));
             }
 

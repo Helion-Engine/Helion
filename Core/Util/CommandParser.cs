@@ -15,12 +15,12 @@ namespace Helion.Util
 
         public List<CommandArg> Parse(string[] stringArgs)
         {
-            List<CommandArg> args = new List<CommandArg>();
+            List<CommandArg> args = new();
             CommandArg? current = null;
 
             foreach (string stringArg in stringArgs)
             {
-                string argKey = m_argStart.FirstOrDefault(x => ArgEquals(x, stringArg));
+                string? argKey = m_argStart.FirstOrDefault(x => ArgEquals(x, stringArg));
 
                 if (argKey != null)
                 {
@@ -28,8 +28,7 @@ namespace Helion.Util
                     continue;
                 }
 
-                if (current != null)
-                    current.Values.Add(stringArg.Replace("\"", string.Empty));
+                current?.Values.Add(stringArg.Replace("\"", string.Empty));
             }
 
             return args;
@@ -37,7 +36,7 @@ namespace Helion.Util
 
         private CommandArg FindOrCreate(string argKey, List<CommandArg> args)
         {
-            CommandArg arg = args.FirstOrDefault(x => x.Key == argKey);
+            CommandArg? arg = args.FirstOrDefault(x => x.Key == argKey);
             if (arg != null)
                 return arg;
 

@@ -4,7 +4,7 @@ namespace Helion.World.Entities.Players
 {
     public class TickCommand
     {
-        private readonly HashSet<TickCommands> m_commands = new HashSet<TickCommands>();
+        private readonly HashSet<TickCommands> m_commands = new();
 
         public void Add(TickCommands command)
         {
