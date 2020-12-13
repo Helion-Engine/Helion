@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
+using NLog;
 
 namespace Helion.Bsp.External
 {
     public class Zdbsp
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private readonly string m_exe;
         private readonly string m_file;
         private readonly string m_map;
@@ -30,7 +30,14 @@ namespace Helion.Bsp.External
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
-            Process process = Process.Start(info);
+
+            Process? process = Process.Start(info);
+            if (process == null)
+            {
+                Log.Warn("Unable to start ZDBSP process");
+                return;
+            }
+
             process.WaitForExit();
         }
 

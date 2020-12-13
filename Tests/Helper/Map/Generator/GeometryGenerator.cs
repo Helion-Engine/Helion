@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Components;
+using Helion.Resources.Archives;
 using Helion.Util.Container;
 using Helion.Util.Geometry.Vectors;
 using Moq;
@@ -40,8 +41,8 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(sec => sec.FloorTexture).Returns("TEMP");
             mock.Setup(sec => sec.CeilingTexture).Returns("TEMP");
 
-            m_sectors[mock.Object.Id] = mock.Object; 
-            
+            m_sectors[mock.Object.Id] = mock.Object;
+
             return this;
         }
 
@@ -74,12 +75,12 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(side => side.MiddleTexture).Returns("TEMP");
             mock.Setup(side => side.LowerTexture).Returns("TEMP");
             mock.Setup(side => side.GetSector()).Returns(m_sectors[sectorId]);
-            
+
             m_sides[mock.Object.Id] = mock.Object;
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Creates a line that is one sided.
         /// </summary>
@@ -95,7 +96,7 @@ namespace Helion.Test.Helper.Map.Generator
         {
             IVertex startVertex = CreateVertex(start);
             IVertex endVertex = CreateVertex(end);
-            
+
             var mock = new Mock<ILine>();
             mock.Setup(line => line.Id).Returns(m_lines.Count);
             mock.Setup(line => line.GetStart()).Returns(startVertex);
@@ -104,10 +105,10 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(line => line.OneSided).Returns(true);
 
             m_lines[mock.Object.Id] = mock.Object;
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Creates a line that is one sided.
         /// </summary>
@@ -124,7 +125,7 @@ namespace Helion.Test.Helper.Map.Generator
         {
             IVertex startVertex = CreateVertex(start);
             IVertex endVertex = CreateVertex(end);
-            
+
             var mock = new Mock<ILine>();
             mock.Setup(line => line.Id).Returns(m_lines.Count);
             mock.Setup(line => line.GetStart()).Returns(startVertex);
@@ -134,7 +135,7 @@ namespace Helion.Test.Helper.Map.Generator
             mock.Setup(line => line.OneSided).Returns(false);
 
             m_lines[mock.Object.Id] = mock.Object;
-            
+
             return this;
         }
 
@@ -144,15 +145,15 @@ namespace Helion.Test.Helper.Map.Generator
         /// </summary>
         /// <returns>The compiled map.</returns>
         public IMap ToMap() => new GeneratedMap(this);
-        
+
         private IVertex CreateVertex(Vec2D position)
         {
             var mock = new Mock<IVertex>();
             mock.Setup(v => v.Id).Returns(m_vertices.Count);
             mock.Setup(v => v.Position).Returns(position);
-            
+
             m_vertices[mock.Object.Id] = mock.Object;
-            
+
             return mock.Object;
         }
 
@@ -165,6 +166,7 @@ namespace Helion.Test.Helper.Map.Generator
             private readonly Dictionary<int, ISide> Sides;
             private readonly Dictionary<int, IVertex> Vertices;
 
+            public Archive Archive => null!;
             public string Name { get; } = "TEMP";
             public MapType MapType { get; } = MapType.Doom;
             public ICovariantReadOnlyDictionary<int, ILine> GetLines() => new ReadOnlyDictionary<int, ILine>(Lines);
@@ -173,7 +175,7 @@ namespace Helion.Test.Helper.Map.Generator
             public ICovariantReadOnlyDictionary<int, ISide> GetSides() => new ReadOnlyDictionary<int, ISide>(Sides);
             public ICovariantReadOnlyDictionary<int, IThing> GetThings() => new ReadOnlyDictionary<int, IThing>(Things);
             public ICovariantReadOnlyDictionary<int, IVertex> GetVertices() => new ReadOnlyDictionary<int, IVertex>(Vertices);
-            
+
             internal GeneratedMap(GeometryGenerator generator)
             {
                 Lines = generator.m_lines;
