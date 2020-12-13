@@ -25,14 +25,14 @@ namespace Helion.Maps.Doom
     /// </summary>
     public class DoomMap : IMap
     {
-        public const ushort NoSidedef = (ushort)0xFFFFU; 
+        public const ushort NoSidedef = (ushort)0xFFFFU;
         private const int BytesPerLine = 14;
         private const int BytesPerSector = 26;
         private const int BytesPerSide = 30;
         private const int BytesPerThing = 10;
         private const int BytesPerVertex = 4;
         private const int BytesPerNode = 28;
-        
+
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public Archive Archive { get; }
@@ -45,8 +45,8 @@ namespace Helion.Maps.Doom
         public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
         public readonly IReadOnlyList<DoomNode> Nodes;
 
-        private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices, 
-            ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides, 
+        private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
+            ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
             ReadOnlyDictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomThing> things,
             IReadOnlyList<DoomNode> nodes)
         {
@@ -63,6 +63,7 @@ namespace Helion.Maps.Doom
         /// <summary>
         /// Creates a doom map from the entry collection provided.
         /// </summary>
+        /// <param name="archive">The archive.</param>
         /// <param name="map">The map entry resources.</param>
         /// <param name="compatibility">The compatibility definitions that will
         /// do mutation to the geometry if not null.</param>
@@ -89,13 +90,13 @@ namespace Helion.Maps.Doom
             ReadOnlyDictionary<int, DoomThing>? things = CreateThings(map.Things);
             if (things == null)
                 return null;
-            
+
             IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes);
 
             string mapName = map.Name.ToString().ToUpper();
             return new DoomMap(archive, mapName, vertices, sectors, sides, lines, things, nodes);
         }
-        
+
         public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
         public IReadOnlyList<INode> GetNodes() => Nodes;
         public ICovariantReadOnlyDictionary<int, ISector> GetSectors() => Sectors;
@@ -149,13 +150,13 @@ namespace Helion.Maps.Doom
 
             return new ReadOnlyDictionary<int, DoomSector>(sectors);
         }
-        
-        internal static ReadOnlyDictionary<int, DoomSide>? CreateSides(byte[]? sideData, 
+
+        internal static ReadOnlyDictionary<int, DoomSide>? CreateSides(byte[]? sideData,
             ReadOnlyDictionary<int, DoomSector> sectors, CompatibilityMapDefinition? compatibility)
         {
             if (sideData == null || sideData.Length % BytesPerSide != 0)
                 return null;
-            
+
             int numSides = sideData.Length / BytesPerSide;
             ByteReader reader = new ByteReader(sideData);
             Dictionary<int, DoomSide> sides = new Dictionary<int, DoomSide>();
@@ -170,11 +171,11 @@ namespace Helion.Maps.Doom
 
                 if (sectorIndex >= sectors.Count)
                     return null;
-                
+
                 DoomSide side = new DoomSide(id, offset, upperTexture, middleTexture, lowerTexture, sectors[sectorIndex]);
                 sides[id] = side;
             }
-            
+
             if (compatibility != null)
                 ApplySideCompatibility(sides, compatibility);
 
@@ -215,8 +216,8 @@ namespace Helion.Maps.Doom
                 side.Offset = sideSetDefinition.Offset.Value;
         }
 
-        private static ReadOnlyDictionary<int, DoomLine>? CreateLines(byte[]? lineData, 
-            ReadOnlyDictionary<int, DoomVertex> vertices, ReadOnlyDictionary<int, DoomSide> sides, 
+        private static ReadOnlyDictionary<int, DoomLine>? CreateLines(byte[]? lineData,
+            ReadOnlyDictionary<int, DoomVertex> vertices, ReadOnlyDictionary<int, DoomSide> sides,
             CompatibilityMapDefinition? compatibility)
         {
             if (lineData == null || lineData.Length % BytesPerLine != 0)
@@ -255,10 +256,10 @@ namespace Helion.Maps.Doom
                     Log.Warn("Zero length line segment (id = {0}) detected, skipping malformed line", id);
                     continue;
                 }
-                
+
                 if (leftSidedef != NoSidedef)
                     back = sides[leftSidedef];
-                
+
                 if (type >= Enum.GetNames(typeof(VanillaLineSpecialType)).Length)
                 {
                     Log.Warn("Line {0} has corrupt line value (type = {1}), setting line type to 'None'", id, type);
@@ -275,7 +276,7 @@ namespace Helion.Maps.Doom
             return new ReadOnlyDictionary<int, DoomLine>(lines);
         }
 
-        private static void ApplyLineCompatibility(Dictionary<int, DoomLine> lines, 
+        private static void ApplyLineCompatibility(Dictionary<int, DoomLine> lines,
             ReadOnlyDictionary<int, DoomSide> sides, ReadOnlyDictionary<int, DoomVertex> vertices,
             CompatibilityMapDefinition compatibility)
         {
@@ -315,11 +316,11 @@ namespace Helion.Maps.Doom
                 Log.Warn("Unable to split nonexistent line ID {0} when applying compatibility settings", splitDefinition.Id);
                 return;
             }
-            
+
             // TODO
         }
 
-        private static void PerformLineSet(Dictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomSide> sides, 
+        private static void PerformLineSet(Dictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
             ReadOnlyDictionary<int, DoomVertex> vertices, LineSetDefinition setDefinition)
         {
             if (!lines.TryGetValue(setDefinition.Id, out DoomLine? line))
@@ -345,7 +346,7 @@ namespace Helion.Maps.Doom
                 else
                     Log.Warn("Unable to set line ID {0} to missing start vertex ID {1}", setDefinition.Id, setDefinition.StartVertexId.Value);
             }
-            
+
             if (setDefinition.EndVertexId != null)
             {
                 if (vertices.TryGetValue(setDefinition.EndVertexId.Value, out DoomVertex? endVertex))
@@ -361,7 +362,7 @@ namespace Helion.Maps.Doom
                 else
                     Log.Warn("Unable to set line ID {0} to missing front side ID {1}", setDefinition.Id, setDefinition.FrontSideId.Value);
             }
-            
+
             if (setDefinition.BackSideId != null)
             {
                 if (sides.TryGetValue(setDefinition.BackSideId.Value, out DoomSide? side))
@@ -375,7 +376,7 @@ namespace Helion.Maps.Doom
             // side ID in some exotic case that both are set.
             if (setDefinition.RemoveBack)
                 line.Back = null;
-            
+
             // This should never happen as this is intended to be primarily an
             // internal definition file.
             if (line.Start == line.End)
@@ -403,19 +404,19 @@ namespace Helion.Maps.Doom
                 ushort angle = reader.ReadUInt16();
                 ushort editorNumber = reader.ReadUInt16();
                 ThingFlags flags = ThingFlags.Doom(reader.ReadUInt16());
-                
+
                 DoomThing thing = new DoomThing(id, position, angle, editorNumber, flags);
                 things[id] = thing;
             }
 
             return new ReadOnlyDictionary<int, DoomThing>(things);
         }
-        
+
         internal static IReadOnlyList<DoomNode> CreateNodes(byte[]? nodeData)
         {
             if (nodeData == null || nodeData.Length % BytesPerNode != 0)
                 return new List<DoomNode>();
-            
+
             int numNodes = nodeData.Length / BytesPerNode;
             ByteReader reader = new ByteReader(nodeData);
             List<DoomNode> nodes = new List<DoomNode>();
@@ -440,7 +441,7 @@ namespace Helion.Maps.Doom
                 Seg2D segment = new Seg2D(new Vec2D(x, y), new Vec2D(x + dx, y + dy));
                 Box2D rightBox = new Box2D(new Vec2D(rightBoxLeft, rightBoxBottom), new Vec2D(rightBoxRight, rightBoxTop));
                 Box2D leftBox = new Box2D(new Vec2D(leftBoxLeft, leftBoxBottom), new Vec2D(leftBoxRight, leftBoxTop));
-                
+
                 DoomNode node = new DoomNode(segment, rightBox, leftBox, leftChild, rightChild);
                 nodes.Add(node);
             }

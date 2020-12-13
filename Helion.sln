@@ -23,12 +23,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csp
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59AC45C4-7426-4F1D-8BB6-9851105B1D5C}"
-	ProjectSection(SolutionItems) = preProject
-		Directory.Build.props = Directory.Build.props
-		Rules.ruleset = Rules.ruleset
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

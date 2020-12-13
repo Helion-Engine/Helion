@@ -15,13 +15,13 @@ namespace Helion.Util.Geometry.Boxes
     public struct Box2D
     {
         /// <summary>
-        /// The minimum point in the box. This is equal to the bottom left 
+        /// The minimum point in the box. This is equal to the bottom left
         /// corner.
         /// </summary>
         public Vec2D Min;
 
         /// <summary>
-        /// The maximum point in the box. This is equal to the top right 
+        /// The maximum point in the box. This is equal to the top right
         /// corner.
         /// </summary>
         public Vec2D Max;
@@ -45,39 +45,39 @@ namespace Helion.Util.Geometry.Boxes
         /// The top right corner of the box.
         /// </summary>
         public Vec2D TopRight => Max;
-        
+
         /// <summary>
         /// The top value of the box.
         /// </summary>
         public double Top => Max.Y;
-        
+
         /// <summary>
         /// The bottom value of the box.
         /// </summary>
         public double Bottom => Min.Y;
-        
+
         /// <summary>
         /// The left value of the box.
         /// </summary>
         public double Left => Min.X;
-        
+
         /// <summary>
         /// The right value of the box.
         /// </summary>
         public double Right => Max.X;
-                
+
         /// <summary>
         /// A property that calculates the width of the box.
         /// </summary>
         public double Width => Max.X - Min.X;
-        
+
         /// <summary>
         /// A property that calculates the height of the box.
         /// </summary>
         public double Height => Max.Y - Min.Y;
 
         /// <summary>
-        /// Creates a box from a bottom left and top right point. It is an 
+        /// Creates a box from a bottom left and top right point. It is an
         /// error if the min has any coordinate greater the maximum point.
         /// </summary>
         /// <param name="min">The bottom left point.</param>
@@ -90,7 +90,7 @@ namespace Helion.Util.Geometry.Boxes
             Min = min;
             Max = max;
         }
-        
+
         /// <summary>
         /// Creates a bigger box from a series of smaller boxes, returning such
         /// a box that encapsulates minimally all the provided arguments.
@@ -126,7 +126,7 @@ namespace Helion.Util.Geometry.Boxes
 
             return Combine(segments.First().Box, segments.Skip(1).Select(s => s.Box).ToArray());
         }
-        
+
         /// <summary>
         /// Takes some offset delta and creates a copy of the box at the offset
         /// provided.
@@ -160,7 +160,7 @@ namespace Helion.Util.Geometry.Boxes
         /// <param name="point">The point to check.</param>
         /// <returns>True if it is inside, false if not.</returns>
         [Pure]
-        public bool Contains(Vec3D point) 
+        public bool Contains(Vec3D point)
         {
             return point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
         }
@@ -184,8 +184,7 @@ namespace Helion.Util.Geometry.Boxes
         }
 
         /// <summary>
-        /// Checks for an intersection with a segment. This will invoke
-        /// <see cref="Seg2D.Intersects(Box2D)"/>.
+        /// Checks for an intersection with a segment.
         /// </summary>
         /// <param name="seg">The seg to check against.</param>
         /// <returns>True if it intersects, false if not.</returns>
@@ -222,16 +221,16 @@ namespace Helion.Util.Geometry.Boxes
             // Since each coordinate in the following image has its own unique
             // bitcode, we can switch on the bitcode to get the corners.
             //
-            //       XY values           Binary codes 
+            //       XY values           Binary codes
             //
-            //      02 | 12 | 22       1000|1001|1010 
-            //         |    |           8  | 9  | A   
-            //     ----o----o----      ----o----o---- 
-            //      01 | 11 | 21       0100|0101|0110 
-            //         |    |           4  | 5  | 6   
-            //     ----o----o----      ----o----o---- 
-            //      00 | 10 | 20       0000|0001|0010 
-            //         |    |           0  | 1  | 2   
+            //      02 | 12 | 22       1000|1001|1010
+            //         |    |           8  | 9  | A
+            //     ----o----o----      ----o----o----
+            //      01 | 11 | 21       0100|0101|0110
+            //         |    |           4  | 5  | 6
+            //     ----o----o----      ----o----o----
+            //      00 | 10 | 20       0000|0001|0010
+            //         |    |           0  | 1  | 2
             //
             // Note this is my optimization to the Cohen-Sutherland algorithm
             // bitcode detector.

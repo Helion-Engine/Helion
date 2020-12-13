@@ -13,6 +13,7 @@ namespace Helion.Maps
         /// <summary>
         /// Reads a collection of map entries into a map.
         /// </summary>
+        /// <param name="archive">The archive.</param>
         /// <param name="map">The map to read.</param>
         /// <param name="compatibility">The compatibility definition, if any.
         /// This can be null. If present, it will mutate the resulting map.

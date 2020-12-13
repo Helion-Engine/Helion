@@ -29,8 +29,8 @@ namespace Helion.World.Entities.Players
         public readonly int PlayerNumber;
         public double PitchRadians;
         public int LastPickupGametick = int.MinValue / 2;
-        public int DamageCount = 0;
-        public TickCommand TickCommand;
+        public int DamageCount;
+        public TickCommand TickCommand = new();
         // TODO implement effect on world
         public int ExtraLight;
 
@@ -390,7 +390,7 @@ namespace Helion.World.Entities.Players
                 return;
 
             if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
-                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Auto, new SoundParams(this));            
+                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Auto, new SoundParams(this));
 
             AnimationWeapon = PendingWeapon;
             PendingWeapon = null;
@@ -470,7 +470,7 @@ namespace Helion.World.Entities.Players
             string deathSound = "*death";
             if (gibbed)
                 deathSound = "*gibbed";
-            else if (Health <= -50)  
+            else if (Health <= -50)
                 deathSound = "*xdeath";
 
             SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Auto, new SoundParams(this));

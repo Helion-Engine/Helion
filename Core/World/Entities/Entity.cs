@@ -99,7 +99,7 @@ namespace Helion.World.Entities
         public bool IsDead => Health == 0;
         public EntityFrame Frame => FrameState.Frame;
         public virtual double ViewHeight => 8.0;
-        
+
         /// <summary>
         /// Creates an entity with the following information.
         /// </summary>
@@ -117,7 +117,7 @@ namespace Helion.World.Entities
         /// <param name="soundManager">The sound manager to which we can play
         /// any sounds with.</param>
         /// /// <param name="world">The world this entity belongs to.</param>
-        public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians, 
+        public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world)
         {
             Health = definition.Properties.Health;
@@ -198,7 +198,7 @@ namespace Helion.World.Entities
         {
             Box.SetXY(position);
         }
-        
+
         /// <summary>
         /// Sets the entity to the new coordinate.
         /// </summary>
@@ -247,7 +247,7 @@ namespace Helion.World.Entities
             SubsectorNode?.Unlink();
             SectorNodes.Clear();
             SubsectorNode = null;
-            
+
             for (int i = 0; i < BlockmapNodes.Count; i++)
                 BlockmapNodes[i].Unlink();
             BlockmapNodes.Clear();
@@ -310,7 +310,7 @@ namespace Helion.World.Entities
         {
             FrameState.SetState(FrameStateLabel.Melee);
         }
-        
+
         public void SetDeathState()
         {
             if (FrameState.SetState(FrameStateLabel.Death))
@@ -368,7 +368,7 @@ namespace Helion.World.Entities
             if (Properties.ActiveSound.Length > 0)
                 SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, new SoundParams(this));
         }
-        
+
         public CIString GetSpeciesName()
         {
             if (Definition.ParentClassNames.Count < 2)
@@ -584,7 +584,6 @@ namespace Helion.World.Entities
         /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 3D space traversing the block map.
         /// </summary>
         /// <param name="position">The position to check this entity against.</param>
-        /// <param name="traverser">The BlockmapTraverser to use.</param>
         /// <param name="entityTraverseFlags">Flags to check against for traversal of the block map.</param>
         public List<Entity> GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags)
         {
@@ -691,7 +690,7 @@ namespace Helion.World.Entities
         }
 
         /// <summary>
-        /// Checks if another entity can block this entity on the Z axis. 
+        /// Checks if another entity can block this entity on the Z axis.
         /// This is not just box overlap checking, will check if this entity can step onto the other.
         /// Sets a LineOpening using the entities similar to sector intersection.
         /// </summary>
@@ -735,7 +734,7 @@ namespace Helion.World.Entities
                 }
 
                 Flags.Skullfly = false;
-                Velocity = Vec3D.Zero;            
+                Velocity = Vec3D.Zero;
                 SetSpawnState();
             }
         }
