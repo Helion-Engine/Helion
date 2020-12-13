@@ -35,7 +35,7 @@ namespace Helion.Resources.Archives.Collection
             Definitions = new DefinitionEntries(this);
         }
 
-        public bool Load(IEnumerable<string> files)
+        public bool Load(IEnumerable<string> files, bool loadDefaultAssets = true)
         {
             List<Archive> loadedArchives = new List<Archive>();
             List<string> filePaths = new List<string>();
@@ -43,7 +43,7 @@ namespace Helion.Resources.Archives.Collection
             // If we have nothing loaded, we want to make sure assets.pk3 is
             // loaded before anything else. We also do not want it to be loaded
             // if we have already loaded it.
-            if (m_archives.Empty())
+            if (loadDefaultAssets && m_archives.Empty())
                 filePaths.Add(Constants.AssetsFileName);
             filePaths.AddRange(files);
 
@@ -68,6 +68,23 @@ namespace Helion.Resources.Archives.Collection
             return true;
         }
 
+        public MapEntryCollection? GetMapEntryCollection(string mapName)
+        {
+            string upperMapName = mapName.ToUpper();
+
+            for (int i = m_archives.Count - 1; i >= 0; i--)
+            {
+                Archive archive = m_archives[i];
+                foreach (var mapEntryCollection in new ArchiveMapIterator(archive))
+                {
+                    if (mapEntryCollection.Name == upperMapName)
+                        return mapEntryCollection;
+                }
+            }
+
+            return null;
+        }
+
         public IMap? FindMap(string mapName)
         {
             string upperMapName = mapName.ToUpper();
@@ -88,7 +105,7 @@ namespace Helion.Resources.Archives.Collection
                     // confusing to the user in the case where they ask for the
                     // most recent map which is corrupt, but then get some
                     // earlier map in the pack which is not corrupt.
-                    IMap? map = MapReader.Read(mapEntryCollection, compat);
+                    IMap? map = MapReader.Read(archive, mapEntryCollection, compat);
                     if (map != null) 
                         return map;
                     

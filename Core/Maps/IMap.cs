@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Maps.Components;
+using Helion.Resources.Archives;
 using Helion.Util.Container;
 
 namespace Helion.Maps
@@ -10,6 +11,8 @@ namespace Helion.Maps
     /// </summary>
     public interface IMap
     {
+        public Archive Archive { get; }
+
         /// <summary>
         /// The name of the map.
         /// </summary>

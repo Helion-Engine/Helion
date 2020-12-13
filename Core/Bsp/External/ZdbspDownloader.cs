@@ -11,11 +11,12 @@ namespace Helion.Bsp.External
     /// </summary>
     public static class ZdbspDownloader
     {
-        private const string Folder = "bsp";
+        public const string Folder = "bsp";
+        public static readonly string BspExePath = $"{Folder}/{Executable}";
+
         private const string Executable = "zdbsp.exe";
         private const string ZipFileName = "zdbsp-1.19.zip";
-        private static readonly string DownloadUrl = $"https://zdoom.org/files/utils/zdbsp/{ZipFileName}";
-        private static readonly string BspExePath = $"{Folder}/{Executable}";
+        private static readonly string DownloadUrl = $"https://zdoom.org/files/utils/zdbsp/{ZipFileName}";        
         private static readonly string ZipFilePath = $"{Folder}/{ZipFileName}";
         private static readonly List<string> ResidualZipFiles = new List<string>
         {

@@ -40,7 +40,7 @@ namespace Helion.Util.Geometry.Segments
         /// <param name="end">The ending point.</param>
         public Seg2DBase(Vec2D start, Vec2D end)
         {
-            Precondition(start != end, "Segment should not be a point");
+            //Precondition(start != end, "Segment should not be a point");
 
             Start = start;
             End = end;

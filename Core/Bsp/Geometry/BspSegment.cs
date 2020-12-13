@@ -14,6 +14,17 @@ namespace Helion.Bsp.Geometry
     public class BspSegment : Seg2D, IGraphEdge
     {
         /// <summary>
+        /// The constants for no sector existing.
+        /// </summary>
+        public const int NoSectorId = -1;
+
+        /// <summary>
+        /// A constant line ID for a miniseg (as it references no existing 
+        /// line).
+        /// </summary>
+        public const int MinisegLineId = -1;
+
+        /// <summary>
         /// The starting vertex.
         /// </summary>
         public readonly BspVertex StartVertex;

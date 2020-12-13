@@ -7,6 +7,7 @@ using Helion.Maps.Hexen.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Util;
@@ -25,6 +26,7 @@ namespace Helion.Maps.Hexen
         
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public Archive Archive { get; }
         public string Name { get; }
         public MapType MapType { get; } = MapType.Hexen;
         public readonly ReadOnlyDictionary<int, HexenLine> Lines;
@@ -34,11 +36,12 @@ namespace Helion.Maps.Hexen
         public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
         public readonly IReadOnlyList<DoomNode> Nodes;
 
-        private HexenMap(string name, ReadOnlyDictionary<int, DoomVertex> vertices, 
+        private HexenMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices, 
             ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides, 
             ReadOnlyDictionary<int, HexenLine> lines, ReadOnlyDictionary<int, HexenThing> things,
             IReadOnlyList<DoomNode> nodes)
         {
+            Archive = archive;
             Name = name;
             Vertices = vertices;
             Sectors = sectors;
@@ -56,7 +59,7 @@ namespace Helion.Maps.Hexen
         /// do mutation to the geometry if not null.</param>
         /// <returns>The compiled map, or null if the map was malformed due to
         /// missing or bad data.</returns>
-        public static HexenMap? Create(MapEntryCollection map, CompatibilityMapDefinition? compatibility)
+        public static HexenMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
         {
             ReadOnlyDictionary<int, DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices);
             if (vertices == null)
@@ -80,7 +83,7 @@ namespace Helion.Maps.Hexen
 
             IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes);
             
-            return new HexenMap(map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things, nodes);
+            return new HexenMap(archive, map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things, nodes);
         }
         
         public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
