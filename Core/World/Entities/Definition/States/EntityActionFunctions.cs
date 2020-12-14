@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Util;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
@@ -2482,22 +2483,27 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_VileChase(Entity entity)
         {
-            Vec3D oldPos = entity.Position;
-            Vec3D pos = entity.Position;
-            Vec2D nextPos = entity.GetNextEnemyPos();
-            pos.X = nextPos.X;
-            pos.Y = nextPos.Y;
-            entity.SetPosition(pos);
-
-            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), 
+            Box2D nextBox = Box2D.CopyToOffset(entity.GetNextEnemyPos(), entity.Radius);
+            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox, 
                 BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
 
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
 
-                if (bi.Entity == null || !bi.Entity.HasRaiseState())
+                if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1)
                     continue;
+
+                bi.Entity.Flags.Solid = true;
+                double oldHeight = bi.Entity.Height;
+                bi.Entity.SetHeight(bi.Entity.Definition.Properties.Height);
+
+                if (!entity.World.TryMoveXY(bi.Entity, bi.Entity.Position.To2D(), false).Success)
+                {
+                    bi.Entity.Flags.Solid = false;
+                    bi.Entity.SetHeight(oldHeight);
+                    continue;
+                }
 
                 Entity? saveTarget = entity.Target;
                 entity.Target = bi.Entity;
@@ -2510,7 +2516,6 @@ namespace Helion.World.Entities.Definition.States
                 break;
             }
 
-            entity.SetPosition(oldPos);
             A_Chase(entity);
         }
 
