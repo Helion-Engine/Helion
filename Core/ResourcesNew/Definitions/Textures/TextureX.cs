@@ -4,7 +4,7 @@ using Helion.Util.Bytes;
 using Helion.Util.Geometry.Vectors;
 using NLog;
 
-namespace Helion.Resources.Definitions.Texture
+namespace Helion.ResourcesNew.Definitions.Textures
 {
     /// <summary>
     /// The data structure for a Texture1/2/3 entry.
@@ -31,7 +31,7 @@ namespace Helion.Resources.Definitions.Texture
         /// corrupt.</returns>
         public static TextureX? From(byte[] data)
         {
-            List<TextureXImage> definitions = new List<TextureXImage>();
+            List<TextureXImage> definitions = new();
 
             try
             {
@@ -39,7 +39,7 @@ namespace Helion.Resources.Definitions.Texture
 
                 int numTextures = reader.Int();
 
-                List<int> dataOffsets = new List<int>();
+                List<int> dataOffsets = new();
                 for (int offsetIndex = 0; offsetIndex < numTextures; offsetIndex++)
                     dataOffsets.Add(reader.Int());
 
@@ -54,17 +54,18 @@ namespace Helion.Resources.Definitions.Texture
                     reader.Advance(4); // Skip columndirectory, so no Strife.
                     int numPatches = reader.Short();
 
-                    List<TextureXPatch> patches = new List<TextureXPatch>();
+                    List<TextureXPatch> patches = new();
                     for (int patchIndex = 0; patchIndex < numPatches; patchIndex++)
                     {
                         Vec2I patchOffset = new Vec2I(reader.Short(), reader.Short());
                         short index = reader.Short();
                         reader.Advance(4); // Skip stepdir/colormap
 
-                        patches.Add(new TextureXPatch(index, patchOffset));
+                        TextureXPatch patch = new(index, patchOffset);
+                        patches.Add(patch);
                     }
 
-                    TextureXImage textureXImage = new TextureXImage(name, width, height, patches);
+                    TextureXImage textureXImage = new(name, width, height, patches);
                     definitions.Add(textureXImage);
                 }
 
@@ -85,12 +86,13 @@ namespace Helion.Resources.Definitions.Texture
         /// <returns>A list of all the texture definitions.</returns>
         public List<TextureDefinition> ToTextureDefinitions(Pnames pnames)
         {
-            List<TextureDefinition> definitions = new List<TextureDefinition>();
+            List<TextureDefinition> definitions = new();
 
             foreach (TextureXImage image in Definitions)
             {
                 List<TextureDefinitionComponent> components = CreateComponents(image, pnames);
-                definitions.Add(new TextureDefinition(image.Name, image.Dimension, ResourceNamespace.Textures, components));
+                TextureDefinition texDefinition = new(image.Name, image.Dimension, Namespace.Textures, components);
+                definitions.Add(texDefinition);
             }
 
             return definitions;
@@ -98,7 +100,7 @@ namespace Helion.Resources.Definitions.Texture
 
         private List<TextureDefinitionComponent> CreateComponents(TextureXImage image, Pnames pnames)
         {
-            List<TextureDefinitionComponent> components = new List<TextureDefinitionComponent>();
+            List<TextureDefinitionComponent> components = new();
 
             foreach (TextureXPatch patch in image.Patches)
             {
@@ -109,7 +111,7 @@ namespace Helion.Resources.Definitions.Texture
                 }
 
                 CIString name = pnames.Names[patch.PnamesIndex];
-                TextureDefinitionComponent component = new TextureDefinitionComponent(name, patch.Offset);
+                TextureDefinitionComponent component = new(name, patch.Offset);
                 components.Add(component);
             }
 

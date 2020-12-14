@@ -2,7 +2,7 @@
 using Helion.Util;
 using Helion.Util.Bytes;
 
-namespace Helion.Resources.Definitions.Texture
+namespace Helion.ResourcesNew.Definitions.Textures
 {
     /// <summary>
     /// The data that represents a Pnames entry.

@@ -10,7 +10,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
-using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
@@ -103,18 +103,19 @@ namespace Helion.Maps.Hexen
 
             int zdoomLineSpecialCount = Enum.GetNames(typeof(ZDoomLineSpecialType)).Length;
             int numLines = lineData.Length / BytesPerLine;
-            ByteReader reader = new ByteReader(lineData);
-            Dictionary<int, HexenLine> lines = new Dictionary<int, HexenLine>();
+            ByteReader reader = new(lineData);
+            Dictionary<int, HexenLine> lines = new();
 
             for (int id = 0; id < numLines; id++)
             {
-                ushort startVertexId = reader.ReadUInt16();
-                ushort endVertexId = reader.ReadUInt16();
-                ushort flags = reader.ReadUInt16();
-                ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.ReadByte();
-                SpecialArgs args = new SpecialArgs(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
-                ushort rightSidedef = reader.ReadUInt16();
-                ushort leftSidedef = reader.ReadUInt16();
+                ushort startVertexId = reader.UShort();
+                ushort endVertexId = reader.UShort();
+                ushort flags = reader.UShort();
+                ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.Byte();
+                byte[] data = reader.Bytes(5);
+                SpecialArgs args = new SpecialArgs(data[0], data[1], data[2], data[3], data[4]);
+                ushort rightSidedef = reader.UShort();
+                ushort leftSidedef = reader.UShort();
 
                 if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
                     return null;
@@ -278,16 +279,17 @@ namespace Helion.Maps.Hexen
 
             for (int id = 0; id < numThings; id++)
             {
-                ushort tid = reader.ReadUInt16();
-                Fixed x = new Fixed(reader.ReadInt16(), 0);
-                Fixed y = new Fixed(reader.ReadInt16(), 0);
-                Fixed z = new Fixed(reader.ReadInt16(), 0);
+                ushort tid = reader.UShort();
+                Fixed x = new Fixed(reader.Short(), 0);
+                Fixed y = new Fixed(reader.Short(), 0);
+                Fixed z = new Fixed(reader.Short(), 0);
                 Vec3Fixed position = new Vec3Fixed(x, y, z);
-                ushort angle = reader.ReadUInt16();
-                ushort editorNumber = reader.ReadUInt16();
-                ThingFlags flags = ThingFlags.ZDoom(reader.ReadUInt16());
-                ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.ReadByte();
-                SpecialArgs args = new SpecialArgs(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
+                ushort angle = reader.UShort();
+                ushort editorNumber = reader.UShort();
+                ThingFlags flags = ThingFlags.ZDoom(reader.UShort());
+                ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.Byte();
+                byte[] data = reader.Bytes(5);
+                SpecialArgs args = new SpecialArgs(data[0], data[1], data[2], data[3], data[4]);
 
                 if ((int)specialType >= Enum.GetNames(typeof(ZDoomLineSpecialType)).Length)
                 {
@@ -295,7 +297,7 @@ namespace Helion.Maps.Hexen
                     specialType = ZDoomLineSpecialType.None;
                 }
 
-                HexenThing thing = new HexenThing(id, tid, position, angle, editorNumber, flags, specialType, args);
+                HexenThing thing = new(id, tid, position, angle, editorNumber, flags, specialType, args);
                 things[id] = thing;
             }
 

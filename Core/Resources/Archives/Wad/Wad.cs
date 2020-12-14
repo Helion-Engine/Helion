@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
+using Helion.Util.Bytes;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Archives
@@ -16,6 +17,7 @@ namespace Helion.Resources.Archives
         private const int LumpTableEntryBytes = 16;
 
         public WadHeader Header;
+        private readonly BinaryReader m_binaryReader;
         private readonly ByteReader m_byteReader;
 
         private readonly Dictionary<CIString, ResourceNamespace> m_entryToNamespace = new Dictionary<CIString, ResourceNamespace>()
@@ -42,46 +44,47 @@ namespace Helion.Resources.Archives
 
         public Wad(IEntryPath path) : base(path)
         {
-            m_byteReader = new ByteReader(new BinaryReader(File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
+            m_binaryReader = new BinaryReader(File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            m_byteReader = new ByteReader(m_binaryReader);
             LoadWadEntries();
         }
 
         public byte[] ReadData(WadEntry entry)
         {
             Precondition(entry.Parent == this, "Bad entry parent");
-            
-            m_byteReader.Offset(entry.Offset);
-            return m_byteReader.ReadBytes(entry.Size);
+
+            m_byteReader.Position = entry.Offset;
+            return m_byteReader.Bytes(entry.Size);
         }
 
         public void Dispose()
         {
-            m_byteReader.Close();
-            m_byteReader.Dispose();
+            m_binaryReader.Close();
+            m_binaryReader.Dispose();
         }
 
         private WadHeader ReadHeader()
         {
-            m_byteReader.Offset(0);
-            
-            string headerId = Encoding.UTF8.GetString(m_byteReader.ReadBytes(4));
+            m_byteReader.Position = 0;
+
+            string headerId = Encoding.UTF8.GetString(m_byteReader.Bytes(4));
             bool isIwad = (headerId[0] == 'I');
-            int numEntries = m_byteReader.ReadInt32();
-            int entryTableOffset = m_byteReader.ReadInt32();
-            
+            int numEntries = m_byteReader.Int();
+            int entryTableOffset = m_byteReader.Int();
+
             return new WadHeader(isIwad, numEntries, entryTableOffset);
         }
 
         private (int offset, int size, string name) ReadDirectoryEntry()
         {
-            int offset = m_byteReader.ReadInt32();
-            int size = m_byteReader.ReadInt32();
-            string name = m_byteReader.ReadEightByteString().ToUpper();
+            int offset = m_byteReader.Int();
+            int size = m_byteReader.Int();
+            string name = m_byteReader.EightByteString().ToUpper();
             return (offset, size, name);
         }
 
         private void LoadWadEntries()
-        {           
+        {
             Header = ReadHeader();
 
             if (Header.DirectoryTableOffset + (Header.EntryCount * LumpTableEntryBytes) > m_byteReader.Length)
@@ -89,7 +92,7 @@ namespace Helion.Resources.Archives
 
             ResourceNamespace currentNamespace = ResourceNamespace.Global;
 
-            m_byteReader.Offset(Header.DirectoryTableOffset);
+            m_byteReader.Position = Header.DirectoryTableOffset;
             for (int i = 0; i < Header.EntryCount; i++)
             {
                 (int offset, int size, string upperName) = ReadDirectoryEntry();
@@ -105,7 +108,7 @@ namespace Helion.Resources.Archives
                 if (m_entryToNamespace.TryGetValue(upperName, out ResourceNamespace resourceNamespace))
                 {
                     isMarker = true;
-                    currentNamespace = resourceNamespace;  
+                    currentNamespace = resourceNamespace;
                 }
 
                 WadEntryPath entryPath = new WadEntryPath(upperName);

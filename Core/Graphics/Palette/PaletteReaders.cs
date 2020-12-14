@@ -1,7 +1,6 @@
 ﻿using Helion.Resources;
-using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Graphics.Palette
@@ -39,12 +38,12 @@ namespace Helion.Graphics.Palette
             if (data.Length < 16)
                 return false;
 
-            ByteReader reader = new ByteReader(data);
+            ByteReader reader = new(data);
 
-            int width = reader.ReadInt16();
-            int height = reader.ReadInt16();
-            int offsetX = reader.ReadInt16();
-            int offsetY = reader.ReadInt16();
+            int width = reader.Short();
+            int height = reader.Short();
+            int offsetX = reader.Short();
+            int offsetY = reader.Short();
 
             if (InvalidColumnImageDimensions(data, width, height, offsetX, offsetY))
                 return false;
@@ -94,35 +93,35 @@ namespace Helion.Graphics.Palette
         {
             // TODO: This could be improved probably dramatically if we:
             //       1) Read it into a column-major image and then rotated
-            //       2) Use native/unsafe code 
+            //       2) Use native/unsafe code
             try
             {
                 ByteReader reader = new ByteReader(data);
 
-                int width = reader.ReadInt16();
-                int height = reader.ReadInt16();
-                Vec2I imageOffsets = new Vec2I(width - (reader.ReadInt16() * 2), reader.ReadInt16() - height);
+                int width = reader.Short();
+                int height = reader.Short();
+                Vec2I imageOffsets = new Vec2I(width - (reader.Short() * 2), reader.Short() - height);
 
                 int[] offsets = new int[width];
                 for (int i = 0; i < width; i++)
-                    offsets[i] = reader.ReadInt32();
+                    offsets[i] = reader.Int();
 
                 ushort[] indices = new ushort[width * height];
                 indices.Fill(PaletteImage.TransparentIndex);
 
                 for (int col = 0; col < width; col++)
                 {
-                    reader.Offset(offsets[col]);
+                    reader.Position = offsets[col];
 
                     while (true)
                     {
-                        int rowStart = reader.ReadByte();
+                        int rowStart = reader.Byte();
                         if (rowStart == 0xFF)
                             break;
 
-                        int indicesCount = reader.ReadByte();
+                        int indicesCount = reader.Byte();
                         reader.Advance(1); // Skip dummy.
-                        byte[] paletteIndices = reader.ReadBytes(indicesCount);
+                        byte[] paletteIndices = reader.Bytes(indicesCount);
                         reader.Advance(1); // Skip dummy.
 
                         int indicesOffset = (rowStart * width) + col;
@@ -142,7 +141,7 @@ namespace Helion.Graphics.Palette
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Gets the flat dimension from the full length of the data provided.
         /// </summary>
@@ -208,10 +207,10 @@ namespace Helion.Graphics.Palette
 
             reader.Advance((width - 1) * 4);
 
-            int offset = reader.ReadInt32();
+            int offset = reader.Int();
             if (offset < 0 || offset >= reader.Length)
                 return false;
-            reader.Offset(offset);
+            reader.Position = offset;
 
             // Note: We could actually evaluate the column here as well,
             // however this seems to be doing the job thus far. Nothing

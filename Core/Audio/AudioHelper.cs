@@ -1,5 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
-using Helion.Util;
+using Helion.Util.Bytes;
 
 namespace Helion.Audio
 {
@@ -15,24 +14,24 @@ namespace Helion.Audio
         {
             sampleRate = 0;
             sampleData = new byte[0];
-            
+
             if (data.Length < MinRequiredDmxLength)
                 return false;
-            
-            ByteReader reader = new ByteReader(data);
-            if (reader.ReadUInt16() != DmxHeader)
+
+            ByteReader reader = new(data);
+            if (reader.UShort() != DmxHeader)
                 return false;
 
-            sampleRate = reader.ReadUInt16();
+            sampleRate = reader.UShort();
             if (sampleRate < SampleRateArbitraryCutoff)
                 return false;
 
-            int numSamples = reader.ReadInt32();
+            int numSamples = reader.Int();
             if (data.Length < DataBeforeSamplesSize + numSamples - DmxPadding)
                 return false;
 
             reader.Advance(DmxPadding);
-            sampleData = reader.ReadBytes(numSamples);
+            sampleData = reader.Bytes(numSamples);
             return true;
         }
     }

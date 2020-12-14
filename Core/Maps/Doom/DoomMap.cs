@@ -9,7 +9,7 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
-using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
@@ -110,13 +110,13 @@ namespace Helion.Maps.Doom
                 return null;
 
             int numVertices = vertexData.Length / BytesPerVertex;
-            ByteReader reader = new ByteReader(vertexData);
+            ByteReader reader = new(vertexData);
             Dictionary<int, DoomVertex> vertices = new Dictionary<int, DoomVertex>();
 
             for (int id = 0; id < numVertices; id++)
             {
-                Fixed x = new Fixed(reader.ReadInt16(), 0);
-                Fixed y = new Fixed(reader.ReadInt16(), 0);
+                Fixed x = new Fixed(reader.Short(), 0);
+                Fixed y = new Fixed(reader.Short(), 0);
                 DoomVertex vertex = new DoomVertex(id, new Vec2Fixed(x, y));
                 vertices[id] = vertex;
             }
@@ -135,13 +135,13 @@ namespace Helion.Maps.Doom
 
             for (int id = 0; id < numSectors; id++)
             {
-                short floorZ = reader.ReadInt16();
-                short ceilZ = reader.ReadInt16();
-                string floorTexture = reader.ReadEightByteString().ToUpper();
-                string ceilTexture = reader.ReadEightByteString().ToUpper();
-                short lightLevel = reader.ReadInt16();
-                ushort special = reader.ReadUInt16();
-                ushort tag = reader.ReadUInt16();
+                short floorZ = reader.Short();
+                short ceilZ = reader.Short();
+                string floorTexture = reader.EightByteString().ToUpper();
+                string ceilTexture = reader.EightByteString().ToUpper();
+                short lightLevel = reader.Short();
+                ushort special = reader.UShort();
+                ushort tag = reader.UShort();
 
                 DoomSectorType sectorType = (DoomSectorType)special;
                 DoomSector sector = new DoomSector(id, floorZ, ceilZ, floorTexture, ceilTexture, lightLevel, sectorType, tag);
@@ -163,16 +163,16 @@ namespace Helion.Maps.Doom
 
             for (int id = 0; id < numSides; id++)
             {
-                Vec2I offset = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
-                string upperTexture = reader.ReadEightByteString().ToUpper();
-                string lowerTexture = reader.ReadEightByteString().ToUpper();
-                string middleTexture = reader.ReadEightByteString().ToUpper();
-                ushort sectorIndex = reader.ReadUInt16();
+                Vec2I offset = new Vec2I(reader.Short(), reader.Short());
+                string upperTexture = reader.EightByteString().ToUpper();
+                string lowerTexture = reader.EightByteString().ToUpper();
+                string middleTexture = reader.EightByteString().ToUpper();
+                ushort sectorIndex = reader.UShort();
 
                 if (sectorIndex >= sectors.Count)
                     return null;
 
-                DoomSide side = new DoomSide(id, offset, upperTexture, middleTexture, lowerTexture, sectors[sectorIndex]);
+                DoomSide side = new(id, offset, upperTexture, middleTexture, lowerTexture, sectors[sectorIndex]);
                 sides[id] = side;
             }
 
@@ -229,13 +229,13 @@ namespace Helion.Maps.Doom
 
             for (int id = 0; id < numLines; id++)
             {
-                ushort startVertexId = lineReader.ReadUInt16();
-                ushort endVertexId = lineReader.ReadUInt16();
-                ushort flags = lineReader.ReadUInt16();
-                ushort type = lineReader.ReadUInt16();
-                ushort sectorTag = lineReader.ReadUInt16();
-                ushort rightSidedef = lineReader.ReadUInt16();
-                ushort leftSidedef = lineReader.ReadUInt16();
+                ushort startVertexId = lineReader.UShort();
+                ushort endVertexId = lineReader.UShort();
+                ushort flags = lineReader.UShort();
+                ushort type = lineReader.UShort();
+                ushort sectorTag = lineReader.UShort();
+                ushort rightSidedef = lineReader.UShort();
+                ushort leftSidedef = lineReader.UShort();
 
                 if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
                     return null;
@@ -393,17 +393,17 @@ namespace Helion.Maps.Doom
                 return null;
 
             int numThings = thingData.Length / BytesPerThing;
-            ByteReader reader = new ByteReader(thingData);
-            Dictionary<int, DoomThing> things = new Dictionary<int, DoomThing>();
+            ByteReader reader = new(thingData);
+            Dictionary<int, DoomThing> things = new();
 
             for (int id = 0; id < numThings; id++)
             {
-                Fixed x = new Fixed(reader.ReadInt16(), 0);
-                Fixed y = new Fixed(reader.ReadInt16(), 0);
+                Fixed x = new Fixed(reader.Short(), 0);
+                Fixed y = new Fixed(reader.Short(), 0);
                 Vec2Fixed position = new Vec2Fixed(x, y);
-                ushort angle = reader.ReadUInt16();
-                ushort editorNumber = reader.ReadUInt16();
-                ThingFlags flags = ThingFlags.Doom(reader.ReadUInt16());
+                ushort angle = reader.UShort();
+                ushort editorNumber = reader.UShort();
+                ThingFlags flags = ThingFlags.Doom(reader.UShort());
 
                 DoomThing thing = new DoomThing(id, position, angle, editorNumber, flags);
                 things[id] = thing;
@@ -423,20 +423,20 @@ namespace Helion.Maps.Doom
 
             for (int id = 0; id < numNodes; id++)
             {
-                short x = reader.ReadInt16();
-                short y = reader.ReadInt16();
-                short dx = reader.ReadInt16();
-                short dy = reader.ReadInt16();
-                short rightBoxTop = reader.ReadInt16();
-                short rightBoxBottom = reader.ReadInt16();
-                short rightBoxLeft = reader.ReadInt16();
-                short rightBoxRight = reader.ReadInt16();
-                short leftBoxTop = reader.ReadInt16();
-                short leftBoxBottom = reader.ReadInt16();
-                short leftBoxLeft = reader.ReadInt16();
-                short leftBoxRight = reader.ReadInt16();
-                ushort rightChild = reader.ReadUInt16();
-                ushort leftChild = reader.ReadUInt16();
+                short x = reader.Short();
+                short y = reader.Short();
+                short dx = reader.Short();
+                short dy = reader.Short();
+                short rightBoxTop = reader.Short();
+                short rightBoxBottom = reader.Short();
+                short rightBoxLeft = reader.Short();
+                short rightBoxRight = reader.Short();
+                short leftBoxTop = reader.Short();
+                short leftBoxBottom = reader.Short();
+                short leftBoxLeft = reader.Short();
+                short leftBoxRight = reader.Short();
+                ushort rightChild = reader.UShort();
+                ushort leftChild = reader.UShort();
 
                 Seg2D segment = new Seg2D(new Vec2D(x, y), new Vec2D(x + dx, y + dy));
                 Box2D rightBox = new Box2D(new Vec2D(rightBoxLeft, rightBoxBottom), new Vec2D(rightBoxRight, rightBoxTop));

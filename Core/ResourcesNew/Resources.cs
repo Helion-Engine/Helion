@@ -106,6 +106,8 @@ namespace Helion.ResourcesNew
                     m_nameToEntry[entry.Path.Name] = entry;
                     LoadDefinitionFile(entry);
                 }
+
+                FinishProcessingArchive();
             }
         }
 
@@ -125,14 +127,26 @@ namespace Helion.ResourcesNew
                 LoadPlaypal(entry);
                 break;
             case "PNAMES":
+                m_textureDefinitionManager.AddPnames(entry);
                 break;
             case "TEXTURE1":
             case "TEXTURE2":
             case "TEXTURE3":
+                m_textureDefinitionManager.AddTextureX(entry);
                 break;
             case "SNDINFO":
                 break;
             }
+        }
+
+        private void FinishProcessingArchive()
+        {
+            // The definition manager needs to be told when we're done because
+            // it will not know if more TEXTUREx or PNAMES are coming. There
+            // are wads that have multiple definitions and have them placed in
+            // an unusual order. Vanilla (and thus ZDoom and friends) also have
+            // continued to use the unintuitive handling of PNAMES/TEXTUREx.
+            m_textureDefinitionManager.NotifyArchiveFinished();
         }
 
         private void LoadPlaypal(Entry entry)

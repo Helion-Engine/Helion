@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Container;
 
-namespace Helion.ResourcesNew
+namespace Helion.ResourcesNew.Tracker
 {
     /// <summary>
     /// Tracks a specific resource by a namespace and name combination.
