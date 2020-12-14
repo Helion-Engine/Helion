@@ -14,13 +14,13 @@ namespace Helion.ResourcesNew.Archives.Wads
         protected void ReadEntriesOrThrow(ByteReader reader)
         {
             WadHeader header = ReadHeader(reader);
-            List<DirectoryEntry> directoryEntries = ReadEntryTable(reader, header);
+            IEnumerable<DirectoryEntry> directoryEntries = ReadEntryTable(reader, header);
             PopulateEntries(directoryEntries);
         }
 
         protected internal abstract byte[] ReadEntryData(DirectoryEntry dirEntry);
 
-        private static List<DirectoryEntry> ReadEntryTable(ByteReader reader, WadHeader header)
+        private static IEnumerable<DirectoryEntry> ReadEntryTable(ByteReader reader, WadHeader header)
         {
             WadNamespaceTracker namespaceTracker = new();
             List<DirectoryEntry> directoryEntries = new();
@@ -40,7 +40,7 @@ namespace Helion.ResourcesNew.Archives.Wads
             return directoryEntries;
         }
 
-        private void PopulateEntries(List<DirectoryEntry> directoryEntries)
+        private void PopulateEntries(IEnumerable<DirectoryEntry> directoryEntries)
         {
             foreach (DirectoryEntry dirEntry in directoryEntries)
             {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using Helion.Util.Bytes;
+using Helion.Util;
+using ByteReader = Helion.Util.Bytes.ByteReader;
 
 namespace Helion.ResourcesNew.Archives.Wads
 {
@@ -22,29 +22,19 @@ namespace Helion.ResourcesNew.Archives.Wads
 
         public static WadFile? From(string path)
         {
+            string? md5 = Files.CalculateMD5(path);
+            if (md5 == null)
+                return null;
+
             try
             {
                 FileStream fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                string md5 = CalculateMD5(fileStream);
                 return new WadFile(md5, fileStream);
             }
             catch
             {
                 return null;
             }
-        }
-
-        private static string CalculateMD5(Stream stream)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-
-            using var md5 = System.Security.Cryptography.MD5.Create();
-            byte[] data = md5.ComputeHash(stream);
-
-            StringBuilder hex = new(data.Length * 2);
-            foreach (byte b in data)
-                hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
         }
 
         public override void Dispose()

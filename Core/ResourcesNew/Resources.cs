@@ -4,6 +4,7 @@ using Helion.Graphics.Palette;
 using Helion.ResourcesNew.Archives;
 using Helion.ResourcesNew.Fonts;
 using Helion.Util;
+using Helion.Util.Configuration;
 using NLog;
 
 namespace Helion.ResourcesNew
@@ -14,8 +15,19 @@ namespace Helion.ResourcesNew
 
         public readonly FontManager Fonts = new();
         public readonly Palette Palette = Palettes.GetDefaultPalette();
+        private readonly Config m_config;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Entry> m_nameToEntry = new();
+
+        public Resources(Config config, bool loadAssets =  true)
+        {
+            m_config = config;
+
+            if (loadAssets)
+                Load(Constants.AssetsFileName);
+        }
+
+        public bool Load(string path) => Load(new[] { path });
 
         public bool Load(IEnumerable<string> paths)
         {

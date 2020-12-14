@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.ResourcesNew.Archives.Wads;
 using Helion.Util;
+using PK3 = Helion.ResourcesNew.Archives.PK3s.PK3;
 
 namespace Helion.ResourcesNew.Archives
 {
@@ -18,8 +20,9 @@ namespace Helion.ResourcesNew.Archives
 
         public static Archive? Open(string path)
         {
-            // TODO: Open wads, pk3s, etc...
-            throw new NotImplementedException();
+            if (path.EndsWith(".wad", StringComparison.OrdinalIgnoreCase))
+                return WadFile.From(path);
+            return PK3.FromFile(path);
         }
 
         public Entry? FindByName(CIString name)
