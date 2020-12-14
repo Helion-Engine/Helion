@@ -1040,7 +1040,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Target == null)
                 return;
 
-            A_FaceTarget(entity.Target);
+            A_FaceTarget(entity);
             entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, new SoundParams(entity));
         }
 
