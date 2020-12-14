@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.ResourcesNew.Archives.PK3s;
 using Helion.ResourcesNew.Archives.Wads;
 using Helion.Util;
-using PK3 = Helion.ResourcesNew.Archives.PK3s.PK3;
 
 namespace Helion.ResourcesNew.Archives
 {
@@ -13,7 +13,7 @@ namespace Helion.ResourcesNew.Archives
         private readonly List<Entry> m_entries = new();
         private readonly Dictionary<CIString, Entry> m_nameToEntry = new();
 
-        public Archive(string md5)
+        protected Archive(string md5)
         {
             MD5 = md5;
         }

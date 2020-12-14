@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 

@@ -7,10 +7,10 @@ using MoreLinq.Extensions;
 
 namespace Helion.ResourcesNew.Archives.PK3s
 {
-    public class PK3 : Archive
+    public class PK3 : Archive, IFileArchive
     {
-        private static readonly string DirectorySeparatorChar = Path.DirectorySeparatorChar.ToString();
-        private static readonly string AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar.ToString();
+        private static readonly string DirectorySeparatorChar = System.IO.Path.DirectorySeparatorChar.ToString();
+        private static readonly string AltDirectorySeparatorChar = System.IO.Path.AltDirectorySeparatorChar.ToString();
         private static readonly Dictionary<CIString, Namespace> FolderToNamespace = new()
         {
             ["ACS"] = Namespace.ACS,
@@ -24,11 +24,13 @@ namespace Helion.ResourcesNew.Archives.PK3s
             ["TEXTURES"] = Namespace.Textures,
         };
 
+        public string Path { get; }
         private readonly FileStream m_fileStream;
         private readonly ZipArchive m_zipArchive;
 
-        public PK3(string md5, FileStream fileStream) : base(md5)
+        public PK3(string path, string md5, FileStream fileStream) : base(md5)
         {
+            Path = path;
             m_fileStream = fileStream;
             m_zipArchive = new(fileStream);
 
@@ -44,7 +46,7 @@ namespace Helion.ResourcesNew.Archives.PK3s
             try
             {
                 FileStream fileStream = File.Open(path, FileMode.Open);
-                return new PK3(md5, fileStream);
+                return new PK3(path, md5, fileStream);
             }
             catch
             {

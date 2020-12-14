@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Helion.Util.Container
@@ -10,9 +11,9 @@ namespace Helion.Util.Container
     /// <typeparam name="K1">The first key.</typeparam>
     /// <typeparam name="K2">The second key.</typeparam>
     /// <typeparam name="V">The value.</typeparam>
-    public class HashTable<K1, K2, V> where V : class
+    public class HashTable<K1, K2, V> : IEnumerable<(K1, K2, V)> where V : class
     {
-        private readonly Dictionary<K1, Dictionary<K2, V>> m_table = new Dictionary<K1, Dictionary<K2, V>>();
+        private readonly Dictionary<K1, Dictionary<K2, V>> m_table = new();
 
         /// <summary>
         /// Gets/sets the value at the key pair provided. If it doesn't exist
@@ -24,13 +25,13 @@ namespace Helion.Util.Container
         /// <param name="k2">The second key.</param>
         /// <returns>The value mapped for the keys, or null if it does not
         /// exist.</returns>
-        public V? this[K1 k1, K2 k2] 
+        public V? this[K1 k1, K2 k2]
         {
             get => Get(k1, k2);
-            set 
+            set
             {
-                if (value != null) 
-                    Insert(k1, k2, value); 
+                if (value != null)
+                    Insert(k1, k2, value);
             }
         }
 
@@ -41,7 +42,7 @@ namespace Helion.Util.Container
         {
             m_table.Clear();
         }
-        
+
         /// <summary>
         /// Adds a key, if it exists then overwrites it.
         /// </summary>
@@ -145,5 +146,14 @@ namespace Helion.Util.Container
 
             return new List<V>();
         }
+
+        public IEnumerator<(K1, K2, V)> GetEnumerator()
+        {
+            foreach (var namespaceDictPair in m_table)
+                foreach (var nameValuePair in namespaceDictPair.Value)
+                    yield return (namespaceDictPair.Key, nameValuePair.Key, nameValuePair.Value);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

@@ -5,14 +5,16 @@ using ByteReader = Helion.Util.Bytes.ByteReader;
 
 namespace Helion.ResourcesNew.Archives.Wads
 {
-    public class WadFile : Wad
+    public class WadFile : Wad, IFileArchive
     {
+        public string Path { get; }
         private readonly FileStream m_fileStream;
         private readonly BinaryReader m_binaryReader;
         private readonly ByteReader m_byteReader;
 
-        private WadFile(string md5, FileStream fileStream) : base(md5)
+        private WadFile(string path, string md5, FileStream fileStream) : base(md5)
         {
+            Path = path;
             m_fileStream = fileStream;
             m_binaryReader = new BinaryReader(m_fileStream);
             m_byteReader = new ByteReader(m_binaryReader);
@@ -29,7 +31,7 @@ namespace Helion.ResourcesNew.Archives.Wads
             try
             {
                 FileStream fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                return new WadFile(md5, fileStream);
+                return new WadFile(path, md5, fileStream);
             }
             catch
             {
