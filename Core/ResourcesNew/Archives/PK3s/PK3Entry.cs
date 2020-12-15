@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using Helion.Resources;
 using NLog;
 
 namespace Helion.ResourcesNew.Archives.PK3s

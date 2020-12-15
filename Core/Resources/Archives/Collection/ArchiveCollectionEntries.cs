@@ -72,12 +72,12 @@ namespace Helion.Resources.Archives.Collection
         /// <param name="priorityNamespace">The namespace to look in first
         /// before any other namespaces.</param>
         /// <returns>The entry if it exists, null if not.</returns>
-        public Entry? FindByNamespace(CIString name, ResourceNamespace priorityNamespace)
+        public Entry? FindByNamespace(CIString name, Namespace priorityNamespace)
         {
             return m_namespaceNameEntries.Get(name, priorityNamespace);
         }
 
-        public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace)
+        public List<Entry> GetAllByNamespace(Namespace resourceNamespace)
         {
             return m_namespaceNameEntries.GetValues(resourceNamespace);
         }

@@ -16,7 +16,7 @@ namespace Helion.Resources.Images
         /// <param name="priorityNamespace">The namespace to check first.
         /// </param>
         /// <returns>The image, or null if none can be found.</returns>
-        Image? Get(CIString name, ResourceNamespace priorityNamespace);
+        Image? Get(CIString name, Namespace priorityNamespace);
         
         /// <summary>
         /// Gets the image in only the namespace provided. It will not look in
@@ -25,6 +25,6 @@ namespace Helion.Resources.Images
         /// <param name="name">The image name.</param>
         /// <param name="targetNamespace">The namespace to check.</param>
         /// <returns>The image, or null if none can be found.</returns>
-        Image? GetOnly(CIString name, ResourceNamespace targetNamespace);
+        Image? GetOnly(CIString name, Namespace targetNamespace);
     }
 }

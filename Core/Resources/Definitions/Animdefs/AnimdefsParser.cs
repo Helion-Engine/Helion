@@ -50,14 +50,14 @@ namespace Helion.Resources.Definitions.Animdefs
         {
             string warpNamespace = ConsumeString();
             
-            ResourceNamespace resourceNamespace;
+            Namespace resourceNamespace;
             switch (warpNamespace.ToUpper())
             {
             case "TEXTURE":
-                resourceNamespace = ResourceNamespace.Textures;
+                resourceNamespace = Namespace.Textures;
                 break;
             case "FLAT":
-                resourceNamespace = ResourceNamespace.Flats;
+                resourceNamespace = Namespace.Flats;
                 break;
             default:
                 throw MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
@@ -165,7 +165,7 @@ namespace Helion.Resources.Definitions.Animdefs
                 texture.Components.Add(new AnimatedTextureComponent(name, minTicks, maxTicks));
         }
 
-        private void ConsumeGraphicAnimation(ResourceNamespace resourceNamespace)
+        private void ConsumeGraphicAnimation(Namespace resourceNamespace)
         {
             bool optional = ConsumeIf("OPTIONAL");
             string name = ConsumeString();
@@ -276,13 +276,13 @@ namespace Helion.Resources.Definitions.Animdefs
                 ConsumeCameraTexture();
                 break;
             case "FLAT":
-                ConsumeGraphicAnimation(ResourceNamespace.Flats);
+                ConsumeGraphicAnimation(Namespace.Flats);
                 break;
             case "SWITCH":
                 ConsumeSwitchAnimation();
                 break;
             case "TEXTURE":
-                ConsumeGraphicAnimation(ResourceNamespace.Textures);
+                ConsumeGraphicAnimation(Namespace.Textures);
                 break;
             case "WARP":
                 ConsumeWarp(false);

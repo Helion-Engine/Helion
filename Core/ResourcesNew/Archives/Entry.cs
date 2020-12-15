@@ -1,4 +1,6 @@
-﻿namespace Helion.ResourcesNew.Archives
+﻿using Helion.Resources;
+
+namespace Helion.ResourcesNew.Archives
 {
     /// <summary>
     /// An entry in an archive.

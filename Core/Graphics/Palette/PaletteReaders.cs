@@ -59,7 +59,7 @@ namespace Helion.Graphics.Palette
         /// palette image to be created.</param>
         /// <returns>A palette image, or an empty optional if the data is not a
         /// flat palette image.</returns>
-        public static PaletteImage? ReadFlat(byte[] data, ResourceNamespace resourceNamespace)
+        public static PaletteImage? ReadFlat(byte[] data, Namespace resourceNamespace)
         {
             int dimension = FlatDimension(data.Length);
             if (dimension == 0)
@@ -89,7 +89,7 @@ namespace Helion.Graphics.Palette
         /// palette image to be created.</param>
         /// <returns>A palette image, or an empty optional if the data is not a
         /// column palette image.</returns>
-        public static PaletteImage? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
+        public static PaletteImage? ReadColumn(byte[] data, Namespace resourceNamespace)
         {
             // TODO: This could be improved probably dramatically if we:
             //       1) Read it into a column-major image and then rotated

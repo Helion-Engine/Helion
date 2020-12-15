@@ -213,7 +213,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         private Image? GetSkyImage()
         {
             ArchiveImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
-            return imageRetriever.Get(DefaultSky, ResourceNamespace.Textures);
+            return imageRetriever.Get(DefaultSky, Namespace.Textures);
         }
 
         private GLLegacyTexture CreateSkyTexture(Image skyImage)
@@ -242,7 +242,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             Image image = new Image(fadedSkyImage, new ImageMetadata());
             GLLegacyTexture texture = new GLLegacyTexture(textureId, debugName, dimension, image.Metadata, gl, TextureTargetType.Texture2D);
 
-            m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global);
+            m_textureManager.UploadAndSetParameters(texture, image, debugName, Namespace.Global);
             
             return texture;
         }

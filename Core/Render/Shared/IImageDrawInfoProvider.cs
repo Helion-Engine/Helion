@@ -25,8 +25,8 @@ namespace Helion.Render.Shared
         /// <param name="resourceNamespace">The namespace of the resource. This
         /// is optional.</param>
         /// <returns>The dimension of the image.</returns>
-        Dimension GetImageDimension(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global);
-        Vec2I GetImageOffset(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global);
+        Dimension GetImageDimension(string image, Namespace resourceNamespace = Namespace.Global);
+        Vec2I GetImageOffset(string image, Namespace resourceNamespace = Namespace.Global);
 
         /// <summary>
         /// Gets the vertical height of the font, which is the tallest

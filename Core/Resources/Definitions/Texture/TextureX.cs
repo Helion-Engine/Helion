@@ -90,7 +90,7 @@ namespace Helion.Resources.Definitions.Texture
             foreach (TextureXImage image in Definitions)
             {
                 List<TextureDefinitionComponent> components = CreateComponents(image, pnames);
-                definitions.Add(new TextureDefinition(image.Name, image.Dimension, ResourceNamespace.Textures, components));
+                definitions.Add(new TextureDefinition(image.Name, image.Dimension, Namespace.Textures, components));
             }
 
             return definitions;

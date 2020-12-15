@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Helion.Resources;
 using Helion.Util;
 using MoreLinq.Extensions;
 

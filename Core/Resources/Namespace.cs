@@ -1,4 +1,4 @@
-﻿namespace Helion.ResourcesNew
+﻿namespace Helion.Resources
 {
     /// <summary>
     /// The different namespace locations for a resource.
@@ -16,6 +16,6 @@
         Sprites,
         Textures,
         Voices,
-        Voxels
+        Voxels,
     }
 }

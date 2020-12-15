@@ -16,17 +16,17 @@ namespace Helion.Resources.Archives
     {
         private static readonly string DirectorySeparatorChar = System.IO.Path.DirectorySeparatorChar.ToString();
         private static readonly string AltDirectorySeparatorChar = System.IO.Path.AltDirectorySeparatorChar.ToString();
-        private static readonly Dictionary<CIString, ResourceNamespace> FolderToNamespace = new Dictionary<CIString, ResourceNamespace>()
+        private static readonly Dictionary<CIString, Namespace> FolderToNamespace = new Dictionary<CIString, Namespace>()
         {
-            ["ACS"] = ResourceNamespace.ACS,
-            ["FLATS"] = ResourceNamespace.Flats,
-            ["FONTS"] = ResourceNamespace.Fonts,
-            ["GRAPHICS"] = ResourceNamespace.Graphics,
-            ["HIRES"] = ResourceNamespace.Textures,
-            ["MUSIC"] = ResourceNamespace.Music,
-            ["SOUNDS"] = ResourceNamespace.Sounds,
-            ["SPRITES"] = ResourceNamespace.Sprites,
-            ["TEXTURES"] = ResourceNamespace.Textures,
+            ["ACS"] = Namespace.ACS,
+            ["FLATS"] = Namespace.Flats,
+            ["FONTS"] = Namespace.Fonts,
+            ["GRAPHICS"] = Namespace.Graphics,
+            ["HIRES"] = Namespace.Textures,
+            ["MUSIC"] = Namespace.Music,
+            ["SOUNDS"] = Namespace.Sounds,
+            ["SPRITES"] = Namespace.Sprites,
+            ["TEXTURES"] = Namespace.Textures,
         };
 
         private readonly ZipArchive m_zipArchive;
@@ -73,18 +73,18 @@ namespace Helion.Resources.Archives
             string forwardSlashPath = zipEntry.FullName.Replace('\\', '/');
             
             EntryPath entryPath = new EntryPath(forwardSlashPath);
-            ResourceNamespace resourceNamespace = NamespaceFromEntryPath(forwardSlashPath);
+            Namespace resourceNamespace = NamespaceFromEntryPath(forwardSlashPath);
             Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace));
         }
 
-        private ResourceNamespace NamespaceFromEntryPath(string forwardSlashPath)
+        private Namespace NamespaceFromEntryPath(string forwardSlashPath)
         {
             string[] tokens = forwardSlashPath.Split('/');
             if (tokens.Length > 0)
-                if (FolderToNamespace.TryGetValue(tokens[0], out ResourceNamespace resourceNamespace))
+                if (FolderToNamespace.TryGetValue(tokens[0], out Namespace resourceNamespace))
                     return resourceNamespace;
             
-            return ResourceNamespace.Global;
+            return Namespace.Global;
         }
 
         private void Pk3EntriesFromData()

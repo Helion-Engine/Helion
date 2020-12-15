@@ -5,7 +5,7 @@ namespace Helion.Resources
 {
     public class Texture
     {
-        public Texture(CIString name, ResourceNamespace resourceNamespace, int index)
+        public Texture(CIString name, Namespace resourceNamespace, int index)
         {
             Name = name;
             Namespace = resourceNamespace;
@@ -20,7 +20,7 @@ namespace Helion.Resources
         /// <summary>
         /// Resource namespace of the texture.
         /// </summary>
-        public ResourceNamespace Namespace;
+        public Namespace Namespace;
 
         /// <summary>
         /// Cached image of the texture.

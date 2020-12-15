@@ -23,13 +23,13 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             return m_textureManager.Contains(image);
         }
 
-        public Dimension GetImageDimension(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public Dimension GetImageDimension(string image, Namespace resourceNamespace = Namespace.Global)
         {
             m_textureManager.TryGet(image, resourceNamespace, out GLLegacyTexture texture);
             return texture.Dimension;
         }
 
-        public Vec2I GetImageOffset(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public Vec2I GetImageOffset(string image, Namespace resourceNamespace = Namespace.Global)
         {
             m_textureManager.TryGet(image, resourceNamespace, out GLLegacyTexture texture);
             return texture.Metadata.Offset;

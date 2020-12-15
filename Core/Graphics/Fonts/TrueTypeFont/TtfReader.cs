@@ -125,7 +125,7 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
 
                 ExtractFromRgbaImage(rgbaImage, startX, width, height, out byte[] argb);
 
-                Image image = new Image(width, height, argb, new ImageMetadata(ResourceNamespace.Fonts));
+                Image image = new Image(width, height, argb, new ImageMetadata(Namespace.Fonts));
                 Glyph glyph = new Glyph(c, image);
                 glyphs.Add(glyph);
                 

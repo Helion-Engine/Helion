@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Graphics.Palette;
 using Helion.Maps;
+using Helion.Resources;
 using Helion.ResourcesNew.Archives;
 using Helion.ResourcesNew.Definitions.Animations;
 using Helion.ResourcesNew.Definitions.Compatibility;
@@ -10,10 +11,11 @@ using Helion.ResourcesNew.Definitions.Fonts;
 using Helion.ResourcesNew.Definitions.SoundInfo;
 using Helion.ResourcesNew.Definitions.Textures;
 using Helion.ResourcesNew.Sprites;
-using Helion.ResourcesNew.Textures;
+using Helion.ResourcesNew.Tracker;
 using Helion.Util;
 using Helion.Util.Configuration;
 using NLog;
+using TextureManager = Helion.ResourcesNew.Textures.TextureManager;
 
 namespace Helion.ResourcesNew
 {
@@ -28,13 +30,14 @@ namespace Helion.ResourcesNew
         public readonly CompatibilityManager Compatibility = new();
         public readonly DecorateManager Decorate;
         public readonly FontManager Fonts;
-        public Palette Palette = Palettes.GetDefaultPalette();
         public readonly SoundInfoManager Sounds;
         public readonly SpriteManager Sprites;
         public readonly TextureManager Textures;
+        public Palette Palette = Palettes.GetDefaultPalette();
         private readonly Config m_config;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Entry> m_nameToEntry = new();
+        private readonly NamespaceTracker<Entry> m_entryTracker = new();
         private readonly TextureDefinitionManager m_textureDefinitionManager = new();
 
         public Resources(Config config, bool loadAssets = true)
@@ -89,6 +92,11 @@ namespace Helion.ResourcesNew
             return m_nameToEntry.TryGetValue(name, out Entry? entry) ? entry : null;
         }
 
+        public Entry? Find(CIString name, Namespace resourceNamespace)
+        {
+            return m_entryTracker.GetOnly(name, resourceNamespace);
+        }
+
         public IMap? FindMap(CIString name)
         {
             // TODO
@@ -104,6 +112,7 @@ namespace Helion.ResourcesNew
                 foreach (Entry entry in archive)
                 {
                     m_nameToEntry[entry.Path.Name] = entry;
+                    m_entryTracker.Insert(entry.Path.Name, entry.Namespace, entry);
                     LoadDefinitionFile(entry);
                 }
 

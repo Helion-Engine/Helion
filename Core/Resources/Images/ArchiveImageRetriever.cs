@@ -48,7 +48,7 @@ namespace Helion.Resources.Images
         }
 
         /// <inheritdoc/>
-        public Image? Get(CIString name, ResourceNamespace priorityNamespace)
+        public Image? Get(CIString name, Namespace priorityNamespace)
         {
             Image? compiledImage = m_compiledImages.Get(name, priorityNamespace);
             if (compiledImage != null)
@@ -66,7 +66,7 @@ namespace Helion.Resources.Images
         }
         
         /// <inheritdoc/>
-        public Image? GetOnly(CIString name, ResourceNamespace targetNamespace)
+        public Image? GetOnly(CIString name, Namespace targetNamespace)
         {
             Image? compiledImage = m_compiledImages.GetOnly(name, targetNamespace);
             if (compiledImage != null)

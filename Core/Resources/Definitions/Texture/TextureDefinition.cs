@@ -28,7 +28,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// The namespace of the image.
         /// </summary>
-        public readonly ResourceNamespace Namespace;
+        public readonly Namespace Namespace;
 
         /// <summary>
         /// The width of the image.
@@ -49,7 +49,7 @@ namespace Helion.Resources.Definitions.Texture
         /// </param>
         /// <param name="components">A list of all the sub-images that make up
         /// this definition.</param>
-        public TextureDefinition(CIString name, Dimension dimension, ResourceNamespace resourceNamespace,
+        public TextureDefinition(CIString name, Dimension dimension, Namespace resourceNamespace,
             IList<TextureDefinitionComponent> components)
         {
             Name = name;

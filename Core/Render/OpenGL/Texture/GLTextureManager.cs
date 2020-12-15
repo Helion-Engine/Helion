@@ -55,7 +55,7 @@ namespace Helion.Render.OpenGL.Texture
 
         private SpriteRotation CreateNullSpriteRotation()
         {
-            SpriteRotation spriteFrame = new SpriteRotation(new Resources.Texture("NULL", ResourceNamespace.Sprites, 0), false);
+            SpriteRotation spriteFrame = new SpriteRotation(new Resources.Texture("NULL", Namespace.Sprites, 0), false);
             spriteFrame.Texture.RenderStore = NullTexture;
             return spriteFrame;
         }
@@ -73,7 +73,7 @@ namespace Helion.Render.OpenGL.Texture
         /// <returns>True if it does, false if not.</returns>
         public bool Contains(CIString name)
         {
-            return TryGet(name, ResourceNamespace.Global, out _);
+            return TryGet(name, Namespace.Global, out _);
         }
         
         /// <summary>
@@ -87,7 +87,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture you want, or it will be the null image texture.</param>
         /// <returns>True if the texture was found, false if it was not found
         /// and the out value is the null texture handle.</returns>
-        public bool TryGet(CIString name, ResourceNamespace priorityNamespace, out GLTextureType texture)
+        public bool TryGet(CIString name, Namespace priorityNamespace, out GLTextureType texture)
         {
             texture = NullTexture;
             if (name == Constants.NoTexture)
@@ -189,7 +189,7 @@ namespace Helion.Render.OpenGL.Texture
         /// and the out value is the null texture handle.</returns>
         public bool TryGetSprite(CIString name, out GLTextureType texture)
         {
-            return TryGet(name, ResourceNamespace.Sprites, out texture);
+            return TryGet(name, Namespace.Sprites, out texture);
         }
         
         /// <summary>
@@ -224,9 +224,9 @@ namespace Helion.Render.OpenGL.Texture
             return (int)Math.Floor(Math.Log(smallerAxis, 2));
         }
 
-        protected GLTextureType CreateTexture(Image? image) => CreateTexture(image, null, ResourceNamespace.Global);
+        protected GLTextureType CreateTexture(Image? image) => CreateTexture(image, null, Namespace.Global);
         
-        protected GLTextureType CreateTexture(Image? image, CIString? name, ResourceNamespace resourceNamespace)
+        protected GLTextureType CreateTexture(Image? image, CIString? name, Namespace resourceNamespace)
         { 
             if (name != null)
                 DeleteOldTextureIfAny(name, resourceNamespace);
@@ -243,7 +243,7 @@ namespace Helion.Render.OpenGL.Texture
             return texture;
         }
         
-        protected void DeleteTexture(GLTextureType texture, CIString name, ResourceNamespace resourceNamespace)
+        protected void DeleteTexture(GLTextureType texture, CIString name, Namespace resourceNamespace)
         {
             m_textureTracker.Remove(name, resourceNamespace);
             texture.Dispose();
@@ -258,13 +258,13 @@ namespace Helion.Render.OpenGL.Texture
             m_fonts.ForEach(pair => pair.Value.Dispose());
         }
 
-        protected abstract GLTextureType GenerateTexture(Image image, CIString name, ResourceNamespace resourceNamespace);
+        protected abstract GLTextureType GenerateTexture(Image image, CIString name, Namespace resourceNamespace);
         
         protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, CIString name);
 
         private GLTextureType CreateNullTexture()
         {
-            return GenerateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
+            return GenerateTexture(ImageHelper.CreateNullImage(), "NULL", Namespace.Global);
         }
 
         private GLFontTexture<GLTextureType> CreateNullFont()
@@ -278,7 +278,7 @@ namespace Helion.Render.OpenGL.Texture
             return GenerateFont(font, "NULL");
         }
         
-        private void DeleteOldTextureIfAny(CIString name, ResourceNamespace resourceNamespace) 
+        private void DeleteOldTextureIfAny(CIString name, Namespace resourceNamespace) 
         {
             GLTextureType? texture = m_textureTracker.GetOnly(name, resourceNamespace);
             if (texture != null)

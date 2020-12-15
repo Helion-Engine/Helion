@@ -8,7 +8,7 @@ namespace Helion.Resources.Archives
         public readonly PK3 Parent;
         public readonly ZipArchiveEntry ZipEntry;
 
-        public PK3Entry(PK3 pk3, ZipArchiveEntry zipEntry, IEntryPath path, ResourceNamespace resourceNamespace)
+        public PK3Entry(PK3 pk3, ZipArchiveEntry zipEntry, IEntryPath path, Namespace resourceNamespace)
             : base(path, resourceNamespace)
         {
             Parent = pk3;

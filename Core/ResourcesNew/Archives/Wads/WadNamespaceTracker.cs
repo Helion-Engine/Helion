@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helion.Resources;
 using Helion.Util;
 
 namespace Helion.ResourcesNew.Archives.Wads

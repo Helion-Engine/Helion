@@ -18,9 +18,9 @@
         /// <summary>
         /// The namespace this entry was located in.
         /// </summary>
-        public ResourceNamespace Namespace { get; }
+        public Namespace Namespace { get; }
 
-        protected Entry(IEntryPath path, ResourceNamespace resourceNamespace)
+        protected Entry(IEntryPath path, Namespace resourceNamespace)
         {
             Path = path;
             Namespace = resourceNamespace;

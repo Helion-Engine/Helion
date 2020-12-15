@@ -33,7 +33,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             ReleaseUnmanagedResources();
         }
         
-        public void UploadAndSetParameters(GLLegacyTexture texture, Image image, CIString name, ResourceNamespace resourceNamespace)
+        public void UploadAndSetParameters(GLLegacyTexture texture, Image image, CIString name, Namespace resourceNamespace)
         {
             Precondition(image.Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
             
@@ -69,7 +69,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         /// </param>
         /// <returns>A new texture.</returns>
         protected override GLLegacyTexture GenerateTexture(Image image, CIString name, 
-            ResourceNamespace resourceNamespace)
+            Namespace resourceNamespace)
         {
             int textureId = gl.GenTexture();
             string textureName = $"{name} [{resourceNamespace}]";
@@ -89,22 +89,22 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, CIString name)
         {
             (Image image, GLFontMetrics metrics) = GLFontGenerator.CreateFontAtlasFrom(font); 
-            GLLegacyTexture texture = GenerateTexture(image, $"[FONT] {name}", ResourceNamespace.Fonts);
+            GLLegacyTexture texture = GenerateTexture(image, $"[FONT] {name}", Namespace.Fonts);
             GLFontTexture<GLLegacyTexture> fontTexture = new GLFontTexture<GLLegacyTexture>(texture, metrics);
             return fontTexture;
         }
 
-        private void SetTextureParameters(TextureTargetType targetType, ResourceNamespace resourceNamespace)
+        private void SetTextureParameters(TextureTargetType targetType, Namespace resourceNamespace)
         {
             // Sprites are a special case where we want to clamp to the edge.
             // This stops artifacts from forming.
-            if (resourceNamespace == ResourceNamespace.Sprites)
+            if (resourceNamespace == Namespace.Sprites)
             {
                 HandleSpriteTextureParameters(targetType);
                 return;
             }
 
-            if (resourceNamespace == ResourceNamespace.Fonts)
+            if (resourceNamespace == Namespace.Fonts)
             {
                 HandleFontTextureParameters(targetType);
                 return;

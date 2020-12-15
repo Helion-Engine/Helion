@@ -52,7 +52,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // invocations to this for every single sprite to avoid overhead
             // of asking the config for a new value every time.
             m_drawDebugBox = m_config.Engine.Developer.RenderDebug;
-            m_textureManager.TryGet(Constants.DebugBoxTexture, ResourceNamespace.Graphics, out m_debugBoxTexture);
+            m_textureManager.TryGet(Constants.DebugBoxTexture, Namespace.Graphics, out m_debugBoxTexture);
             m_debugBoxRenderWorldData = m_worldDataManager[m_debugBoxTexture];
 
             m_tickFraction = tickFraction;

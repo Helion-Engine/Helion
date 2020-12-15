@@ -3,12 +3,12 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
     public class AnimatedWarpTexture
     {
         public readonly string Name;
-        public readonly ResourceNamespace Namespace;
+        public readonly Namespace Namespace;
         public readonly int Speed;
         public readonly bool AllowDecals;
         public readonly bool WaterEffect;
         
-        public AnimatedWarpTexture(string name, ResourceNamespace resourceNamespace, int? speed, bool allowDecals,
+        public AnimatedWarpTexture(string name, Namespace resourceNamespace, int? speed, bool allowDecals,
             bool waterEffect)
         {
             Name = name.ToUpper();

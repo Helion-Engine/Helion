@@ -72,7 +72,7 @@ namespace Helion.Graphics.Fonts
             
             foreach ((char c, CharDefinition charDef) in definition.CharDefinitions)
             {
-                Image? image = imageRetriever.Get(charDef.ImageName, ResourceNamespace.Graphics);
+                Image? image = imageRetriever.Get(charDef.ImageName, Namespace.Graphics);
                 if (image != null)
                     charImages[c] = new GlyphPrototype(image, charDef.Alignment);
             }

@@ -45,8 +45,8 @@ namespace Helion.Resources
             if (frame >= MaxFrames)
                 return;
 
-            Texture texture = new Texture(string.Empty, ResourceNamespace.Sprites, 0);
-            texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
+            Texture texture = new Texture(string.Empty, Namespace.Sprites, 0);
+            texture.Image = imageRetriever.GetOnly(entry.Path.Name, Namespace.Sprites);
 
             // Does not have any rotations, just fill all 8 with the same texture for easier lookups
             if (rotation == 0)

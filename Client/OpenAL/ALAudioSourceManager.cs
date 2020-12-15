@@ -98,7 +98,7 @@ namespace Helion.Client.OpenAL
             if (m_nameToBuffer.TryGetValue(upperSound, out ALBuffer? existingBuffer))
                 return existingBuffer;
 
-            Entry? entry = m_archiveCollection.Entries.FindByNamespace(upperSound, ResourceNamespace.Sounds);
+            Entry? entry = m_archiveCollection.Entries.FindByNamespace(upperSound, Namespace.Sounds);
             if (entry == null)
             {
                 Log.Warn("Cannot find sound: {0}", sound);

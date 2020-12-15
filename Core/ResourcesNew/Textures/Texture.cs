@@ -1,4 +1,5 @@
 ﻿using Helion.Graphics;
+using Helion.Resources;
 using Helion.Util;
 
 namespace Helion.ResourcesNew.Textures

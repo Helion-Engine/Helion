@@ -20,26 +20,26 @@ namespace Helion.Resources.Archives
         private readonly BinaryReader m_binaryReader;
         private readonly ByteReader m_byteReader;
 
-        private readonly Dictionary<CIString, ResourceNamespace> m_entryToNamespace = new Dictionary<CIString, ResourceNamespace>()
+        private readonly Dictionary<CIString, Namespace> m_entryToNamespace = new Dictionary<CIString, Namespace>()
         {
-            ["F_START"] = ResourceNamespace.Flats,
-            ["F_END"] = ResourceNamespace.Global,
-            ["FF_START"] = ResourceNamespace.Flats,
-            ["FF_END"] = ResourceNamespace.Global,
-            ["HI_START"] = ResourceNamespace.Textures,
-            ["HI_END"] = ResourceNamespace.Textures,
-            ["P_START"] = ResourceNamespace.Textures,
-            ["P_END"] = ResourceNamespace.Global,
-            ["PP_START"] = ResourceNamespace.Textures,
-            ["PP_END"] = ResourceNamespace.Global,
-            ["S_START"] = ResourceNamespace.Sprites,
-            ["S_END"] = ResourceNamespace.Global,
-            ["SS_START"] = ResourceNamespace.Sprites,
-            ["SS_END"] = ResourceNamespace.Global,
-            ["T_START"] = ResourceNamespace.Textures,
-            ["T_END"] = ResourceNamespace.Global,
-            ["TX_START"] = ResourceNamespace.Textures,
-            ["TX_END"] = ResourceNamespace.Global,
+            ["F_START"] = Namespace.Flats,
+            ["F_END"] = Namespace.Global,
+            ["FF_START"] = Namespace.Flats,
+            ["FF_END"] = Namespace.Global,
+            ["HI_START"] = Namespace.Textures,
+            ["HI_END"] = Namespace.Textures,
+            ["P_START"] = Namespace.Textures,
+            ["P_END"] = Namespace.Global,
+            ["PP_START"] = Namespace.Textures,
+            ["PP_END"] = Namespace.Global,
+            ["S_START"] = Namespace.Sprites,
+            ["S_END"] = Namespace.Global,
+            ["SS_START"] = Namespace.Sprites,
+            ["SS_END"] = Namespace.Global,
+            ["T_START"] = Namespace.Textures,
+            ["T_END"] = Namespace.Global,
+            ["TX_START"] = Namespace.Textures,
+            ["TX_END"] = Namespace.Global,
         };
 
         public Wad(IEntryPath path) : base(path)
@@ -90,7 +90,7 @@ namespace Helion.Resources.Archives
             if (Header.DirectoryTableOffset + (Header.EntryCount * LumpTableEntryBytes) > m_byteReader.Length)
                 throw new HelionException("Lump entry table runs out of data");
 
-            ResourceNamespace currentNamespace = ResourceNamespace.Global;
+            Namespace currentNamespace = Namespace.Global;
 
             m_byteReader.Position = Header.DirectoryTableOffset;
             for (int i = 0; i < Header.EntryCount; i++)
@@ -105,14 +105,14 @@ namespace Helion.Resources.Archives
                     throw new HelionException("Lump entry data location overflows");
 
                 bool isMarker = false;
-                if (m_entryToNamespace.TryGetValue(upperName, out ResourceNamespace resourceNamespace))
+                if (m_entryToNamespace.TryGetValue(upperName, out Namespace resourceNamespace))
                 {
                     isMarker = true;
                     currentNamespace = resourceNamespace;
                 }
 
                 WadEntryPath entryPath = new WadEntryPath(upperName);
-                Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace));
+                Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? Namespace.Global : currentNamespace));
             }
         }
     }

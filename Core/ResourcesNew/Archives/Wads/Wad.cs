@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using Helion.Resources;
 using Helion.Util;
 using ByteReader = Helion.Util.Bytes.ByteReader;
 

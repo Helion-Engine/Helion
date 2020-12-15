@@ -8,7 +8,7 @@ namespace Helion.Resources.Archives
         public readonly int Offset;
         public readonly int Size;
 
-        public WadEntry(Wad wad, int offset, int size, IEntryPath path, ResourceNamespace resourceNamespace)
+        public WadEntry(Wad wad, int offset, int size, IEntryPath path, Namespace resourceNamespace)
             : base(path, resourceNamespace)
         {
             Parent = wad;

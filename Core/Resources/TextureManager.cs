@@ -27,12 +27,12 @@ namespace Helion.Resources
             m_archiveCollection = archiveCollection;
             m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
 
-            var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
+            var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(Namespace.Flats);
             int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
             m_textures = new Texture[count];
             m_translations = new int[count];
 
-            var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
+            var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(Namespace.Sprites);
             var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
                 .Select(x => x.Path.Name.Substring(0, 4))
                 .Distinct()
@@ -90,13 +90,13 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The resource namespace to search by.</param>
         /// <returns>Returns the texture given the name and resource namespace.
         /// If not found the texture will be returned with Name = Constants.NoTexture and Index = Constants.NoTextureIndex.</returns>
-        public Texture GetTexture(CIString name, ResourceNamespace resourceNamespace)
+        public Texture GetTexture(CIString name, Namespace resourceNamespace)
         {
             if (name == Constants.NoTexture)
                 return m_textures[Constants.NoTextureIndex];
 
             Texture texture;
-            if (resourceNamespace == ResourceNamespace.Global)
+            if (resourceNamespace == Namespace.Global)
                 texture = m_textures.FirstOrDefault(tex => tex.Name == name);
             else
                 texture = m_textures.FirstOrDefault(tex => tex.Name == name && tex.Namespace == resourceNamespace);
@@ -176,9 +176,9 @@ namespace Helion.Resources
         {
             foreach (var sw in m_archiveCollection.Definitions.Animdefs.AnimatedSwitches)
             {
-                sw.StartTextureIndex = GetTexture(sw.StartTexture, ResourceNamespace.Global).Index;
+                sw.StartTextureIndex = GetTexture(sw.StartTexture, Namespace.Global).Index;
                 foreach (var component in sw.Components)
-                    component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
+                    component.TextureIndex = GetTexture(component.Texture, Namespace.Global).Index;
             }
         }
 
@@ -188,7 +188,7 @@ namespace Helion.Resources
             {
                 foreach (var component in animTexture.Components)
                 {
-                    component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
+                    component.TextureIndex = GetTexture(component.Texture, Namespace.Global).Index;
                     if (component.TextureIndex != Constants.NoTextureIndex)
                         m_animations.Add(new Animation(animTexture, component.TextureIndex));
                 }
@@ -200,7 +200,7 @@ namespace Helion.Resources
             for (int i = 0; i < m_translations.Length; i++)
                 m_translations[i] = i;
 
-            m_textures[Constants.NoTextureIndex] = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
+            m_textures[Constants.NoTextureIndex] = new Texture(Constants.NoTexture, Namespace.Textures, Constants.NoTextureIndex);
 
             int index = Constants.NoTextureIndex + 1;
             foreach (TextureDefinition texture in textures)
@@ -219,7 +219,7 @@ namespace Helion.Resources
             // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
             foreach (Entry flat in flatEntries)
             {
-                m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
+                m_textures[index] = new Texture(flat.Path.Name, Namespace.Flats, index);
                 
                 // TODO fix with MapInfo when implemented
                 if (flat.Path.Name == Constants.SkyTexture)

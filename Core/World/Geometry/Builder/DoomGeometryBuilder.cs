@@ -51,7 +51,7 @@ namespace Helion.World.Geometry.Builder
             int id = sectorPlanes.Count;
             double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
             string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
-            int handle = TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index;
+            int handle = TextureManager.Instance.GetTexture(texture, Namespace.Flats).Index;
             
             SectorPlane sectorPlane = new SectorPlane(id, face, z, handle, doomSector.LightLevel);
             sectorPlanes.Add(sectorPlane);
@@ -83,7 +83,7 @@ namespace Helion.World.Geometry.Builder
             // ordering very badly.
             Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
             Sector sector = builder.Sectors[doomSide.Sector.Id];
-            int handle = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures).Index;
+            int handle = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, Namespace.Textures).Index;
 
             // When we get to 3D floors we're going to have to fix this...
             Wall wall = new Wall(builder.Walls.Count, handle, WallLocation.Middle);
@@ -107,9 +107,9 @@ namespace Helion.World.Geometry.Builder
             Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
             Sector facingSector = builder.Sectors[facingSide.Sector.Id];
 
-            var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
-            var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
-            var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
+            var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, Namespace.Textures);
+            var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, Namespace.Textures);
+            var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, Namespace.Textures);
             
             Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
             Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);

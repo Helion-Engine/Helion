@@ -23,19 +23,19 @@ namespace Helion.Graphics
         /// <summary>
         /// The namespace this image was located in.
         /// </summary>
-        public ResourceNamespace Namespace { get; }
+        public Namespace Namespace { get; }
 
-        public ImageMetadata() : this(new Vec2I(0, 0), ResourceNamespace.Global)
+        public ImageMetadata() : this(new Vec2I(0, 0), Namespace.Global)
         {
         }
 
-        public ImageMetadata(Vec2I offset, ResourceNamespace resourceNamespace)
+        public ImageMetadata(Vec2I offset, Namespace resourceNamespace)
         {
             Offset = offset;
             Namespace = resourceNamespace;
         }
 
-        public ImageMetadata(ResourceNamespace resourceNamespace)
+        public ImageMetadata(Namespace resourceNamespace)
         {
             Offset = new Vec2I(0, 0);
             Namespace = resourceNamespace;
