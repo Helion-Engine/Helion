@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Helion.Resources.Archives.Entries;
+using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
 
@@ -10,10 +10,8 @@ namespace Helion.Resources.Definitions.SoundInfo
     {
         private readonly Dictionary<string, SoundInfo> m_lookup = new Dictionary<string, SoundInfo>();
         private readonly Dictionary<string, List<string>> m_randomLookup = new Dictionary<string, List<string>>();
+        private readonly SimpleParser m_parser = new SimpleParser();
 
-        private readonly List<string> m_tokens = new List<string>();
-        private bool m_multiLineComment;
-        private int m_index = 0;
         private int m_pitchShiftRange = 0;
 
         public SoundInfoDefinition()
@@ -30,15 +28,7 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         public void Parse(Entry entry)
         {
-            string text = System.Text.Encoding.UTF8.GetString(entry.ReadData()).Replace("\r\n", "\n");
-            string[] lines = text.Split(new string[] { "\r\n", "\n" }, System.StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string line in lines)
-            {
-                string parseLine = StripComments(line);
-                m_tokens.AddRange(parseLine.Split(new char[] { '\t', ' ' }, System.StringSplitOptions.RemoveEmptyEntries));
-            }
-
+            m_parser.Parse(System.Text.Encoding.UTF8.GetString(entry.ReadData()));          
             PerformParsing();
         }
 
@@ -57,86 +47,25 @@ namespace Helion.Resources.Definitions.SoundInfo
             return null;
         }
 
-        private bool Done => m_index >= m_tokens.Count;
-
-        private bool Peek(char c)
-        {
-            if (m_tokens[m_index][0] == c)
-                return true;
-
-            return false;
-        }
-
         protected void PerformParsing()
         {
-            while (!Done)
+            while (!m_parser.IsDone())
             {
-                if (Peek('$'))
+                if (m_parser.Peek('$'))
                     ParseCommand();
                 else
                     ParseSound();
             }
         }
 
-        private string StripComments(string line)
-        {
-            int start = 0;
-            for (int i = 0; i < line.Length - 1; i++)
-            {
-                if (m_multiLineComment)
-                {
-                    if (line[i] == '*' && line[i + 1] == '/')
-                    {
-                        m_multiLineComment = false;
-                        start = i + 1;
-                    }
-                }
-                else
-                {
-                    if (line[i] == '/')
-                    {
-                        if (line[i + 1] == '/')
-                        {
-                            return line.Substring(start, i);
-                        }
-                        else if (line[i] == '*')
-                        {
-                            m_multiLineComment = true;
-                            return line.Substring(start, i);
-                        }
-                    }
-                }
-            }
-
-            return line;
-        }
-
-        private string ConsumeString()
-        {
-            return m_tokens[m_index++];
-        }
-
-        private int ConsumeInteger()
-        {
-            return Convert.ToInt32(m_tokens[m_index++]);
-        }
-
-        private void Consume(char c)
-        {
-            if (m_tokens[m_index].Length == 1 && m_tokens[m_index][0] == c)
-                m_index++;
-            else
-                throw new Exception("UHOH");
-        }
-
         private void ParseSound()
         {
-            AddSound(ConsumeString(), ConsumeString());
+            AddSound(m_parser.ConsumeString(), m_parser.ConsumeString());
         }
 
         private void ParseCommand()
         {
-            string type = ConsumeString();
+            string type = m_parser.ConsumeString();
 
             if (type == "$playercompat")
                 ParsePlayerCompat();
@@ -147,7 +76,7 @@ namespace Helion.Resources.Definitions.SoundInfo
             else if (type == "$pitchshift")
                 ParsePitchShift();
             else if (type == "$pitchshiftrange")
-                m_pitchShiftRange = ConsumeInteger();
+                m_pitchShiftRange = m_parser.ConsumeInteger();
             else if (type == "$alias")
                 ParseAlias();
             else if (type == "$limit")
@@ -155,13 +84,13 @@ namespace Helion.Resources.Definitions.SoundInfo
             else if (type == "$random")
                 ParseRandom();
             else
-                throw new Exception("bad command");
+                throw new ParserException(m_parser.GetCurrentLine(), 0, 0, "Bad command.");
         }
 
         private void ParsePitchShift()
         {
-            string key = ConsumeString();
-            int pitch = ConsumeInteger();
+            string key = m_parser.ConsumeString();
+            int pitch = m_parser.ConsumeInteger();
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
                 soundInfo.PitchShift = pitch;
@@ -169,8 +98,8 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         private void ParseLimit()
         {
-            string key = ConsumeString();
-            int limit = ConsumeInteger();
+            string key = m_parser.ConsumeString();
+            int limit = m_parser.ConsumeInteger();
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
                 soundInfo.Limit = limit;
@@ -178,8 +107,8 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         private void ParseAlias()
         {
-            string alias = ConsumeString();
-            string key = ConsumeString();
+            string alias = m_parser.ConsumeString();
+            string key = m_parser.ConsumeString();
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
                 m_lookup[alias] = soundInfo;
@@ -187,18 +116,18 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         private void ParsePlayerCompat()
         {
-            ConsumeString();
-            ConsumeString();
-            ConsumeString();
-            ConsumeString();
+            m_parser.ConsumeString();
+            m_parser.ConsumeString();
+            m_parser.ConsumeString();
+            m_parser.ConsumeString();
         }
 
         private void ParsePlayerSoundDup()
         {
-            string player = ConsumeString();
-            string gender = ConsumeString();
-            string name = ConsumeString();
-            string entryName = ConsumeString();
+            string player = m_parser.ConsumeString();
+            string gender = m_parser.ConsumeString();
+            string name = m_parser.ConsumeString();
+            string entryName = m_parser.ConsumeString();
             string key = $"{player}/{gender}/{entryName}";
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
@@ -210,19 +139,19 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         private void ParsePlayerSound()
         {
-            string key = $"{ConsumeString()}/{ConsumeString()}/{ConsumeString()}";
-            AddSound(key, ConsumeString(), true);
+            string key = $"{m_parser.ConsumeString()}/{m_parser.ConsumeString()}/{m_parser.ConsumeString()}";
+            AddSound(key, m_parser.ConsumeString(), true);
         }
 
         private void ParseRandom()
         {
             List<string> sounds = new List<string>();
-            string key = ConsumeString();
-            Consume('{');
+            string key = m_parser.ConsumeString();
+            m_parser.Consume('{');
 
-            while (!Peek('}'))
-                sounds.Add(ConsumeString());
-            Consume('}');
+            while (!m_parser.Peek('}'))
+                sounds.Add(m_parser.ConsumeString());
+            m_parser.Consume('}');
 
             m_randomLookup[key] = sounds;
         }
