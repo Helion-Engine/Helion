@@ -21,6 +21,8 @@ namespace Helion.World.Entities.Definition.States
         private int m_tics;
         private bool m_destroyOnStop;
 
+        public int CurrentTick => m_tics;
+
         public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager, bool destroyOnStop = true)
         {
             m_entity = entity;
@@ -39,11 +41,12 @@ namespace Helion.World.Entities.Definition.States
             return null;
         }
 
-        public bool SetState(string label)
+        public bool SetState(string label, int offset = 0)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
             {
-                SetFrameIndex(index);
+                Precondition(index + offset >= 0 && index + offset < m_definition.States.Frames.Count, $"Bad frame index[{index}] offset[{offset}]");
+                SetFrameIndex(index + offset);
                 return true;
             }
             
