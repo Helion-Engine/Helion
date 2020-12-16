@@ -1086,7 +1086,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
-                player.Weapon?.SetFlashState();
+                int offset = player.Weapon == null ? 0 : Math.Clamp(player.Weapon.FrameState.Frame.Frame, 0, 1);
+                player.Weapon?.SetFlashState(offset);
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
                     player.PitchRadians, Constants.EntityShootDistance, false);
             }
@@ -1136,7 +1137,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.Weapon?.SetFlashState();
+                player.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
                 player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "PlasmaBall");
             }
         }

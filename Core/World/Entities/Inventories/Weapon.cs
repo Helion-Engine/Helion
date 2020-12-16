@@ -14,7 +14,9 @@ namespace Helion.World.Entities.Inventories
     public class Weapon : InventoryItem, ITickable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
+
+        public readonly Player Owner;
+
         /// <summary>
         /// The current state of the weapon.
         /// </summary>
@@ -59,6 +61,7 @@ namespace Helion.World.Entities.Inventories
         {
             Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
 
+            Owner = owner;
             FrameState = new FrameState(owner, definition, entityManager, false);
             FlashState = new FrameState(owner, definition, entityManager, false);
 
@@ -90,9 +93,9 @@ namespace Helion.World.Entities.Inventories
             FrameState.SetState("FIRE");
         }
 
-        public void SetFlashState()
+        public void SetFlashState(int offset = 0)
         {
-            FlashState.SetState("FLASH");
+            FlashState.SetState("FLASH", offset);
         }
 
         public void SetReadyState()
@@ -107,11 +110,9 @@ namespace Helion.World.Entities.Inventories
             if (m_tryingToFire && ReadyToFire)
                 SetToFireState();
 
-            // TODO: Weapon raise/lower.
-
             ReadyToFire = false;
-            m_tryingToFire = false; 
-            
+            m_tryingToFire = false;
+
             FrameState.Tick();
             FlashState.Tick();
         }
