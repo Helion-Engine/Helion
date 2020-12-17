@@ -13,7 +13,6 @@ using Helion.ResourcesNew.Definitions.Textures;
 using Helion.ResourcesNew.Sprites;
 using Helion.ResourcesNew.Tracker;
 using Helion.Util;
-using Helion.Util.Configuration;
 using NLog;
 using TextureManager = Helion.ResourcesNew.Textures.TextureManager;
 
@@ -30,19 +29,17 @@ namespace Helion.ResourcesNew
         public readonly CompatibilityManager Compatibility = new();
         public readonly DecorateManager Decorate;
         public readonly FontManager Fonts;
+        public Palette Palette = Palettes.GetDefaultPalette();
         public readonly SoundInfoManager Sounds;
         public readonly SpriteManager Sprites;
         public readonly TextureManager Textures;
-        public Palette Palette = Palettes.GetDefaultPalette();
-        private readonly Config m_config;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Entry> m_nameToEntry = new();
         private readonly NamespaceTracker<Entry> m_entryTracker = new();
         private readonly TextureDefinitionManager m_textureDefinitionManager = new();
 
-        public Resources(Config config, bool loadAssets = true)
+        public Resources(bool loadAssets = true)
         {
-            m_config = config;
             Sounds = new(this);
             Textures = new(this, m_textureDefinitionManager);
             Sprites = new(this, Textures);

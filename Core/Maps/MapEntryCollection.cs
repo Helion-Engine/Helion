@@ -41,13 +41,18 @@ namespace Helion.Maps
         public byte[]? GLPVS { get; set; }
 
         /// <summary>
-        /// Gets the map type for this collection. The value it returns may be 
+        /// Gets the map type for this collection. The value it returns may be
         /// invalid so you will have to check against the IsValid property.
         /// </summary>
         public MapType MapType => IsUDMFMap ? MapType.UDMF : (IsHexenMap ? MapType.Hexen : MapType.Doom);
 
         /// <summary>
-        /// Checks if this is a well formed map entry collection that is 
+        /// True if the map has all the required GL components, false if not.
+        /// </summary>
+        public bool HasAllGLComponents => GLVertices != null && GLSegments != null && GLSubsectors != null && GLNodes != null;
+
+        /// <summary>
+        /// Checks if this is a well formed map entry collection that is
         /// eligible to be converted into a valid map entry collection.
         /// </summary>
         /// <returns>True if it's got the required components as per map type,

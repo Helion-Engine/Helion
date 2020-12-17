@@ -12,6 +12,7 @@ namespace Helion.ResourcesNew.Archives
         public readonly string MD5;
         private readonly List<Entry> m_entries = new();
         private readonly Dictionary<CIString, Entry> m_nameToEntry = new();
+        private readonly Dictionary<CIString, Entry> m_pathToEntry = new();
 
         protected Archive(string md5)
         {
@@ -30,6 +31,11 @@ namespace Helion.ResourcesNew.Archives
             return m_nameToEntry.TryGetValue(name, out Entry? entry) ? entry : null;
         }
 
+        public Entry? FindByPath(CIString path)
+        {
+            return m_pathToEntry.TryGetValue(path, out Entry? entry) ? entry : null;
+        }
+
         public virtual void Dispose()
         {
             GC.SuppressFinalize(this);
@@ -41,6 +47,7 @@ namespace Helion.ResourcesNew.Archives
         {
             m_entries.Add(entry);
             m_nameToEntry[entry.Path.Name] = entry;
+            m_pathToEntry[entry.Path.ToString()] = entry;
         }
 
         public IEnumerator<Entry> GetEnumerator() => m_entries.GetEnumerator();
