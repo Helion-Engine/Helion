@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Helion.Bsp;
-using Helion.Maps.Doom;
-using Helion.Maps.Doom.Components;
+using Helion.Maps;
+using Helion.Maps.Components.Sectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources;
+using Helion.Resource;
+using Helion.Resource.Textures;
 using Helion.Util.Geometry.Segments;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -16,17 +16,18 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using Sector = Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.World.Geometry.Builder
 {
     public static class DoomGeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
-        public static MapGeometry? Create(DoomMap map, IBspBuilder bspBuilder)
+
+        public static MapGeometry? Create(Map map)
         {
-            GeometryBuilder builder = new GeometryBuilder();
-            
+            GeometryBuilder builder = new();
+
             PopulateSectorData(map, builder);
             PopulateLineData(map, builder);
 
@@ -52,13 +53,13 @@ namespace Helion.World.Geometry.Builder
             double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
             string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
             int handle = TextureManager.Instance.GetTexture(texture, Namespace.Flats).Index;
-            
+
             SectorPlane sectorPlane = new SectorPlane(id, face, z, handle, doomSector.LightLevel);
             sectorPlanes.Add(sectorPlane);
-            
+
             return sectorPlane;
         }
-        
+
         private static void PopulateSectorData(DoomMap map, GeometryBuilder builder)
         {
             foreach (DoomSector doomSector in map.Sectors)
@@ -67,7 +68,7 @@ namespace Helion.World.Geometry.Builder
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
                 ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate((VanillaSectorSpecialType)doomSector.SectorType);
 
-                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
+                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                     floorPlane, ceilingPlane, sectorSpecial);
                 builder.Sectors.Add(sector);
             }
@@ -77,7 +78,7 @@ namespace Helion.World.Geometry.Builder
             ref int nextSideId)
         {
             DoomSide doomSide = doomLine.Front;
-            
+
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
@@ -88,14 +89,14 @@ namespace Helion.World.Geometry.Builder
             // When we get to 3D floors we're going to have to fix this...
             Wall wall = new Wall(builder.Walls.Count, handle, WallLocation.Middle);
             builder.Walls.Add(wall);
-            
+
             Side front = new Side(nextSideId, doomSide.Offset, wall, sector);
             builder.Sides.Add(front);
 
             wall.Side = front;
 
             nextSideId++;
-            
+
             return (front, null);
         }
 
@@ -110,19 +111,19 @@ namespace Helion.World.Geometry.Builder
             var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, Namespace.Textures);
             var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, Namespace.Textures);
             var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, Namespace.Textures);
-            
+
             Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
             Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
             Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
             builder.Walls.Add(middle);
             builder.Walls.Add(upper);
             builder.Walls.Add(lower);
-            
+
             TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
             builder.Sides.Add(side);
 
             nextSideId++;
-            
+
             return side;
         }
 
@@ -140,7 +141,7 @@ namespace Helion.World.Geometry.Builder
         private static void PopulateLineData(DoomMap map, GeometryBuilder builder)
         {
             int nextSideId = 0;
-            
+
             foreach (DoomLine doomLine in map.Lines)
             {
                 if (doomLine.Start.Position == doomLine.End.Position)
@@ -148,16 +149,16 @@ namespace Helion.World.Geometry.Builder
                     Log.Warn("Zero length linedef pruned (id = {0})", doomLine.Id);
                     continue;
                 }
-                
+
                 (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId);
 
                 Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
                 LineFlags flags = new LineFlags(doomLine.Flags);
                 SpecialArgs specialArgs = default;
-                ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, (byte)doomLine.SectorTag, 
+                ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, (byte)doomLine.SectorTag,
                     ref specialArgs, out LineSpecialCompatibility? compatibility);
                 LineActivationType activationType = VanillaLineSpecTranslator.GetLineTagActivation(doomLine.LineType);
-                LineSpecial special = new LineSpecial(zdoomType, activationType, compatibility);              
+                LineSpecial special = new LineSpecial(zdoomType, activationType, compatibility);
                 Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
                 builder.MapLines[line.MapId] = line;

@@ -5,7 +5,6 @@ using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Resource;
-using Helion.Resource.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
@@ -54,7 +53,7 @@ namespace Helion.World.Impl.SinglePlayer
         public static SinglePlayerWorld? Create(Config config, Resources resources,
             IAudioSystem audioSystem, Map map, Player? existingPlayer = null)
         {
-            MapGeometry? geometry = GeometryBuilder.Create(map, config);
+            MapGeometry? geometry = GeometryBuilder.Create(map);
             if (geometry == null)
             {
                 Log.Error("Cannot make single player world, geometry is malformed");

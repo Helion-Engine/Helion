@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Resource.Archives.Collection;
+using Helion.Resource;
 using Helion.Resource.Definitions.Decorate;
 using Helion.Util;
 using Helion.Util.Container;
@@ -26,18 +26,18 @@ namespace Helion.World.Entities.Definition.Composer
         private const int RecursiveDefinitionOverflow = 10000;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly ArchiveCollection m_archiveCollection;
-        private readonly AvailableIndexTracker m_indexTracker = new AvailableIndexTracker();
-        private readonly Dictionary<CIString, EntityDefinition> m_definitions = new Dictionary<CIString, EntityDefinition>();
-        private readonly List<EntityDefinition> m_listDefinitions = new List<EntityDefinition>();
-        private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new Dictionary<int, EntityDefinition>();
+        private readonly Resources m_resources;
+        private readonly AvailableIndexTracker m_indexTracker = new();
+        private readonly Dictionary<CIString, EntityDefinition> m_definitions = new();
+        private readonly List<EntityDefinition> m_listDefinitions = new();
+        private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new();
 
-        public EntityDefinitionComposer(ArchiveCollection archiveCollection)
+        public EntityDefinitionComposer(Resources resources)
         {
-            m_archiveCollection = archiveCollection;
+            m_resources = resources;
 
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
-            foreach (ActorDefinition definition in m_archiveCollection.Definitions.Decorate.GetActorDefinitions())
+            foreach (ActorDefinition definition in resources.Decorate.GetActorDefinitions())
                 ComposeNewDefinition(definition);
         }
 
@@ -46,7 +46,7 @@ namespace Helion.World.Entities.Definition.Composer
             if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
                 return definition;
 
-            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
+            ActorDefinition? actorDefinition = m_resources.Decorate[name];
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
 
@@ -57,7 +57,7 @@ namespace Helion.World.Entities.Definition.Composer
             if (m_editorNumToDefinition.TryGetValue(id, out EntityDefinition? definition))
                 return definition;
 
-            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
+            ActorDefinition? actorDefinition = m_resources.Decorate[id];
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
 
@@ -73,18 +73,18 @@ namespace Helion.World.Entities.Definition.Composer
             // The state applier will take care of the states for us in another
             // function, while we take care of the property/flag stuff here to
             // accomodate this very annoying 'feature'.
-            List<ActorDefinition> parentsToApply = new List<ActorDefinition>();
+            List<ActorDefinition> parentsToApply = new();
             foreach (ActorDefinition parent in parents)
             {
                 if (parent.FlagProperties.SkipSuper ?? false)
                     parentsToApply.Clear();
-                
+
                 parentsToApply.Add(parent);
             }
-            
+
             parentsToApply.ForEach(parent => ApplyActorFlagsAndProperties(definition, parent));
         }
-        
+
         private static void ApplyActorFlagsAndProperties(EntityDefinition definition, ActorDefinition actorDefinition)
         {
             DefinitionFlagApplier.Apply(definition, actorDefinition.Flags, actorDefinition.FlagProperties);
@@ -99,7 +99,7 @@ namespace Helion.World.Entities.Definition.Composer
             ActorDefinition current = actorDef;
             while (current.Parent != null)
             {
-                ActorDefinition? parent = m_archiveCollection.Definitions.Decorate[current.Parent];
+                ActorDefinition? parent = m_resources.Decorate[current.Parent];
                 if (parent == null)
                 {
                     Log.Warn("Cannot find entity definition for parent class '{0}'", current.Parent);
@@ -118,12 +118,12 @@ namespace Helion.World.Entities.Definition.Composer
 
             // The base actor must always come first, but we can do this at
             // the very end. It is a critical error for this not to exist.
-            ActorDefinition? baseActorClass = m_archiveCollection.Definitions.Decorate[Constants.BaseActorClass];
+            ActorDefinition? baseActorClass = m_resources.Decorate[Constants.BaseActorClass];
             if (baseActorClass == null)
                 throw new HelionException($"Missing base decorate actor definition {Constants.BaseActorClass}");
-            
+
             definitions.AddFirst(baseActorClass);
-            
+
             return true;
         }
 
@@ -138,10 +138,10 @@ namespace Helion.World.Entities.Definition.Composer
                 Log.Warn("Unable to create entity '{0}' due to errors with the actor or parents", actorDefinition.Name);
                 return null;
             }
-            
+
             int id = m_indexTracker.Next();
             List<CIString> parentClassNames = definitions.Select(d => d.Name).ToList();
-            EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
+            EntityDefinition definition = new(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
             ApplyFlagsAndPropertiesFrom(definition, definitions);
             DefinitionStateApplier.Apply(definition, definitions);
@@ -154,7 +154,7 @@ namespace Helion.World.Entities.Definition.Composer
             m_definitions[definition.Name] = definition;
             if (definition.EditorId != null)
                 m_editorNumToDefinition[definition.EditorId.Value] = definition;
-            
+
             return definition;
         }
     }

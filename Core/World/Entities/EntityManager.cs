@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps;
 using Helion.Maps.Components.Things;
-using Helion.Resource.Archives.Collection;
+using Helion.Resource;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Container.Linkable;
@@ -26,24 +26,22 @@ namespace Helion.World.Entities
         public const int NoTid = 0;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-        public readonly SpawnLocations SpawnLocations = new SpawnLocations();
+        public readonly LinkableList<Entity> Entities = new();
+        public readonly SpawnLocations SpawnLocations = new();
         public readonly WorldBase World;
+        public readonly EntityDefinitionComposer DefinitionComposer;
+        public readonly List<Player> Players = new();
         private readonly SoundManager m_soundManager;
-        private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
-        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
+        private readonly AvailableIndexTracker m_entityIdTracker = new();
+        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
         private readonly SkillLevel m_skill;
 
-        public readonly EntityDefinitionComposer DefinitionComposer;
-
-        public readonly List<Player> Players = new List<Player>();
-
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager,
+        public EntityManager(WorldBase world, Resources resources, SoundManager soundManager,
             SkillLevel skill)
         {
             World = world;
             m_soundManager = soundManager;
-            DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
+            DefinitionComposer = new EntityDefinitionComposer(resources);
             m_skill = skill;
         }
 

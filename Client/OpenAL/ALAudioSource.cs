@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
+using Helion.Resource.Definitions.SoundInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;

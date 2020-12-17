@@ -1,13 +1,11 @@
-using System;
 using System.Collections.Generic;
 using Helion.Bsp;
-using Helion.Maps.Doom.Components;
-using Helion.Maps.Hexen;
-using Helion.Maps.Hexen.Components;
+using Helion.Maps;
+using Helion.Maps.Components.Sectors;
 using Helion.Maps.Specials;
-using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources;
+using Helion.Resource;
+using Helion.Resource.Textures;
 using Helion.Util.Assertion;
 using Helion.Util.Geometry.Segments;
 using Helion.World.Bsp;
@@ -18,6 +16,7 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using Sector = Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.World.Geometry.Builder
 {
@@ -25,14 +24,14 @@ namespace Helion.World.Geometry.Builder
     public static class HexenGeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
-        public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder)
+
+        public static MapGeometry? Create(Map map)
         {
-            GeometryBuilder builder = new GeometryBuilder();
-            
+            GeometryBuilder builder = new();
+
             PopulateSectorData(map, builder);
             PopulateLineData(map, builder);
-            
+
             BspTree? bspTree;
             try
             {
@@ -49,24 +48,24 @@ namespace Helion.World.Geometry.Builder
                 Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
                 return null;
             }
-            
+
             return new MapGeometry(builder, bspTree);
         }
-        
-        private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, 
+
+        private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes,
             SectorPlaneFace face)
         {
             int id = sectorPlanes.Count;
             double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
             string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
             int textureHandle = TextureManager.Instance.GetTexture(texture, Namespace.Flats).Index;
-            
+
             SectorPlane sectorPlane = new SectorPlane(id, face, z, textureHandle, doomSector.LightLevel);
             sectorPlanes.Add(sectorPlane);
-            
+
             return sectorPlane;
         }
-        
+
         private static void PopulateSectorData(HexenMap map, GeometryBuilder builder)
         {
             foreach (DoomSector doomSector in map.Sectors)
@@ -76,7 +75,7 @@ namespace Helion.World.Geometry.Builder
                 // TODO: Is this right?
                 ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)doomSector.SectorType;
 
-                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
+                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                     floorPlane, ceilingPlane, sectorSpecial);
                 builder.Sectors.Add(sector);
             }
@@ -93,24 +92,24 @@ namespace Helion.World.Geometry.Builder
             string middleTexture = facingSide.MiddleTexture;
             int middleTextureHandle = TextureManager.Instance.GetTexture(middleTexture, Namespace.Textures).Index;
             Wall middle = new Wall(builder.Walls.Count,  middleTextureHandle, WallLocation.Middle);
-            
+
             string upperTexture = facingSide.UpperTexture;
             int upperTextureHandle = TextureManager.Instance.GetTexture(upperTexture, Namespace.Textures).Index;
             Wall upper = new Wall(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
-            
+
             string lowerTexture = facingSide.LowerTexture;
             int lowerTextureHandle = TextureManager.Instance.GetTexture(lowerTexture, Namespace.Textures).Index;
             Wall lower = new Wall(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
-            
+
             builder.Walls.Add(middle);
             builder.Walls.Add(upper);
             builder.Walls.Add(lower);
-            
+
             TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
             builder.Sides.Add(side);
 
             nextSideId++;
-            
+
             return side;
         }
 
@@ -118,7 +117,7 @@ namespace Helion.World.Geometry.Builder
             ref int nextSideId)
         {
             DoomSide doomSide = doomLine.Front;
-            
+
             // This is okay because of how we create sectors corresponding
             // to their list index. If this is wrong then someone broke the
             // ordering very badly.
@@ -129,14 +128,14 @@ namespace Helion.World.Geometry.Builder
             // When we get to 3D floors we're going to have to fix this...
             Wall wall = new Wall(builder.Walls.Count, textureHandle, WallLocation.Middle);
             builder.Walls.Add(wall);
-            
+
             Side front = new Side(nextSideId, doomSide.Offset, wall, sector);
             builder.Sides.Add(front);
 
             wall.Side = front;
 
             nextSideId++;
-            
+
             return (front, null);
         }
 
@@ -154,7 +153,7 @@ namespace Helion.World.Geometry.Builder
         private static void PopulateLineData(HexenMap map, GeometryBuilder builder)
         {
             int nextSideId = 0;
-            
+
             foreach (HexenLine hexenLine in map.Lines)
             {
                 if (hexenLine.Start.Position == hexenLine.End.Position)
@@ -162,7 +161,7 @@ namespace Helion.World.Geometry.Builder
                     Log.Warn("Zero length linedef pruned (id = {0})", hexenLine.Id);
                     continue;
                 }
-                
+
                 (Side front, Side? back) = CreateSides(hexenLine, builder, ref nextSideId);
 
                 Seg2D seg = new Seg2D(hexenLine.Start.Position, hexenLine.End.Position);
@@ -171,7 +170,7 @@ namespace Helion.World.Geometry.Builder
                 SpecialArgs specialArgs = new SpecialArgs(hexenLine.Args);
 
                 LineSpecial.ValidateActivationFlags(special.LineSpecialType, flags);
-                
+
                 Line line = new Line(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
                 builder.Lines.Add(line);
                 builder.MapLines[line.MapId] = line;

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Maps;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Resource;
-using Helion.Resources;
-using Helion.Resource.Archives.Collection;
 using Helion.Resource.Definitions.Decorate.Locks;
 using Helion.Resource.Textures;
 using Helion.Util;
