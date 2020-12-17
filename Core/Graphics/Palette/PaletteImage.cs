@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Drawing;
+using Helion.Resource;
 using Helion.Util.Extensions;
+using Helion.Util.Geometry.Vectors;
+using SixLabors.ImageSharp.Metadata;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Palette
@@ -41,9 +44,15 @@ namespace Helion.Graphics.Palette
         public ushort[] Indices { get; }
 
         /// <summary>
-        /// The extra data that accompanies the pixels/dimensions.
+        /// The offset of the image. These are offsets for the engine to apply
+        /// to images when rendering.
         /// </summary>
-        public ImageMetadata Metadata { get; } = new ImageMetadata();
+        public Vec2I Offset { get; set; } = Vec2I.Zero;
+
+        /// <summary>
+        /// The namespace this image was located in.
+        /// </summary>
+        public Namespace Namespace { get; set; } = Namespace.Global;
 
         /// <summary>
         /// Creates a palette image with the index provided.
@@ -51,20 +60,12 @@ namespace Helion.Graphics.Palette
         /// <param name="width">The image width. Should be positive.</param>
         /// <param name="height">The image height, should be positive.</param>
         /// <param name="fillIndex">The index to fill the image with.</param>
-        public PaletteImage(int width, int height, ushort fillIndex = TransparentIndex) :
-            this(width, height, fillIndex, new ImageMetadata())
-        {
-        }
-
-        /// <summary>
-        /// Creates a palette image with the index provided.
-        /// </summary>
-        /// <param name="width">The image width. Should be positive.</param>
-        /// <param name="height">The image height, should be positive.</param>
-        /// <param name="fillIndex">The index to fill the image with.</param>
-        /// <param name="metadata">Optional metadata. If null is provided, then
-        /// a default value will be constructed for this object.</param>
-        public PaletteImage(int width, int height, ushort fillIndex, ImageMetadata? metadata = null)
+        /// <param name="resourceNamespace">The namespace for this image.
+        /// </param>
+        /// <param name="offset">The offset (or null if (0, 0) should be used.
+        /// </param>
+        public PaletteImage(int width, int height, ushort fillIndex, Namespace resourceNamespace = Namespace.Global,
+            Vec2I? offset = null)
         {
             Precondition(width >= 1, "Palette image width should be positive");
             Precondition(height >= 1, "Palette image height be positive");
@@ -72,9 +73,8 @@ namespace Helion.Graphics.Palette
             Width = Math.Max(1, width);
             Height = Math.Max(1, height);
             Indices = new ushort[width * height];
-
-            if (metadata != null)
-                Metadata = metadata;
+            Namespace = resourceNamespace;
+            Offset = offset ?? Vec2I.Zero;
 
             Fill(fillIndex);
         }
@@ -93,17 +93,19 @@ namespace Helion.Graphics.Palette
         /// <param name="height">The image height, should be positive.</param>
         /// <param name="indices">The index data, which should have a length
         /// equal to the width times the height.</param>
-        /// <param name="metadata">Optional metadata. If null is provided, then
-        /// a default value will be constructed for this object.</param>
-        public PaletteImage(int width, int height, ushort[] indices, ImageMetadata? metadata = null)
+        /// <param name="resourceNamespace">The namespace for this image.
+        /// </param>
+        /// <param name="offset">The offset (or null if (0, 0) should be used.
+        /// </param>
+        public PaletteImage(int width, int height, ushort[] indices, Namespace resourceNamespace = Namespace.Global,
+            Vec2I? offset = null)
         {
             Precondition(width * height == indices.Length, "Palette image indices and width/height mismatch");
 
             Width = Math.Max(1, width);
             Height = Math.Max(1, height);
-
-            if (metadata != null)
-                Metadata = metadata;
+            Namespace = resourceNamespace;
+            Offset = offset ?? Vec2I.Zero;
 
             if (width * height == indices.Length)
                 Indices = indices;
@@ -167,7 +169,11 @@ namespace Helion.Graphics.Palette
                 }
             }
 
-            return new Image(Width, Height, argb, Metadata);
+            return new Image(Width, Height, argb)
+            {
+                Namespace = Namespace,
+                Offset = Offset
+            };
         }
     }
 }

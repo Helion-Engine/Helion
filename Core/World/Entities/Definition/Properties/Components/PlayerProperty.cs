@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Helion.Resources.Definitions.Decorate.Properties.Enums;
+using Helion.Resource.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.World.Entities.Definition.Properties.Components
 {

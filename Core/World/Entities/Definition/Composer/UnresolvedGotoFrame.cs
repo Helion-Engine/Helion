@@ -1,4 +1,4 @@
-using Helion.Resources.Definitions.Decorate.States;
+using Helion.Resource.Definitions.Decorate.States;
 using Helion.World.Entities.Definition.States;
 
 namespace Helion.World.Entities.Definition.Composer

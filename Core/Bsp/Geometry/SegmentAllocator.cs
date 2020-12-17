@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Maps.Components.Linedefs;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
@@ -10,7 +11,7 @@ namespace Helion.Bsp.Geometry
     // intended to be a mapping of a segments points to a segment index. The
     // first key is supposed to be the smaller of the two indices to make any
     // lookups easier (and enforce a simple ordering to prevent the reversed
-    // pair from being added). 
+    // pair from being added).
     using SegmentTable = Dictionary<int, Dictionary<int, int>>;
 
     /// <summary>
@@ -64,7 +65,7 @@ namespace Helion.Bsp.Geometry
         /// <param name="line">The line (optional).</param>
         /// <returns>Either a newly allocated BSP segment, or the one that
         /// already exists with the information provided.</returns>
-        public BspSegment GetOrCreate(BspVertex start, BspVertex end, IBspUsableLine? line = null)
+        public BspSegment GetOrCreate(BspVertex start, BspVertex end, Linedef? line = null)
         {
             Precondition(start.Position != end.Position, "Cannot create a segment that is a point");
 
@@ -74,7 +75,7 @@ namespace Helion.Bsp.Geometry
             {
                 if (largerValues.TryGetValue(largerIndex, out int segIndex))
                     return m_segments[segIndex];
-                
+
                 largerValues[largerIndex] = m_segments.Count;
                 int newCollinearIndex = GetCollinearIndex(start, end);
                 return CreateNewSegment(start, end, newCollinearIndex, line);
@@ -120,7 +121,7 @@ namespace Helion.Bsp.Geometry
 
             Vec2D middle = seg.FromTime(t);
             BspVertex middleVertex = m_vertexAllocator[middle];
-            
+
             BspSegment firstSeg = GetOrCreate(seg.StartVertex, middleVertex, seg.Line);
             BspSegment secondSeg = GetOrCreate(middleVertex, seg.EndVertex, seg.Line);
             return (firstSeg, secondSeg);
@@ -131,8 +132,8 @@ namespace Helion.Bsp.Geometry
         /// </summary>
         /// <returns>A list of all the existing segments.</returns>
         public List<BspSegment> ToList() => new List<BspSegment>(m_segments);
-        
-        private BspSegment CreateNewSegment(BspVertex start, BspVertex end, int collinearIndex, IBspUsableLine? line = null)
+
+        private BspSegment CreateNewSegment(BspVertex start, BspVertex end, int collinearIndex, Linedef? line = null)
         {
             BspSegment seg = new BspSegment(start, end, collinearIndex, line);
             m_segments.Add(seg);

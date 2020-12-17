@@ -1,5 +1,3 @@
-using System;
-
 namespace Helion.Maps.Specials
 {
     /// <summary>

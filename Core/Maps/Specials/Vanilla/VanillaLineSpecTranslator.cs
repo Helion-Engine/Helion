@@ -2,7 +2,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 using Helion.World.Special;
-using System;
 
 namespace Helion.Maps.Specials.Vanilla
 {
@@ -37,7 +36,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = GetDelay(type);
                     return ZDoomLineSpecialType.LiftDownWaitUpStay;
-            
+
                 case VanillaLineSpecialType.D1_OpenDoorFastStay:
                 case VanillaLineSpecialType.D1_OpenDoorStay:
                 case VanillaLineSpecialType.GR_OpenDoorStayOpen:
@@ -420,7 +419,7 @@ namespace Helion.Maps.Specials.Vanilla
             switch (type)
             {
                 case VanillaLineSpecialType.DR_OpenRedKeyClose:
-                case VanillaLineSpecialType.D1_OpenRedKeyStay:              
+                case VanillaLineSpecialType.D1_OpenRedKeyStay:
                 case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
                 case VanillaLineSpecialType.S1_OpenRedKeyFastStay:
                     return (byte)ZDoomKeyType.RedAny;
@@ -432,7 +431,7 @@ namespace Helion.Maps.Specials.Vanilla
                     return (byte)ZDoomKeyType.BlueAny;
 
                 case VanillaLineSpecialType.DR_OpenYellowKeyClose:
-                case VanillaLineSpecialType.D1_OpenYellowKeyStay:               
+                case VanillaLineSpecialType.D1_OpenYellowKeyStay:
                 case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
                 case VanillaLineSpecialType.S1_OpenYellowKeyFastStay:
                     return (byte)ZDoomKeyType.YellowAny;

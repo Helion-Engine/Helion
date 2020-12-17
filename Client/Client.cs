@@ -8,10 +8,10 @@ using Helion.Client.OpenAL;
 using Helion.Input;
 using Helion.Layer;
 using Helion.Layer.WorldLayers;
+using Helion.Maps.Components.Things;
 using Helion.Render;
 using Helion.Render.Commands;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Locator;
+using Helion.Resource;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Configuration;
@@ -34,7 +34,7 @@ namespace Helion.Client
         private readonly HelionConsole m_console;
         private readonly Config m_config;
         private readonly GCTracker m_gcTracker;
-        private readonly ArchiveCollection m_archiveCollection;
+        private readonly Resources m_resources;
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
         private readonly ALAudioSystem m_audioSystem;
@@ -51,9 +51,9 @@ namespace Helion.Client
             LogClientInformation();
             SetFPSLimit();
 
-            m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
-            m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device);
+            m_resources = new();
+            m_window = new OpenTKWindow(config, m_resources, RunGameLoop);
+            m_audioSystem = new ALAudioSystem(m_resources, config.Engine.Audio.Device);
             m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
             m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
@@ -80,6 +80,7 @@ namespace Helion.Client
             m_window.Dispose();
             m_audioSystem.Dispose();
             m_console.Dispose();
+            m_resources.Dispose();
 
             GC.SuppressFinalize(this);
         }
@@ -125,7 +126,7 @@ namespace Helion.Client
             iwad = LoadIWad(files);
             files.AddRange(m_commandLineArgs.Files);
 
-            if (!m_archiveCollection.Load(files))
+            if (!m_resources.Load(files))
                 Log.Error("Unable to load files at startup");
         }
 
@@ -176,7 +177,7 @@ namespace Helion.Client
         private void SetSkill(int value)
         {
             if (value > 0 && value < 6)
-                m_config.Engine.Game.Skill.Set((Maps.Shared.SkillLevel)value - 1);
+                m_config.Engine.Game.Skill.Set((SkillLevel)value - 1);
             else
                 Log.Info($"Invalid skill level: {value}");
         }
@@ -192,14 +193,14 @@ namespace Helion.Client
 
         private string GetWarpMapFormat(int level)
         {
-            bool usesMap = m_archiveCollection.FindMap("MAP01") != null;
+            bool usesMap = m_resources.FindMap("MAP01") != null;
             string levelDigits = level.ToString().PadLeft(2, '0');
             return usesMap ? $"MAP{levelDigits}" : $"E{levelDigits[0]}M{levelDigits[1]}";
         }
 
         private void HandleInput()
         {
-            ConsumableInput input = new ConsumableInput(m_window.PollInput());
+            ConsumableInput input = new(m_window.PollInput());
             m_layerManager.HandleInput(input);
         }
 

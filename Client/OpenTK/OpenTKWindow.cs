@@ -4,7 +4,7 @@ using Helion.Client.WinMouse;
 using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;
-using Helion.Resources.Archives.Collection;
+using Helion.Resource;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -28,17 +28,17 @@ namespace Helion.Client
         private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
         private bool m_disposed;
         private bool m_useMouseOpenTK;
-        
+
         public int WindowID { get; }
         public IRenderer Renderer => m_renderer;
-        public Dimension WindowDimension => new Dimension(Width, Height);
+        public Dimension WindowDimension => new(Width, Height);
 
-        public OpenTKWindow(Config cfg, ArchiveCollection archiveCollection, Action gameLoopFunction) :
+        public OpenTKWindow(Config cfg, Resources resources, Action gameLoopFunction) :
             base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
             m_config = cfg;
             WindowID = NextAvailableWindowId++;
-            m_renderer = new GLRenderer(cfg, archiveCollection, new OpenTKGLFunctions());
+            m_renderer = new GLRenderer(cfg, resources, new OpenTKGLFunctions());
             m_gameLoopFunc = gameLoopFunction;
 
             RegisterConfigListeners();
@@ -50,7 +50,7 @@ namespace Helion.Client
             FailedToDispose(this);
             Dispose(false);
         }
-        
+
         public InputEvent PollInput() => m_inputAdapter.PollInput();
 
         public override void Dispose()
@@ -175,7 +175,7 @@ namespace Helion.Client
             int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
             return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
         }
-        
+
         private void ToggleWindowStateViaConfig()
         {
             if (m_config.Engine.Window.State == WindowStatus.Fullscreen)
@@ -200,7 +200,7 @@ namespace Helion.Client
         {
             try
             {
-                NativeWinMouse nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
+                NativeWinMouse nativeWinMouse = new(HandleWinMouseMove);
                 return true;
             }
             catch
@@ -210,7 +210,7 @@ namespace Helion.Client
 
             return false;
         }
-        
+
         private void HandleWinMouseMove(int deltaX, int deltaY)
         {
             if (Focused)

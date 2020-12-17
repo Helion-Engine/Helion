@@ -2,6 +2,7 @@
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
+using Helion.Maps.Components.Linedefs;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
@@ -9,7 +10,7 @@ using static Helion.Util.Assertion.Assert;
 namespace Helion.Bsp.Node
 {
     /// <summary>
-    /// An edge of a subsector, or better put: a segment on the edge of a 
+    /// An edge of a subsector, or better put: a segment on the edge of a
     /// convex polygon that is the leaf of a BSP tree.
     /// </summary>
     public class SubsectorEdge
@@ -17,7 +18,7 @@ namespace Helion.Bsp.Node
         /// <summary>
         /// The line this is a part of.
         /// </summary>
-        public readonly IBspUsableLine? Line;
+        public readonly Linedef? Line;
 
         /// <summary>
         /// If this segment is on the front of the line or not. This is not
@@ -51,7 +52,7 @@ namespace Helion.Bsp.Node
         /// <param name="front">True if this is on the front side, false if it
         /// is the back. This value is not used if this is a miniseg. This
         /// must never be false for a one sided line.</param>
-        public SubsectorEdge(Vec2D start, Vec2D end, IBspUsableLine? line = null, bool front = true)
+        public SubsectorEdge(Vec2D start, Vec2D end, Linedef? line = null, bool front = true)
         {
             Start = start;
             End = end;
@@ -77,7 +78,7 @@ namespace Helion.Bsp.Node
                 edges.ForEach(edge => edge.Reverse());
                 edges.Reverse();
             }
-            
+
             // TODO: Assert valid subsector edges!
             return edges;
         }
@@ -86,7 +87,7 @@ namespace Helion.Bsp.Node
         {
             List<ConvexTraversalPoint> traversal = convexTraversal.Traversal;
             Precondition(traversal.Count >= 3, "Traversal must yield at least a triangle in size");
-            
+
             List<SubsectorEdge> subsectorEdges = new List<SubsectorEdge>();
 
             ConvexTraversalPoint firstTraversal = traversal.First();
@@ -121,7 +122,7 @@ namespace Helion.Bsp.Node
                 return true;
             }
         }
-        
+
         private void Reverse()
         {
             Vec2D temp = Start;

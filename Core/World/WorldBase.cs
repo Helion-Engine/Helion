@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Maps;
 using Helion.Maps.Specials.Compatibility;
+using Helion.Resource;
 using Helion.Resources;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resource.Archives.Collection;
+using Helion.Resource.Definitions.Decorate.Locks;
+using Helion.Resource.Textures;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
@@ -56,7 +58,7 @@ namespace Helion.World
         public int Gametick { get; private set; }
         public double Gravity { get; private set; } = 1.0;
         public IRandom Random => m_random;
-        protected readonly ArchiveCollection ArchiveCollection;
+        protected readonly Resources Resources;
         protected readonly Config Config;
         protected readonly MapGeometry Geometry;
         protected readonly SpecialManager SpecialManager;
@@ -81,20 +83,20 @@ namespace Helion.World
 
         private readonly DoomRandom m_random = new DoomRandom();
         private int m_soundCount;
-        
-        protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem, 
-            MapGeometry geometry, IMap map)
+
+        protected WorldBase(Config config, Resources resources, IAudioSystem audioSystem,
+            MapGeometry geometry, Map map)
         {
             CreationTimeNanos = Ticker.NanoTime();
-            ArchiveCollection = archiveCollection;
+            Resources = resources;
             Config = config;
             MapName = map.Name;
             Geometry = geometry;
             Blockmap = new BlockMap(Lines);
-            SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
-            EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
+            SoundManager = new SoundManager(this, audioSystem, resources.Sounds);
+            EntityManager = new EntityManager(this, resources, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
-            SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
+            SpecialManager = new SpecialManager(this, resources.Definitions, m_random);
         }
 
         ~WorldBase()
@@ -115,7 +117,7 @@ namespace Helion.World
                     Vec2D entityToTarget = player.Position.To2D() - entity.Position.To2D();
 
                     // Not in front 180 FOV or MeleeRange
-                    if (entityToTarget.Dot(entityLookingVector) < 0 && 
+                    if (entityToTarget.Dot(entityLookingVector) < 0 &&
                         entity.Position.ApproximateDistance2D(player.Position) > Constants.EntityMeleeDistance)
                         continue;
                 }
@@ -165,7 +167,7 @@ namespace Helion.World
         public void Link(Entity entity)
         {
             Precondition(entity.SectorNodes.Empty() && entity.BlockmapNodes.Empty(), "Forgot to unlink entity before linking");
-            
+
             PhysicsManager.LinkToWorld(entity, null, false);
         }
 
@@ -202,7 +204,7 @@ namespace Helion.World
 
             Gametick++;
         }
-        
+
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {
             return Geometry.FindBySectorTag(tag);
@@ -321,7 +323,7 @@ namespace Helion.World
 
         public bool CanActivate(Entity entity, Line line, ActivationContext context)
         {
-            bool success = line.Special.CanActivate(entity, line, context, 
+            bool success = line.Special.CanActivate(entity, line, context,
                 ArchiveCollection.Definitions.LockDefininitions, out LockDef? lockFail);
             if (entity is Player player && lockFail != null)
             {
@@ -333,7 +335,7 @@ namespace Helion.World
 
         private string GetLockFailMessage(Line line, LockDef lockDef)
         {
-            if (line.Special.LineSpecialCompatibility != null && 
+            if (line.Special.LineSpecialCompatibility != null &&
                 line.Special.LineSpecialCompatibility.CompatibilityType == LineSpecialCompatibilityType.KeyObject)
                 return $"You need a {lockDef.Message} to activate this object.";
             else
@@ -657,7 +659,7 @@ namespace Helion.World
 
             Seg2D seg = new Seg2D(start, end);
 
-            List<BlockmapIntersect> intersections = BlockmapTraverser.Traverse(null, seg, BlockmapTraverseFlags.Lines | BlockmapTraverseFlags.StopOnOneSidedLine, 
+            List<BlockmapIntersect> intersections = BlockmapTraverser.Traverse(null, seg, BlockmapTraverseFlags.Lines | BlockmapTraverseFlags.StopOnOneSidedLine,
                 BlockmapTraverseEntityFlags.None, out bool hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
@@ -774,7 +776,7 @@ namespace Helion.World
             PitchNotSet,
         }
 
-        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double topPitch, double bottomPitch, 
+        private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double topPitch, double bottomPitch,
             out double pitch, out Entity? entity)
         {
             pitch = 0.0;

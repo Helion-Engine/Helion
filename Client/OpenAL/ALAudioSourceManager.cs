@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
-using Helion.Resources;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
+using Helion.Resource;
+using Helion.Resource.Archives;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
@@ -20,17 +19,17 @@ namespace Helion.Client.OpenAL
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly ArchiveCollection m_archiveCollection;
+        private readonly Resources m_resources;
         private readonly ALAudioSystem m_owner;
         private readonly HashSet<ALAudioSource> m_sources = new HashSet<ALAudioSource>();
         private readonly Dictionary<string, ALBuffer> m_nameToBuffer = new Dictionary<string, ALBuffer>();
 
         private DynamicArray<int> m_playGroup = new DynamicArray<int>();
 
-        public ALAudioSourceManager(ALAudioSystem owner, ArchiveCollection archiveCollection)
+        public ALAudioSourceManager(ALAudioSystem owner, Resources resources)
         {
             m_owner = owner;
-            m_archiveCollection = archiveCollection;
+            m_resources = resources;
             AL.DistanceModel(ALDistanceModel.ExponentDistance);
 
             owner.DeviceChanging += Owner_DeviceChanging;
@@ -77,14 +76,14 @@ namespace Helion.Client.OpenAL
             ALBuffer? buffer = GetBuffer(sound);
             if (buffer == null)
                 return null;
-            
+
             ALAudioSource source = new ALAudioSource(this, buffer, soundParams);
             m_sources.Add(source);
             return source;
         }
 
         public void PlayGroup(List<IAudioSource> audioSources)
-        {        
+        {
             for (int i = 0; i < audioSources.Count; i++)
                m_playGroup.Add(((ALAudioSource)audioSources[i]).ID);
 
@@ -98,20 +97,20 @@ namespace Helion.Client.OpenAL
             if (m_nameToBuffer.TryGetValue(upperSound, out ALBuffer? existingBuffer))
                 return existingBuffer;
 
-            Entry? entry = m_archiveCollection.Entries.FindByNamespace(upperSound, Namespace.Sounds);
+            Entry? entry = m_resources.Find(upperSound, Namespace.Sounds);
             if (entry == null)
             {
                 Log.Warn("Cannot find sound: {0}", sound);
                 return null;
             }
-            
+
             ALBuffer? buffer = ALBuffer.Create(entry.ReadData());
             if (buffer == null)
             {
                 Log.Warn("Sound {0} is either corrupt or not a DMX sound", sound);
                 return null;
             }
-            
+
             m_nameToBuffer[upperSound] = buffer;
             return buffer;
         }
@@ -124,13 +123,13 @@ namespace Helion.Client.OpenAL
 
         internal void Unlink(ALAudioSource source)
         {
-            m_sources.Remove(source);  
+            m_sources.Remove(source);
         }
 
         private void PerformDispose()
         {
             m_owner.Unlink(this);
-            
+
             // We create a copy list because disposing will mutate the list
             // that it belongs to, since it has no idea if we're disposing it
             // manually or by disposal of its manager.

@@ -7,7 +7,7 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Render.Shared.World;
-using Helion.Resources.Archives.Collection;
+using Helion.Resource.Archives.Collection;
 using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;
 

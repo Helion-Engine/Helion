@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
-using Helion.Resources.Archives.Collection;
+using Helion.Resource;
 using Helion.Util.Extensions;
 using NLog;
 using OpenTK.Audio.OpenAL;
@@ -19,15 +19,15 @@ namespace Helion.Client.OpenAL
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool PrintedALInfo;
 
-        private readonly ArchiveCollection m_archiveCollection;
+        private readonly Resources m_resources;
         private readonly HashSet<ALAudioSourceManager> m_sourceManagers = new HashSet<ALAudioSourceManager>();
         private readonly ISet<string> m_extensions = new HashSet<string>();
         private ALDevice m_alDevice;
         private ALContext m_alContext;
 
-        public ALAudioSystem(ArchiveCollection archiveCollection, string deviceName)
+        public ALAudioSystem(Resources resources, string deviceName)
         {
-            m_archiveCollection = archiveCollection;
+            m_resources = resources;
             m_alDevice = new ALDevice(deviceName);
             m_alContext = new ALContext(m_alDevice);
 
@@ -92,10 +92,10 @@ namespace Helion.Client.OpenAL
             FailedToDispose(this);
             PerformDispose();
         }
-        
+
         public IAudioSourceManager CreateContext()
         {
-            ALAudioSourceManager sourceManager = new ALAudioSourceManager(this, m_archiveCollection);
+            ALAudioSourceManager sourceManager = new ALAudioSourceManager(this, m_resources);
             m_sourceManagers.Add(sourceManager);
             return sourceManager;
         }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Decorate;
+using Helion.Resource.Archives.Collection;
+using Helion.Resource.Definitions.Decorate;
 using Helion.Util;
 using Helion.Util.Container;
 using NLog;

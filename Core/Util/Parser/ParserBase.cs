@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Helion.Resources.Archives.Entries;
+using Helion.Resource.Archives;
 using Helion.Util.Assertion;
 using Helion.Util.Extensions;
 using NLog;
@@ -28,7 +28,7 @@ namespace Helion.Util.Parser
         /// be set ouf of range, or else bad things will happen.
         /// </summary>
         protected int CurrentTokenIndex;
-        
+
         /// <summary>
         /// A list of the tokens to be processed.
         /// </summary>
@@ -132,7 +132,7 @@ namespace Helion.Util.Parser
                 return Tokens[CurrentTokenIndex].Type == type;
             return false;
         }
-        
+
         /// <summary>
         /// Peeks ahead to see if the character provided is next.
         /// </summary>
@@ -148,13 +148,13 @@ namespace Helion.Util.Parser
         /// the next one is not a character or we ran out of tokens.</returns>
         protected bool Peek(char c)
         {
-            if (CurrentTokenIndex >= Tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count)
                 return false;
-            
+
             string text = Tokens[CurrentTokenIndex].Text;
             return text.Length == 1 && text[0] == c;
         }
-        
+
         /// <summary>
         /// Checks to see if there's a string up next that matches the provided
         /// string argument. Comparison is case-insensitive.
@@ -167,13 +167,13 @@ namespace Helion.Util.Parser
         /// ran out of tokens.</returns>
         protected bool Peek(string str)
         {
-            if (CurrentTokenIndex >= Tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count)
                 return false;
 
             TokenType type = Tokens[CurrentTokenIndex].Type;
             if (type != TokenType.String && type != TokenType.QuotedString)
                 return false;
-            
+
             return string.Equals(str, Tokens[CurrentTokenIndex].Text, StringComparison.OrdinalIgnoreCase);
         }
 
@@ -194,9 +194,9 @@ namespace Helion.Util.Parser
         /// ran out of tokens.</returns>
         protected bool PeekFloat()
         {
-            if (CurrentTokenIndex >= Tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count)
                 return false;
-            
+
             TokenType type = Tokens[CurrentTokenIndex].Type;
             return type == TokenType.Integer || type == TokenType.FloatingPoint;
         }
@@ -221,7 +221,7 @@ namespace Helion.Util.Parser
 
             return false;
         }
-        
+
         /// <summary>
         /// Checks to see if either a float or a negative float is next. If
         /// true, this means you can consume a signed float.
@@ -245,7 +245,7 @@ namespace Helion.Util.Parser
 
             return false;
         }
-        
+
         /// <summary>
         /// Checks to see if the next token is an identifier or not. This means
         /// it is a string, and not a quoted string.
@@ -254,7 +254,7 @@ namespace Helion.Util.Parser
         /// string.</returns>
         protected bool PeekIdentifier()
         {
-            if (CurrentTokenIndex >= Tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count)
                 return false;
             return Tokens[CurrentTokenIndex].Type == TokenType.String;
         }
@@ -266,9 +266,9 @@ namespace Helion.Util.Parser
         /// string.</returns>
         protected bool PeekString()
         {
-            if (CurrentTokenIndex >= Tokens.Count) 
+            if (CurrentTokenIndex >= Tokens.Count)
                 return false;
-            
+
             TokenType type = Tokens[CurrentTokenIndex].Type;
             return type == TokenType.String || type == TokenType.QuotedString;
         }
@@ -283,7 +283,7 @@ namespace Helion.Util.Parser
         {
             return CurrentTokenIndex >= Tokens.Count ? null : Tokens[CurrentTokenIndex].Text;
         }
-        
+
         /// <summary>
         /// Gets the next tokens text after the one we are currently pointing
         /// at.
@@ -306,7 +306,7 @@ namespace Helion.Util.Parser
                 throw MakeException("Ran out of tokens to consume");
             CurrentTokenIndex++;
         }
-        
+
         /// <summary>
         /// Consumes the token type provided, or throws.
         /// </summary>
@@ -475,7 +475,7 @@ namespace Helion.Util.Parser
                 Consume(TokenType.Minus);
                 return -ConsumeFloat();
             }
-            
+
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected a decimal number, got a '{token.Type}' instead (which was \"{token.Text}\")");
         }
@@ -495,7 +495,7 @@ namespace Helion.Util.Parser
             Token token = Tokens[CurrentTokenIndex];
             throw new ParserException(token, $"Expected identifier, got a '{token.Type}' instead");
         }
-        
+
         /// <summary>
         /// Consumes a string. Throws if it cannot.
         /// </summary>
@@ -523,11 +523,11 @@ namespace Helion.Util.Parser
         {
             if (!Peek(c))
                 return false;
-            
+
             Consume(c);
             return true;
         }
-        
+
         /// <summary>
         /// Consumes the case insensitive string, or does nothing if there is
         /// no matching symbol after. This is equal to peeking, and consuming
@@ -539,7 +539,7 @@ namespace Helion.Util.Parser
         {
             if (!Peek(str))
                 return false;
-            
+
             Consume(str);
             return true;
         }
@@ -574,10 +574,10 @@ namespace Helion.Util.Parser
                 if (CurrentTokenIndex == beforeIndex)
                     throw new ParserException(Tokens[beforeIndex], "Infinite parsing loop detected, InvokeUntilAndConsume(char) usage incorrect (report to a developer)");
             }
-            
+
             Consume(c);
         }
-        
+
         /// <summary>
         /// Will keep peeking for the character, and invoking the action if the
         /// peeking does not find it. As soon as it finds the character, it
@@ -595,7 +595,7 @@ namespace Helion.Util.Parser
                 if (CurrentTokenIndex == beforeIndex)
                     throw new ParserException(Tokens[beforeIndex], "Infinite parsing loop detected, InvokeUntilAndConsume(char) usage incorrect (report to a developer)");
             }
-            
+
             Consume(str);
         }
 
@@ -636,7 +636,7 @@ namespace Helion.Util.Parser
             foreach (string logMessage in e.LogToReadableMessage(text))
                 Log.Error("{0}", logMessage);
         }
-        
+
         private void PrintUnexpectedErrorMessage()
         {
             if (CurrentTokenIndex >= 0 && CurrentTokenIndex < Tokens.Count)

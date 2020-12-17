@@ -4,10 +4,10 @@ using System.Numerics;
 
 namespace Helion.Util.Geometry.Vectors
 {
-public struct Vec2I
+    public struct Vec2I
     {
-        public static readonly Vec2I Zero = new Vec2I(0, 0);
-        
+        public static readonly Vec2I Zero = new(0, 0);
+
         public int X;
         public int Y;
 
@@ -46,41 +46,41 @@ public struct Vec2I
 
         [Pure]
         public Vec2I Abs() => new Vec2I(Math.Abs(X), Math.Abs(Y));
-        
+
         [Pure]
         public int Dot(Vec2I other) => (X * other.X) + (Y * other.Y);
-        
+
         [Pure]
         public int LengthSquared() => (X * X) + (Y * Y);
-        
+
         [Pure]
         public int Length() => (int)Math.Sqrt((X * X) + (Y * Y));
-        
+
         [Pure]
         public int DistanceSquared(Vec2I other) => (this - other).LengthSquared();
-        
+
         [Pure]
         public int Distance(Vec2I other) => (this - other).Length();
-        
+
         [Pure]
         public Vec2I OriginRightRotate90() => new Vec2I(Y, -X);
-        
+
         [Pure]
         public Vec2I OriginLeftRotate90() => new Vec2I(-Y, X);
 
         [Pure]
         public Vec2Fixed ToFixed() => new Vec2Fixed(new Fixed(X), new Fixed(Y));
-        
+
         [Pure]
         public Vector2 ToFloat() => new Vector2(X, Y);
-        
+
         [Pure]
         public Vec2D ToDouble() => new Vec2D(X, Y);
 
         public override string ToString() => $"{X}, {Y}";
-        
+
         public override bool Equals(object? obj) => obj is Vec2I v && X == v.X && Y == v.Y;
-        
+
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Numerics;
-using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resource.Definitions.SoundInfo;
 
 namespace Helion.Audio
 {

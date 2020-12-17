@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Helion.Bsp;
-using Helion.Bsp.Builder.GLBSP;
-using Helion.Bsp.External;
 using Helion.Bsp.Node;
 using Helion.Maps;
-using Helion.Maps.Components;
-using Helion.Resources.Archives;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Locator;
+using Helion.Maps.Components.Linedefs;
+using Helion.Maps.Components.Sidedefs;
 using Helion.Util;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
@@ -20,7 +15,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -91,7 +85,7 @@ namespace Helion.World.Bsp
         /// <param name="bspBuilder">The BSP builder.</param>
         /// <returns>A built BSP tree, or a null value if the geometry for the
         /// map is corrupt beyond repair.</returns>
-        public static BspTree? Create(IMap map, GeometryBuilder builder, IBspBuilder bspBuilder)
+        public static BspTree? Create(Map map, GeometryBuilder builder, IBspBuilder bspBuilder)
         {
             BspNode? root = null;
 
@@ -169,7 +163,7 @@ namespace Helion.World.Bsp
 
             // This should never be wrong because the edge line ID's should be
             // shared with the instantiated lines.
-            Line line = builder.MapLines[edge.Line.Id];
+            Line line = builder.MapLines[edge.Line.Index];
 
             Precondition(!(line.OneSided && !edge.IsFront), "Trying to get a back side for a one sided line");
             return edge.IsFront ? line.Front : line.Back;
@@ -239,15 +233,15 @@ namespace Helion.World.Bsp
 
                 // We have built the BSP tree with this kind of line. If it's
                 // not, someone has some something unbelievably wrong.
-                ILine line = (ILine)edge.Line;
+                Linedef line = edge.Line;
                 int sectorId;
 
                 if (line.OneSided)
-                    sectorId = line.GetFront().GetSector().Id;
+                    sectorId = line.Front.Sector.Index;
                 else
                 {
-                    ISide side = edge.IsFront ? line.GetFront() : line.GetBack() !;
-                    sectorId = side.GetSector().Id;
+                    Sidedef side = edge.IsFront ? line.Front : line.Back!;
+                    sectorId = side.Sector.Index;
                 }
 
                 // If this ever is wrong, something has gone terribly wrong

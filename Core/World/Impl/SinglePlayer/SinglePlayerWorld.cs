@@ -4,7 +4,8 @@ using System.Numerics;
 using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Resources.Archives.Collection;
+using Helion.Resource;
+using Helion.Resource.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
@@ -31,10 +32,10 @@ namespace Helion.World.Impl.SinglePlayer
         public override Entity ListenerEntity => Player;
 
         public readonly Player Player;
-        
-        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, IMap map, Player? existingPlayer = null)
-            : base(config, archiveCollection, audioSystem, geometry, map)
+
+        private SinglePlayerWorld(Config config, Resources resources, IAudioSystem audioSystem,
+            MapGeometry geometry, Map map, Player? existingPlayer = null)
+            : base(config, resources, audioSystem, geometry, map)
         {
             EntityManager.PopulateFrom(map);
 
@@ -50,8 +51,8 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, 
-            IAudioSystem audioSystem, IMap map, Player? existingPlayer = null)
+        public static SinglePlayerWorld? Create(Config config, Resources resources,
+            IAudioSystem audioSystem, Map map, Player? existingPlayer = null)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
             if (geometry == null)
@@ -59,8 +60,8 @@ namespace Helion.World.Impl.SinglePlayer
                 Log.Error("Cannot make single player world, geometry is malformed");
                 return null;
             }
-            
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map, existingPlayer);
+
+            return new SinglePlayerWorld(config, resources, audioSystem, geometry, map, existingPlayer);
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)
@@ -203,7 +204,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
             EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
-            
+
             base.PerformDispose();
         }
 
@@ -218,7 +219,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             return new Vec3D(x, y, z);
         }
-        
+
         private static Vec3D CalculateStrafeRightMovement(Entity entity)
         {
             double rightRotateAngle = entity.AngleRadians - MathHelper.HalfPi;
@@ -235,7 +236,7 @@ namespace Helion.World.Impl.SinglePlayer
                 ChangeToLevel(changeLevel.LevelNumber);
                 return;
             }
-            
+
             switch (cheatEvent.CheatType)
             {
                 case CheatType.NoClip:

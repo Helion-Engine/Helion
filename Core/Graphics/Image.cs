@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using Helion.Util;
+using Helion.Resource;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using NLog;
@@ -14,7 +14,7 @@ namespace Helion.Graphics
     /// A 32-bit ARGB image that can be used with both any windowed forms and
     /// also compatible for being transferred to any GPU driver.
     /// </summary>
-    /// 
+    ///
     public class Image
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -28,7 +28,7 @@ namespace Helion.Graphics
         /// The height of the image.
         /// </summary>
         public int Height => Bitmap.Height;
-        
+
         /// <summary>
         /// Calculates the dimension of the bitmap.
         /// </summary>
@@ -40,9 +40,15 @@ namespace Helion.Graphics
         public Bitmap Bitmap { get; } = MakeDefaultBitmap();
 
         /// <summary>
-        /// The extra data that accompanies the pixels/dimensions.
+        /// The offset of the image. These are offsets for the engine to apply
+        /// to images when rendering.
         /// </summary>
-        public ImageMetadata Metadata { get; } = new ImageMetadata();
+        public Vec2I Offset { get; set; } = Vec2I.Zero;
+
+        /// <summary>
+        /// The namespace this image was located in.
+        /// </summary>
+        public Namespace Namespace { get; set; } = Namespace.Global;
 
         /// <summary>
         /// Creates an image from an existing bitmap.
@@ -53,14 +59,9 @@ namespace Helion.Graphics
         /// </remarks>
         /// <param name="bitmap">The bitmap to use, ideally should be in 32-bit
         /// ARGB format.</param>
-        /// <param name="metadata">Optional metadata. If null is provided, then
-        /// a default value will be constructed for this object.</param>
-        public Image(Bitmap bitmap, ImageMetadata? metadata = null)
+        public Image(Bitmap bitmap)
         {
             Bitmap = EnsureInArgbFormat(bitmap);
-
-            if (metadata != null)
-                Metadata = metadata;
         }
 
         /// <summary>
@@ -83,17 +84,19 @@ namespace Helion.Graphics
         /// <param name="height">The height of the image. Should be positive.
         /// </param>
         /// <param name="color">The color to fill the image with.</param>
-        /// <param name="metadata">Optional metadata. If null is provided, then
-        /// a default value will be constructed for this object.</param>
-        public Image(int width, int height, Color color, ImageMetadata? metadata = null)
+        /// <param name="resourceNamespace">The namespace for this image.
+        /// </param>
+        /// <param name="offset">The offset (or null if (0, 0) should be used.
+        /// </param>
+        public Image(int width, int height, Color color, Namespace resourceNamespace = Namespace.Global,
+            Vec2I? offset = null)
         {
             Precondition(width > 0, "Trying to make a non-positive width image");
             Precondition(height > 0, "Trying to make a non-positive height image");
 
-            if (metadata != null)
-                Metadata = metadata;
-
             Bitmap = new Bitmap(Math.Max(0, width), Math.Max(0, height), PixelFormat.Format32bppArgb);
+            Namespace = resourceNamespace;
+            Offset = offset ?? Vec2I.Zero;
             Fill(color);
         }
 
@@ -109,18 +112,13 @@ namespace Helion.Graphics
         /// <param name="argb">The raw ARGB data. Due to little endianness, the
         /// lower byte may have to be blue and the highest order byte alpha.
         /// </param>
-        /// <param name="metadata">Optional metadata. If null is provided, then
-        /// a default value will be constructed for this object.</param>
-        public Image(int width, int height, byte[] argb, ImageMetadata? metadata = null)
+        public Image(int width, int height, byte[] argb)
         {
             Precondition(width >= 0, "Trying to make a negative width image");
             Precondition(height >= 0, "Trying to make a negative height image");
             Precondition(width * height * 4 == argb.Length, "ARGB pixel array width/height mismatch");
 
             Bitmap = new Bitmap(Math.Max(0, width), Math.Max(0, height), PixelFormat.Format32bppArgb);
-
-            if (metadata != null)
-                Metadata = metadata;
 
             // Because we're going to be doing potentially dangerous actions
             // for speed reasons, we need to make sure we only do safe things.
@@ -140,22 +138,22 @@ namespace Helion.Graphics
         /// <param name="color">The color to fill.</param>
         public void Fill(Color color)
         {
-            using (SolidBrush b = new SolidBrush(color))
-                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(Bitmap))
-                    g.FillRectangle(b, 0, 0, Bitmap.Width, Bitmap.Height);
+            using SolidBrush b = new(color);
+            using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(Bitmap);
+            g.FillRectangle(b, 0, 0, Bitmap.Width, Bitmap.Height);
         }
 
         public Image ToBrightnessCopy()
         {
             Precondition(Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Unsupported pixel format type");
-            
+
             Rectangle rect = new Rectangle(0, 0, Width, Height);
             BitmapData data = Bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
             int numBytes = 4 * Width * Height;
             byte[] argb = new byte[numBytes];
             Marshal.Copy(data.Scan0, argb, 0, numBytes);
-            
+
             Bitmap.UnlockBits(data);
 
             for (int i = 0; i < numBytes; i += 4)
@@ -168,7 +166,11 @@ namespace Helion.Graphics
                 argb[i + 2] = maxRGB;
             }
 
-            return new Image(Width, Height, argb, Metadata);
+            return new Image(Width, Height, argb)
+            {
+                Namespace = Namespace,
+                Offset = Offset
+            };
         }
 
         /// <summary>
@@ -203,7 +205,7 @@ namespace Helion.Graphics
                 return false;
             }
         }
-        
+
         private static Bitmap MakeDefaultBitmap() => new Bitmap(1, 1, PixelFormat.Format32bppArgb);
 
         private static Bitmap EnsureInArgbFormat(Bitmap bitmap)
@@ -211,7 +213,7 @@ namespace Helion.Graphics
             if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
                 return bitmap;
 
-            Bitmap newBitmap = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
+            Bitmap newBitmap = new(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
 
             try
             {

@@ -1,4 +1,4 @@
-using Helion.Resources.Definitions.Decorate.States;
+using Helion.Resource.Definitions.Decorate.States;
 using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;

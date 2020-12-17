@@ -1,8 +1,7 @@
-using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resource.Definitions.Decorate.Locks;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
@@ -53,7 +52,7 @@ namespace Helion.World.Special
             }
         }
 
-        public static LineSpecialCompatibility? GetCompatibility(HexenLine hexenLine)
+        public static LineSpecialCompatibility? GetCompatibility(HexenLinedef hexenLine)
         {
             if (hexenLine.LineType == ZDoomLineSpecialType.DoorLockedRaise)
             {
@@ -94,7 +93,7 @@ namespace Helion.World.Special
                 if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.MonsterLineCross;
                 else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
+                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret &&
                         line.Special.MonsterCanUse();
             }
             else if (entity is Player player)

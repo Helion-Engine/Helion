@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Audio;
-using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resource.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
@@ -29,7 +29,7 @@ namespace Helion.World.Sound
         private readonly IWorld m_world;
         private readonly SoundInfoDefinition m_soundInfo;
         private readonly List<IAudioSource> m_soundsToPlay = new List<IAudioSource>();
-        
+
         public SoundManager(IWorld world, IAudioSystem audioSystem, SoundInfoDefinition soundInfo)
         {
             m_world = world;

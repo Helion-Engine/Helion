@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Maps.Specials;
-using Helion.Resources.Definitions.Decorate.Properties.Enums;
+using Helion.Resource.Definitions.Decorate.Properties.Enums;
 using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.World.Entities.Definition.Properties
@@ -9,7 +9,7 @@ namespace Helion.World.Entities.Definition.Properties
     public class EntityProperties
     {
         public const int NoID = -1;
-            
+
         public int Accuracy;
         public DecorateSpecialActivationType Activation = DecorateSpecialActivationType.Default;
         public string ActiveSound = "";
@@ -122,11 +122,11 @@ namespace Helion.World.Entities.Definition.Properties
         public EntityProperties()
         {
         }
-        
+
         // TODO: Temporary for now, we will need only to invoke this under some situations.
         //       This also obviously doesn't work for the classes since the reference will
         //       be copied rather than how struct/value copying works.
-        public EntityProperties(EntityProperties properties) 
+        public EntityProperties(EntityProperties properties)
         {
             Accuracy = properties.Accuracy;
             ActiveSound = properties.ActiveSound;

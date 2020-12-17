@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps;
-using Helion.Maps.Components;
-using Helion.Maps.Shared;
-using Helion.Resources.Archives.Collection;
+using Helion.Maps.Components.Things;
+using Helion.Resource.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Container.Linkable;
@@ -87,7 +86,7 @@ namespace Helion.World.Entities
         public void Destroy(Entity entity)
         {
             // TODO: Remove from spawns if it is a spawn.
-            
+
             // To avoid more object allocation and deallocation, I'm going to
             // leave empty sets in the map in case they get populated again.
             // Most maps wouldn't even approach a number that high for us to
@@ -156,15 +155,15 @@ namespace Helion.World.Entities
                 player.GiveWeapon(weapon, false);
         }
 
-        public void PopulateFrom(IMap map)
+        public void PopulateFrom(Map map)
         {
-            List<Entity> relinkEntities = new List<Entity>();
+            List<Entity> relinkEntities = new();
 
-            foreach (IThing mapThing in map.GetThings())
+            foreach (Thing mapThing in map.Things)
             {
                 if (!ShouldSpawn(mapThing, m_skill))
                     continue;
-                
+
                 EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
                 if (definition == null)
                 {
@@ -193,12 +192,12 @@ namespace Helion.World.Entities
             }
         }
 
-        private static bool ShouldSpawn(IThing mapThing, SkillLevel skill)
+        private static bool ShouldSpawn(Thing mapThing, SkillLevel skill)
         {
             // TODO: These should be offloaded into SinglePlayerWorld...
             if (!mapThing.Flags.SinglePlayer)
                 return false;
-            
+
             switch (skill)
             {
                 case SkillLevel.VeryEasy:
@@ -223,7 +222,7 @@ namespace Helion.World.Entities
         }
 
         private void FinishCreatingEntity(Entity entity)
-        {          
+        {
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
 
@@ -251,7 +250,7 @@ namespace Helion.World.Entities
                     TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
             }
         }
-        
+
         private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)
         {
             int id = m_entityIdTracker.Next();
@@ -262,9 +261,9 @@ namespace Helion.World.Entities
             var armor = DefinitionComposer.GetByName(Inventory.ArmorClassName);
             if (armor != null)
                 player.Inventory.Add(armor, 0);
-            
+
             FinishCreatingEntity(player);
-            
+
             return player;
         }
 

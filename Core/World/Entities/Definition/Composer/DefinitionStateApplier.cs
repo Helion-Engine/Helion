@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Helion.Resources.Definitions.Decorate;
-using Helion.Resources.Definitions.Decorate.States;
+using Helion.Resource.Definitions.Decorate;
+using Helion.Resource.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;

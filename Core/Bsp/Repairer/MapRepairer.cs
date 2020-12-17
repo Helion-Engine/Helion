@@ -27,14 +27,14 @@ namespace Helion.Bsp.Repairer
             AddSegmentsToBlocks();
         }
 
-        public static List<BspSegment> Repair(IEnumerable<BspSegment> segments, VertexAllocator vertexAllocator, 
+        public static List<BspSegment> Repair(IEnumerable<BspSegment> segments, VertexAllocator vertexAllocator,
             SegmentAllocator segmentAllocator)
         {
             MapRepairer repairer = new MapRepairer(segments.ToList(), vertexAllocator, segmentAllocator);
             repairer.PerformRepair();
             return repairer.m_segments;
         }
-        
+
         private static bool HasNoOverlappingTime(double startTime, double endTime)
         {
             const double epsilon = 0.0001;
@@ -61,14 +61,14 @@ namespace Helion.Bsp.Repairer
             foreach (BspSegment segment in m_segments)
             {
                 m_blocks.Iterate(segment, block =>
-                { 
+                {
                     block.Segments.Add(segment);
                     if (segment.OneSided)
                         block.OneSidedSegments.Add(segment);
                 });
             }
         }
-        
+
         private void AddSegments(List<BspSegment> segsToAdd)
         {
             // Yes, this is O(n), and the only reason this exists is because
@@ -78,7 +78,7 @@ namespace Helion.Bsp.Repairer
             foreach (BspSegment seg in segsToAdd)
             {
                 m_segments.Add(seg);
-                
+
                 m_blocks.Iterate(seg, block =>
                 {
                     block.Segments.Add(seg);
@@ -97,7 +97,7 @@ namespace Helion.Bsp.Repairer
             foreach (BspSegment seg in segsToRemove)
             {
                 m_segments.Remove(seg);
-                
+
                 m_blocks.Iterate(seg, block =>
                 {
                     block.Segments.Remove(seg);
@@ -111,7 +111,7 @@ namespace Helion.Bsp.Repairer
         {
             if (m_segments.Empty())
                 return;
-            
+
             FixOverlappingCollinearLines();
             FixIntersectingLines();
             FixDanglingOneSidedLines();
@@ -143,7 +143,7 @@ namespace Helion.Bsp.Repairer
                             continue;
 
                         Log.Error("Found overlapping segments for line {0} ({1} -> {2}) and {3} ({4} -> {5})",
-                            firstSeg.Line?.Id, firstSeg.Start, firstSeg.End, secondSeg.Line?.Id, secondSeg.Start,
+                            firstSeg.Line?.Index, firstSeg.Start, firstSeg.End, secondSeg.Line?.Index, secondSeg.Start,
                             secondSeg.End);
 
                         var overlapResolver = new CollinearOverlapResolver(firstSeg, secondSeg, startTime, endTime);
@@ -156,7 +156,7 @@ namespace Helion.Bsp.Repairer
 
                 if (segsToRemove.Empty())
                     break;
-                
+
                 // We remove them outside because we do not want to affect the
                 // MapBlock's list while iterating over it.
                 // TODO: Remove any segments in segsToRemove from the SegmentAllocator.
@@ -181,10 +181,10 @@ namespace Helion.Bsp.Repairer
                         // have been handled by the collinear overlapper.
                         if (firstSeg.SharesAnyEndpoints(secondSeg))
                             continue;
-                        
+
                         if (!firstSeg.IntersectionAsLine(secondSeg, out double tFirst, out double tSecond))
                             continue;
-                        
+
                         if (!MathHelper.InNormalRange(tFirst) || !MathHelper.InNormalRange(tSecond))
                             continue;
 
@@ -210,7 +210,7 @@ namespace Helion.Bsp.Repairer
             }
         }
 
-        private void HandleIntersectingSegments(BspSegment firstSeg, BspSegment secondSeg, double tFirst, double tSecond, 
+        private void HandleIntersectingSegments(BspSegment firstSeg, BspSegment secondSeg, double tFirst, double tSecond,
             List<BspSegment> segsToRemove, List<BspSegment> segsToAdd)
         {
             Log.Warn("Found lines that should have intersected to make a vertex but didn't, fixing geometry");

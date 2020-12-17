@@ -1,4 +1,4 @@
-﻿using Helion.Resources;
+﻿using Helion.Resource;
 using Helion.Util.Bytes;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
@@ -77,8 +77,7 @@ namespace Helion.Graphics.Palette
                 }
             }
 
-            ImageMetadata metadata = new ImageMetadata(resourceNamespace);
-            return new PaletteImage(dimension, dimension, indices, metadata);
+            return new PaletteImage(dimension, dimension, indices, resourceNamespace);
         }
 
         /// <summary>
@@ -96,7 +95,7 @@ namespace Helion.Graphics.Palette
             //       2) Use native/unsafe code
             try
             {
-                ByteReader reader = new ByteReader(data);
+                ByteReader reader = new(data);
 
                 int width = reader.Short();
                 int height = reader.Short();
@@ -133,8 +132,7 @@ namespace Helion.Graphics.Palette
                     }
                 }
 
-                ImageMetadata metadata = new ImageMetadata(imageOffsets, resourceNamespace);
-                return new PaletteImage(width, height, indices, metadata);
+                return new PaletteImage(width, height, indices, resourceNamespace, imageOffsets);
             }
             catch
             {

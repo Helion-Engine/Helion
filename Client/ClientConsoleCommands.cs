@@ -57,7 +57,7 @@ namespace Helion.Client
                 Log.Info(m_audioSystem.GetDeviceName());
                 return;
             }
-                
+
             if (!int.TryParse(args[0], out int deviceIndex))
                 return;
 
@@ -95,24 +95,24 @@ namespace Helion.Client
                 Log.Info("Usage: map <mapName>");
                 return;
             }
-            
+
             // For now, we will only have one world layer present. If someone
             // wants to `map mapXX` offline then it will kill their connection
             // and go offline to some world.
             m_layerManager.RemoveByType(typeof(WorldLayer));
 
             string mapName = args[0];
-            IMap? map = m_archiveCollection.FindMap(mapName);
+            Map? map = m_resources.FindMap(mapName);
             if (map == null)
             {
                 Log.Warn("Cannot load map '{0}', it cannot be found or is corrupt", mapName);
                 return;
             }
-            
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem, m_archiveCollection, map);
+
+            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem, m_resources, map);
             if (newLayer == null)
                 return;
-            
+
             m_layerManager.Add(newLayer);
         }
     }

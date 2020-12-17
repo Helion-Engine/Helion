@@ -5,7 +5,7 @@ using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared;
-using Helion.Resources.Archives.Collection;
+using Helion.Resource.Archives.Collection;
 using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;
 

@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
-using Helion.Resources.Definitions.SoundInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
@@ -18,7 +17,7 @@ namespace Helion.Client.OpenAL
         private const float DefaultRadius = 32.0f;
 
         private const ALSourcef SourceRadius = (ALSourcef)0x1031;
-        private const ALSourcei SourceDistanceModel = (ALSourcei)53248; 
+        private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
 
         private readonly ALAudioSourceManager m_owner;
         private readonly int m_sourceId;
@@ -118,7 +117,7 @@ namespace Helion.Client.OpenAL
         {
             if (m_disposed)
                 return false;
-            
+
             AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out int state);
             return (ALSourceState)state == ALSourceState.Playing;
         }
@@ -133,7 +132,7 @@ namespace Helion.Client.OpenAL
         {
             if (m_disposed)
                 return true;
-            
+
             // For the future, maybe we should just track timestamps instead as
             // using "stopped" means we don't know if someone called Stop() or
             // if the sound fully finished.
@@ -145,7 +144,7 @@ namespace Helion.Client.OpenAL
         {
             if (m_disposed)
                 return;
-            
+
             PerformDispose();
             GC.SuppressFinalize(this);
         }

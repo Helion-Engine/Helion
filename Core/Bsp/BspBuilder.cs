@@ -8,7 +8,7 @@ using Helion.Bsp.States.Miniseg;
 using Helion.Bsp.States.Partition;
 using Helion.Bsp.States.Split;
 using Helion.Maps;
-using Helion.Maps.Components;
+using Helion.Maps.Components.Linedefs;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Segments.Enums;
 using static Helion.Util.Assertion.Assert;
@@ -48,11 +48,11 @@ namespace Helion.Bsp
         public bool Done => State == BspState.Complete;
         public WorkItem? CurrentWorkItem => m_workItems.TryPeek(out WorkItem? result) ? result : null;
 
-        public BspBuilder(IMap map) : this(new BspConfig(), map)
+        public BspBuilder(Map map) : this(new BspConfig(), map)
         {
         }
 
-        public BspBuilder(BspConfig config, IMap map)
+        public BspBuilder(BspConfig config, Map map)
         {
             m_bspConfig = config;
             CollinearTracker collinearTracker = new CollinearTracker(config.VertexWeldingEpsilon);
@@ -169,13 +169,13 @@ namespace Helion.Bsp
             }
         }
 
-        private List<BspSegment> ProcessMapLines(IMap map)
+        private List<BspSegment> ProcessMapLines(Map map)
         {
-            List<BspSegment> segments = new List<BspSegment>();
-            foreach (ILine line in map.GetLines())
+            List<BspSegment> segments = new();
+            foreach (Linedef line in map.Linedefs)
             {
-                BspVertex start = VertexAllocator[line.StartPosition];
-                BspVertex end = VertexAllocator[line.EndPosition];
+                BspVertex start = VertexAllocator[line.Start];
+                BspVertex end = VertexAllocator[line.End];
                 BspSegment segment = SegmentAllocator.GetOrCreate(start, end, line);
                 segments.Add(segment);
             }

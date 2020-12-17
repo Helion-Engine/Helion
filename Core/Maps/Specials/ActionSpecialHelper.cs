@@ -9,521 +9,265 @@ namespace Helion.Maps.Specials
         /// <returns>True if it is, false if not.</returns>
         public static bool Exists(string name)
         {
-            switch (name.ToUpper())
+            return name.ToUpper() switch
             {
-            case "ACS_EXECUTE":
-                return true;
-            case "ACS_EXECUTEALWAYS":
-                return true;
-            case "ACS_EXECUTEWITHRESULT":
-                return true;
-            case "ACS_LOCKEDEXECUTE":
-                return true;
-            case "ACS_LOCKEDEXECUTEDOOR":
-                return true;
-            case "ACS_SUSPEND":
-                return true;
-            case "ACS_TERMINATE":
-                return true;
-            case "AUTOSAVE":
-                return true;
-            case "CEILING_CRUSHANDRAISEA":
-                return true;
-            case "CEILING_CRUSHANDRAISE":
-                return true;
-            case "CEILING_CRUSHANDRAISEDIST":
-                return true;
-            case "CEILING_CRUSHANDRAISESILENTA":
-                return true;
-            case "CEILING_CRUSHANDRAISESILENTDIST":
-                return true;
-            case "CEILING_CRUSHRAISEANDSTAYA":
-                return true;
-            case "CEILING_CRUSHRAISEANDSTAY":
-                return true;
-            case "CEILING_CRUSHRAISEANDSTAYSILA":
-                return true;
-            case "CEILING_CRUSHSTOP":
-                return true;
-            case "CEILING_LOWERANDCRUSH":
-                return true;
-            case "CEILING_LOWERANDCRUSHDIST":
-                return true;
-            case "CEILING_LOWERBYTEXTURE":
-                return true;
-            case "CEILING_LOWERBYVALUE":
-                return true;
-            case "CEILING_LOWERBYVALUETIMES8":
-                return true;
-            case "CEILING_LOWERINSTANT":
-                return true;
-            case "CEILING_LOWERTOFLOOR":
-                return true;
-            case "CEILING_LOWERTOHIGHESTFLOOR":
-                return true;
-            case "CEILING_LOWERTOLOWEST":
-                return true;
-            case "CEILING_LOWERTONEAREST":
-                return true;
-            case "CEILING_MOVETOVALUEANDCRUSH":
-                return true;
-            case "CEILING_MOVETOVALUE":
-                return true;
-            case "CEILING_MOVETOVALUETIMES8":
-                return true;
-            case "CEILING_RAISEBYTEXTURE":
-                return true;
-            case "CEILING_RAISEBYVALUE":
-                return true;
-            case "CEILING_RAISEBYVALUETIMES8":
-                return true;
-            case "CEILING_RAISEINSTANT":
-                return true;
-            case "CEILING_RAISETOHIGHEST":
-                return true;
-            case "CEILING_RAISETOHIGHESTFLOOR":
-                return true;
-            case "CEILING_RAISETOLOWEST":
-                return true;
-            case "CEILING_RAISETONEAREST":
-                return true;
-            case "CEILING_STOP":
-                return true;
-            case "CEILING_TOFLOORINSTANT":
-                return true;
-            case "CEILING_TOHIGHESTINSTANT":
-                return true;
-            case "CEILING_WAGGLE":
-                return true;
-            case "CHANGECAMERA":
-                return true;
-            case "CHANGESKILL":
-                return true;
-            case "CLEARFORCEFIELD":
-                return true;
-            case "DAMAGETHING":
-                return true;
-            case "DOOR_ANIMATEDCLOSE":
-                return true;
-            case "DOOR_ANIMATED":
-                return true;
-            case "DOOR_CLOSE":
-                return true;
-            case "DOOR_CLOSEWAITOPEN":
-                return true;
-            case "DOOR_LOCKEDRAISE":
-                return true;
-            case "DOOR_OPEN":
-                return true;
-            case "DOOR_RAISE":
-                return true;
-            case "DOOR_WAITCLOSE":
-                return true;
-            case "DOOR_WAITRAISE":
-                return true;
-            case "ELEVATOR_LOWERTONEAREST":
-                return true;
-            case "ELEVATOR_MOVETOFLOOR":
-                return true;
-            case "ELEVATOR_RAISETONEAREST":
-                return true;
-            case "EXIT_NORMAL":
-                return true;
-            case "EXIT_SECRET":
-                return true;
-            case "EXTRAFLOOR_LIGHTONLY":
-                return true;
-            case "FLOORANDCEILING_LOWERBYVALUE":
-                return true;
-            case "FLOORANDCEILING_LOWERRAISE":
-                return true;
-            case "FLOORANDCEILING_RAISEBYVALUE":
-                return true;
-            case "FLOOR_CRUSHSTOP":
-                return true;
-            case "FLOOR_DONUT":
-                return true;
-            case "FLOOR_LOWERBYTEXTURE":
-                return true;
-            case "FLOOR_LOWERBYVALUE":
-                return true;
-            case "FLOOR_LOWERBYVALUETIMES8":
-                return true;
-            case "FLOOR_LOWERINSTANT":
-                return true;
-            case "FLOOR_LOWERTOHIGHESTEE":
-                return true;
-            case "FLOOR_LOWERTOHIGHEST":
-                return true;
-            case "FLOOR_LOWERTOLOWESTCEILING":
-                return true;
-            case "FLOOR_LOWERTOLOWEST":
-                return true;
-            case "FLOOR_LOWERTOLOWESTTXTY":
-                return true;
-            case "FLOOR_LOWERTONEAREST":
-                return true;
-            case "FLOOR_MOVETOVALUEANDCRUSH":
-                return true;
-            case "FLOOR_MOVETOVALUE":
-                return true;
-            case "FLOOR_MOVETOVALUETIMES8":
-                return true;
-            case "FLOOR_RAISEANDCRUSHDOOM":
-                return true;
-            case "FLOOR_RAISEANDCRUSH":
-                return true;
-            case "FLOOR_RAISEBYTEXTURE":
-                return true;
-            case "FLOOR_RAISEBYVALUE":
-                return true;
-            case "FLOOR_RAISEBYVALUETIMES8":
-                return true;
-            case "FLOOR_RAISEBYVALUETXTY":
-                return true;
-            case "FLOOR_RAISEINSTANT":
-                return true;
-            case "FLOOR_RAISETOCEILING":
-                return true;
-            case "FLOOR_RAISETOHIGHEST":
-                return true;
-            case "FLOOR_RAISETOLOWESTCEILING":
-                return true;
-            case "FLOOR_RAISETOLOWEST":
-                return true;
-            case "FLOOR_RAISETONEAREST":
-                return true;
-            case "FLOOR_STOP":
-                return true;
-            case "FLOOR_TOCEILINGINSTANT":
-                return true;
-            case "FLOOR_TRANSFERNUMERIC":
-                return true;
-            case "FLOOR_TRANSFERTRIGGER":
-                return true;
-            case "FLOOR_WAGGLE":
-                return true;
-            case "FORCEFIELD":
-                return true;
-            case "FS_EXECUTE":
-                return true;
-            case "GENERIC_CEILING":
-                return true;
-            case "GENERIC_CRUSHER2":
-                return true;
-            case "GENERIC_CRUSHER":
-                return true;
-            case "GENERIC_DOOR":
-                return true;
-            case "GENERIC_FLOOR":
-                return true;
-            case "GENERIC_LIFT":
-                return true;
-            case "GENERIC_STAIRS":
-                return true;
-            case "GLASSBREAK":
-                return true;
-            case "HEALTHING":
-                return true;
-            case "LIGHT_CHANGETOVALUE":
-                return true;
-            case "LIGHT_FADE":
-                return true;
-            case "LIGHT_FLICKER":
-                return true;
-            case "LIGHT_FORCELIGHTNING":
-                return true;
-            case "LIGHT_GLOW":
-                return true;
-            case "LIGHT_LOWERBYVALUE":
-                return true;
-            case "LIGHT_MAXNEIGHBOR":
-                return true;
-            case "LIGHT_MINNEIGHBOR":
-                return true;
-            case "LIGHT_RAISEBYVALUE":
-                return true;
-            case "LIGHT_STOP":
-                return true;
-            case "LIGHT_STROBEDOOM":
-                return true;
-            case "LIGHT_STROBE":
-                return true;
-            case "LINE_ALIGNCEILING":
-                return true;
-            case "LINE_ALIGNFLOOR":
-                return true;
-            case "LINE_HORIZON":
-                return true;
-            case "LINE_MIRROR":
-                return true;
-            case "LINE_SETBLOCKING":
-                return true;
-            case "LINE_SETIDENTIFICATION":
-                return true;
-            case "LINE_SETPORTAL":
-                return true;
-            case "LINE_SETPORTALTARGET":
-                return true;
-            case "LINE_SETTEXTUREOFFSET":
-                return true;
-            case "LINE_SETTEXTURESCALE":
-                return true;
-            case "NOISEALERT":
-                return true;
-            case "PILLAR_BUILDANDCRUSH":
-                return true;
-            case "PILLAR_BUILD":
-                return true;
-            case "PILLAR_OPEN":
-                return true;
-            case "PLANE_ALIGN":
-                return true;
-            case "PLANE_COPY":
-                return true;
-            case "PLAT_DOWNBYVALUE":
-                return true;
-            case "PLAT_DOWNWAITUPSTAYLIP":
-                return true;
-            case "PLAT_DOWNWAITUPSTAY":
-                return true;
-            case "PLAT_PERPETUALRAISELIP":
-                return true;
-            case "PLAT_PERPETUALRAISE":
-                return true;
-            case "PLAT_RAISEANDSTAYTX0":
-                return true;
-            case "PLAT_STOP":
-                return true;
-            case "PLAT_TOGGLECEILING":
-                return true;
-            case "PLAT_UPBYVALUE":
-                return true;
-            case "PLAT_UPBYVALUESTAYTX":
-                return true;
-            case "PLAT_UPNEARESTWAITDOWNSTAY":
-                return true;
-            case "PLAT_UPWAITDOWNSTAY":
-                return true;
-            case "POINTPUSH_SETFORCE":
-                return true;
-            case "POLYOBJ_DOORSLIDE":
-                return true;
-            case "POLYOBJ_DOORSWING":
-                return true;
-            case "POLYOBJ_EXPLICITLINE":
-                return true;
-            case "POLYOBJ_MOVE":
-                return true;
-            case "POLYOBJ_MOVETIMES8":
-                return true;
-            case "POLYOBJ_MOVETO":
-                return true;
-            case "POLYOBJ_MOVETOSPOT":
-                return true;
-            case "POLYOBJ_OR_MOVE":
-                return true;
-            case "POLYOBJ_OR_MOVETIMES8":
-                return true;
-            case "POLYOBJ_OR_MOVETO":
-                return true;
-            case "POLYOBJ_OR_MOVETOSPOT":
-                return true;
-            case "POLYOBJ_OR_ROTATELEFT":
-                return true;
-            case "POLYOBJ_OR_ROTATERIGHT":
-                return true;
-            case "POLYOBJ_ROTATELEFT":
-                return true;
-            case "POLYOBJ_ROTATERIGHT":
-                return true;
-            case "POLYOBJ_STARTLINE":
-                return true;
-            case "POLYOBJ_STOP":
-                return true;
-            case "RADIUS_QUAKE":
-                return true;
-            case "SCROLL_CEILING":
-                return true;
-            case "SCROLL_FLOOR":
-                return true;
-            case "SCROLL_TEXTURE_BOTH":
-                return true;
-            case "SCROLL_TEXTURE_DOWN":
-                return true;
-            case "SCROLL_TEXTURE_LEFT":
-                return true;
-            case "SCROLL_TEXTURE_MODEL":
-                return true;
-            case "SCROLL_TEXTURE_OFFSETS":
-                return true;
-            case "SCROLL_TEXTURE_RIGHT":
-                return true;
-            case "SCROLL_TEXTURE_UP":
-                return true;
-            case "SCROLL_WALL":
-                return true;
-            case "SECTOR_ATTACH3DMIDTEX":
-                return true;
-            case "SECTOR_CHANGEFLAGS":
-                return true;
-            case "SECTOR_CHANGESOUND":
-                return true;
-            case "SECTOR_COPYSCROLLER":
-                return true;
-            case "SECTOR_SET3DFLOOR":
-                return true;
-            case "SECTOR_SETCEILINGGLOW":
-                return true;
-            case "SECTOR_SETCEILINGPANNING":
-                return true;
-            case "SECTOR_SETCEILINGSCALE2":
-                return true;
-            case "SECTOR_SETCEILINGSCALE":
-                return true;
-            case "SECTOR_SETCOLOR":
-                return true;
-            case "SECTOR_SETCONTENTS":
-                return true;
-            case "SECTOR_SETCURRENT":
-                return true;
-            case "SECTOR_SETDAMAGE":
-                return true;
-            case "SECTOR_SETFADE":
-                return true;
-            case "SECTOR_SETFLOORGLOW":
-                return true;
-            case "SECTOR_SETFLOORPANNING":
-                return true;
-            case "SECTOR_SETFLOORSCALE2":
-                return true;
-            case "SECTOR_SETFLOORSCALE":
-                return true;
-            case "SECTOR_SETFRICTION":
-                return true;
-            case "SECTOR_SETGRAVITY":
-                return true;
-            case "SECTOR_SETLINK":
-                return true;
-            case "SECTOR_SETPLANEREFLECTION":
-                return true;
-            case "SECTOR_SETPORTAL":
-                return true;
-            case "SECTOR_SETROTATION":
-                return true;
-            case "SECTOR_SETTRANSLUCENT":
-                return true;
-            case "SECTOR_SETWIND":
-                return true;
-            case "SENDTOCOMMUNICATOR":
-                return true;
-            case "SETGLOBALFOGPARAMETER":
-                return true;
-            case "SETPLAYERPROPERTY":
-                return true;
-            case "STAIRS_BUILDDOWNDOOM":
-                return true;
-            case "STAIRS_BUILDDOWNDOOMSYNC":
-                return true;
-            case "STAIRS_BUILDDOWN":
-                return true;
-            case "STAIRS_BUILDDOWNSYNC":
-                return true;
-            case "STAIRS_BUILDUPDOOMCRUSH":
-                return true;
-            case "STAIRS_BUILDUPDOOM":
-                return true;
-            case "STAIRS_BUILDUPDOOMSYNC":
-                return true;
-            case "STAIRS_BUILDUP":
-                return true;
-            case "STAIRS_BUILDUPSYNC":
-                return true;
-            case "STARTCONVERSATION":
-                return true;
-            case "STATIC_INIT":
-                return true;
-            case "TELEPORT_ENDGAME":
-                return true;
-            case "TELEPORTGROUP":
-                return true;
-            case "TELEPORTINSECTOR":
-                return true;
-            case "TELEPORT_LINE":
-                return true;
-            case "TELEPORT_NEWMAP":
-                return true;
-            case "TELEPORT_NOFOG":
-                return true;
-            case "TELEPORT_NOSTOP":
-                return true;
-            case "TELEPORTOTHER":
-                return true;
-            case "TELEPORT":
-                return true;
-            case "TELEPORT_ZOMBIECHANGER":
-                return true;
-            case "THING_ACTIVATE":
-                return true;
-            case "THING_CHANGETID":
-                return true;
-            case "THING_DAMAGE":
-                return true;
-            case "THING_DEACTIVATE":
-                return true;
-            case "THING_DESTROY":
-                return true;
-            case "THING_HATE":
-                return true;
-            case "THING_MOVE":
-                return true;
-            case "THING_PROJECTILEAIMED":
-                return true;
-            case "THING_PROJECTILEGRAVITY":
-                return true;
-            case "THING_PROJECTILEINTERCEPT":
-                return true;
-            case "THING_PROJECTILE":
-                return true;
-            case "THING_RAISE":
-                return true;
-            case "THING_REMOVE":
-                return true;
-            case "THING_SETCONVERSATION":
-                return true;
-            case "THING_SETGOAL":
-                return true;
-            case "THING_SETSPECIAL":
-                return true;
-            case "THING_SETTRANSLATION":
-                return true;
-            case "THING_SPAWNFACING":
-                return true;
-            case "THING_SPAWNNOFOG":
-                return true;
-            case "THING_SPAWN":
-                return true;
-            case "THING_STOP":
-                return true;
-            case "THRUSTTHING":
-                return true;
-            case "THRUSTTHINGZ":
-                return true;
-            case "TRANSFER_CEILINGLIGHT":
-                return true;
-            case "TRANSFER_FLOORLIGHT":
-                return true;
-            case "TRANSFER_HEIGHTS":
-                return true;
-            case "TRANSFER_WALLLIGHT":
-                return true;
-            case "TRANSLUCENTLINE":
-                return true;
-            case "USEPUZZLEITEM":
-                return true;
-            default:
-                return false;
-            }
+                "ACS_EXECUTE" => true,
+                "ACS_EXECUTEALWAYS" => true,
+                "ACS_EXECUTEWITHRESULT" => true,
+                "ACS_LOCKEDEXECUTE" => true,
+                "ACS_LOCKEDEXECUTEDOOR" => true,
+                "ACS_SUSPEND" => true,
+                "ACS_TERMINATE" => true,
+                "AUTOSAVE" => true,
+                "CEILING_CRUSHANDRAISEA" => true,
+                "CEILING_CRUSHANDRAISE" => true,
+                "CEILING_CRUSHANDRAISEDIST" => true,
+                "CEILING_CRUSHANDRAISESILENTA" => true,
+                "CEILING_CRUSHANDRAISESILENTDIST" => true,
+                "CEILING_CRUSHRAISEANDSTAYA" => true,
+                "CEILING_CRUSHRAISEANDSTAY" => true,
+                "CEILING_CRUSHRAISEANDSTAYSILA" => true,
+                "CEILING_CRUSHSTOP" => true,
+                "CEILING_LOWERANDCRUSH" => true,
+                "CEILING_LOWERANDCRUSHDIST" => true,
+                "CEILING_LOWERBYTEXTURE" => true,
+                "CEILING_LOWERBYVALUE" => true,
+                "CEILING_LOWERBYVALUETIMES8" => true,
+                "CEILING_LOWERINSTANT" => true,
+                "CEILING_LOWERTOFLOOR" => true,
+                "CEILING_LOWERTOHIGHESTFLOOR" => true,
+                "CEILING_LOWERTOLOWEST" => true,
+                "CEILING_LOWERTONEAREST" => true,
+                "CEILING_MOVETOVALUEANDCRUSH" => true,
+                "CEILING_MOVETOVALUE" => true,
+                "CEILING_MOVETOVALUETIMES8" => true,
+                "CEILING_RAISEBYTEXTURE" => true,
+                "CEILING_RAISEBYVALUE" => true,
+                "CEILING_RAISEBYVALUETIMES8" => true,
+                "CEILING_RAISEINSTANT" => true,
+                "CEILING_RAISETOHIGHEST" => true,
+                "CEILING_RAISETOHIGHESTFLOOR" => true,
+                "CEILING_RAISETOLOWEST" => true,
+                "CEILING_RAISETONEAREST" => true,
+                "CEILING_STOP" => true,
+                "CEILING_TOFLOORINSTANT" => true,
+                "CEILING_TOHIGHESTINSTANT" => true,
+                "CEILING_WAGGLE" => true,
+                "CHANGECAMERA" => true,
+                "CHANGESKILL" => true,
+                "CLEARFORCEFIELD" => true,
+                "DAMAGETHING" => true,
+                "DOOR_ANIMATEDCLOSE" => true,
+                "DOOR_ANIMATED" => true,
+                "DOOR_CLOSE" => true,
+                "DOOR_CLOSEWAITOPEN" => true,
+                "DOOR_LOCKEDRAISE" => true,
+                "DOOR_OPEN" => true,
+                "DOOR_RAISE" => true,
+                "DOOR_WAITCLOSE" => true,
+                "DOOR_WAITRAISE" => true,
+                "ELEVATOR_LOWERTONEAREST" => true,
+                "ELEVATOR_MOVETOFLOOR" => true,
+                "ELEVATOR_RAISETONEAREST" => true,
+                "EXIT_NORMAL" => true,
+                "EXIT_SECRET" => true,
+                "EXTRAFLOOR_LIGHTONLY" => true,
+                "FLOORANDCEILING_LOWERBYVALUE" => true,
+                "FLOORANDCEILING_LOWERRAISE" => true,
+                "FLOORANDCEILING_RAISEBYVALUE" => true,
+                "FLOOR_CRUSHSTOP" => true,
+                "FLOOR_DONUT" => true,
+                "FLOOR_LOWERBYTEXTURE" => true,
+                "FLOOR_LOWERBYVALUE" => true,
+                "FLOOR_LOWERBYVALUETIMES8" => true,
+                "FLOOR_LOWERINSTANT" => true,
+                "FLOOR_LOWERTOHIGHESTEE" => true,
+                "FLOOR_LOWERTOHIGHEST" => true,
+                "FLOOR_LOWERTOLOWESTCEILING" => true,
+                "FLOOR_LOWERTOLOWEST" => true,
+                "FLOOR_LOWERTOLOWESTTXTY" => true,
+                "FLOOR_LOWERTONEAREST" => true,
+                "FLOOR_MOVETOVALUEANDCRUSH" => true,
+                "FLOOR_MOVETOVALUE" => true,
+                "FLOOR_MOVETOVALUETIMES8" => true,
+                "FLOOR_RAISEANDCRUSHDOOM" => true,
+                "FLOOR_RAISEANDCRUSH" => true,
+                "FLOOR_RAISEBYTEXTURE" => true,
+                "FLOOR_RAISEBYVALUE" => true,
+                "FLOOR_RAISEBYVALUETIMES8" => true,
+                "FLOOR_RAISEBYVALUETXTY" => true,
+                "FLOOR_RAISEINSTANT" => true,
+                "FLOOR_RAISETOCEILING" => true,
+                "FLOOR_RAISETOHIGHEST" => true,
+                "FLOOR_RAISETOLOWESTCEILING" => true,
+                "FLOOR_RAISETOLOWEST" => true,
+                "FLOOR_RAISETONEAREST" => true,
+                "FLOOR_STOP" => true,
+                "FLOOR_TOCEILINGINSTANT" => true,
+                "FLOOR_TRANSFERNUMERIC" => true,
+                "FLOOR_TRANSFERTRIGGER" => true,
+                "FLOOR_WAGGLE" => true,
+                "FORCEFIELD" => true,
+                "FS_EXECUTE" => true,
+                "GENERIC_CEILING" => true,
+                "GENERIC_CRUSHER2" => true,
+                "GENERIC_CRUSHER" => true,
+                "GENERIC_DOOR" => true,
+                "GENERIC_FLOOR" => true,
+                "GENERIC_LIFT" => true,
+                "GENERIC_STAIRS" => true,
+                "GLASSBREAK" => true,
+                "HEALTHING" => true,
+                "LIGHT_CHANGETOVALUE" => true,
+                "LIGHT_FADE" => true,
+                "LIGHT_FLICKER" => true,
+                "LIGHT_FORCELIGHTNING" => true,
+                "LIGHT_GLOW" => true,
+                "LIGHT_LOWERBYVALUE" => true,
+                "LIGHT_MAXNEIGHBOR" => true,
+                "LIGHT_MINNEIGHBOR" => true,
+                "LIGHT_RAISEBYVALUE" => true,
+                "LIGHT_STOP" => true,
+                "LIGHT_STROBEDOOM" => true,
+                "LIGHT_STROBE" => true,
+                "LINE_ALIGNCEILING" => true,
+                "LINE_ALIGNFLOOR" => true,
+                "LINE_HORIZON" => true,
+                "LINE_MIRROR" => true,
+                "LINE_SETBLOCKING" => true,
+                "LINE_SETIDENTIFICATION" => true,
+                "LINE_SETPORTAL" => true,
+                "LINE_SETPORTALTARGET" => true,
+                "LINE_SETTEXTUREOFFSET" => true,
+                "LINE_SETTEXTURESCALE" => true,
+                "NOISEALERT" => true,
+                "PILLAR_BUILDANDCRUSH" => true,
+                "PILLAR_BUILD" => true,
+                "PILLAR_OPEN" => true,
+                "PLANE_ALIGN" => true,
+                "PLANE_COPY" => true,
+                "PLAT_DOWNBYVALUE" => true,
+                "PLAT_DOWNWAITUPSTAYLIP" => true,
+                "PLAT_DOWNWAITUPSTAY" => true,
+                "PLAT_PERPETUALRAISELIP" => true,
+                "PLAT_PERPETUALRAISE" => true,
+                "PLAT_RAISEANDSTAYTX0" => true,
+                "PLAT_STOP" => true,
+                "PLAT_TOGGLECEILING" => true,
+                "PLAT_UPBYVALUE" => true,
+                "PLAT_UPBYVALUESTAYTX" => true,
+                "PLAT_UPNEARESTWAITDOWNSTAY" => true,
+                "PLAT_UPWAITDOWNSTAY" => true,
+                "POINTPUSH_SETFORCE" => true,
+                "POLYOBJ_DOORSLIDE" => true,
+                "POLYOBJ_DOORSWING" => true,
+                "POLYOBJ_EXPLICITLINE" => true,
+                "POLYOBJ_MOVE" => true,
+                "POLYOBJ_MOVETIMES8" => true,
+                "POLYOBJ_MOVETO" => true,
+                "POLYOBJ_MOVETOSPOT" => true,
+                "POLYOBJ_OR_MOVE" => true,
+                "POLYOBJ_OR_MOVETIMES8" => true,
+                "POLYOBJ_OR_MOVETO" => true,
+                "POLYOBJ_OR_MOVETOSPOT" => true,
+                "POLYOBJ_OR_ROTATELEFT" => true,
+                "POLYOBJ_OR_ROTATERIGHT" => true,
+                "POLYOBJ_ROTATELEFT" => true,
+                "POLYOBJ_ROTATERIGHT" => true,
+                "POLYOBJ_STARTLINE" => true,
+                "POLYOBJ_STOP" => true,
+                "RADIUS_QUAKE" => true,
+                "SCROLL_CEILING" => true,
+                "SCROLL_FLOOR" => true,
+                "SCROLL_TEXTURE_BOTH" => true,
+                "SCROLL_TEXTURE_DOWN" => true,
+                "SCROLL_TEXTURE_LEFT" => true,
+                "SCROLL_TEXTURE_MODEL" => true,
+                "SCROLL_TEXTURE_OFFSETS" => true,
+                "SCROLL_TEXTURE_RIGHT" => true,
+                "SCROLL_TEXTURE_UP" => true,
+                "SCROLL_WALL" => true,
+                "SECTOR_ATTACH3DMIDTEX" => true,
+                "SECTOR_CHANGEFLAGS" => true,
+                "SECTOR_CHANGESOUND" => true,
+                "SECTOR_COPYSCROLLER" => true,
+                "SECTOR_SET3DFLOOR" => true,
+                "SECTOR_SETCEILINGGLOW" => true,
+                "SECTOR_SETCEILINGPANNING" => true,
+                "SECTOR_SETCEILINGSCALE2" => true,
+                "SECTOR_SETCEILINGSCALE" => true,
+                "SECTOR_SETCOLOR" => true,
+                "SECTOR_SETCONTENTS" => true,
+                "SECTOR_SETCURRENT" => true,
+                "SECTOR_SETDAMAGE" => true,
+                "SECTOR_SETFADE" => true,
+                "SECTOR_SETFLOORGLOW" => true,
+                "SECTOR_SETFLOORPANNING" => true,
+                "SECTOR_SETFLOORSCALE2" => true,
+                "SECTOR_SETFLOORSCALE" => true,
+                "SECTOR_SETFRICTION" => true,
+                "SECTOR_SETGRAVITY" => true,
+                "SECTOR_SETLINK" => true,
+                "SECTOR_SETPLANEREFLECTION" => true,
+                "SECTOR_SETPORTAL" => true,
+                "SECTOR_SETROTATION" => true,
+                "SECTOR_SETTRANSLUCENT" => true,
+                "SECTOR_SETWIND" => true,
+                "SENDTOCOMMUNICATOR" => true,
+                "SETGLOBALFOGPARAMETER" => true,
+                "SETPLAYERPROPERTY" => true,
+                "STAIRS_BUILDDOWNDOOM" => true,
+                "STAIRS_BUILDDOWNDOOMSYNC" => true,
+                "STAIRS_BUILDDOWN" => true,
+                "STAIRS_BUILDDOWNSYNC" => true,
+                "STAIRS_BUILDUPDOOMCRUSH" => true,
+                "STAIRS_BUILDUPDOOM" => true,
+                "STAIRS_BUILDUPDOOMSYNC" => true,
+                "STAIRS_BUILDUP" => true,
+                "STAIRS_BUILDUPSYNC" => true,
+                "STARTCONVERSATION" => true,
+                "STATIC_INIT" => true,
+                "TELEPORT_ENDGAME" => true,
+                "TELEPORTGROUP" => true,
+                "TELEPORTINSECTOR" => true,
+                "TELEPORT_LINE" => true,
+                "TELEPORT_NEWMAP" => true,
+                "TELEPORT_NOFOG" => true,
+                "TELEPORT_NOSTOP" => true,
+                "TELEPORTOTHER" => true,
+                "TELEPORT" => true,
+                "TELEPORT_ZOMBIECHANGER" => true,
+                "THING_ACTIVATE" => true,
+                "THING_CHANGETID" => true,
+                "THING_DAMAGE" => true,
+                "THING_DEACTIVATE" => true,
+                "THING_DESTROY" => true,
+                "THING_HATE" => true,
+                "THING_MOVE" => true,
+                "THING_PROJECTILEAIMED" => true,
+                "THING_PROJECTILEGRAVITY" => true,
+                "THING_PROJECTILEINTERCEPT" => true,
+                "THING_PROJECTILE" => true,
+                "THING_RAISE" => true,
+                "THING_REMOVE" => true,
+                "THING_SETCONVERSATION" => true,
+                "THING_SETGOAL" => true,
+                "THING_SETSPECIAL" => true,
+                "THING_SETTRANSLATION" => true,
+                "THING_SPAWNFACING" => true,
+                "THING_SPAWNNOFOG" => true,
+                "THING_SPAWN" => true,
+                "THING_STOP" => true,
+                "THRUSTTHING" => true,
+                "THRUSTTHINGZ" => true,
+                "TRANSFER_CEILINGLIGHT" => true,
+                "TRANSFER_FLOORLIGHT" => true,
+                "TRANSFER_HEIGHTS" => true,
+                "TRANSFER_WALLLIGHT" => true,
+                "TRANSLUCENTLINE" => true,
+                "USEPUZZLEITEM" => true,
+                _ => false
+            };
         }
     }
 }

@@ -1,5 +1,5 @@
 using Helion.Graphics.String;
-using Helion.Resources;
+using Helion.Resource;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 
@@ -35,7 +35,7 @@ namespace Helion.Render.Shared
         /// <param name="font">The name of the font.</param>
         /// <returns>The font height in pixels.</returns>
         int GetFontHeight(string font);
-        
+
         /// <summary>
         /// Calculates the rectangle draw area of the string for the font and
         /// font size (if any) provided.

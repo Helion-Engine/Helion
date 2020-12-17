@@ -1,4 +1,4 @@
-using Helion.Resources.Definitions.Fonts.Definition;
+using Helion.Resource.Definitions.Fonts.Definition;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Resources.Definitions.Fonts.Definition
@@ -11,7 +11,7 @@ namespace Helion.Test.Unit.Resources.Definitions.Fonts.Definition
         {
             const string name = "name";
             FontDefinition fontDefinition = new FontDefinition(name);
-            
+
             Assert.AreEqual(name, fontDefinition.Name);
         }
     }

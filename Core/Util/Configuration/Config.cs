@@ -1,9 +1,5 @@
 using System;
-using Helion.Input;
-using Helion.Maps.Shared;
-using Helion.Render.Shared;
 using Helion.Util.Configuration.Components;
-using Helion.Window;
 
 namespace Helion.Util.Configuration
 {
@@ -18,12 +14,12 @@ namespace Helion.Util.Configuration
             configPath = path;
             ConfigReflectionReader.ReadIntoFieldsRecursively(this, configPath);
         }
-        
+
         public void Dispose()
         {
-            if (disposed) 
+            if (disposed)
                 return;
-            
+
             ConfigReflectionWriter.WriteFieldsRecursively(this, configPath);
             disposed = true;
         }

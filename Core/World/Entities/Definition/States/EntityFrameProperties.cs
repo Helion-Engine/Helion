@@ -1,4 +1,4 @@
-using Helion.Resources.Definitions.Decorate.States;
+using Helion.Resource.Definitions.Decorate.States;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 

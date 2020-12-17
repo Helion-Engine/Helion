@@ -1,5 +1,5 @@
 using Helion.Bsp.Repairer;
-using Helion.Maps.Components;
+using Helion.Maps.Components.Linedefs;
 using Helion.Util.Geometry.Graphs;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Segments.Enums;
@@ -19,7 +19,7 @@ namespace Helion.Bsp.Geometry
         public const int NoSectorId = -1;
 
         /// <summary>
-        /// A constant line ID for a miniseg (as it references no existing 
+        /// A constant line ID for a miniseg (as it references no existing
         /// line).
         /// </summary>
         public const int MinisegLineId = -1;
@@ -28,7 +28,7 @@ namespace Helion.Bsp.Geometry
         /// The starting vertex.
         /// </summary>
         public readonly BspVertex StartVertex;
-        
+
         /// <summary>
         /// The starting vertex. This will be identical to the Start coordinate
         /// position.
@@ -45,8 +45,8 @@ namespace Helion.Bsp.Geometry
         /// <summary>
         /// The ID of the line this is or is a subset of.
         /// </summary>
-        public readonly IBspUsableLine? Line;
-        
+        public readonly Linedef? Line;
+
         /// <summary>
         /// The vertex index starting index in the vertex allocator.
         /// </summary>
@@ -85,7 +85,7 @@ namespace Helion.Bsp.Geometry
         /// <see cref="CollinearTracker"/> for more info.</param>
         /// <param name="line">The line (if any, this being null implies it is
         /// a miniseg).</param>
-        public BspSegment(BspVertex start, BspVertex end, int collinearIndex, IBspUsableLine? line = null) : 
+        public BspSegment(BspVertex start, BspVertex end, int collinearIndex, Linedef? line = null) :
             base(start.Position, end.Position)
         {
             Precondition(start != end, "BSP segment shouldn't have a start and end index being the same");
@@ -94,7 +94,7 @@ namespace Helion.Bsp.Geometry
             EndVertex = end;
             CollinearIndex = collinearIndex;
             Line = line;
-            
+
             start.Edges.Add(this);
             end.Edges.Add(this);
 
@@ -117,7 +117,7 @@ namespace Helion.Bsp.Geometry
         }
 
         /// <summary>
-        /// Gets the endpoint enumeration from the vertex index. The index 
+        /// Gets the endpoint enumeration from the vertex index. The index
         /// provided should be one of the start or end indices.
         /// </summary>
         /// <param name="index">The index to get the endpoint form.</param>
@@ -141,7 +141,7 @@ namespace Helion.Bsp.Geometry
         /// <param name="endpoint">The endpoint to get.</param>
         /// <returns>The index for the endpoint.</returns>
         public BspVertex VertexFrom(Endpoint endpoint) => endpoint == Endpoint.Start ? StartVertex : EndVertex;
-        
+
         /// <summary>
         /// Gets the index from the endpoint.
         /// </summary>
@@ -179,12 +179,7 @@ namespace Helion.Bsp.Geometry
         public IGraphVertex GetStart() => StartVertex;
 
         public IGraphVertex GetEnd() => EndVertex;
-        
-        public override string ToString()
-        {
-            if (Line is ILine line)
-                return $"({Start}) -> ({End}) [line={line.Id}, oneSided={OneSided} miniseg={IsMiniseg} collinearIndex={CollinearIndex}]";
-            return $"({Start}) -> ({End}) [oneSided={OneSided} miniseg={IsMiniseg} collinearIndex={CollinearIndex}]";
-        }
+
+        public override string ToString() => $"({Start}) -> ({End}) [oneSided={OneSided} miniseg={IsMiniseg} collinearIndex={CollinearIndex}]";
     }
 }

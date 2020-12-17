@@ -4,6 +4,6 @@ namespace Helion.Maps
     {
         Doom,
         Hexen,
-        UDMF,
+        UDMF
     }
 }

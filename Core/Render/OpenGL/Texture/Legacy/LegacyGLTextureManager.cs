@@ -7,7 +7,7 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Resources;
-using Helion.Resources.Archives.Collection;
+using Helion.Resource.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using static Helion.Util.Assertion.Assert;

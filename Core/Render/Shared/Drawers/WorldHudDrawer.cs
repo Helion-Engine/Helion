@@ -6,6 +6,7 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Align;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared.Drawers.Helper;
+using Helion.Resource.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -50,7 +51,7 @@ namespace Helion.Render.Shared.Drawers
             DrawDamage(player, world, viewport, helper);
             DrawRecentConsoleMessages(world, console, helper);
         }
-        
+
         private static void DrawHud(int topRightY, Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealthAndArmor(player, viewport, helper);
@@ -60,7 +61,7 @@ namespace Helion.Render.Shared.Drawers
             if (player.AnimationWeapon != null)
             {
                 DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
-                if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
+                if (player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                     DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
             }
 
