@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Helion.Maps;
+using Helion.MapsNew;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 

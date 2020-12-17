@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Helion.Graphics.Palette;
-using Helion.Maps;
+using Helion.MapsNew;
 using Helion.Resources;
 using Helion.ResourcesNew.Archives;
 using Helion.ResourcesNew.Definitions.Animations;
@@ -94,9 +94,23 @@ namespace Helion.ResourcesNew
             return m_entryTracker.GetOnly(name, resourceNamespace);
         }
 
-        public IMap? FindMap(CIString name)
+        public Map? FindMap(CIString name)
         {
-            // TODO
+            for (int i = m_archives.Count - 1; i >= 0; i--)
+            {
+                Archive archive = m_archives[i];
+
+                // The reason we early out on the first map we find that has a
+                // name match is because we don't want to confuse the user if
+                // we ignore corruption and keep looking for a valid one. For
+                // example, suppose there's a few archives with MAP01. It would
+                // be weird if the latest one is corrupt, and we return a map
+                // from an earlier one. Exiting early lets the user know this.
+                foreach (MapEntryCollection mapEntries in new ArchiveMapIterator(archive))
+                    if (mapEntries.Name == name)
+                        return Map.Read(mapEntries);
+            }
+
             return null;
         }
 
