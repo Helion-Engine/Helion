@@ -37,11 +37,8 @@ namespace Helion.Worlds.Geometry
 
         private void TrackSectorsByTag()
         {
-            foreach (Sector sector in Sectors)
+            foreach (Sector sector in Sectors.Where(s => s.Tag != Sector.NoTag))
             {
-                if (sector.Tag == Sector.NoTag)
-                    continue;
-
                 if (m_tagToSector.TryGetValue(sector.Tag, out List<Sector>? sectors))
                     sectors.Add(sector);
                 else

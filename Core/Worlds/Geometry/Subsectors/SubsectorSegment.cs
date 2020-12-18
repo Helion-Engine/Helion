@@ -10,11 +10,6 @@ namespace Helion.Worlds.Geometry.Subsectors
     public class SubsectorSegment : Seg2D
     {
         /// <summary>
-        /// The unique ID for the segment.
-        /// </summary>
-        public readonly int Id;
-
-        /// <summary>
         /// The subsector for this segment.
         /// </summary>
         public Subsector Subsector { get; internal set; }
@@ -38,20 +33,18 @@ namespace Helion.Worlds.Geometry.Subsectors
         /// <summary>
         /// Creates a new subsector segment.
         /// </summary>
-        /// <param name="id">The unique ID of the segment.</param>
         /// <param name="side">The side this belongs to, or null if this is a
         /// miniseg.</param>
         /// <param name="start">The starting point of this segment.</param>
         /// <param name="end">The ending point of this segment.</param>
-        public SubsectorSegment(int id, Side? side, Vec2D start, Vec2D end) : base(start, end)
+        public SubsectorSegment(Side? side, Vec2D start, Vec2D end) : base(start, end)
         {
-            Id = id;
             Side = side;
 
             // As seen elsewhere: if this is not set shortly thereafter,
             // someone screwed up big time. This also avoids making a very
             // messy workaround to make this correct.
-            Subsector = null !;
+            Subsector = null!;
         }
     }
 }

@@ -121,9 +121,9 @@ namespace Helion.Util.Geometry.Boxes
         /// <param name="segments">The segments to bound. This should contain
         /// at least one element.</param>
         /// <returns>A box that bounds the segments.</returns>
-        public static Box2D BoundSegments(List<Seg2D> segments)
+        public static Box2D BoundSegments(IEnumerable<Seg2D> segments)
         {
-            Precondition(segments.Count > 0, "Cannot bound segments when none are provided");
+            Precondition(segments.Any(), "Cannot bound segments when none are provided");
 
             return Combine(segments.First().Box, segments.Skip(1).Select(s => s.Box).ToArray());
         }

@@ -9,17 +9,17 @@ namespace Helion.Worlds.Geometry.Subsectors
 {
     public class Subsector
     {
-        public readonly int Id;
+        public readonly int Index;
         public readonly Sector Sector;
         public readonly Box2D BoundingBox;
         public readonly List<SubsectorSegment> ClockwiseEdges;
         public readonly LinkableList<Entity> Entities = new();
 
-        public Subsector(int id, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
+        public Subsector(int index, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
         {
             Precondition(clockwiseEdges.Count >= 3, "Degenerate sector, must be at least a triangle");
 
-            Id = id;
+            Index = index;
             Sector = sector;
             BoundingBox = boundingBox;
             ClockwiseEdges = clockwiseEdges;

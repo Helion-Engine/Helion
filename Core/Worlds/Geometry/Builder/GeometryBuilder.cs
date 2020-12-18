@@ -4,6 +4,7 @@ using Helion.Worlds.Bsp;
 using Helion.Worlds.Geometry.Lines;
 using Helion.Worlds.Geometry.Sectors;
 using Helion.Worlds.Geometry.Walls;
+using Helion.Worlds.Textures;
 using NLog;
 
 namespace Helion.Worlds.Geometry.Builder
@@ -20,7 +21,7 @@ namespace Helion.Worlds.Geometry.Builder
         public readonly List<Wall> Walls = new();
         public readonly List<Sector> Sectors = new();
         public readonly List<SectorPlane> SectorPlanes = new();
-        public BspTree BspTree { get; internal set; }
+        public BspTree BspTree { get; protected internal set; } = null!;
 
         /// <summary>
         /// A cached dictionary that maps the line ID number onto a line from
@@ -34,7 +35,7 @@ namespace Helion.Worlds.Geometry.Builder
         /// </remarks>
         public readonly Dictionary<int, Line> MapLines = new();
 
-        internal GeometryBuilder()
+        protected internal GeometryBuilder()
         {
         }
 
@@ -42,14 +43,15 @@ namespace Helion.Worlds.Geometry.Builder
         /// Creates world geometry from a map.
         /// </summary>
         /// <param name="map">The map to turn into world geometry.</param>
+        /// <param name="textureManager">The world texture manager.</param>
         /// <returns>A map geometry object if it was parsed and created right,
         /// otherwise null if it failed.</returns>
-        public static MapGeometry? Create(Map map)
+        public static MapGeometry? Create(Map map, WorldTextureManager textureManager)
         {
             switch (map.MapType)
             {
                 case MapType.Doom:
-                    return DoomGeometryBuilder.Create(map);
+                    return DoomGeometryBuilder.Create(map, textureManager);
                 default:
                     Log.Error("Do not support map type {0} yet", map.MapType);
                     return null;

@@ -18,16 +18,29 @@ namespace Helion.Worlds.Geometry.Lines
         public SideScrollData? ScrollData { get; set; }
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
+        public bool IsBack => !IsFront;
         public IEnumerable<Wall> Walls => CreateWallsEnumerable();
 
-        public Side(int id, Vec2I offset, Wall middle, Sector sector)
+        public Side(int index, Vec2I offset, Wall middle, Sector sector) :
+            this(index, offset, null, middle, null, sector)
+        {
+        }
+
+        public Side(int id, Vec2I offset, Wall? upper, Wall? middle, Wall? lower, Sector sector)
         {
             Id = id;
             Sector = sector;
             Offset = offset;
+            Upper = upper;
             Middle = middle;
+            Lower = lower;
 
-            middle.Side = this;
+            if (upper != null)
+                upper.Side = this;
+            if (middle != null)
+                middle.Side = this;
+            if (lower != null)
+                lower.Side = this;
             sector.Sides.Add(this);
 
             // We are okay with things blowing up violently if someone forgets

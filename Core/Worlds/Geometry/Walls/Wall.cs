@@ -5,14 +5,14 @@ namespace Helion.Worlds.Geometry.Walls
 {
     public class Wall
     {
-        public readonly int Id;
+        public readonly int Index;
         public readonly WallLocation Location;
         public Side Side { get; internal set; }
         public IWorldTexture Texture { get; private set; }
 
-        public Wall(int id, IWorldTexture texture, WallLocation location)
+        public Wall(int index, IWorldTexture texture, WallLocation location)
         {
-            Id = id;
+            Index = index;
             Texture = texture;
             Location = location;
 

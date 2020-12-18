@@ -7,6 +7,7 @@ using Helion.Maps;
 using Helion.Maps.Components.Linedefs;
 using Helion.Maps.Components.Sidedefs;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
@@ -30,19 +31,19 @@ namespace Helion.Worlds.Bsp
         /// <summary>
         /// All the segments, which are the edges of the subsector.
         /// </summary>
-        public List<SubsectorSegment> Segments = new List<SubsectorSegment>();
+        public List<SubsectorSegment> Segments { get; private set; } = new();
 
         /// <summary>
         /// All the subsectors, the convex leaves at the bottom of the BSP
         /// tree.
         /// </summary>
-        public Subsector[] Subsectors = new Subsector[0];
+        public Subsector[] Subsectors { get; private set; } = Array.Empty<Subsector>();
 
         /// <summary>
         /// A compact struct for all the nodes, specifically to speed up all
         /// recursive BSP traversal.
         /// </summary>
-        public BspNodeCompact[] Nodes = new BspNodeCompact[0];
+        public BspNodeCompact[] Nodes { get; private set; } = Array.Empty<BspNodeCompact>();
 
         /// <summary>
         /// The next available subsector index. This is used only for building
@@ -73,6 +74,21 @@ namespace Helion.Worlds.Bsp
 
             if (Subsectors.Length == 1)
                 HandleSingleSubsectorTree();
+        }
+
+        private BspTree(List<SubsectorSegment> segments, List<Subsector> subsectors, List<BspNodeCompact> nodes)
+        {
+            Segments = segments;
+            Subsectors = subsectors.ToArray();
+            Nodes = nodes.ToArray();
+        }
+
+        public static BspTree? Create(List<SubsectorSegment> segments, List<Subsector> subsectors,
+            List<BspNodeCompact> nodes)
+        {
+            if (segments.Empty() || subsectors.Empty() || nodes.Empty())
+                return null;
+            return new(segments, subsectors, nodes);
         }
 
         /// <summary>
@@ -209,12 +225,12 @@ namespace Helion.Worlds.Bsp
 
         private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
         {
-            List<SubsectorSegment> returnSegments = new List<SubsectorSegment>();
+            List<SubsectorSegment> returnSegments = new();
 
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge, builder);
-                SubsectorSegment subsectorEdge = new SubsectorSegment(Segments.Count, side, edge.Start, edge.End);
+                SubsectorSegment subsectorEdge = new(side, edge.Start, edge.End);
 
                 returnSegments.Add(subsectorEdge);
                 Segments.Add(subsectorEdge);

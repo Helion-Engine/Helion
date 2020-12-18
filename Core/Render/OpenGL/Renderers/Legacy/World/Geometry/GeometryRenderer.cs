@@ -386,7 +386,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
             if (isSky)
             {
-                SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Id] : m_skyCeilingVertexLookup[subsector.Id];
+                SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Index] : m_skyCeilingVertexLookup[subsector.Index];
 
                 if (flat.Sector.DataChanged || data == null)
                 {
@@ -406,16 +406,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
                     data = subData.ToArray();
                     if (floor)
-                        m_skyFloorVertexLookup[subsector.Id] = data;
+                        m_skyFloorVertexLookup[subsector.Index] = data;
                     else
-                        m_skyCeilingVertexLookup[subsector.Id] = data;
+                        m_skyCeilingVertexLookup[subsector.Index] = data;
                 }
 
                 m_skyRenderer.DefaultSky.Add(data);
             }
             else
             {
-                LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
+                LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Index] : m_vertexCeilingLookup[subsector.Index];
 
                 if (flat.Sector.DataChanged || data == null)
                 {
@@ -431,9 +431,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
                     data = subData.ToArray();
                     if (floor)
-                        m_vertexFloorLookup[subsector.Id] = data;
+                        m_vertexFloorLookup[subsector.Index] = data;
                     else
-                        m_vertexCeilingLookup[subsector.Id] = data;
+                        m_vertexCeilingLookup[subsector.Index] = data;
                 }
                 else if (flat.Sector.LightingChanged)
                 {
