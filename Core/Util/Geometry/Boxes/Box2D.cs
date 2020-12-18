@@ -5,6 +5,7 @@ using System.Linq;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
+using Helion.Worlds.Entities;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Boxes

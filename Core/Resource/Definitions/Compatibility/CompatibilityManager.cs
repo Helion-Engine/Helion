@@ -1,7 +1,61 @@
-﻿namespace Helion.Resource.Definitions.Compatibility
+using System.Collections.Generic;
+using System.IO;
+using Helion.Resource.Archives;
+using Helion.Util;
+using NLog;
+
+namespace Helion.Resource.Definitions.Compatibility
 {
     public class CompatibilityManager
     {
-        // TODO
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        private readonly Dictionary<CIString, CompatibilityDefinition> FileDefinitions = new Dictionary<CIString, CompatibilityDefinition>();
+        private readonly Dictionary<CIString, CompatibilityDefinition> HashDefinitions = new Dictionary<CIString, CompatibilityDefinition>();
+
+        public CompatibilityMapDefinition? Find(Archive archive, string mapName)
+        {
+            string name = "";
+            if (archive is IFileArchive fileArchive)
+                name = Path.GetFileName(fileArchive.Path.ToUpper());
+
+            if (FileDefinitions.TryGetValue(name, out CompatibilityDefinition? fileCompatDef))
+            {
+                if (fileCompatDef.MapDefinitions.TryGetValue(mapName, out CompatibilityMapDefinition? mapDef))
+                    return mapDef;
+            }
+
+            if (HashDefinitions.TryGetValue(archive.MD5, out CompatibilityDefinition? hashCompatDef))
+            {
+                if (hashCompatDef.MapDefinitions.TryGetValue(mapName, out CompatibilityMapDefinition? mapDef))
+                    return mapDef;
+            }
+
+            return null;
+        }
+
+        public void AddDefinitions(Entry entry)
+        {
+            CompatibilityParser parser = new CompatibilityParser();
+            if (!parser.Parse(entry))
+            {
+                Log.Error("Unable to parse compatibility file, certain maps will be broken in some wads");
+                return;
+            }
+
+            foreach (var (fileName, definition) in parser.Files)
+            {
+                if (FileDefinitions.ContainsKey(fileName))
+                    Log.Warn("Overwriting existing compatibility definition for file {0}", fileName);
+                FileDefinitions[fileName] = definition;
+            }
+
+            foreach (var (hash, definition) in parser.Hashes)
+            {
+                if (HashDefinitions.ContainsKey(hash))
+                    Log.Warn("Overwriting existing compatibility definition for hash {0}", hash);
+                HashDefinitions[hash] = definition;
+            }
+        }
     }
 }

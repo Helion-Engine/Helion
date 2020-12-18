@@ -1,7 +1,7 @@
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
-using Helion.World.Geometry.Lines;
-using Helion.World.Special;
+using Helion.Worlds.Geometry.Lines;
+using Helion.Worlds.Special;
 
 namespace Helion.Maps.Specials.Vanilla
 {

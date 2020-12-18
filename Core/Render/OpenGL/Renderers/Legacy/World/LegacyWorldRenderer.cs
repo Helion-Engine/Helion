@@ -16,9 +16,9 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
-using Helion.World.Bsp;
-using Helion.World.Entities.Players;
-using Helion.World.Geometry.Subsectors;
+using Helion.Worlds.Bsp;
+using Helion.Worlds.Entities.Players;
+using Helion.Worlds.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World
@@ -64,13 +64,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             GC.SuppressFinalize(this);
         }
 
-        protected override void UpdateToNewWorld(WorldBase world)
+        protected override void UpdateToNewWorld(Worlds.World world)
         {
             m_geometryRenderer.UpdateTo(world);
             m_entityRenderer.UpdateTo(world);
         }
 
-        protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
+        protected override void PerformRender(Worlds.World world, RenderInfo renderInfo)
         {
             Clear(world, renderInfo);
 
@@ -80,7 +80,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_geometryRenderer.Render(renderInfo);
         }
 
-        private void Clear(WorldBase world, RenderInfo renderInfo)
+        private void Clear(Worlds.World world, RenderInfo renderInfo)
         {
             m_viewClipper.Clear();
             m_worldDataManager.Clear();
@@ -89,7 +89,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);
         }
 
-        private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
+        private void TraverseBsp(Worlds.World world, RenderInfo renderInfo)
         {
             Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
             Vec2D viewDirection = renderInfo.Camera.Direction.To2D().ToDouble();
@@ -108,7 +108,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         }
 
         private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec2D position, in Vec2D viewDirection,
-            WorldBase world)
+            Worlds.World world)
         {
             if (Occluded(node.BoundingBox, position))
                 return;

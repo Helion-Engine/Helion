@@ -1,19 +1,51 @@
-﻿using Helion.Resource.Sprites;
-using Helion.Resource.Textures;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Helion.Resource.Archives;
+using Helion.Resource.Definitions.Decorate.Parser;
+using Helion.Util;
+using MoreLinq;
 
 namespace Helion.Resource.Definitions.Decorate
 {
     public class DecorateManager
     {
+        private readonly Dictionary<CIString, ActorDefinition> m_definitions = new();
+        private readonly Dictionary<int, ActorDefinition> m_definitionsByEditorNumber = new();
         private readonly Resources m_resources;
-        private readonly TextureManager m_textures;
-        private readonly SpriteManager m_sprites;
 
-        public DecorateManager(Resources resources, TextureManager textures, SpriteManager sprites)
+        public ActorDefinition? this[CIString name] => m_definitions.TryGetValue(name, out ActorDefinition? def) ? def : null;
+        public ActorDefinition? this[int editorNum] => m_definitionsByEditorNumber.TryGetValue(editorNum, out ActorDefinition? def) ? def : null;
+        public List<ActorDefinition> GetActorDefinitions() => m_definitions.Values.ToList();
+
+        public DecorateManager(Resources resources)
         {
             m_resources = resources;
-            m_textures = textures;
-            m_sprites = sprites;
+        }
+
+        public void AddDecorateDefinitions(Entry entry, Archive archive)
+        {
+            DecorateParser parser = new(entry.Path.FullPath, MakeIncludeLocator(archive));
+            if (parser.Parse(entry))
+                parser.ActorDefinitions.ForEach(AddDefinition);
+        }
+
+        private Func<string, string?> MakeIncludeLocator(Archive archive)
+        {
+            return path =>
+            {
+                Entry? entry = archive.FindByPath(path);
+                return entry != null ? Encoding.UTF8.GetString(entry.ReadData()) : null;
+            };
+        }
+
+        private void AddDefinition(ActorDefinition definition)
+        {
+            m_definitions[definition.Name] = definition;
+
+            if (definition.EditorNumber != null)
+                m_definitionsByEditorNumber[definition.EditorNumber.Value] = definition;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.World;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
+using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
@@ -11,7 +12,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private int m_maxEntityId;
         private BitArray m_entityWasDrawn = new BitArray(0);
 
-        public void Reset(WorldBase world)
+        public void Reset(Worlds.World world)
         {
             int maxEntityId = world.Entities.Max(entity => entity.Id) + 1;
             if (maxEntityId > m_maxEntityId)

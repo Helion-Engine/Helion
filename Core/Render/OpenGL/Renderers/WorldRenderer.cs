@@ -9,7 +9,7 @@ namespace Helion.Render.OpenGL.Renderers
     /// </summary>
     public abstract class WorldRenderer : IDisposable
     {
-        private readonly WeakReference<WorldBase?> m_lastRenderedWorld = new WeakReference<WorldBase?>(null);
+        private readonly WeakReference<Worlds.World?> m_lastRenderedWorld = new WeakReference<Worlds.World?>(null);
 
         /// <summary>
         /// Performs rendering on the world provided with the information for
@@ -17,7 +17,7 @@ namespace Helion.Render.OpenGL.Renderers
         /// </summary>
         /// <param name="world">The world to render.</param>
         /// <param name="renderInfo">The rendering metadata.</param>
-        public void Render(WorldBase world, RenderInfo renderInfo)
+        public void Render(Worlds.World world, RenderInfo renderInfo)
         {
             if (IsWorldNotSeenBefore(world))
             {
@@ -35,18 +35,18 @@ namespace Helion.Render.OpenGL.Renderers
         /// provided.
         /// </summary>
         /// <param name="world">The world to update to.</param>
-        protected abstract void UpdateToNewWorld(WorldBase world);
+        protected abstract void UpdateToNewWorld(Worlds.World world);
 
         /// <summary>
         /// Performs the actual rendering commands.
         /// </summary>
         /// <param name="world">The world.</param>
         /// <param name="renderInfo">The rendering metadata.</param>
-        protected abstract void PerformRender(WorldBase world, RenderInfo renderInfo);
+        protected abstract void PerformRender(Worlds.World world, RenderInfo renderInfo);
 
-        private bool IsWorldNotSeenBefore(WorldBase world)
+        private bool IsWorldNotSeenBefore(Worlds.World world)
         {
-            if (!m_lastRenderedWorld.TryGetTarget(out WorldBase? lastWorld))
+            if (!m_lastRenderedWorld.TryGetTarget(out Worlds.World? lastWorld))
                 return true;
             return !ReferenceEquals(lastWorld, world);
         }

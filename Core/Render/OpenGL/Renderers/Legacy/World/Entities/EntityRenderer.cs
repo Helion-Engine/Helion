@@ -9,7 +9,8 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities;
-using Helion.World.Geometry.Subsectors;
+using Helion.Worlds.Geometry.Subsectors;
+using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 {
@@ -41,12 +42,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             m_debugBoxRenderWorldData = m_worldDataManager[m_debugBoxTexture];
         }
 
-        public void UpdateTo(WorldBase world)
+        public void UpdateTo(Worlds.World world)
         {
             PreloadAllTextures(world);
         }
 
-        public void Clear(WorldBase world, double tickFraction, Entity cameraEntity)
+        public void Clear(Worlds.World world, double tickFraction, Entity cameraEntity)
         {
             // I'm hitching a ride here so we don't keep making a bunch of
             // invocations to this for every single sprite to avoid overhead
@@ -98,7 +99,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             return sectorLightLevel;
         }
 
-        private void PreloadAllTextures(WorldBase world)
+        private void PreloadAllTextures(Worlds.World world)
         {
             // TODO
         }

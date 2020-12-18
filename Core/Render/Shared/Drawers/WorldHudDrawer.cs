@@ -13,8 +13,8 @@ using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
 using Helion.World;
-using Helion.World.Entities.Definition.States;
-using Helion.World.Entities.Players;
+using Helion.Worlds.Entities.Definition.States;
+using Helion.Worlds.Entities.Players;
 using MoreLinq;
 
 namespace Helion.Render.Shared.Drawers
@@ -39,7 +39,7 @@ namespace Helion.Render.Shared.Drawers
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
         private static readonly string HudFont = "LargeHudFont";
 
-        public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
+        public static void Draw(Player player, Worlds.World world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
             DrawHelper helper = new DrawHelper(cmd);
 
@@ -52,7 +52,7 @@ namespace Helion.Render.Shared.Drawers
             DrawRecentConsoleMessages(world, console, helper);
         }
 
-        private static void DrawHud(int topRightY, Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawHud(int topRightY, Player player, Worlds.World world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealthAndArmor(player, viewport, helper);
             DrawHudKeys(topRightY, player, viewport, helper);
@@ -176,20 +176,20 @@ namespace Helion.Render.Shared.Drawers
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
-        private static void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawPickupFlash(Player player, Worlds.World world, Dimension viewport, DrawHelper helper)
         {
             int ticksSincePickup = world.Gametick - player.LastPickupGametick;
             if (ticksSincePickup < FlashPickupTickDuration)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
         }
 
-        private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawDamage(Player player, Worlds.World world, Dimension viewport, DrawHelper helper)
         {
             if (player.DamageCount > 0)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
         }
 
-        private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, DrawHelper helper)
+        private static void DrawRecentConsoleMessages(Worlds.World world, HelionConsole console, DrawHelper helper)
         {
             long currentNanos = Ticker.NanoTime();
 
@@ -224,7 +224,7 @@ namespace Helion.Render.Shared.Drawers
             });
         }
 
-        private static bool MessageTooOldToDraw(in ConsoleMessage msg, WorldBase world, HelionConsole console)
+        private static bool MessageTooOldToDraw(in ConsoleMessage msg, Worlds.World world, HelionConsole console)
         {
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }

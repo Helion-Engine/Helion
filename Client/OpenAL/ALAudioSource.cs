@@ -4,9 +4,10 @@ using Helion.Audio;
 using Helion.Client.OpenAL.Components;
 using Helion.Resource.Definitions.SoundInfo;
 using Helion.World.Entities;
-using Helion.World.Geometry.Sectors;
+using Helion.Worlds.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
+using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Client.OpenAL
 {

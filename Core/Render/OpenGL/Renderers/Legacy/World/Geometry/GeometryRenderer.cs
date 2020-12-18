@@ -17,11 +17,12 @@ using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 using Helion.World;
-using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Subsectors;
-using Helion.World.Geometry.Walls;
-using Helion.World.Physics;
+using Helion.Worlds.Geometry.Lines;
+using Helion.Worlds.Geometry.Sectors;
+using Helion.Worlds.Geometry.Subsectors;
+using Helion.Worlds.Geometry.Walls;
+using Helion.Worlds.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
@@ -61,7 +62,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             ReleaseUnmanagedResources();
         }
 
-        public void UpdateTo(WorldBase world)
+        public void UpdateTo(Worlds.World world)
         {
             // TODO: We should create a new one from the ground up when making new sky renderers.
             m_skyRenderer.Clear();

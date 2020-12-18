@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
+using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Render.Shared
 {

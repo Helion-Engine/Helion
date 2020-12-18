@@ -6,7 +6,7 @@ namespace Helion.Maps.Components.Linedefs
     public record Linedef
     {
         /// <summary>
-        /// The index of the line in the lindefs entry.
+        /// The index of the line in the linedefs entry.
         /// </summary>
         public int Index { get; init; }
 

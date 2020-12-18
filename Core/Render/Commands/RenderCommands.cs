@@ -11,6 +11,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Entities;
+using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Render.Commands
 {
@@ -57,7 +58,7 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawTextCommand(text, font, fontSize, x, y, width, height, textAlign, alpha));
         }
 
-        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity)
+        public void DrawWorld(Worlds.World world, Camera camera, int gametick, float fraction, Entity viewerEntity)
         {
             m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity));
         }

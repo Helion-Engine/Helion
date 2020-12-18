@@ -19,7 +19,7 @@ namespace Helion.Layer.WorldLayers
         protected readonly Resources Resources;
         protected readonly IAudioSystem AudioSystem;
 
-        public abstract WorldBase World { get; }
+        public abstract Worlds.World World { get; }
 
         public WorldLayer(Config config, HelionConsole console, Resources resources, IAudioSystem audioSystem)
         {

@@ -11,9 +11,10 @@ using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Time;
 using Helion.World;
-using Helion.World.Cheats;
-using Helion.World.Entities.Players;
-using Helion.World.Impl.SinglePlayer;
+using Helion.Worlds;
+using Helion.Worlds.Cheats;
+using Helion.Worlds.Entities.Players;
+using Helion.Worlds.Impl.SinglePlayer;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -31,7 +32,7 @@ namespace Helion.Layer.WorldLayers
         private TickCommand m_tickCommand = new();
         private SinglePlayerWorld m_world;
 
-        public override WorldBase World => m_world;
+        public override Worlds.World World => m_world;
 
         private SinglePlayerWorldLayer(Config config, HelionConsole console, Resources resources,
             IAudioSystem audioSystem, SinglePlayerWorld world)
@@ -231,12 +232,12 @@ namespace Helion.Layer.WorldLayers
             return currentName;
         }
 
-        private void AddWorldEventListeners(WorldBase world)
+        private void AddWorldEventListeners(Worlds.World world)
         {
             world.LevelExit += World_LevelExit;
         }
 
-        private void RemoveWorldEventListeners(WorldBase world)
+        private void RemoveWorldEventListeners(Worlds.World world)
         {
             world.LevelExit -= World_LevelExit;
         }

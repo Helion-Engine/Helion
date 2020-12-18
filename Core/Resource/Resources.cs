@@ -6,6 +6,7 @@ using Helion.Resource.Archives;
 using Helion.Resource.Definitions.Animations;
 using Helion.Resource.Definitions.Compatibility;
 using Helion.Resource.Definitions.Decorate;
+using Helion.Resource.Definitions.Decorate.Locks;
 using Helion.Resource.Definitions.Fonts;
 using Helion.Resource.Definitions.SoundInfo;
 using Helion.Resource.Definitions.Textures;
@@ -27,9 +28,10 @@ namespace Helion.Resource
         public readonly AnimationManager Animations = new();
         public readonly CompatibilityManager Compatibility = new();
         public readonly DecorateManager Decorate;
-        public readonly FontManager Fonts;
+        public readonly FontManager Fonts = new();
+        public readonly LockDefinitions Locks = new();
         public Palette Palette = Palettes.GetDefaultPalette();
-        public readonly SoundInfoManager Sounds;
+        public readonly SoundInfoManager Sounds = new();
         public readonly SpriteManager Sprites;
         public readonly TextureManager Textures;
         private readonly List<Archive> m_archives = new();
@@ -39,11 +41,9 @@ namespace Helion.Resource
 
         public Resources(bool loadAssets = true)
         {
-            Sounds = new(this);
             Textures = new(this, m_textureDefinitionManager);
             Sprites = new(this, Textures);
-            Fonts = new(this, Textures);
-            Decorate = new(this, Textures, Sprites);
+            Decorate = new(this);
 
             if (loadAssets)
                 Load(Constants.AssetsFileName);

@@ -6,10 +6,10 @@ using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
-using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Subsectors;
+using Helion.Worlds.Geometry.Lines;
+using Helion.Worlds.Geometry.Sectors;
+using Helion.Worlds.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World

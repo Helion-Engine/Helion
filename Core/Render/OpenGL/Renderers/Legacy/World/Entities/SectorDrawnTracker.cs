@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Linq;
 using Helion.World;
-using Helion.World.Geometry.Sectors;
+using Helion.Worlds.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
@@ -13,7 +13,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private int m_maxSectorId = -1;
         private BitArray m_sectorWasDrawn = new BitArray(0);
 
-        public void UpdateTo(WorldBase world)
+        public void UpdateTo(Worlds.World world)
         {
             int maxSectorId = world.Sectors.Max(sector => sector.Id);
             if (maxSectorId > m_maxSectorId)

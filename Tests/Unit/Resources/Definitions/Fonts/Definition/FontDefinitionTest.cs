@@ -1,4 +1,4 @@
-using Helion.Resource.Definitions.Fonts.Definition;
+using Helion.Resource.Definitions.Fonts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Resources.Definitions.Fonts.Definition

@@ -1,4 +1,4 @@
-using Helion.Resource.Definitions.Fonts.Definition;
+using Helion.Resource.Definitions.Fonts;
 
 namespace Helion.Graphics.Fonts
 {
