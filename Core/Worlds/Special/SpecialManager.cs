@@ -11,7 +11,6 @@ using Helion.Worlds.Geometry.Sectors;
 using Helion.Worlds.Physics;
 using Helion.Worlds.Special.SectorMovement;
 using Helion.Worlds.Special.Specials;
-using Helion.Worlds.Special.Switches;
 using Helion.Worlds.Textures;
 
 namespace Helion.Worlds.Special
@@ -21,10 +20,9 @@ namespace Helion.Worlds.Special
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         private const double SpeedFactor = 0.125;
 
-        private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
-        private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
+        private readonly LinkedList<ISpecial> m_specials = new();
+        private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
         private readonly IRandom m_random;
-        private readonly SwitchManager m_switchManager;
         private readonly World m_world;
 
         public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
@@ -42,10 +40,9 @@ namespace Helion.Worlds.Special
         private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
         private static SectorSoundData GetCrusherSound(bool repeat = true) => new SectorSoundData(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
 
-        public SpecialManager(World world, Resources resources, IRandom random)
+        public SpecialManager(World world, WorldTextureManager textureManager, Resources resources, IRandom random)
         {
             m_world = world;
-            m_switchManager = new SwitchManager(resources);
             m_random = random;
 
             StartInitSpecials();

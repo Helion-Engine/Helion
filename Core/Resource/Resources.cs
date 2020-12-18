@@ -123,24 +123,28 @@ namespace Helion.Resource
                 {
                     m_nameToEntry[entry.Path.Name] = entry;
                     m_entryTracker.Insert(entry.Path.Name, entry.Namespace, entry);
-                    LoadDefinitionFile(entry);
+                    LoadDefinitionFile(entry, archive);
                 }
 
                 FinishProcessingArchive();
             }
         }
 
-        private void LoadDefinitionFile(Entry entry)
+        private void LoadDefinitionFile(Entry entry, Archive archive)
         {
             switch (entry.Path.Name.ToUpper())
             {
             case "ANIMDEFS":
+                Animations.AddDefinitions(entry);
                 break;
             case "COMPATIBILITY":
+                Compatibility.AddDefinitions(entry);
                 break;
             case "DECORATE":
+                Decorate.AddDecorateDefinitions(entry, archive);
                 break;
             case "FONTS":
+                Fonts.AddFontDefinitions(entry);
                 break;
             case "PLAYPAL":
                 LoadPlaypal(entry);
@@ -154,6 +158,7 @@ namespace Helion.Resource
                 m_textureDefinitionManager.AddTextureX(entry);
                 break;
             case "SNDINFO":
+                Sounds.Parse(entry);
                 break;
             }
         }

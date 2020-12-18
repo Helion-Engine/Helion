@@ -32,9 +32,9 @@ namespace Helion.Worlds.Impl.SinglePlayer
 
         public readonly Player Player;
 
-        private SinglePlayerWorld(Config config, Resources resources, IAudioSystem audioSystem,
-            MapGeometry geometry, Map map, Player? existingPlayer = null)
-            : base(config, resources, audioSystem, geometry, map)
+        private SinglePlayerWorld(Config config, Resources resources, IAudioSystem audioSystem, Map map,
+            Player? existingPlayer = null)
+            : base(config, resources, audioSystem, map)
         {
             EntityManager.PopulateFrom(map);
 
@@ -53,14 +53,14 @@ namespace Helion.Worlds.Impl.SinglePlayer
         public static SinglePlayerWorld? Create(Config config, Resources resources,
             IAudioSystem audioSystem, Map map, Player? existingPlayer = null)
         {
-            MapGeometry? geometry = GeometryBuilder.Create(map);
-            if (geometry == null)
+            try
             {
-                Log.Error("Cannot make single player world, geometry is malformed");
+                return new SinglePlayerWorld(config, resources, audioSystem, map, existingPlayer);
+            }
+            catch
+            {
                 return null;
             }
-
-            return new SinglePlayerWorld(config, resources, audioSystem, geometry, map, existingPlayer);
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)

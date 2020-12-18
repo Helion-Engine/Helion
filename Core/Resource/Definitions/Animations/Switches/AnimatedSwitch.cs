@@ -4,33 +4,19 @@ using Helion.Util;
 
 namespace Helion.Resource.Definitions.Animations.Switches
 {
-    public class AnimatedSwitch
+    public class AnimatedSwitch : IAnimatedTexture
     {
-        public readonly string StartTexture;
+        public CIString Name => StartTexture;
+        public Namespace Namespace => Namespace.Textures;
+        public readonly CIString StartTexture;
         public readonly SwitchType SwitchType;
-        public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
-        public string? Sound;
-        public int StartTextureIndex;
+        public readonly List<AnimatedTextureComponent> Components = new();
+        public CIString? Sound;
 
-        public AnimatedSwitch(string texture, SwitchType switchType)
+        public AnimatedSwitch(CIString texture, SwitchType switchType)
         {
-            StartTexture = texture.ToUpper();
+            StartTexture = texture;
             SwitchType = switchType;
-        }
-
-        public bool IsMatch(int textureIndex)
-        {
-            if (StartTextureIndex == Constants.NoTextureIndex || Components[0].TextureIndex == Constants.NoTextureIndex)
-                return false;
-
-            return StartTextureIndex == textureIndex || Components[0].TextureIndex == textureIndex;
-        }
-
-        public int GetOpposingTexture(int textureIndex)
-        {
-            if (StartTextureIndex != textureIndex)
-                return StartTextureIndex;
-            return Components[0].TextureIndex;
         }
 
         public override string ToString() => $"{StartTexture} ({SwitchType}: components={Components.Count})";

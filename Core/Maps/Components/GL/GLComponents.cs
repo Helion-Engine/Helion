@@ -105,8 +105,8 @@ namespace Helion.Maps.Components.GL
 
             for (int i = 0; i < count; i++)
             {
-                uint amount = isV2 ? reader.UShort() : reader.UInt();
-                uint firstSeg = isV2 ? reader.UShort() : reader.UInt();
+                int amount = isV2 ? reader.UShort() : (int)reader.UInt();
+                int firstSeg = isV2 ? reader.UShort() : (int)reader.UInt();
 
                 GLSubsector subsector = new(amount, firstSeg);
                 Subsectors.Add(subsector);

@@ -3,11 +3,11 @@ using Helion.Util;
 
 namespace Helion.Resource.Definitions.Animations.Textures
 {
-    public class AnimatedTexture
+    public class AnimatedTexture : IAnimatedTexture
     {
-        public readonly CIString Name;
+        public CIString Name { get; }
+        public Namespace Namespace { get; }
         public readonly bool Optional;
-        public readonly Namespace Namespace;
         public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
         public bool AllowDecals;
         public bool Oscillate;

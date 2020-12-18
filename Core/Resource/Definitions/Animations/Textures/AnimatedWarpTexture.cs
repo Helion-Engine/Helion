@@ -1,17 +1,19 @@
+using Helion.Util;
+
 namespace Helion.Resource.Definitions.Animations.Textures
 {
-    public class AnimatedWarpTexture
+    public class AnimatedWarpTexture : IAnimatedTexture
     {
-        public readonly string Name;
-        public readonly Namespace Namespace;
+        public CIString Name { get; }
+        public Namespace Namespace { get; }
         public readonly int Speed;
         public readonly bool AllowDecals;
         public readonly bool WaterEffect;
 
-        public AnimatedWarpTexture(string name, Namespace resourceNamespace, int? speed, bool allowDecals,
+        public AnimatedWarpTexture(CIString name, Namespace resourceNamespace, int? speed, bool allowDecals,
             bool waterEffect)
         {
-            Name = name.ToUpper();
+            Name = name;
             Namespace = resourceNamespace;
             Speed = speed ?? 0;
             AllowDecals = allowDecals;

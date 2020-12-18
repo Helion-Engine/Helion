@@ -2,10 +2,10 @@
 {
     public class GLSubsector
     {
-        public readonly uint Count;
+        public readonly int Count;
         public readonly int FirstSegmentIndex;
 
-        public GLSubsector(uint count, uint firstSegmentIndex)
+        public GLSubsector(int count, int firstSegmentIndex)
         {
             Count = count;
             FirstSegmentIndex = firstSegmentIndex;

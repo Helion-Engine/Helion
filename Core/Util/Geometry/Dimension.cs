@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -61,15 +62,11 @@ namespace Helion.Util.Geometry
         /// Gets the value as a vector.
         /// </summary>
         /// <returns>The vector representation of this object.</returns>
-        public Vec2I ToVector() => new Vec2I(Width, Height);
+        [Pure]
+        public Vec2I ToVector() => new(Width, Height);
 
-        /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is Dimension other && Equals(other);
-
-        /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(Width, Height);
-
-        /// <inheritdoc/>
         public override string ToString() => $"{Width}, {Height}";
     }
 }

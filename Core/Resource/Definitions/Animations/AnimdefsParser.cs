@@ -29,7 +29,7 @@ namespace Helion.Resource.Definitions.Animations
 
         private void ConsumeCameraTexture()
         {
-            string name = ConsumeString();
+            string name = ConsumeString().ToUpper();
             int width = ConsumeInteger();
             int height = ConsumeInteger();
             int? fitWidth = null;
@@ -43,25 +43,21 @@ namespace Helion.Resource.Definitions.Animations
                 worldPanning = ConsumeIf("WORLDPANNING");
             }
 
-            CameraTextures.Add(new AnimatedCameraTexture(name, width, height, fitWidth, fitHeight, worldPanning));
+            AnimatedCameraTexture cameraTexture = new(name, width, height, fitWidth, fitHeight, worldPanning);
+            CameraTextures.Add(cameraTexture);
         }
 
         private void ConsumeWarp(bool waterEffect)
         {
-            string warpNamespace = ConsumeString();
+            string warpNamespace = ConsumeString().ToUpper();
 
-            Namespace resourceNamespace;
-            switch (warpNamespace.ToUpper())
+            Namespace resourceNamespace = warpNamespace.ToUpper() switch
             {
-            case "TEXTURE":
-                resourceNamespace = Namespace.Textures;
-                break;
-            case "FLAT":
-                resourceNamespace = Namespace.Flats;
-                break;
-            default:
-                throw MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
-            }
+                "TEXTURE" => Namespace.Textures,
+                "FLAT" => Namespace.Flats,
+                _ => throw MakeException(
+                    $"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead")
+            };
 
             string upperName = ConsumeString().ToUpper();
             int? speed = ConsumeIfInt();
@@ -95,12 +91,12 @@ namespace Helion.Resource.Definitions.Animations
         private void GenerateComponentsFrom(string textureBase, int startIndex, int endIndex, int padding,
             int minTicks, int maxTicks, bool oscillate, AnimatedTexture texture)
         {
-            List<AnimatedTextureComponent> components = new List<AnimatedTextureComponent>();
+            List<AnimatedTextureComponent> components = new();
 
             for (int i = startIndex; i <= endIndex; i++)
             {
-                string textureName = textureBase + i.ToString().PadLeft(padding, '0');
-                AnimatedTextureComponent component = new AnimatedTextureComponent(textureName, minTicks, maxTicks);
+                string textureName = textureBase + i.ToString().PadLeft(padding, '0').ToUpper();
+                AnimatedTextureComponent component = new(textureName, minTicks, maxTicks);
                 components.Add(component);
             }
 
@@ -133,7 +129,7 @@ namespace Helion.Resource.Definitions.Animations
             if (PeekInteger())
                 throw MakeException("Animdefs texture/flat pic index type not supported currently");
 
-            string name = ConsumeString();
+            string name = ConsumeString().ToUpper();
 
             // Apparently it is possible for these to be floating point values
             // instead of integers. I don't know if anyone does this though...
@@ -162,15 +158,18 @@ namespace Helion.Resource.Definitions.Animations
                 CreateComponentsFromRange(texture, name, minTicks, maxTicks, oscillate);
             }
             else
-                texture.Components.Add(new AnimatedTextureComponent(name, minTicks, maxTicks));
+            {
+                AnimatedTextureComponent component = new(name, minTicks, maxTicks);
+                texture.Components.Add(component);
+            }
         }
 
         private void ConsumeGraphicAnimation(Namespace resourceNamespace)
         {
             bool optional = ConsumeIf("OPTIONAL");
-            string name = ConsumeString();
+            string name = ConsumeString().ToUpper();
 
-            AnimatedTexture texture = new AnimatedTexture(name, optional, resourceNamespace);
+            AnimatedTexture texture = new(name, optional, resourceNamespace);
 
             while (true)
             {
@@ -196,7 +195,7 @@ namespace Helion.Resource.Definitions.Animations
 
         private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch)
         {
-            string name = ConsumeString();
+            string name = ConsumeString().ToUpper();
 
             // I don't know if this is like the texture/flat combo whereby any
             // floating point numbers are allowed or not.
@@ -217,7 +216,8 @@ namespace Helion.Resource.Definitions.Animations
             if (minTicks > maxTicks)
                 throw MakeException($"Switch '{animatedSwitch.StartTexture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
 
-            animatedSwitch.Components.Add(new AnimatedTextureComponent(name.ToUpper(), minTicks, maxTicks));
+            AnimatedTextureComponent component = new(name.ToUpper(), minTicks, maxTicks);
+            animatedSwitch.Components.Add(component);
         }
 
         private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch)
@@ -236,7 +236,7 @@ namespace Helion.Resource.Definitions.Animations
                     break;
                 case "SOUND":
                     Consume();
-                    animatedSwitch.Sound = ConsumeString();
+                    animatedSwitch.Sound = ConsumeString().ToUpper();
                     break;
                 default:
                     return;
@@ -246,7 +246,7 @@ namespace Helion.Resource.Definitions.Animations
 
         private void ConsumeSwitchAnimation()
         {
-            string upperSwitchName = ConsumeString();
+            string upperSwitchName = ConsumeString().ToUpper();
             SwitchType switchType = SwitchType.On;
 
             if (!ConsumeIf("ON"))
@@ -255,7 +255,7 @@ namespace Helion.Resource.Definitions.Animations
                 switchType = SwitchType.Off;
             }
 
-            AnimatedSwitch animatedSwitch = new AnimatedSwitch(upperSwitchName, switchType);
+            AnimatedSwitch animatedSwitch = new(upperSwitchName, switchType);
             ConsumeAllSwitchPicAndSounds(animatedSwitch);
 
             if (animatedSwitch.Components.Empty())

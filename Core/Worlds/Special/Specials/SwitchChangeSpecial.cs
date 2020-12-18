@@ -4,21 +4,18 @@ using Helion.Util.Geometry.Vectors;
 using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Lines;
 using Helion.Worlds.Sound;
-using Helion.Worlds.Special.Switches;
 
 namespace Helion.Worlds.Special.Specials
 {
     public class SwitchChangeSpecial : ISpecial
     {
-        private readonly SwitchManager m_manager;
         private readonly SoundManager m_soundManager;
         private readonly Line m_line;
         private bool m_repeat;
         private int m_switchDelayTics;
 
-        public SwitchChangeSpecial(SwitchManager manager, SoundManager soundManager, Line line, SwitchType type)
+        public SwitchChangeSpecial(SoundManager soundManager, Line line, SwitchType type)
         {
-            m_manager = manager;
             m_soundManager = soundManager;
             m_line = line;
             m_repeat = line.Flags.Repeat;

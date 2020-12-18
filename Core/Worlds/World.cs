@@ -19,6 +19,7 @@ using Helion.Worlds.Bsp;
 using Helion.Worlds.Entities;
 using Helion.Worlds.Entities.Players;
 using Helion.Worlds.Geometry;
+using Helion.Worlds.Geometry.Builder;
 using Helion.Worlds.Geometry.Lines;
 using Helion.Worlds.Geometry.Sectors;
 using Helion.Worlds.Geometry.Walls;
@@ -77,21 +78,31 @@ namespace Helion.Worlds
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
 
-        private readonly DoomRandom m_random = new DoomRandom();
+        private readonly DoomRandom m_random = new();
         private int m_soundCount;
 
-        public World(Config config, Resources resources, IAudioSystem audioSystem, MapGeometry geometry, Map map)
+        public World(Config config, Resources resources, IAudioSystem audioSystem, Map map)
         {
             Resources = resources;
             Config = config;
             MapName = map.Name;
-            Geometry = geometry;
+            Geometry = CreateMapGeometry(map);
             Blockmap = new BlockMap(Lines);
             TextureManager = new(resources.Textures);
             SoundManager = new SoundManager(this, audioSystem, resources.Sounds);
             EntityManager = new EntityManager(this, resources, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
-            SpecialManager = new SpecialManager(this, resources, m_random);
+            SpecialManager = new SpecialManager(this, TextureManager, resources, m_random);
+        }
+
+        private MapGeometry CreateMapGeometry(Map map)
+        {
+            MapGeometry? geometry = GeometryBuilder.Create(map, TextureManager);
+            if (geometry != null)
+                return geometry;
+
+            Log.Error("Map geometry is corrupt, cannot create map {0}", map.Name);
+            throw new Exception($"Map geometry is corrupt, cannot create map {map.Name}");
         }
 
         ~World()
@@ -347,7 +358,7 @@ namespace Helion.Worlds
             if (!CanActivate(entity, line, context))
                 return false;
 
-            EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(context, entity, line);
+            EntityActivateSpecialEventArgs args = new(context, entity, line);
             EntityActivatedSpecial?.Invoke(this, args);
             return true;
         }
