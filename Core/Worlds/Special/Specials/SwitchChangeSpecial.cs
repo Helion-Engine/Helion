@@ -45,8 +45,6 @@ namespace Helion.Worlds.Special.Specials
                 return SpecialTickStatus.Continue;
             }
 
-            m_manager.SetLineSwitch(m_line);
-
             if (m_repeat)
             {
                 m_switchDelayTics = 35;

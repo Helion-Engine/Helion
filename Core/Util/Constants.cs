@@ -21,12 +21,12 @@ namespace Helion.Util
         /// <summary>
         /// How many gameticks occur per second.
         /// </summary>
-        public const double TicksPerSecond = 35.0;
+        public const int TicksPerSecond = 35;
 
         /// <summary>
         /// The public release version.
         /// </summary>
-        public static readonly Version ApplicationVersion = new Version(0, 1, 0, 0);
+        public static readonly Version ApplicationVersion = new(0, 1, 0, 0);
 
         /// <summary>
         /// The name of a 'missing' texture in a map.

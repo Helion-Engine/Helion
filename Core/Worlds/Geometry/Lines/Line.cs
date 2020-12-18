@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -5,7 +7,9 @@ using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.Worlds.Entities;
 using Helion.Worlds.Entities.Players;
+using Helion.Worlds.Geometry.Walls;
 using Helion.Worlds.Special;
+using Helion.Worlds.Textures.Types;
 
 namespace Helion.Worlds.Geometry.Lines
 {
@@ -16,7 +20,6 @@ namespace Helion.Worlds.Geometry.Lines
         public readonly Seg2D Segment;
         public readonly Side Front;
         public readonly Side? Back;
-        public readonly Side[] Sides;
         public readonly SpecialArgs Args;
         public readonly LineFlags Flags;
         public readonly LineSpecial Special;
@@ -28,6 +31,8 @@ namespace Helion.Worlds.Geometry.Lines
         public bool TwoSided => !OneSided;
         public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
         public bool HasSectorTag => SectorTag > 0;
+        public IEnumerable<Side> Sides => GetSides();
+
         // TODO: Any way we can encapsulate this somehow?
         public int SectorTag => Args.Arg0;
         public byte TagArg => Args.Arg0;
@@ -43,7 +48,6 @@ namespace Helion.Worlds.Geometry.Lines
             Segment = segment;
             Front = front;
             Back = back;
-            Sides = (back == null ? new[] { front } : new[] { front, back });
             Flags = flags;
             Special = lineSpecial;
             Args = args;
@@ -59,6 +63,18 @@ namespace Helion.Worlds.Geometry.Lines
         }
 
         /// <summary>
+        /// Checks if this line is a switch.
+        /// </summary>
+        /// <returns>True if so, false if not.</returns>
+        public bool IsSwitch()
+        {
+            // NOTE: I am implementing this based on the previous method that
+            // is refactored in here, but I figure we could probably do a check
+            // against the special itself.
+            return HasSpecial && Front.Walls.Any(w => w.Texture is SwitchWorldTexture);
+        }
+
+        /// <summary>
         /// If the line blocks the given entity. Only checks line properties
         /// and flags. No sector checking.
         /// </summary>
@@ -68,6 +84,25 @@ namespace Helion.Worlds.Geometry.Lines
         public bool BlocksEntity(Entity entity)
         {
             return OneSided || (entity.Flags.Monster && Flags.Blocking.Monsters) || (entity is Player && Flags.Blocking.Players);
+        }
+
+        /// <summary>
+        /// Activates the line.
+        /// </summary>
+        public void Activate()
+        {
+            Activated = true;
+
+            foreach (Wall wall in Front.Walls)
+                if (wall.Texture is SwitchWorldTexture switchTexture)
+                    switchTexture.Activate();
+        }
+
+        private IEnumerable<Side> GetSides()
+        {
+            yield return Front;
+            if (Back != null)
+                yield return Back;
         }
     }
 }

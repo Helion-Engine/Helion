@@ -22,7 +22,7 @@ namespace Helion.Layer.WorldLayers
 {
     public class SinglePlayerWorldLayer : WorldLayer
     {
-        private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
+        private const int TickOverflowThreshold = 10 * Constants.TicksPerSecond;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);

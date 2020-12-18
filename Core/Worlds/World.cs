@@ -88,7 +88,7 @@ namespace Helion.Worlds
             MapName = map.Name;
             Geometry = CreateMapGeometry(map);
             Blockmap = new BlockMap(Lines);
-            TextureManager = new(resources.Textures);
+            TextureManager = new(resources);
             SoundManager = new SoundManager(this, audioSystem, resources.Sounds);
             EntityManager = new EntityManager(this, resources, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
@@ -156,7 +156,7 @@ namespace Helion.Worlds
                 if (line.Back == null || !LineOpening.IsOpen(line))
                     continue;
 
-                Sector other = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
+                Sector other = ReferenceEquals(line.Front.Sector, sector) ? line.Back.Sector : line.Front.Sector;
                 if (line.Flags.BlockSound)
                 {
                     // Has to cross two block sound lines to stop. This is how it was designed.
@@ -400,11 +400,9 @@ namespace Helion.Worlds
                     projectile.Velocity = velocity;
                     return projectile;
                 }
-                else
-                {
-                    projectile.SetPosition(testPos);
-                    HandleEntityHit(projectile, velocity, null);
-                }
+
+                projectile.SetPosition(testPos);
+                HandleEntityHit(projectile, velocity, null);
             }
 
             return null;
@@ -762,7 +760,7 @@ namespace Helion.Worlds
 
         private bool GetAutoAimAngle(Entity shooter, in Vec3D start, in Vec3D end, out double pitch, out Entity? entity)
         {
-            Seg2D seg = new Seg2D(start.To2D(), end.To2D());
+            Seg2D seg = new(start.To2D(), end.To2D());
 
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,

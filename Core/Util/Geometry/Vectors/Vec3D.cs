@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 
 namespace Helion.Util.Geometry.Vectors
@@ -6,7 +7,7 @@ namespace Helion.Util.Geometry.Vectors
     public struct Vec3D
     {
         public static readonly Vec3D Zero = new Vec3D(0, 0, 0);
-        
+
         public double X;
         public double Y;
         public double Z;
@@ -48,7 +49,7 @@ namespace Helion.Util.Geometry.Vectors
             return MathHelper.AreEqual(X, other.X, epsilon) && MathHelper.AreEqual(Y, other.Y, epsilon) && MathHelper.AreEqual(Z, other.Z, epsilon);
         }
 
-        public double this[int index] 
+        public double this[int index]
         {
             get
             {
@@ -64,19 +65,19 @@ namespace Helion.Util.Geometry.Vectors
             }
         }
 
-        public Vec3D Abs() => new Vec3D(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
-        public Vec3D Unit() => this / Length();
+        [Pure] public Vec3D Abs() => new(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
+        [Pure] public Vec3D Unit() => this / Length();
         public void Normalize() => this /= Length();
-        public double Dot(in Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
-        public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
-        public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
-        public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
-        public double Distance(in Vec3D other) => (this - other).Length();
-        public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
-        public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
-        public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
-        public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
-        public double Angle(in Vec2D other) => Math.Atan2(other.Y - Y, other.X - X);
+        [Pure] public double Dot(in Vec3D other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+        [Pure] public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
+        [Pure] public double Length() => Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+        [Pure] public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
+        [Pure] public double Distance(in Vec3D other) => (this - other).Length();
+        [Pure] public Vec3D Interpolate(Vec3D end, double t) => this + (t * (end - this));
+        [Pure] public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
+        [Pure] public double Pitch(double z, double length) => Math.Atan2(z - Z, length);
+        [Pure] public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
+        [Pure] public double Angle(in Vec2D other) => Math.Atan2(other.Y - Y, other.X - X);
 
         public void Multiply(double value)
         {
@@ -85,6 +86,7 @@ namespace Helion.Util.Geometry.Vectors
             Z *= value;
         }
 
+        [Pure]
         public double ApproximateDistance2D(in Vec3D other)
         {
             double dx = Math.Abs(X - other.X);
@@ -95,10 +97,10 @@ namespace Helion.Util.Geometry.Vectors
             return dx + dy - (dy / 2);
         }
 
-        public Vec2D To2D() => new Vec2D(X, Y);
-        public Vec3Fixed ToFixed() => new Vec3Fixed(new Fixed(X), new Fixed(Y), new Fixed(Z));
-        public Vector3 ToFloat() => new Vector3((float)X, (float)Y, (float)Z);
-        public Vec3I ToInt() => new Vec3I((int)X, (int)Y, (int)Z);
+        [Pure] public Vec2D To2D() => new(X, Y);
+        [Pure] public Vec3Fixed ToFixed() => new(new Fixed(X), new Fixed(Y), new Fixed(Z));
+        [Pure] public Vector3 ToFloat() => new((float)X, (float)Y, (float)Z);
+        [Pure] public Vec3I ToInt() => new((int)X, (int)Y, (int)Z);
 
         public override string ToString() => $"{X}, {Y}, {Z}";
         public override bool Equals(object? obj) => obj is Vec3D v && X == v.X && Y == v.Y && Z == v.Z;

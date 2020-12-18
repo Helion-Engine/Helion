@@ -36,9 +36,9 @@ namespace Helion.Worlds.Special
                     reverse ? Constants.DoorOpenSlowSound : Constants.DoorCloseSlowSound, null);
         }
 
-        private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
-        private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
-        private static SectorSoundData GetCrusherSound(bool repeat = true) => new SectorSoundData(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
+        private static SectorSoundData GetDefaultSectorSound() => new(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
+        private static SectorSoundData GetLiftSound() => new(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
+        private static SectorSoundData GetCrusherSound(bool repeat = true) => new(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
 
         public SpecialManager(World world, WorldTextureManager textureManager, Resources resources, IRandom random)
         {
@@ -63,11 +63,11 @@ namespace Helion.Worlds.Special
 
             if (specialActivateSuccess && ShouldCreateSwitchSpecial(args))
             {
-                AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial,
-                    GetSwitchType(args.ActivateLineSpecial.Special)));
+                SwitchType switchType = GetSwitchType(args.ActivateLineSpecial.Special);
+                AddSpecial(new SwitchChangeSpecial(m_world.SoundManager, args.ActivateLineSpecial, switchType));
             }
 
-            args.ActivateLineSpecial.Activated = true;
+            args.ActivateLineSpecial.Activate();
 
             return specialActivateSuccess;
         }
@@ -76,15 +76,12 @@ namespace Helion.Worlds.Special
         {
             if (args.ActivationContext == ActivationContext.CrossLine)
                 return false;
-
-            return !args.ActivateLineSpecial.Activated && m_switchManager.IsLineSwitch(args.ActivateLineSpecial);
+            return !args.ActivateLineSpecial.Activated && args.ActivateLineSpecial.IsSwitch();
         }
 
         private static SwitchType GetSwitchType(LineSpecial lineSpecial)
         {
-            if (lineSpecial.IsExitSpecial())
-                return SwitchType.Exit;
-            return SwitchType.Default;
+            return lineSpecial.IsExitSpecial() ? SwitchType.Exit : SwitchType.Default;
         }
 
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
