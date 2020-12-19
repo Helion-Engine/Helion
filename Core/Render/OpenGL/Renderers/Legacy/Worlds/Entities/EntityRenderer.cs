@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Entities
         private readonly Config m_config;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly RenderWorldDataManager m_worldDataManager;
-        private readonly EntityDrawnTracker m_EntityDrawnTracker = new EntityDrawnTracker();
+        private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
         private bool m_drawDebugBox;
         private double m_tickFraction;
         private Entity? m_cameraEntity;

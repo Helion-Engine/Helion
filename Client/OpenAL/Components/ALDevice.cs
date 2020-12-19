@@ -8,9 +8,9 @@ namespace Helion.Client.OpenAL.Components
 {
     public class ALDevice : IDisposable
     {
-        public string DeviceName { get; private set; }
+        public string DeviceName { get; private set; } = "UnknownName";
         internal IntPtr Device;
-        
+
         public ALDevice()
         {
             CreateDefault();
@@ -39,7 +39,7 @@ namespace Helion.Client.OpenAL.Components
             if (Device == IntPtr.Zero)
                 throw new HelionException("Unable to access OpenAL device");
         }
-        
+
         ~ALDevice()
         {
             FailedToDispose(this);

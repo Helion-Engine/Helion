@@ -14,13 +14,13 @@ namespace Helion.Client.OpenAL
 {
     public class ALAudioSystem : IAudioSystem
     {
-        public event EventHandler DeviceChanging;
+        public event EventHandler? DeviceChanging;
 
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool PrintedALInfo;
 
         private readonly Resources m_resources;
-        private readonly HashSet<ALAudioSourceManager> m_sourceManagers = new HashSet<ALAudioSourceManager>();
+        private readonly HashSet<ALAudioSourceManager> m_sourceManagers = new();
         private readonly ISet<string> m_extensions = new HashSet<string>();
         private ALDevice m_alDevice;
         private ALContext m_alContext;

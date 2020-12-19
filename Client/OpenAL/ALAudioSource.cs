@@ -3,11 +3,10 @@ using System.Numerics;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
 using Helion.Resource.Definitions.SoundInfo;
-using Helion.World.Entities;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Client.OpenAL
 {
@@ -74,9 +73,6 @@ namespace Helion.Client.OpenAL
                     break;
                 case Attenuation.Rapid:
                     rolloffFactor = DefaultRolloff * 2.0f;
-                    break;
-                case Attenuation.Default:
-                default:
                     break;
             }
 

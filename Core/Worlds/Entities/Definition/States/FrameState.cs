@@ -1,6 +1,5 @@
 using Helion.Resource.Definitions.Decorate.States;
 using Helion.Util;
-using Helion.World.Entities;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

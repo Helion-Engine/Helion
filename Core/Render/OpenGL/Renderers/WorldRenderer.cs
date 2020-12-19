@@ -1,6 +1,5 @@
 using System;
 using Helion.Render.Shared;
-using Helion.World;
 
 namespace Helion.Render.OpenGL.Renderers
 {
@@ -24,7 +23,7 @@ namespace Helion.Render.OpenGL.Renderers
                 m_lastRenderedWorld.SetTarget(world);
                 UpdateToNewWorld(world);
             }
-            
+
             PerformRender(world, renderInfo);
         }
 

@@ -103,7 +103,7 @@ namespace Helion.Worlds.Textures
                 frames.Add(frame);
             }
 
-            return new(animatedTexture.Name, frames);
+            return new AnimatedWorldTexture(animatedTexture.Name, frames);
         }
 
         private IWorldTexture CreateFromAnimatedSwitch(AnimatedSwitch switchTexture, Namespace resourceNamespace)

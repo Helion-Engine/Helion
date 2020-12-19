@@ -4,7 +4,6 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
-using Helion.World.Entities;
 using Helion.Worlds.Entities;
 using static Helion.Util.Assertion.Assert;
 
@@ -30,7 +29,7 @@ namespace Helion.Util.Geometry.Boxes
         /// <summary>
         /// The top left corner of the box.
         /// </summary>
-        public Vec2D TopLeft => new Vec2D(Min.X, Max.Y);
+        public Vec2D TopLeft => new(Min.X, Max.Y);
 
         /// <summary>
         /// The bottom left corner of the box.
@@ -40,7 +39,7 @@ namespace Helion.Util.Geometry.Boxes
         /// <summary>
         /// The bottom right corner of the box.
         /// </summary>
-        public Vec2D BottomRight => new Vec2D(Max.X, Min.Y);
+        public Vec2D BottomRight => new(Max.X, Min.Y);
 
         /// <summary>
         /// The top right corner of the box.

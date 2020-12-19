@@ -2,7 +2,6 @@ using Helion.Audio;
 using Helion.Resource;
 using Helion.Util;
 using Helion.Util.Configuration;
-using Helion.World;
 
 namespace Helion.Layer.WorldLayers
 {

@@ -1,6 +1,5 @@
 using Helion.Resource.Definitions.Decorate.Flags;
 using Helion.Resource.Definitions.Decorate.Properties;
-using Helion.World.Entities.Definition;
 
 namespace Helion.Worlds.Entities.Definition.Composer
 {

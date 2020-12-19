@@ -11,10 +11,10 @@ using Helion.Resource.Definitions.Fonts;
 using Helion.Resource.Definitions.SoundInfo;
 using Helion.Resource.Definitions.Textures;
 using Helion.Resource.Sprites;
+using Helion.Resource.Textures;
 using Helion.Resource.Tracker;
 using Helion.Util;
 using NLog;
-using TextureManager = Helion.Resource.Textures.TextureManager;
 
 namespace Helion.Resource
 {
@@ -70,7 +70,7 @@ namespace Helion.Resource
 
             foreach (string path in paths)
             {
-                Archive? archive = Archive.Open(path);
+                Archive? archive = Caches.Load(path);
                 if (archive == null)
                 {
                     Log.Error("Unable to open archive at: {0}", path);
