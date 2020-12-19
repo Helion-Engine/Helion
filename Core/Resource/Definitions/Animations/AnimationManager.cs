@@ -16,16 +16,33 @@ namespace Helion.Resource.Definitions.Animations
 
         private readonly NamespaceTracker<IAnimatedTexture> m_animatedTextures = new();
 
+        /// <summary>
+        /// Gets any animated texture, with focus on the provided namespace.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <param name="priorityNamespace">The namespace to search first.
+        /// </param>
+        /// <returns>The animated texture, or null if none exist.</returns>
         public IAnimatedTexture? Get(CIString name, Namespace priorityNamespace)
         {
             return m_animatedTextures.Get(name, priorityNamespace);
         }
 
+        /// <summary>
+        /// Gets any animated texture, only looking in the namespace provided.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <param name="resourceNamespace">The namespace to search.</param>
+        /// <returns>The animated texture, or null if none exist.</returns>
         public IAnimatedTexture? GetOnly(CIString name, Namespace resourceNamespace)
         {
             return m_animatedTextures.GetOnly(name, resourceNamespace);
         }
 
+        /// <summary>
+        /// Adds an entry to be processed.
+        /// </summary>
+        /// <param name="entry">The entry to process.</param>
         public void AddDefinitions(Entry entry)
         {
             AnimdefsParser parser = new();
@@ -41,14 +58,6 @@ namespace Helion.Resource.Definitions.Animations
                 m_animatedTextures.Insert(animatedWarp.Name, animatedWarp.Namespace, animatedWarp);
             foreach (AnimatedCameraTexture animatedCamera in parser.CameraTextures)
                 m_animatedTextures.Insert(animatedCamera.Name, animatedCamera.Namespace, animatedCamera);
-
-            foreach (AnimatedSwitch animatedSwitch in parser.AnimatedSwitches)
-            {
-                if (animatedSwitch.Components.Count == 2)
-                    m_animatedTextures.Insert(animatedSwitch.Name, animatedSwitch.Namespace, animatedSwitch);
-                else
-                    Log.Warn("Animated switch '{0}' only supports 2 frames, instead it has {1}", animatedSwitch.Name, animatedSwitch.Components.Count);
-            }
         }
     }
 }

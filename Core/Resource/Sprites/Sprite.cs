@@ -1,5 +1,6 @@
 ﻿using Helion.Resource.Textures;
 using Helion.Util;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resource.Sprites
 {
@@ -11,7 +12,8 @@ namespace Helion.Resource.Sprites
         public const int MaxRotations = 8;
 
         /// <summary>
-        /// The name of the sprite. This is equal to `BaseName + BaseFrame`.
+        /// The name of the sprite. This is equal to `BaseName + BaseFrame`. As
+        /// such, this is five characters long.
         /// </summary>
         public readonly CIString Name;
 
@@ -45,6 +47,8 @@ namespace Helion.Resource.Sprites
         /// <param name="tex0">The single texture for each rotation.</param>
         public Sprite(CIString name, Texture tex0)
         {
+            Precondition(name.Length == 5, $"Sprite name should be five characters, instead got: {name}");
+
             SpriteRotation rotation = new(tex0, false);
 
             Name = name;
@@ -65,6 +69,8 @@ namespace Helion.Resource.Sprites
         /// <param name="tex5">The back texture.</param>
         public Sprite(CIString name, Texture tex1, Texture tex28, Texture tex37, Texture tex46, Texture tex5)
         {
+            Precondition(name.Length == 5, $"Sprite name should be five characters, instead got: {name}");
+
             Name = name;
             BaseName = name.ToString().Substring(0, 4);
             BaseFrame = name[4];
@@ -97,6 +103,8 @@ namespace Helion.Resource.Sprites
         public Sprite(CIString name, Texture tex1, Texture tex2, Texture tex3, Texture tex4, Texture tex5,
             Texture tex6,Texture tex7, Texture tex8)
         {
+            Precondition(name.Length == 5, $"Sprite name should be five characters, instead got: {name}");
+
             Name = name;
             BaseName = name.ToString().Substring(0, 4);
             BaseFrame = name[4];

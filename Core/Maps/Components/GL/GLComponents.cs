@@ -49,7 +49,7 @@ namespace Helion.Maps.Components.GL
             if (vertexData.Length < 4 || (vertexData.Length - 4) % BytesPerVertex != 0)
                 throw new Exception("Bad GL vertex data length");
 
-            int count = vertexData.Length / BytesPerVertex;
+            int count = (vertexData.Length - 4) / BytesPerVertex;
             ByteReader reader = new(vertexData);
 
             Version = reader.String(4) switch

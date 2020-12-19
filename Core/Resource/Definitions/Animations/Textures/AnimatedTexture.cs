@@ -8,7 +8,7 @@ namespace Helion.Resource.Definitions.Animations.Textures
         public CIString Name { get; }
         public Namespace Namespace { get; }
         public readonly bool Optional;
-        public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
+        public readonly List<AnimatedTextureComponent> Components = new();
         public bool AllowDecals;
         public bool Oscillate;
         public bool Random;

@@ -113,11 +113,11 @@ namespace Helion.Client
         private void CheckLoadMap(string? iwad)
         {
             if (m_commandLineArgs.Map != null)
-                Loadmap(m_commandLineArgs.Map);
+                LoadMap(m_commandLineArgs.Map);
             else if (m_commandLineArgs.Warp != null)
-                Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+                LoadMap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
             else
-                Loadmap(GetDefaultMap(iwad));
+                LoadMap(GetDefaultMap(iwad));
         }
 
         private void LoadFiles(out string? iwad)
@@ -144,16 +144,14 @@ namespace Helion.Client
 
                 return iwad;
             }
-            else
-            {
-                files.Add(m_commandLineArgs.Iwad);
-                return m_commandLineArgs.Iwad;
-            }
+
+            files.Add(m_commandLineArgs.Iwad);
+            return m_commandLineArgs.Iwad;
         }
 
         private static string? GetIWad(List<string> files)
         {
-            string[] names = new string[] { "DOOM2", "PLUTONIA", "DOOM", "DOOM1" };
+            string[] names = { "DOOM2", "PLUTONIA", "DOOM", "DOOM1" };
             foreach (string name in names)
             {
                 string? find = files.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -182,7 +180,7 @@ namespace Helion.Client
                 Log.Info($"Invalid skill level: {value}");
         }
 
-        private void Loadmap(string mapName)
+        private void LoadMap(string mapName)
         {
             m_console.AddInput($"map {mapName}\n");
 
@@ -193,7 +191,7 @@ namespace Helion.Client
 
         private string GetWarpMapFormat(int level)
         {
-            bool usesMap = m_resources.FindMap("MAP01") != null;
+            bool usesMap = m_resources.CheckMapExists("MAP01");
             string levelDigits = level.ToString().PadLeft(2, '0');
             return usesMap ? $"MAP{levelDigits}" : $"E{levelDigits[0]}M{levelDigits[1]}";
         }

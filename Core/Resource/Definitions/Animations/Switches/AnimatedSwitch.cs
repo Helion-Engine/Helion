@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Helion.Resource.Definitions.Animations.Textures;
 using Helion.Util;
 
@@ -6,19 +5,16 @@ namespace Helion.Resource.Definitions.Animations.Switches
 {
     public class AnimatedSwitch : IAnimatedTexture
     {
-        public CIString Name => StartTexture;
+        public CIString Name { get; }
         public Namespace Namespace => Namespace.Textures;
-        public readonly CIString StartTexture;
-        public readonly SwitchType SwitchType;
-        public readonly List<AnimatedTextureComponent> Components = new();
-        public CIString? Sound;
+        public readonly AnimatedSwitchElement On = new();
+        public readonly AnimatedSwitchElement Off = new();
 
-        public AnimatedSwitch(CIString texture, SwitchType switchType)
+        public AnimatedSwitch(CIString name)
         {
-            StartTexture = texture;
-            SwitchType = switchType;
+            Name = name;
         }
 
-        public override string ToString() => $"{StartTexture} ({SwitchType}: components={Components.Count})";
+        public override string ToString() => $"{Name} (On count: {On.Components.Count}, Off count: {Off.Components.Count})";
     }
 }

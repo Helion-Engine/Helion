@@ -84,16 +84,51 @@ namespace Helion.Resource
             return true;
         }
 
+        /// <summary>
+        /// Finds the latest entry with the name provided.
+        /// </summary>
+        /// <param name="name">The entry name.</param>
+        /// <returns>The entry, or null if none exists.</returns>
         public Entry? Find(CIString name)
         {
             return m_nameToEntry.TryGetValue(name, out Entry? entry) ? entry : null;
         }
 
+        /// <summary>
+        /// Finds an entry at the resource namespace provided only.
+        /// </summary>
+        /// <param name="name">The entry name.</param>
+        /// <param name="resourceNamespace">The resource namespace.</param>
+        /// <returns>The entry, or null if none exists.</returns>
         public Entry? Find(CIString name, Namespace resourceNamespace)
         {
             return m_entryTracker.GetOnly(name, resourceNamespace);
         }
 
+        /// <summary>
+        /// Checks if a map exists with the name provided.
+        /// </summary>
+        /// <param name="name">The map name (ex: MAP01, E1M1).</param>
+        /// <returns>True if so, false if not.</returns>
+        public bool CheckMapExists(string name)
+        {
+            for (int i = m_archives.Count - 1; i >= 0; i--)
+            {
+                Archive archive = m_archives[i];
+                foreach (MapEntryCollection mapEntries in new ArchiveMapIterator(archive))
+                    if (mapEntries.Name == name)
+                        return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the map for the map name provided.
+        /// </summary>
+        /// <param name="name">The map name (ex: MAP01, E1M1).</param>
+        /// <returns>The processed map, or null if no such map exists (or it is
+        /// corrupt).</returns>
         public Map? FindMap(CIString name)
         {
             for (int i = m_archives.Count - 1; i >= 0; i--)

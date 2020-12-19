@@ -2,7 +2,6 @@
 using System.Linq;
 using Helion.Resource.Textures;
 using Helion.Util;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resource.Sprites
 {
@@ -18,7 +17,7 @@ namespace Helion.Resource.Sprites
 
         public SpriteManager(Resources resources, TextureManager textures)
         {
-            MissingSprite = new("", textures.MissingTexture);
+            MissingSprite = new(Constants.InvisibleSprite, textures.MissingTexture);
             m_resources = resources;
             m_textures = textures;
         }
@@ -49,8 +48,6 @@ namespace Helion.Resource.Sprites
 
         private Sprite? TryCreateSprite(CIString name)
         {
-            Precondition(name.Length == 5, "Sprite name needs to be exactly 5 characters");
-
             Texture frame0 = m_textures.Get(name + "0", Namespace.Sprites);
             Texture frame1 = m_textures.Get(name + "1", Namespace.Sprites);
             Texture frame2 = m_textures.Get(name + "2", Namespace.Sprites);
@@ -64,7 +61,6 @@ namespace Helion.Resource.Sprites
             Texture frame37 = m_textures.Get(name + "3" + name[4] + "7", Namespace.Sprites);
             Texture frame46 = m_textures.Get(name + "4" + name[4] + "6", Namespace.Sprites);
 
-            // if (frame1.IsMissing && frame28.IsMissing && frame37.IsMissing && frame46.IsMissing && frame5.IsMissing)
             if (AreAllMissing(frame1, frame28, frame37, frame46, frame5))
                 return new(name, frame1, frame28, frame37, frame46, frame5);
             if (AreAllMissing(frame1, frame2, frame3, frame4, frame5, frame6, frame7, frame8))

@@ -28,7 +28,7 @@ namespace Helion.Worlds.Entities
 
         public readonly LinkableList<Entity> Entities = new();
         public readonly SpawnLocations SpawnLocations = new();
-        public readonly Worlds.World World;
+        public readonly World World;
         public readonly EntityDefinitionComposer DefinitionComposer;
         public readonly List<Player> Players = new();
         private readonly SoundManager m_soundManager;
@@ -36,7 +36,7 @@ namespace Helion.Worlds.Entities
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
         private readonly SkillLevel m_skill;
 
-        public EntityManager(Worlds.World world, Resources resources, SoundManager soundManager,
+        public EntityManager(World world, Resources resources, SoundManager soundManager,
             SkillLevel skill)
         {
             World = world;

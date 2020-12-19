@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Resource.Definitions.Animations.Switches;
@@ -193,7 +194,7 @@ namespace Helion.Resource.Definitions.Animations
             AnimatedTextures.Add(texture);
         }
 
-        private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch)
+        private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch, AnimatedSwitchElement switchElement)
         {
             string name = ConsumeString().ToUpper();
 
@@ -214,29 +215,31 @@ namespace Helion.Resource.Definitions.Animations
             }
 
             if (minTicks > maxTicks)
-                throw MakeException($"Switch '{animatedSwitch.StartTexture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
+                throw MakeException($"Switch '{animatedSwitch.Name}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
 
             AnimatedTextureComponent component = new(name.ToUpper(), minTicks, maxTicks);
-            animatedSwitch.Components.Add(component);
+            switchElement.Components.Add(component);
         }
 
-        private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch)
+        private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch, SwitchType switchType)
         {
+            AnimatedSwitchElement element = switchType == SwitchType.On ? animatedSwitch.On : animatedSwitch.Off;
+
             while (true)
             {
                 string? value = PeekCurrentText();
                 if (value == null)
-                    throw MakeException($"Ran out of tokens when parsing switch definition for {animatedSwitch.StartTexture}");
+                    throw MakeException($"Ran out of tokens when parsing switch definition for {animatedSwitch.Name}");
 
                 switch (value.ToUpper())
                 {
                 case "PIC":
                     Consume();
-                    ConsumeSwitchPic(animatedSwitch);
+                    ConsumeSwitchPic(animatedSwitch, element);
                     break;
                 case "SOUND":
                     Consume();
-                    animatedSwitch.Sound = ConsumeString().ToUpper();
+                    element.Sound = ConsumeString().ToUpper();
                     break;
                 default:
                     return;
@@ -246,22 +249,33 @@ namespace Helion.Resource.Definitions.Animations
 
         private void ConsumeSwitchAnimation()
         {
-            string upperSwitchName = ConsumeString().ToUpper();
-            SwitchType switchType = SwitchType.On;
+            string name = ConsumeString().ToUpper();
+            AnimatedSwitch animatedSwitch = new(name);
 
-            if (!ConsumeIf("ON"))
+            while (NextTokenIsOnOrOff(PeekNextText()))
             {
-                Consume("OFF");
-                switchType = SwitchType.Off;
+                SwitchType switchType = SwitchType.On;
+
+                if (!ConsumeIf("ON"))
+                {
+                    Consume("OFF");
+                    switchType = SwitchType.Off;
+                }
+
+                ConsumeAllSwitchPicAndSounds(animatedSwitch, switchType);
             }
 
-            AnimatedSwitch animatedSwitch = new(upperSwitchName, switchType);
-            ConsumeAllSwitchPicAndSounds(animatedSwitch);
-
-            if (animatedSwitch.Components.Empty())
-                throw MakeException($"Found no animated definitions for switch {upperSwitchName}");
+            if (animatedSwitch.On.Components.Empty())
+                throw MakeException($"Switch animation {name} is missing the ON state");
 
             AnimatedSwitches.Add(animatedSwitch);
+
+            bool NextTokenIsOnOrOff(string? token)
+            {
+                return token != null &&
+                       (token.Equals("ON", StringComparison.OrdinalIgnoreCase) ||
+                        token.Equals("OFF", StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         private void ConsumeDefinition()

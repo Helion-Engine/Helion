@@ -60,7 +60,7 @@ namespace Helion.Util
         /// The name of the 4 letter sprite that should not be drawn in the
         /// renderer if encountered as a frame.
         /// </summary>
-        public static readonly CIString InvisibleSprite = "TNT1";
+        public static readonly CIString InvisibleSprite = "TNT1A";
 
         /// <summary>
         /// The texture name of the debug box image for seeing the bounding box

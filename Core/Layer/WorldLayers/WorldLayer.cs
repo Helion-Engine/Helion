@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Resource;
 using Helion.Util;
 using Helion.Util.Configuration;
+using Helion.Worlds;
 
 namespace Helion.Layer.WorldLayers
 {
@@ -18,7 +19,7 @@ namespace Helion.Layer.WorldLayers
         protected readonly Resources Resources;
         protected readonly IAudioSystem AudioSystem;
 
-        public abstract Worlds.World World { get; }
+        public abstract World World { get; }
 
         public WorldLayer(Config config, HelionConsole console, Resources resources, IAudioSystem audioSystem)
         {

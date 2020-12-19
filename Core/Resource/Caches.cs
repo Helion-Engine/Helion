@@ -48,11 +48,8 @@ namespace Helion.Resource
                     return null;
                 }
 
-                if (CreateCache(path, cachePath))
-                {
-                    Log.Warn("Error creating node cache for file {0}", path);
-                    return null;
-                }
+                Zdbsp zdbsp = new(ZdbspDownloader.BspExePath, path, cachePath);
+                zdbsp.Run();
 
                 return Archive.Open(cachePath);
             }
@@ -70,14 +67,6 @@ namespace Helion.Resource
 
             if (!Directory.Exists(CachePath))
                 throw new Exception($"Cannot create cache path at: {CachePath}");
-        }
-
-        private static bool CreateCache(string path, string cachePath)
-        {
-            Zdbsp zdbsp = new(ZdbspDownloader.BspExePath, path, cachePath);
-            zdbsp.Run();
-
-            return File.Exists(cachePath);
         }
     }
 }

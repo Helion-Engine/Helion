@@ -30,7 +30,7 @@ namespace Helion.Layer.WorldLayers
         private TickCommand m_tickCommand = new();
         private SinglePlayerWorld m_world;
 
-        public override Worlds.World World => m_world;
+        public override World World => m_world;
 
         private SinglePlayerWorldLayer(Config config, HelionConsole console, Resources resources,
             IAudioSystem audioSystem, SinglePlayerWorld world)
