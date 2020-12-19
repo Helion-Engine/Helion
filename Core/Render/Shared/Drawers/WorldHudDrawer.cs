@@ -102,8 +102,11 @@ namespace Helion.Render.Shared.Drawers
                 DrawHelper.ScaleImageDimensions(viewport, ref dimension.Width, ref dimension.Height);
                 DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
                 DrawHelper.ScaleImageOffset(viewport, ref frameOffset.X, ref frameOffset.Y);
+                Vec2I scaleBob = DrawHelper.ScaleWorldOffset(viewport, player.WeaponBobOffset);
+                frameOffset += scaleBob;
+
                 // Translate doom image offset to OpenGL coordinates
-                helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2),
+                helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2) + scaleBob.X,
                     -offset.Y - dimension.Height + frameOffset.Y,
                     dimension.Width, dimension.Height, lightLevelColor);
             }

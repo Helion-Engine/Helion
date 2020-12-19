@@ -20,6 +20,7 @@ namespace Helion.World
     public interface IWorld : IDisposable
     {
         int Gametick { get; }
+        int LevelTime { get; }
         double Gravity { get; }
         WorldState WorldState { get; }
         IList<Line> Lines { get; }

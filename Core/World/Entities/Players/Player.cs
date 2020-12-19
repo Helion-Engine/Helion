@@ -31,7 +31,6 @@ namespace Helion.World.Entities.Players
         public int LastPickupGametick = int.MinValue / 2;
         public int DamageCount;
         public TickCommand TickCommand = new();
-        // TODO implement effect on world
         public int ExtraLight;
 
         private bool m_isJumping;
@@ -42,6 +41,9 @@ namespace Helion.World.Entities.Players
         private double m_viewHeight;
         private double m_prevViewHeight;
         private double m_deltaViewHeight;
+        private double m_bob;
+        private double m_prevBob;
+        private Entity? m_killer;
 
         public Weapon? Weapon { get; private set; }
         public Weapon? PendingWeapon { get; private set; }
@@ -49,6 +51,7 @@ namespace Helion.World.Entities.Players
         public int WeaponSlot { get; private set; }
         public int WeaponSubSlot { get; private set; }
         public Vec2I WeaponOffset;
+        public Vec2D WeaponBobOffset;
 
         public override double ViewHeight => m_viewHeight;
 
@@ -91,14 +94,14 @@ namespace Helion.World.Entities.Players
         public Vec3D GetViewPosition()
         {
             Vec3D position = Position;
-            position.Z += m_viewHeight;
+            position.Z += m_viewHeight + m_bob;
             return position;
         }
 
         public Vec3D GetPrevViewPosition()
         {
             Vec3D position = PrevPosition;
-            position.Z += m_prevViewHeight;
+            position.Z += m_prevViewHeight + m_prevBob;
             return position;
         }
 
@@ -140,6 +143,7 @@ namespace Helion.World.Entities.Players
         {
             m_viewHeight = Definition.Properties.Player.ViewHeight;
             m_prevViewHeight = m_viewHeight;
+            m_prevBob = m_bob;
             m_deltaViewHeight = 0;
 
             base.ResetInterpolation();
@@ -165,10 +169,21 @@ namespace Helion.World.Entities.Players
             // and would likely need to add more logic for wrapping around if
             // the player rotates from 359 degrees -> 2 degrees since that will
             // interpolate in the wrong direction.
-            float yaw = (float)AngleRadians;
-            float pitch = (float)PitchRadians;
 
-            return new Camera(position.ToFloat(), yaw, pitch);
+            if (IsDead)
+            {
+                float yaw = (float)(m_prevAngle + t * (AngleRadians - m_prevAngle));
+                float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
+
+                return new Camera(position.ToFloat(), yaw, pitch);
+            }
+            else
+            {
+                float yaw = (float)AngleRadians;
+                float pitch = (float)PitchRadians;
+
+                return new Camera(position.ToFloat(), yaw, pitch);
+            }
         }
 
         public override void Tick()
@@ -183,6 +198,7 @@ namespace Helion.World.Entities.Players
                 m_jumpTics--;
 
             m_prevViewHeight = m_viewHeight;
+            m_prevBob = m_bob;
             m_viewHeight += m_deltaViewHeight;
 
             if (DamageCount > 0)
@@ -197,23 +213,66 @@ namespace Helion.World.Entities.Players
                     m_deathTics = 0;
             }
 
+            SetBob();
             ClampViewHeight();
 
             if (IsDead)
+                DeathTick();
+        }
+
+        private void DeathTick()
+        {
+            if (PitchRadians > 0.0)
             {
+                PitchRadians -= Math.PI / Definition.Properties.Player.ViewHeight;
+                if (PitchRadians < 0.0)
+                    PitchRadians = 0.0;
+            }
+            else if (PitchRadians < 0.0)
+            {
+                PitchRadians += Math.PI / Definition.Properties.Player.ViewHeight;
                 if (PitchRadians > 0.0)
+                    PitchRadians = 0.0;
+            }
+
+            if (m_killer != null)
+            {
+                double angle = MathHelper.GetPositiveAngle(Position.Angle(m_killer.Position));
+                double diff = angle - AngleRadians;
+                double addAngle = 0.08726646; // 5 Degrees
+
+                if (diff < addAngle && diff > -addAngle)
                 {
-                    PitchRadians -= Math.PI / Definition.Properties.Player.ViewHeight;
-                    if (PitchRadians < 0.0)
-                        PitchRadians = 0.0;
+                    AngleRadians = angle;
                 }
-                else if (PitchRadians < 0.0)
+                else
                 {
-                    PitchRadians += Math.PI / Definition.Properties.Player.ViewHeight;
-                    if (PitchRadians > 0.0)
-                        PitchRadians = 0.0;
+                    if (MathHelper.GetPositiveAngle(diff) < Math.PI)
+                        AngleRadians += addAngle;
+                    else
+                        AngleRadians -= addAngle;
+
+                    AngleRadians = MathHelper.GetPositiveAngle(AngleRadians);
                 }
             }
+        }
+
+        private void SetBob()
+        {
+            m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4);
+            if (Weapon != null && Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
+            {
+                double value = 0.1 * World.LevelTime;
+                WeaponBobOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
+                WeaponBobOffset.Y = m_bob * Math.Sin(value % MathHelper.Pi);
+            }
+            else
+            {
+                WeaponBobOffset = Vec2D.Zero;
+            }
+
+            double angle = MathHelper.TwoPi / 20 * World.LevelTime % MathHelper.TwoPi;
+            m_bob = m_bob / 2 * Math.Sin(angle);
         }
 
         public override bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
@@ -228,7 +287,7 @@ namespace Helion.World.Entities.Players
             {
                 bool isAmmo = IsAmmo(definition);
                 int count = Inventory.Amount(definition.Name);
-                success = base.GiveItem(definition, flags);
+                success = base.GiveItem(definition, flags, pickupFlash:true);
                 if (success && IsWeapon(definition))
                     CheckAutoSwitchWeapon(definition, ownedWeapon);
                 else if (success && isAmmo)
@@ -423,10 +482,7 @@ namespace Helion.World.Entities.Players
                 DamageCount += damage;
                 DamageCount = Math.Min(DamageCount, Definition.Properties.Health);
                 DamageCount = (int)((float)DamageCount / Definition.Properties.Health * 100);
-            }
-
-            if (IsDead)
-                ForceLowerWeapon();
+            } 
 
             return damageApplied;
         }
@@ -463,9 +519,9 @@ namespace Helion.World.Entities.Players
 
         public string GetGenderString() => "male";
 
-        protected override void SetDeath(bool gibbed)
+        protected override void SetDeath(Entity? source, bool gibbed)
         {
-            base.SetDeath(gibbed);
+            base.SetDeath(source, gibbed);
 
             string deathSound = "*death";
             if (gibbed)
@@ -475,6 +531,10 @@ namespace Helion.World.Entities.Players
 
             SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Auto, new SoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
+            m_killer = source;
+
+            WeaponBobOffset = Vec2D.Zero;
+            ForceLowerWeapon();
         }
 
         private void AddStartItems()

@@ -54,6 +54,7 @@ namespace Helion.World
         public readonly BlockMap Blockmap;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
+        public int LevelTime { get; private set; }
         public double Gravity { get; private set; } = 1.0;
         public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
@@ -196,6 +197,8 @@ namespace Helion.World
 
                 SpecialManager.Tick();
                 TextureManager.Instance.Tick();
+
+                LevelTime++;
             }
 
             SoundManager.Tick();
@@ -636,7 +639,7 @@ namespace Helion.World
                 if (skyClip)
                     EntityManager.Destroy(entity);
                 else
-                    entity.SetDeathState();
+                    entity.SetDeathState(null);
 
                 HandleEntityDeath(entity);
             }

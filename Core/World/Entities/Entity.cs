@@ -277,15 +277,15 @@ namespace Helion.World.Entities
         public void ForceGib()
         {
             Health = -Properties.Health - 1;
-            Kill();
+            Kill(null);
         }
 
-        public void Kill()
+        public void Kill(Entity? source)
         {
             if (Health < -Properties.Health && HasXDeathState())
-                SetXDeathState();
+                SetXDeathState(source);
             else
-                SetDeathState();
+                SetDeathState(source);
 
             Health = 0;
             SetHeight(Definition.Properties.Height / 4.0);
@@ -311,16 +311,16 @@ namespace Helion.World.Entities
             FrameState.SetState(FrameStateLabel.Melee);
         }
 
-        public void SetDeathState()
+        public void SetDeathState(Entity? source)
         {
             if (FrameState.SetState(FrameStateLabel.Death))
-                SetDeath(false);
+                SetDeath(source, false);
         }
 
-        public void SetXDeathState()
+        public void SetXDeathState(Entity? source)
         {
             if (FrameState.SetState(FrameStateLabel.XDeath))
-                SetDeath(true);
+                SetDeath(source, true);
         }
 
         public bool SetCrushState()
@@ -422,7 +422,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
             {
-                Kill();
+                Kill(source);
             }
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {
@@ -746,7 +746,7 @@ namespace Helion.World.Entities
             IsDisposed = true;
         }
 
-        protected virtual void SetDeath(bool gibbed)
+        protected virtual void SetDeath(Entity? source, bool gibbed)
         {
             if (gibbed)
                 SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, new SoundParams(this));

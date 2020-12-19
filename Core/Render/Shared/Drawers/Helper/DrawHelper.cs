@@ -3,6 +3,7 @@ using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Align;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Shared.Drawers.Helper
 {
@@ -34,6 +35,14 @@ namespace Helion.Render.Shared.Drawers.Helper
             float scaleHeight = viewport.Height / DoomDrawHeight;
             x = (int)(x * scaleWidth) + (int)(viewport.Width - viewWidth);
             y = (int)(y * scaleHeight);
+        }
+
+        public static Vec2I ScaleWorldOffset(Dimension viewport, in Vec2D offset)
+        {
+            float viewWidth = viewport.Height * DoomViewAspectRatio;
+            float scaleWidth = viewWidth / DoomDrawWidth;
+            float scaleHeight = viewport.Height / DoomDrawHeight;
+            return new Vec2I((int)(offset.X * scaleWidth), (int)(offset.Y * scaleHeight));
         }
 
         public DrawHelper(RenderCommands renderCommands)
