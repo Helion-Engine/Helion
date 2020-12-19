@@ -12,7 +12,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
-using Helion.World;
+using Helion.Worlds;
 using Helion.Worlds.Entities.Definition.States;
 using Helion.Worlds.Entities.Players;
 using MoreLinq;
@@ -39,9 +39,9 @@ namespace Helion.Render.Shared.Drawers
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
         private static readonly string HudFont = "LargeHudFont";
 
-        public static void Draw(Player player, Worlds.World world, HelionConsole console, Dimension viewport, RenderCommands cmd)
+        public static void Draw(Player player, World world, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
-            DrawHelper helper = new DrawHelper(cmd);
+            DrawHelper helper = new(cmd);
 
             cmd.ClearDepth();
 
@@ -52,7 +52,7 @@ namespace Helion.Render.Shared.Drawers
             DrawRecentConsoleMessages(world, console, helper);
         }
 
-        private static void DrawHud(int topRightY, Player player, Worlds.World world, Dimension viewport, DrawHelper helper)
+        private static void DrawHud(int topRightY, Player player, World world, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealthAndArmor(player, viewport, helper);
             DrawHudKeys(topRightY, player, viewport, helper);
@@ -92,8 +92,7 @@ namespace Helion.Render.Shared.Drawers
                 (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
 
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
-            string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
-
+            string sprite = $"{frameState.Frame.Sprite.BaseName}A0";
             if (helper.ImageExists(sprite))
             {
                 Dimension dimension = helper.DrawInfoProvider.GetImageDimension(sprite);
@@ -176,20 +175,20 @@ namespace Helion.Render.Shared.Drawers
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
-        private static void DrawPickupFlash(Player player, Worlds.World world, Dimension viewport, DrawHelper helper)
+        private static void DrawPickupFlash(Player player, World world, Dimension viewport, DrawHelper helper)
         {
             int ticksSincePickup = world.Gametick - player.LastPickupGametick;
             if (ticksSincePickup < FlashPickupTickDuration)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
         }
 
-        private static void DrawDamage(Player player, Worlds.World world, Dimension viewport, DrawHelper helper)
+        private static void DrawDamage(Player player, World world, Dimension viewport, DrawHelper helper)
         {
             if (player.DamageCount > 0)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
         }
 
-        private static void DrawRecentConsoleMessages(Worlds.World world, HelionConsole console, DrawHelper helper)
+        private static void DrawRecentConsoleMessages(World world, HelionConsole console, DrawHelper helper)
         {
             long currentNanos = Ticker.NanoTime();
 
@@ -202,7 +201,7 @@ namespace Helion.Render.Shared.Drawers
             // will draw the later ones at the top. Otherwise if we were to do
             // forward iteration without the stack, then they get drawn in the
             // reverse order and fading begins at the wrong end.
-            Stack<(ColoredString msg, float alpha)> msgs = new Stack<(ColoredString, float)>();
+            Stack<(ColoredString msg, float alpha)> msgs = new();
             foreach (ConsoleMessage msg in console.Messages)
             {
                 if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, world, console))
@@ -224,7 +223,7 @@ namespace Helion.Render.Shared.Drawers
             });
         }
 
-        private static bool MessageTooOldToDraw(in ConsoleMessage msg, Worlds.World world, HelionConsole console)
+        private static bool MessageTooOldToDraw(in ConsoleMessage msg, World world, HelionConsole console)
         {
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }

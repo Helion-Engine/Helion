@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Textures.Legacy;
 using Helion.Util.Extensions;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud

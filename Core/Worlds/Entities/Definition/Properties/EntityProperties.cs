@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion.Maps.Specials;
 using Helion.Resource.Definitions.Decorate.Properties.Enums;
-using Helion.World.Entities.Definition.Properties.Components;
 using Helion.Worlds.Entities.Definition.Properties.Components;
 
 namespace Helion.Worlds.Entities.Definition.Properties

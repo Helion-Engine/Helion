@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using Helion.Util.Assertion;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
-using Helion.World.Entities;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Lines;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Worlds.Blockmap
 {
@@ -16,12 +15,12 @@ namespace Helion.Worlds.Blockmap
         /// <summary>
         /// All the lines for this block.
         /// </summary>
-        public readonly List<Line> Lines = new List<Line>();
+        public readonly List<Line> Lines = new();
 
         /// <summary>
         /// All the entities in this block.
         /// </summary>
-        public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
+        public readonly LinkableList<Entity> Entities = new();
 
         /// <summary>
         /// Gets the block X coordinate, assuming the coordinate was set.

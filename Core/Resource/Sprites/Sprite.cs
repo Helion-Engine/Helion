@@ -11,14 +11,31 @@ namespace Helion.Resource.Sprites
         public const int MaxRotations = 8;
 
         /// <summary>
-        /// The name of the sprite.
+        /// The name of the sprite. This is equal to `BaseName + BaseFrame`.
         /// </summary>
         public readonly CIString Name;
+
+        /// <summary>
+        /// The base name of the sprite (ex: POSSA means this is "POSS").
+        /// This is always four letters.
+        /// </summary>
+        public readonly CIString BaseName;
+
+        /// <summary>
+        /// The letter from the frame (ex: POSSA means this is 'A').
+        /// </summary>
+        public readonly char BaseFrame;
 
         /// <summary>
         /// The rotation images.
         /// </summary>
         public readonly SpriteRotation[] Rotations;
+
+        /// <summary>
+        /// True if it has rotations, false if not (as in a 0 frame, like
+        /// CNDLA0).
+        /// </summary>
+        public readonly bool HasRotations;
 
         /// <summary>
         /// Creates a sprite from a single frame. Intended for sprites that
@@ -31,6 +48,9 @@ namespace Helion.Resource.Sprites
             SpriteRotation rotation = new(tex0, false);
 
             Name = name;
+            BaseName = name.ToString().Substring(0, 4);
+            BaseFrame = name[4];
+            HasRotations = false;
             Rotations = new[] { rotation, rotation, rotation, rotation, rotation, rotation, rotation, rotation };
         }
 
@@ -46,6 +66,9 @@ namespace Helion.Resource.Sprites
         public Sprite(CIString name, Texture tex1, Texture tex28, Texture tex37, Texture tex46, Texture tex5)
         {
             Name = name;
+            BaseName = name.ToString().Substring(0, 4);
+            BaseFrame = name[4];
+            HasRotations = true;
             Rotations = new[]
             {
                 new SpriteRotation(tex1, false),
@@ -75,6 +98,9 @@ namespace Helion.Resource.Sprites
             Texture tex6,Texture tex7, Texture tex8)
         {
             Name = name;
+            BaseName = name.ToString().Substring(0, 4);
+            BaseFrame = name[4];
+            HasRotations = true;
             Rotations = new[]
             {
                 new SpriteRotation(tex1, false),

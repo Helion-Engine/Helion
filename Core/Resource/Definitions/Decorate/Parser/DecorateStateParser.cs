@@ -52,7 +52,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
             branchType = ActorStateBranch.None;
             return false;
         }
-        
+
         private void CreateActorStateLabel(string label)
         {
             string upperLabel = label.ToUpper();
@@ -71,7 +71,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
                 Consume(',');
                 int high = ConsumeInteger();
                 Consume(')');
-                
+
                 // Right now we don't support random. I don't know if we ever
                 // want to until a lot of stuff is implemented because it would
                 // be a pain to do prediction with. Therefore we'll just take
@@ -79,7 +79,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
                 (int min, int max) = MathHelper.MinMax(low, high);
                 return (min + max) / 2;
             }
-                
+
             int tickAmount = ConsumeSignedInteger();
             if (tickAmount < -1)
                 throw MakeException($"No negative tick durations allowed (unless it is -1) on actor '{m_currentDefinition.Name}'");
@@ -89,7 +89,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
         private ActorFrameProperties ConsumeActorFrameKeywordsIfAny()
         {
             ActorFrameProperties properties = new ActorFrameProperties();
-            
+
             // These can probably come in any order, so we'll need a looping
             // dictionary. Apparently we have to watch out for new lines when
             // dealing with `fast` and `slow`.
@@ -113,26 +113,26 @@ namespace Helion.Resource.Definitions.Decorate.Parser
                 case "BRIGHT":
                     ConsumeString();
                     properties.Bright = true;
-                    break; 
+                    break;
                 case "CANRAISE":
                     ConsumeString();
                     properties.CanRaise = true;
-                    break; 
+                    break;
                 case "FAST":
                     // TODO: Make sure it's on the same line (ex: if it's a sprite).
                     ConsumeString();
                     properties.Fast = true;
-                    break; 
+                    break;
                 case "LIGHT":
                     ConsumeString();
                     Consume('(');
                     properties.Light = ConsumeString();
                     Consume(')');
-                    break; 
+                    break;
                 case "NODELAY":
                     ConsumeString();
                     properties.NoDelay = true;
-                    break; 
+                    break;
                 case "OFFSET":
                     ConsumeString();
                     Consume('(');
@@ -141,7 +141,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
                     int y = ConsumeSignedInteger();
                     Consume(')');
                     properties.Offset = new Vec2I(x, y);
-                    break; 
+                    break;
                 case "SLOW":
                     ConsumeString();
                     // TODO: Make sure it's on the same line (ex: if it's a sprite).
@@ -164,8 +164,8 @@ namespace Helion.Resource.Definitions.Decorate.Parser
             {
                 if (!IsValidFrameLetter(frame))
                     throw MakeException($"Invalid actor frame letter: {frame} (ascii ordinal {(int)frame})");
-                
-                ActorFrame actorFrame = new ActorFrame(sprite, frame - 'A', ticks, properties, actionFunction);
+
+                ActorFrame actorFrame = new(sprite + frame, ticks, properties, actionFunction);
                 m_currentDefinition.States.Frames.Add(actorFrame);
                 m_frameIndex++;
             }
@@ -192,7 +192,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
                     rightParenToFind++;
                     continue;
                 }
-                
+
                 Consume();
             }
         }
@@ -202,7 +202,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
             string? text = PeekCurrentText();
             if (text == null)
                 throw MakeException($"Ran out of tokens when reading an actor frame action function on actor '{m_currentDefinition.Name}'");
-            
+
             // It is possible that no such action function exists and we would
             // be reading a label or frame.
             string upperText = text.ToUpper();
@@ -210,10 +210,10 @@ namespace Helion.Resource.Definitions.Decorate.Parser
             {
                 string functionName = ConsumeIdentifier();
                 ConsumeActionFunctionArgumentsIfAny();
-            
+
                 return new ActorActionFunction(functionName);
             }
-            
+
             return null;
         }
 
@@ -221,7 +221,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
         {
             string upperImmediateLabel = m_immediatelySeenLabel?.ToUpper() ?? "";
             Invariant(!upperImmediateLabel.Empty(), "Forgot to set immediate label when parsing actor states");
-            
+
             if (branchType != ActorStateBranch.Goto)
             {
                 // This assumes no one will ever use Wait/Fail/Loop for flow
@@ -244,7 +244,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
 
             if (ConsumeIf('+'))
                 offset = ConsumeInteger();
-            
+
             ActorFlowOverride gotoOverride = new ActorFlowOverride(label, parent, offset);
             m_currentDefinition.States.FlowOverrides[upperImmediateLabel] = gotoOverride;
         }
@@ -275,12 +275,12 @@ namespace Helion.Resource.Definitions.Decorate.Parser
                 HandleLabelOverride(branchType);
                 return;
             }
-            
+
             if (m_currentDefinition.States.Frames.Empty())
                 throw MakeException("Cannot have a flow control label when no frames were defined");
 
             ActorFrame frame = m_currentDefinition.States.Frames.Last();
-            
+
             if (branchType != ActorStateBranch.Goto)
             {
                 frame.FlowControl = new ActorFlowControl(branchType);

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Helion.Resource;
 using Helion.Resource.Definitions.Decorate;
 using Helion.Resource.Definitions.Decorate.States;
+using Helion.Resource.Sprites;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.World.Entities.Definition;
 using Helion.Worlds.Entities.Definition.States;
 using MoreLinq.Extensions;
 using NLog;
@@ -15,7 +16,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Apply(EntityDefinition definition, LinkedList<ActorDefinition> actorDefinitions)
+        public static void Apply(Resources resources, EntityDefinition definition, LinkedList<ActorDefinition> actorDefinitions)
         {
             if (actorDefinitions.Count < 2 || actorDefinitions.First == null)
             {
@@ -41,13 +42,13 @@ namespace Helion.Worlds.Entities.Definition.Composer
             // should there be any Super::Label goto's, so this is okay unless
             // the user has done something critically wrong.
             ActorDefinition baseActor = actorDefinitions.First.Value;
-            ApplyActorDefinition(definition, baseActor, baseActor, masterLabelTable);
+            ApplyActorDefinition(resources, definition, baseActor, baseActor, masterLabelTable);
 
             actorDefinitions.Window(2).ForEach(list =>
             {
                 ActorDefinition parent = list[0];
                 ActorDefinition current = list[1];
-                ApplyActorDefinition(definition, current, parent, masterLabelTable);
+                ApplyActorDefinition(resources, definition, current, parent, masterLabelTable);
             });
 
             // Now that all the labels have been handled/added/pruned/linked,
@@ -60,13 +61,13 @@ namespace Helion.Worlds.Entities.Definition.Composer
             masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value);
         }
 
-        private static void AddFrameAndNonGotoFlowControl(EntityDefinition definition, ActorDefinition current,
-            int startingFrameOffset, IList<UnresolvedGotoFrame> unresolvedGotoFrames)
+        private static void AddFrameAndNonGotoFlowControl(Resources resources, EntityDefinition definition,
+            ActorDefinition current, int startingFrameOffset, IList<UnresolvedGotoFrame> unresolvedGotoFrames)
         {
             // The following are used for knowing where to jump back to if we
             // encounter the `loop` control flow.
             int lastLabelIndex = 0;
-            HashSet<int> indicesWithLabels = new HashSet<int>();
+            HashSet<int> indicesWithLabels = new();
             current.States.Labels.Values.ForEach(index => indicesWithLabels.Add(index));
 
             for (int localFrameOffset = 0; localFrameOffset < current.States.Frames.Count; localFrameOffset++)
@@ -77,11 +78,11 @@ namespace Helion.Worlds.Entities.Definition.Composer
                 if (indicesWithLabels.Contains(localFrameOffset))
                     lastLabelIndex = absoluteFrameOffset;
 
+                Sprite sprite = resources.Sprites.Get(frame.Name);
                 int absoluteNextFrameIndex = absoluteFrameOffset + 1;
-                EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
+                EntityFrameProperties properties = new(frame.Properties);
                 ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
-                EntityFrame entityFrame = new EntityFrame(frame.Sprite, frame.Frame, frame.Ticks, properties,
-                    actionFunction, absoluteNextFrameIndex);
+                EntityFrame entityFrame = new(sprite, frame.Ticks, properties, actionFunction, absoluteNextFrameIndex);
 
                 HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
 
@@ -240,15 +241,15 @@ namespace Helion.Worlds.Entities.Definition.Composer
             }
         }
 
-        private static void ApplyActorDefinition(EntityDefinition definition, ActorDefinition current,
-            ActorDefinition parent, Dictionary<string, int> masterLabelTable)
+        private static void ApplyActorDefinition(Resources resources, EntityDefinition definition,
+            ActorDefinition current, ActorDefinition parent, Dictionary<string, int> masterLabelTable)
         {
             string upperImmediateParentName = parent.Name.ToString().ToUpper();
             string upperCurrentName = current.Name.ToString().ToUpper();
             int startingFrameOffset = definition.States.Frames.Count;
             List<UnresolvedGotoFrame> unresolvedGotoFrames = new List<UnresolvedGotoFrame>();
 
-            AddFrameAndNonGotoFlowControl(definition, current, startingFrameOffset, unresolvedGotoFrames);
+            AddFrameAndNonGotoFlowControl(resources, definition, current, startingFrameOffset, unresolvedGotoFrames);
             AddLabelsToMasterTable(current, masterLabelTable, upperCurrentName, startingFrameOffset);
             PurgeAnyControlFlowStopOverride(current, masterLabelTable);
             HandleGotoFlowOverrides(current, upperImmediateParentName, masterLabelTable);

@@ -15,14 +15,14 @@ namespace Helion.Worlds.Entities.Definition.States
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public EntityFrame Frame => m_definition.States.Frames[m_frameIndex];
-        private readonly Worlds.Entities.Entity m_entity;
+        private readonly Entity m_entity;
         private readonly EntityDefinition m_definition;
         private readonly EntityManager m_entityManager;
         private int m_frameIndex;
         private int m_tics;
         private bool m_destroyOnStop;
 
-        public FrameState(Worlds.Entities.Entity entity, EntityDefinition definition, EntityManager entityManager, bool destroyOnStop = true)
+        public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager, bool destroyOnStop = true)
         {
             m_entity = entity;
             m_definition = definition;

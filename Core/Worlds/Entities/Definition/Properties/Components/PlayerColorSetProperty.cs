@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.Worlds.Entities.Definition.Properties.Components
 {
     public class PlayerColorSetProperty
     {
@@ -15,7 +15,7 @@ namespace Helion.World.Entities.Definition.Properties.Components
         public PlayerColorSetProperty(int number, string name, Range range, List<string> colors)
         {
             Precondition(!colors.Empty(), "Player color set property cannot have no colors");
-            
+
             Name = name;
             Number = number;
             Range = range;

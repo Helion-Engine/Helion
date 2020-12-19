@@ -132,7 +132,7 @@ namespace Helion.Resource.Definitions.Decorate.Parser
             if (!m_currentDefinition.States.Labels.ContainsKey(Constants.ActorCrushState) &&
                 ((m_currentDefinition.Flags.Monster.HasValue && m_currentDefinition.Flags.Monster.Value) || m_currentDefinition.Name == Constants.PlayerClass))
             {
-                ActorFrame actorFrame = new ActorFrame("POL5", 0, -1, new ActorFrameProperties(), null)
+                ActorFrame actorFrame = new("POL50", -1, new ActorFrameProperties(), null)
                 {
                     FlowControl = new ActorFlowControl(ActorStateBranch.Stop)
                 };

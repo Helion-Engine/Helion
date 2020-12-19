@@ -39,6 +39,12 @@ namespace Helion.Resource.Textures
         /// </summary>
         public readonly bool IsSky;
 
+        /// <summary>
+        /// Used by the renderer to store the GPU texture object so it can
+        /// retrieve it quickly.
+        /// </summary>
+        public object? RenderStore;
+
         public Texture(CIString name, Image image, Namespace resourceNamespace, int index,
             bool isMissingTexture = false, bool isSkyTexture = false)
         {

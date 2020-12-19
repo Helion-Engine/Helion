@@ -5,13 +5,13 @@ using Helion.Resource.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Entities.Players;
 using Helion.Worlds.Geometry.Sectors;
 using Helion.Worlds.Special.SectorMovement;
 using Helion.Worlds.Special.Specials;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Worlds.Sound
 {

@@ -1,5 +1,4 @@
 using Helion.Resource.Definitions.Decorate.Properties.Enums;
-using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.Worlds.Entities.Definition.Properties.Components
 {

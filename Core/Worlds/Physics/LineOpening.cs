@@ -1,9 +1,9 @@
 using System;
 using Helion.Util.Assertion;
 using Helion.Util.Geometry.Vectors;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Lines;
 using Helion.Worlds.Geometry.Sectors;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Worlds.Physics
 {

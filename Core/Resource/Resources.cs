@@ -28,7 +28,7 @@ namespace Helion.Resource
         public readonly AnimationManager Animations = new();
         public readonly CompatibilityManager Compatibility = new();
         public readonly DecorateManager Decorate;
-        public readonly FontManager Fonts = new();
+        public readonly FontManager Fonts;
         public readonly LockDefinitions Locks = new();
         public Palette Palette = Palettes.GetDefaultPalette();
         public readonly SoundInfoManager Sounds = new();
@@ -41,6 +41,7 @@ namespace Helion.Resource
 
         public Resources(bool loadAssets = true)
         {
+            Fonts = new(this);
             Textures = new(this, m_textureDefinitionManager);
             Sprites = new(this, Textures);
             Decorate = new(this);
@@ -136,30 +137,37 @@ namespace Helion.Resource
             {
             case "ANIMDEFS":
                 Animations.AddDefinitions(entry);
-                break;
+                return;
             case "COMPATIBILITY":
                 Compatibility.AddDefinitions(entry);
-                break;
+                return;
             case "DECORATE":
                 Decorate.AddDecorateDefinitions(entry, archive);
-                break;
+                return;
             case "FONTS":
                 Fonts.AddFontDefinitions(entry);
-                break;
+                return;
             case "PLAYPAL":
                 LoadPlaypal(entry);
-                break;
+                return;
             case "PNAMES":
                 m_textureDefinitionManager.AddPnames(entry);
-                break;
+                return;
             case "TEXTURE1":
             case "TEXTURE2":
             case "TEXTURE3":
                 m_textureDefinitionManager.AddTextureX(entry);
-                break;
+                return;
             case "SNDINFO":
                 Sounds.Parse(entry);
-                break;
+                return;
+            }
+
+            switch (entry.Path.Extension.ToUpper())
+            {
+            case "TTF":
+                Fonts.AddTtfFont(entry);
+                return;
             }
         }
 

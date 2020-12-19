@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Graphics.Fonts;
+using Helion.Graphics.Fonts.TrueTypeFont;
 using Helion.Resource.Archives;
 using Helion.Util;
 using MoreLinq;
+using NLog;
 
 namespace Helion.Resource.Definitions.Fonts
 {
@@ -11,17 +14,34 @@ namespace Helion.Resource.Definitions.Fonts
     /// </summary>
     public class FontManager
     {
-        private readonly Dictionary<CIString, FontDefinition> m_definitions = new();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        /// <summary>
-        /// Gets a parsed definition with the case-insensitive name provided.
-        /// </summary>
-        /// <param name="name">The name of the font.</param>
-        /// <returns>The font definition, or null if a definition does not
-        /// exist.</returns>
-        public FontDefinition? Get(CIString name)
+        private readonly Resources m_resources;
+        private readonly Dictionary<CIString, FontDefinition> m_definitions = new();
+        private readonly Dictionary<CIString, Font> m_fonts = new();
+
+        public FontManager(Resources resources)
         {
-            return m_definitions.TryGetValue(name, out FontDefinition? definition) ? definition : null;
+            m_resources = resources;
+        }
+
+        public Font? Get(CIString name)
+        {
+            if (m_fonts.TryGetValue(name, out Font? font))
+                return font;
+
+            if (m_definitions.TryGetValue(name, out FontDefinition? definition))
+            {
+                Font? compiledFont = FontCompiler.From(definition, m_resources);
+                if (compiledFont != null)
+                {
+                    m_fonts[name] = compiledFont;
+                    return compiledFont;
+                }
+            }
+
+            // TODO: We should insert a null placeholder font if we can't find it.
+            return null;
         }
 
         public void AddFontDefinitions(Entry entry)
@@ -31,6 +51,16 @@ namespace Helion.Resource.Definitions.Fonts
                 return;
 
             parser.Definitions.Where(def => def.IsValid()).ForEach(def => m_definitions.Add(def.Name, def));
+        }
+
+        public void AddTtfFont(Entry entry)
+        {
+            Font? font = TtfReader.ReadFont(entry.ReadData(), 0.4f);
+
+            if (font != null)
+                m_fonts[entry.Path.Name] = font;
+            else
+                Log.Warn("Unable to load font from entry {0}", entry.Path);
         }
     }
 }

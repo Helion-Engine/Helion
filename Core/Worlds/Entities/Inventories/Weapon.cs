@@ -1,6 +1,5 @@
 using System;
 using Helion.Util;
-using Helion.World.Entities;
 using Helion.Worlds.Entities.Definition;
 using Helion.Worlds.Entities.Definition.States;
 using Helion.Worlds.Entities.Players;

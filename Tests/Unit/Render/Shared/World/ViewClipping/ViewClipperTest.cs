@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Render.Shared.World.ViewClipping;
+using Helion.Render.Shared.Worlds.ViewClipping;
 using Helion.Util.Geometry.Vectors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

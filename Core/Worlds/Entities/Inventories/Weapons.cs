@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Util;
-using Helion.World.Entities;
 using Helion.Worlds.Entities.Definition;
 using Helion.Worlds.Entities.Players;
 

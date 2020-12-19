@@ -9,16 +9,16 @@ namespace Helion.Worlds.Entities.Spawn
     /// </summary>
     public class SpawnLocations
     {
-        private readonly IDictionary<int, IList<Worlds.Entities.Entity>> m_playerStarts = new Dictionary<int, IList<Worlds.Entities.Entity>>();
-        private readonly IList<Worlds.Entities.Entity> m_deathmatchStarts = new List<Worlds.Entities.Entity>();
-        private readonly IList<Worlds.Entities.Entity> m_cooperativeStarts = new List<Worlds.Entities.Entity>();
+        private readonly Dictionary<int, List<Entity>> m_playerStarts = new();
+        private readonly List<Entity> m_deathmatchStarts = new();
+        private readonly List<Entity> m_cooperativeStarts = new();
 
         /// <summary>
         /// Reads the entity and determines if it is a spawn location or not.
         /// If it is, it will track it and utilize it for spawning from.
         /// </summary>
         /// <param name="entity">The entity to evaluate.</param>
-        public void AddPossibleSpawnLocation(Worlds.Entities.Entity entity)
+        public void AddPossibleSpawnLocation(Entity entity)
         {
             int editorId = entity.Definition.EditorId ?? int.MinValue;
 
@@ -50,25 +50,25 @@ namespace Helion.Worlds.Entities.Spawn
         /// </param>
         /// <returns>The spawn location that was last added, or null if it is
         /// unable to be found (implying no spawn locations present).</returns>
-        public Worlds.Entities.Entity? GetPlayerSpawn(int playerIndex)
+        public Entity? GetPlayerSpawn(int playerIndex)
         {
-            return m_playerStarts.TryGetValue(playerIndex, out IList<Worlds.Entities.Entity>? spawns) ? spawns.LastOrDefault() : null;
+            return m_playerStarts.TryGetValue(playerIndex, out List<Entity>? spawns) ? spawns.LastOrDefault() : null;
         }
 
-        private void AddPlayerSpawn(Worlds.Entities.Entity entity, int playerIndex)
+        private void AddPlayerSpawn(Entity entity, int playerIndex)
         {
             Precondition(playerIndex >= 0, "Cannot add a negative player index");
 
-            if (m_playerStarts.TryGetValue(playerIndex, out IList<Worlds.Entities.Entity>? spawns))
+            if (m_playerStarts.TryGetValue(playerIndex, out List<Entity>? spawns))
             {
                 Precondition(!spawns.Contains(entity), "Trying to add the same entity twice to the deathmatch spawns");
                 spawns.Add(entity);
             }
             else
-                m_playerStarts[playerIndex] = new List<Worlds.Entities.Entity> { entity };
+                m_playerStarts[playerIndex] = new List<Entity> { entity };
         }
 
-        private void AddDeathmatchStart(Worlds.Entities.Entity entity)
+        private void AddDeathmatchStart(Entity entity)
         {
             Precondition(!m_deathmatchStarts.Contains(entity), "Trying to add the same entity twice to the deathmatch spawns");
 

@@ -4,7 +4,6 @@ using Helion.Resource;
 using Helion.Resource.Definitions.Decorate;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.World.Entities.Definition;
 using NLog;
 
 namespace Helion.Worlds.Entities.Definition.Composer
@@ -39,7 +38,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
 
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
             foreach (ActorDefinition definition in resources.Decorate.GetActorDefinitions())
-                ComposeNewDefinition(definition);
+                ComposeNewDefinition(m_resources, definition);
         }
 
         public EntityDefinition? GetByName(CIString name)
@@ -48,7 +47,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
                 return definition;
 
             ActorDefinition? actorDefinition = m_resources.Decorate[name];
-            return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+            return actorDefinition != null ? ComposeNewDefinition(m_resources, actorDefinition) : null;
         }
 
         public IList<EntityDefinition> GetEntityDefinitions() => m_listDefinitions.AsReadOnly();
@@ -59,7 +58,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
                 return definition;
 
             ActorDefinition? actorDefinition = m_resources.Decorate[id];
-            return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+            return actorDefinition != null ? ComposeNewDefinition(m_resources, actorDefinition) : null;
         }
 
         private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
@@ -128,7 +127,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
             return true;
         }
 
-        private EntityDefinition? ComposeNewDefinition(ActorDefinition actorDefinition)
+        private EntityDefinition? ComposeNewDefinition(Resources resources, ActorDefinition actorDefinition)
         {
             // We build it up where the front of the list corresponds to the
             // base definition, and each one after that is a child of the
@@ -145,7 +144,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
             EntityDefinition definition = new(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
             ApplyFlagsAndPropertiesFrom(definition, definitions);
-            DefinitionStateApplier.Apply(definition, definitions);
+            DefinitionStateApplier.Apply(resources, definition, definitions);
 
             // TODO: Check if well formed after everything was added.
 

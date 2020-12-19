@@ -27,9 +27,7 @@ namespace Helion.Resource.Sprites
         /// Gets the sprite from the five letter base name.
         /// </summary>
         /// <param name="name">The sprite base, five letters long only.</param>
-        public Sprite this[CIString name] => GetSprite(name);
-
-        private Sprite GetSprite(CIString name)
+        public Sprite Get(CIString name)
         {
             if (name.Length != 5)
                 return MissingSprite;

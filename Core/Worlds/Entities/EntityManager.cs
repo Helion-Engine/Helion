@@ -26,14 +26,14 @@ namespace Helion.Worlds.Entities
         public const int NoTid = 0;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly LinkableList<Worlds.Entities.Entity> Entities = new();
+        public readonly LinkableList<Entity> Entities = new();
         public readonly SpawnLocations SpawnLocations = new();
         public readonly Worlds.World World;
         public readonly EntityDefinitionComposer DefinitionComposer;
         public readonly List<Player> Players = new();
         private readonly SoundManager m_soundManager;
         private readonly AvailableIndexTracker m_entityIdTracker = new();
-        private readonly Dictionary<int, ISet<Worlds.Entities.Entity>> TidToEntity = new();
+        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
         private readonly SkillLevel m_skill;
 
         public EntityManager(Worlds.World world, Resources resources, SoundManager soundManager,
@@ -50,12 +50,12 @@ namespace Helion.Worlds.Entities
             return z != Fixed.Lowest().ToDouble() && z != 0.0;
         }
 
-        public IEnumerable<Worlds.Entities.Entity> FindByTid(int tid)
+        public IEnumerable<Entity> FindByTid(int tid)
         {
-            return TidToEntity.TryGetValue(tid, out ISet<Worlds.Entities.Entity>? entities) ? entities : Enumerable.Empty<Worlds.Entities.Entity>();
+            return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
         }
 
-        public Worlds.Entities.Entity? Create(string className, in Vec3D pos)
+        public Entity? Create(string className, in Vec3D pos)
         {
             var def = DefinitionComposer.GetByName(className);
             if (def != null)
@@ -63,12 +63,12 @@ namespace Helion.Worlds.Entities
             return null;
         }
 
-        public Worlds.Entities.Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
+        public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
         {
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, in position, zHeight);
-            Worlds.Entities.Entity entity = new Worlds.Entities.Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
+            Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
             // This only needs to happen on map population
             if (init && !ZHeightSet(zHeight))
@@ -81,7 +81,7 @@ namespace Helion.Worlds.Entities
             return entity;
         }
 
-        public void Destroy(Worlds.Entities.Entity entity)
+        public void Destroy(Entity entity)
         {
             // TODO: Remove from spawns if it is a spawn.
 
@@ -90,7 +90,7 @@ namespace Helion.Worlds.Entities
             // Most maps wouldn't even approach a number that high for us to
             // worry about. If it ever becomes an issue, then we can add a line
             // of code that removes empty sets here as well.
-            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Worlds.Entities.Entity>? entities))
+            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
                 entities.Remove(entity);
 
             entity.Dispose();
@@ -105,7 +105,7 @@ namespace Helion.Worlds.Entities
                 throw new HelionException("Missing the default player class, should never happen");
             }
 
-            Worlds.Entities.Entity? spawnSpot = SpawnLocations.GetPlayerSpawn(playerIndex);
+            Entity? spawnSpot = SpawnLocations.GetPlayerSpawn(playerIndex);
             if (spawnSpot == null)
             {
                 Log.Warn("No player {0} spawns found, creating player at origin", playerIndex);
@@ -155,7 +155,7 @@ namespace Helion.Worlds.Entities
 
         public void PopulateFrom(Map map)
         {
-            List<Worlds.Entities.Entity> relinkEntities = new();
+            List<Entity> relinkEntities = new();
 
             foreach (Thing mapThing in map.Things)
             {
@@ -172,7 +172,7 @@ namespace Helion.Worlds.Entities
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
                 Vec3D position = mapThing.Position.ToDouble();
                 // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-                Worlds.Entities.Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
+                Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
                 if (mapThing.Flags.Ambush)
                     entity.Flags.Ambush = mapThing.Flags.Ambush;
 
@@ -219,9 +219,9 @@ namespace Helion.Worlds.Entities
             return position.Z;
         }
 
-        private void FinishCreatingEntity(Worlds.Entities.Entity entity)
+        private void FinishCreatingEntity(Entity entity)
         {
-            LinkableNode<Worlds.Entities.Entity> node = Entities.Add(entity);
+            LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
 
             World.Link(entity);
@@ -236,16 +236,16 @@ namespace Helion.Worlds.Entities
             entity.SetSpawnState();
         }
 
-        private void PostProcessEntity(Worlds.Entities.Entity entity)
+        private void PostProcessEntity(Entity entity)
         {
             SpawnLocations.AddPossibleSpawnLocation(entity);
 
             if (entity.ThingId != NoTid)
             {
-                if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Worlds.Entities.Entity>? entities))
+                if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
                     entities.Add(entity);
                 else
-                    TidToEntity.Add(entity.ThingId, new HashSet<Worlds.Entities.Entity> { entity });
+                    TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
             }
         }
 

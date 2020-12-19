@@ -26,6 +26,14 @@ namespace Helion.Render.Shared
         /// is optional.</param>
         /// <returns>The dimension of the image.</returns>
         Dimension GetImageDimension(string image, Namespace resourceNamespace = Namespace.Global);
+
+        /// <summary>
+        /// Gets the offset of the image.
+        /// </summary>
+        /// <param name="image">The image name.</param>
+        /// <param name="resourceNamespace">The resource namespace. This is
+        /// optional.</param>
+        /// <returns>The X/Y offset.</returns>
         Vec2I GetImageOffset(string image, Namespace resourceNamespace = Namespace.Global);
 
         /// <summary>

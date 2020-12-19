@@ -4,17 +4,16 @@ using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.Worlds.Blockmap;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Lines;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Worlds.Physics.Blockmap
 {
     public class BlockmapTraverser
     {
         private readonly BlockMap m_blockmap;
-
-        private readonly HashSet<int> m_lineMap = new HashSet<int>();
-        private readonly HashSet<int> m_entityMap = new HashSet<int>();
+        private readonly HashSet<int> m_lineMap = new();
+        private readonly HashSet<int> m_entityMap = new();
 
         public BlockmapTraverser(BlockMap blockmap)
         {

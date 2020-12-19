@@ -1,5 +1,5 @@
 using Helion.Resource.Definitions.Decorate.Properties;
-using Helion.World.Entities.Definition;
+using DropItemProperty = Helion.Worlds.Entities.Definition.Properties.Components.DropItemProperty;
 
 namespace Helion.Worlds.Entities.Definition.Composer
 {
@@ -105,9 +105,9 @@ namespace Helion.Worlds.Entities.Definition.Composer
 
             if (properties.DropItem.ClassName != null)
             {
-                byte probability = properties.DropItem.Probability.HasValue ? properties.DropItem.Probability.Value : Helion.World.Entities.Definition.Properties.Components.DropItemProperty.DefaultProbability;
-                int amount = properties.DropItem.Amount.HasValue ? properties.DropItem.Amount.Value : Helion.World.Entities.Definition.Properties.Components.DropItemProperty.DefaultAmount;
-                definition.Properties.DropItem = new Helion.World.Entities.Definition.Properties.Components.DropItemProperty(properties.DropItem.ClassName,
+                byte probability = properties.DropItem.Probability.HasValue ? properties.DropItem.Probability.Value : DropItemProperty.DefaultProbability;
+                int amount = properties.DropItem.Amount.HasValue ? properties.DropItem.Amount.Value : DropItemProperty.DefaultAmount;
+                definition.Properties.DropItem = new DropItemProperty(properties.DropItem.ClassName,
                     probability, amount);
             }
 

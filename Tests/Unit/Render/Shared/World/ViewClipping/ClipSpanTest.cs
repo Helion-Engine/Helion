@@ -1,4 +1,4 @@
-using Helion.Render.Shared.World.ViewClipping;
+using Helion.Render.Shared.Worlds.ViewClipping;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Helion.Test.Unit.Render.Shared.World.ViewClipping

@@ -1,5 +1,5 @@
-﻿using Helion.Worlds.Geometry.Lines;
-using Entity = Helion.Worlds.Entities.Entity;
+﻿using Helion.Worlds.Entities;
+using Helion.Worlds.Geometry.Lines;
 
 namespace Helion.Worlds.Physics
 {

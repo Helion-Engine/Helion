@@ -1,4 +1,4 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.Worlds.Entities.Definition.Properties.Components
 {
     public class WeaponPiecesProperty
     {

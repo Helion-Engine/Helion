@@ -1,7 +1,5 @@
 using Helion.Render.Shared;
-using Helion.World;
-using Helion.World.Entities;
-using Entity = Helion.Worlds.Entities.Entity;
+using Helion.Worlds.Entities;
 
 namespace Helion.Render.Commands.Types
 {

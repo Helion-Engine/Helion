@@ -9,9 +9,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
-using Helion.World;
-using Helion.World.Entities;
-using Entity = Helion.Worlds.Entities.Entity;
+using Helion.Worlds.Entities;
 
 namespace Helion.Render.Commands
 {

@@ -4,7 +4,6 @@ using Helion.Audio;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
-using Helion.World.Entities;
 using Helion.Worlds.Entities.Players;
 using Helion.Worlds.Physics;
 using Helion.Worlds.Physics.Blockmap;
@@ -15,7 +14,7 @@ namespace Helion.Worlds.Entities.Definition.States
 {
     public static class EntityActionFunctions
     {
-        public delegate void ActionFunction(Worlds.Entities.Entity entity);
+        public delegate void ActionFunction(Entity entity);
 
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -360,63 +359,63 @@ namespace Helion.Worlds.Entities.Definition.States
              return null;
         }
 
-        private static void ACS_NamedExecute(Worlds.Entities.Entity entity)
+        private static void ACS_NamedExecute(Entity entity)
         {
              // TODO
         }
 
-        private static void ACS_NamedExecuteAlways(Worlds.Entities.Entity entity)
+        private static void ACS_NamedExecuteAlways(Entity entity)
         {
              // TODO
         }
 
-        private static void ACS_NamedExecuteWithResult(Worlds.Entities.Entity entity)
+        private static void ACS_NamedExecuteWithResult(Entity entity)
         {
              // TODO
         }
 
-        private static void ACS_NamedLockedExecute(Worlds.Entities.Entity entity)
+        private static void ACS_NamedLockedExecute(Entity entity)
         {
              // TODO
         }
 
-        private static void ACS_NamedLockedExecuteDoor(Worlds.Entities.Entity entity)
+        private static void ACS_NamedLockedExecuteDoor(Entity entity)
         {
              // TODO
         }
 
-        private static void ACS_NamedSuspend(Worlds.Entities.Entity entity)
+        private static void ACS_NamedSuspend(Entity entity)
         {
              // TODO
         }
 
-        private static void ACS_NamedTerminate(Worlds.Entities.Entity entity)
+        private static void ACS_NamedTerminate(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ActiveAndUnblock(Worlds.Entities.Entity entity)
+        private static void A_ActiveAndUnblock(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ActiveSound(Worlds.Entities.Entity entity)
+        private static void A_ActiveSound(Entity entity)
         {
              // TODO
         }
 
-        private static void A_AlertMonsters(Worlds.Entities.Entity entity)
+        private static void A_AlertMonsters(Entity entity)
         {
              // TODO
         }
 
-        private static void A_BFGSound(Worlds.Entities.Entity entity)
+        private static void A_BFGSound(Entity entity)
         {
             if (entity is Player player)
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_BFGSpray(Worlds.Entities.Entity entity)
+        private static void A_BFGSpray(Entity entity)
         {
             if (entity.Owner == null)
                 return;
@@ -425,7 +424,7 @@ namespace Helion.Worlds.Entities.Definition.States
             {
                 double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
                 if (!entity.World.GetAutoAimEntity(entity.Owner, entity.Owner.HitscanAttackPos, angle, Constants.EntityShootDistance, out _,
-                    out Worlds.Entities.Entity? hitEntity) || hitEntity == null)
+                    out Entity? hitEntity) || hitEntity == null)
                     continue;
 
                 int damage = 0;
@@ -437,59 +436,59 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_BabyMetal(Worlds.Entities.Entity entity)
+        private static void A_BabyMetal(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "baby/walk", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_BarrelDestroy(Worlds.Entities.Entity entity)
+        private static void A_BarrelDestroy(Entity entity)
         {
              // TODO
         }
 
-        private static void A_BasicAttack(Worlds.Entities.Entity entity)
+        private static void A_BasicAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_BetaSkullAttack(Worlds.Entities.Entity entity)
+        private static void A_BetaSkullAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_BishopMissileWeave(Worlds.Entities.Entity entity)
+        private static void A_BishopMissileWeave(Entity entity)
         {
              // TODO
         }
 
-        private static void A_BossDeath(Worlds.Entities.Entity entity)
+        private static void A_BossDeath(Entity entity)
         {
              // TODO
         }
 
-        private static void A_BrainAwake(Worlds.Entities.Entity entity)
+        private static void A_BrainAwake(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "brain/sight", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
-        private static void A_BrainDie(Worlds.Entities.Entity entity)
+        private static void A_BrainDie(Entity entity)
         {
             entity.World.ExitLevel(LevelChangeType.Next);
         }
 
-        private static void A_BrainExplode(Worlds.Entities.Entity entity)
+        private static void A_BrainExplode(Entity entity)
         {
             Vec3D pos = new Vec3D(entity.Position.X + (entity.World.Random.NextDiff() * 2048),
                 entity.Position.Y, 128 + (entity.World.Random.NextByte() * 2));
             BrainExplodeRocket(entity.EntityManager, pos);
         }
 
-        private static void A_BrainPain(Worlds.Entities.Entity entity)
+        private static void A_BrainPain(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "brain/pain", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
-        private static void A_BrainScream(Worlds.Entities.Entity entity)
+        private static void A_BrainScream(Entity entity)
         {
             for (double x = entity.Position.X - 196; x < entity.Position.X + 320; x += 8)
             {
@@ -502,7 +501,7 @@ namespace Helion.Worlds.Entities.Definition.States
 
         private static void BrainExplodeRocket(EntityManager entityManager, in Vec3D pos)
         {
-            Worlds.Entities.Entity? rocket = entityManager.Create("Rocket", pos);
+            Entity? rocket = entityManager.Create("Rocket", pos);
             if (rocket != null)
             {
                 rocket.FrameState.SetState("BrainExplode");
@@ -510,17 +509,17 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_BrainSpit(Worlds.Entities.Entity entity)
+        private static void A_BrainSpit(Entity entity)
         {
-            List<Worlds.Entities.Entity> targets = entity.World.GetBossTargets();
+            List<Entity> targets = entity.World.GetBossTargets();
             if (targets.Count == 0)
                 return;
 
-            Worlds.Entities.Entity target = targets[entity.World.CurrentBossTarget++];
+            Entity target = targets[entity.World.CurrentBossTarget++];
             entity.World.CurrentBossTarget %= targets.Count;
 
             double pitch = entity.PitchTo(target);
-            Worlds.Entities.Entity? spawnShot = entity.World.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
+            Entity? spawnShot = entity.World.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
             if (spawnShot != null)
             {
                 spawnShot.Flags.NoClip = true;
@@ -533,7 +532,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
-        private static void A_SpawnFly(Worlds.Entities.Entity entity)
+        private static void A_SpawnFly(Entity entity)
         {
             if (entity.Target == null)
             {
@@ -547,7 +546,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.EntityManager.Create("ArchvileFire", entity.Target.Position);
             entity.SoundManager.CreateSoundOn(entity.Target, "misc/teleport", SoundChannelType.Auto, new SoundParams(entity));
 
-            Worlds.Entities.Entity? enemy = entity.EntityManager.Create(GetRandomBossSpawn(entity.World.Random), entity.Target.Position);
+            Entity? enemy = entity.EntityManager.Create(GetRandomBossSpawn(entity.World.Random), entity.Target.Position);
             if (enemy != null)
             {
                 enemy.SetNewTarget(true);
@@ -560,31 +559,23 @@ namespace Helion.Worlds.Entities.Definition.States
         private static string GetRandomBossSpawn(IRandom random)
         {
             byte value = random.NextByte();
-            if (value < 50)
-                return "DoomImp";
-            else if (value < 90)
-                return "Demon";
-            else if (value < 120)
-                return "Spectre";
-            else if (value < 130)
-                return "PainElemental";
-            else if (value < 160)
-                return "Cacodemon";
-            else if (value < 162)
-                return "Archvile";
-            else if (value < 172)
-                return "Revenant";
-            else if (value < 192)
-                return "Arachnotron";
-            else if (value < 222)
-                return "Fatso";
-            else if (value < 246)
-                return "HellKnight";
-
-            return "BaronOfHell";
+            return value switch
+            {
+                < 50 => "DoomImp",
+                < 90 => "Demon",
+                < 120 => "Spectre",
+                < 130 => "PainElemental",
+                < 160 => "Cacodemon",
+                < 162 => "Archvile",
+                < 172 => "Revenant",
+                < 192 => "Arachnotron",
+                < 222 => "Fatso",
+                < 246 => "HellKnight",
+                _ => "BaronOfHell"
+            };
         }
 
-        private static void A_BruisAttack(Worlds.Entities.Entity entity)
+        private static void A_BruisAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -600,7 +591,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "BaronBall");
         }
 
-        private static void A_BspiAttack(Worlds.Entities.Entity entity)
+        private static void A_BspiAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -609,52 +600,52 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
         }
 
-        private static void A_BulletAttack(Worlds.Entities.Entity entity)
+        private static void A_BulletAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Burst(Worlds.Entities.Entity entity)
+        private static void A_Burst(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CPosAttack(Worlds.Entities.Entity entity)
+        private static void A_CPosAttack(Entity entity)
         {
             PosessedAttack(entity, 1, true);
         }
 
-        private static void A_CPosRefire(Worlds.Entities.Entity entity)
+        private static void A_CPosRefire(Entity entity)
         {
             Refire(entity, 40);
         }
 
-        private static void A_CStaffMissileSlither(Worlds.Entities.Entity entity)
+        private static void A_CStaffMissileSlither(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CentaurDefend(Worlds.Entities.Entity entity)
+        private static void A_CentaurDefend(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ChangeCountFlags(Worlds.Entities.Entity entity)
+        private static void A_ChangeCountFlags(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ChangeFlag(Worlds.Entities.Entity entity)
+        private static void A_ChangeFlag(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ChangeVelocity(Worlds.Entities.Entity entity)
+        private static void A_ChangeVelocity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Chase(Worlds.Entities.Entity entity)
+        private static void A_Chase(Entity entity)
         {
             if (entity.Properties.ReactionTime > 0)
                 entity.Properties.ReactionTime--;
@@ -703,173 +694,173 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_CheckBlock(Worlds.Entities.Entity entity)
+        private static void A_CheckBlock(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckCeiling(Worlds.Entities.Entity entity)
+        private static void A_CheckCeiling(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckFlag(Worlds.Entities.Entity entity)
+        private static void A_CheckFlag(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckFloor(Worlds.Entities.Entity entity)
+        private static void A_CheckFloor(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckForReload(Worlds.Entities.Entity entity)
+        private static void A_CheckForReload(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckForResurrection(Worlds.Entities.Entity entity)
+        private static void A_CheckForResurrection(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckLOF(Worlds.Entities.Entity entity)
+        private static void A_CheckLOF(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckPlayerDone(Worlds.Entities.Entity entity)
+        private static void A_CheckPlayerDone(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckProximity(Worlds.Entities.Entity entity)
+        private static void A_CheckProximity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckRange(Worlds.Entities.Entity entity)
+        private static void A_CheckRange(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckReload(Worlds.Entities.Entity entity)
+        private static void A_CheckReload(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckSight(Worlds.Entities.Entity entity)
+        private static void A_CheckSight(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckSightOrRange(Worlds.Entities.Entity entity)
+        private static void A_CheckSightOrRange(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckSpecies(Worlds.Entities.Entity entity)
+        private static void A_CheckSpecies(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CheckTerrain(Worlds.Entities.Entity entity)
+        private static void A_CheckTerrain(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ClearLastHeard(Worlds.Entities.Entity entity)
+        private static void A_ClearLastHeard(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ClearOverlays(Worlds.Entities.Entity entity)
+        private static void A_ClearOverlays(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ClearReFire(Worlds.Entities.Entity entity)
+        private static void A_ClearReFire(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ClearShadow(Worlds.Entities.Entity entity)
+        private static void A_ClearShadow(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ClearSoundTarget(Worlds.Entities.Entity entity)
+        private static void A_ClearSoundTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ClearTarget(Worlds.Entities.Entity entity)
+        private static void A_ClearTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CloseShotgun2(Worlds.Entities.Entity entity)
+        private static void A_CloseShotgun2(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", SoundChannelType.Auto, new SoundParams(entity));
             A_ReFire(entity);
         }
 
-        private static void A_ComboAttack(Worlds.Entities.Entity entity)
+        private static void A_ComboAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CopyFriendliness(Worlds.Entities.Entity entity)
+        private static void A_CopyFriendliness(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CopySpriteFrame(Worlds.Entities.Entity entity)
+        private static void A_CopySpriteFrame(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Countdown(Worlds.Entities.Entity entity)
+        private static void A_Countdown(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CountdownArg(Worlds.Entities.Entity entity)
+        private static void A_CountdownArg(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CustomBulletAttack(Worlds.Entities.Entity entity)
+        private static void A_CustomBulletAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CustomComboAttack(Worlds.Entities.Entity entity)
+        private static void A_CustomComboAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CustomMeleeAttack(Worlds.Entities.Entity entity)
+        private static void A_CustomMeleeAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CustomMissile(Worlds.Entities.Entity entity)
+        private static void A_CustomMissile(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CustomPunch(Worlds.Entities.Entity entity)
+        private static void A_CustomPunch(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CustomRailgun(Worlds.Entities.Entity entity)
+        private static void A_CustomRailgun(Entity entity)
         {
              // TODO
         }
 
-        private static void A_CyberAttack(Worlds.Entities.Entity entity)
+        private static void A_CyberAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -879,92 +870,92 @@ namespace Helion.Worlds.Entities.Definition.States
                 Constants.EntityShootDistance, false, "Rocket");
         }
 
-        private static void A_DamageChildren(Worlds.Entities.Entity entity)
+        private static void A_DamageChildren(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DamageMaster(Worlds.Entities.Entity entity)
+        private static void A_DamageMaster(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DamageSelf(Worlds.Entities.Entity entity)
+        private static void A_DamageSelf(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DamageSiblings(Worlds.Entities.Entity entity)
+        private static void A_DamageSiblings(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DamageTarget(Worlds.Entities.Entity entity)
+        private static void A_DamageTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DamageTracer(Worlds.Entities.Entity entity)
+        private static void A_DamageTracer(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DeQueueCorpse(Worlds.Entities.Entity entity)
+        private static void A_DeQueueCorpse(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Detonate(Worlds.Entities.Entity entity)
+        private static void A_Detonate(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Die(Worlds.Entities.Entity entity)
+        private static void A_Die(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DropInventory(Worlds.Entities.Entity entity)
+        private static void A_DropInventory(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DropItem(Worlds.Entities.Entity entity)
+        private static void A_DropItem(Entity entity)
         {
              // TODO
         }
 
-        private static void A_DualPainAttack(Worlds.Entities.Entity entity)
+        private static void A_DualPainAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Explode(Worlds.Entities.Entity entity)
+        private static void A_Explode(Entity entity)
         {
             entity.World.RadiusExplosion(entity, 128);
         }
 
-        private static void A_ExtChase(Worlds.Entities.Entity entity)
+        private static void A_ExtChase(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FLoopActiveSound(Worlds.Entities.Entity entity)
+        private static void A_FLoopActiveSound(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FaceMaster(Worlds.Entities.Entity entity)
+        private static void A_FaceMaster(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FaceMovementDirection(Worlds.Entities.Entity entity)
+        private static void A_FaceMovementDirection(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FaceTarget(Worlds.Entities.Entity entity)
+        private static void A_FaceTarget(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -972,52 +963,52 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.AngleRadians = entity.Position.Angle(entity.Target.Position);
         }
 
-        private static void A_FaceTracer(Worlds.Entities.Entity entity)
+        private static void A_FaceTracer(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FadeIn(Worlds.Entities.Entity entity)
+        private static void A_FadeIn(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FadeOut(Worlds.Entities.Entity entity)
+        private static void A_FadeOut(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FadeTo(Worlds.Entities.Entity entity)
+        private static void A_FadeTo(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Fall(Worlds.Entities.Entity entity)
+        private static void A_Fall(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FastChase(Worlds.Entities.Entity entity)
+        private static void A_FastChase(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FatAttack1(Worlds.Entities.Entity entity)
+        private static void A_FatAttack1(Entity entity)
         {
             FatAttack(entity, 0.0, Constants.MancSpread);
         }
 
-        private static void A_FatAttack2(Worlds.Entities.Entity entity)
+        private static void A_FatAttack2(Entity entity)
         {
             FatAttack(entity, 0.0, -Constants.MancSpread * 2);
         }
 
-        private static void A_FatAttack3(Worlds.Entities.Entity entity)
+        private static void A_FatAttack3(Entity entity)
         {
             FatAttack(entity, -Constants.MancSpread / 2, Constants.MancSpread / 2);
         }
 
-        private static void FatAttack(Worlds.Entities.Entity entity, double fireSpread1, double fireSpread2)
+        private static void FatAttack(Entity entity, double fireSpread1, double fireSpread2)
         {
             if (entity.Target == null)
                 return;
@@ -1036,7 +1027,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.AngleRadians = baseAngle;
         }
 
-        private static void A_FatRaise(Worlds.Entities.Entity entity)
+        private static void A_FatRaise(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -1045,7 +1036,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_Fire(Worlds.Entities.Entity entity)
+        private static void A_Fire(Entity entity)
         {
             if (entity.Target == null || entity.Tracer == null)
                 return;
@@ -1061,12 +1052,12 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.SetPosition(newPos);
         }
 
-        private static void A_FireAssaultGun(Worlds.Entities.Entity entity)
+        private static void A_FireAssaultGun(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FireBFG(Worlds.Entities.Entity entity)
+        private static void A_FireBFG(Entity entity)
         {
             // TODO not sure of difference between A_FireBFG and A_FireOldBFG
             if (entity is Player player)
@@ -1076,12 +1067,12 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FireBullets(Worlds.Entities.Entity entity)
+        private static void A_FireBullets(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FireCGun(Worlds.Entities.Entity entity)
+        private static void A_FireCGun(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1092,17 +1083,17 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FireCrackle(Worlds.Entities.Entity entity)
+        private static void A_FireCrackle(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "vile/firecrkl", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_FireCustomMissile(Worlds.Entities.Entity entity)
+        private static void A_FireCustomMissile(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FireMissile(Worlds.Entities.Entity entity)
+        private static void A_FireMissile(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1111,7 +1102,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FireOldBFG(Worlds.Entities.Entity entity)
+        private static void A_FireOldBFG(Entity entity)
         {
             // TODO not sure of difference between A_FireBFG and A_FireOldBFG
             if (entity is Player player)
@@ -1121,7 +1112,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FirePistol(Worlds.Entities.Entity entity)
+        private static void A_FirePistol(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1132,7 +1123,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FirePlasma(Worlds.Entities.Entity entity)
+        private static void A_FirePlasma(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1141,17 +1132,17 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FireProjectile(Worlds.Entities.Entity entity)
+        private static void A_FireProjectile(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FireSTGrenade(Worlds.Entities.Entity entity)
+        private static void A_FireSTGrenade(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FireShotgun(Worlds.Entities.Entity entity)
+        private static void A_FireShotgun(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1162,7 +1153,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FireShotgun2(Worlds.Entities.Entity entity)
+        private static void A_FireShotgun2(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1173,57 +1164,57 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_FreezeDeath(Worlds.Entities.Entity entity)
+        private static void A_FreezeDeath(Entity entity)
         {
              // TODO
         }
 
-        private static void A_FreezeDeathChunks(Worlds.Entities.Entity entity)
+        private static void A_FreezeDeathChunks(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GenericFreezeDeath(Worlds.Entities.Entity entity)
+        private static void A_GenericFreezeDeath(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GetHurt(Worlds.Entities.Entity entity)
+        private static void A_GetHurt(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GiveInventory(Worlds.Entities.Entity entity)
+        private static void A_GiveInventory(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GiveToChildren(Worlds.Entities.Entity entity)
+        private static void A_GiveToChildren(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GiveToSiblings(Worlds.Entities.Entity entity)
+        private static void A_GiveToSiblings(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GiveToTarget(Worlds.Entities.Entity entity)
+        private static void A_GiveToTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Gravity(Worlds.Entities.Entity entity)
+        private static void A_Gravity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_GunFlash(Worlds.Entities.Entity entity)
+        private static void A_GunFlash(Entity entity)
         {
              // TODO
         }
 
-        private static void A_HeadAttack(Worlds.Entities.Entity entity)
+        private static void A_HeadAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -1242,292 +1233,292 @@ namespace Helion.Worlds.Entities.Definition.States
                 Constants.EntityShootDistance, false, "CacodemonBall");
         }
 
-        private static void A_HideThing(Worlds.Entities.Entity entity)
+        private static void A_HideThing(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Hoof(Worlds.Entities.Entity entity)
+        private static void A_Hoof(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_IceGuyDie(Worlds.Entities.Entity entity)
+        private static void A_IceGuyDie(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Jump(Worlds.Entities.Entity entity)
+        private static void A_Jump(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIf(Worlds.Entities.Entity entity)
+        private static void A_JumpIf(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfArmorType(Worlds.Entities.Entity entity)
+        private static void A_JumpIfArmorType(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfCloser(Worlds.Entities.Entity entity)
+        private static void A_JumpIfCloser(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfHealthLower(Worlds.Entities.Entity entity)
+        private static void A_JumpIfHealthLower(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfHigherOrLower(Worlds.Entities.Entity entity)
+        private static void A_JumpIfHigherOrLower(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfInTargetInventory(Worlds.Entities.Entity entity)
+        private static void A_JumpIfInTargetInventory(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfInTargetLOS(Worlds.Entities.Entity entity)
+        private static void A_JumpIfInTargetLOS(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfInventory(Worlds.Entities.Entity entity)
+        private static void A_JumpIfInventory(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfMasterCloser(Worlds.Entities.Entity entity)
+        private static void A_JumpIfMasterCloser(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfNoAmmo(Worlds.Entities.Entity entity)
+        private static void A_JumpIfNoAmmo(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfTargetInLOS(Worlds.Entities.Entity entity)
+        private static void A_JumpIfTargetInLOS(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfTargetInsideMeleeRange(Worlds.Entities.Entity entity)
+        private static void A_JumpIfTargetInsideMeleeRange(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfTargetOutsideMeleeRange(Worlds.Entities.Entity entity)
+        private static void A_JumpIfTargetOutsideMeleeRange(Entity entity)
         {
              // TODO
         }
 
-        private static void A_JumpIfTracerCloser(Worlds.Entities.Entity entity)
+        private static void A_JumpIfTracerCloser(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KeenDie(Worlds.Entities.Entity entity)
+        private static void A_KeenDie(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KillChildren(Worlds.Entities.Entity entity)
+        private static void A_KillChildren(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KillMaster(Worlds.Entities.Entity entity)
+        private static void A_KillMaster(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KillSiblings(Worlds.Entities.Entity entity)
+        private static void A_KillSiblings(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KillTarget(Worlds.Entities.Entity entity)
+        private static void A_KillTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KillTracer(Worlds.Entities.Entity entity)
+        private static void A_KillTracer(Entity entity)
         {
              // TODO
         }
 
-        private static void A_KlaxonBlare(Worlds.Entities.Entity entity)
+        private static void A_KlaxonBlare(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Light(Worlds.Entities.Entity entity)
+        private static void A_Light(Entity entity)
         {
             // TODO this is based on decorate parameters
             //if (entity is Player player)
             //    player.ExtraLight = 0;
         }
 
-        private static void A_Light0(Worlds.Entities.Entity entity)
+        private static void A_Light0(Entity entity)
         {
             if (entity is Player player)
                 player.ExtraLight = 0;
         }
 
-        private static void A_Light1(Worlds.Entities.Entity entity)
+        private static void A_Light1(Entity entity)
         {
             if (entity is Player player)
                 player.ExtraLight = 1;
         }
 
-        private static void A_Light2(Worlds.Entities.Entity entity)
+        private static void A_Light2(Entity entity)
         {
             if (entity is Player player)
                 player.ExtraLight = 2;
         }
 
-        private static void A_LightInverse(Worlds.Entities.Entity entity)
+        private static void A_LightInverse(Entity entity)
         {
              // TODO
         }
 
-        private static void A_LoadShotgun2(Worlds.Entities.Entity entity)
+        private static void A_LoadShotgun2(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_Log(Worlds.Entities.Entity entity)
+        private static void A_Log(Entity entity)
         {
              // TODO
         }
 
-        private static void A_LogFloat(Worlds.Entities.Entity entity)
+        private static void A_LogFloat(Entity entity)
         {
              // TODO
         }
 
-        private static void A_LogInt(Worlds.Entities.Entity entity)
+        private static void A_LogInt(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Look(Worlds.Entities.Entity entity)
+        private static void A_Look(Entity entity)
         {
             entity.SetNewTarget(false);
         }
 
-        private static void A_Look2(Worlds.Entities.Entity entity)
+        private static void A_Look2(Entity entity)
         {
              // TODO
         }
 
-        private static void A_LookEx(Worlds.Entities.Entity entity)
+        private static void A_LookEx(Entity entity)
         {
              // TODO
         }
 
-        private static void A_LoopActiveSound(Worlds.Entities.Entity entity)
+        private static void A_LoopActiveSound(Entity entity)
         {
              // TODO
         }
 
-        private static void A_LowGravity(Worlds.Entities.Entity entity)
+        private static void A_LowGravity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_M_Saw(Worlds.Entities.Entity entity)
+        private static void A_M_Saw(Entity entity)
         {
              // TODO
         }
 
-        private static void A_MeleeAttack(Worlds.Entities.Entity entity)
+        private static void A_MeleeAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Metal(Worlds.Entities.Entity entity)
+        private static void A_Metal(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_MissileAttack(Worlds.Entities.Entity entity)
+        private static void A_MissileAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_MonsterRail(Worlds.Entities.Entity entity)
+        private static void A_MonsterRail(Entity entity)
         {
              // TODO
         }
 
-        private static void A_MonsterRefire(Worlds.Entities.Entity entity)
+        private static void A_MonsterRefire(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Morph(Worlds.Entities.Entity entity)
+        private static void A_Morph(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Mushroom(Worlds.Entities.Entity entity)
+        private static void A_Mushroom(Entity entity)
         {
              // TODO
         }
 
-        private static void A_NoBlocking(Worlds.Entities.Entity entity)
+        private static void A_NoBlocking(Entity entity)
         {
              // TODO
         }
 
-        private static void A_NoGravity(Worlds.Entities.Entity entity)
+        private static void A_NoGravity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_OpenShotgun2(Worlds.Entities.Entity entity)
+        private static void A_OpenShotgun2(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_Overlay(Worlds.Entities.Entity entity)
+        private static void A_Overlay(Entity entity)
         {
              // TODO
         }
 
-        private static void A_OverlayAlpha(Worlds.Entities.Entity entity)
+        private static void A_OverlayAlpha(Entity entity)
         {
              // TODO
         }
 
-        private static void A_OverlayFlags(Worlds.Entities.Entity entity)
+        private static void A_OverlayFlags(Entity entity)
         {
              // TODO
         }
 
-        private static void A_OverlayOffset(Worlds.Entities.Entity entity)
+        private static void A_OverlayOffset(Entity entity)
         {
              // TODO
         }
 
-        private static void A_OverlayRenderstyle(Worlds.Entities.Entity entity)
+        private static void A_OverlayRenderstyle(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Pain(Worlds.Entities.Entity entity)
+        private static void A_Pain(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PainAttack(Worlds.Entities.Entity entity)
+        private static void A_PainAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -1536,18 +1527,18 @@ namespace Helion.Worlds.Entities.Definition.States
             A_PainShootSkull(entity, entity.AngleRadians);
         }
 
-        private static void A_PainDie(Worlds.Entities.Entity entity)
+        private static void A_PainDie(Entity entity)
         {
             A_PainShootSkull(entity, entity.AngleRadians + MathHelper.HalfPi);
             A_PainShootSkull(entity, entity.AngleRadians + MathHelper.Pi);
             A_PainShootSkull(entity, entity.AngleRadians + MathHelper.Pi + MathHelper.HalfPi);
         }
 
-        private static void A_PainShootSkull(Worlds.Entities.Entity entity, double angle)
+        private static void A_PainShootSkull(Entity entity, double angle)
         {
             Vec3D skullPos = entity.Position;
             skullPos.Z += 8;
-            Worlds.Entities.Entity? skull = entity.EntityManager.Create("LostSoul", skullPos);
+            Entity? skull = entity.EntityManager.Create("LostSoul", skullPos);
             if (skull == null)
                 return;
 
@@ -1565,37 +1556,37 @@ namespace Helion.Worlds.Entities.Definition.States
             A_SkullAttack(skull);
         }
 
-        private static void A_PlaySound(Worlds.Entities.Entity entity)
+        private static void A_PlaySound(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PlaySoundEx(Worlds.Entities.Entity entity)
+        private static void A_PlaySoundEx(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PlayWeaponSound(Worlds.Entities.Entity entity)
+        private static void A_PlayWeaponSound(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PlayerScream(Worlds.Entities.Entity entity)
+        private static void A_PlayerScream(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PlayerSkinCheck(Worlds.Entities.Entity entity)
+        private static void A_PlayerSkinCheck(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PosAttack(Worlds.Entities.Entity entity)
+        private static void A_PosAttack(Entity entity)
         {
             PosessedAttack(entity, 1, true);
         }
 
-        private static void PosessedAttack(Worlds.Entities.Entity entity, int bullets, bool attackSound)
+        private static void PosessedAttack(Entity entity, int bullets, bool attackSound)
         {
             if (entity.Target == null)
                 return;
@@ -1612,24 +1603,24 @@ namespace Helion.Worlds.Entities.Definition.States
                 pitch, Constants.EntityShootDistance, false);
         }
 
-        private static void A_Print(Worlds.Entities.Entity entity)
+        private static void A_Print(Entity entity)
         {
              // TODO
         }
 
-        private static void A_PrintBold(Worlds.Entities.Entity entity)
+        private static void A_PrintBold(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Punch(Worlds.Entities.Entity entity)
+        private static void A_Punch(Entity entity)
         {
             if (entity is Player player)
             {
                 // TODO berserk
                 int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
                 double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
-                Worlds.Entities.Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
+                Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity != null)
                 {
                     player.AngleRadians = angle;
@@ -1639,42 +1630,42 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_Quake(Worlds.Entities.Entity entity)
+        private static void A_Quake(Entity entity)
         {
              // TODO
         }
 
-        private static void A_QuakeEx(Worlds.Entities.Entity entity)
+        private static void A_QuakeEx(Entity entity)
         {
              // TODO
         }
 
-        private static void A_QueueCorpse(Worlds.Entities.Entity entity)
+        private static void A_QueueCorpse(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RadiusDamageSelf(Worlds.Entities.Entity entity)
+        private static void A_RadiusDamageSelf(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RadiusGive(Worlds.Entities.Entity entity)
+        private static void A_RadiusGive(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RadiusThrust(Worlds.Entities.Entity entity)
+        private static void A_RadiusThrust(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RailAttack(Worlds.Entities.Entity entity)
+        private static void A_RailAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Lower(Worlds.Entities.Entity entity)
+        private static void A_Lower(Entity entity)
         {
             if (entity is Player player && player.AnimationWeapon != null)
             {
@@ -1693,7 +1684,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_Raise(Worlds.Entities.Entity entity)
+        private static void A_Raise(Entity entity)
         {
             if (entity is Player player && player.AnimationWeapon != null)
             {
@@ -1707,7 +1698,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_WeaponReady(Worlds.Entities.Entity entity)
+        private static void A_WeaponReady(Entity entity)
         {
             if (entity is Player player && player.Weapon != null)
             {
@@ -1725,27 +1716,27 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_RaiseChildren(Worlds.Entities.Entity entity)
+        private static void A_RaiseChildren(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RaiseMaster(Worlds.Entities.Entity entity)
+        private static void A_RaiseMaster(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RaiseSelf(Worlds.Entities.Entity entity)
+        private static void A_RaiseSelf(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RaiseSiblings(Worlds.Entities.Entity entity)
+        private static void A_RaiseSiblings(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ReFire(Worlds.Entities.Entity entity)
+        private static void A_ReFire(Entity entity)
         {
             if (entity is Player player)
             {
@@ -1769,67 +1760,67 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_RearrangePointers(Worlds.Entities.Entity entity)
+        private static void A_RearrangePointers(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Recoil(Worlds.Entities.Entity entity)
+        private static void A_Recoil(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Remove(Worlds.Entities.Entity entity)
+        private static void A_Remove(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RemoveChildren(Worlds.Entities.Entity entity)
+        private static void A_RemoveChildren(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RemoveMaster(Worlds.Entities.Entity entity)
+        private static void A_RemoveMaster(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RemoveSiblings(Worlds.Entities.Entity entity)
+        private static void A_RemoveSiblings(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RemoveTarget(Worlds.Entities.Entity entity)
+        private static void A_RemoveTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_RemoveTracer(Worlds.Entities.Entity entity)
+        private static void A_RemoveTracer(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ResetHealth(Worlds.Entities.Entity entity)
+        private static void A_ResetHealth(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ResetReloadCounter(Worlds.Entities.Entity entity)
+        private static void A_ResetReloadCounter(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Respawn(Worlds.Entities.Entity entity)
+        private static void A_Respawn(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SPosAttack(Worlds.Entities.Entity entity)
+        private static void A_SPosAttack(Entity entity)
         {
             PosessedAttack(entity, 3, false);
         }
 
-        private static void A_SargAttack(Worlds.Entities.Entity entity)
+        private static void A_SargAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -1843,13 +1834,13 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_Saw(Worlds.Entities.Entity entity)
+        private static void A_Saw(Entity entity)
         {
             if (entity is Player player)
             {
                 int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
                 double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
-                Worlds.Entities.Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance, damage);
+                Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity == null)
                 {
                     player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", SoundChannelType.Auto, new SoundParams(entity));
@@ -1863,262 +1854,262 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_ScaleVelocity(Worlds.Entities.Entity entity)
+        private static void A_ScaleVelocity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Scream(Worlds.Entities.Entity entity)
+        private static void A_Scream(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ScreamAndUnblock(Worlds.Entities.Entity entity)
+        private static void A_ScreamAndUnblock(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SeekerMissile(Worlds.Entities.Entity entity)
+        private static void A_SeekerMissile(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SelectWeapon(Worlds.Entities.Entity entity)
+        private static void A_SelectWeapon(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SentinelBob(Worlds.Entities.Entity entity)
+        private static void A_SentinelBob(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SentinelRefire(Worlds.Entities.Entity entity)
+        private static void A_SentinelRefire(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetAngle(Worlds.Entities.Entity entity)
+        private static void A_SetAngle(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetArg(Worlds.Entities.Entity entity)
+        private static void A_SetArg(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetBlend(Worlds.Entities.Entity entity)
+        private static void A_SetBlend(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetChaseThreshold(Worlds.Entities.Entity entity)
+        private static void A_SetChaseThreshold(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetCrosshair(Worlds.Entities.Entity entity)
+        private static void A_SetCrosshair(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetDamageType(Worlds.Entities.Entity entity)
+        private static void A_SetDamageType(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetFloat(Worlds.Entities.Entity entity)
+        private static void A_SetFloat(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetFloatBobPhase(Worlds.Entities.Entity entity)
+        private static void A_SetFloatBobPhase(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetFloatSpeed(Worlds.Entities.Entity entity)
+        private static void A_SetFloatSpeed(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetFloorClip(Worlds.Entities.Entity entity)
+        private static void A_SetFloorClip(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetGravity(Worlds.Entities.Entity entity)
+        private static void A_SetGravity(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetHealth(Worlds.Entities.Entity entity)
+        private static void A_SetHealth(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetInventory(Worlds.Entities.Entity entity)
+        private static void A_SetInventory(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetInvulnerable(Worlds.Entities.Entity entity)
+        private static void A_SetInvulnerable(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetMass(Worlds.Entities.Entity entity)
+        private static void A_SetMass(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetMugshotState(Worlds.Entities.Entity entity)
+        private static void A_SetMugshotState(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetPainThreshold(Worlds.Entities.Entity entity)
+        private static void A_SetPainThreshold(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetPitch(Worlds.Entities.Entity entity)
+        private static void A_SetPitch(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetReflective(Worlds.Entities.Entity entity)
+        private static void A_SetReflective(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetReflectiveInvulnerable(Worlds.Entities.Entity entity)
+        private static void A_SetReflectiveInvulnerable(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetRenderStyle(Worlds.Entities.Entity entity)
+        private static void A_SetRenderStyle(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetRipMax(Worlds.Entities.Entity entity)
+        private static void A_SetRipMax(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetRipMin(Worlds.Entities.Entity entity)
+        private static void A_SetRipMin(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetRipperLevel(Worlds.Entities.Entity entity)
+        private static void A_SetRipperLevel(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetRoll(Worlds.Entities.Entity entity)
+        private static void A_SetRoll(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetScale(Worlds.Entities.Entity entity)
+        private static void A_SetScale(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetShadow(Worlds.Entities.Entity entity)
+        private static void A_SetShadow(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetShootable(Worlds.Entities.Entity entity)
+        private static void A_SetShootable(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSize(Worlds.Entities.Entity entity)
+        private static void A_SetSize(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSolid(Worlds.Entities.Entity entity)
+        private static void A_SetSolid(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSpecial(Worlds.Entities.Entity entity)
+        private static void A_SetSpecial(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSpecies(Worlds.Entities.Entity entity)
+        private static void A_SetSpecies(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSpeed(Worlds.Entities.Entity entity)
+        private static void A_SetSpeed(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSpriteAngle(Worlds.Entities.Entity entity)
+        private static void A_SetSpriteAngle(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetSpriteRotation(Worlds.Entities.Entity entity)
+        private static void A_SetSpriteRotation(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetTeleFog(Worlds.Entities.Entity entity)
+        private static void A_SetTeleFog(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetTics(Worlds.Entities.Entity entity)
+        private static void A_SetTics(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetTranslation(Worlds.Entities.Entity entity)
+        private static void A_SetTranslation(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetTranslucent(Worlds.Entities.Entity entity)
+        private static void A_SetTranslucent(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetUserArray(Worlds.Entities.Entity entity)
+        private static void A_SetUserArray(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetUserArrayFloat(Worlds.Entities.Entity entity)
+        private static void A_SetUserArrayFloat(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetUserVar(Worlds.Entities.Entity entity)
+        private static void A_SetUserVar(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetUserVarFloat(Worlds.Entities.Entity entity)
+        private static void A_SetUserVarFloat(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SetVisibleRotation(Worlds.Entities.Entity entity)
+        private static void A_SetVisibleRotation(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SkelFist(Worlds.Entities.Entity entity)
+        private static void A_SkelFist(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -2133,19 +2124,19 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_SkelMissile(Worlds.Entities.Entity entity)
+        private static void A_SkelMissile(Entity entity)
         {
             if (entity.Target == null)
                 return;
 
-            Worlds.Entities.Entity? fireball = entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
+            Entity? fireball = entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "RevenantTracer", 16);
 
             if (fireball != null)
                 fireball.Tracer = entity.Target;
         }
 
-        private static void A_SkelWhoosh(Worlds.Entities.Entity entity)
+        private static void A_SkelWhoosh(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -2154,7 +2145,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.SoundManager.CreateSoundOn(entity, "skeleton/swing", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_SkullAttack(Worlds.Entities.Entity entity)
+        private static void A_SkullAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -2166,57 +2157,57 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.Flags.Skullfly = true;
         }
 
-        private static void A_SkullPop(Worlds.Entities.Entity entity)
+        private static void A_SkullPop(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SoundPitch(Worlds.Entities.Entity entity)
+        private static void A_SoundPitch(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SoundVolume(Worlds.Entities.Entity entity)
+        private static void A_SoundVolume(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SpawnDebris(Worlds.Entities.Entity entity)
+        private static void A_SpawnDebris(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SpawnItem(Worlds.Entities.Entity entity)
+        private static void A_SpawnItem(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SpawnItemEx(Worlds.Entities.Entity entity)
+        private static void A_SpawnItemEx(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SpawnParticle(Worlds.Entities.Entity entity)
+        private static void A_SpawnParticle(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SpawnProjectile(Worlds.Entities.Entity entity)
+        private static void A_SpawnProjectile(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SpawnSound(Worlds.Entities.Entity entity)
+        private static void A_SpawnSound(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
-        private static void A_SpidRefire(Worlds.Entities.Entity entity)
+        private static void A_SpidRefire(Entity entity)
         {
             Refire(entity, 10);
         }
 
-        private static void Refire(Worlds.Entities.Entity entity, int randomChance)
+        private static void Refire(Entity entity, int randomChance)
         {
             A_FaceTarget(entity);
 
@@ -2230,77 +2221,77 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_SPosAttackUseAtkSound(Worlds.Entities.Entity entity)
+        private static void A_SPosAttackUseAtkSound(Entity entity)
         {
             PosessedAttack(entity, 3, true);
         }
 
-        private static void A_SprayDecal(Worlds.Entities.Entity entity)
+        private static void A_SprayDecal(Entity entity)
         {
              // TODO
         }
 
-        private static void A_StartFire(Worlds.Entities.Entity entity)
+        private static void A_StartFire(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "vile/firestrt", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_Stop(Worlds.Entities.Entity entity)
+        private static void A_Stop(Entity entity)
         {
              // TODO
         }
 
-        private static void A_StopSound(Worlds.Entities.Entity entity)
+        private static void A_StopSound(Entity entity)
         {
              // TODO
         }
 
-        private static void A_StopSoundEx(Worlds.Entities.Entity entity)
+        private static void A_StopSoundEx(Entity entity)
         {
              // TODO
         }
 
-        private static void A_SwapTeleFog(Worlds.Entities.Entity entity)
+        private static void A_SwapTeleFog(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TakeFromChildren(Worlds.Entities.Entity entity)
+        private static void A_TakeFromChildren(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TakeFromSiblings(Worlds.Entities.Entity entity)
+        private static void A_TakeFromSiblings(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TakeFromTarget(Worlds.Entities.Entity entity)
+        private static void A_TakeFromTarget(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TakeInventory(Worlds.Entities.Entity entity)
+        private static void A_TakeInventory(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Teleport(Worlds.Entities.Entity entity)
+        private static void A_Teleport(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ThrowGrenade(Worlds.Entities.Entity entity)
+        private static void A_ThrowGrenade(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TossGib(Worlds.Entities.Entity entity)
+        private static void A_TossGib(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Tracer(Worlds.Entities.Entity entity)
+        private static void A_Tracer(Entity entity)
         {
             if (entity.Tracer == null || entity.Tracer.IsDead)
                 return;
@@ -2326,11 +2317,11 @@ namespace Helion.Worlds.Entities.Definition.States
 
         private const double TracerPuffRandZ = (1 << 10) / 65536.0;
 
-        private static void SpawnTracerPuff(Worlds.Entities.Entity entity)
+        private static void SpawnTracerPuff(Entity entity)
         {
             entity.EntityManager.Create("RevenantTracerSmoke", entity.Position);
 
-            Worlds.Entities.Entity? puff = entity.EntityManager.Create("BulletPuff", entity.Position);
+            Entity? puff = entity.EntityManager.Create("BulletPuff", entity.Position);
             if (puff != null)
             {
                 puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * TracerPuffRandZ), false);
@@ -2339,7 +2330,7 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void SetTracerAngle(Worlds.Entities.Entity entity)
+        private static void SetTracerAngle(Entity entity)
         {
             if (entity.Tracer == null)
                 return;
@@ -2381,17 +2372,17 @@ namespace Helion.Worlds.Entities.Definition.States
             return (fixedZ / fixedDist) / 65536.0;
         }
 
-        private static void A_Tracer2(Worlds.Entities.Entity entity)
+        private static void A_Tracer2(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TransferPointer(Worlds.Entities.Entity entity)
+        private static void A_TransferPointer(Entity entity)
         {
              // TODO
         }
 
-        private static void A_TroopAttack(Worlds.Entities.Entity entity)
+        private static void A_TroopAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -2410,52 +2401,52 @@ namespace Helion.Worlds.Entities.Definition.States
                 Constants.EntityShootDistance, false, "DoomImpBall");
         }
 
-        private static void A_TurretLook(Worlds.Entities.Entity entity)
+        private static void A_TurretLook(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnHideThing(Worlds.Entities.Entity entity)
+        private static void A_UnHideThing(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnSetFloorClip(Worlds.Entities.Entity entity)
+        private static void A_UnSetFloorClip(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnSetInvulnerable(Worlds.Entities.Entity entity)
+        private static void A_UnSetInvulnerable(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnSetReflective(Worlds.Entities.Entity entity)
+        private static void A_UnSetReflective(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnSetReflectiveInvulnerable(Worlds.Entities.Entity entity)
+        private static void A_UnSetReflectiveInvulnerable(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnSetShootable(Worlds.Entities.Entity entity)
+        private static void A_UnSetShootable(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnsetFloat(Worlds.Entities.Entity entity)
+        private static void A_UnsetFloat(Entity entity)
         {
              // TODO
         }
 
-        private static void A_UnsetSolid(Worlds.Entities.Entity entity)
+        private static void A_UnsetSolid(Entity entity)
         {
              // TODO
         }
 
-        private static void A_VileAttack(Worlds.Entities.Entity entity)
+        private static void A_VileAttack(Entity entity)
         {
             if (entity.Target == null)
                 return;
@@ -2481,7 +2472,7 @@ namespace Helion.Worlds.Entities.Definition.States
             entity.World.RadiusExplosion(entity.Tracer, 70);
         }
 
-        private static void A_VileChase(Worlds.Entities.Entity entity)
+        private static void A_VileChase(Entity entity)
         {
             Vec3D oldPos = entity.Position;
             Vec3D pos = entity.Position;
@@ -2500,7 +2491,7 @@ namespace Helion.Worlds.Entities.Definition.States
                 if (bi.Entity == null || !bi.Entity.HasRaiseState())
                     continue;
 
-                Worlds.Entities.Entity? saveTarget = entity.Target;
+                Entity? saveTarget = entity.Target;
                 entity.Target = bi.Entity;
                 A_FaceTarget(entity);
                 entity.Target = saveTarget;
@@ -2515,18 +2506,18 @@ namespace Helion.Worlds.Entities.Definition.States
             A_Chase(entity);
         }
 
-        private static void A_VileStart(Worlds.Entities.Entity entity)
+        private static void A_VileStart(Entity entity)
         {
             entity.SoundManager.CreateSoundOn(entity, "vile/start", SoundChannelType.Auto, new SoundParams(entity));
         }
 
-        private static void A_VileTarget(Worlds.Entities.Entity entity)
+        private static void A_VileTarget(Entity entity)
         {
             if (entity.Target == null)
                 return;
 
             A_FaceTarget(entity);
-            Worlds.Entities.Entity? fire = entity.EntityManager.Create("ArchvileFire", entity.Position);
+            Entity? fire = entity.EntityManager.Create("ArchvileFire", entity.Position);
             if (fire != null)
             {
                 fire.Owner = entity;
@@ -2537,37 +2528,37 @@ namespace Helion.Worlds.Entities.Definition.States
             }
         }
 
-        private static void A_Wander(Worlds.Entities.Entity entity)
+        private static void A_Wander(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Warp(Worlds.Entities.Entity entity)
+        private static void A_Warp(Entity entity)
         {
              // TODO
         }
 
-        private static void A_WeaponOffset(Worlds.Entities.Entity entity)
+        private static void A_WeaponOffset(Entity entity)
         {
              // TODO
         }
 
-        private static void A_Weave(Worlds.Entities.Entity entity)
+        private static void A_Weave(Entity entity)
         {
              // TODO
         }
 
-        private static void A_WolfAttack(Worlds.Entities.Entity entity)
+        private static void A_WolfAttack(Entity entity)
         {
              // TODO
         }
 
-        private static void A_XScream(Worlds.Entities.Entity entity)
+        private static void A_XScream(Entity entity)
         {
              // TODO
         }
 
-        private static void A_ZoomFactor(Worlds.Entities.Entity entity)
+        private static void A_ZoomFactor(Entity entity)
         {
              // TODO
         }

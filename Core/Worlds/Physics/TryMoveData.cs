@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Helion.Util.Geometry.Vectors;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Lines;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Worlds.Physics
 {
@@ -13,11 +13,9 @@ namespace Helion.Worlds.Physics
         public double LowestCeilingZ;
         public double HighestFloorZ;
         public double DropOffZ;
-
         public Entity? DropOffEntity;
-
-        public List<Entity> IntersectEntities2D = new List<Entity>();
-        public List<Line> IntersectSpecialLines = new List<Line>();
+        public List<Entity> IntersectEntities2D = new();
+        public List<Line> IntersectSpecialLines = new();
 
         public TryMoveData(Vec2D position)
         {

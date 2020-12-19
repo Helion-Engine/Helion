@@ -1,4 +1,4 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.Worlds.Entities.Definition.Properties.Components
 {
     public readonly struct PainChanceProperty
     {
@@ -10,7 +10,7 @@ namespace Helion.World.Entities.Definition.Properties.Components
             Type = null;
             Value = value;
         }
-        
+
         public PainChanceProperty(string type, double value)
         {
             Type = type;

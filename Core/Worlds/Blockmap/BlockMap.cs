@@ -7,9 +7,8 @@ using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
-using Helion.World.Entities;
+using Helion.Worlds.Entities;
 using Helion.Worlds.Geometry.Lines;
-using Entity = Helion.Worlds.Entities.Entity;
 
 namespace Helion.Worlds.Blockmap
 {

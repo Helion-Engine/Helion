@@ -20,6 +20,7 @@ namespace Helion.Worlds.Geometry.Lines
         public bool IsFront => ReferenceEquals(this, Line.Front);
         public bool IsBack => !IsFront;
         public IEnumerable<Wall> Walls => CreateWallsEnumerable();
+        public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
 
         public Side(int index, Vec2I offset, Wall middle, Sector sector) :
             this(index, offset, null, middle, null, sector)
