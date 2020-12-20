@@ -184,7 +184,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
 
             if (LowerIsVisible(facingSector, otherSector))
                 RenderTwoSidedLower(facingSide, otherSide, isFrontSide);
-            if (facingSide.Middle?.Texture.IsMissing ?? false)
+            if (facingSide.Middle != null && !facingSide.Middle.Texture.IsMissing)
                 RenderTwoSidedMiddle(facingSide, otherSide, isFrontSide);
             if (UpperIsVisible(facingSector, otherSector))
                 RenderTwoSidedUpper(facingSide, otherSide, isFrontSide);
