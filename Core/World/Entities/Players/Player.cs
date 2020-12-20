@@ -50,8 +50,8 @@ namespace Helion.World.Entities.Players
         public Weapon? AnimationWeapon { get; private set; }
         public int WeaponSlot { get; private set; }
         public int WeaponSubSlot { get; private set; }
-        public Vec2I WeaponOffset;
-        public Vec2D WeaponBobOffset;
+        public Vec2D PrevWeaponOffset;
+        public Vec2D WeaponOffset;
 
         public override double ViewHeight => m_viewHeight;
 
@@ -145,6 +145,7 @@ namespace Helion.World.Entities.Players
             m_prevViewHeight = m_viewHeight;
             m_prevBob = m_bob;
             m_deltaViewHeight = 0;
+            PrevWeaponOffset = WeaponOffset;
 
             base.ResetInterpolation();
         }
@@ -193,12 +194,14 @@ namespace Helion.World.Entities.Players
 
             m_prevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
+            m_prevViewHeight = m_viewHeight;
+            m_prevBob = m_bob;
+
+            PrevWeaponOffset = WeaponOffset;
 
             if (m_jumpTics > 0)
                 m_jumpTics--;
 
-            m_prevViewHeight = m_viewHeight;
-            m_prevBob = m_bob;
             m_viewHeight += m_deltaViewHeight;
 
             if (DamageCount > 0)
@@ -263,12 +266,8 @@ namespace Helion.World.Entities.Players
             if (Weapon != null && Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
             {
                 double value = 0.1 * World.LevelTime;
-                WeaponBobOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
-                WeaponBobOffset.Y = m_bob * Math.Sin(value % MathHelper.Pi);
-            }
-            else
-            {
-                WeaponBobOffset = Vec2D.Zero;
+                WeaponOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
+                WeaponOffset.Y = Constants.WeaponTop + m_bob * Math.Sin(value % MathHelper.Pi);
             }
 
             double angle = MathHelper.TwoPi / 20 * World.LevelTime % MathHelper.TwoPi;
@@ -392,11 +391,13 @@ namespace Helion.World.Entities.Players
             }
         }
 
+
         public bool FireWeapon()
         {
             if (!CheckAmmo() || PendingWeapon != null)
                 return false;
 
+            SetWeaponTop();
             Weapon?.RequestFire();
             return true;
         }
@@ -440,7 +441,16 @@ namespace Helion.World.Entities.Players
         private void ForceLowerWeapon()
         {
             if (Weapon != null)
+            {
+                SetWeaponTop();
                 Weapon.FrameState.SetState("DESELECT");
+            }
+        }
+
+        private void SetWeaponTop()
+        {
+            WeaponOffset.X = PrevWeaponOffset.X = 0;
+            WeaponOffset.Y = PrevWeaponOffset.Y = Constants.WeaponTop;
         }
 
         public void BringupWeapon()
@@ -533,7 +543,6 @@ namespace Helion.World.Entities.Players
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
             m_killer = source;
 
-            WeaponBobOffset = Vec2D.Zero;
             ForceLowerWeapon();
         }
 

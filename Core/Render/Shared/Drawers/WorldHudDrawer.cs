@@ -38,20 +38,20 @@ namespace Helion.Render.Shared.Drawers
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
         private static readonly string HudFont = "LargeHudFont";
 
-        public static void Draw(Player player, WorldBase world, HelionConsole console, Dimension viewport, RenderCommands cmd)
+        public static void Draw(Player player, WorldBase world, float fraction, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
             DrawHelper helper = new DrawHelper(cmd);
 
             cmd.ClearDepth();
 
             int y = DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
-            DrawHud(y, player, world, viewport, helper);
+            DrawHud(y, player, world, fraction, viewport, helper);
             DrawPickupFlash(player, world, viewport, helper);
             DrawDamage(player, world, viewport, helper);
             DrawRecentConsoleMessages(world, console, helper);
         }
         
-        private static void DrawHud(int topRightY, Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawHud(int topRightY, Player player, WorldBase world, float fraction, Dimension viewport, DrawHelper helper)
         {
             DrawHudHealthAndArmor(player, viewport, helper);
             DrawHudKeys(topRightY, player, viewport, helper);
@@ -59,9 +59,9 @@ namespace Helion.Render.Shared.Drawers
 
             if (player.AnimationWeapon != null)
             {
-                DrawHudWeapon(player, player.AnimationWeapon.FrameState, viewport, helper);
+                DrawHudWeapon(player, fraction, player.AnimationWeapon.FrameState, viewport, helper);
                 if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, player.AnimationWeapon.FlashState, viewport, helper);
+                    DrawHudWeapon(player, fraction, player.AnimationWeapon.FlashState, viewport, helper);
             }
 
             DrawHudCrosshair(viewport, helper);
@@ -85,7 +85,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawHudWeapon(Player player, FrameState frameState, Dimension viewport, DrawHelper helper)
+        private static void DrawHudWeapon(Player player, float fraction, FrameState frameState, Dimension viewport, DrawHelper helper)
         {
             int lightLevel = frameState.Frame.Properties.Bright ?  255 :
                 (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
@@ -97,17 +97,14 @@ namespace Helion.Render.Shared.Drawers
             {
                 Dimension dimension = helper.DrawInfoProvider.GetImageDimension(sprite);
                 Vec2I offset = helper.DrawInfoProvider.GetImageOffset(sprite);
-                Vec2I frameOffset = player.WeaponOffset;
+                Vec2I weaponOffset = DrawHelper.ScaleWorldOffset(viewport, player.PrevWeaponOffset.Interpolate(player.WeaponOffset, fraction));
 
                 DrawHelper.ScaleImageDimensions(viewport, ref dimension.Width, ref dimension.Height);
                 DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
-                DrawHelper.ScaleImageOffset(viewport, ref frameOffset.X, ref frameOffset.Y);
-                Vec2I scaleBob = DrawHelper.ScaleWorldOffset(viewport, player.WeaponBobOffset);
-                frameOffset += scaleBob;
 
                 // Translate doom image offset to OpenGL coordinates
-                helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2) + scaleBob.X,
-                    -offset.Y - dimension.Height + frameOffset.Y,
+                helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2) + weaponOffset.X,
+                    -offset.Y - dimension.Height + weaponOffset.Y,
                     dimension.Width, dimension.Height, lightLevelColor);
             }
         }
