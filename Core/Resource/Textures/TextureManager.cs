@@ -175,7 +175,8 @@ namespace Helion.Resource.Textures
 
         private Texture CreateFromImageAndTrack(CIString name, Namespace resourceNamespace, Image image)
         {
-            Texture texture = new(name, image, resourceNamespace, m_textures.Count);
+            bool isSky = name == Constants.SkyTexture;
+            Texture texture = new(name, image, resourceNamespace, m_textures.Count, isSkyTexture: isSky);
             TrackTexture(name, resourceNamespace, texture);
 
             return texture;

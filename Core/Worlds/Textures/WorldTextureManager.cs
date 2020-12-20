@@ -85,7 +85,7 @@ namespace Helion.Worlds.Textures
                 return false;
             }
 
-            worldTexture = new StaticWorldTexture(name, texture);
+            worldTexture = new StaticWorldTexture(name, texture, isSky: texture.IsSky);
             TrackNewTexture(name, priorityNamespace, worldTexture);
             return true;
         }
