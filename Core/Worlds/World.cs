@@ -86,9 +86,9 @@ namespace Helion.Worlds
             Resources = resources;
             Config = config;
             MapName = map.Name;
+            TextureManager = new(resources);
             Geometry = CreateMapGeometry(map);
             Blockmap = new BlockMap(Lines);
-            TextureManager = new(resources);
             SoundManager = new SoundManager(this, audioSystem, resources.Sounds);
             EntityManager = new EntityManager(this, resources, SoundManager, config.Engine.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);

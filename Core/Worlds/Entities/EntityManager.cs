@@ -68,7 +68,7 @@ namespace Helion.Worlds.Entities
             int id = m_entityIdTracker.Next();
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, in position, zHeight);
-            Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
+            Entity entity = new(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
             // This only needs to happen on map population
             if (init && !ZHeightSet(zHeight))

@@ -5,7 +5,6 @@ using Helion.Resource;
 using Helion.Resource.Definitions.Animations.Switches;
 using Helion.Resource.Definitions.Animations.Textures;
 using Helion.Resource.Textures;
-using Helion.Resource.Tracker;
 using Helion.Util;
 using Helion.Worlds.Textures.Types;
 using MoreLinq;

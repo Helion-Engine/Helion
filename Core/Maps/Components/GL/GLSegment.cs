@@ -21,7 +21,7 @@ namespace Helion.Maps.Components.GL
             IsStartVertexGL = isStartGL;
             EndVertex = endVertex;
             IsEndVertexGL = isEndGL;
-            Linedef = linedef == LineIsMiniseg ? linedef : null;
+            Linedef = linedef == LineIsMiniseg ? null : linedef;
             IsRightSide = isRightSide;
             PartnerSegment = partnerSegment;
         }

@@ -12,7 +12,6 @@ using Helion.Resource.Definitions.SoundInfo;
 using Helion.Resource.Definitions.Textures;
 using Helion.Resource.Sprites;
 using Helion.Resource.Textures;
-using Helion.Resource.Tracker;
 using Helion.Util;
 using NLog;
 

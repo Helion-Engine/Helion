@@ -17,7 +17,7 @@ namespace Helion.Maps.Components.GL
         internal const uint NodeIsSubsectorV5 = 0x80000000U;
         internal const uint NoPartnerSegmentV2 = 0x0000FFFFU;
         internal const uint NoPartnerSegmentV5 = 0xFFFFFFFFU;
-        private const int BytesPerVertex = 4;
+        private const int BytesPerVertex = 8;
         private const int BytesPerSegmentV2 = 10;
         private const int BytesPerSegmentV5 = 16;
         private const int BytesPerSubsectorV2 = 4;
@@ -61,8 +61,14 @@ namespace Helion.Maps.Components.GL
 
             for (int i = 0; i < count; i++)
             {
-                Fixed x = new(reader.Short(), reader.UShort());
-                Fixed y = new(reader.Short(), reader.UShort());
+                ushort xLower = reader.UShort();
+                short xUpper = reader.Short();
+                Fixed x = new(xUpper, xLower);
+
+                ushort yLower = reader.UShort();
+                short yUpper = reader.Short();
+                Fixed y = new(yUpper, yLower);
+
                 Vec2D vertex = new(x.ToDouble(), y.ToDouble());
                 Vertices.Add(vertex);
             }
@@ -73,7 +79,7 @@ namespace Helion.Maps.Components.GL
             bool isV2 = Version == 2;
             int byteLength = isV2 ? BytesPerSegmentV2 : BytesPerSegmentV5;
             if (segmentData.Length % byteLength != 0)
-                throw new Exception($"Bad GL segment data length");
+                throw new Exception("Bad GL segment data length");
 
             int count = segmentData.Length / byteLength;
             ByteReader reader = new(segmentData);
@@ -98,7 +104,7 @@ namespace Helion.Maps.Components.GL
             bool isV2 = Version == 2;
             int byteLength = isV2 ? BytesPerSubsectorV2 : BytesPerSubsectorV5;
             if (subsectorData.Length % byteLength != 0)
-                throw new Exception($"Bad GL subsector data length");
+                throw new Exception("Bad GL subsector data length");
 
             int count = subsectorData.Length / byteLength;
             ByteReader reader = new(subsectorData);
@@ -118,7 +124,7 @@ namespace Helion.Maps.Components.GL
             bool isV2 = Version == 2;
             int byteLength = isV2 ? BytesPerNodeV2 : BytesPerNodeV5;
             if (nodeData.Length % byteLength != 0)
-                throw new Exception($"Bad GL node data length");
+                throw new Exception("Bad GL node data length");
 
             int count = nodeData.Length / byteLength;
             ByteReader reader = new(nodeData);

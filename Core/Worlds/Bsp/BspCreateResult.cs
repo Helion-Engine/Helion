@@ -20,7 +20,7 @@ namespace Helion.Worlds.Bsp
         /// Gets the index with the appropriate bit set if needed. This works
         /// for either the node or the subsector.
         /// </summary>
-        public uint IndexWithBit => IsSubsector ? (Index | BspNodeCompact.IsSubsectorBit) : Index;
+        public uint IndexWithBit => IsSubsector ? (Index | BspNodeCompact.SubsectorBit) : Index;
 
         private BspCreateResult(bool isSubsector, uint index)
         {

@@ -8,7 +8,6 @@ using Helion.Render.Shared;
 using Helion.Resource;
 using Helion.Resource.Sprites;
 using Helion.Resource.Textures;
-using Helion.Resource.Tracker;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;

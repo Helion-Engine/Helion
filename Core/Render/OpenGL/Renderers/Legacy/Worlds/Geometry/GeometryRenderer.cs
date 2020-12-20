@@ -34,14 +34,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
         private readonly LegacySkyRenderer m_skyRenderer;
         private double m_tickFraction;
 
-        private LegacyVertex[][] m_vertexLookup = new LegacyVertex[0][];
-        private LegacyVertex[][] m_vertexLowerLookup = new LegacyVertex[0][];
-        private LegacyVertex[][] m_vertexUpperLookup = new LegacyVertex[0][];
-        private SkyGeometryVertex[][] m_skyWallVertexLookup = new SkyGeometryVertex[0][];
-        private LegacyVertex[][] m_vertexFloorLookup = new LegacyVertex[0][];
-        private LegacyVertex[][] m_vertexCeilingLookup = new LegacyVertex[0][];
-        private SkyGeometryVertex[][] m_skyFloorVertexLookup = new SkyGeometryVertex[0][];
-        private SkyGeometryVertex[][] m_skyCeilingVertexLookup = new SkyGeometryVertex[0][];
+        private LegacyVertex[]?[] m_vertexLookup = new LegacyVertex[0][];
+        private LegacyVertex[]?[] m_vertexLowerLookup = new LegacyVertex[0][];
+        private LegacyVertex[]?[] m_vertexUpperLookup = new LegacyVertex[0][];
+        private SkyGeometryVertex[]?[] m_skyWallVertexLookup = new SkyGeometryVertex[0][];
+        private LegacyVertex[]?[] m_vertexFloorLookup = new LegacyVertex[0][];
+        private LegacyVertex[]?[] m_vertexCeilingLookup = new LegacyVertex[0][];
+        private SkyGeometryVertex[]?[] m_skyFloorVertexLookup = new SkyGeometryVertex[0][];
+        private SkyGeometryVertex[]?[] m_skyCeilingVertexLookup = new SkyGeometryVertex[0][];
 
         public GeometryRenderer(Config config, Resources resources, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
@@ -152,9 +152,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
 
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             GLLegacyTexture texture = m_textureManager.GetTexture(middle.Texture);
-            LegacyVertex[] data = m_vertexLookup[side.Id];
+            LegacyVertex[]? data = m_vertexLookup[side.Id];
 
-            if (side.Sector.DataChanged)
+            if (side.Sector.DataChanged || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
                 data = GetWallVertices(wall, side.Sector.LightLevel / 256.0f);
@@ -216,9 +216,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
 
             if (isSky)
             {
-                SkyGeometryVertex[] data = m_skyWallVertexLookup[facingSide.Id];
+                SkyGeometryVertex[]? data = m_skyWallVertexLookup[facingSide.Id];
 
-                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged)
+                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -230,9 +230,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
             }
             else
             {
-                LegacyVertex[] data = m_vertexLowerLookup[facingSide.Id];
+                LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
 
-                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged)
+                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -262,9 +262,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
 
             if (isSky)
             {
-                SkyGeometryVertex[] data = m_skyWallVertexLookup[facingSide.Id];
+                SkyGeometryVertex[]? data = m_skyWallVertexLookup[facingSide.Id];
 
-                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged)
+                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -276,9 +276,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
             }
             else
             {
-                LegacyVertex[] data = m_vertexUpperLookup[facingSide.Id];
+                LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
-                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged)
+                if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -301,9 +301,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
             Wall middleWall = facingSide.Middle!;
             GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.Texture);
             RenderWorldData renderData = m_worldDataManager[texture];
-            LegacyVertex[] data = m_vertexLookup[facingSide.Id];
+            LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
-            if (facingSide.Sector.DataChanged)
+            if (facingSide.Sector.DataChanged || data == null)
             {
                 (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
                 WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide,
@@ -357,9 +357,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
 
             if (isSky)
             {
-                SkyGeometryVertex[] data = floor ? m_skyFloorVertexLookup[subsector.Index] : m_skyCeilingVertexLookup[subsector.Index];
+                SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Index] : m_skyCeilingVertexLookup[subsector.Index];
 
-                if (flat.Sector.DataChanged)
+                if (flat.Sector.DataChanged || data == null)
                 {
                     // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
                     // Note that the subsector triangulator is supposed to realize when
@@ -386,9 +386,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
             }
             else
             {
-                LegacyVertex[] data = floor ? m_vertexFloorLookup[subsector.Index] : m_vertexCeilingLookup[subsector.Index];
+                LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Index] : m_vertexCeilingLookup[subsector.Index];
 
-                if (flat.Sector.DataChanged)
+                if (flat.Sector.DataChanged || data == null)
                 {
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
                     WorldVertex root = m_subsectorVertices[0];

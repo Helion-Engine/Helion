@@ -12,23 +12,18 @@ namespace Helion.Worlds.Bsp
         /// The bit that is set in each child to indicate whether it is a node
         /// or a subsector.
         /// </summary>
-        public const uint IsSubsectorBit = 0x80000000U;
-
-        /// <summary>
-        /// The mask that is used for grabbing the lower 15 bits.
-        /// </summary>
-        public const uint SubsectorMask = 0x7FFFFFFFU;
+        public const uint SubsectorBit = 0x80000000U;
 
         /// <summary>
         /// A left child index, which is either an index to a subsector, or a
-        /// child node depending on whether <see cref="IsSubsectorBit"/> is
+        /// child node depending on whether <see cref="SubsectorBit"/> is
         /// set.
         /// </summary>
         public readonly uint LeftChild;
 
         /// <summary>
         /// A right child index, which is either an index to a subsector, or a
-        /// child node depending on whether <see cref="IsSubsectorBit"/> is
+        /// child node depending on whether <see cref="SubsectorBit"/> is
         /// set.
         /// </summary>
         public readonly uint RightChild;
@@ -47,24 +42,24 @@ namespace Helion.Worlds.Bsp
         /// <summary>
         /// True if the left child field is a subsector or not.
         /// </summary>
-        public bool IsLeftSubsector => (LeftChild & IsSubsectorBit) == IsSubsectorBit;
+        public bool IsLeftSubsector => (LeftChild & SubsectorBit) == SubsectorBit;
 
         /// <summary>
         /// True if the right child field is a subsector not.
         /// </summary>
-        public bool IsRightSubsector => (RightChild & IsSubsectorBit) == IsSubsectorBit;
+        public bool IsRightSubsector => (RightChild & SubsectorBit) == SubsectorBit;
 
         /// <summary>
         /// Gets the left child's index as if it were a subsector (without the
         /// subsector bit set).
         /// </summary>
-        public uint LeftChildAsSubsector => LeftChild & SubsectorMask;
+        public uint LeftChildAsSubsector => LeftChild & ~SubsectorBit;
 
         /// <summary>
         /// Gets the right child's index as if it were a subsector (without the
         /// subsector bit set).
         /// </summary>
-        public uint RightChildAsSubsector => RightChild & SubsectorMask;
+        public uint RightChildAsSubsector => RightChild & ~SubsectorBit;
 
         /// <summary>
         /// Creates a compact node from a left and right index.

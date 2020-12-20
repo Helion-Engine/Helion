@@ -252,7 +252,7 @@ namespace Helion.Resource.Definitions.Animations
             string name = ConsumeString().ToUpper();
             AnimatedSwitch animatedSwitch = new(name);
 
-            while (NextTokenIsOnOrOff(PeekNextText()))
+            while (NextTokenIsOnOrOff(PeekCurrentText()))
             {
                 SwitchType switchType = SwitchType.On;
 

@@ -105,13 +105,16 @@ namespace Helion.Client
             Map? map = m_resources.FindMap(mapName);
             if (map == null)
             {
-                Log.Warn("Cannot load map '{0}', it cannot be found or is corrupt", mapName);
+                Log.Error("Cannot load map '{0}', it cannot be found or is corrupt", mapName);
                 return;
             }
 
             SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem, m_resources, map);
             if (newLayer == null)
+            {
+                Log.Error("Cannot process map '{0}', it is corrupt", mapName);
                 return;
+            }
 
             m_layerManager.Add(newLayer);
         }

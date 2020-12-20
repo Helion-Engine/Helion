@@ -6,7 +6,6 @@ using Helion.Graphics;
 using Helion.Graphics.Palette;
 using Helion.Resource.Archives;
 using Helion.Resource.Definitions.Textures;
-using Helion.Resource.Tracker;
 using Helion.Util;
 using Image = Helion.Graphics.Image;
 using static Helion.Graphics.Palette.PaletteReaders;

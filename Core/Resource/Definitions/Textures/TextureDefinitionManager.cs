@@ -1,11 +1,10 @@
 ﻿using System;
 using Helion.Resource.Archives;
-using Helion.Resource.Tracker;
 using Helion.Util;
 
 namespace Helion.Resource.Definitions.Textures
 {
-    public class TextureDefinitionManager : INamespaceResourceProvider<TextureDefinition>
+    public class TextureDefinitionManager
     {
         private readonly NamespaceTracker<TextureDefinition> m_definitions = new();
         private Pnames? m_lastPnames;

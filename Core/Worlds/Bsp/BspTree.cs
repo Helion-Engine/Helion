@@ -298,7 +298,7 @@ namespace Helion.Worlds.Bsp
 
             // Because we want index 0 with the subsector bit set, this is just
             // the subsector bit.
-            const uint subsectorIndex = BspNodeCompact.IsSubsectorBit;
+            const uint subsectorIndex = BspNodeCompact.SubsectorBit;
 
             BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, splitter, box);
             Nodes = new[] { root };

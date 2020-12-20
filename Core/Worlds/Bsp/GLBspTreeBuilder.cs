@@ -46,7 +46,7 @@ namespace Helion.Worlds.Bsp
 
                 List<SubsectorSegment> clockwiseEdges = new();
                 int startIndex = glSubsector.FirstSegmentIndex;
-                int endIndex = startIndex + (int)glSubsector.Count;
+                int endIndex = startIndex + glSubsector.Count;
                 for (int i = startIndex; i < endIndex; i++)
                 {
                     GLSegment glSegment = segments[i];
@@ -55,7 +55,7 @@ namespace Helion.Worlds.Bsp
 
                     // We need to find which of the non-miniseg segments has a
                     // sector. All we need to do is remember one of them.
-                    if (side != null && sector != null)
+                    if (sector == null && side != null)
                         sector = side.Sector;
 
                     SubsectorSegment segment = new(side, start, end);
@@ -142,8 +142,8 @@ namespace Helion.Worlds.Bsp
             {
                 // The bits have already been trimmed on the data structure, so
                 // we only need to add them here to map onto our internals.
-                uint leftIndex = glNode.IsLeftSubsector ? (glNode.LeftChild | BspNodeCompact.SubsectorMask) : glNode.LeftChild;
-                uint rightIndex = glNode.IsRightSubsector ? (glNode.RightChild | BspNodeCompact.SubsectorMask) : glNode.RightChild;
+                uint leftIndex = glNode.IsLeftSubsector ? (glNode.LeftChild | BspNodeCompact.SubsectorBit) : glNode.LeftChild;
+                uint rightIndex = glNode.IsRightSubsector ? (glNode.RightChild | BspNodeCompact.SubsectorBit) : glNode.RightChild;
                 Box2D box = Box2D.Combine(glNode.LeftBox, glNode.RightBox);
 
                 BspNodeCompact node = new(leftIndex, rightIndex, glNode.Splitter, box);
@@ -162,7 +162,7 @@ namespace Helion.Worlds.Bsp
             // pass in the mask for the subsector bit since it is the same as
             // subsector zero (since the upper bit is set only).
             Subsector subsector = m_subsectors[0];
-            uint subsectorIndex = BspNodeCompact.IsSubsectorBit;
+            uint subsectorIndex = BspNodeCompact.SubsectorBit;
             Seg2D splitter = new(subsector.BoundingBox.BottomLeft, subsector.BoundingBox.TopRight);
 
             BspNodeCompact node = new(subsectorIndex, subsectorIndex, splitter, subsector.BoundingBox);

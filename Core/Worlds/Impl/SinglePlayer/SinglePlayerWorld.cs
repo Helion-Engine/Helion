@@ -12,8 +12,6 @@ using Helion.Worlds.Cheats;
 using Helion.Worlds.Entities;
 using Helion.Worlds.Entities.Inventories;
 using Helion.Worlds.Entities.Players;
-using Helion.Worlds.Geometry;
-using Helion.Worlds.Geometry.Builder;
 using Helion.Worlds.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;

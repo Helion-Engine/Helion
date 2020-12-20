@@ -1,7 +1,6 @@
 using Helion.Resource.Archives;
 using Helion.Resource.Definitions.Animations.Switches;
 using Helion.Resource.Definitions.Animations.Textures;
-using Helion.Resource.Tracker;
 using Helion.Util;
 using NLog;
 
