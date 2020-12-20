@@ -61,13 +61,13 @@ namespace Helion.Resource.Sprites
             Texture frame37 = m_textures.Get(name + "3" + name[4] + "7", Namespace.Sprites);
             Texture frame46 = m_textures.Get(name + "4" + name[4] + "6", Namespace.Sprites);
 
-            if (!AreAllMissing(frame1, frame2, frame3, frame4, frame5, frame6, frame7, frame8))
+            if (!AreAnyMissing(frame1, frame2, frame3, frame4, frame5, frame6, frame7, frame8))
                 return new(name, frame1, frame2, frame3, frame4, frame5, frame6, frame7, frame8);
-            if (!AreAllMissing(frame1, frame28, frame37, frame46, frame5))
+            if (!AreAnyMissing(frame1, frame28, frame37, frame46, frame5))
                 return new(name, frame1, frame28, frame37, frame46, frame5);
             return frame0.IsMissing ? null : new Sprite(name, frame0);
 
-            static bool AreAllMissing(params Texture[] textures) => textures.All(texture => texture.IsMissing);
+            static bool AreAnyMissing(params Texture[] textures) => textures.Any(texture => texture.IsMissing);
         }
     }
 }

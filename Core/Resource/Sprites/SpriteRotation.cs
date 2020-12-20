@@ -27,5 +27,7 @@ namespace Helion.Resource.Sprites
             Texture = texture;
             Mirror = mirror;
         }
+
+        public override string ToString() => $"{Texture.Name} (mirror: {Mirror}";
     }
 }
