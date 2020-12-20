@@ -88,8 +88,8 @@ namespace Helion.Maps.Components.GL
             {
                 uint startVertex = isV2 ? reader.UShort() : reader.UInt();
                 uint endVertex = isV2 ? reader.UShort() : reader.UInt();
-                uint linedef = reader.UShort();
-                bool isRightSide = reader.UShort() == 0;
+                uint linedef = isV2 ? reader.UShort() : reader.UInt();
+                bool isRightSide = (isV2 ? reader.UShort() : reader.UInt()) == 0;
                 uint partnerSegment = isV2 ? reader.UShort() : reader.UInt();
 
                 GLSegment segment = isV2 ?
@@ -111,8 +111,8 @@ namespace Helion.Maps.Components.GL
 
             for (int i = 0; i < count; i++)
             {
-                int amount = isV2 ? reader.UShort() : (int)reader.UInt();
-                int firstSeg = isV2 ? reader.UShort() : (int)reader.UInt();
+                int amount = isV2 ? reader.UShort() : reader.Int();
+                int firstSeg = isV2 ? reader.UShort() : reader.Int();
 
                 GLSubsector subsector = new(amount, firstSeg);
                 Subsectors.Add(subsector);
