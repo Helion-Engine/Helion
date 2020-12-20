@@ -54,28 +54,40 @@ namespace Helion.Worlds.Textures
             return MissingTexture;
         }
 
-        private bool TryCreateTexture(CIString name, Namespace resourceNamespace,
+        /// <summary>
+        /// Tries to create the texture. If it cannot find the appropriate
+        /// texture, this will not do any caching/storage of a the missing
+        /// texture in place of it to prevent lookups. That is up to the
+        /// caller to do so. This will track the texture on success though.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <param name="priorityNamespace">The priority namespace.</param>
+        /// <param name="worldTexture">The created world texture, or null if
+        /// there is no way to make the texture.</param>
+        /// <returns>True if found and made, false if could not be found and
+        /// created.</returns>
+        private bool TryCreateTexture(CIString name, Namespace priorityNamespace,
             [NotNullWhen(true)] out IWorldTexture? worldTexture)
         {
-            IAnimatedTexture? animatedDefinition = m_resources.Animations.Get(name, resourceNamespace);
+            IAnimatedTexture? animatedDefinition = m_resources.Animations.Get(name, priorityNamespace);
             if (animatedDefinition != null)
             {
-                IWorldTexture animatedTexture = CreateFromAnimated(animatedDefinition, resourceNamespace);
-                TrackNewTexture(name, resourceNamespace, animatedTexture);
+                IWorldTexture animatedTexture = CreateFromAnimated(animatedDefinition, priorityNamespace);
+                TrackNewTexture(name, priorityNamespace, animatedTexture);
                 worldTexture = animatedTexture;
                 return true;
             }
 
-            Texture texture = m_resources.Textures.GetOnly(name, resourceNamespace);
-            if (texture.IsMissing)
+            Texture texture = m_resources.Textures.Get(name, priorityNamespace);
+            if (!texture.IsMissing)
             {
-                worldTexture = null;
-                return false;
+                worldTexture = new StaticWorldTexture(name, texture);
+                TrackNewTexture(name, priorityNamespace, worldTexture);
+                return true;
             }
 
-            worldTexture = new StaticWorldTexture(name, texture);
-            TrackNewTexture(name, resourceNamespace, worldTexture);
-            return true;
+            worldTexture = null;
+            return false;
         }
 
         private IWorldTexture CreateFromAnimated(IAnimatedTexture animatedDefinition, Namespace resourceNamespace)
