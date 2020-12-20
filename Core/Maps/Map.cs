@@ -125,10 +125,11 @@ namespace Helion.Maps
             int numSides = sideData.Length / BytesPerSide;
             ByteReader reader = new(sideData);
 
-            for (int id = 0; id < numSides; id++)
+            for (int index = 0; index < numSides; index++)
             {
                 Sidedef sidedef = new()
                 {
+                    Index = index,
                     Offset = new Vec2I(reader.Short(), reader.Short()),
                     UpperTexture = reader.EightByteString().ToUpper(),
                     LowerTexture = reader.EightByteString().ToUpper(),

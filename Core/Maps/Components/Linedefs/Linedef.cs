@@ -43,7 +43,7 @@ namespace Helion.Maps.Components.Linedefs
         /// <summary>
         /// An alias for the back sidedef.
         /// </summary>
-        public Sidedef Back => Right;
+        public Sidedef? Back => Left;
 
         /// <summary>
         /// True if the line is one sided, false otherwise.

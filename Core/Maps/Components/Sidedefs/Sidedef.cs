@@ -7,6 +7,11 @@ namespace Helion.Maps.Components.Sidedefs
     public record Sidedef
     {
         /// <summary>
+        /// The index of the side in the sidedefs entry.
+        /// </summary>
+        public int Index { get; init; }
+
+        /// <summary>
         /// The texture offsets.
         /// </summary>
         public Vec2I Offset { get; init; }
