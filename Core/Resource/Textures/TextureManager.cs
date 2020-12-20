@@ -7,6 +7,7 @@ using Helion.Graphics.Palette;
 using Helion.Resource.Archives;
 using Helion.Resource.Definitions.Textures;
 using Helion.Util;
+using NLog;
 using Image = Helion.Graphics.Image;
 using static Helion.Graphics.Palette.PaletteReaders;
 
@@ -14,6 +15,7 @@ namespace Helion.Resource.Textures
 {
     public class TextureManager
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Namespace[] NamespacesToCheck =
         {
             Namespace.Textures,
@@ -135,8 +137,14 @@ namespace Helion.Resource.Textures
 
             foreach (TextureDefinitionComponent component in definition.Components)
             {
-                Image? existingImage = FindImageNonRecursive(name, resourceNamespace);
-                existingImage?.DrawOnTopOf(image, component.Offset);
+                Image? existingImage = FindImageNonRecursive(component.Name, resourceNamespace);
+                if (existingImage == null)
+                {
+                    Log.Warn("Texture '{0}' is missing definition component '{1}'", name, component.Name);
+                    continue;
+                }
+
+                existingImage.DrawOnTopOf(image, component.Offset);
             }
 
             return CreateFromImageAndTrack(name, resourceNamespace, image);

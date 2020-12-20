@@ -97,11 +97,11 @@ namespace Helion.Resource
         /// Finds an entry at the resource namespace provided only.
         /// </summary>
         /// <param name="name">The entry name.</param>
-        /// <param name="resourceNamespace">The resource namespace.</param>
+        /// <param name="priorityNamespace">The resource namespace.</param>
         /// <returns>The entry, or null if none exists.</returns>
-        public Entry? Find(CIString name, Namespace resourceNamespace)
+        public Entry? Find(CIString name, Namespace priorityNamespace)
         {
-            return m_entryTracker.GetOnly(name, resourceNamespace);
+            return m_entryTracker.Get(name, priorityNamespace);
         }
 
         /// <summary>

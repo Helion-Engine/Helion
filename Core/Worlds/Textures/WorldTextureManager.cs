@@ -79,15 +79,15 @@ namespace Helion.Worlds.Textures
             }
 
             Texture texture = m_resources.Textures.Get(name, priorityNamespace);
-            if (!texture.IsMissing)
+            if (texture.IsMissing)
             {
-                worldTexture = new StaticWorldTexture(name, texture);
-                TrackNewTexture(name, priorityNamespace, worldTexture);
-                return true;
+                worldTexture = null;
+                return false;
             }
 
-            worldTexture = null;
-            return false;
+            worldTexture = new StaticWorldTexture(name, texture);
+            TrackNewTexture(name, priorityNamespace, worldTexture);
+            return true;
         }
 
         private IWorldTexture CreateFromAnimated(IAnimatedTexture animatedDefinition, Namespace resourceNamespace)

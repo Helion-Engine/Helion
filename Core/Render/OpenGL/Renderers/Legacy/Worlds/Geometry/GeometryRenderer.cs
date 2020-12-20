@@ -109,6 +109,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Worlds.Geometry
                 if (edge.Line == null)
                     continue;
 
+                // TODO: If we've drawn it, does that mean we already clipped it? And thus don't need to again?
                 if (m_lineDrawnTracker.HasDrawn(edge.Line))
                 {
                     AddLineClip(edge, edge.Line);
