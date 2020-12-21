@@ -19,7 +19,7 @@ namespace Helion.Maps.Components.GL
         internal const uint NoPartnerSegmentV5 = 0xFFFFFFFFU;
         private const int BytesPerVertex = 8;
         private const int BytesPerSegmentV2 = 10;
-        private const int BytesPerSegmentV5 = 16;
+        private const int BytesPerSegmentV5 = 20;
         private const int BytesPerSubsectorV2 = 4;
         private const int BytesPerSubsectorV5 = 8;
         private const int BytesPerNodeV2 = 28;
