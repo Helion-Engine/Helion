@@ -387,7 +387,7 @@ namespace Helion.World.Entities.Players
                 }
 
                 PendingWeapon = weapon;
-                LowerWeapon();
+                LowerWeapon(hadWeapon);
             }
         }
 
@@ -429,20 +429,21 @@ namespace Helion.World.Entities.Players
             return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack) && CheckAmmo();
         }
 
-        public void LowerWeapon()
+        public void LowerWeapon(bool setTop = true)
         {
             if (Weapon == null)
                 return;
 
             if (Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
-                ForceLowerWeapon();
+                ForceLowerWeapon(setTop);
         }
 
-        private void ForceLowerWeapon()
+        private void ForceLowerWeapon(bool setTop)
         {
             if (Weapon != null)
             {
-                SetWeaponTop();
+                if (setTop)
+                    SetWeaponTop();
                 Weapon.FrameState.SetState("DESELECT");
             }
         }
@@ -543,7 +544,7 @@ namespace Helion.World.Entities.Players
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
             m_killer = source;
 
-            ForceLowerWeapon();
+            ForceLowerWeapon(true);
         }
 
         private void AddStartItems()
