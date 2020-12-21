@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
@@ -37,6 +38,7 @@ namespace Helion.World
         EntityManager EntityManager { get; }
         SoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
+        Config Config { get; }
 
         void Link(Entity entity);
         void Tick();

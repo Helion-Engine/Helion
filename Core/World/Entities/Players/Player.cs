@@ -262,7 +262,7 @@ namespace Helion.World.Entities.Players
 
         private void SetBob()
         {
-            m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4);
+            m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Engine.Gameplay.MoveBob;
             if (Weapon != null && Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
             {
                 double value = 0.1 * World.LevelTime;

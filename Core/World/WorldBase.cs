@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Maps;
 using Helion.Maps.Specials.Compatibility;
@@ -58,7 +57,6 @@ namespace Helion.World
         public double Gravity { get; private set; } = 1.0;
         public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
-        protected readonly Config Config;
         protected readonly MapGeometry Geometry;
         protected readonly SpecialManager SpecialManager;
         protected readonly PhysicsManager PhysicsManager;
@@ -79,6 +77,7 @@ namespace Helion.World
         public abstract double ListenerPitch { get; }
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
+        public Config Config { get; private set; }
 
         private readonly DoomRandom m_random = new DoomRandom();
         private int m_soundCount;
