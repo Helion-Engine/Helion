@@ -51,12 +51,14 @@ namespace Helion.Resource.Definitions.Animations
                 return;
             }
 
-            foreach (AnimatedTexture animatedTexture in parser.AnimatedTextures)
-                m_animatedTextures.Insert(animatedTexture.Name, animatedTexture.Namespace, animatedTexture);
-            foreach (AnimatedWarpTexture animatedWarp in parser.WarpTextures)
-                m_animatedTextures.Insert(animatedWarp.Name, animatedWarp.Namespace, animatedWarp);
             foreach (AnimatedCameraTexture animatedCamera in parser.CameraTextures)
                 m_animatedTextures.Insert(animatedCamera.Name, animatedCamera.Namespace, animatedCamera);
+            foreach (AnimatedWarpTexture animatedWarp in parser.WarpTextures)
+                m_animatedTextures.Insert(animatedWarp.Name, animatedWarp.Namespace, animatedWarp);
+            foreach (AnimatedTexture animatedTexture in parser.AnimatedTextures)
+                m_animatedTextures.Insert(animatedTexture.Name, animatedTexture.Namespace, animatedTexture);
+            foreach (AnimatedSwitch animatedSwitch in parser.AnimatedSwitches)
+                m_animatedTextures.Insert(animatedSwitch.Name, animatedSwitch.Namespace, animatedSwitch);
         }
     }
 }

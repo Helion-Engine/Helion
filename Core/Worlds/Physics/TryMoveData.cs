@@ -14,8 +14,8 @@ namespace Helion.Worlds.Physics
         public double HighestFloorZ;
         public double DropOffZ;
         public Entity? DropOffEntity;
-        public List<Entity> IntersectEntities2D = new();
-        public List<Line> IntersectSpecialLines = new();
+        public readonly List<Entity> IntersectEntities2D = new();
+        public readonly List<Line> IntersectSpecialLines = new();
 
         public TryMoveData(Vec2D position)
         {
@@ -45,10 +45,8 @@ namespace Helion.Worlds.Physics
         private static bool FindLine(List<Line> lines, int id)
         {
             for (int i = 0; i < lines.Count; i++)
-            {
                 if (lines[i].Id == id)
                     return true;
-            }
 
             return false;
         }

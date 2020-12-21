@@ -70,7 +70,7 @@ namespace Helion.Worlds.Geometry.Lines
         {
             // NOTE: I am implementing this based on the previous method that
             // is refactored in here, but I figure we could probably do a check
-            // against the special itself.
+            // against the special itself (which would be faster).
             return HasSpecial && Front.Walls.Any(w => w.Texture is SwitchWorldTexture);
         }
 
@@ -83,7 +83,9 @@ namespace Helion.Worlds.Geometry.Lines
         /// otherwise.</returns>
         public bool BlocksEntity(Entity entity)
         {
-            return OneSided || (entity.Flags.Monster && Flags.Blocking.Monsters) || (entity is Player && Flags.Blocking.Players);
+            return OneSided ||
+                   (entity.Flags.Monster && Flags.Blocking.Monsters) ||
+                   (entity is Player && Flags.Blocking.Players);
         }
 
         /// <summary>
@@ -93,9 +95,10 @@ namespace Helion.Worlds.Geometry.Lines
         {
             Activated = true;
 
+            bool forever = !Flags.Repeat;
             foreach (Wall wall in Front.Walls)
                 if (wall.Texture is SwitchWorldTexture switchTexture)
-                    switchTexture.Activate();
+                    switchTexture.Activate(forever);
         }
 
         private IEnumerable<Side> GetSides()

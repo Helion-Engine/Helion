@@ -50,33 +50,37 @@ namespace Helion.Worlds.Special
 
         public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
         {
-            if (args.ActivateLineSpecial == null || (args.ActivateLineSpecial.Activated && !args.ActivateLineSpecial.Flags.Repeat))
+            Line line = args.ActivateLineSpecial;
+            ActivationContext context = args.ActivationContext;
+            if (line == null)
                 return false;
 
-            var special = args.ActivateLineSpecial.Special;
-            bool specialActivateSuccess;
+            LineSpecial special = line.Special;
+             if (line.Activated && !line.Flags.Repeat)
+                return false;
 
+            bool specialActivateSuccess;
             if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial() || special.IsSectorStopMoveSpecial() || special.IsSectorStopLightSpecial())
                 specialActivateSuccess = HandleSectorLineSpecial(args, special);
             else
                 specialActivateSuccess = HandleDefault(args, special, m_world);
 
-            if (specialActivateSuccess && ShouldCreateSwitchSpecial(args))
+            if (specialActivateSuccess && ShouldCreateSwitchSpecial(line, context))
             {
-                SwitchType switchType = GetSwitchType(args.ActivateLineSpecial.Special);
-                AddSpecial(new SwitchChangeSpecial(m_world.SoundManager, args.ActivateLineSpecial, switchType));
+                SwitchType switchType = GetSwitchType(special);
+                SwitchChangeSpecial switchSpecial = new(m_world.SoundManager, line, switchType);
+                AddSpecial(switchSpecial);
             }
-
-            args.ActivateLineSpecial.Activate();
 
             return specialActivateSuccess;
         }
 
-        private bool ShouldCreateSwitchSpecial(EntityActivateSpecialEventArgs args)
+        private bool ShouldCreateSwitchSpecial(Line line, ActivationContext context)
         {
-            if (args.ActivationContext == ActivationContext.CrossLine)
+            if (context == ActivationContext.CrossLine)
                 return false;
-            return !args.ActivateLineSpecial.Activated && args.ActivateLineSpecial.IsSwitch();
+
+            return !line.Activated && line.IsSwitch();
         }
 
         private static SwitchType GetSwitchType(LineSpecial lineSpecial)

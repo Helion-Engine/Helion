@@ -20,6 +20,7 @@ namespace Helion.Worlds.Textures.Types
         private readonly Texture m_activeTexture;
         private readonly int m_durationTicks;
         private int m_animatedTicksRemaining;
+        private bool m_stayActiveForever;
 
         public SwitchWorldTexture(AnimatedSwitch animatedSwitch, Texture inactiveTexture, Texture activeTexture,
             int duration)
@@ -43,15 +44,23 @@ namespace Helion.Worlds.Textures.Types
             m_animatedTicksRemaining = parent.m_animatedTicksRemaining;
         }
 
-        public void Activate()
+        /// <summary>
+        /// Activates the switch.
+        /// </summary>
+        /// <param name="forever">True if this should be activated forever,
+        /// meaning it never switches into the off position again, or false
+        /// if it should use the internal timer and revert after that period
+        /// of time.</param>
+        public void Activate(bool forever)
         {
             Texture = m_activeTexture;
             m_animatedTicksRemaining = m_durationTicks;
+            m_stayActiveForever = forever;
         }
 
         public void Tick()
         {
-            if (m_animatedTicksRemaining <= 0)
+            if (m_stayActiveForever || m_animatedTicksRemaining <= 0)
                 return;
 
             m_animatedTicksRemaining--;

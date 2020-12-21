@@ -20,6 +20,8 @@ namespace Helion.Worlds.Special.Specials
             m_line = line;
             m_repeat = line.Flags.Repeat;
 
+            m_line.Activate();
+
             if (type == SwitchType.Exit)
             {
                 // The level is about to exit so everything will be stopped

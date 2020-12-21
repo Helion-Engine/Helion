@@ -48,7 +48,7 @@ namespace Helion.Worlds.Physics
         private readonly EntityManager m_entityManager;
         private readonly SoundManager m_soundManager;
         private readonly IRandom m_random;
-        private readonly LineOpening m_lineOpening = new LineOpening();
+        private readonly LineOpening m_lineOpening = new();
 
         /// <summary>
         /// Creates a new physics manager which utilizes the arguments for any
@@ -102,7 +102,7 @@ namespace Helion.Worlds.Physics
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
-            List<Entity> crushEntities = new List<Entity>();
+            List<Entity> crushEntities = new();
             Entity? highestBlockEntity = null;
             double? highestBlockHeight = 0.0;
             SectorMoveStatus status = SectorMoveStatus.Success;
@@ -344,13 +344,6 @@ namespace Helion.Worlds.Physics
                 entity.Velocity.Y = 0;
         }
 
-        private enum LineBlock
-        {
-            NoBlock,
-            BlockStopChecking,
-            BlockContinueIfFloat,
-        }
-
         private LineBlock LineBlocksEntity(Entity entity, Line line, TryMoveData? tryMove)
         {
             if (line.BlocksEntity(entity))
@@ -543,7 +536,7 @@ namespace Helion.Worlds.Physics
 
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
-            HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
+            HashSet<Sector> sectors = new() { centerSector };
 
             // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
@@ -591,7 +584,7 @@ namespace Helion.Worlds.Physics
 
         public TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
         {
-            TryMoveData tryMoveData = new TryMoveData(position);
+            TryMoveData tryMoveData = new(position);
             if (entity.Flags.NoClip)
             {
                 HandleNoClip(entity, position);

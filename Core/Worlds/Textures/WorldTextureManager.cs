@@ -119,10 +119,8 @@ namespace Helion.Worlds.Textures
 
         private IWorldTexture CreateFromAnimatedSwitch(AnimatedSwitch switchTexture, Namespace resourceNamespace)
         {
-            // TODO: Will fix shortly (watch me forget...)
-            int duration = Constants.TicksPerSecond * 4;
-
             // TODO: Only support basic 2-frame switches right now.
+            int duration = Constants.TicksPerSecond;
             Texture baseTexture = m_textureManager.Get(switchTexture.Name, Namespace.Textures);
             Texture active = m_textureManager.Get(switchTexture.On.Components[0].Texture, resourceNamespace);
 
