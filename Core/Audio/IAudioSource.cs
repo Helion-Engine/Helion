@@ -40,6 +40,11 @@ namespace Helion.Audio
         object? SoundSource { get; set; }
 
         /// <summary>
+        /// Priority for this sound, lower is higher priority.
+        /// </summary>
+        int Priority { get; set; }
+
+        /// <summary>
         /// If this sound should loop after completion.
         /// </summary>
         bool Loop { get; set; }

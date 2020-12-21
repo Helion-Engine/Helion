@@ -23,8 +23,7 @@ namespace Helion.Client.OpenAL
         private readonly ALAudioSystem m_owner;
         private readonly HashSet<ALAudioSource> m_sources = new HashSet<ALAudioSource>();
         private readonly Dictionary<string, ALBuffer> m_nameToBuffer = new Dictionary<string, ALBuffer>();
-
-        private DynamicArray<int> m_playGroup = new DynamicArray<int>();
+        private readonly DynamicArray<int> m_playGroup = new DynamicArray<int>();
 
         public ALAudioSourceManager(ALAudioSystem owner, Resources resources)
         {
@@ -82,10 +81,10 @@ namespace Helion.Client.OpenAL
             return source;
         }
 
-        public void PlayGroup(List<IAudioSource> audioSources)
+        public void PlayGroup(IEnumerable<IAudioSource> audioSources)
         {
-            for (int i = 0; i < audioSources.Count; i++)
-               m_playGroup.Add(((ALAudioSource)audioSources[i]).ID);
+            foreach (IAudioSource audioSource in audioSources)
+               m_playGroup.Add(((ALAudioSource)audioSource).ID);
 
             AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
             m_playGroup.Clear();

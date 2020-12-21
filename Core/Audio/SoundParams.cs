@@ -12,9 +12,9 @@ namespace Helion.Audio
         public const float DefaultRadius = 32.0f;
 
         public readonly object? SoundSource;
-        public readonly Attenuation Attenuation;
         public readonly bool Loop;
         public readonly float Volume;
+        public Attenuation Attenuation { get; set; }
         public SoundInfo? SoundInfo { get; set; }
 
         public SoundParams(Attenuation attenuation)
