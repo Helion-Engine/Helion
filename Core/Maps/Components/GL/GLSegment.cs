@@ -14,14 +14,14 @@ namespace Helion.Maps.Components.GL
 
         public bool IsMiniseg => Linedef == null;
 
-        private GLSegment(uint startVertex, bool isStartGL, uint endVertex, bool isEndGL, uint linedef, bool isRightSide,
+        private GLSegment(uint startVertex, bool isStartGL, uint endVertex, bool isEndGL, uint? linedef, bool isRightSide,
             uint? partnerSegment)
         {
             StartVertex = startVertex;
             IsStartVertexGL = isStartGL;
             EndVertex = endVertex;
             IsEndVertexGL = isEndGL;
-            Linedef = linedef == LineIsMiniseg ? null : linedef;
+            Linedef = linedef;
             IsRightSide = isRightSide;
             PartnerSegment = partnerSegment;
         }
@@ -34,7 +34,7 @@ namespace Helion.Maps.Components.GL
                 (startVertex & VertexIsGLV2) == VertexIsGLV2,
                 endVertex & ~VertexIsGLV2,
                 (endVertex & VertexIsGLV2) == VertexIsGLV2,
-                linedef,
+                linedef == LineIsMinisegV2 ? null : linedef,
                 isRightSide,
                 partnerSegment == NoPartnerSegmentV2 ? null : partnerSegment
             );
@@ -48,7 +48,7 @@ namespace Helion.Maps.Components.GL
                 (startVertex & VertexIsGLV5) == VertexIsGLV5,
                 endVertex & ~VertexIsGLV5,
                 (endVertex & VertexIsGLV5) == VertexIsGLV5,
-                linedef,
+                linedef == LineIsMinisegV5 ? null : linedef,
                 isRightSide,
                 partnerSegment == NoPartnerSegmentV5 ? null : partnerSegment
             );

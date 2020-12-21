@@ -10,7 +10,8 @@ namespace Helion.Maps.Components.GL
 {
     public class GLComponents
     {
-        internal const uint LineIsMiniseg = 0xFFFFU;
+        internal const uint LineIsMinisegV2 = 0xFFFFU;
+        internal const uint LineIsMinisegV5 = 0xFFFFFFFFU;
         internal const uint VertexIsGLV2 = 1 << 15;
         internal const uint VertexIsGLV5 = 0x80000000U;
         internal const uint NodeIsSubsectorV2 = 1 << 15;
@@ -123,10 +124,11 @@ namespace Helion.Maps.Components.GL
         {
             bool isV2 = Version == 2;
             int byteLength = isV2 ? BytesPerNodeV2 : BytesPerNodeV5;
-            if (nodeData.Length % byteLength != 0)
+            int dataLength = isV2 ? nodeData.Length : FindV5NodeLength(nodeData);
+            if (dataLength % byteLength != 0)
                 throw new Exception("Bad GL node data length");
 
-            int count = nodeData.Length / byteLength;
+            int count = dataLength / byteLength;
             ByteReader reader = new(nodeData);
 
             for (int i = 0; i < count; i++)
@@ -145,6 +147,48 @@ namespace Helion.Maps.Components.GL
 
                 Nodes.Add(node);
             }
+        }
+
+        private static int FindV5NodeLength(byte[] nodeData)
+        {
+            // ZDoom writes tons of zeros, so we have to compensate for this
+            // error by scanning from the end to the first non-zero byte, and
+            // then seeing if there's any padding to the data structure that
+            // is needed. This sucks, but we have no choice since they never
+            // tested it apparently.
+
+            // If this ever needed to be sped up, we could do binary search. I
+            // am willing to bet the speed loss is negligible though because of
+            // how fast hardware is currently.
+            int index = nodeData.Length - 1;
+            for (; index >= 0; index--)
+            {
+                if (nodeData[index] != 0)
+                    break;
+            }
+
+            // The index is the length, so we want to add one since it's now
+            // pointing into the data rather than past it.
+            //                V                            V
+            // Ex: [..., 51, 175, 0, 0, ...] -> [..., 51, 175, 0, 0, ...]
+            index++;
+
+            // It might be the case that the zeros are needed. What we will do
+            // (since we don't know the actual length) is walk forward until we
+            // reach a length that is valid. This can be done in one step by
+            // finding the remainder (to round it out to the node size), adding
+            // the remainder, and checking that all is good.
+            //
+            // For example, if nodes are 10 bytes in length, and we reached
+            // index 42, then there's 8 bytes that belong to it which we are
+            // missing (since it its supposed to write until at least 50, and
+            // we assume it's well formed).
+            index += BytesPerNodeV5 - (index % BytesPerNodeV5);
+
+            if (index < 0 || index > nodeData.Length)
+                throw new Exception("Malformed GL nodes for version 5");
+
+            return index;
         }
 
         private static Box2D ReadNodeBoundingBox(ByteReader reader)
