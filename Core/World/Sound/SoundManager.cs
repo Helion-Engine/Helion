@@ -87,6 +87,12 @@ namespace Helion.World.Sound
             }
         }
 
+        public void StopLoopSoundBySource(object source)
+        {
+            StopSoundBySource(source, null, m_playingSounds, true);
+            StopSoundBySource(source, null, m_waitingLoopSounds, true);
+        }
+
         private void UpdateWaitingLoopSounds()
         {
             LinkedListNode<IAudioSource>? node = m_waitingLoopSounds.First;
@@ -153,27 +159,22 @@ namespace Helion.World.Sound
             AudioManager.Dispose();
         }
 
-        private bool StopSoundsBySource(object? source)
+        private bool StopSoundsBySource(object? source, SoundInfo? soundInfo)
         {
-            if (StopSoundBySource(source, m_soundsToPlay, false))
+            if (StopSoundBySource(source, soundInfo, m_soundsToPlay, false))
                 return true;
-            if (StopSoundBySource(source, m_playingSounds, false))
+            if (StopSoundBySource(source, soundInfo, m_playingSounds, false))
                 return true;
             return false;
         }
 
-        public void StopLoopSoundBySource(object source)
-        {
-            StopSoundBySource(source, m_playingSounds, true);
-            StopSoundBySource(source, m_waitingLoopSounds, true);
-        }
-
-        private static bool StopSoundBySource(object? source, LinkedList<IAudioSource> audioSources, bool loop)
+        private bool StopSoundBySource(object? source, SoundInfo? soundInfo, LinkedList<IAudioSource> audioSources, bool loop)
         {
             if (source == null)
                 return false;
 
             bool soundStopped = false;
+            int priority = -1;
             LinkedListNode<IAudioSource>? node = audioSources.First;
             LinkedListNode<IAudioSource>? nextNode;
             while (node != null)
@@ -181,6 +182,15 @@ namespace Helion.World.Sound
                 nextNode = node.Next;
                 if (node.Value.Loop == loop && ReferenceEquals(source, node.Value.SoundSource))
                 {
+                    if (priority == -1)
+                        priority = GetPriority(source, soundInfo, null, out _);
+
+                    if (node.Value.Priority < priority)
+                    {
+                        node = nextNode;
+                        continue;
+                    }
+
                     node.Value.Stop();
                     node.Value.Dispose();
                     audioSources.Remove(node);
@@ -228,7 +238,7 @@ namespace Helion.World.Sound
             bool waitLoopSound = false;
 
             // Check if this sound will remomve a sound by it's source first, then check bumping by priority
-            if (IsMaxSoundCount && (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source) && !BumpSoundByPriority(priority))))
+            if (IsMaxSoundCount && (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo) && !BumpSoundByPriority(priority))))
             {
                 if (soundParams.Loop)
                     waitLoopSound = true;
