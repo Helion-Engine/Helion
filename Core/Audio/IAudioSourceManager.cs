@@ -44,6 +44,6 @@ namespace Helion.Audio
         IAudioSource? Create(string sound, SoundParams soundParams);
 
         void SetListener(Vec3D pos, double angle, double pitch);
-        void PlayGroup(List<IAudioSource> audioSources);
+        void PlayGroup(IEnumerable<IAudioSource> audioSources);
     }
 }

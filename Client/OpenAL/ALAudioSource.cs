@@ -44,6 +44,7 @@ namespace Helion.Client.OpenAL
         public Vector3 Velocity { get; set; }
         public SoundInfo? SoundInfo { get; set; }
         public object? SoundSource { get; set; }
+        public int Priority { get; set; }
         public bool Loop { get; set; }
         public int ID => m_sourceId;
 
