@@ -34,7 +34,7 @@ namespace Helion.Worlds.Entities.Definition.Composer
             //    LABEL
             //
             // which are eligible to be overwritten.
-            Dictionary<string, int> masterLabelTable = new Dictionary<string, int>();
+            Dictionary<string, int> masterLabelTable = new();
 
             // We always have to apply the first definition to it, which should
             // be the Actor class. However to reduce code duplication, we'll be

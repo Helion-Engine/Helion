@@ -143,7 +143,7 @@ namespace Helion.Worlds.Entities
         {
             var ammo = DefinitionComposer.GetByName(name);
             if (ammo != null)
-                player.Inventory.Add(ammo, 50);
+                player.Inventory.Add(ammo, amount);
         }
 
         private void GiveWeapon(Player player, string name)

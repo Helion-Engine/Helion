@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Util;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.Worlds.Entities.Players;
@@ -1032,7 +1033,7 @@ namespace Helion.Worlds.Entities.Definition.States
             if (entity.Target == null)
                 return;
 
-            A_FaceTarget(entity.Target);
+            A_FaceTarget(entity);
             entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, new SoundParams(entity));
         }
 
@@ -1077,7 +1078,8 @@ namespace Helion.Worlds.Entities.Definition.States
             if (entity is Player player)
             {
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
-                player.Weapon?.SetFlashState();
+                int offset = player.Weapon == null ? 0 : Math.Clamp((int)player.Weapon.FrameState.Frame.Sprite.BaseFrame, 0, 1);
+                player.Weapon?.SetFlashState(offset);
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
                     player.PitchRadians, Constants.EntityShootDistance, false);
             }
@@ -1127,7 +1129,7 @@ namespace Helion.Worlds.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.Weapon?.SetFlashState();
+                player.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
                 player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "PlasmaBall");
             }
         }
@@ -1548,7 +1550,7 @@ namespace Helion.Worlds.Entities.Definition.States
 
             if (!entity.World.TryMoveXY(skull, skullPos.To2D(), false).Success)
             {
-                skull.Kill();
+                skull.Kill(null);
                 return;
             }
 
@@ -2474,22 +2476,27 @@ namespace Helion.Worlds.Entities.Definition.States
 
         private static void A_VileChase(Entity entity)
         {
-            Vec3D oldPos = entity.Position;
-            Vec3D pos = entity.Position;
-            Vec2D nextPos = entity.GetNextEnemyPos();
-            pos.X = nextPos.X;
-            pos.Y = nextPos.Y;
-            entity.SetPosition(pos);
-
-            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(),
+            Box2D nextBox = Box2D.CopyToOffset(entity.GetNextEnemyPos(), entity.Radius);
+            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
                 BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
 
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
 
-                if (bi.Entity == null || !bi.Entity.HasRaiseState())
+                if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1)
                     continue;
+
+                bi.Entity.Flags.Solid = true;
+                double oldHeight = bi.Entity.Height;
+                bi.Entity.SetHeight(bi.Entity.Definition.Properties.Height);
+
+                if (!entity.World.TryMoveXY(bi.Entity, bi.Entity.Position.To2D(), false).Success)
+                {
+                    bi.Entity.Flags.Solid = false;
+                    bi.Entity.SetHeight(oldHeight);
+                    continue;
+                }
 
                 Entity? saveTarget = entity.Target;
                 entity.Target = bi.Entity;
@@ -2502,7 +2509,6 @@ namespace Helion.Worlds.Entities.Definition.States
                 break;
             }
 
-            entity.SetPosition(oldPos);
             A_Chase(entity);
         }
 

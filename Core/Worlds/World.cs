@@ -51,12 +51,13 @@ namespace Helion.Worlds
         public readonly long CreationTimeNanos = Ticker.NanoTime();
         public readonly CIString MapName;
         public readonly BlockMap Blockmap;
+        public Config Config { get; }
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
+        public int LevelTime { get; private set; }
         public double Gravity { get; private set; } = 1.0;
         public IRandom Random => m_random;
         protected readonly Resources Resources;
-        protected readonly Config Config;
         protected readonly MapGeometry Geometry;
         protected readonly SpecialManager SpecialManager;
         protected readonly PhysicsManager PhysicsManager;
@@ -77,7 +78,6 @@ namespace Helion.Worlds
         public abstract double ListenerPitch { get; }
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
-
         private readonly DoomRandom m_random = new();
         private int m_soundCount;
 
@@ -201,6 +201,8 @@ namespace Helion.Worlds
 
                 SpecialManager.Tick();
                 TextureManager.Tick();
+
+                LevelTime++;
             }
 
             SoundManager.Tick();
@@ -638,7 +640,7 @@ namespace Helion.Worlds
                 if (skyClip)
                     EntityManager.Destroy(entity);
                 else
-                    entity.SetDeathState();
+                    entity.SetDeathState(null);
 
                 HandleEntityDeath(entity);
             }
