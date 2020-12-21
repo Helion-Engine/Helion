@@ -132,8 +132,8 @@ namespace Helion.Maps.Components.GL
             for (int i = 0; i < count; i++)
             {
                 Vec2D start = new(reader.Short(), reader.Short());
-                Vec2D end = new(reader.Short(), reader.Short());
-                Seg2D splitter = new(start, end);
+                Vec2D delta = new(reader.Short(), reader.Short());
+                Seg2D splitter = new(start, start + delta);
                 Box2D rightBox = ReadNodeBoundingBox(reader);
                 Box2D leftBox = ReadNodeBoundingBox(reader);
                 uint rightChild = isV2 ? reader.UShort() : reader.UInt();

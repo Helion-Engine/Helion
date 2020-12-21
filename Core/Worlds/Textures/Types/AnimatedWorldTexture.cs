@@ -26,15 +26,6 @@ namespace Helion.Worlds.Textures.Types
             m_ticksLeftInFrame = frames[0].DurationTicks;
         }
 
-        public AnimatedWorldTexture(AnimatedWorldTexture parent)
-        {
-            Name = parent.Name;
-            Texture = parent.Texture;
-            m_frames = parent.m_frames.ToList();
-            m_ticksLeftInFrame = parent.m_ticksLeftInFrame;
-            m_frameIndex = parent.m_frameIndex;
-        }
-
         public void Tick()
         {
             m_ticksLeftInFrame--;

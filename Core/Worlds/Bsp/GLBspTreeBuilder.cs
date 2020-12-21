@@ -142,8 +142,8 @@ namespace Helion.Worlds.Bsp
             {
                 // The bits have already been trimmed on the data structure, so
                 // we only need to add them here to map onto our internals.
-                uint leftIndex = glNode.IsLeftSubsector ? (glNode.LeftChild | BspNodeCompact.SubsectorBit) : glNode.LeftChild;
-                uint rightIndex = glNode.IsRightSubsector ? (glNode.RightChild | BspNodeCompact.SubsectorBit) : glNode.RightChild;
+                uint leftIndex = BspNodeCompact.MakeNodeIndex(glNode.LeftChild, glNode.IsLeftSubsector);
+                uint rightIndex = BspNodeCompact.MakeNodeIndex(glNode.RightChild, glNode.IsRightSubsector);
                 Box2D box = Box2D.Combine(glNode.LeftBox, glNode.RightBox);
 
                 BspNodeCompact node = new(leftIndex, rightIndex, glNode.Splitter, box);

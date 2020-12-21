@@ -77,5 +77,16 @@ namespace Helion.Worlds.Bsp
             Splitter = splitter;
             BoundingBox = boundingBox;
         }
+
+        /// <summary>
+        /// Makes a child index from node information.
+        /// </summary>
+        /// <param name="childIndex">The child index.</param>
+        /// <param name="isSubsector">Whether it's a subsector not.</param>
+        /// <returns>The index to pass into the constructor.</returns>
+        public static uint MakeNodeIndex(uint childIndex, bool isSubsector)
+        {
+            return isSubsector ? childIndex | SubsectorBit : childIndex;
+        }
     }
 }
