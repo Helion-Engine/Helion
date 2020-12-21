@@ -1072,7 +1072,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, 
+                    player.World.Config.Engine.Gameplay.AutoAim, "BFGBall");
             }
         }
 
@@ -1089,7 +1090,7 @@ namespace Helion.World.Entities.Definition.States
                 int offset = player.Weapon == null ? 0 : Math.Clamp(player.Weapon.FrameState.Frame.Frame, 0, 1);
                 player.Weapon?.SetFlashState(offset);
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                    player.PitchRadians, Constants.EntityShootDistance, false);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
             }
         }
 
@@ -1108,7 +1109,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "Rocket");
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, 
+                    player.World.Config.Engine.Gameplay.AutoAim, "Rocket");
             }
         }
 
@@ -1129,7 +1131,7 @@ namespace Helion.World.Entities.Definition.States
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                    player.PitchRadians, Constants.EntityShootDistance, false);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
             }
         }
 
@@ -1138,7 +1140,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "PlasmaBall");
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, 
+                    player.World.Config.Engine.Gameplay.AutoAim, "PlasmaBall");
             }
         }
 
@@ -1159,7 +1162,7 @@ namespace Helion.World.Entities.Definition.States
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", SoundChannelType.Auto, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, 
-                    player.PitchRadians, Constants.EntityShootDistance, false);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
             }
         }
 
@@ -1170,7 +1173,7 @@ namespace Helion.World.Entities.Definition.States
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", SoundChannelType.Auto, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
-                    player.PitchRadians, Constants.EntityShootDistance, false);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
             }
         }
 
