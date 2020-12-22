@@ -116,19 +116,21 @@ namespace Helion.Worlds
             for (int i = 0; i < EntityManager.Players.Count; i++)
             {
                 Player player = EntityManager.Players[i];
+                if (player.IsDead)
+                    continue;
+
+                double distance = entity.Position.ApproximateDistance2D(player.Position);
 
                 if (!allaround)
                 {
                     Vec2D entityLookingVector = Vec2D.RadiansToUnit(entity.AngleRadians);
                     Vec2D entityToTarget = player.Position.To2D() - entity.Position.To2D();
 
-                    // Not in front 180 FOV or MeleeRange
-                    if (entityToTarget.Dot(entityLookingVector) < 0 &&
-                        entity.Position.ApproximateDistance2D(player.Position) > Constants.EntityMeleeDistance)
+                    if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
                         continue;
                 }
 
-                if (!player.IsDead && CheckLineOfSight(entity, player))
+                if (distance <= Constants.EntityMeleeDistance || CheckLineOfSight(entity, player))
                     return player;
             }
 
