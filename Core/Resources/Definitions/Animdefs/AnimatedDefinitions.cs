@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helion.Resources.Archives.Entries;
-using Helion.Resources.Definitions.Animdefs.Switches;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using NLog;
 

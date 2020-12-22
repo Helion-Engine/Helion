@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Resources.Definitions.Animdefs.Switches;
+using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
@@ -43,7 +42,7 @@ namespace Helion.Resources
             InitSwitches();
             InitSprites(spriteNames, spriteEntries);
         }
-        
+
         public static void Init(ArchiveCollection archiveCollection)
         {
             Instance = new TextureManager(archiveCollection);
@@ -54,7 +53,7 @@ namespace Helion.Resources
         /// </summary>
         /// <param name="textures">List of texture indices to load.</param>
         public void LoadTextureImages(List<int> textures)
-        { 
+        {
             textures.ForEach(LoadTextureImage);
 
             foreach (Animation anim in m_animations)
@@ -69,7 +68,9 @@ namespace Helion.Resources
             foreach (AnimatedSwitch animSwitch in m_archiveCollection.Definitions.Animdefs.AnimatedSwitches)
             {
                 LoadTextureImage(animSwitch.StartTextureIndex);
-                foreach (var component in animSwitch.Components)
+                foreach (var component in animSwitch.On)
+                    LoadTextureImage(component.TextureIndex);
+                foreach (var component in animSwitch.Off)
                     LoadTextureImage(component.TextureIndex);
             }
         }
@@ -152,7 +153,7 @@ namespace Helion.Resources
             foreach (Animation anim in m_animations)
             {
                 var components = anim.AnimatedTexture.Components;
-                
+
                 anim.Tics++;
                 if (anim.Tics == components[anim.AnimationIndex].MaxTicks)
                 {
@@ -176,8 +177,10 @@ namespace Helion.Resources
         {
             foreach (var sw in m_archiveCollection.Definitions.Animdefs.AnimatedSwitches)
             {
-                sw.StartTextureIndex = GetTexture(sw.StartTexture, ResourceNamespace.Global).Index;
-                foreach (var component in sw.Components)
+                sw.StartTextureIndex = GetTexture(sw.Texture, ResourceNamespace.Global).Index;
+                foreach (var component in sw.On)
+                    component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
+                foreach (var component in sw.Off)
                     component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
             }
         }
@@ -220,7 +223,7 @@ namespace Helion.Resources
             foreach (Entry flat in flatEntries)
             {
                 m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
-                
+
                 // TODO fix with MapInfo when implemented
                 if (flat.Path.Name == Constants.SkyTexture)
                     m_skyIndex = index;

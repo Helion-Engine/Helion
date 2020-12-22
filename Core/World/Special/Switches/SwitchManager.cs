@@ -1,6 +1,6 @@
 using System.Linq;
 using Helion.Resources.Definitions;
-using Helion.Resources.Definitions.Animdefs.Switches;
+using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;

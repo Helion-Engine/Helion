@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Resources.Definitions.Animdefs.Switches;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -21,7 +20,7 @@ namespace Helion.Resources.Definitions.Animdefs
             while (!Done)
                 ConsumeDefinition();
         }
-        
+
         private void ConsumeAnimatedDoor()
         {
             throw MakeException("TODO: Animated doors are not supported in animdefs currently");
@@ -35,21 +34,21 @@ namespace Helion.Resources.Definitions.Animdefs
             int? fitWidth = null;
             int? fitHeight = null;
             bool worldPanning = false;
-            
+
             if (ConsumeIf("FIT"))
             {
                 fitWidth = ConsumeInteger();
                 fitHeight = ConsumeInteger();
                 worldPanning = ConsumeIf("WORLDPANNING");
             }
-            
+
             CameraTextures.Add(new AnimatedCameraTexture(name, width, height, fitWidth, fitHeight, worldPanning));
         }
 
         private void ConsumeWarp(bool waterEffect)
         {
             string warpNamespace = ConsumeString();
-            
+
             ResourceNamespace resourceNamespace;
             switch (warpNamespace.ToUpper())
             {
@@ -74,7 +73,7 @@ namespace Helion.Resources.Definitions.Animdefs
         {
             string upperName = textureName.ToString().ToUpper();
             int rightmostNumberChar = upperName.Length - 1;
-            
+
             for (int i = upperName.Length - 1; i >= 0; i--)
             {
                 if (char.IsNumber(upperName[i]))
@@ -103,7 +102,7 @@ namespace Helion.Resources.Definitions.Animdefs
                 AnimatedTextureComponent component = new AnimatedTextureComponent(textureName, minTicks, maxTicks);
                 components.Add(component);
             }
-            
+
             // If we have [A, B, C, D], we want [A, B, C, D, C, B] if there is
             // oscillation. Otherwise we can just add it directly.
             if (oscillate)
@@ -123,7 +122,7 @@ namespace Helion.Resources.Definitions.Animdefs
 
             if (textureBaseText != endBaseText)
                 throw MakeException($"Range animdefs texture mismatch: {textureBaseText} (from {texture.Name}) and {endBaseText} (from {endName}) should match");
-            
+
             int padding = texture.Name.Length - textureBaseText.Length;
             GenerateComponentsFrom(textureBaseText, startIndex, endIndex, padding, minTicks, maxTicks, oscillate, texture);
         }
@@ -132,7 +131,7 @@ namespace Helion.Resources.Definitions.Animdefs
         {
             if (PeekInteger())
                 throw MakeException("Animdefs texture/flat pic index type not supported currently");
-            
+
             string name = ConsumeString();
 
             // Apparently it is possible for these to be floating point values
@@ -190,14 +189,14 @@ namespace Helion.Resources.Definitions.Animdefs
 
             if (texture.Components.Empty())
                 throw MakeException($"Animated definition for '{name}' has no animation components");
-            
+
             AnimatedTextures.Add(texture);
         }
 
-        private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch)
+        private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch, bool on)
         {
-            string name = ConsumeString();
-            
+            string name = ConsumeString().ToUpper();
+
             // I don't know if this is like the texture/flat combo whereby any
             // floating point numbers are allowed or not.
             int minTicks;
@@ -215,24 +214,28 @@ namespace Helion.Resources.Definitions.Animdefs
             }
 
             if (minTicks > maxTicks)
-                throw MakeException($"Switch '{animatedSwitch.StartTexture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
+                throw MakeException($"Switch '{animatedSwitch.Texture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
 
-            animatedSwitch.Components.Add(new AnimatedTextureComponent(name.ToUpper(), minTicks, maxTicks));
+            AnimatedTextureComponent component = new(name.ToUpper(), minTicks, maxTicks);
+            if (on)
+                animatedSwitch.On.Add(component);
+            else
+                animatedSwitch.Off.Add(component);
         }
 
-        private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch)
+        private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch, bool on)
         {
             while (true)
             {
                 string? value = PeekCurrentText();
                 if (value == null)
-                    throw MakeException($"Ran out of tokens when parsing switch definition for {animatedSwitch.StartTexture}");
-                
+                    throw MakeException($"Ran out of tokens when parsing switch definition for {animatedSwitch.Texture}");
+
                 switch (value.ToUpper())
                 {
                 case "PIC":
                     Consume();
-                    ConsumeSwitchPic(animatedSwitch);
+                    ConsumeSwitchPic(animatedSwitch, on);
                     break;
                 case "SOUND":
                     Consume();
@@ -246,21 +249,24 @@ namespace Helion.Resources.Definitions.Animdefs
 
         private void ConsumeSwitchAnimation()
         {
+            // TODO: This needs to be looped, because we could have an ON
+            // definition followed by an OFF.
+
             string upperSwitchName = ConsumeString();
-            SwitchType switchType = SwitchType.On;
+            bool on = true;
 
             if (!ConsumeIf("ON"))
             {
                 Consume("OFF");
-                switchType = SwitchType.Off;
+                on = false;
             }
 
-            AnimatedSwitch animatedSwitch = new AnimatedSwitch(upperSwitchName, switchType);
-            ConsumeAllSwitchPicAndSounds(animatedSwitch);
+            AnimatedSwitch animatedSwitch = new(upperSwitchName);
+            ConsumeAllSwitchPicAndSounds(animatedSwitch, on);
 
-            if (animatedSwitch.Components.Empty())
+            if (animatedSwitch.On.Empty())
                 throw MakeException($"Found no animated definitions for switch {upperSwitchName}");
-            
+
             AnimatedSwitches.Add(animatedSwitch);
         }
 
@@ -291,7 +297,7 @@ namespace Helion.Resources.Definitions.Animdefs
                 ConsumeWarp(true);
                 break;
             default:
-                throw MakeException($"Unknown animdefs type {text}"); 
+                throw MakeException($"Unknown animdefs type {text}");
             }
         }
     }
