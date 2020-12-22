@@ -582,7 +582,11 @@ namespace Helion.World.Entities.Players
             if (m_deathTics == 0)
             {
                 if (m_viewHeight < halfPlayerViewHeight)
+                {
                     m_viewHeight = halfPlayerViewHeight;
+                    if (m_deltaViewHeight < 0)
+                        m_deltaViewHeight = 0;
+                }
 
                 if (m_viewHeight < playerViewHeight)
                     m_deltaViewHeight += 0.25;
