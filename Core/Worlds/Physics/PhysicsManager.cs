@@ -465,10 +465,10 @@ namespace Helion.Worlds.Physics
 
                 for (int i = 0; i < intersections.Count; i++)
                 {
-                    if (intersections[i].Entity == null || intersections[i].Entity.Flags.NoClip)
+                    Entity? intersectEntity = intersections[i].Entity;
+                    if (intersectEntity == null || ReferenceEquals(entity, intersectEntity) || intersectEntity.Flags.NoClip)
                         continue;
 
-                    Entity intersectEntity = intersections[i].Entity;
                     bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
                     bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
                     bool clipped = false;

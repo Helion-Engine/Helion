@@ -688,7 +688,7 @@ namespace Helion.Worlds
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
-                if (bi.Entity != null && CheckLineOfSight(bi.Entity, source))
+                if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, source))
                     ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust);
             }
         }
