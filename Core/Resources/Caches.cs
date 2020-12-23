@@ -42,7 +42,7 @@ namespace Helion.Resources
 
                 string cachePath = $"{CachePath}/{md5}.wad";
                 if (File.Exists(cachePath))
-                    return archiveLocator.Locate(path);
+                    return archiveLocator.Locate(cachePath);
 
                 if (!ZdbspDownloader.Download())
                 {
@@ -53,7 +53,7 @@ namespace Helion.Resources
                 Zdbsp zdbsp = new(ZdbspDownloader.BspExePath, path, cachePath);
                 zdbsp.Run();
 
-                return archiveLocator.Locate(path);
+                return archiveLocator.Locate(cachePath);
             }
             catch
             {

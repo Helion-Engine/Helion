@@ -42,7 +42,7 @@ public class GLComponents
 
         public static GLComponents? Read(MapEntryCollection entryCollection)
         {
-            if (entryCollection.HasAllGLComponents)
+            if (!entryCollection.HasAllGLComponents)
                 return null;
 
             try

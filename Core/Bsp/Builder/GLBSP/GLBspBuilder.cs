@@ -4,16 +4,15 @@ using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Maps;
+using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Util.Assertion;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using NLog;
 using GLBspNode = Helion.Maps.Components.GL.GLNode;
-
-// TODO: We can refactor the read[Geometry]V[N] functions into a unified one.
-//       There's very little differences between ReadAbcV1 and ReadAbcV2.
 
 namespace Helion.Bsp.Builder.GLBSP
 {
@@ -26,7 +25,7 @@ namespace Helion.Bsp.Builder.GLBSP
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly List<GLVertex> m_glVertices = new();
-        private readonly List<BspSegment> m_segments = new();
+        private readonly List<SubsectorEdge> m_segments = new();
         private readonly List<BspNode> m_subsectors = new();
         private readonly List<BspNode> m_nodes = new();
         private readonly IMap m_map;
@@ -50,9 +49,13 @@ namespace Helion.Bsp.Builder.GLBSP
             try
             {
                 CreateVertices(m_map.GL.Vertices);
-                CreateSegments(m_map.GL.Segments);
+                CreateSegments(m_map.GL.Segments, m_map.GetVertices(), m_map.GetLines());
                 CreateSubsectors(m_map.GL.Subsectors);
                 CreateNodes(m_map.GL.Nodes);
+
+                // If it's a single subsector map, then that is our root.
+                if (m_nodes.Empty())
+                    m_nodes.Add(m_subsectors[0]);
             }
             catch (AssertionException)
             {
@@ -76,19 +79,61 @@ namespace Helion.Bsp.Builder.GLBSP
             m_glVertices.AddRange(vertices);
         }
 
-        private void CreateSegments(List<GLSegment> segments)
+        private void CreateSegments(List<GLSegment> segments, ICovariantReadOnlyDictionary<int, IVertex> vertices,
+            ICovariantReadOnlyDictionary<int, ILine> lines)
         {
-            // TODO
+            foreach (GLSegment glSegment in segments)
+            {
+                Vec2D start = MakeVertex(glSegment.StartVertex, glSegment.IsStartVertexGL);
+                Vec2D end = MakeVertex(glSegment.EndVertex, glSegment.IsEndVertexGL);
+                IBspUsableLine? line = FindLine(glSegment.Linedef);
+
+                SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide);
+                m_segments.Add(edge);
+            }
+
+            Vec2D MakeVertex(uint index, bool isGL)
+            {
+                return isGL ? m_glVertices[(int)index].ToDouble() : vertices[(int)index].Position;
+            }
+
+            IBspUsableLine? FindLine(uint? index) => index == null ? null : lines[(int)index.Value];
         }
 
         private void CreateSubsectors(List<GLSubsector> subsectors)
         {
-            // TODO
+            foreach (GLSubsector glSubsector in subsectors)
+            {
+                List<SubsectorEdge> edges = new();
+                int start = glSubsector.FirstSegmentIndex;
+                int end = start + glSubsector.Count;
+                for (int i = start; i < end; i++)
+                    edges.Add(m_segments[i]);
+
+                BspNode subsector = new(edges);
+                m_subsectors.Add(subsector);
+            }
         }
 
         private void CreateNodes(List<GLBspNode> glNodes)
         {
-            // TODO
+            // Note: This assumes for node i, that 0..i-1 have been solved.
+            // This is supposed to be the case for node building due to the
+            // nature of how it is written.
+            foreach (GLBspNode glNode in glNodes)
+            {
+                int leftIndex = (int) glNode.LeftChild;
+                int rightIndex = (int) glNode.RightChild;
+                BspNode left = glNode.IsLeftSubsector ? m_subsectors[leftIndex] : m_nodes[leftIndex];
+                BspNode right = glNode.IsRightSubsector ? m_subsectors[rightIndex] : m_nodes[rightIndex];
+
+                BspVertex start = new(glNode.Splitter.Start, 0);
+                BspVertex end = new(glNode.Splitter.End, 0);
+                BspSegment splitter = new(start, end, 0);
+
+                BspNode parent = new(left, right, splitter);
+                m_nodes.Add(parent);
+            }
         }
     }
 }
