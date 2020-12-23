@@ -432,6 +432,11 @@ namespace Helion.World.Entities
                     SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, new SoundParams(this));
             }
 
+
+            // Skullfly is not turned off here as the original game did not do this
+            if (Flags.Skullfly)
+                Velocity = Vec3D.Zero;
+
             return true;
         }
 
@@ -733,9 +738,18 @@ namespace Helion.World.Entities
                     EntityManager.World.DamageEntity(BlockingEntity, this, damage, Thrust.Horizontal);
                 }
 
-                Flags.Skullfly = false;
-                Velocity = Vec3D.Zero;
-                SetSpawnState();
+                // Bounce off plane if it's the only thing blocking
+                if (BlockingSectorPlane != null && BlockingLine == null && BlockingEntity == null)
+                {
+                    Velocity = velocity;
+                    Velocity.Z = -velocity.Z;
+                }
+                else
+                {
+                    Flags.Skullfly = false;
+                    Velocity = Vec3D.Zero;
+                    SetSpawnState();
+                }
             }
         }
 
