@@ -2372,17 +2372,10 @@ namespace Helion.World.Entities.Definition.States
 
         private static double GetTracerSlope(double z, double distance, double speed)
         {
-            // Doom used incredibly janky math for this... divisions were used on fixed point
-            // We have to convert everything to fixed point and back to keep the same tracer behavior
-            int fixedZ = MathHelper.ToFixed(z);
-            int fixedDist = MathHelper.ToFixed(distance);
-            int fixedSpeed = MathHelper.ToFixed(speed);
-
-            fixedDist /= fixedSpeed;
-            if (fixedDist < 1)
-                fixedDist = 1;
-
-            return (fixedZ / fixedDist) / 65536.0;
+            distance /= speed;
+            if (distance < 1)
+                distance = 1;
+            return z / distance;
         }
 
         private static void A_Tracer2(Entity entity)
