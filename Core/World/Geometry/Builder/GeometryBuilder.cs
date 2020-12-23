@@ -1,14 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Helion.Bsp;
 using Helion.Bsp.Builder.GLBSP;
-using Helion.Bsp.External;
 using Helion.Maps;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Locator;
 using Helion.Util.Configuration;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -25,11 +20,11 @@ namespace Helion.World.Geometry.Builder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly List<Line> Lines = new List<Line>();
-        public readonly List<Side> Sides = new List<Side>();
-        public readonly List<Wall> Walls = new List<Wall>();
-        public readonly List<Sector> Sectors = new List<Sector>();
-        public readonly List<SectorPlane> SectorPlanes = new List<SectorPlane>();
+        public readonly List<Line> Lines = new();
+        public readonly List<Side> Sides = new();
+        public readonly List<Wall> Walls = new();
+        public readonly List<Sector> Sectors = new();
+        public readonly List<SectorPlane> SectorPlanes = new();
 
         /// <summary>
         /// A cached dictionary that maps the line ID number onto a line from
@@ -71,43 +66,13 @@ namespace Helion.World.Geometry.Builder
         private static IBspBuilder CreateBspBuilder(IMap map, Config config)
         {
             if (config.Engine.Developer.UseZdbsp)
-                return CreateZdbspBuilder(map, config);
-
-            return CreateInternalBspBuilder(map, config);
-        }
-
-        private static IBspBuilder? CreateZdbspBuilder(IMap map, Config config)
-        {
-            if (!ZdbspDownloader.HasZdbsp())
             {
-                if (!ZdbspDownloader.Download())
-                    Log.Error("Failed to download zdbsp");
+                if (map.GL != null)
+                    return new GLBspBuilder(map);
+
+                Log.Warn("Unable to find GL nodes from ZDBSP, building with internal node builder");
             }
 
-            string output = Path.Combine(Directory.GetCurrentDirectory(), ZdbspDownloader.Folder, "temp.wad");
-            Zdbsp bsp = new Zdbsp(ZdbspDownloader.BspExePath, map.Archive.Path.FullPath, map.Name, output);
-            bsp.Run();
-
-            FilesystemArchiveLocator locator = new FilesystemArchiveLocator();
-            ArchiveCollection archiveCollection = new ArchiveCollection(locator);
-            if (!archiveCollection.Load(new string[] { output }, false))
-            {
-                Log.Error($"Failed to load zdbsp output: {output}");
-                return null;
-            }
-
-            MapEntryCollection? mapEntryCollection = archiveCollection.GetMapEntryCollection(map.Name);
-            if (mapEntryCollection == null)
-            {
-                Log.Error($"Failed to load map from zdbsp output: {output}");
-                return null;
-            }
-
-            return new GLBspBuilder(map, mapEntryCollection);
-        }
-
-        private static IBspBuilder CreateInternalBspBuilder(IMap map, Config config)
-        {
             return new BspBuilder(map);
         }
     }

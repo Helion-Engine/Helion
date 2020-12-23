@@ -36,7 +36,7 @@ namespace Helion.Util
         /// Creates a byte reader around an existing binary reader stream.
         /// </summary>
         /// <param name="stream">The stream to wrap around.</param>
-        public ByteReader(BinaryReader stream) : 
+        public ByteReader(BinaryReader stream) :
             base(stream.BaseStream)
         {
             Precondition(BitConverter.IsLittleEndian, "We only support little endian systems");
@@ -44,7 +44,7 @@ namespace Helion.Util
         }
 
         /// <summary>
-        /// Reads the passed in stream of bytes as a string until a null 
+        /// Reads the passed in stream of bytes as a string until a null
         /// terminator is reached. This function assumes that there is a
         /// null terminator in the bytes one is reading.
         /// </summary>
@@ -56,7 +56,7 @@ namespace Helion.Util
         /// </returns>
         public string ReadNullTerminatedString()
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
 
             char c = (char)ReadByte();
             while (c != '\0')
@@ -87,7 +87,7 @@ namespace Helion.Util
                 if (c == 0)
                 {
                     // We need to always consume eight characters. Since we
-                    // have not incremented the loop iteration yet, we are 
+                    // have not incremented the loop iteration yet, we are
                     // off by one and use 7 instead of 8.
                     Advance(7 - i);
                     break;

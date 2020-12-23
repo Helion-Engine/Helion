@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Maps.Components;
+using Helion.Maps.Components.GL;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Doom.Components.Types;
 using Helion.Maps.Shared;
@@ -44,11 +45,12 @@ namespace Helion.Maps.Doom
         public readonly ReadOnlyDictionary<int, DoomThing> Things;
         public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
         public readonly IReadOnlyList<DoomNode> Nodes;
+        public GLComponents? GL { get; }
 
         private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
             ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
             ReadOnlyDictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomThing> things,
-            IReadOnlyList<DoomNode> nodes)
+            IReadOnlyList<DoomNode> nodes, GLComponents? gl)
         {
             Archive = archive;
             Name = name;
@@ -58,6 +60,7 @@ namespace Helion.Maps.Doom
             Lines = lines;
             Things = things;
             Nodes = nodes;
+            GL = gl;
         }
 
         /// <summary>
@@ -93,8 +96,9 @@ namespace Helion.Maps.Doom
 
             IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes);
 
+            GLComponents? gl = GLComponents.Read(map);
             string mapName = map.Name.ToString().ToUpper();
-            return new DoomMap(archive, mapName, vertices, sectors, sides, lines, things, nodes);
+            return new DoomMap(archive, mapName, vertices, sectors, sides, lines, things, nodes, gl);
         }
 
         public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;

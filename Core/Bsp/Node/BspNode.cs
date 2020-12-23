@@ -30,7 +30,7 @@ namespace Helion.Bsp.Node
         /// A list of all the clockwise edges. This is populated if and only if
         /// this is a subsector.
         /// </summary>
-        public List<SubsectorEdge> ClockwiseEdges { get; internal set; } = new List<SubsectorEdge>();
+        public List<SubsectorEdge> ClockwiseEdges { get; internal set; } = new();
 
         /// <summary>
         /// True if it's a parent (has children), false otherwise.
@@ -80,7 +80,7 @@ namespace Helion.Bsp.Node
 
             ClockwiseEdges = edges;
         }
-        
+
         /// <summary>
         /// Sets the children for the left and right side. This effectively
         /// turns it into a parent node. Only intended to be called on a
@@ -95,11 +95,11 @@ namespace Helion.Bsp.Node
         public void SetChildren(BspNode left, BspNode right)
         {
             Precondition(IsDegenerate, "Can only set children post-construction for a degenerate node (otherwise we violate property invariants)");
-            
+
             Left = left;
             Right = right;
         }
-        
+
         /// <summary>
         /// Recursively compresses all the degenerate nodes so that no nodes
         /// exist in the tree that are degenerate, unless every single node is
