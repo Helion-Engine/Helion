@@ -261,10 +261,6 @@ namespace Helion.Client
 
         public static void Main(string[] args)
         {
-            byte[] musData = File.ReadAllBytes(@"D:\D_RUNNIN.mus");
-            byte[] midiData = MusToMidi.Convert(musData)!;
-            File.WriteAllBytes(@"D:\D_RUNNIN.mid", midiData);
-
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
             Logging.Initialize(cmdArgs);
 
