@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Components;
+using Helion.Maps.Components.GL;
 using Helion.Resources.Archives;
 using Helion.Util.Container;
 using Helion.Util.Geometry.Vectors;
@@ -165,7 +166,6 @@ namespace Helion.Test.Helper.Map.Generator
             private readonly Dictionary<int, ISector> Sectors;
             private readonly Dictionary<int, ISide> Sides;
             private readonly Dictionary<int, IVertex> Vertices;
-
             public Archive Archive => null!;
             public string Name { get; } = "TEMP";
             public MapType MapType { get; } = MapType.Doom;
@@ -175,6 +175,7 @@ namespace Helion.Test.Helper.Map.Generator
             public ICovariantReadOnlyDictionary<int, ISide> GetSides() => new ReadOnlyDictionary<int, ISide>(Sides);
             public ICovariantReadOnlyDictionary<int, IThing> GetThings() => new ReadOnlyDictionary<int, IThing>(Things);
             public ICovariantReadOnlyDictionary<int, IVertex> GetVertices() => new ReadOnlyDictionary<int, IVertex>(Vertices);
+            public GLComponents? GL => null;
 
             internal GeneratedMap(GeometryGenerator generator)
             {

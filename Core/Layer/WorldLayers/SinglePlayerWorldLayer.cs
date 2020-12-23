@@ -24,17 +24,17 @@ namespace Helion.Layer.WorldLayers
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly Ticker m_ticker = new Ticker(Constants.TicksPerSecond);
+        private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumePressedKeys;
-        private TickerInfo m_lastTickInfo = new TickerInfo(0, 0);
-        private TickCommand m_tickCommand = new TickCommand();
+        private TickerInfo m_lastTickInfo = new(0, 0);
+        private TickCommand m_tickCommand = new();
         private SinglePlayerWorld m_world;
-        
+
         public override WorldBase World => m_world;
 
         private SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SinglePlayerWorld world) 
+            IAudioSystem audioSystem, SinglePlayerWorld world)
             : base(config, console, archiveCollection, audioSystem)
         {
             m_world = world;
@@ -130,10 +130,10 @@ namespace Helion.Layer.WorldLayers
 
             if (ticksToRun <= 0)
                 return;
-            
+
             m_world.HandleTickCommand(m_tickCommand);
             m_tickCommand = new TickCommand();
-            
+
             if (ticksToRun > TickOverflowThreshold)
             {
                 Log.Warn("Large tick overflow detected (likely due to delays/lag), reducing ticking amount");
@@ -160,26 +160,26 @@ namespace Helion.Layer.WorldLayers
         protected override void PerformDispose()
         {
             RemoveWorldEventListeners(m_world);
-            
+
             m_world.Dispose();
 
             base.PerformDispose();
         }
 
         private void World_LevelExit(object? sender, LevelChangeEvent e)
-        { 
+        {
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
                     string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
                     LoadMap(nextLevelName, true);
                     break;
-            
+
                 case LevelChangeType.SecretNext:
                     // TODO: When we have MAPINFO working, we can do this.
                     Log.Warn("Change level to secret type to be implemented...");
                     break;
-            
+
                 case LevelChangeType.SpecificLevel:
                     // TODO: Need to figure out this ExMx situation...
                     string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
@@ -201,7 +201,7 @@ namespace Helion.Layer.WorldLayers
             {
                 string episodeText = currentName[1].ToString();
                 string numberText = currentName[3].ToString();
-                
+
                 if (int.TryParse(episodeText, out int episode) && int.TryParse(numberText, out int number))
                 {
                     if (number == 8)
@@ -210,7 +210,7 @@ namespace Helion.Layer.WorldLayers
                         return $"E{episode}M1"; // TODO: Obviously wrong... (ex: E1M4)
                     return $"E{episode}M{number + 1}";
                 }
-                
+
                 Log.Warn("Unable to parse E#M# from {0}", currentName);
             }
             else if (currentName.Length == 5 && currentName.StartsWith("MAP", StringComparison.OrdinalIgnoreCase))
@@ -222,7 +222,7 @@ namespace Helion.Layer.WorldLayers
                     string nextMapNumbers = (mapNumber + 1).ToString().PadLeft(2, '0');
                     return $"MAP{nextMapNumbers}";
                 }
-                
+
                 Log.Warn("Unable to parse MAP## from {0}", currentName);
             }
             else
@@ -231,7 +231,7 @@ namespace Helion.Layer.WorldLayers
             Log.Warn("Returning to current level");
             return currentName;
         }
-        
+
         private void AddWorldEventListeners(WorldBase world)
         {
             world.LevelExit += World_LevelExit;

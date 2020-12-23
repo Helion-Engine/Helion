@@ -39,7 +39,7 @@ namespace Helion.Resources.Archives.Collection
         {
             List<Archive> loadedArchives = new List<Archive>();
             List<string> filePaths = new List<string>();
-            
+
             // If we have nothing loaded, we want to make sure assets.pk3 is
             // loaded before anything else. We also do not want it to be loaded
             // if we have already loaded it.
@@ -49,7 +49,7 @@ namespace Helion.Resources.Archives.Collection
 
             foreach (string filePath in filePaths)
             {
-                Archive? archive = m_archiveLocator.Locate(filePath);
+                Archive? archive = Caches.Load(filePath, m_archiveLocator);
                 if (archive != null)
                 {
                     Log.Info("Loaded {0}", filePath);
@@ -96,9 +96,9 @@ namespace Helion.Resources.Archives.Collection
                 {
                     if (mapEntryCollection.Name != upperMapName)
                         continue;
-                    
+
                     CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(archive, upperMapName);
-                    
+
                     // If we find a map that is corrupt, we want to exit early
                     // instead of keep looking since the latest map we find is
                     // supposed to override any earlier maps. It would be very
@@ -106,17 +106,17 @@ namespace Helion.Resources.Archives.Collection
                     // most recent map which is corrupt, but then get some
                     // earlier map in the pack which is not corrupt.
                     IMap? map = MapReader.Read(archive, mapEntryCollection, compat);
-                    if (map != null) 
+                    if (map != null)
                         return map;
-                    
+
                     Log.Warn("Unable to use map {0}, it is corrupt", upperMapName);
                     return null;
                 }
             }
-            
+
             return null;
         }
-        
+
         public Font? CompileFont(CIString name)
         {
             FontDefinition? definition = Definitions.Fonts.Get(name);
@@ -128,7 +128,7 @@ namespace Helion.Resources.Archives.Collection
 
             if (Data.TrueTypeFonts.TryGetValue(name, out Font? ttfFont))
                 return ttfFont;
-            
+
             return null;
         }
 
@@ -141,7 +141,7 @@ namespace Helion.Resources.Archives.Collection
                     Entries.Track(entry);
                     Data.Read(entry);
                 }
-                
+
                 Definitions.Track(archive);
             }
         }
