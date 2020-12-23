@@ -38,9 +38,9 @@ namespace Helion.Client
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
         private readonly ALAudioSystem m_audioSystem;
-        private readonly FpsTracker m_fpsTracker = new FpsTracker();
-        private readonly Stopwatch m_fpsLimit = new Stopwatch();
-        private int m_fpsLimitValue = 0;
+        private readonly FpsTracker m_fpsTracker = new();
+        private readonly Stopwatch m_fpsLimit = new();
+        private int m_fpsLimitValue;
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
