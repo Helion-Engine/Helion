@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
@@ -14,7 +15,7 @@ namespace Helion.Render.Shared.Drawers.Helper
         private const float DoomDrawAspectRatio = 320.0f / 200.0f;
         private const float DoomDrawWidth = 320.0f;
         private const float DoomDrawHeight = 200.0f;
-        private static readonly Color NoColor = Color.Transparent;
+        private static readonly Color NoColor = Color.White;
 
         public readonly IImageDrawInfoProvider DrawInfoProvider;
         private readonly RenderCommands m_renderCommands;
@@ -50,11 +51,11 @@ namespace Helion.Render.Shared.Drawers.Helper
             m_renderCommands = renderCommands;
             DrawInfoProvider = renderCommands.ImageDrawInfoProvider;
         }
-        
+
         public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);
 
         public int FontHeight(string fontName) => DrawInfoProvider.GetFontHeight(fontName);
-        
+
         public void Pixel(int x, int y, Color color)
         {
             FillRect(x, y, 1, 1, color);
@@ -64,20 +65,39 @@ namespace Helion.Render.Shared.Drawers.Helper
         {
             DrawRect(x, y, width, height, color, Opaque);
         }
-        
+
         public void DrawRect(int x, int y, int width, int height, Color color, float alpha)
         {
             // TODO: Call FillRect for 4 edge lines 1 pixel thick?
         }
-        
+
         public void FillRect(int x, int y, int width, int height, Color color)
         {
             FillRect(x, y, width, height, color, Opaque);
         }
-        
+
         public void FillRect(int x, int y, int width, int height, Color color, float alpha)
         {
             m_renderCommands.FillRect(new Rectangle(x, y, width, height), color, alpha);
+        }
+
+        /// <summary>
+        /// Performs a series of commands at some resolution. This allows you
+        /// to make some calls without mutating the virtual resolution state
+        /// in the case that you want to preserve whatever resolution is being
+        /// used currently. Will revert back to the virtual resolution after
+        /// this function is done calling the actions.
+        /// </summary>
+        /// <param name="width">The new temporary width.</param>
+        /// <param name="height">The new temporary height.</param>
+        /// <param name="action">The actions to perform while at the resolution
+        /// provided.</param>
+        public void AtResolution(int width, int height, Action action)
+        {
+            Dimension current = m_renderCommands.VirtualDimensions;
+            m_renderCommands.SetVirtualResolution(width, height);
+            action();
+            m_renderCommands.SetVirtualResolution(current);
         }
 
         public void Image(string name, int x, int y)
@@ -85,13 +105,13 @@ namespace Helion.Render.Shared.Drawers.Helper
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, NoColor, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, NoColor, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height)
         {
             Image(name, x, y, width, height, Alignment.TopLeft, NoColor, Opaque);
@@ -102,7 +122,7 @@ namespace Helion.Render.Shared.Drawers.Helper
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, NoColor, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
@@ -114,7 +134,7 @@ namespace Helion.Render.Shared.Drawers.Helper
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, color, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, Color color, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
@@ -126,7 +146,7 @@ namespace Helion.Render.Shared.Drawers.Helper
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, NoColor, alpha);
         }
-        
+
         public void Image(string name, int x, int y, float alpha, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
@@ -137,85 +157,85 @@ namespace Helion.Render.Shared.Drawers.Helper
         {
             Image(name, x, y, width, height, align, NoColor, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height, Color color)
         {
             Image(name, x, y, width, height, Alignment.TopLeft, color, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height, float alpha)
         {
             Image(name, x, y, width, height, Alignment.TopLeft, NoColor, alpha);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, Color color)
         {
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, color, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, Color color, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, color, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, float alpha)
         {
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, NoColor, alpha);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, float alpha, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, NoColor, alpha);
         }
-        
+
         public void Image(string name, int x, int y, Color color, float alpha)
         {
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, Alignment.TopLeft, color, alpha);
         }
-        
+
         public void Image(string name, int x, int y, Color color, float alpha, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, color, alpha);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height, Alignment align, Color color)
         {
             Image(name, x, y, width, height, align, color, Opaque);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height, Alignment align, float alpha)
         {
             Image(name, x, y, width, height, align, NoColor, alpha);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height, Color color, float alpha)
         {
             Image(name, x, y, width, height, Alignment.TopLeft, color, alpha);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, Color color, float alpha)
         {
             var (width, height) = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, width, height, align, color, alpha);
         }
-        
+
         public void Image(string name, int x, int y, Alignment align, Color color, float alpha, out Dimension area)
         {
             area = DrawInfoProvider.GetImageDimension(name);
             Image(name, x, y, area.Width, area.Height, align, color, alpha);
         }
-        
+
         public void Image(string name, int x, int y, int width, int height, Alignment align, Color color, float alpha)
         {
             int left = x;
             int top = y;
-            
+
             switch (align)
             {
             case Alignment.TopLeft:
@@ -260,91 +280,91 @@ namespace Helion.Render.Shared.Drawers.Helper
             Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, TextAlignment.TopLeft, int.MaxValue, false,
                 Opaque, out drawArea);
         }
-        
+
         public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             out Dimension drawArea)
         {
             Text(text, font, fontSize, x, y, locationAlign, TextAlignment.TopLeft, int.MaxValue, false,
                  Opaque, out drawArea);
         }
-        
-        public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign, 
+
+        public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, textAlign, int.MaxValue, false, Opaque, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, textAlign, int.MaxValue, false, Opaque,
                  out drawArea);
         }
-        
-        public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign, 
+
+        public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, out Dimension drawArea)
         {
-            Text(text, font, fontSize, x, y, locationAlign, textAlign, int.MaxValue, false, Opaque, 
+            Text(text, font, fontSize, x, y, locationAlign, textAlign, int.MaxValue, false, Opaque,
                  out drawArea);
         }
-        
+
         public void Text(Color color, string text, string font, int fontSize, int x, int y, int maxWidth, bool wrap,
             out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, Alignment.TopLeft, TextAlignment.TopLeft, maxWidth, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, Alignment.TopLeft, TextAlignment.TopLeft, maxWidth,
                  wrap, Opaque, out drawArea);
         }
-        
+
         public void Text(ColoredString text, string font, int fontSize, int x, int y, int maxWidth, bool wrap,
             out Dimension drawArea)
         {
-            Text(text, font, fontSize, x, y, Alignment.TopLeft, TextAlignment.TopLeft, maxWidth, 
+            Text(text, font, fontSize, x, y, Alignment.TopLeft, TextAlignment.TopLeft, maxWidth,
                  wrap, Opaque, out drawArea);
         }
-        
-        public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign, 
+
+        public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,
             float alpha, out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, TextAlignment.TopLeft, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, TextAlignment.TopLeft,
                  int.MaxValue, false, alpha, out drawArea);
         }
-        
-        public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign, 
+
+        public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             float alpha, out Dimension drawArea)
         {
-            Text(text, font, fontSize, x, y, Alignment.TopLeft, TextAlignment.TopLeft, 
+            Text(text, font, fontSize, x, y, Alignment.TopLeft, TextAlignment.TopLeft,
                  int.MaxValue, false, alpha, out drawArea);
         }
-        
+
         public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,
             int maxWidth, bool wrap, out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign,
                  TextAlignment.TopLeft, maxWidth, wrap, Opaque, out drawArea);
         }
-        
+
         public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             int maxWidth, bool wrap, out Dimension drawArea)
         {
             Text(text, font, fontSize, x, y, locationAlign, TextAlignment.TopLeft, maxWidth, wrap,
                  Opaque, out drawArea);
         }
-        
+
         public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, float alpha, out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign,
                  textAlign, int.MaxValue, false, alpha, out drawArea);
         }
-        
+
         public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, float alpha, out Dimension drawArea)
         {
-            Text(text, font, fontSize, x, y, locationAlign, textAlign, int.MaxValue, false, alpha, 
+            Text(text, font, fontSize, x, y, locationAlign, textAlign, int.MaxValue, false, alpha,
                  out drawArea);
         }
-        
+
         public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, int maxWidth, bool wrap, out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign,
                  textAlign, maxWidth, wrap, Opaque, out drawArea);
         }
-        
+
         public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, int maxWidth, bool wrap, out Dimension drawArea)
         {
@@ -354,19 +374,19 @@ namespace Helion.Render.Shared.Drawers.Helper
         public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, int maxWidth, bool wrap, float alpha, out Dimension drawArea)
         {
-            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign, 
+            Text(ColoredStringBuilder.From(color, text), font, fontSize, x, y, locationAlign,
                  textAlign, maxWidth, wrap, alpha, out drawArea);
         }
-        
+
         public void Text(ColoredString text, string font, int fontSize, int x, int y, Alignment locationAlign,
             TextAlignment textAlign, int maxWidth, bool wrap, float alpha, out Dimension drawArea)
         {
             drawArea = DrawInfoProvider.GetDrawArea(text, font, fontSize, maxWidth, wrap);
             (int width, int height) = drawArea;
-            
+
             int left = x;
             int top = y;
-            
+
             switch (locationAlign)
             {
             case Alignment.TopLeft:
@@ -401,7 +421,7 @@ namespace Helion.Render.Shared.Drawers.Helper
                 top = y - height;
                 break;
             }
-            
+
             m_renderCommands.DrawText(text, font, fontSize, left, top, width, height, textAlign, alpha);
         }
     }

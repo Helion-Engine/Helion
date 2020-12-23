@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace Helion.Render.Commands.Types
 {
-    public readonly struct DrawShapeCommand : IRenderCommand
+    public record DrawShapeCommand : IRenderCommand
     {
         public readonly Rectangle Rectangle;
         public readonly Color Color;

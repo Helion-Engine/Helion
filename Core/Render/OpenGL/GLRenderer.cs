@@ -95,16 +95,15 @@ namespace Helion.Render.OpenGL
         public void Render(RenderCommands renderCommands)
         {
             m_hudRenderer.Clear();
-            
+
             // This has to be tracked beyond just the rendering command, and it
             // also prevents something from going terribly wrong if there is no
             // call to setting the viewport.
             Rectangle viewport = new Rectangle(0, 0, 800, 600);
             IReadOnlyList<IRenderCommand> commands = renderCommands.GetCommands();
 
-            for (int i = 0; i < commands.Count; i++)
+            foreach (IRenderCommand renderCommand in commands)
             {
-                IRenderCommand renderCommand = commands[i];
                 switch (renderCommand)
                 {
                 case ClearRenderCommand cmd:
@@ -130,9 +129,9 @@ namespace Helion.Render.OpenGL
                     break;
                 }
             }
-            
+
             DrawHudImagesIfAnyQueued(viewport);
-            
+
             GLHelper.AssertNoGLError(gl);
         }
 
@@ -141,12 +140,12 @@ namespace Helion.Render.OpenGL
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-        
+
         private static void PrintGLInfo(GLCapabilities capabilities)
         {
             if (InfoPrinted)
                 return;
-            
+
             Log.Info("OpenGL v{0}", capabilities.Version);
             Log.Info("OpenGL Shading Language: {0}", capabilities.Info.ShadingVersion);
             Log.Info("OpenGL Vendor: {0}", capabilities.Info.Vendor);
@@ -159,7 +158,7 @@ namespace Helion.Render.OpenGL
         private void SetGLStates()
         {
             gl.Enable(EnableType.DepthTest);
-            
+
             if (m_config.Engine.Render.Multisample.Enable)
                 gl.Enable(EnableType.Multisample);
 
@@ -174,7 +173,7 @@ namespace Helion.Render.OpenGL
             gl.CullFace(CullFaceType.Back);
             gl.PolygonMode(PolygonFaceType.FrontAndBack, PolygonModeType.Fill);
         }
-        
+
         [Conditional("DEBUG")]
         private void SetGLDebugger()
         {
@@ -183,12 +182,12 @@ namespace Helion.Render.OpenGL
             // some glDebugControl... setting that changes them all to don't
             // cares if we have already registered a function? See:
             // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Engine.Developer.RenderDebug) 
+            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Engine.Developer.RenderDebug)
                 return;
-            
+
             gl.Enable(EnableType.DebugOutput);
             gl.Enable(EnableType.DebugOutputSynchronous);
-            
+
             // TODO: We should filter messages we want to get since this could
             //       pollute us with lots of messages and we wouldn't know it.
             //       https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
@@ -218,10 +217,10 @@ namespace Helion.Render.OpenGL
                 Log.Info("Using legacy OpenGL renderer");
                 return GLRenderType.Legacy;
             }
-            
+
             throw new HelionException("OpenGL implementation too old or not supported");
         }
-        
+
         private IGLTextureManager CreateTextureManager(GLRenderType renderType, ArchiveCollection archiveCollection)
         {
             switch (renderType)
@@ -262,12 +261,12 @@ namespace Helion.Render.OpenGL
                 return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
             }
         }
-        
+
         private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
         {
             Color color = clearRenderCommand.ClearColor;
             gl.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-            
+
             ClearType clearMask = 0;
             if (clearRenderCommand.Color)
                 clearMask |= ClearType.ColorBufferBit;
@@ -275,35 +274,35 @@ namespace Helion.Render.OpenGL
                 clearMask |= ClearType.DepthBufferBit;
             if (clearRenderCommand.Stencil)
                 clearMask |= ClearType.StencilBufferBit;
-            
+
             gl.Clear(clearMask);
         }
-        
+
         private void HandleDrawImage(DrawImageCommand cmd)
         {
             if (cmd.AreaIsTextureDimension)
             {
                 Vec2I topLeft = new Vec2I(cmd.DrawArea.X, cmd.DrawArea.Y);
-                m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MixColor, cmd.MultiplyColor, cmd.Alpha);
+                m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha);
             }
             else
-                m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MixColor, cmd.MultiplyColor, cmd.Alpha);
+                m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha);
         }
 
         private void HandleDrawShape(DrawShapeCommand cmd)
         {
             m_hudRenderer.DrawShape(cmd.Rectangle, cmd.Color, cmd.Alpha);
         }
-        
+
         private void HandleDrawText(DrawTextCommand cmd)
         {
             m_hudRenderer.DrawText(cmd.Text, cmd.FontName, cmd.FontSize, cmd.Location, cmd.Alpha);
         }
-        
+
         private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
         {
             DrawHudImagesIfAnyQueued(currentViewport);
-            
+
             RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport, cmd.ViewerEntity);
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
@@ -313,10 +312,10 @@ namespace Helion.Render.OpenGL
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
             currentViewport = new Rectangle(offset.X, offset.Y, dimension.Width, dimension.Height);
-            
+
             gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }
-        
+
         private void DrawHudImagesIfAnyQueued(Rectangle viewport)
         {
             m_hudRenderer.Render(viewport);

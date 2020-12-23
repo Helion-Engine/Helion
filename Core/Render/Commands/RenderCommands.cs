@@ -20,13 +20,15 @@ namespace Helion.Render.Commands
         public readonly Dimension WindowDimension;
         public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
         public readonly FpsTracker FpsTracker;
-        private readonly List<IRenderCommand> m_commands = new List<IRenderCommand>();
+        public Dimension VirtualDimensions { get; private set; }
+        private readonly List<IRenderCommand> m_commands = new();
 
         public RenderCommands(Config config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
             FpsTracker fpsTracker)
         {
             Config = config;
             WindowDimension = windowDimensions;
+            VirtualDimensions = windowDimensions;
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
         }
@@ -41,9 +43,12 @@ namespace Helion.Render.Commands
             m_commands.Add(ClearRenderCommand.DepthOnly());
         }
 
-        public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color, float alpha)
+        public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color,
+            float alpha = 1.0f)
         {
-            m_commands.Add(new DrawImageCommand(textureName, new Rectangle(left, top, width, height), Color.Transparent, color, alpha));
+            Rectangle drawArea = new(left, top, width, height);
+            DrawImageCommand cmd = new(textureName, drawArea, color, alpha);
+            m_commands.Add(cmd);
         }
 
         public void FillRect(Rectangle rectangle, Color color, float alpha)
@@ -70,6 +75,21 @@ namespace Helion.Render.Commands
         public void Viewport(Dimension dimension, Vec2I offset)
         {
             m_commands.Add(new ViewportCommand(dimension, offset));
+        }
+
+        public void SetVirtualResolution(int width, int height)
+        {
+            SetVirtualResolution(new Dimension(width, height));
+        }
+
+        public void SetVirtualResolution(Dimension dimension)
+        {
+            VirtualDimensions = dimension;
+        }
+
+        public void UseNativeResolution()
+        {
+            VirtualDimensions = WindowDimension;
         }
 
         public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);

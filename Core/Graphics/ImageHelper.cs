@@ -24,5 +24,11 @@ namespace Helion.Graphics
 
             return image;
         }
+
+        /// <summary>
+        /// Creates a new checked 8x8 black/white null image.
+        /// </summary>
+        /// <returns>A null image.</returns>
+        public static Image CreateWhiteImage() => new Image(1, 1, Color.White);
     }
 }

@@ -5,7 +5,7 @@ using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Commands.Types
 {
-    public readonly struct DrawTextCommand : IRenderCommand
+    public record DrawTextCommand : IRenderCommand
     {
         public readonly ColoredString Text;
         public readonly string FontName;

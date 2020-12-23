@@ -1,11 +1,12 @@
 using System.Drawing;
+using SystemColor = System.Drawing.Color;
 
 namespace Helion.Render.Commands.Types
 {
-    public readonly struct ClearRenderCommand : IRenderCommand
+    public record ClearRenderCommand : IRenderCommand
     {
-        public static readonly Color DefaultClearColor = System.Drawing.Color.Black;
-        
+        public static readonly Color DefaultClearColor = SystemColor.Black;
+
         public readonly bool Color;
         public readonly bool Depth;
         public readonly bool Stencil;
@@ -19,7 +20,7 @@ namespace Helion.Render.Commands.Types
             ClearColor = clearColor;
         }
 
-        public static ClearRenderCommand All() => All(System.Drawing.Color.FromArgb(16, 16, 16));
+        public static ClearRenderCommand All() => All(SystemColor.FromArgb(16, 16, 16));
 
         public static ClearRenderCommand All(Color clearColor)
         {
