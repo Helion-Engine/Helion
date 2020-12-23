@@ -411,6 +411,7 @@ namespace Helion.World.Physics
                     entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
             }
 
+            bool clippedFloor = entity.Box.Bottom < highestFloor;
             if (entity.Box.Bottom <= highestFloor)
             {
                 if (entity.HighestFloorObject is Entity highestEntity &&
@@ -424,10 +425,13 @@ namespace Helion.World.Physics
 
                 SetEntityOnFloorOrEntity(entity, highestFloor, lastHighestFloorObject != entity.HighestFloorObject);
 
-                if (entity.HighestFloorObject is Entity blockEntity)
-                    entity.BlockingEntity = blockEntity;
-                else
-                    entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
+                if (clippedFloor)
+                {
+                    if (entity.HighestFloorObject is Entity blockEntity)
+                        entity.BlockingEntity = blockEntity;
+                    else
+                        entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
+                }
             }
         }
 
@@ -724,6 +728,7 @@ namespace Helion.World.Physics
             Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
             entity.BlockingLine = null;
             entity.BlockingEntity = null;
+            entity.BlockingSectorPlane = null;
             if (!m_blockmap.Iterate(nextBox, CheckForBlockers))
                 success = true;
 
