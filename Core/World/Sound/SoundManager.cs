@@ -268,9 +268,15 @@ namespace Helion.World.Sound
             }
 
             if (waitLoopSound)
+            {
                 m_waitingLoopSounds.AddLast(audioSource);
+            }
             else
+            {
+                StopSoundsBySource(source, soundInfo);
                 m_soundsToPlay.AddLast(audioSource);
+            }
+
             return audioSource;
         }
 
