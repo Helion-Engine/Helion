@@ -347,9 +347,24 @@ namespace Helion.World.Sound
 
             position = GetSoundSourcePosition(soundSource);
             if (position != null)
-                return (int)position.Value.Distance(m_world.ListenerPosition) + 1;
+                return (int)position.Value.Distance(m_world.ListenerPosition) + GetAddedPriority(soundSource, soundInfo);
 
             return int.MaxValue;
+        }
+
+        private static int GetAddedPriority(object? soundSource, SoundInfo? soundInfo)
+        {
+            if (soundInfo != null && soundSource is Entity entity && entity.Flags.Monster)
+            {
+                if (soundInfo.Name == entity.Properties.PainSound)
+                    return 2;
+                else if (soundInfo.Name == entity.Properties.SeeSound)
+                    return 3;
+                else if (soundInfo.Name == entity.Properties.ActiveSound)
+                    return 4;
+            }
+
+            return 1;
         }
 
         private static bool CanAtennuate(object? soundSource, SoundInfo? soundInfo)
