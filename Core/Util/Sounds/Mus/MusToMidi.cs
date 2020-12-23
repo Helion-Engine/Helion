@@ -47,7 +47,7 @@ namespace Helion.Util.Sounds.Mus
             while ((queuedTime >>= 7) != 0)
             {
                 buffer <<= 8;
-                buffer |= ((queuedTime & 0x7F) | 0x80);
+                buffer |= (queuedTime & 0x7F) | 0x80;
             }
 
             while (true)
@@ -159,8 +159,8 @@ namespace Helion.Util.Sounds.Mus
         {
             uint queuedTime = 0;
             bool hitScoreEnd = false;
-            int[] channelMap = new int[MaxChannels];
             byte[] controllerMap = { 0x00, 0x20, 0x01, 0x07, 0x0A, 0x0B, 0x5B, 0x5D, 0x40, 0x43, 0x78, 0x7B, 0x7E, 0x7F, 0x79 };
+            int[] channelMap = new int[MaxChannels];
             Array.Fill(channelMap, -1);
             byte[] channelVelocities = new byte[MaxChannels];
             Array.Fill(channelVelocities, (byte)0x7F);
@@ -190,10 +190,7 @@ namespace Helion.Util.Sounds.Mus
                     case MusEvent.PressKey:
                         key = reader.ReadByte();
                         if ((key & 0x80) != 0)
-                        {
-                            channelVelocities[channel] = reader.ReadByte();
-                            channelVelocities[channel] &= 0x7F;
-                        }
+                            channelVelocities[channel] = (byte)(reader.ReadByte() & 0x7F);
                         WritePressKey(channel, key, channelVelocities[channel], ref queuedTime, trackWriter);
                         break;
 
@@ -211,7 +208,7 @@ namespace Helion.Util.Sounds.Mus
                         controllerNumber = reader.ReadByte();
                         byte controllerValue = reader.ReadByte();
                         if (controllerNumber == 0)
-                            WriteChangePatch(channel, controllerNumber, ref queuedTime, trackWriter);
+                            WriteChangePatch(channel, controllerValue, ref queuedTime, trackWriter);
                         else
                             WriteChangeControllerValue(channel, controllerMap[controllerNumber], controllerValue, ref queuedTime, trackWriter);
                         break;
@@ -225,10 +222,8 @@ namespace Helion.Util.Sounds.Mus
                         break;
                 }
 
-                if (hitScoreEnd)
-                    continue;
-
-                queuedTime += ProcessTimeDelay(reader);
+                if (!hitScoreEnd)
+                    queuedTime += ProcessTimeDelay(reader);
             }
 
             WriteTrackEnd(ref queuedTime, trackWriter);

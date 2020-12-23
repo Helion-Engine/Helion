@@ -16,6 +16,7 @@ using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
+using Helion.Util.Sounds.Mus;
 using Helion.Util.Time;
 using NLog;
 using static Helion.Util.Assertion.Assert;
