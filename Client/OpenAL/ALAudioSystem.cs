@@ -19,17 +19,19 @@ namespace Helion.Client.OpenAL
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool PrintedALInfo;
 
+        public IMusicPlayer Music { get; }
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HashSet<ALAudioSourceManager> m_sourceManagers = new HashSet<ALAudioSourceManager>();
         private readonly ISet<string> m_extensions = new HashSet<string>();
         private ALDevice m_alDevice;
         private ALContext m_alContext;
 
-        public ALAudioSystem(ArchiveCollection archiveCollection, string deviceName)
+        public ALAudioSystem(ArchiveCollection archiveCollection, string deviceName, IMusicPlayer musicPlayer)
         {
             m_archiveCollection = archiveCollection;
             m_alDevice = new ALDevice(deviceName);
             m_alContext = new ALContext(m_alDevice);
+            Music = musicPlayer;
 
             PrintOpenALInfo();
             DiscoverExtensions();
@@ -92,7 +94,7 @@ namespace Helion.Client.OpenAL
             FailedToDispose(this);
             PerformDispose();
         }
-        
+
         public IAudioSourceManager CreateContext()
         {
             ALAudioSourceManager sourceManager = new ALAudioSourceManager(this, m_archiveCollection);
@@ -102,8 +104,8 @@ namespace Helion.Client.OpenAL
 
         public void Dispose()
         {
-            PerformDispose();
             GC.SuppressFinalize(this);
+            PerformDispose();
         }
 
         internal void Unlink(ALAudioSourceManager context)
@@ -127,6 +129,7 @@ namespace Helion.Client.OpenAL
 
             m_alContext.Dispose();
             m_alDevice.Dispose();
+            Music.Dispose();
         }
     }
 }

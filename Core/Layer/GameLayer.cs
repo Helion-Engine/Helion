@@ -31,7 +31,7 @@ namespace Helion.Layer
         /// The unique name of the layer.
         /// </summary>
         protected abstract CIString Name { get; }
-        
+
         /// <summary>
         /// A value that indicates the priority relative to other layers (see
         /// class summary for more info). A higher property is higher on the
@@ -61,14 +61,14 @@ namespace Helion.Layer
         /// <param name="name">The layer name.</param>
         /// <returns>True if so, false otherwise.</returns>
         public bool Contains(CIString name) => m_layers.Any(layer => layer.Name == name);
-        
+
         /// <summary>
         /// Checks if any layers exist with the type provided.
         /// </summary>
         /// <param name="type">The layer type.</param>
         /// <returns>True if so, false otherwise.</returns>
         public bool Contains(Type type) => m_layers.Any(layer => layer.GetType() == type || layer.GetType().IsSubclassOf(type));
-        
+
         /// <summary>
         /// Removes all layers with a matching name.
         /// </summary>
@@ -78,14 +78,16 @@ namespace Helion.Layer
             List<GameLayer> layersToRemove = m_layers.Where(layer => layer.Name == name).ToList();
             RemoveLayers(layersToRemove);
         }
-        
+
         /// <summary>
         /// Removes all types that match the type provided.
         /// </summary>
         /// <param name="type">The type to remove.</param>
         public void RemoveByType(Type type)
         {
-            List<GameLayer> layersToRemove = m_layers.Where(layer => layer.GetType() == type).ToList();
+            List<GameLayer> layersToRemove = m_layers
+                .Where(layer => layer.GetType().IsSubclassOf(type) || layer.GetType() == type)
+                .ToList();
             RemoveLayers(layersToRemove);
         }
 
@@ -97,11 +99,11 @@ namespace Helion.Layer
         public void Add(GameLayer layer)
         {
             RemoveByType(layer.GetType());
-            
+
             m_layers.Add(layer);
             m_layers.Sort();
         }
-        
+
         /// <summary>
         /// Tries to get the layer type provided.
         /// </summary>
@@ -163,8 +165,8 @@ namespace Helion.Layer
 
         public void Dispose()
         {
-            PerformDispose();
             GC.SuppressFinalize(this);
+            PerformDispose();
         }
 
         protected virtual void PerformDispose()

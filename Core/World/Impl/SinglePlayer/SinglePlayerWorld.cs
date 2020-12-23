@@ -5,9 +5,11 @@ using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry.Vectors;
+using Helion.Util.Sounds.Mus;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Inventories;
@@ -31,7 +33,7 @@ namespace Helion.World.Impl.SinglePlayer
         public override Entity ListenerEntity => Player;
 
         public readonly Player Player;
-        
+
         private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, IMap map, Player? existingPlayer = null)
             : base(config, archiveCollection, audioSystem, geometry, map)
@@ -42,6 +44,8 @@ namespace Helion.World.Impl.SinglePlayer
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+
+            PlayLevelMusic(audioSystem, map, archiveCollection);
         }
 
         ~SinglePlayerWorld()
@@ -50,7 +54,7 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection, 
+        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection,
             IAudioSystem audioSystem, IMap map, Player? existingPlayer = null)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
@@ -59,8 +63,32 @@ namespace Helion.World.Impl.SinglePlayer
                 Log.Error("Cannot make single player world, geometry is malformed");
                 return null;
             }
-            
+
             return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map, existingPlayer);
+        }
+
+        private static void PlayLevelMusic(IAudioSystem audioSystem, IMap map, ArchiveCollection archiveCollection)
+        {
+            string entryName = map.Name.StartsWith("E") ? $"D_{map.Name}" : "D_RUNNIN";
+
+            Entry? entry = archiveCollection.Entries.FindByName(entryName);
+            if (entry == null)
+            {
+                Log.Warn("Cannot find music track: {0}", entryName);
+                return;
+            }
+
+            byte[] data = entry.ReadData();
+            byte[]? midiData = MusToMidi.Convert(data);
+            if (midiData == null)
+            {
+                Log.Warn("Unable to play music, cannot convert from MUS to MIDI");
+                return;
+            }
+
+            bool playingSuccess = audioSystem.Music.Play(midiData);
+            if (!playingSuccess)
+                Log.Warn("Unable to play MIDI track through device");
         }
 
         public void HandleFrameInput(ConsumableInput frameInput)
@@ -203,7 +231,9 @@ namespace Helion.World.Impl.SinglePlayer
         {
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
             EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
-            
+
+            AudioSystem.Music.Stop();
+
             base.PerformDispose();
         }
 
@@ -218,7 +248,7 @@ namespace Helion.World.Impl.SinglePlayer
 
             return new Vec3D(x, y, z);
         }
-        
+
         private static Vec3D CalculateStrafeRightMovement(Entity entity)
         {
             double rightRotateAngle = entity.AngleRadians - MathHelper.HalfPi;
@@ -235,7 +265,7 @@ namespace Helion.World.Impl.SinglePlayer
                 ChangeToLevel(changeLevel.LevelNumber);
                 return;
             }
-            
+
             switch (cheatEvent.CheatType)
             {
                 case CheatType.NoClip:

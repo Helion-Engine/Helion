@@ -32,5 +32,10 @@ namespace Helion.Audio
         /// <param name="deviceName">String of the audio device to set. Use DefaultAudioDevice property to set default audio device.</param>
         /// </summary>
         void SetDevice(string deviceName);
+
+        /// <summary>
+        /// The music player.
+        /// </summary>
+        IMusicPlayer Music { get; }
     }
 }

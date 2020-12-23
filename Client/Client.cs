@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Helion.Client.Music;
 using Helion.Client.OpenAL;
 using Helion.Input;
 using Helion.Layer;
@@ -16,7 +17,6 @@ using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
-using Helion.Util.Sounds.Mus;
 using Helion.Util.Time;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -54,7 +54,7 @@ namespace Helion.Client
 
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device);
+            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device, new MidiMusicPlayer());
             m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
             m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
@@ -75,14 +75,14 @@ namespace Helion.Client
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
+
             m_console.OnConsoleCommandEvent -= Console_OnCommand;
 
             m_layerManager.Dispose();
             m_window.Dispose();
             m_audioSystem.Dispose();
             m_console.Dispose();
-
-            GC.SuppressFinalize(this);
         }
 
         private static void LogClientInformation()
@@ -273,8 +273,8 @@ namespace Helion.Client
 
             try
             {
-                using (Config config = new Config())
-                    using (Client client = new Client(cmdArgs, config))
+                using (Config config = new())
+                    using (Client client = new(cmdArgs, config))
                         client.Start();
 
                 ForceFinalizersIfDebugMode();
