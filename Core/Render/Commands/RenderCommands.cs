@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
-using Helion.Render.Commands.Align;
+using Helion.Render.Commands.Alignment;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
@@ -56,8 +56,8 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
         }
 
-        public void DrawText(ColoredString text, string font, int fontSize, int x, int y, int width, int height,
-            TextAlignment textAlign, float alpha)
+        public void DrawText(ColoredString text, string font, int fontSize, int x, int y, int width,
+            int height, TextAlign textAlign, float alpha)
         {
             m_commands.Add(new DrawTextCommand(text, font, fontSize, x, y, width, height, textAlign, alpha));
         }

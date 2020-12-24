@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
-using Helion.Render.Commands.Align;
+using Helion.Render.Commands.Alignment;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
@@ -98,16 +98,20 @@ namespace Helion.Render.Shared.Drawers
             if (draw.ImageExists(sprite))
             {
                 (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
-                Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
+                Vec2I imageOffset = draw.DrawInfoProvider.GetImageOffset(sprite);
                 Vec2I weaponOffset = DrawHelper.ScaleWorldOffset(viewport, player.PrevWeaponOffset.Interpolate(player.WeaponOffset, fraction));
+                Vec2I offset = weaponOffset;
 
-                DrawHelper.ScaleImageDimensions(viewport, ref width, ref height);
-                DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
+                draw.Image(sprite, offset, width, height, Align.BottomMiddle, Align.BottomMiddle, lightLevelColor);
 
-                // Translate doom image offset to OpenGL coordinates
-                int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
-                int y = -offset.Y - height + weaponOffset.Y;
-                draw.Image(sprite, x, y, width, height, color: lightLevelColor);
+                // DrawHelper.ScaleImageDimensions(viewport, ref width, ref height);
+                // DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
+                //
+                // // Translate doom image offset to OpenGL coordinates
+                // // int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
+                // // int y = -offset.Y - height + weaponOffset.Y;
+                // // draw.Image(sprite, x, y, width, height, color: lightLevelColor);
+                // draw.Image(sprite, weaponOffset.X, weaponOffset.Y, width, height, Align.BottomMiddle, lightLevelColor);
             }
         }
 
@@ -117,7 +121,7 @@ namespace Helion.Render.Shared.Drawers
             // aligns with the font.
             int x = Padding;
             int y = viewport.Height - Padding;
-            draw.Image("MEDIA0", x, y, out Dimension medkitArea, align: Alignment.BottomLeft);
+            draw.Image("MEDIA0", x, y, out Dimension medkitArea, window: Align.BottomLeft);
 
             // We will draw the health numbers with the same height as the
             // medkit image. However if someone ever replaces it, we probably
@@ -127,7 +131,8 @@ namespace Helion.Render.Shared.Drawers
             // the future!
             int fontHeight = Math.Max(16, medkitArea.Height);
             int health = Math.Max(0, player.Health);
-            draw.Text(Color.Red, health.ToString(), HudFont, fontHeight, x + medkitArea.Width + Padding, y, Alignment.BottomLeft, out Dimension healthArea);
+            draw.Text(Color.Red, health.ToString(), HudFont, fontHeight, out Dimension healthArea,
+                x + medkitArea.Width + Padding, y, TextAlign.Left, textbox: Align.BottomLeft);
 
             if (player.Armor > 0)
             {
@@ -135,11 +140,12 @@ namespace Helion.Render.Shared.Drawers
 
                 if (player.ArmorProperties != null && draw.ImageExists(player.ArmorProperties.Inventory.Icon))
                 {
-                    draw.Image(player.ArmorProperties.Inventory.Icon, x, y, out Dimension armorArea, align: Alignment.BottomLeft);
+                    draw.Image(player.ArmorProperties.Inventory.Icon, x, y, out Dimension armorArea, window: Align.BottomLeft);
                     x += armorArea.Width + Padding;
                 }
 
-                draw.Text(Color.Red, player.Armor.ToString(), HudFont, fontHeight, x, y, Alignment.BottomLeft, out _);
+                draw.Text(Color.Red, player.Armor.ToString(), HudFont, fontHeight,
+                    x, y, TextAlign.Left, textbox: Align.BottomLeft);
             }
         }
 
@@ -164,7 +170,7 @@ namespace Helion.Render.Shared.Drawers
             }
 
             x = x - textRect.Width - Padding;
-            helper.Text(colorString, HudFont, 19, x, y, Alignment.BottomLeft, out _);
+            helper.Text(colorString, HudFont, 19, x, y, textbox: Align.BottomLeft);
         }
 
         private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
@@ -203,7 +209,7 @@ namespace Helion.Render.Shared.Drawers
             // will draw the later ones at the top. Otherwise if we were to do
             // forward iteration without the stack, then they get drawn in the
             // reverse order and fading begins at the wrong end.
-            Stack<(ColoredString msg, float alpha)> msgs = new Stack<(ColoredString, float)>();
+            Stack<(ColoredString message, float alpha)> messages = new();
             foreach (ConsoleMessage msg in console.Messages)
             {
                 if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, world, console))
@@ -213,14 +219,14 @@ namespace Helion.Render.Shared.Drawers
                 if (timeSinceMessage > MaxVisibleTimeNanos)
                     break;
 
-                msgs.Push((msg.Message, CalculateFade(timeSinceMessage)));
+                messages.Push((msg.Message, CalculateFade(timeSinceMessage)));
                 messagesDrawn++;
             }
 
-            msgs.ForEach(pair =>
+            messages.ForEach(pair =>
             {
-                helper.Text(pair.msg, "SmallFont", 16, LeftOffset, offsetY, Alignment.TopLeft,
-                            pair.alpha, out Dimension drawArea);
+                helper.Text(pair.message, "SmallFont", 16, out Dimension drawArea,
+                    LeftOffset, offsetY, textbox: Align.TopLeft, alpha: pair.alpha);
                 offsetY += drawArea.Height + MessageSpacing;
             });
         }
@@ -239,15 +245,18 @@ namespace Helion.Render.Shared.Drawers
                 return;
 
             string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";
-            draw.Text(Color.White, avgFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension avgArea);
+            draw.Text(Color.White, avgFps, "Console", 16, out Dimension avgArea,
+                viewport.Width - 1, y, textbox: Align.TopRight);
             y += avgArea.Height + FpsMessageSpacing;
 
             string maxFps = $"Max FPS: {(int)Math.Round(fpsTracker.MaxFramesPerSecond)}";
-            draw.Text(Color.White, maxFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension maxArea);
+            draw.Text(Color.White, maxFps, "Console", 16, out Dimension maxArea,
+                viewport.Width - 1, y, textbox: Align.TopRight);
             y += maxArea.Height + FpsMessageSpacing;
 
             string minFps = $"Min FPS: {(int)Math.Round(fpsTracker.MinFramesPerSecond)}";
-            draw.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension minArea);
+            draw.Text(Color.White, minFps, "Console", 16, out Dimension minArea,
+                viewport.Width - 1, y, textbox: Align.TopRight);
 
             y += minArea.Height;
         }

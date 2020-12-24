@@ -1,6 +1,6 @@
 using System.Drawing;
 using Helion.Render.Commands;
-using Helion.Render.Commands.Align;
+using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -42,18 +42,19 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawBackgroundImage(Dimension viewport, DrawHelper draw)
         {
-            int middleY = viewport.Height / 2;
+            (int width, int height) = viewport;
+            int halfHeight = viewport.Height / 2;
 
             // Draw the background, depending on what is available.
             if (draw.ImageExists("CONBACK"))
-                draw.Image("CONBACK", 0, -middleY, viewport.Width, viewport.Height, color: BackgroundFade, alpha: BackgroundAlpha);
+                draw.Image("CONBACK", 0, 0, width, height, color: BackgroundFade, alpha: BackgroundAlpha);
             else if (draw.ImageExists("TITLEPIC"))
-                draw.Image("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, color: BackgroundFade, alpha: BackgroundAlpha);
+                draw.Image("TITLEPIC", 0, 0, width, halfHeight, color: BackgroundFade, alpha: BackgroundAlpha);
             else
-                draw.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Gray);
+                draw.FillRect(0, 0, width, 3, Color.Gray);
 
             // Draw the divider.
-            draw.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
+            draw.FillRect(0, halfHeight - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
         private static void DrawInput(HelionConsole console, Dimension viewport, DrawHelper draw,
@@ -63,8 +64,8 @@ namespace Helion.Render.Shared.Drawers
             int middleY = viewport.Height / 2;
             int baseY = middleY - BlackBarDividerHeight - 5;
 
-            draw.Text(Color.Yellow, console.Input, ConsoleFontName, ConsoleFontSize, offsetX, baseY,
-                      Alignment.BottomLeft, out Dimension drawArea);
+            draw.Text(Color.Yellow, console.Input, ConsoleFontName, ConsoleFontSize, out Dimension drawArea,
+                offsetX, baseY, textbox: Align.BottomLeft);
 
             inputDrawTop = baseY - drawArea.Height;
             offsetX += drawArea.Width;
@@ -85,8 +86,8 @@ namespace Helion.Render.Shared.Drawers
 
             foreach (ConsoleMessage msg in console.Messages)
             {
-                draw.Text(msg.Message, ConsoleFontName, ConsoleFontSize, LeftEdgeOffset, topY, Alignment.BottomLeft,
-                          out Dimension drawArea);
+                draw.Text(msg.Message, ConsoleFontName, ConsoleFontSize, out Dimension drawArea,
+                    LeftEdgeOffset, topY, textbox: Align.BottomLeft);
 
                 topY -= drawArea.Height + BetweenMessagePadding;
                 if (topY < 0)

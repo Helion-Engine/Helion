@@ -5,7 +5,7 @@ namespace Helion.Render.Commands
     /// <summary>
     /// Information when handling resolution.
     /// </summary>
-    public record ResolutionInfo
+    public struct ResolutionInfo
     {
         /// <summary>
         /// The virtual dimension that should be used when drawing.

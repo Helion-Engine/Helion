@@ -1,5 +1,5 @@
 using Helion.Graphics.String;
-using Helion.Render.Commands.Align;
+using Helion.Render.Commands.Alignment;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 
@@ -12,11 +12,11 @@ namespace Helion.Render.Commands.Types
         public readonly int FontSize;
         public readonly Vec2I Location;
         public readonly Dimension Dimension;
-        public readonly TextAlignment TextAlignment;
+        public readonly TextAlign TextAlignment;
         public readonly float Alpha;
 
         public DrawTextCommand(ColoredString text, string font, int fontSize, int x, int y, int width, int height,
-            TextAlignment textAlign, float alpha)
+            TextAlign textAlign, float alpha)
         {
             Text = text;
             FontName = font;
