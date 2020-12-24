@@ -40,34 +40,35 @@ namespace Helion.Render.Shared.Drawers
 
         public static void Draw(Player player, WorldBase world, float fraction, HelionConsole console, Dimension viewport, RenderCommands cmd)
         {
-            DrawHelper helper = new DrawHelper(cmd);
+            DrawHelper draw = new(cmd);
 
             cmd.ClearDepth();
 
-            int y = DrawFPS(cmd.Config, viewport, cmd.FpsTracker, helper);
-            DrawHud(y, player, world, fraction, viewport, helper);
-            DrawPickupFlash(player, world, viewport, helper);
-            DrawDamage(player, world, viewport, helper);
-            DrawRecentConsoleMessages(world, console, helper);
+            DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, out int topRightY);
+            DrawHud(topRightY, player, world, fraction, viewport, draw);
+            DrawPickupFlash(player, world, viewport, draw);
+            DrawDamage(player, world, viewport, draw);
+            DrawRecentConsoleMessages(world, console, draw);
         }
-        
-        private static void DrawHud(int topRightY, Player player, WorldBase world, float fraction, Dimension viewport, DrawHelper helper)
+
+        private static void DrawHud(int topRightY, Player player, WorldBase world, float fraction, Dimension viewport,
+            DrawHelper draw)
         {
-            DrawHudHealthAndArmor(player, viewport, helper);
-            DrawHudKeys(topRightY, player, viewport, helper);
-            DrawHudAmmo(player, viewport, helper);
+            DrawHudHealthAndArmor(player, viewport, draw);
+            DrawHudKeys(topRightY, player, viewport, draw);
+            DrawHudAmmo(player, viewport, draw);
 
             if (player.AnimationWeapon != null)
             {
-                DrawHudWeapon(player, fraction, player.AnimationWeapon.FrameState, viewport, helper);
+                DrawHudWeapon(player, fraction, player.AnimationWeapon.FrameState, viewport, draw);
                 if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, fraction, player.AnimationWeapon.FlashState, viewport, helper);
+                    DrawHudWeapon(player, fraction, player.AnimationWeapon.FlashState, viewport, draw);
             }
 
-            DrawHudCrosshair(viewport, helper);
+            DrawHudCrosshair(viewport, draw);
         }
 
-        private static void DrawHudKeys(int y, Player player, Dimension viewport, DrawHelper helper)
+        private static void DrawHudKeys(int y, Player player, Dimension viewport, DrawHelper draw)
         {
             var keys = player.Inventory.GetKeys();
             y += Padding;
@@ -75,47 +76,48 @@ namespace Helion.Render.Shared.Drawers
             foreach (var key in keys)
             {
                 string icon = key.Definition.Properties.Inventory.Icon;
-                if (!helper.ImageExists(icon))
+                if (!draw.ImageExists(icon))
                     continue;
 
-                Dimension dimension = helper.DrawInfoProvider.GetImageDimension(icon);
+                Dimension dimension = draw.DrawInfoProvider.GetImageDimension(icon);
                 int height = (int)(KeyWidth / dimension.AspectRatio);
-                helper.Image(icon, viewport.Width - Padding - KeyWidth, y, KeyWidth, height);
+                draw.Image(icon, viewport.Width - Padding - KeyWidth, y, KeyWidth, height);
                 y += height + Padding;
             }
         }
 
-        private static void DrawHudWeapon(Player player, float fraction, FrameState frameState, Dimension viewport, DrawHelper helper)
+        private static void DrawHudWeapon(Player player, float fraction, FrameState frameState, Dimension viewport,
+            DrawHelper draw)
         {
-            int lightLevel = frameState.Frame.Properties.Bright ?  255 :
+            int lightLevel = frameState.Frame.Properties.Bright ? 255 :
                 (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
 
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 
-            if (helper.ImageExists(sprite))
+            if (draw.ImageExists(sprite))
             {
-                Dimension dimension = helper.DrawInfoProvider.GetImageDimension(sprite);
-                Vec2I offset = helper.DrawInfoProvider.GetImageOffset(sprite);
+                (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
+                Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
                 Vec2I weaponOffset = DrawHelper.ScaleWorldOffset(viewport, player.PrevWeaponOffset.Interpolate(player.WeaponOffset, fraction));
 
-                DrawHelper.ScaleImageDimensions(viewport, ref dimension.Width, ref dimension.Height);
+                DrawHelper.ScaleImageDimensions(viewport, ref width, ref height);
                 DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
 
                 // Translate doom image offset to OpenGL coordinates
-                helper.Image(sprite, (offset.X / 2) - (dimension.Width / 2) + weaponOffset.X,
-                    -offset.Y - dimension.Height + weaponOffset.Y,
-                    dimension.Width, dimension.Height, lightLevelColor);
+                int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
+                int y = -offset.Y - height + weaponOffset.Y;
+                draw.Image(sprite, x, y, width, height, color: lightLevelColor);
             }
         }
 
-        private static void DrawHudHealthAndArmor(Player player, Dimension viewport, DrawHelper helper)
+        private static void DrawHudHealthAndArmor(Player player, Dimension viewport, DrawHelper draw)
         {
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
             int x = Padding;
             int y = viewport.Height - Padding;
-            helper.Image("MEDIA0", x, y, Alignment.BottomLeft, out Dimension medkitArea);
+            draw.Image("MEDIA0", x, y, out Dimension medkitArea, align: Alignment.BottomLeft);
 
             // We will draw the health numbers with the same height as the
             // medkit image. However if someone ever replaces it, we probably
@@ -125,19 +127,19 @@ namespace Helion.Render.Shared.Drawers
             // the future!
             int fontHeight = Math.Max(16, medkitArea.Height);
             int health = Math.Max(0, player.Health);
-            helper.Text(Color.Red, health.ToString(), HudFont, fontHeight, x + medkitArea.Width + Padding, y, Alignment.BottomLeft, out Dimension healthArea);
+            draw.Text(Color.Red, health.ToString(), HudFont, fontHeight, x + medkitArea.Width + Padding, y, Alignment.BottomLeft, out Dimension healthArea);
 
             if (player.Armor > 0)
             {
                 y -= healthArea.Height + Padding;
 
-                if (player.ArmorProperties != null && helper.ImageExists(player.ArmorProperties.Inventory.Icon))
+                if (player.ArmorProperties != null && draw.ImageExists(player.ArmorProperties.Inventory.Icon))
                 {
-                    helper.Image(player.ArmorProperties.Inventory.Icon, x, y, Alignment.BottomLeft, out Dimension armorArea);
+                    draw.Image(player.ArmorProperties.Inventory.Icon, x, y, out Dimension armorArea, align: Alignment.BottomLeft);
                     x += armorArea.Width + Padding;
                 }
 
-                helper.Text(Color.Red, player.Armor.ToString(), HudFont, fontHeight, x, y, Alignment.BottomLeft, out _);
+                draw.Text(Color.Red, player.Armor.ToString(), HudFont, fontHeight, x, y, Alignment.BottomLeft, out _);
             }
         }
 
@@ -228,25 +230,26 @@ namespace Helion.Render.Shared.Drawers
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }
 
-        private static int DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker, DrawHelper helper)
+        private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker,
+            DrawHelper draw, out int y)
         {
-            if (!config.Engine.Render.ShowFPS)
-                return 0;
+            y = 0;
 
-            int y = 0;
+            if (!config.Engine.Render.ShowFPS)
+                return;
 
             string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";
-            helper.Text(Color.White, avgFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension avgArea);
+            draw.Text(Color.White, avgFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension avgArea);
             y += avgArea.Height + FpsMessageSpacing;
 
             string maxFps = $"Max FPS: {(int)Math.Round(fpsTracker.MaxFramesPerSecond)}";
-            helper.Text(Color.White, maxFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension maxArea);
+            draw.Text(Color.White, maxFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension maxArea);
             y += maxArea.Height + FpsMessageSpacing;
 
             string minFps = $"Min FPS: {(int)Math.Round(fpsTracker.MinFramesPerSecond)}";
-            helper.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension minArea);
+            draw.Text(Color.White, minFps, "Console", 16, viewport.Width - 1, y, Alignment.TopRight, out Dimension minArea);
 
-            return y + minArea.Height;
+            y += minArea.Height;
         }
 
         private static float CalculateFade(long timeSinceMessage)

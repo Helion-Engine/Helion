@@ -20,7 +20,7 @@ namespace Helion.Render.Commands
         public readonly Dimension WindowDimension;
         public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
         public readonly FpsTracker FpsTracker;
-        public Dimension VirtualDimensions { get; private set; }
+        public ResolutionInfo ResolutionInfo { get; private set; }
         private readonly List<IRenderCommand> m_commands = new();
 
         public RenderCommands(Config config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
@@ -28,7 +28,7 @@ namespace Helion.Render.Commands
         {
             Config = config;
             WindowDimension = windowDimensions;
-            VirtualDimensions = windowDimensions;
+            ResolutionInfo = new ResolutionInfo { VirtualDimensions = windowDimensions };
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
         }
@@ -77,19 +77,27 @@ namespace Helion.Render.Commands
             m_commands.Add(new ViewportCommand(dimension, offset));
         }
 
-        public void SetVirtualResolution(int width, int height)
+        public void SetVirtualResolution(int width, int height, bool stretchIfWidescreen = false,
+            bool centerIfStretched = false)
         {
-            SetVirtualResolution(new Dimension(width, height));
+            Dimension dimension = new Dimension(width, height);
+            ResolutionInfo info = new()
+            {
+                VirtualDimensions = dimension,
+                StretchIfWidescreen = stretchIfWidescreen,
+                CenterIfWidescreen = centerIfStretched
+            };
+            SetVirtualResolution(info);
         }
 
-        public void SetVirtualResolution(Dimension dimension)
+        public void SetVirtualResolution(ResolutionInfo resolutionInfo)
         {
-            VirtualDimensions = dimension;
+            ResolutionInfo = resolutionInfo;
         }
 
         public void UseNativeResolution()
         {
-            VirtualDimensions = WindowDimension;
+            ResolutionInfo = new ResolutionInfo { VirtualDimensions = WindowDimension };
         }
 
         public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);

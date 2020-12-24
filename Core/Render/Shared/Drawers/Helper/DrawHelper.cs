@@ -8,6 +8,22 @@ using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Shared.Drawers.Helper
 {
+    /// <summary>
+    /// Intended to provide convenience methods for drawing so that the user
+    /// does not have to interface with the abstraction layer that sits above
+    /// the different renderers.
+    /// </summary>
+    /// <remarks>
+    /// The stack of abstractions looks like this:
+    ///
+    /// DrawHelper
+    ///    ^
+    ///    |
+    /// Renderer abstraction
+    ///    ^
+    ///    |
+    /// Low level renderer
+    /// </remarks>
     public class DrawHelper
     {
         private const float Opaque = 1.0f;
@@ -71,14 +87,21 @@ namespace Helion.Render.Shared.Drawers.Helper
             // TODO: Call FillRect for 4 edge lines 1 pixel thick?
         }
 
-        public void FillRect(int x, int y, int width, int height, Color color)
-        {
-            FillRect(x, y, width, height, color, Opaque);
-        }
-
-        public void FillRect(int x, int y, int width, int height, Color color, float alpha)
+        public void FillRect(int x, int y, int width, int height, Color color, float alpha = Opaque)
         {
             m_renderCommands.FillRect(new Rectangle(x, y, width, height), color, alpha);
+        }
+
+        public void AtResolution(int width, int height, Action action)
+        {
+            ResolutionInfo current = m_renderCommands.ResolutionInfo;
+            Dimension dimension = new(width, height);
+            ResolutionInfo tempInfo = new() { VirtualDimensions = dimension };
+            m_renderCommands.SetVirtualResolution(tempInfo);
+
+            action();
+
+            m_renderCommands.SetVirtualResolution(current);
         }
 
         /// <summary>
@@ -88,190 +111,55 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// used currently. Will revert back to the virtual resolution after
         /// this function is done calling the actions.
         /// </summary>
-        /// <param name="width">The new temporary width.</param>
-        /// <param name="height">The new temporary height.</param>
+        /// <param name="resolutionInfo">The new temporary information.</param>
         /// <param name="action">The actions to perform while at the resolution
         /// provided.</param>
-        public void AtResolution(int width, int height, Action action)
+        public void AtResolution(ResolutionInfo resolutionInfo, Action action)
         {
-            Dimension current = m_renderCommands.VirtualDimensions;
-            m_renderCommands.SetVirtualResolution(width, height);
+            ResolutionInfo current = m_renderCommands.ResolutionInfo;
+            m_renderCommands.SetVirtualResolution(resolutionInfo);
+
             action();
+
             m_renderCommands.SetVirtualResolution(current);
         }
 
-        public void Image(string name, int x, int y)
+        public void Image(string name, int x, int y, int? width = null, int? height = null,
+            Alignment align = Alignment.TopLeft, Color? color = null, float alpha = 1.0f)
         {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, Alignment.TopLeft, NoColor, Opaque);
+            Image(name, x, y, out _, width, height, align, color, alpha);
         }
 
-        public void Image(string name, int x, int y, out Dimension area)
+        public void Image(string name, int x, int y, out Dimension dimension, int? width = null, int? height = null,
+            Alignment align = Alignment.TopLeft, Color? color = null, float alpha = 1.0f)
         {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, NoColor, Opaque);
-        }
-
-        public void Image(string name, int x, int y, int width, int height)
-        {
-            Image(name, x, y, width, height, Alignment.TopLeft, NoColor, Opaque);
-        }
-
-        public void Image(string name, int x, int y, Alignment align)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, align, NoColor, Opaque);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, align, NoColor, Opaque);
-        }
-
-        public void Image(string name, int x, int y, Color color)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, Alignment.TopLeft, color, Opaque);
-        }
-
-        public void Image(string name, int x, int y, Color color, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, color, Opaque);
-        }
-
-        public void Image(string name, int x, int y, float alpha)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, Alignment.TopLeft, NoColor, alpha);
-        }
-
-        public void Image(string name, int x, int y, float alpha, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, NoColor, alpha);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, Alignment align)
-        {
-            Image(name, x, y, width, height, align, NoColor, Opaque);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, Color color)
-        {
-            Image(name, x, y, width, height, Alignment.TopLeft, color, Opaque);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, float alpha)
-        {
-            Image(name, x, y, width, height, Alignment.TopLeft, NoColor, alpha);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, Color color)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, align, color, Opaque);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, Color color, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, align, color, Opaque);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, float alpha)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, align, NoColor, alpha);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, float alpha, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, align, NoColor, alpha);
-        }
-
-        public void Image(string name, int x, int y, Color color, float alpha)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, Alignment.TopLeft, color, alpha);
-        }
-
-        public void Image(string name, int x, int y, Color color, float alpha, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, Alignment.TopLeft, color, alpha);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, Alignment align, Color color)
-        {
-            Image(name, x, y, width, height, align, color, Opaque);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, Alignment align, float alpha)
-        {
-            Image(name, x, y, width, height, align, NoColor, alpha);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, Color color, float alpha)
-        {
-            Image(name, x, y, width, height, Alignment.TopLeft, color, alpha);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, Color color, float alpha)
-        {
-            var (width, height) = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, width, height, align, color, alpha);
-        }
-
-        public void Image(string name, int x, int y, Alignment align, Color color, float alpha, out Dimension area)
-        {
-            area = DrawInfoProvider.GetImageDimension(name);
-            Image(name, x, y, area.Width, area.Height, align, color, alpha);
-        }
-
-        public void Image(string name, int x, int y, int width, int height, Alignment align, Color color, float alpha)
-        {
-            int left = x;
-            int top = y;
-
-            switch (align)
+            if (width == null || height == null)
             {
-            case Alignment.TopLeft:
-                // Already done!
-                break;
-            case Alignment.TopMiddle:
-                left = x - (width / 2);
-                break;
-            case Alignment.TopRight:
-                left = x - width;
-                break;
-            case Alignment.MiddleLeft:
-                top = y - (height / 2);
-                break;
-            case Alignment.Center:
-                left = x - (width / 2);
-                top = y - (height / 2);
-                break;
-            case Alignment.MiddleRight:
-                left = x - width;
-                top = y - (height / 2);
-                break;
-            case Alignment.BottomLeft:
-                top = y - height;
-                break;
-            case Alignment.BottomMiddle:
-                left = x - (width / 2);
-                top = y - height;
-                break;
-            case Alignment.BottomRight:
-                left = x - width;
-                top = y - height;
-                break;
+                var (imageWidth, imageHeight) = DrawInfoProvider.GetImageDimension(name);
+                dimension = new Dimension(width ?? imageWidth, height ?? imageHeight);
             }
+            else
+                dimension = new(width.Value, height.Value);
 
-            m_renderCommands.DrawImage(name, left, top, width, height, color, alpha);
+            (int left, int top) = GetDrawingCoordinateFromAlign(x, y, dimension.Width, dimension.Height, align);
+            m_renderCommands.DrawImage(name, left, top, dimension.Width, dimension.Height, color ?? NoColor, alpha);
+        }
+
+        private static (int left, int top) GetDrawingCoordinateFromAlign(int x, int y, int width, int height, Alignment align)
+        {
+            return align switch
+            {
+                Alignment.TopLeft => (x, y),
+                Alignment.TopMiddle => (x - (width / 2), y),
+                Alignment.TopRight => (x - width, y),
+                Alignment.MiddleLeft => (x, y - (height / 2)),
+                Alignment.Center => (x - (width / 2), y - (height / 2)),
+                Alignment.MiddleRight => (x - width, y - (height / 2)),
+                Alignment.BottomLeft => (x, y - height),
+                Alignment.BottomMiddle => (x - (width / 2), y - height),
+                Alignment.BottomRight => (x - width, y - height),
+                _ => throw new Exception($"Unsupported alignment: {align}")
+            };
         }
 
         public void Text(Color color, string text, string font, int fontSize, int x, int y, Alignment locationAlign,

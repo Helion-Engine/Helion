@@ -26,13 +26,13 @@ namespace Helion.Render.Shared.Drawers
         private const string ConsoleFontName = "Console";
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
-        
+
         public static void Draw(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
         {
-            DrawHelper helper = new DrawHelper(renderCommands);
-            
+            DrawHelper helper = new(renderCommands);
+
             renderCommands.ClearDepth();
-            
+
             DrawBackgroundImage(viewport, helper);
             DrawInput(console, viewport, helper, out int inputDrawTop);
             DrawMessages(console, viewport, helper, inputDrawTop);
@@ -40,54 +40,54 @@ namespace Helion.Render.Shared.Drawers
 
         private static bool IsCursorFlashTime() => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
 
-        private static void DrawBackgroundImage(Dimension viewport, DrawHelper helper)
+        private static void DrawBackgroundImage(Dimension viewport, DrawHelper draw)
         {
-            Size size = new Size(1, 2);
             int middleY = viewport.Height / 2;
 
             // Draw the background, depending on what is available.
-            if (helper.ImageExists("CONBACK"))
-                helper.Image("CONBACK", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, BackgroundAlpha);
-            else if (helper.ImageExists("TITLEPIC"))
-                helper.Image("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, BackgroundFade, BackgroundAlpha);
+            if (draw.ImageExists("CONBACK"))
+                draw.Image("CONBACK", 0, -middleY, viewport.Width, viewport.Height, color: BackgroundFade, alpha: BackgroundAlpha);
+            else if (draw.ImageExists("TITLEPIC"))
+                draw.Image("TITLEPIC", 0, -middleY, viewport.Width, viewport.Height, color: BackgroundFade, alpha: BackgroundAlpha);
             else
-                helper.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Gray);
-            
-            // Then draw the divider.
-            helper.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
+                draw.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Gray);
+
+            // Draw the divider.
+            draw.FillRect(0, middleY - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
-        private static void DrawInput(HelionConsole console, Dimension viewport, DrawHelper helper, out int inputDrawTop)
+        private static void DrawInput(HelionConsole console, Dimension viewport, DrawHelper draw,
+            out int inputDrawTop)
         {
             int offsetX = LeftEdgeOffset;
             int middleY = viewport.Height / 2;
             int baseY = middleY - BlackBarDividerHeight - 5;
 
-            helper.Text(Color.Yellow, console.Input, ConsoleFontName, ConsoleFontSize, offsetX, baseY, 
-                        Alignment.BottomLeft, out Dimension drawArea);
-            
+            draw.Text(Color.Yellow, console.Input, ConsoleFontName, ConsoleFontSize, offsetX, baseY,
+                      Alignment.BottomLeft, out Dimension drawArea);
+
             inputDrawTop = baseY - drawArea.Height;
             offsetX += drawArea.Width;
-            
+
             if (IsCursorFlashTime())
             {
                 // We want to pad right of the last character, only if there
                 // are characters to draw.
                 int cursorX = console.Input.Empty() ? offsetX : offsetX + 2;
                 int barHeight = ConsoleFontSize - 2;
-                helper.FillRect(cursorX, inputDrawTop, CaretWidth, barHeight, InputFlashColor);
+                draw.FillRect(cursorX, inputDrawTop, CaretWidth, barHeight, InputFlashColor);
             }
         }
 
-        private static void DrawMessages(HelionConsole console, Dimension viewport, DrawHelper helper, int inputDrawTop)
+        private static void DrawMessages(HelionConsole console, Dimension viewport, DrawHelper draw, int inputDrawTop)
         {
             int topY = inputDrawTop - InputToMessagePadding;
 
             foreach (ConsoleMessage msg in console.Messages)
             {
-                helper.Text(msg.Message, ConsoleFontName, ConsoleFontSize, LeftEdgeOffset, topY, Alignment.BottomLeft, 
-                            out Dimension drawArea);
-                
+                draw.Text(msg.Message, ConsoleFontName, ConsoleFontSize, LeftEdgeOffset, topY, Alignment.BottomLeft,
+                          out Dimension drawArea);
+
                 topY -= drawArea.Height + BetweenMessagePadding;
                 if (topY < 0)
                     break;
