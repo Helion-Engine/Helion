@@ -78,7 +78,7 @@ namespace Helion.World.Sound
                 }
                 else if (node.Value.SoundSource != null)
                 {
-                    node.Value.Priority = GetPriority(node.Value.SoundSource, node.Value.SoundInfo, null, out Vec3D? position);
+                    Vec3D? position = GetSoundSourcePosition(node.Value.SoundSource);
                     if (position != null)
                         node.Value.SetPosition(position.Value.ToFloat());
                 }
@@ -87,10 +87,10 @@ namespace Helion.World.Sound
             }
         }
 
-        public void StopLoopSoundBySource(object source)
+        public void StopSoundBySource(object source, string sound)
         {
-            StopSoundBySource(source, null, m_playingSounds, true);
-            StopSoundBySource(source, null, m_waitingLoopSounds, true);
+            StopSoundBySource(source, null, m_playingSounds, sound);
+            StopSoundBySource(source, null, m_waitingLoopSounds, sound);
         }
 
         private void UpdateWaitingLoopSounds()
@@ -100,9 +100,9 @@ namespace Helion.World.Sound
             while (node != null)
             {
                 nextNode = node.Next;
-                node.Value.Priority = GetPriority(node.Value.SoundSource, node.Value.SoundInfo, null, out _);
+                double distance = GetSoundSourceDistance(node.Value.SoundSource);
 
-                if (IsMaxSoundCount && (HitSoundLimit(node.Value.SoundInfo) || !BumpSoundByPriority(node.Value.Priority)))
+                if (IsMaxSoundCount && (HitSoundLimit(node.Value.SoundInfo) || !BumpSoundByPriority(node.Value.Priority, distance)))
                     return;
 
                 m_soundsToPlay.AddLast(node.Value);
@@ -120,6 +120,14 @@ namespace Helion.World.Sound
                 return sector.GetSoundSource(m_world.ListenerEntity, moveSpecial.MoveData.SectorMoveType);
 
             return null;
+        }
+
+        private double GetSoundSourceDistance(object? soundSource)
+        {
+            Vec3D? position = GetSoundSourcePosition(soundSource);
+            if (position != null)
+                return position.Value.Distance(m_world.ListenerPosition);
+            return 0.0;
         }
 
         public void ClearSounds()
@@ -161,14 +169,14 @@ namespace Helion.World.Sound
 
         private bool StopSoundsBySource(object? source, SoundInfo? soundInfo)
         {
-            if (StopSoundBySource(source, soundInfo, m_soundsToPlay, false))
+            if (StopSoundBySource(source, soundInfo, m_soundsToPlay))
                 return true;
-            if (StopSoundBySource(source, soundInfo, m_playingSounds, false))
+            if (StopSoundBySource(source, soundInfo, m_playingSounds))
                 return true;
             return false;
         }
 
-        private bool StopSoundBySource(object? source, SoundInfo? soundInfo, LinkedList<IAudioSource> audioSources, bool loop)
+        private bool StopSoundBySource(object? source, SoundInfo? soundInfo, LinkedList<IAudioSource> audioSources, string? sound = null)
         {
             if (source == null)
                 return false;
@@ -180,10 +188,16 @@ namespace Helion.World.Sound
             while (node != null)
             {
                 nextNode = node.Next;
-                if (node.Value.Loop == loop && ReferenceEquals(source, node.Value.SoundSource))
+                if (ReferenceEquals(source, node.Value.SoundSource))
                 {
-                    if (priority == -1)
-                        priority = GetPriority(source, soundInfo, null, out _);
+                    if (sound != null && node.Value.SoundInfo != null && node.Value.SoundInfo.Name != sound)
+                    {
+                        node = nextNode;
+                        continue;
+                    }
+
+                    if (priority == -1 && soundInfo != null)
+                        priority = GetPriority(source, soundInfo, null);
 
                     if (node.Value.Priority < priority)
                     {
@@ -234,11 +248,12 @@ namespace Helion.World.Sound
             if (soundInfo == null)
                 return null;
 
-            int priority = GetPriority(source, soundInfo, soundParams, out _);
+            int priority = GetPriority(source, soundInfo, soundParams);
+            double distance = GetSoundSourceDistance(source);
             bool waitLoopSound = false;
 
             // Check if this sound will remomve a sound by it's source first, then check bumping by priority
-            if (IsMaxSoundCount && (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo) && !BumpSoundByPriority(priority))))
+            if (IsMaxSoundCount && (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo) && !BumpSoundByPriority(priority, distance))))
             {
                 if (soundParams.Loop)
                     waitLoopSound = true;
@@ -290,19 +305,20 @@ namespace Helion.World.Sound
 
         private bool IsMaxSoundCount => m_soundsToPlay.Count + m_playingSounds.Count >= MaxConcurrentSounds;
 
-        private bool BumpSoundByPriority(int priority)
+        private bool BumpSoundByPriority(int priority, double distance)
         {
-            if (BumpSoundByPriority(priority, m_soundsToPlay))
+            if (BumpSoundByPriority(priority, distance, m_soundsToPlay))
                 return true;
-            if (BumpSoundByPriority(priority, m_playingSounds))
+            if (BumpSoundByPriority(priority, distance, m_playingSounds))
                 return true;
 
             return false;
         }
 
-        private bool BumpSoundByPriority(int priority, LinkedList<IAudioSource> audioSources)
+        private bool BumpSoundByPriority(int priority, double distance, LinkedList<IAudioSource> audioSources)
         {
             int lowestPriority = 0;
+            double farthestDistance = 0;
             LinkedListNode<IAudioSource>? lowestPriorityNode = null;
             LinkedListNode<IAudioSource>? node = audioSources.First;
             LinkedListNode<IAudioSource>? nextNode;
@@ -311,14 +327,19 @@ namespace Helion.World.Sound
                 nextNode = node.Next;
                 if (node.Value.Priority > lowestPriority)
                 {
-                    lowestPriorityNode = node;
-                    lowestPriority = node.Value.Priority;
+                    double checkDistance = GetSoundSourceDistance(node.Value.SoundSource);
+                    if (checkDistance > distance)
+                    {
+                        lowestPriorityNode = node;
+                        lowestPriority = node.Value.Priority;
+                        farthestDistance = checkDistance;
+                    }
                 }
 
                 node = nextNode;
             }
 
-            if (lowestPriorityNode != null && priority < lowestPriority)
+            if (lowestPriorityNode != null && priority < lowestPriority && distance < farthestDistance)
             {
                 lowestPriorityNode.Value.Stop();
 
@@ -334,37 +355,27 @@ namespace Helion.World.Sound
             return false;
         }
 
-        private int GetPriority(object? soundSource, SoundInfo? soundInfo, SoundParams? soundParams, out Vec3D? position)
+        private int GetPriority(object? soundSource, SoundInfo? soundInfo, SoundParams? soundParams)
         {
-            position = null;
             // Sounds from the listener are top priority.
-            // Sounds that do not attenuate are next, then prioritize sounds by distance.
+            // Sounds that do not attenuate are next, then prioritize sounds by the type the entity is producing.
             if (ReferenceEquals(soundSource, m_world.ListenerEntity))
                 return 0;
 
             if (soundParams != null && soundParams.Attenuation == Attenuation.None || !CanAtennuate(soundSource, soundInfo))
                 return 1;
 
-            position = GetSoundSourcePosition(soundSource);
-            if (position != null)
-                return (int)position.Value.Distance(m_world.ListenerPosition) + GetAddedPriority(soundSource, soundInfo);
-
-            return int.MaxValue;
-        }
-
-        private static int GetAddedPriority(object? soundSource, SoundInfo? soundInfo)
-        {
             if (soundInfo != null && soundSource is Entity entity && entity.Flags.Monster)
             {
                 if (soundInfo.Name == entity.Properties.PainSound)
-                    return 2;
-                else if (soundInfo.Name == entity.Properties.SeeSound)
                     return 3;
-                else if (soundInfo.Name == entity.Properties.ActiveSound)
+                else if (soundInfo.Name == entity.Properties.SeeSound)
                     return 4;
+                else if (soundInfo.Name == entity.Properties.ActiveSound)
+                    return 5;
             }
 
-            return 1;
+            return 2;
         }
 
         private static bool CanAtennuate(object? soundSource, SoundInfo? soundInfo)

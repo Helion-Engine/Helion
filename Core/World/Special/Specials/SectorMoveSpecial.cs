@@ -126,7 +126,7 @@ namespace Helion.World.Special.Specials
         {
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopLoopSoundBySource(Sector);
+                m_world.SoundManager.StopSoundBySource(Sector, SoundData.MovementSound);
         }
 
         public virtual void Use(Entity entity)
@@ -138,7 +138,7 @@ namespace Helion.World.Special.Specials
             IsPaused = true;
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopLoopSoundBySource(Sector);
+                m_world.SoundManager.StopSoundBySource(Sector, SoundData.MovementSound);
         }
 
         public void Resume()
