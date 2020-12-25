@@ -27,8 +27,8 @@ namespace Helion.Render.Shared.Drawers.Helper
     public class DrawHelper
     {
         private const float Opaque = 1.0f;
+        public static readonly Dimension DoomResolution = new(320, 200);
         private static readonly Color NoColor = Color.White;
-        private static readonly Dimension DoomResolution = new(320, 200);
 
         public readonly IImageDrawInfoProvider DrawInfoProvider;
         private readonly RenderCommands m_renderCommands;
@@ -37,18 +37,6 @@ namespace Helion.Render.Shared.Drawers.Helper
         {
             m_renderCommands = renderCommands;
             DrawInfoProvider = renderCommands.ImageDrawInfoProvider;
-        }
-
-        public static Vec2I ScaleWorldOffset(Dimension viewport, in Vec2D offset)
-        {
-            const float DoomViewAspectRatio = 640.0f / 480.0f;
-            const float DoomDrawWidth = 320.0f;
-            const float DoomDrawHeight = 200.0f;
-
-            float viewWidth = viewport.Height * DoomViewAspectRatio;
-            float scaleWidth = viewWidth / DoomDrawWidth;
-            float scaleHeight = viewport.Height / DoomDrawHeight;
-            return new Vec2I((int) (offset.X * scaleWidth), (int) (offset.Y * scaleHeight));
         }
 
         public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);

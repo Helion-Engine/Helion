@@ -38,90 +38,59 @@ namespace Helion.Render.Shared.Drawers
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
         private static readonly string HudFont = "LargeHudFont";
 
-        public static void Draw(Player player, WorldBase world, float fraction, HelionConsole console, Dimension viewport, RenderCommands cmd)
+        public static void Draw(Player player, WorldBase world, float tickFraction, HelionConsole console,
+            Dimension viewport, Config config, RenderCommands cmd)
         {
             DrawHelper draw = new(cmd);
 
             cmd.ClearDepth();
 
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, out int topRightY);
-            DrawHud(topRightY, player, world, fraction, viewport, draw);
+            DrawHud(topRightY, player, world, tickFraction, viewport, config, draw);
             DrawPickupFlash(player, world, viewport, draw);
             DrawDamage(player, world, viewport, draw);
             DrawRecentConsoleMessages(world, console, draw);
         }
 
-        private static void DrawHud(int topRightY, Player player, WorldBase world, float fraction, Dimension viewport,
-            DrawHelper draw)
+        private static void DrawHud(int topRightY, Player player, WorldBase world, float tickFraction,
+            Dimension viewport, Config config, DrawHelper draw)
         {
-            DrawHudHealthAndArmor(player, viewport, draw);
-            DrawHudKeys(topRightY, player, viewport, draw);
-            DrawHudAmmo(player, viewport, draw);
+            if (config.Engine.Hud.FullStatusBar)
+                DrawFullStatusBar(player, viewport, draw);
+            else
+                DrawMinimalStatusBar(player, topRightY, viewport, draw);
 
             if (player.AnimationWeapon != null)
             {
-                DrawHudWeapon(player, fraction, player.AnimationWeapon.FrameState, viewport, draw);
+                DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, viewport, draw);
                 if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, fraction, player.AnimationWeapon.FlashState, viewport, draw);
+                    DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, viewport, draw);
             }
 
             DrawHudCrosshair(viewport, draw);
         }
 
-        private static void DrawHudKeys(int y, Player player, Dimension viewport, DrawHelper draw)
+        private static void DrawFullStatusBar(Player player, Dimension viewport, DrawHelper draw)
         {
-            var keys = player.Inventory.GetKeys();
-            y += Padding;
-
-            foreach (var key in keys)
-            {
-                string icon = key.Definition.Properties.Inventory.Icon;
-                if (!draw.ImageExists(icon))
-                    continue;
-
-                Dimension dimension = draw.DrawInfoProvider.GetImageDimension(icon);
-                int height = (int)(KeyWidth / dimension.AspectRatio);
-                draw.Image(icon, viewport.Width - Padding - KeyWidth, y, KeyWidth, height);
-                y += height + Padding;
-            }
+            // TODO
         }
 
-        private static void DrawHudWeapon(Player player, float fraction, FrameState frameState, Dimension viewport,
-            DrawHelper draw)
+        private static void DrawMinimalStatusBar(Player player, in int topRightY, Dimension viewport, DrawHelper draw)
         {
-            int lightLevel = frameState.Frame.Properties.Bright ? 255 :
-                (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
-
-            Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
-            string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
-
-            if (draw.ImageExists(sprite))
-            {
-                (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
-                Vec2I imageOffset = draw.DrawInfoProvider.GetImageOffset(sprite);
-                Vec2I weaponOffset = DrawHelper.ScaleWorldOffset(viewport, player.PrevWeaponOffset.Interpolate(player.WeaponOffset, fraction));
-                Vec2I offset = weaponOffset;
-
-                draw.Image(sprite, offset, width, height, Align.BottomMiddle, Align.BottomMiddle, lightLevelColor);
-
-                // DrawHelper.ScaleImageDimensions(viewport, ref width, ref height);
-                // DrawHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
-                //
-                // // Translate doom image offset to OpenGL coordinates
-                // // int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
-                // // int y = -offset.Y - height + weaponOffset.Y;
-                // // draw.Image(sprite, x, y, width, height, color: lightLevelColor);
-                // draw.Image(sprite, weaponOffset.X, weaponOffset.Y, width, height, Align.BottomMiddle, lightLevelColor);
-            }
+            DrawMinimalHudHealthAndArmor(player, viewport, draw);
+            DrawMinimalHudKeys(topRightY, player, viewport, draw);
+            DrawMinimalHudAmmo(player, viewport, draw);
         }
 
-        private static void DrawHudHealthAndArmor(Player player, Dimension viewport, DrawHelper draw)
+        private static void DrawMinimalHudHealthAndArmor(Player player, Dimension viewport, DrawHelper draw)
         {
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
             int x = Padding;
             int y = viewport.Height - Padding;
-            draw.Image("MEDIA0", x, y, out Dimension medkitArea, window: Align.BottomLeft);
+
+            draw.Image("MEDIA0", Padding, -Padding, out Dimension medkitArea,
+                window: Align.BottomLeft, image: Align.BottomLeft);
 
             // We will draw the health numbers with the same height as the
             // medkit image. However if someone ever replaces it, we probably
@@ -149,7 +118,50 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawHudAmmo(Player player, Dimension viewport, DrawHelper helper)
+        private static void DrawMinimalHudKeys(int y, Player player, Dimension viewport, DrawHelper draw)
+        {
+            var keys = player.Inventory.GetKeys();
+            y += Padding;
+
+            foreach (var key in keys)
+            {
+                string icon = key.Definition.Properties.Inventory.Icon;
+                if (!draw.ImageExists(icon))
+                    continue;
+
+                Dimension dimension = draw.DrawInfoProvider.GetImageDimension(icon);
+                int height = (int)(KeyWidth / dimension.AspectRatio);
+                draw.Image(icon, viewport.Width - Padding - KeyWidth, y, KeyWidth, height);
+                y += height + Padding;
+            }
+        }
+
+        private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
+            DrawHelper draw)
+        {
+            int lightLevel = frameState.Frame.Properties.Bright ? 255 :
+                (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
+
+            Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
+            string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
+
+            if (draw.ImageExists(sprite))
+            {
+                (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
+                Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
+                Vec2D interpolateOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction);
+                Vec2I weaponOffset = DoomHudHelper.ScaleWorldOffset(viewport, interpolateOffset);
+                DoomHudHelper.ScaleImageDimensions(viewport, ref width, ref height);
+                DoomHudHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
+
+                // Translate doom image offset to OpenGL coordinates
+                int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
+                int y = -offset.Y - height + weaponOffset.Y;
+                draw.Image(sprite, x, y, width, height, color: lightLevelColor);
+            }
+        }
+
+        private static void DrawMinimalHudAmmo(Player player, Dimension viewport, DrawHelper helper)
         {
             if (player.Weapon == null || player.Weapon.Definition.Properties.Weapons.AmmoType.Length == 0)
                 return;
