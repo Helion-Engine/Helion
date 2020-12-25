@@ -1,4 +1,5 @@
-﻿using Helion.Util.Geometry;
+﻿using Helion.Render.Commands;
+using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Shared.Drawers.Helper
@@ -8,10 +9,17 @@ namespace Helion.Render.Shared.Drawers.Helper
     /// </summary>
     public static class DoomHudHelper
     {
+        public const int DoomResolutionWidth = 320;
+        public const int DoomResolutionHeight = 200;
         private const float DoomViewAspectRatio = 640.0f / 480.0f;
-        private const float DoomDrawAspectRatio = 320.0f / 200.0f;
         private const float DoomDrawWidth = 320.0f;
         private const float DoomDrawHeight = 200.0f;
+        public static readonly Dimension DoomResolution = new(DoomResolutionWidth, DoomResolutionHeight);
+        public static readonly ResolutionInfo DoomResolutionInfo = new()
+        {
+            VirtualDimensions = DoomResolution,
+            CenterIfWidescreen = true
+        };
 
         public static void ScaleImageDimensions(Dimension viewport, ref int width, ref int height)
         {

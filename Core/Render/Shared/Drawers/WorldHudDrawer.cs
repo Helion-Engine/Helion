@@ -56,7 +56,7 @@ namespace Helion.Render.Shared.Drawers
             Dimension viewport, Config config, DrawHelper draw)
         {
             if (config.Engine.Hud.FullStatusBar)
-                DrawFullStatusBar(player, viewport, draw);
+                DrawFullStatusBar(player, draw);
             else
                 DrawMinimalStatusBar(player, topRightY, viewport, draw);
 
@@ -70,7 +70,48 @@ namespace Helion.Render.Shared.Drawers
             DrawHudCrosshair(viewport, draw);
         }
 
-        private static void DrawFullStatusBar(Player player, Dimension viewport, DrawHelper draw)
+
+        private static void DrawFullStatusBar(Player player, DrawHelper draw)
+        {
+            draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
+            {
+                draw.Image("STBAR", window: Align.BottomLeft, image: Align.BottomLeft);
+
+                DrawFullHudHealthAndArmor(player, draw);
+                DrawFullHudWeaponSlots(player, draw);
+                DrawFullHudAmmo(player, draw);
+                DrawFullHudKeys(player, draw);
+                DrawFullHudFace(player, draw);
+            });
+        }
+
+        private static void DrawFullHudHealthAndArmor(Player player, DrawHelper draw)
+        {
+            string health = $"{Math.Clamp(player.Health, 0, 999)}%";
+            string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
+
+            // TODO
+        }
+
+        private static void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
+        {
+            // TODO
+        }
+
+        private static void DrawFullHudAmmo(Player player, DrawHelper draw)
+        {
+            if (player.Weapon == null)
+                return;
+
+            // TODO
+        }
+
+        private static void DrawFullHudKeys(Player player, DrawHelper draw)
+        {
+            // TODO
+        }
+
+        private static void DrawFullHudFace(Player player, DrawHelper draw)
         {
             // TODO
         }

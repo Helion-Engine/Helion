@@ -27,16 +27,15 @@ namespace Helion.Render.Shared.Drawers.Helper
     public class DrawHelper
     {
         private const float Opaque = 1.0f;
-        public static readonly Dimension DoomResolution = new(320, 200);
         private static readonly Color NoColor = Color.White;
 
-        public readonly IImageDrawInfoProvider DrawInfoProvider;
         private readonly RenderCommands m_renderCommands;
+
+        public IImageDrawInfoProvider DrawInfoProvider => m_renderCommands.ImageDrawInfoProvider;
 
         public DrawHelper(RenderCommands renderCommands)
         {
             m_renderCommands = renderCommands;
-            DrawInfoProvider = renderCommands.ImageDrawInfoProvider;
         }
 
         public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);
@@ -120,14 +119,26 @@ namespace Helion.Render.Shared.Drawers.Helper
         }
 
         /// <summary>
+        /// Draws an image at the aligned origin. Does not care about returning
+        /// the drawing area.
+        /// See <see cref="Image(string,int,int,out Helion.Util.Geometry.Dimension,System.Nullable{int},System.Nullable{int},Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,System.Nullable{System.Drawing.Color},float)"/>
+        /// </summary>
+        public void Image(string name, int? width = null, int? height = null,
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
+            float alpha = 1.0f)
+        {
+            Image(name, 0, 0, out _, width, height, window, image, color, alpha);
+        }
+
+        /// <summary>
         /// Draws an image. Does not care about returning the drawing area.
         /// See <see cref="Image(string,int,int,out Helion.Util.Geometry.Dimension,System.Nullable{int},System.Nullable{int},Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,System.Nullable{System.Drawing.Color},float)"/>
         /// </summary>
         public void Image(string name, int x, int y, int? width = null, int? height = null,
-            Align alignWindow = Align.TopLeft, Align alignImage = Align.TopLeft, Color? color = null,
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
             float alpha = 1.0f)
         {
-            Image(name, x, y, out _, width, height, alignImage, alignWindow, color, alpha);
+            Image(name, x, y, out _, width, height, window, image, color, alpha);
         }
 
         /// <summary>
@@ -138,7 +149,7 @@ namespace Helion.Render.Shared.Drawers.Helper
             Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
             float alpha = 1.0f)
         {
-            Image(name, offset, out _, width, height, image, window, color, alpha);
+            Image(name, offset, out _, width, height, window, image, color, alpha);
         }
 
         /// <summary>

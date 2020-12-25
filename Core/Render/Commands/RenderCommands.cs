@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
@@ -14,7 +15,7 @@ using Helion.World.Entities;
 
 namespace Helion.Render.Commands
 {
-    public class RenderCommands
+    public class RenderCommands : IEnumerable<IRenderCommand>
     {
         public readonly Config Config;
         public readonly Dimension WindowDimension;
@@ -102,6 +103,8 @@ namespace Helion.Render.Commands
 
         public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);
 
-        public IReadOnlyList<IRenderCommand> GetCommands() => m_commands.AsReadOnly();
+        public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
