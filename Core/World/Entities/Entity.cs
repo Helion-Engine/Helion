@@ -98,7 +98,7 @@ namespace Helion.World.Entities
         public bool IsFrozen => FrozenTics > 0;
         public bool IsDead => Health == 0;
         public EntityFrame Frame => FrameState.Frame;
-        public virtual double ViewHeight => 8.0;
+        public virtual double ViewZ => 8.0;
 
         /// <summary>
         /// Creates an entity with the following information.

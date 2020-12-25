@@ -39,10 +39,10 @@ namespace Helion.World.Entities.Players
         private double m_prevAngle;
         private double m_prevPitch;
         private double m_viewHeight;
-        private double m_prevViewHeight;
+        private double m_viewZ;
+        private double m_prevViewZ;
         private double m_deltaViewHeight;
         private double m_bob;
-        private double m_prevBob;
         private Entity? m_killer;
 
         public Weapon? Weapon { get; private set; }
@@ -53,7 +53,7 @@ namespace Helion.World.Entities.Players
         public Vec2D PrevWeaponOffset;
         public Vec2D WeaponOffset;
 
-        public override double ViewHeight => m_viewHeight;
+        public override double ViewZ => m_viewZ;
 
         public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber)
@@ -67,9 +67,7 @@ namespace Helion.World.Entities.Players
             MoveLinked = true;
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
-            m_prevViewHeight = m_viewHeight;
-
-            AddStartItems();
+            m_viewZ = m_prevViewZ = m_deltaViewHeight;
         }
 
         public override void CopyProperties(Entity entity)
@@ -94,14 +92,14 @@ namespace Helion.World.Entities.Players
         public Vec3D GetViewPosition()
         {
             Vec3D position = Position;
-            position.Z += m_viewHeight + m_bob;
+            position.Z += m_viewZ;
             return position;
         }
 
         public Vec3D GetPrevViewPosition()
         {
             Vec3D position = PrevPosition;
-            position.Z += m_prevViewHeight + m_prevBob;
+            position.Z += m_prevViewZ;
             return position;
         }
 
@@ -111,7 +109,7 @@ namespace Helion.World.Entities.Players
             {
                 m_viewHeight -= z - Box.Bottom;
                 m_deltaViewHeight = (Definition.Properties.Player.ViewHeight - m_viewHeight) / PlayerViewDivider;
-                ClampViewHeight();
+                SetViewHeight();
             }
 
             base.SetZ(z, smooth);
@@ -142,8 +140,7 @@ namespace Helion.World.Entities.Players
         public override void ResetInterpolation()
         {
             m_viewHeight = Definition.Properties.Player.ViewHeight;
-            m_prevViewHeight = m_viewHeight;
-            m_prevBob = m_bob;
+            m_prevViewZ = m_viewZ;
             m_deltaViewHeight = 0;
             PrevWeaponOffset = WeaponOffset;
 
@@ -194,8 +191,7 @@ namespace Helion.World.Entities.Players
 
             m_prevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
-            m_prevViewHeight = m_viewHeight;
-            m_prevBob = m_bob;
+            m_prevViewZ = m_viewZ;
 
             PrevWeaponOffset = WeaponOffset;
 
@@ -217,7 +213,7 @@ namespace Helion.World.Entities.Players
             }
 
             SetBob();
-            ClampViewHeight();
+            SetViewHeight();
 
             if (IsDead)
                 DeathTick();
@@ -547,18 +543,6 @@ namespace Helion.World.Entities.Players
             ForceLowerWeapon(true);
         }
 
-        private void AddStartItems()
-        {
-            if (Definition.Properties.Player.StartItem == null)
-                return;
-
-            foreach (PlayerStartItem item in Definition.Properties.Player.StartItem)
-            {
-                // TODO: If not an inventory item, don't give.
-                // TODO: Give item.
-            }
-        }
-
         public void Jump()
         {
             if (AbleToJump())
@@ -568,7 +552,7 @@ namespace Helion.World.Entities.Players
             }
         }
 
-        private void ClampViewHeight()
+        private void SetViewHeight()
         {
             double playerViewHeight = IsDead && m_deathTics == 0 ? DeathHeight : Definition.Properties.Player.ViewHeight;
             double halfPlayerViewHeight = playerViewHeight / 2;
@@ -592,7 +576,7 @@ namespace Helion.World.Entities.Players
                     m_deltaViewHeight += 0.25;
             }
 
-            m_viewHeight = MathHelper.Clamp(m_viewHeight, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
+            m_viewZ = MathHelper.Clamp(m_viewHeight + m_bob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
         }
 
         private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !IsClippedWithEntity();
