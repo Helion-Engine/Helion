@@ -481,15 +481,19 @@ namespace Helion.World.Entities
             {
                 EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
                 if (ammoDef != null)
-                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive);
+                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
 
                 return false;
             }
 
             if (definition.IsType(Inventory.BackPackBaseClassName))
+            {
                 Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
+                Inventory.Add(definition, invData.Amount, flags);
+                return true;
+            }
 
-            return Inventory.Add(definition, invData.Amount);
+            return Inventory.Add(definition, invData.Amount, flags);
         }
 
         public void GiveBestArmor(EntityDefinitionComposer definitionComposer)

@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
+using Helion.World.Entities.Definition.Flags;
 
 namespace Helion.World.Entities.Inventories
 {
@@ -39,7 +40,7 @@ namespace Helion.World.Entities.Inventories
             return definition.Name;
         }
 
-        public bool Add(EntityDefinition definition, int amount)
+        public bool Add(EntityDefinition definition, int amount, EntityFlags? flags = null)
         {
             if (amount <= 0)
                 return false;
@@ -53,8 +54,10 @@ namespace Helion.World.Entities.Inventories
 
             if (Items.TryGetValue(name, out InventoryItem? item))
             {
+                // If the player is maxed on this item, return true if AlwaysPickup is set to remove from the world
+                bool alwaysPickup = flags != null && flags.InventoryAlwaysPickup;
                 if (isKey || item.Amount >= maxAmount)
-                    return false;
+                    return alwaysPickup;
 
                 item.Amount += amount;
                 if (item.Amount > maxAmount)
