@@ -13,6 +13,7 @@ namespace Helion.Client.OpenAL.Components
         
         public ALDevice()
         {
+            DeviceName = string.Empty;
             CreateDefault();
         }
 
