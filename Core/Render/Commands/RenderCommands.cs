@@ -75,16 +75,17 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity));
         }
 
-        public void Viewport(Dimension dimension)
+        public void Viewport(Dimension dimension, Vec2I? offset = null)
         {
-            m_commands.Add(new ViewportCommand(dimension));
+            m_commands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
         }
 
-        public void Viewport(Dimension dimension, Vec2I offset)
-        {
-            m_commands.Add(new ViewportCommand(dimension, offset));
-        }
-
+        /// <summary>
+        /// Sets a virtual resolution to draw with.
+        /// </summary>
+        /// <param name="width">The virtual window width.</param>
+        /// <param name="height">The virtual window height.</param>
+        /// <param name="scale">How to scale drawing.</param>
         public void SetVirtualResolution(int width, int height, ResolutionScale scale = ResolutionScale.None)
         {
             Dimension dimension = new Dimension(width, height);
@@ -92,6 +93,10 @@ namespace Helion.Render.Commands
             SetVirtualResolution(info);
         }
 
+        /// <summary>
+        /// Sets a virtual resolution to draw with.
+        /// </summary>
+        /// <param name="resolutionInfo">Resolution parameters.</param>
         public void SetVirtualResolution(ResolutionInfo resolutionInfo)
         {
             ResolutionInfo = resolutionInfo;
@@ -110,8 +115,7 @@ namespace Helion.Render.Commands
                 // We only want to do centering if we will end up with gutters
                 // on the side. This can only happen if the virtual dimension
                 // has a smaller aspect ratio. We have to exit out if not since
-                // it will cause weird overdrawing. This can happen in the case
-                // of rendering something like 320x200 on a normal widescreen.
+                // it will cause weird overdrawing otherwise.
                 if (WindowDimension.AspectRatio > virtualDimension.AspectRatio)
                 {
                     m_scale.X = m_scale.Y;
@@ -120,9 +124,17 @@ namespace Helion.Render.Commands
             }
         }
 
+        /// <summary>
+        /// Restores drawing to the native resolution (viewport size, no scale
+        /// transformations).
+        /// </summary>
         public void UseNativeResolution()
         {
-            ResolutionInfo = new ResolutionInfo { VirtualDimensions = WindowDimension };
+            ResolutionInfo = new ResolutionInfo
+            {
+                VirtualDimensions = WindowDimension,
+                Scale = ResolutionScale.None
+            };
         }
 
         public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);

@@ -376,19 +376,19 @@ namespace Helion.Render.Shared.Drawers.Helper
             // This is relative to the window position.
             Vec2I imageOffset = imageAlign switch
             {
-                Align.TopLeft => new Vec2I(0, 0),
-                Align.TopMiddle => new Vec2I(width / 2, 0),
-                Align.TopRight => new Vec2I(width - 1, 0),
-                Align.MiddleLeft => new Vec2I(0, height / 2),
-                Align.Center => new Vec2I(width / 2, height / 2),
-                Align.MiddleRight => new Vec2I(width - 1, height / 2),
-                Align.BottomLeft => new Vec2I(0, height - 1),
-                Align.BottomMiddle => new Vec2I(width / 2, height - 1),
-                Align.BottomRight => new Vec2I(width - 1, height - 1),
+                Align.TopLeft => -new Vec2I(0, 0),
+                Align.TopMiddle => -new Vec2I(width / 2, 0),
+                Align.TopRight => -new Vec2I(width - 1, 0),
+                Align.MiddleLeft => -new Vec2I(0, height / 2),
+                Align.Center => -new Vec2I(width / 2, height / 2),
+                Align.MiddleRight => -new Vec2I(width - 1, height / 2),
+                Align.BottomLeft => -new Vec2I(0, height - 1),
+                Align.BottomMiddle => -new Vec2I(width / 2, height - 1),
+                Align.BottomRight => -new Vec2I(width - 1, height - 1),
                 _ => throw new Exception($"Unsupported image alignment: {imageAlign}")
             };
 
-            return windowPos - imageOffset + offset;
+            return windowPos + imageOffset + offset;
         }
     }
 }
