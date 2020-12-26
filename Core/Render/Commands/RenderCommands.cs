@@ -102,26 +102,14 @@ namespace Helion.Render.Commands
             m_scale = windowDim.ToDouble() / virtualDim.ToDouble();
             m_centeringOffsetX = 0;
 
-            // // By default we're stretching, but if we're centering, our values
-            // // have to change to accomodate a gutter if the aspect ratios are
-            // // different.
-            // if (resolutionInfo.Scale == ResolutionScale.Center)
-            // {
-            //     // We know the Y scale on how to stretch the resolution to the
-            //     // bottom. Now we need to find the new X scale, but it also has
-            //     // to preserve the original aspect ratio. This fortunately is
-            //     // simple as scaling the Y scale by the aspect ratio.
-            //     m_scale.X = m_scale.Y * resolutionInfo.VirtualDimensions.AspectRatio;
-            //
-            //     // Now that we know where the fully scaled virtual resolution
-            //     // would go to if we placed the bottom right point along the
-            //     // window (assuming the two origins touch at the top left),
-            //     // we can find the left over gutter space. To find this gutter
-            //     // space, it's the entire window minus the scaled position of
-            //     // the virtual window. We then divide it by two because we want
-            //     // to put half of the gutter on each side to center it.
-            //     m_centeringOffsetX = (WindowDimension.Width - (int)(virtualDimension.Width * m_scale.X)) / 2;
-            // }
+            // By default we're stretching, but if we're centering, our values
+            // have to change to accomodate a gutter if the aspect ratios are
+            // different.
+            if (resolutionInfo.Scale == ResolutionScale.Center)
+            {
+                m_scale.X = m_scale.Y;
+                m_centeringOffsetX = (WindowDimension.Width - (int)(virtualDimension.Width * m_scale.X)) / 2;
+            }
         }
 
         public void UseNativeResolution()
@@ -148,17 +136,9 @@ namespace Helion.Render.Commands
 
             Vec2I start = TranslatePoint(drawArea.X, drawArea.Y);
             Vec2I end = TranslatePoint(drawArea.X + drawArea.Width, drawArea.Y + drawArea.Height);
-            Vec2I delta = end - start;
+            Vec2I width = end - start;
 
-            switch (ResolutionInfo.Scale)
-            {
-            case ResolutionScale.Center:
-                // TODO: Scale?    Vec2I scaledDelta = (delta.ToDouble() * m_scale).ToInt();
-                //  + m_centeringOffsetX
-                return new Rectangle(start.X, start.Y, delta.X, delta.Y);
-            default:
-                return new Rectangle(start.X, start.Y, delta.X, delta.Y);
-            }
+            return new Rectangle(start.X + m_centeringOffsetX, start.Y, width.X, width.Y);
         }
 
         private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).ToInt();

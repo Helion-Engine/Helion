@@ -7,7 +7,7 @@
     /// The following is an example of each type if this is drawn at a custom
     /// resolution on widescreen.
     ///
-    /// None (looks bad because it assumes a custom different resolution):
+    /// None (looks bad because it assumes a different resolution):
     ///   +-----------------------+
     ///   |...........            |
     ///   |...........            |
@@ -37,7 +37,8 @@
     public enum ResolutionScale
     {
         /// <summary>
-        /// Indicates nothing should be done.
+        /// Indicates nothing should be done. This is fine if the aspect ratio
+        /// is the same as the viewport.
         /// </summary>
         None,
 

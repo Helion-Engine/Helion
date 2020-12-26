@@ -78,26 +78,35 @@ namespace Helion.Render.Shared.Drawers
             {
                 draw.Image("STBAR", window: Align.BottomLeft, image: Align.BottomLeft);
 
-                DrawFullHudHealthAndArmor(player, draw);
+                DrawFullHudHealthArmorAmmo(player, draw);
                 DrawFullHudWeaponSlots(player, draw);
-                DrawFullHudAmmo(player, draw);
                 DrawFullHudKeys(player, draw);
                 DrawFullHudFace(player, draw);
             });
         }
 
-        private static void DrawFullHudHealthAndArmor(Player player, DrawHelper draw)
+        private static void DrawFullHudHealthArmorAmmo(Player player, DrawHelper draw)
         {
+            const int offsetY = 171;
+
+            if (player.Weapon != null)
+            {
+                // TODO: Need to get the ammo.
+                int ammoAmount = 50;
+                string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
+                DrawFullHudBigFont(ammo, 75, offsetY, draw);
+            }
+
             string health = $"{Math.Clamp(player.Health, 0, 999)}%";
-            DrawFullHudBigFont(health, 123, 123, draw);
+            DrawFullHudBigFont(health, 165, offsetY, draw);
 
             string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
-            DrawFullHudBigFont(armor, 123, 223, draw);
+            DrawFullHudBigFont(armor, 260, offsetY, draw);
         }
 
         private static void DrawFullHudBigFont(string message, int x, int y, DrawHelper draw)
         {
-            const int FullHudLargeFontSize = 16;
+            const int FullHudLargeFontSize = 24;
 
             draw.Text(Color.Red, message, "LargeHudFont", FullHudLargeFontSize, x, y, TextAlign.Right,
                 textbox: Align.TopRight);
@@ -105,15 +114,9 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
         {
-            // TODO
-        }
+            draw.Image("STARMS", 104, 0, window: Align.BottomLeft, image: Align.BottomLeft);
 
-        private static void DrawFullHudAmmo(Player player, DrawHelper draw)
-        {
-            if (player.Weapon == null)
-                return;
-
-            // TODO
+            // TODO: Draw weapon numbers if we have them.
         }
 
         private static void DrawFullHudKeys(Player player, DrawHelper draw)
