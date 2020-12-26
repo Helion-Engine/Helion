@@ -107,8 +107,16 @@ namespace Helion.Render.Commands
             // different.
             if (resolutionInfo.Scale == ResolutionScale.Center)
             {
-                m_scale.X = m_scale.Y;
-                m_centeringOffsetX = (WindowDimension.Width - (int)(virtualDimension.Width * m_scale.X)) / 2;
+                // We only want to do centering if we will end up with gutters
+                // on the side. This can only happen if the virtual dimension
+                // has a smaller aspect ratio. We have to exit out if not since
+                // it will cause weird overdrawing. This can happen in the case
+                // of rendering something like 320x200 on a normal widescreen.
+                if (WindowDimension.AspectRatio > virtualDimension.AspectRatio)
+                {
+                    m_scale.X = m_scale.Y;
+                    m_centeringOffsetX = (WindowDimension.Width - (int)(virtualDimension.Width * m_scale.X)) / 2;
+                }
             }
         }
 
