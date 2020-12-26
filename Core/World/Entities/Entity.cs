@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Helion.Audio;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
@@ -832,6 +833,14 @@ namespace Helion.World.Entities
         public Vec3D? GetSoundVelocity()
         {
             return Velocity;
+        }
+
+        public bool CanAttenuate(SoundInfo soundInfo)
+        {
+            if (Flags.Boss && (soundInfo.Name == Definition.Properties.SeeSound || soundInfo.Name == Definition.Properties.DeathSound))
+                return false;
+
+            return true;
         }
     }
 }

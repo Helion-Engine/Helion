@@ -387,13 +387,12 @@ namespace Helion.World.Sound
             return 2;
         }
 
-        private static bool CanAtennuate(object? soundSource, SoundInfo? soundInfo)
+        private static bool CanAtennuate(ISoundSource? soundSource, SoundInfo? soundInfo)
         {
-            if (soundInfo != null && soundSource is Entity entity && entity.Flags.Boss && 
-                (soundInfo.Name == entity.Definition.Properties.SeeSound || soundInfo.Name == entity.Definition.Properties.DeathSound))
-                return false;
+            if (soundSource == null || soundInfo == null)
+                return true;
 
-            return true;
+            return soundSource.CanAttenuate(soundInfo);
         }
 
         private SoundInfo? GetSoundInfo(ISoundSource? source, string sound)

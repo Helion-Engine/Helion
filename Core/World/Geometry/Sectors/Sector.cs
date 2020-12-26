@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
@@ -489,5 +490,7 @@ namespace Helion.World.Geometry.Sectors
         {
             return Vec3D.Zero;
         }
+
+        public bool CanAttenuate(SoundInfo soundInfo) => true;
     }
 }

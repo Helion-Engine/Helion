@@ -1,4 +1,5 @@
 ﻿using Helion.Audio;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 
@@ -12,5 +13,6 @@ namespace Helion.World.Sound
         double GetDistanceFrom(Entity listenerEntity);
         Vec3D? GetSoundPosition(Entity listenerEntity);
         Vec3D? GetSoundVelocity();
+        bool CanAttenuate(SoundInfo soundInfo);
     }
 }
