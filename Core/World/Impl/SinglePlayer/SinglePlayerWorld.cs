@@ -15,7 +15,6 @@ using Helion.World.Entities;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
-using Helion.World.Geometry.Builder;
 using Helion.World.Physics;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -34,7 +33,9 @@ namespace Helion.World.Impl.SinglePlayer
 
         public readonly Player Player;
 
-        private SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
+        private readonly IAudioSystem m_audioSystem;
+
+        public SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, IMap map, Player? existingPlayer = null)
             : base(config, archiveCollection, audioSystem, geometry, map)
         {
@@ -45,7 +46,7 @@ namespace Helion.World.Impl.SinglePlayer
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
 
-            PlayLevelMusic(audioSystem, map, archiveCollection);
+            m_audioSystem = audioSystem;
         }
 
         ~SinglePlayerWorld()
@@ -54,17 +55,10 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public static SinglePlayerWorld? Create(Config config, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, IMap map, Player? existingPlayer = null)
+        public override void Start()
         {
-            MapGeometry? geometry = GeometryBuilder.Create(map, config);
-            if (geometry == null)
-            {
-                Log.Error("Cannot make single player world, geometry is malformed");
-                return null;
-            }
-
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map, existingPlayer);
+            PlayLevelMusic(AudioSystem, Map, ArchiveCollection);
+            base.Start();
         }
 
         private static void PlayLevelMusic(IAudioSystem audioSystem, IMap map, ArchiveCollection archiveCollection)
