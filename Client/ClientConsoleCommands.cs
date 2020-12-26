@@ -114,6 +114,7 @@ namespace Helion.Client
                 return;
             
             m_layerManager.Add(newLayer);
+            newLayer.World.Start();
         }
     }
 }
