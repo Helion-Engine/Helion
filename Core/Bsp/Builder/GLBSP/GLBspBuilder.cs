@@ -110,8 +110,33 @@ namespace Helion.Bsp.Builder.GLBSP
                 for (int i = start; i < end; i++)
                     edges.Add(m_segments[i]);
 
+                if (edges.Count < 3)
+                    FixMalformedSubsectorEdges(edges);
+
                 BspNode subsector = new(edges);
                 m_subsectors.Add(subsector);
+            }
+        }
+
+        private static void FixMalformedSubsectorEdges(List<SubsectorEdge> edges)
+        {
+            switch (edges.Count)
+            {
+            case 0:
+                throw new Exception("Subsector has no edges, cannot recover from malformed data");
+            case 1:
+                // We need three segments, so we'll take the single one, and
+                // make it go backwards half way twice to create a degenerate
+                // triangle. In the future we could always make it no longer
+                // degenerate if needed by budging the middle vertex outwards
+                // so it goes clockwise.
+                Vec2D middle = (edges[0].Start + edges[0].End) / 2;
+                edges.Add(new SubsectorEdge(edges[0].End, middle));
+                edges.Add(new SubsectorEdge(middle, edges[0].Start));
+                break;
+            case 2:
+                edges.Add(new SubsectorEdge(edges[1].End, edges[0].Start));
+                break;
             }
         }
 
