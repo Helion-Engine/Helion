@@ -828,7 +828,7 @@ namespace Helion.World.Physics
                 if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
                 {
                     m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                        new SoundParams(Attenuation.Default));
+                        new SoundParams(entity));
                 }
 
                 m_entityManager.Destroy(item);

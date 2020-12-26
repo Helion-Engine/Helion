@@ -1,4 +1,5 @@
 ﻿using Helion.Resources.Definitions.SoundInfo;
+using Helion.World.Sound;
 
 namespace Helion.Audio
 {
@@ -11,18 +12,13 @@ namespace Helion.Audio
         public const float DefaultMaxDistance = 1752.0f;
         public const float DefaultRadius = 32.0f;
 
-        public readonly object? SoundSource;
+        public readonly ISoundSource SoundSource;
         public readonly bool Loop;
         public readonly float Volume;
         public Attenuation Attenuation { get; set; }
         public SoundInfo? SoundInfo { get; set; }
 
-        public SoundParams(Attenuation attenuation)
-            : this(null, false, attenuation)
-        {
-        }
-
-        public SoundParams(object? soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default, float volume = MaxVolume)
+        public SoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default, float volume = MaxVolume)
         {
             SoundSource = soundSource;
             Attenuation = attenuation;

@@ -3,6 +3,7 @@ using Helion.Audio;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
@@ -93,7 +94,7 @@ namespace Helion.World.Special.Specials
 
         private void InitSector(Sector sector)
         {
-            m_world.SoundManager.CreateSectorSound(sector, MoveData.SectorMoveType, Constants.PlatMoveSound, new SoundParams(Sector, true));
+            m_world.SoundManager.CreateSoundOn(sector, Constants.PlatMoveSound, SoundChannelType.Auto, new SoundParams(Sector, true));
             sector.ActiveMoveSpecial = this;
         }
     }

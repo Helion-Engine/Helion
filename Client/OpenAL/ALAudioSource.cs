@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
-using Helion.Resources.Definitions.SoundInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
@@ -42,16 +41,13 @@ namespace Helion.Client.OpenAL
         }
 
         public Vector3 Velocity { get; set; }
-        public SoundInfo? SoundInfo { get; set; }
-        public object? SoundSource { get; set; }
-        public int Priority { get; set; }
-        public bool Loop { get; set; }
+        public AudioData AudioData { get; set; }
         public int ID => m_sourceId;
 
-        public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer, SoundParams soundParams)
+        public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer, AudioData audioData, SoundParams soundParams)
         {
             m_owner = owner;
-            Loop = soundParams.Loop;
+            AudioData = audioData;
 
             float rolloffFactor = DefaultRolloff;
             float referenceDistance = DefaultReference;
@@ -86,7 +82,7 @@ namespace Helion.Client.OpenAL
             AL.Source(m_sourceId, SourceRadius, radius);
             AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
             AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
-            AL.Source(m_sourceId, ALSourceb.Looping, Loop);
+            AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
             AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
         }
 

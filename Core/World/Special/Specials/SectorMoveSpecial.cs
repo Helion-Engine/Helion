@@ -4,6 +4,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
@@ -101,7 +102,7 @@ namespace Helion.World.Special.Specials
             if (SectorPlane.Z == DestZ)
             {
                 if (SoundData.StopSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StopSound, new SoundParams(Sector));
+                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.StopSound, SoundChannelType.Auto, new SoundParams(Sector));
                 return;
             }
 
@@ -109,16 +110,16 @@ namespace Helion.World.Special.Specials
             {
                 m_playedStartSound = true;
                 if (SoundData.StartSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.StartSound, new SoundParams(Sector));
+                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.StartSound, SoundChannelType.Auto, new SoundParams(Sector));
                 if (SoundData.MovementSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, new SoundParams(Sector, true));
+                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.MovementSound, SoundChannelType.Auto, new SoundParams(Sector, true));
             }
 
             if (m_direction != MoveData.StartDirection && !m_playedReturnSound)
             {
                 m_playedReturnSound = true;
                 if (SoundData.ReturnSound != null)
-                    m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.ReturnSound, new SoundParams(Sector));
+                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.ReturnSound, SoundChannelType.Auto, new SoundParams(Sector));
             }
         }
 
@@ -126,7 +127,7 @@ namespace Helion.World.Special.Specials
         {
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopSoundBySource(Sector, SoundData.MovementSound);
+                m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, SoundData.MovementSound);
         }
 
         public virtual void Use(Entity entity)
@@ -138,14 +139,14 @@ namespace Helion.World.Special.Specials
             IsPaused = true;
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopSoundBySource(Sector, SoundData.MovementSound);
+                m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, SoundData.MovementSound);
         }
 
         public void Resume()
         {
             IsPaused = false;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.CreateSectorSound(Sector, MoveData.SectorMoveType, SoundData.MovementSound, new SoundParams(Sector, true));
+                m_world.SoundManager.CreateSoundOn(Sector, SoundData.MovementSound, SoundChannelType.Auto, new SoundParams(Sector, true));
         }
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Move;
