@@ -55,11 +55,6 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawHud(int topRightY, Player player, WorldBase world, float tickFraction,
             Dimension viewport, Config config, DrawHelper draw)
         {
-            if (config.Engine.Hud.FullStatusBar)
-                DrawFullStatusBar(player, draw);
-            else
-                DrawMinimalStatusBar(player, topRightY, viewport, draw);
-
             if (player.AnimationWeapon != null)
             {
                 DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, viewport, draw);
@@ -68,6 +63,12 @@ namespace Helion.Render.Shared.Drawers
             }
 
             DrawHudCrosshair(viewport, draw);
+
+            // TODO: This should be at the top, rendering order is reversed somehow (check impl)
+            if (config.Engine.Hud.FullStatusBar)
+                DrawFullStatusBar(player, draw);
+            else
+                DrawMinimalStatusBar(player, topRightY, viewport, draw);
         }
 
 
@@ -88,9 +89,18 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawFullHudHealthAndArmor(Player player, DrawHelper draw)
         {
             string health = $"{Math.Clamp(player.Health, 0, 999)}%";
-            string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
+            DrawFullHudBigFont(health, 123, 123, draw);
 
-            // TODO
+            string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
+            DrawFullHudBigFont(armor, 123, 223, draw);
+        }
+
+        private static void DrawFullHudBigFont(string message, int x, int y, DrawHelper draw)
+        {
+            const int FullHudLargeFontSize = 16;
+
+            draw.Text(Color.Red, message, "LargeHudFont", FullHudLargeFontSize, x, y, TextAlign.Right,
+                textbox: Align.TopRight);
         }
 
         private static void DrawFullHudWeaponSlots(Player player, DrawHelper draw)

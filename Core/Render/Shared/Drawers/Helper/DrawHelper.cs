@@ -38,8 +38,14 @@ namespace Helion.Render.Shared.Drawers.Helper
             m_renderCommands = renderCommands;
         }
 
+        /// <summary>
+        /// See <see cref="DrawInfoProvider"/> for this function.
+        /// </summary>
         public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);
 
+        /// <summary>
+        /// See <see cref="DrawInfoProvider"/> for this function.
+        /// </summary>
         public int FontHeight(string fontName) => DrawInfoProvider.GetFontHeight(fontName);
 
         /// <summary>
