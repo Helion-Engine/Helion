@@ -4,6 +4,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials
@@ -126,7 +127,7 @@ namespace Helion.World.Special.Specials
         {
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopSoundBySource(Sector, SoundData.MovementSound);
+                m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, SoundData.MovementSound);
         }
 
         public virtual void Use(Entity entity)
@@ -138,7 +139,7 @@ namespace Helion.World.Special.Specials
             IsPaused = true;
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopSoundBySource(Sector, SoundData.MovementSound);
+                m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, SoundData.MovementSound);
         }
 
         public void Resume()

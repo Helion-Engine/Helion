@@ -54,6 +54,7 @@ namespace Helion.World.Entities.Players
         public Vec2D WeaponOffset;
 
         public override double ViewZ => m_viewZ;
+        public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
 
         public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber)
@@ -499,29 +500,29 @@ namespace Helion.World.Entities.Players
             if (!IsDead)
             {
                 if (Health < 26)
-                    SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Auto, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Voice, new SoundParams(this));
                 else if (Health < 51)
-                    SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Auto, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Voice, new SoundParams(this));
                 else if (Health < 76)
-                    SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Auto, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Voice, new SoundParams(this));
                 else
-                    SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Auto, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Voice, new SoundParams(this));
             }
         }
 
         public void PlayGruntSound()
         {
-            SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Auto, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Voice, new SoundParams(this));
         }
 
         public void PlayUseFailSound()
         {
-            SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Auto, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Voice, new SoundParams(this));
         }
 
         public void PlayLandSound()
         {
-            SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Auto, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, new SoundParams(this));
         }
 
         public string GetGenderString() => "male";
@@ -536,7 +537,7 @@ namespace Helion.World.Entities.Players
             else if (Health <= -50)
                 deathSound = "*xdeath";
 
-            SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Auto, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Voice, new SoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
             m_killer = source;
 

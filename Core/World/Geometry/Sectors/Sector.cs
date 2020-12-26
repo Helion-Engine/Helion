@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Util.Container.Linkable;
@@ -7,6 +8,7 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
+using Helion.World.Sound;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -14,7 +16,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Sectors
 {
-    public class Sector
+    public class Sector : ISoundSource
     {
         /// <summary>
         /// A value that indicates no tag is present.
@@ -364,7 +366,6 @@ namespace Helion.World.Geometry.Sectors
         public double GetShortestLower(TextureManager textureManager)
         {
             double min = double.MaxValue;
-            double floorZ = Floor.Z;
 
             // Doom didn't check if there was actually a lower texture set
             // It would use index zero which was AASHITTY with a 64 height causing it to max out at 64
@@ -443,5 +444,50 @@ namespace Helion.World.Geometry.Sectors
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
 
         public override int GetHashCode() => Id.GetHashCode();
+
+        private IAudioSource? m_audio;
+
+        public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+        {
+            m_audio = audioSource;
+        }
+
+        public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+        {
+            if (m_audio != null && m_audio.AudioData.SoundInfo.Name == sound)
+            {
+                IAudioSource stopSource = m_audio;
+                m_audio = null;
+                return stopSource;
+            }
+
+            return null;
+        }
+
+        public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+        {
+            m_audio = null;
+        }
+
+        public double GetDistanceFrom(Entity listenerEntity)
+        {
+            if (ActiveMoveSpecial is SectorMoveSpecial moveSpecial)
+                return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType).Distance(listenerEntity.Position);
+
+            return 0.0;
+        }
+
+        public Vec3D? GetSoundPosition(Entity listenerEntity)
+        {
+            if (ActiveMoveSpecial is SectorMoveSpecial moveSpecial)
+                return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType);
+
+            return null;
+        }
+
+        public Vec3D? GetSoundVelocity()
+        {
+            return Vec3D.Zero;
+        }
     }
 }

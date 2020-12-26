@@ -413,7 +413,7 @@ namespace Helion.World.Entities.Definition.States
         private static void A_BFGSound(Entity entity)
         {
             if (entity is Player player)
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", SoundChannelType.Auto, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, new SoundParams(entity));
         }
 
         private static void A_BFGSpray(Entity entity)
@@ -810,7 +810,7 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_CloseShotgun2(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", entity.WeaponSoundChannel, new SoundParams(entity));
             A_ReFire(entity);
         }
 
@@ -1086,7 +1086,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, new SoundParams(entity));
                 int offset = player.Weapon == null ? 0 : Math.Clamp(player.Weapon.FrameState.Frame.Frame, 0, 1);
                 player.Weapon?.SetFlashState(offset);
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
@@ -1128,7 +1128,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", SoundChannelType.Auto, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
                     player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
@@ -1159,7 +1159,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", SoundChannelType.Auto, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, 
                     player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
@@ -1170,7 +1170,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", SoundChannelType.Auto, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
                     player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
@@ -1403,7 +1403,7 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_LoadShotgun2(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", entity.WeaponSoundChannel, new SoundParams(entity));
         }
         
         private static void A_Log(Entity entity)
@@ -1498,7 +1498,7 @@ namespace Helion.World.Entities.Definition.States
         
         private static void A_OpenShotgun2(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", entity.WeaponSoundChannel, new SoundParams(entity));
         }
 
         private static void A_Overlay(Entity entity)
@@ -1856,12 +1856,12 @@ namespace Helion.World.Entities.Definition.States
                 Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity == null)
                 {
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", SoundChannelType.Auto, new SoundParams(entity));
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, new SoundParams(entity));
                 }
                 else
                 {
                     player.AngleRadians = angle;
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", SoundChannelType.Auto, new SoundParams(entity));
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, new SoundParams(entity));
                     player.AngleRadians = player.Position.Angle(hitEntity.Position);
                 }
             }
