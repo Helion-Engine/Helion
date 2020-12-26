@@ -72,12 +72,20 @@ namespace Helion.World.Impl.SinglePlayer
                 return;
             }
 
+            byte[]? midiData;
             byte[] data = entry.ReadData();
-            byte[]? midiData = MusToMidi.Convert(data);
-            if (midiData == null)
+            if (data.Length > 3 && data[0] == 'M' && data[1] == 'U' && data[2] == 'S')
             {
-                Log.Warn("Unable to play music, cannot convert from MUS to MIDI");
-                return;
+                midiData = MusToMidi.Convert(data);
+                if (midiData == null)
+                {
+                    Log.Warn("Unable to play music, cannot convert from MUS to MIDI");
+                    return;
+                }
+            }
+            else
+            {
+                midiData = data;
             }
 
             bool playingSuccess = audioSystem.Music.Play(midiData);
