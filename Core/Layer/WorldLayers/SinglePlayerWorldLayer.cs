@@ -13,6 +13,8 @@ using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry;
+using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -78,12 +80,21 @@ namespace Helion.Layer.WorldLayers
             ArchiveCollection archiveCollection, IMap map)
         {
             TextureManager.Init(archiveCollection);
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(config, archiveCollection, audioSystem, map);
+            CheatManager.Instance.Clear();
+            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, map);
             if (world == null)
                 return null;
-
-            CheatManager.Instance.Clear();
             return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world);
+        }
+
+        private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
+            ArchiveCollection archiveCollection, IMap map, Player? existingPlayer = null)
+        {
+            MapGeometry? geometry = GeometryBuilder.Create(map, config);
+            if (geometry == null)
+                return null;
+
+            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map, existingPlayer);
         }
 
         public void LoadMap(string mapName, bool keepPlayer)
@@ -101,10 +112,10 @@ namespace Helion.Layer.WorldLayers
             else
                 CheatManager.Instance.Clear();
 
-            SinglePlayerWorld? world = SinglePlayerWorld.Create(Config, ArchiveCollection, AudioSystem, map, existingPlayer);
+            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, map, existingPlayer);
             if (world == null)
             {
-                Log.Error("Unable to load map {0}", mapName);
+                Log.Error("Unable to load map {0}", map.Name);
                 return;
             }
 
@@ -114,6 +125,7 @@ namespace Helion.Layer.WorldLayers
 
             m_world = world;
             AddWorldEventListeners(world);
+            m_world.Start();
             m_ticker.Restart();
         }
 

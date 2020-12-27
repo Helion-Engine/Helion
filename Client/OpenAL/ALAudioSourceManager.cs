@@ -71,13 +71,13 @@ namespace Helion.Client.OpenAL
             PerformDispose();
         }
 
-        public IAudioSource? Create(string sound, SoundParams soundParams)
+        public IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams)
         {
             ALBuffer? buffer = GetBuffer(sound);
             if (buffer == null)
                 return null;
             
-            ALAudioSource source = new ALAudioSource(this, buffer, soundParams);
+            ALAudioSource source = new ALAudioSource(this, buffer, audioData, soundParams);
             m_sources.Add(source);
             return source;
         }

@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using Helion.Resources.Definitions.SoundInfo;
 
 namespace Helion.Audio
 {
@@ -29,25 +28,7 @@ namespace Helion.Audio
         /// </summary>
         void SetVelocity(in Vector3 velocity);
 
-        /// <summary>
-        /// SoundInfo source for this sound.
-        /// </summary>
-        SoundInfo? SoundInfo { get; set; }
-
-        /// <summary>
-        /// The source object of the sound (e.g. entity, sector).
-        /// </summary>
-        object? SoundSource { get; set; }
-
-        /// <summary>
-        /// Priority for this sound, lower is higher priority.
-        /// </summary>
-        int Priority { get; set; }
-
-        /// <summary>
-        /// If this sound should loop after completion.
-        /// </summary>
-        bool Loop { get; set; }
+        AudioData AudioData { get; set; }
 
         /// <summary>
         /// Starts playing the sound.

@@ -41,7 +41,7 @@ namespace Helion.Bsp.External
 
         private string CreateArgs()
         {
-            return $"{m_file} --gl-only --output {m_output}";
+            return $"--gl --output {m_output} {m_file}";
         }
     }
 }

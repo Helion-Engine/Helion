@@ -27,16 +27,15 @@ namespace Helion.World.Special.Specials
             {
                 // The level is about to exit so everything will be stopped
                 // Force play the switch exit sound and Tick to switch the line texture
-                IAudioSource? sound = soundManager.CreateSoundAt(Vec3D.Zero, Constants.SwitchExitSound, 
-                    SoundChannelType.Auto, new SoundParams(Attenuation.None));
+                DefaultSoundSource soundSource = new DefaultSoundSource();
+                IAudioSource? sound = soundManager.CreateSoundOn(soundSource, Constants.SwitchExitSound, 
+                    SoundChannelType.Auto, new SoundParams(soundSource));
                 sound?.Play();
                 Tick();
             }
             else
             {
-                Vec2D pos = line.Segment.FromTime(0.5);
-                soundManager.CreateSoundAt(pos.To3D(line.Front.Sector.ToFloorZ(pos)), Constants.SwitchNormSound,
-                    SoundChannelType.Auto, new SoundParams(Attenuation.Default));
+                PlaySwitchSound(soundManager, line);
             }
         }
 
@@ -60,8 +59,7 @@ namespace Helion.World.Special.Specials
             if (m_line.Flags.Repeat)
             {
                 m_line.Activated = false;
-                Vec2D pos = m_line.Segment.FromTime(0.5);
-                m_soundManager.CreateSoundAt(pos.To3D(m_line.Front.Sector.ToFloorZ(pos)), Constants.SwitchNormSound, SoundChannelType.Auto, new SoundParams(Attenuation.Default));
+                PlaySwitchSound(m_soundManager, m_line);
             }
 
             return SpecialTickStatus.Destroy;
@@ -69,6 +67,13 @@ namespace Helion.World.Special.Specials
 
         public void Use(Entity entity)
         {
+        }
+
+        private static void PlaySwitchSound(SoundManager soundManager, Line line)
+        {
+            Vec2D pos = line.Segment.FromTime(0.5);
+            DefaultSoundSource soundSource = new DefaultSoundSource(pos.To3D(line.Front.Sector.ToFloorZ(pos)));
+            soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, SoundChannelType.Auto, new SoundParams(soundSource));
         }
     }
 }

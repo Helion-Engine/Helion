@@ -12,14 +12,14 @@ namespace Helion.Util.Extensions
         /// </summary>
         /// <param name="value">The original object.</param>
         /// <param name="target">What you want to compare it to.</param>
-        /// <param name="epsilon">The range to check if value is within rnage
+        /// <param name="epsilon">The range to check if value is within range
         /// of target.</param>
         /// <returns>True if so, false if not.</returns>
         public static bool ApproxEquals(this double value, double target, double epsilon = 0.00001)
         {
             return value >= target - epsilon && value <= target + epsilon;
         }
-        
+
         /// <summary>
         /// Checks if the value is approximately equal to another value. If you
         /// are using a very large or small number you will need to customize
@@ -27,14 +27,38 @@ namespace Helion.Util.Extensions
         /// </summary>
         /// <param name="value">The original object.</param>
         /// <param name="target">What you want to compare it to.</param>
-        /// <param name="epsilon">The range to check if value is within rnage
+        /// <param name="epsilon">The range to check if value is within range
         /// of target.</param>
         /// <returns>True if so, false if not.</returns>
         public static bool ApproxEquals(this float value, float target, float epsilon = 0.0001f)
         {
             return value >= target - epsilon && value <= target + epsilon;
         }
-        
+
+        /// <summary>
+        /// Checks if the value is approximately equal to zero.
+        /// </summary>
+        /// <param name="value">The original object.</param>
+        /// <param name="epsilon">The range to check if value is within range
+        /// of target.</param>
+        /// <returns>True if so, false if not.</returns>
+        public static bool ApproxZero(this double value, double epsilon = 0.00001)
+        {
+            return value.ApproxEquals(0.0, epsilon);
+        }
+
+        /// <summary>
+        /// Checks if the value is approximately equal to zero.
+        /// </summary>
+        /// <param name="value">The original object.</param>
+        /// <param name="epsilon">The range to check if value is within range
+        /// of target.</param>
+        /// <returns>True if so, false if not.</returns>
+        public static bool ApproxZero(this float value, float epsilon = 0.0001f)
+        {
+            return value.ApproxEquals(0.0f, epsilon);
+        }
+
         /// <summary>
         /// Interpolates the value from the current to the provided value by
         /// some time t.
@@ -45,7 +69,7 @@ namespace Helion.Util.Extensions
         /// start and 1.0 would yield end.</param>
         /// <returns>The value based on t.</returns>
         public static float Interpolate(this float start, float end, float t) => start + (t * (end - start));
-        
+
         /// <summary>
         /// Interpolates the value from the current to the provided value by
         /// some time t.

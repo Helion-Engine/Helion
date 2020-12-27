@@ -41,7 +41,7 @@ namespace Helion.Audio
         /// <param name="sound">The name of the sound.</param>
         /// <param name="soundParams">Information for this sound.</param>
         /// <returns>null if it could not be created.</returns>
-        IAudioSource? Create(string sound, SoundParams soundParams);
+        IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams);
 
         void SetListener(Vec3D pos, double angle, double pitch);
         void PlayGroup(IEnumerable<IAudioSource> audioSources);

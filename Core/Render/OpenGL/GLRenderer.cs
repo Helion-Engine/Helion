@@ -72,9 +72,9 @@ namespace Helion.Render.OpenGL
             mat4 view = renderInfo.Camera.CalculateViewMatrix();
             // TODO: Should base this off of the actor radius and config view
             //       distance or the length of the level.
-            float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewHeight) * 0.75);
+            float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
             zNear = MathHelper.Clamp(zNear, 0.5f, 7.9f);
-            mat4 projection = mat4.PerspectiveFov(fovY, w, h, zNear, 8192.0f);
+            mat4 projection = mat4.PerspectiveFov(fovY, w, h, zNear, 65536.0f);
 
             return projection * view * model;
         }

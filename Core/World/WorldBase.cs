@@ -61,6 +61,7 @@ namespace Helion.World
         protected readonly MapGeometry Geometry;
         protected readonly SpecialManager SpecialManager;
         protected readonly PhysicsManager PhysicsManager;
+        protected readonly IMap Map;
 
         private int m_exitTicks = 0;
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
@@ -92,6 +93,7 @@ namespace Helion.World
             Config = config;
             MapName = map.Name;
             Geometry = geometry;
+            Map = map;
             Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
             EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
@@ -104,6 +106,8 @@ namespace Helion.World
             FailedToDispose(this);
             PerformDispose();
         }
+
+        public virtual void Start() { }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
         {

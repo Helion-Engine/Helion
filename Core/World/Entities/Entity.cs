@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Helion.Audio;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
-using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -26,20 +26,21 @@ namespace Helion.World.Entities
     /// <summary>
     /// An actor in a world.
     /// </summary>
-    public partial class Entity : IDisposable, ITickable
+    public partial class Entity : IDisposable, ITickable, ISoundSource
     {
         private const double Speed = 47000 / 65536.0;
         public const double FloatSpeed = 4.0;
+        public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannelType)).Length;
 
         public readonly int Id;
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
         public EntityFlags Flags { get; protected set; }
         public EntityProperties Properties;
-        public readonly EntitySoundChannels SoundChannels;
         public readonly EntityManager EntityManager;
         public readonly FrameState FrameState;
         public readonly IWorld World;
+        public readonly SoundManager SoundManager;
         public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
@@ -80,12 +81,13 @@ namespace Helion.World.Entities
         public bool ClippedWithEntity;
         public bool MoveLinked;
 
+        public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
+
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
         protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
         protected internal LinkableNode<Entity>? SubsectorNode;
-        public readonly SoundManager SoundManager;
         protected int FrameIndex;
         protected int TicksInFrame;
         internal bool IsDisposed { get; private set; }
@@ -98,7 +100,10 @@ namespace Helion.World.Entities
         public bool IsFrozen => FrozenTics > 0;
         public bool IsDead => Health == 0;
         public EntityFrame Frame => FrameState.Frame;
-        public virtual double ViewHeight => 8.0;
+        public virtual double ViewZ => 8.0;
+
+
+        private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
 
         /// <summary>
         /// Creates an entity with the following information.
@@ -143,7 +148,6 @@ namespace Helion.World.Entities
             CheckOnGround();
             EntityManager = entityManager;
             SoundManager = soundManager;
-            SoundChannels = new EntitySoundChannels(this);
 
             Properties.Threshold = 0;
         }
@@ -269,7 +273,6 @@ namespace Helion.World.Entities
                 FrozenTics--;
 
             FrameState.Tick();
-            SoundChannels.Tick();
 
             RunDebugSanityChecks();
         }
@@ -478,15 +481,19 @@ namespace Helion.World.Entities
             {
                 EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
                 if (ammoDef != null)
-                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive);
+                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
 
                 return false;
             }
 
             if (definition.IsType(Inventory.BackPackBaseClassName))
+            {
                 Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
+                Inventory.Add(definition, invData.Amount, flags);
+                return true;
+            }
 
-            return Inventory.Add(definition, invData.Amount);
+            return Inventory.Add(definition, invData.Amount, flags);
         }
 
         public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
@@ -793,6 +800,51 @@ namespace Helion.World.Entities
         public override string ToString()
         {
             return $"[{Definition}] [{Position}]";
+        }
+
+        public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+        {
+            m_soundChannels[(int)channel] = audioSource;
+        }
+
+        public double GetDistanceFrom(Entity listenerEntity)
+        {
+            return Position.Distance(listenerEntity.Position);
+        }
+
+        public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+        {
+            IAudioSource? audioSource = m_soundChannels[(int)channel];
+            if (audioSource != null)
+            {
+                m_soundChannels[(int)channel] = null;
+                return audioSource;
+            }
+
+            return null;
+        }
+
+        public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+        {
+            m_soundChannels[(int)channel] = null;
+        }
+
+        public Vec3D? GetSoundPosition(Entity listenerEntity)
+        {
+            return Position;
+        }
+
+        public Vec3D? GetSoundVelocity()
+        {
+            return Velocity;
+        }
+
+        public bool CanAttenuate(SoundInfo soundInfo)
+        {
+            if (Flags.Boss && (soundInfo.Name == Definition.Properties.SeeSound || soundInfo.Name == Definition.Properties.DeathSound))
+                return false;
+
+            return true;
         }
     }
 }
