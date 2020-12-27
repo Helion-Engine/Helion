@@ -47,6 +47,7 @@ namespace Helion.Render.Shared.Drawers
 
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, out int topRightY);
             DrawHud(topRightY, player, world, tickFraction, viewport, config, draw);
+            DrawPowerupEffect(player, viewport, draw);
             DrawPickupFlash(player, world, viewport, draw);
             DrawDamage(player, world, viewport, draw);
             DrawRecentConsoleMessages(world, console, draw);
@@ -193,7 +194,7 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
             DrawHelper draw)
         {
-            int lightLevel = frameState.Frame.Properties.Bright ? 255 :
+            int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
                 (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
 
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
@@ -254,6 +255,15 @@ namespace Helion.Render.Shared.Drawers
             int ticksSincePickup = world.Gametick - player.LastPickupGametick;
             if (ticksSincePickup < FlashPickupTickDuration)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
+        }
+
+        private static void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
+        {
+            if (player.Inventory.PowerupEffect == null || !player.Inventory.PowerupEffect.DrawColor.HasValue || !player.Inventory.PowerupEffect.DrawPowerupEffect)
+                return;
+
+            helper.FillRect(0, 0, viewport.Width, viewport.Height, player.Inventory.PowerupEffect.DrawColor.Value,
+                player.Inventory.PowerupEffect.DrawAlpha);
         }
 
         private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
