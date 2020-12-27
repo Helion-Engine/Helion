@@ -36,7 +36,7 @@ namespace Helion.World.Entities.Inventories
         public readonly Weapons Weapons = new();
 
         public readonly List<IPowerup> Powerups = new();
-        public IPowerup? PowerupColor { get; private set; }
+        public IPowerup? PowerupEffect { get; private set; }
 
         public Inventory(Player owner, EntityDefinitionComposer composer)
         {
@@ -55,6 +55,8 @@ namespace Helion.World.Entities.Inventories
 
         public bool IsPowerupActive(PowerupType type) => Powerups.Any(x => x.PowerupType == type);
 
+        public IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
+
         public void Tick()
         {
             for (int i = 0; i < Powerups.Count; i++)
@@ -62,8 +64,8 @@ namespace Helion.World.Entities.Inventories
                 IPowerup powerup = Powerups[i];
                 if (powerup.Tick(Owner) == InventoryTickStatus.Destroy)
                 {
-                    if (ReferenceEquals(powerup, PowerupColor))
-                        PowerupColor = null;
+                    if (ReferenceEquals(powerup, PowerupEffect))
+                        PowerupEffect = null;
                     Remove(powerup.EntityDefinition.Name, 1);
                     Powerups.RemoveAt(i);
                     i--;
@@ -143,12 +145,10 @@ namespace Helion.World.Entities.Inventories
             }
 
             IPowerup powerup = new PowerupBase(Owner, powerupDef, powerupType);
-            if (powerup.DrawColor.HasValue && (PowerupColor == null || (int)PowerupColor.PowerupType > (int)powerupType))
-                PowerupColor = powerup;
+            if (powerup.DrawColor.HasValue && (PowerupEffect == null || (int)PowerupEffect.PowerupType > (int)powerupType))
+                PowerupEffect = powerup;
             Powerups.Add(powerup);
         }
-
-        private IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
 
         private static PowerupType GetPowerupType(string type)
         {

@@ -9,17 +9,19 @@ namespace Helion.World.Entities.Inventories.Powerups
 {
     public class PowerupBase : IPowerup
     {
+        private const int EffectTicks = 60 * (int)Constants.TicksPerSecond;
+        
+        private readonly Player m_player;
         private int m_tics;
-        private int m_colorTics;
+        private int m_effectTics;
+        private float m_subAlpha;
         private Color? m_drawColor;
-        private Player m_player;
 
         public PowerupBase(Player player, EntityDefinition definition, PowerupType type)
         {
             m_player = player;
             EntityDefinition = definition;
             PowerupType = type;
-            SetTics();
 
             if (EntityDefinition.Properties.Powerup.Color != null)
             {
@@ -27,6 +29,7 @@ namespace Helion.World.Entities.Inventories.Powerups
                 DrawAlpha = (float)EntityDefinition.Properties.Powerup.Color.Alpha;
             }
 
+            SetTics();
             InitType();
         }
 
@@ -38,12 +41,17 @@ namespace Helion.World.Entities.Inventories.Powerups
                 m_tics = EntityDefinition.Properties.Powerup.Duration;
 
             if (PowerupType == PowerupType.Strength)
-                m_colorTics = 60 * (int)Constants.TicksPerSecond;
+            {
+                m_effectTics = EffectTicks;
+                m_subAlpha = DrawAlpha / EffectTicks;
+            }
             else
-                m_colorTics = m_tics;
+            {
+                m_effectTics = m_tics;
+            }
         }
 
-        private Color? GetColor(PowerupColor color)
+        private static Color? GetColor(PowerupColor color)
         {
             if (color.Color.Length < 8)
                 return null;
@@ -66,6 +74,8 @@ namespace Helion.World.Entities.Inventories.Powerups
 
         public float DrawAlpha { get; private set; }
 
+        public bool DrawPowerupEffect { get; private set; }
+
         public virtual InventoryTickStatus Tick(Player player)
         {
             if (EntityDefinition.Properties.Powerup.Strength > 0)
@@ -76,9 +86,11 @@ namespace Helion.World.Entities.Inventories.Powerups
             else
                 m_tics--;
 
-            m_colorTics--;
+            m_effectTics--;
 
-            if (m_colorTics <= 0)
+            if (m_effectTics > 0)
+                CheckDrawPowerupEffect();
+            else
                 m_drawColor = null;
 
             if (m_tics <= 0)
@@ -88,6 +100,17 @@ namespace Helion.World.Entities.Inventories.Powerups
             }
 
             return InventoryTickStatus.Continue;
+        }
+
+        private void CheckDrawPowerupEffect()
+        {
+            if (PowerupType == PowerupType.Strength && m_drawColor.HasValue)
+            {
+                DrawAlpha -= m_subAlpha;
+                return;
+            }
+
+            DrawPowerupEffect = m_effectTics > 128 || (m_effectTics & 8) > 0;
         }
 
         private void InitType()

@@ -160,7 +160,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private void SetUniforms(RenderInfo renderInfo)
         {
             (float mix, float value) = GetLightLevelWeaponModifier(renderInfo);
-            if (renderInfo.ViewerEntity is Player player && player.DrawFullBright)
+            if (renderInfo.ViewerEntity is Player player && player.DrawFullBright())
                 mix = 1.0f;
 
             m_shaderProgram.BoundTexture.Set(gl, 0);

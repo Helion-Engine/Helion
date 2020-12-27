@@ -56,7 +56,14 @@ namespace Helion.World.Entities.Players
         public Vec2D PrevWeaponOffset;
         public Vec2D WeaponOffset;
 
-        public bool DrawFullBright => Inventory.IsPowerupActive(PowerupType.LightAmp);
+        public bool DrawFullBright()
+        {
+            IPowerup? powerup = Inventory.GetPowerup(PowerupType.LightAmp);
+            if (powerup != null)
+                return powerup.DrawPowerupEffect;
+
+            return false;
+        }
 
         public override double ViewZ => m_viewZ;
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
