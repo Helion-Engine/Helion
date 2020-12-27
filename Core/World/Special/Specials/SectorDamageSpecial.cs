@@ -1,6 +1,6 @@
-﻿using Helion.World.Entities.Players;
+﻿using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Physics;
 
 namespace Helion.World.Special.Specials
 {
@@ -9,12 +9,14 @@ namespace Helion.World.Special.Specials
         protected readonly WorldBase m_world;
         private readonly Sector m_sector;
         private readonly int m_damage;
+        private readonly int m_radSuitLeakChance;
 
-        public SectorDamageSpecial(WorldBase world, Sector sector, int damage)
+        public SectorDamageSpecial(WorldBase world, Sector sector, int damage, int radSuitLeakChance = 0)
         {
             m_world = world;
             m_sector = sector;
             m_damage = damage;
+            m_radSuitLeakChance = radSuitLeakChance;
         }
 
         public virtual void Tick(Player player)
@@ -22,7 +24,8 @@ namespace Helion.World.Special.Specials
             if (player.Position.Z != m_sector.ToFloorZ(player.Position) || (m_world.Gametick & 31) != 0)
                 return;
 
-            m_world.DamageEntity(player, null, m_damage);
+            if (!player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
+                m_world.DamageEntity(player, null, m_damage);
         }
     }
 }

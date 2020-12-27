@@ -343,9 +343,11 @@ namespace Helion.World.Special
             {
                 case ZDoomSectorSpecialType.DamageNukage:
                 case ZDoomSectorSpecialType.DamageHellslime:
+                    sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                    break;
                 case ZDoomSectorSpecialType.LightStrobeHurtDoom:
                 case ZDoomSectorSpecialType.DamageSuperHell:
-                    sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                    sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType), 5);
                     break;
                 case ZDoomSectorSpecialType.DamageEnd:
                     sector.SectorDamageSpecial = new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
