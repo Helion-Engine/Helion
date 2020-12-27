@@ -5,6 +5,7 @@ using Helion.Util;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
@@ -970,6 +971,8 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             entity.AngleRadians = entity.Position.Angle(entity.Target.Position);
+            if (entity.Target.Flags.Shadow)
+                entity.AngleRadians += entity.World.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
         }
 
         private static void A_FaceTracer(Entity entity)
@@ -1630,8 +1633,10 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                // TODO berserk
                 int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
+                if (player.Inventory.IsPowerupActive(PowerupType.Strength))
+                    damage *= 10;
+
                 double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
                 Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity != null)

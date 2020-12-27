@@ -18,6 +18,7 @@ using Helion.Util.Time;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Lines;
@@ -597,7 +598,8 @@ namespace Helion.World
                 thrustVelocity.Multiply(thrustAmount);
             }
 
-            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || (target is Player && target.Flags.Invulnerable))
+            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || 
+                (target is Player player && (target.Flags.Invulnerable || player.Inventory.IsPowerupActive(PowerupType.Invulnerable))))
                 target.Velocity += thrustVelocity;
 
             if (target.IsDead)
