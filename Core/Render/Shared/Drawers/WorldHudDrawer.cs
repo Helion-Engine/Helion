@@ -87,29 +87,29 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawFullHudHealthArmorAmmo(Player player, DrawHelper draw)
         {
-            const int offsetY = 171;
+            const int offsetY = 172;
 
             if (player.Weapon != null)
             {
                 // TODO: Need to get the ammo.
                 int ammoAmount = 50;
                 string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
-                DrawFullHudBigFont(ammo, 75, offsetY, draw);
+                DrawFullHudBigFont(ammo, 8, offsetY, draw);
             }
 
             string health = $"{Math.Clamp(player.Health, 0, 999)}%";
-            DrawFullHudBigFont(health, 165, offsetY, draw);
+            DrawFullHudBigFont(health, 53, offsetY, draw);
 
             string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
-            DrawFullHudBigFont(armor, 260, offsetY, draw);
+            DrawFullHudBigFont(armor, 188, offsetY, draw);
         }
 
         private static void DrawFullHudBigFont(string message, int x, int y, DrawHelper draw)
         {
-            const int FullHudLargeFontSize = 24;
+            const int FullHudLargeFontSize = 76;
 
             draw.Text(Color.Red, message, "LargeHudFont", FullHudLargeFontSize, x, y, TextAlign.Right,
-                textbox: Align.TopRight);
+                textbox: Align.TopLeft);
         }
 
         private static void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
