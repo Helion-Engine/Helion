@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Boxes;
@@ -38,7 +39,7 @@ namespace Helion.Graphics.Fonts
         /// <param name="glyphs">A list of all the glyphs. This must contain
         /// the default glyph.</param>
         /// <param name="metrics">The font metrics for drawing with.</param>
-        public Font(List<Glyph> glyphs, FontMetrics metrics)
+        public Font(IList<Glyph> glyphs, FontMetrics metrics)
         {
             Precondition(!glyphs.Empty(), "Cannot make a font that has no glyphs");
 
@@ -54,6 +55,18 @@ namespace Helion.Graphics.Fonts
             }
 
             Image = CreateImage(imageArea);
+        }
+
+        /// <summary>
+        /// Tries to get the value. See the Dictionary for analogous usage.
+        /// </summary>
+        /// <param name="c">The character to get.</param>
+        /// <param name="glyph">The glyph, or null if no such one exists for
+        /// the character.</param>
+        /// <returns>True if found, false if not.</returns>
+        public bool TryGetValue(char c, [NotNullWhen(true)] out FontGlyph? glyph)
+        {
+            return m_glyphs.TryGetValue(c, out glyph);
         }
 
         private void GenerateMissingGlyph(ref Rectangle imageArea)
