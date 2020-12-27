@@ -74,7 +74,7 @@ namespace Helion.World.Entities.Inventories.Powerups
 
         public float DrawAlpha { get; private set; }
 
-        public bool DrawPowerupEffect { get; private set; }
+        public bool DrawPowerupEffect { get; private set; } = true;
 
         public virtual InventoryTickStatus Tick(Player player)
         {
