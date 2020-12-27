@@ -47,6 +47,7 @@ namespace Helion.Render.Shared.Drawers
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, out int topRightY);
             DrawHud(topRightY, player, world, fraction, viewport, draw);
             DrawPickupFlash(player, world, viewport, draw);
+            DrawPowerupColor(player, viewport, draw);
             DrawDamage(player, world, viewport, draw);
             DrawRecentConsoleMessages(world, console, draw);
         }
@@ -89,7 +90,7 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawHudWeapon(Player player, float fraction, FrameState frameState, Dimension viewport,
             DrawHelper draw)
         {
-            int lightLevel = frameState.Frame.Properties.Bright ? 255 :
+            int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright ? 255 :
                 (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
 
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
@@ -175,6 +176,15 @@ namespace Helion.Render.Shared.Drawers
 
             helper.FillRect(horizontalStart.X, horizontalStart.Y, CrosshairLength * 2, CrosshairHalfWidth * 2, Color.LawnGreen);
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
+        }
+
+        private static void DrawPowerupColor(Player player, Dimension viewport, DrawHelper helper)
+        {
+            if (player.Inventory.PowerupColor == null || !player.Inventory.PowerupColor.DrawColor.HasValue)
+                return;
+
+            helper.FillRect(0, 0, viewport.Width, viewport.Height, player.Inventory.PowerupColor.DrawColor.Value,
+                player.Inventory.PowerupColor.DrawAlpha);
         }
 
         private static void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
