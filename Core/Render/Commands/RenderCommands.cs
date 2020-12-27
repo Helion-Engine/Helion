@@ -1,7 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.String;
-using Helion.Render.Commands.Align;
+using Helion.Render.Commands.Alignment;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
@@ -14,7 +15,7 @@ using Helion.World.Entities;
 
 namespace Helion.Render.Commands
 {
-    public class RenderCommands
+    public class RenderCommands : IEnumerable<IRenderCommand>
     {
         public readonly Config Config;
         public readonly Dimension WindowDimension;
@@ -22,6 +23,8 @@ namespace Helion.Render.Commands
         public readonly FpsTracker FpsTracker;
         public ResolutionInfo ResolutionInfo { get; private set; }
         private readonly List<IRenderCommand> m_commands = new();
+        private Vec2D m_scale = Vec2D.One;
+        private int m_centeringOffsetX;
 
         public RenderCommands(Config config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
             FpsTracker fpsTracker)
@@ -46,20 +49,25 @@ namespace Helion.Render.Commands
         public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color,
             float alpha = 1.0f)
         {
-            Rectangle drawArea = new(left, top, width, height);
+            (int x, int y, int w, int h) = TranslateDimensions(left, top, width, height);
+            Rectangle drawArea = new(x, y, w, h);
             DrawImageCommand cmd = new(textureName, drawArea, color, alpha);
             m_commands.Add(cmd);
         }
 
         public void FillRect(Rectangle rectangle, Color color, float alpha)
         {
-            m_commands.Add(new DrawShapeCommand(rectangle, color, alpha));
+            Rectangle transformedRectangle = TranslateDimensions(rectangle);
+            DrawShapeCommand command = new(transformedRectangle, color, alpha);
+            m_commands.Add(command);
         }
 
-        public void DrawText(ColoredString text, string font, int fontSize, int x, int y, int width, int height,
-            TextAlignment textAlign, float alpha)
+        public void DrawText(ColoredString text, string font, int fontSize, int left, int top, int width,
+            int height, TextAlign textAlign, float alpha)
         {
-            m_commands.Add(new DrawTextCommand(text, font, fontSize, x, y, width, height, textAlign, alpha));
+            (int x, int y, int w, int h) = TranslateDimensions(left, top, width, height);
+            DrawTextCommand command = new(text, font, fontSize, x, y, w, h, textAlign, alpha);
+            m_commands.Add(command);
         }
 
         public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity)
@@ -67,41 +75,92 @@ namespace Helion.Render.Commands
             m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity));
         }
 
-        public void Viewport(Dimension dimension)
+        public void Viewport(Dimension dimension, Vec2I? offset = null)
         {
-            m_commands.Add(new ViewportCommand(dimension));
+            m_commands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
         }
 
-        public void Viewport(Dimension dimension, Vec2I offset)
-        {
-            m_commands.Add(new ViewportCommand(dimension, offset));
-        }
-
-        public void SetVirtualResolution(int width, int height, bool stretchIfWidescreen = false,
-            bool centerIfStretched = false)
+        /// <summary>
+        /// Sets a virtual resolution to draw with.
+        /// </summary>
+        /// <param name="width">The virtual window width.</param>
+        /// <param name="height">The virtual window height.</param>
+        /// <param name="scale">How to scale drawing.</param>
+        public void SetVirtualResolution(int width, int height, ResolutionScale scale = ResolutionScale.None)
         {
             Dimension dimension = new Dimension(width, height);
-            ResolutionInfo info = new()
-            {
-                VirtualDimensions = dimension,
-                StretchIfWidescreen = stretchIfWidescreen,
-                CenterIfWidescreen = centerIfStretched
-            };
+            ResolutionInfo info = new() { VirtualDimensions = dimension, Scale = scale };
             SetVirtualResolution(info);
         }
 
+        /// <summary>
+        /// Sets a virtual resolution to draw with.
+        /// </summary>
+        /// <param name="resolutionInfo">Resolution parameters.</param>
         public void SetVirtualResolution(ResolutionInfo resolutionInfo)
         {
             ResolutionInfo = resolutionInfo;
+            Dimension virtualDimension = resolutionInfo.VirtualDimensions;
+
+            Vec2I windowDim = WindowDimension.ToVector();
+            Vec2I virtualDim = virtualDimension.ToVector();
+            m_scale = windowDim.ToDouble() / virtualDim.ToDouble();
+            m_centeringOffsetX = 0;
+
+            // By default we're stretching, but if we're centering, our values
+            // have to change to accomodate a gutter if the aspect ratios are
+            // different.
+            if (resolutionInfo.Scale == ResolutionScale.Center)
+            {
+                // We only want to do centering if we will end up with gutters
+                // on the side. This can only happen if the virtual dimension
+                // has a smaller aspect ratio. We have to exit out if not since
+                // it will cause weird overdrawing otherwise.
+                if (WindowDimension.AspectRatio > virtualDimension.AspectRatio)
+                {
+                    m_scale.X = m_scale.Y;
+                    m_centeringOffsetX = (WindowDimension.Width - (int)(virtualDimension.Width * m_scale.X)) / 2;
+                }
+            }
         }
 
+        /// <summary>
+        /// Restores drawing to the native resolution (viewport size, no scale
+        /// transformations).
+        /// </summary>
         public void UseNativeResolution()
         {
-            ResolutionInfo = new ResolutionInfo { VirtualDimensions = WindowDimension };
+            ResolutionInfo = new ResolutionInfo
+            {
+                VirtualDimensions = WindowDimension,
+                Scale = ResolutionScale.None
+            };
         }
 
         public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);
 
-        public IReadOnlyList<IRenderCommand> GetCommands() => m_commands.AsReadOnly();
+        public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private (int x, int y, int w, int h) TranslateDimensions(int x, int y, int width, int height)
+        {
+            Rectangle drawArea = TranslateDimensions(new Rectangle(x, y, width, height));
+            return (drawArea.X, drawArea.Y, drawArea.Width, drawArea.Height);
+        }
+
+        private Rectangle TranslateDimensions(Rectangle drawArea)
+        {
+            if (WindowDimension == ResolutionInfo.VirtualDimensions)
+                return drawArea;
+
+            Vec2I start = TranslatePoint(drawArea.X, drawArea.Y);
+            Vec2I end = TranslatePoint(drawArea.X + drawArea.Width, drawArea.Y + drawArea.Height);
+            Vec2I width = end - start;
+
+            return new Rectangle(start.X + m_centeringOffsetX, start.Y, width.X, width.Y);
+        }
+
+        private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).ToInt();
     }
 }

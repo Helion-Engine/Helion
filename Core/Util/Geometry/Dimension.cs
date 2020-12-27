@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -34,6 +35,28 @@ namespace Helion.Util.Geometry
         }
 
         /// <summary>
+        /// Checks for equality.
+        /// </summary>
+        /// <param name="first">The first dimension.</param>
+        /// <param name="second">The second dimension.</param>
+        /// <returns>True if equal, false if not.</returns>
+        public static bool operator==(Dimension first, Dimension second)
+        {
+            return first.Width == second.Width && first.Height == second.Height;
+        }
+
+        /// <summary>
+        /// Checks for inequality.
+        /// </summary>
+        /// <param name="first">The first dimension.</param>
+        /// <param name="second">The second dimension.</param>
+        /// <returns>True if not equal, false if they are.</returns>
+        public static bool operator!=(Dimension first, Dimension second)
+        {
+            return !(first == second);
+        }
+
+        /// <summary>
         /// Deconstructs the dimension into its components.
         /// </summary>
         /// <param name="width">The width.</param>
@@ -50,26 +73,28 @@ namespace Helion.Util.Geometry
         /// <param name="other">The other dimension.</param>
         /// <returns>True if they have the same width and height, false if not.
         /// </returns>
-        public bool Equals(Dimension other) => Width == other.Width && Height == other.Height;
+        public bool Equals(Dimension other)
+        {
+            return Width == other.Width && Height == other.Height;
+        }
 
         /// <summary>
         /// Calculates the aspect ratio of width by height.
         /// </summary>
+        [Pure]
         public float AspectRatio => ((float)Width) / Height;
 
         /// <summary>
         /// Gets the value as a vector.
         /// </summary>
         /// <returns>The vector representation of this object.</returns>
-        public Vec2I ToVector() => new Vec2I(Width, Height);
+        [Pure]
+        public Vec2I ToVector() => new(Width, Height);
 
-        /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is Dimension other && Equals(other);
 
-        /// <inheritdoc/>
         public override int GetHashCode() => HashCode.Combine(Width, Height);
 
-        /// <inheritdoc/>
         public override string ToString() => $"{Width}, {Height}";
     }
 }

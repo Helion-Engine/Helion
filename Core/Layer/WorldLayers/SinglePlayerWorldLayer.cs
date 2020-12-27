@@ -166,7 +166,8 @@ namespace Helion.Layer.WorldLayers
             renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player);
 
             // TODO: Should not be passing the window dimension as the viewport.
-            WorldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension, renderCommands);
+            WorldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,
+                Config, renderCommands);
         }
 
         protected override void PerformDispose()

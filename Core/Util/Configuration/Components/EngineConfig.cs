@@ -5,15 +5,16 @@ namespace Helion.Util.Configuration.Components
     [ConfigSection]
     public class EngineConfig
     {
-        public readonly EngineConsoleConfig Console = new EngineConsoleConfig();
-        public readonly EngineFilesConfig Files = new EngineFilesConfig();
-        public readonly EngineGameConfig Game = new EngineGameConfig();
-        public readonly EngineGameplayConfig Gameplay = new EngineGameplayConfig();
-        public readonly EngineDeveloperConfig Developer = new EngineDeveloperConfig();
-        public readonly EngineMouseConfig Mouse = new EngineMouseConfig();
-        public readonly EngineControlConfig Controls = new EngineControlConfig();
-        public readonly EngineRenderConfig Render = new EngineRenderConfig();
-        public readonly EngineWindowConfig Window = new EngineWindowConfig();
-        public readonly EngineAudioConfig Audio = new EngineAudioConfig();
+        public readonly EngineConsoleConfig Console = new();
+        public readonly EngineDeveloperConfig Developer = new();
+        public readonly EngineFilesConfig Files = new();
+        public readonly EngineGameConfig Game = new();
+        public readonly EngineGameplayConfig Gameplay = new();
+        public readonly EngineHudConfig Hud = new();
+        public readonly EngineMouseConfig Mouse = new();
+        public readonly EngineControlConfig Controls = new();
+        public readonly EngineRenderConfig Render = new();
+        public readonly EngineWindowConfig Window = new();
+        public readonly EngineAudioConfig Audio = new();
     }
 }

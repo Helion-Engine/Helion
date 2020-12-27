@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using GlmSharp;
@@ -100,9 +99,7 @@ namespace Helion.Render.OpenGL
             // also prevents something from going terribly wrong if there is no
             // call to setting the viewport.
             Rectangle viewport = new Rectangle(0, 0, 800, 600);
-            IReadOnlyList<IRenderCommand> commands = renderCommands.GetCommands();
-
-            foreach (IRenderCommand renderCommand in commands)
+            foreach (IRenderCommand renderCommand in renderCommands)
             {
                 switch (renderCommand)
                 {
