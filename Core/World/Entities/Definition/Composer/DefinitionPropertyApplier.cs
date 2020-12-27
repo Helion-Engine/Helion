@@ -144,6 +144,27 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Properties.Ammo.BackpackMaxAmount = properties.Ammo.BackpackMaxAmount.Value;
             if (properties.Ammo.DropAmount.HasValue)
                 definition.Properties.Ammo.DropAmount = properties.Ammo.DropAmount.Value;
+
+            if (properties.Powerup.Color != null)
+            {
+                definition.Properties.Powerup.Color = new Properties.Components.PowerupColor(properties.Powerup.Color.Color);
+                if (properties.Powerup.Color.Alpha.HasValue)
+                    definition.Properties.Powerup.Color.Alpha = properties.Powerup.Color.Alpha.Value;
+            }
+            if (properties.Powerup.Colormap != null)
+            {
+                definition.Properties.Powerup.Colormap = new Properties.Components.PowerupColorMap(properties.Powerup.Colormap.Destination);
+                if (properties.Powerup.Colormap.Source.HasValue)
+                    definition.Properties.Powerup.Colormap.Source = properties.Powerup.Colormap.Source.Value;
+            }
+            if (properties.Powerup.Duration.HasValue)
+                definition.Properties.Powerup.Duration = properties.Powerup.Duration.Value;
+            if (properties.Powerup.Mode.HasValue)
+                definition.Properties.Powerup.Mode = properties.Powerup.Mode.Value;
+            if (properties.Powerup.Strength.HasValue)
+                definition.Properties.Powerup.Strength = properties.Powerup.Strength.Value;
+            if (properties.Powerup.Type != null)
+                definition.Properties.Powerup.Type = properties.Powerup.Type;
         }
     }
 }

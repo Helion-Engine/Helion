@@ -5,6 +5,8 @@ using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Entities.Players;
 
 namespace Helion.World.Entities.Inventories
 {
@@ -25,11 +27,22 @@ namespace Helion.World.Entities.Inventories
         /// </summary>
         private readonly Dictionary<CIString, InventoryItem> Items = new Dictionary<CIString, InventoryItem>();
         private readonly List<InventoryItem> Keys = new List<InventoryItem>();
+        private readonly EntityDefinitionComposer EntityDefinitionComposer;
+        private readonly Player Owner;
         
         /// <summary>
         /// All of the weapons owned by the player.
         /// </summary>
-        public readonly Weapons Weapons = new Weapons();
+        public readonly Weapons Weapons = new();
+
+        public readonly List<IPowerup> Powerups = new();
+        public IPowerup? PowerupColor { get; private set; }
+
+        public Inventory(Player owner, EntityDefinitionComposer composer)
+        {
+            Owner = owner;
+            EntityDefinitionComposer = composer;
+        }
 
         public static CIString GetBaseInventoryName(EntityDefinition definition)
         {
@@ -40,10 +53,42 @@ namespace Helion.World.Entities.Inventories
             return definition.Name;
         }
 
+        public bool IsPowerupActive(PowerupType type) => Powerups.Any(x => x.PowerupType == type);
+
+        public void Tick()
+        {
+            for (int i = 0; i < Powerups.Count; i++)
+            {
+                IPowerup powerup = Powerups[i];
+                if (powerup.Tick(Owner) == InventoryTickStatus.Destroy)
+                {
+                    if (ReferenceEquals(powerup, PowerupColor))
+                        PowerupColor = null;
+                    Remove(powerup.EntityDefinition.Name, 1);
+                    Powerups.RemoveAt(i);
+                    i--;
+                }
+            }          
+        }
+
         public bool Add(EntityDefinition definition, int amount, EntityFlags? flags = null)
         {
             if (amount <= 0)
                 return false;
+
+            // TODO test hack until A_GiveInventory and Pickup states are implemented
+            bool overridehack = false;
+            if (definition.Name == "BERSERK")
+            {
+                definition.Properties.Powerup.Type = "Strength";
+                overridehack = true;
+                Weapon? fist = Owner.Inventory.Weapons.GetWeapon("FIST");
+                if (fist != null)
+                    Owner.ChangeWeapon(fist);
+            }
+
+            if (definition.IsType("POWERUPGIVER") || overridehack)
+                AddPowerup(definition);
 
             CIString name = GetBaseInventoryName(definition);
             int maxAmount = definition.Properties.Inventory.MaxAmount;
@@ -78,6 +123,44 @@ namespace Helion.World.Entities.Inventories
             }
 
             return true;
+        }
+
+        private void AddPowerup(EntityDefinition definition)
+        {
+            EntityDefinition? powerupDef = EntityDefinitionComposer.GetByName("Power" + definition.Properties.Powerup.Type);
+            if (powerupDef == null)
+                return;
+
+            PowerupType powerupType = GetPowerupType(definition.Properties.Powerup.Type);
+            if (powerupType == PowerupType.None)
+                return;
+
+            IPowerup? existingPowerup = GetPowerup(powerupType);
+            if (existingPowerup != null)
+            {
+                existingPowerup.Reset();
+                return;
+            }
+
+            IPowerup powerup = new PowerupBase(Owner, powerupDef, powerupType);
+            if (powerup.DrawColor.HasValue && (PowerupColor == null || (int)PowerupColor.PowerupType > (int)powerupType))
+                PowerupColor = powerup;
+            Powerups.Add(powerup);
+        }
+
+        private IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
+
+        private static PowerupType GetPowerupType(string type)
+        {
+            Array values = Enum.GetValues(typeof(PowerupType));        
+
+            foreach (Enum value in values)
+            {
+                if (value.ToString().Equals(type, StringComparison.OrdinalIgnoreCase))
+                    return (PowerupType)value;
+            }
+
+            return PowerupType.None;
         }
 
         public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)

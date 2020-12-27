@@ -102,6 +102,8 @@ actor Key : Inventory
     +INVENTORY.INTERHUBSTRIP
 }
 
+ACTOR Powerup : Inventory {}
+
 actor PowerupGiver : Inventory
 {
     Inventory.DefMaxAmount

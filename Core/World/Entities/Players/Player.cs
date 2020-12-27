@@ -7,9 +7,11 @@ using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
-using Helion.World.Entities.Definition.Properties.Components;
+using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Inventories;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
@@ -45,6 +47,7 @@ namespace Helion.World.Entities.Players
         private double m_bob;
         private Entity? m_killer;
 
+        public Inventory Inventory { get; private set; }
         public Weapon? Weapon { get; private set; }
         public Weapon? PendingWeapon { get; private set; }
         public Weapon? AnimationWeapon { get; private set; }
@@ -52,6 +55,8 @@ namespace Helion.World.Entities.Players
         public int WeaponSubSlot { get; private set; }
         public Vec2D PrevWeaponOffset;
         public Vec2D WeaponOffset;
+
+        public bool DrawFullBright => Inventory.IsPowerupActive(PowerupType.LightAmp);
 
         public override double ViewZ => m_viewZ;
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
@@ -66,6 +71,8 @@ namespace Helion.World.Entities.Players
             // Going to default to true for players, otherwise jumping without moving X/Y can allow for clipping through ceilings
             // See PhysicsManager.MoveZ
             MoveLinked = true;
+            Inventory = new Inventory(this, entityManager.DefinitionComposer);
+
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_viewZ = m_prevViewZ = m_deltaViewHeight;
@@ -188,6 +195,7 @@ namespace Helion.World.Entities.Players
         public override void Tick()
         {
             base.Tick();
+            Inventory.Tick();
             AnimationWeapon?.Tick();
 
             m_prevAngle = AngleRadians;
@@ -271,7 +279,7 @@ namespace Helion.World.Entities.Players
             m_bob = m_bob / 2 * Math.Sin(angle);
         }
 
-        public override bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
+        public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
         {
             bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
@@ -283,7 +291,7 @@ namespace Helion.World.Entities.Players
             {
                 bool isAmmo = IsAmmo(definition);
                 int count = Inventory.Amount(definition.Name);
-                success = base.GiveItem(definition, flags, pickupFlash:true);
+                success = GiveItemBase(definition, flags);
                 if (success && IsWeapon(definition))
                     CheckAutoSwitchWeapon(definition, ownedWeapon);
                 else if (success && isAmmo)
@@ -297,6 +305,106 @@ namespace Helion.World.Entities.Players
             }
 
             return false;
+        }
+
+        private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags)
+        {
+            var invData = definition.Properties.Inventory;
+            bool isHealth = definition.IsType(Inventory.HealthClassName);
+            bool isArmor = definition.IsType(Inventory.ArmorClassName);
+
+            if (isHealth)
+            {
+                return AddHealthOrArmor(definition, flags, ref Health, invData.Amount);
+            }
+            else if (isArmor)
+            {
+                bool success = AddHealthOrArmor(definition, flags, ref Armor, definition.Properties.Armor.SaveAmount);
+                if (success)
+                    ArmorProperties = GetArmorProperties(definition);
+                return success;
+            }
+
+            if (IsWeapon(definition))
+            {
+                EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+                if (ammoDef != null)
+                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
+
+                return false;
+            }
+
+            if (definition.IsType(Inventory.BackPackBaseClassName))
+            {
+                Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
+                Inventory.Add(definition, invData.Amount, flags);
+                return true;
+            }
+
+            return Inventory.Add(definition, invData.Amount, flags);
+        }
+
+        public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
+        {
+            var armor = definitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
+                .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
+
+            if (armor.Any())
+                GiveItem(armor.First(), null, pickupFlash: false);
+        }
+
+        private EntityProperties? GetArmorProperties(EntityDefinition definition)
+        {
+            bool isArmorBonus = definition.IsType(Inventory.BasicArmorBonusClassName);
+
+            // Armor bonus keeps current property
+            if (ArmorProperties != null && isArmorBonus)
+                return ArmorProperties;
+
+            // Find matching armor definition when picking up armor bonus with no armor
+            if (ArmorProperties == null && isArmorBonus)
+            {
+                IList<EntityDefinition> definitions = World.EntityManager.DefinitionComposer.GetEntityDefinitions();
+                EntityDefinition? armorDef = definitions.FirstOrDefault(x => x.Properties.Armor.SavePercent == definition.Properties.Armor.SavePercent &&
+                    x.IsType(Inventory.BasicArmorPickupClassName));
+
+                if (armorDef != null)
+                    return armorDef.Properties;
+            }
+
+            return definition.Properties;
+        }
+
+        private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount)
+        {
+            int max = GetMaxAmount(definition);
+            if (flags != null && !flags.InventoryAlwaysPickup && value >= max)
+                return false;
+
+            value = MathHelper.Clamp(value + amount, 0, max);
+            return true;
+        }
+
+        private int GetMaxAmount(EntityDefinition def)
+        {
+            // TODO these are usually defaults. Defaults come from MAPINFO and not yet implemented.
+            switch (def.Name.ToString())
+            {
+                case "ARMORBONUS":
+                case "HEALTHBONUS":
+                case "SOULSPHERE":
+                case "MEGASPHERE":
+                case "BLUEARMOR":
+                    return 200;
+                case "GREENARMOR":
+                case "STIMPACK":
+                case "MEDIKIT":
+                    return 100;
+                default:
+                    break;
+            }
+
+            return 0;
         }
 
         private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)
@@ -359,7 +467,7 @@ namespace Helion.World.Entities.Players
             {
                 Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
                 if (giveDefaultAmmo)
-                    base.GiveItem(definition, null);
+                    GiveItemBase(definition, null);
 
                 return addedWeapon != null;
             }
@@ -480,6 +588,9 @@ namespace Helion.World.Entities.Players
 
         public override bool Damage(Entity? source, int damage, bool setPainState)
         {
+            if (Inventory.IsPowerupActive(PowerupType.Invulnerable))
+                return false;
+
             if (Sector.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd && damage >= Health)
                 damage = Health - 1;
 

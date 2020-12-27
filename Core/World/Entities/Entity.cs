@@ -49,7 +49,6 @@ namespace Helion.World.Entities
         public Vec3D ProjectileAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + 32);
         public Vec3D HitscanAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
         public Vec3D Velocity = Vec3D.Zero;
-        public Inventory Inventory = new Inventory();
         public int Health;
         public int Armor;
         public EntityProperties? ArmorProperties;
@@ -459,108 +458,8 @@ namespace Helion.World.Entities
             return damage;
         }
 
-        public virtual bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
-        {
-            var invData = definition.Properties.Inventory;
-            bool isHealth = definition.IsType(Inventory.HealthClassName);
-            bool isArmor = definition.IsType(Inventory.ArmorClassName);
-
-            if (isHealth)
-            {
-                return AddHealthOrArmor(definition, flags, ref Health, invData.Amount);
-            }
-            else if (isArmor)
-            {
-                bool success = AddHealthOrArmor(definition, flags, ref Armor, definition.Properties.Armor.SaveAmount);
-                if (success)
-                    ArmorProperties = GetArmorProperties(definition);
-                return success;
-            }
-
-            if (IsWeapon(definition))
-            {
-                EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
-                if (ammoDef != null)
-                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
-
-                return false;
-            }
-
-            if (definition.IsType(Inventory.BackPackBaseClassName))
-            {
-                Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
-                Inventory.Add(definition, invData.Amount, flags);
-                return true;
-            }
-
-            return Inventory.Add(definition, invData.Amount, flags);
-        }
-
-        public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
-        {
-            var armor = definitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
-                .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
-
-            if (armor.Any())
-                GiveItem(armor.First(), null, pickupFlash:false);
-        }
-
-        private EntityProperties? GetArmorProperties(EntityDefinition definition)
-        {
-            bool isArmorBonus = definition.IsType(Inventory.BasicArmorBonusClassName);
-
-            // Armor bonus keeps current property
-            if (ArmorProperties != null && isArmorBonus)
-                return ArmorProperties;
-
-            // Find matching armor definition when picking up armor bonus with no armor
-            if (ArmorProperties == null && isArmorBonus)
-            {
-                IList<EntityDefinition> definitions = World.EntityManager.DefinitionComposer.GetEntityDefinitions();
-                EntityDefinition? armorDef = definitions.FirstOrDefault(x => x.Properties.Armor.SavePercent == definition.Properties.Armor.SavePercent &&
-                    x.IsType(Inventory.BasicArmorPickupClassName));
-
-                if (armorDef != null)
-                    return armorDef.Properties;
-            }
-
-            return definition.Properties;
-        }
-
-        private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount)
-        {
-            int max = GetMaxAmount(definition);
-            if (flags != null && !flags.InventoryAlwaysPickup && value >= max)
-                return false;
-
-            value = MathHelper.Clamp(value + amount, 0, max);
-            return true;
-        }
-
         protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
         protected static bool IsAmmo(EntityDefinition definition) => definition.IsType(Inventory.AmmoClassName);
-
-        private int GetMaxAmount(EntityDefinition def)
-        {
-            // TODO these are usually defaults. Defaults come from MAPINFO and not yet implemented.
-            switch (def.Name.ToString())
-            {
-                case "ARMORBONUS":
-                case "HEALTHBONUS":
-                case "SOULSPHERE":
-                case "MEGASPHERE":
-                case "BLUEARMOR":
-                    return 200;
-                case "GREENARMOR":
-                case "STIMPACK":
-                case "MEDIKIT":
-                    return 100;
-                default:
-                    break;
-            }
-
-            return 0;
-        }
 
         public bool HasMissileState() => Definition.States.Labels.ContainsKey("MISSILE");
         public bool HasMeleeState() => Definition.States.Labels.ContainsKey("MELEE");
