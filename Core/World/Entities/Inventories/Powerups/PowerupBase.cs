@@ -78,9 +78,6 @@ namespace Helion.World.Entities.Inventories.Powerups
 
         public virtual InventoryTickStatus Tick(Player player)
         {
-            if (EntityDefinition.Properties.Powerup.Strength > 0)
-                return InventoryTickStatus.Continue;
-
             if (PowerupType == PowerupType.Strength)
                 m_tics++;
             else
