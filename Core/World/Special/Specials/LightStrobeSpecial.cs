@@ -19,6 +19,9 @@ namespace Helion.World.Special.Specials
             m_maxBright = sector.LightLevel;
             m_minBright = minLightLevel;
 
+            if (m_minBright == m_maxBright)
+                m_minBright = 0;
+
             if (!sync)
                 m_delay = random.NextByte() & 0x07;
         }
