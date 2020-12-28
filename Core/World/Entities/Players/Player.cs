@@ -27,6 +27,7 @@ namespace Helion.World.Entities.Players
         private const double ViewHeightMin = 4.0;
         private const double DeathHeight = 8.0;
         private const int JumpDelayTicks = 7;
+        private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
 
         public readonly int PlayerNumber;
         public double PitchRadians;
@@ -58,9 +59,12 @@ namespace Helion.World.Entities.Players
 
         public bool DrawFullBright()
         {
-            IPowerup? powerup = Inventory.GetPowerup(PowerupType.LightAmp);
-            if (powerup != null)
-                return powerup.DrawPowerupEffect;
+            foreach (PowerupType powerupType in PowerupsWithBrightness)
+            {
+                IPowerup? powerup = Inventory.GetPowerup(powerupType);
+                if (powerup != null)
+                    return powerup.DrawPowerupEffect;
+            }
 
             return false;
         }
