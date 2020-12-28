@@ -73,14 +73,21 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 void main() {
                     fragColor = texture(boundTexture, uvFrag.st);
-                    fragColor.xyz *= calculateLightLevel();
+
+                    // If we have invulnerability, use the max light level.
+                    // Otherwise, use the standard normalized light level.
+                    float lightLevel = calculateLightLevel();
+                    fragColor.xyz *= mix(lightLevel, 1.0, hasInvulnerability);
 
                     if (fragColor.w <= 0.0)
                         discard;
 
+                    // If invulnerable, grayscale everything and crank the brightness.
+                    // Note: The 1.5x is a visual guess to make it look closer to vanilla.
                     if (hasInvulnerability != 0)
                     {
                         float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
+                        maxColor *= 1.5;
                         fragColor.xyz = vec3(maxColor, maxColor, maxColor);
                     }
                 }
