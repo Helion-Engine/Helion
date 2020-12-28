@@ -25,7 +25,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {
     public class LegacyWorldRenderer : WorldRenderer
     {
-        public static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
+        public static readonly VertexArrayAttributes Attributes = new(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
             new VertexPointerFloatAttribute("lightLevel", 2, 1));
@@ -36,7 +36,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private readonly EntityRenderer m_entityRenderer;
         private readonly LegacyShader m_shaderProgram;
         private readonly RenderWorldDataManager m_worldDataManager;
-        private readonly ViewClipper m_viewClipper = new ViewClipper();
+        private readonly ViewClipper m_viewClipper = new();
 
         public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -151,7 +151,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         private static (float mix, float value) GetLightLevelWeaponModifier(RenderInfo renderInfo)
         {
-            if (renderInfo.ViewerEntity is Player player)              
+            if (renderInfo.ViewerEntity is Player player)
                 return (player.ExtraLight * Constants.ExtraLightFactor / 256.0f, 1.0f);
             else
                 return (0.0f, 1.0f);
@@ -159,10 +159,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         private void SetUniforms(RenderInfo renderInfo)
         {
+            int drawInvulnerability = 0;
             (float mix, float value) = GetLightLevelWeaponModifier(renderInfo);
-            if (renderInfo.ViewerEntity is Player player && player.DrawFullBright())
-                mix = 1.0f;
 
+            if (renderInfo.ViewerEntity is Player player)
+            {
+                if (player.DrawFullBright())
+                    mix = 1.0f;
+                if (player.DrawInvulnerableColorMap())
+                    drawInvulnerability = 1;
+            }
+
+            m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
             m_shaderProgram.BoundTexture.Set(gl, 0);
             m_shaderProgram.LightLevelMix.Set(gl, mix);
             m_shaderProgram.LightLevelValue.Set(gl, value);

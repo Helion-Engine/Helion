@@ -8,10 +8,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {
     public class LegacyShader : ShaderProgram
     {
-        public readonly UniformInt BoundTexture = new UniformInt();
-        public readonly UniformFloat LightLevelMix = new UniformFloat();
-        public readonly UniformFloat LightLevelValue = new UniformFloat();
-        public readonly UniformMatrix4 Mvp = new UniformMatrix4();
+        public readonly UniformInt HasInvulnerability = new();
+        public readonly UniformInt BoundTexture = new();
+        public readonly UniformFloat LightLevelMix = new();
+        public readonly UniformFloat LightLevelValue = new();
+        public readonly UniformMatrix4 Mvp = new();
 
         public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
             base(functions, builder, attributes)
@@ -48,6 +49,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 out vec4 fragColor;
 
+                uniform int hasInvulnerability;
                 uniform float lightLevelMix;
                 uniform float lightLevelValue;
                 uniform sampler2D boundTexture;
@@ -75,11 +77,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                     if (fragColor.w <= 0.0)
                         discard;
+
+                    if (hasInvulnerability != 0)
+                    {
+                        float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
+                        fragColor.xyz = vec3(maxColor, maxColor, maxColor);
+                    }
                 }
             ";
 
-            VertexShaderComponent vertexShaderComponent = new VertexShaderComponent(functions, vertexShaderText);
-            FragmentShaderComponent fragmentShaderComponent = new FragmentShaderComponent(functions, fragmentShaderText);
+            VertexShaderComponent vertexShaderComponent = new(functions, vertexShaderText);
+            FragmentShaderComponent fragmentShaderComponent = new(functions, fragmentShaderText);
             return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
         }
     }

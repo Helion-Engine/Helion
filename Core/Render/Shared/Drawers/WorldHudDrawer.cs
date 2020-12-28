@@ -259,7 +259,7 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
         {
-            if (player.Inventory.PowerupEffect == null || !player.Inventory.PowerupEffect.DrawColor.HasValue || !player.Inventory.PowerupEffect.DrawPowerupEffect)
+            if (player.Inventory.PowerupEffect?.DrawColor == null || !player.Inventory.PowerupEffect.DrawPowerupEffect)
                 return;
 
             helper.FillRect(0, 0, viewport.Width, viewport.Height, player.Inventory.PowerupEffect.DrawColor.Value,

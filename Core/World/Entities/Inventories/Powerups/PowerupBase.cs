@@ -2,7 +2,6 @@
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
-using System;
 using System.Drawing;
 
 namespace Helion.World.Entities.Inventories.Powerups
@@ -10,7 +9,7 @@ namespace Helion.World.Entities.Inventories.Powerups
     public class PowerupBase : IPowerup
     {
         private const int EffectTicks = 60 * (int)Constants.TicksPerSecond;
-        
+
         private readonly Player m_player;
         private int m_tics;
         private int m_effectTics;
@@ -116,7 +115,6 @@ namespace Helion.World.Entities.Inventories.Powerups
             if (PowerupType == PowerupType.Invulnerable)
             {
                 m_drawColor = Color.White;
-                DrawAlpha = 0.5f;
             }
             else if (PowerupType == PowerupType.Invisibility)
             {

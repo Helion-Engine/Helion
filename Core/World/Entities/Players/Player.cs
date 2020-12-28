@@ -65,6 +65,10 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
+        public bool DrawInvulnerableColorMap() => Inventory.PowerupEffect != null &&
+                                                  Inventory.PowerupEffect.PowerupType == PowerupType.Invulnerable &&
+                                                  Inventory.PowerupEffect.DrawPowerupEffect;
+
         public override double ViewZ => m_viewZ;
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
 
@@ -613,7 +617,7 @@ namespace Helion.World.Entities.Players
                 DamageCount += damage;
                 DamageCount = Math.Min(DamageCount, Definition.Properties.Health);
                 DamageCount = (int)((float)DamageCount / Definition.Properties.Health * 100);
-            } 
+            }
 
             return damageApplied;
         }
