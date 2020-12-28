@@ -89,13 +89,13 @@ namespace Helion.World.Entities.Players
         {
             if (entity is Player player)
             {
-                foreach (var item in player.Inventory.GetInventoryItems())
+                foreach (InventoryItem item in player.Inventory.GetInventoryItems())
                 {
-                    if (!item.Definition.IsType(Inventory.PowerupClassName))
+                    if (!Inventory.IsPowerup(item.Definition))
                         Inventory.Add(item.Definition, item.Amount);
                 }
 
-                foreach (var weapon in player.Inventory.Weapons.GetWeapons())
+                foreach (Weapon weapon in player.Inventory.Weapons.GetWeapons())
                     GiveWeapon(weapon.Definition, false);
 
                 if (player.Weapon != null)

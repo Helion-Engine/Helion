@@ -54,6 +54,8 @@ namespace Helion.World.Entities.Inventories
             return definition.Name;
         }
 
+        public static bool IsPowerup(EntityDefinition def) => def.IsType(PowerupClassName) || !string.IsNullOrEmpty(def.Properties.Powerup.Type);
+
         public bool IsPowerupActive(PowerupType type) => Powerups.Any(x => x.PowerupType == type);
 
         public IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
