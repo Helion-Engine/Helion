@@ -51,19 +51,23 @@ namespace Helion.World.Geometry.Builder
         /// otherwise null if it failed.</returns>
         public static MapGeometry? Create(IMap map, Config config)
         {
+            IBspBuilder? bspBuilder = CreateBspBuilder(map, config);
+            if (bspBuilder == null)
+                return null;
+
             switch (map)
             {
                 case DoomMap doomMap:
-                    return DoomGeometryBuilder.Create(doomMap, CreateBspBuilder(map, config));
+                    return DoomGeometryBuilder.Create(doomMap, bspBuilder);
                 case HexenMap hexenMap:
-                    return HexenGeometryBuilder.Create(hexenMap, CreateBspBuilder(map, config));
+                    return HexenGeometryBuilder.Create(hexenMap, bspBuilder);
                 default:
                     Log.Error("Do not support map type {0} yet", map.MapType);
                     return null;
             }
         }
 
-        private static IBspBuilder CreateBspBuilder(IMap map, Config config)
+        private static IBspBuilder? CreateBspBuilder(IMap map, Config config)
         {
             if (config.Engine.Developer.UseZdbsp)
             {
@@ -72,8 +76,12 @@ namespace Helion.World.Geometry.Builder
 
                 Log.Warn("Unable to find GL nodes from ZDBSP, building with internal node builder");
             }
+            else
+            {
+                return new BspBuilder(map);
+            }
 
-            return new BspBuilder(map);
+            return null;
         }
     }
 }
