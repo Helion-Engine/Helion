@@ -20,6 +20,7 @@ namespace Helion.World.Entities.Inventories
         public static readonly CIString BasicArmorBonusClassName = "BASICARMORBONUS";
         public static readonly CIString BasicArmorPickupClassName = "BASICARMORPICKUP";
         public static readonly CIString KeyClassName = "KEY";
+        public static readonly CIString PowerupClassName = "POWERUPGIVER";
 
         /// <summary>
         /// All of the items owned by the player that are not a special type of
@@ -57,6 +58,14 @@ namespace Helion.World.Entities.Inventories
 
         public IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
 
+        public void ClearPowerups()
+        {
+            foreach (IPowerup powerup in Powerups)
+                Remove(powerup.EntityDefinition.Name, 1);
+            Powerups.Clear();
+            PowerupEffect = null;
+        }
+
         public void Tick()
         {
             for (int i = 0; i < Powerups.Count; i++)
@@ -87,9 +96,11 @@ namespace Helion.World.Entities.Inventories
                 Weapon? fist = Owner.Inventory.Weapons.GetWeapon("FIST");
                 if (fist != null)
                     Owner.ChangeWeapon(fist);
+                if (Owner.Health < 100)
+                    Owner.Health = 100;
             }
 
-            if (definition.IsType("POWERUPGIVER") || overridehack)
+            if (definition.IsType(PowerupClassName) || overridehack)
                 AddPowerup(definition);
 
             CIString name = GetBaseInventoryName(definition);
