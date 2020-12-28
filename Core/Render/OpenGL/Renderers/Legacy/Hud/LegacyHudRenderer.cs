@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using GlmSharp;
+using Helion.Graphics.Fonts;
 using Helion.Graphics.String;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
@@ -15,6 +16,7 @@ using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -22,7 +24,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 {
     public class LegacyHudRenderer : HudRenderer
     {
-        private static readonly VertexArrayAttributes Attributes = new VertexArrayAttributes(
+        private static readonly VertexArrayAttributes Attributes = new(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
             new VertexPointerUnsignedByteAttribute("rgbMultiplier", 3, 4, true),
@@ -85,27 +87,34 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         public override void DrawText(ColoredString text, CIString fontName, int fontHeight, Vec2I topLeftDraw, float alpha)
         {
             GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(fontName);
-            float fontScale = (float)fontHeight / font.Metrics.MaxHeight;
+            float fontScale = (float)fontHeight / font.Height;
 
             float offset = topLeftDraw.X;
             foreach (ColoredChar c in text)
             {
-                GLGlyph glyph = font[c.Character];
-                GlyphUV uv = glyph.UV;
+                FontGlyph fontGlyph = font[c.Character];
+                int glyphWidth = fontGlyph.Location.Width;
 
                 // We truncate to an integer because this is how it is also
                 // calculated from the text width/height calculators.
-                float width = (int)(glyph.Width * fontScale);
+                float width = (int)(glyphWidth * fontScale);
 
                 float top = topLeftDraw.Y;
                 float bottom = top + fontHeight;
                 float left = offset;
                 float right = left + width;
 
-                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uv.Left, uv.Top, c.Color, alpha);
-                HudVertex topRight = new HudVertex(right, top, DrawDepth, uv.Right, uv.Top, c.Color, alpha);
-                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uv.Left, uv.Bottom, c.Color, alpha);
-                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uv.Right, uv.Bottom, c.Color, alpha);
+                Box2D uv = fontGlyph.UV;
+                float uvLeft = (float)uv.Left;
+                float uvRight = (float)uv.Right;
+                // We draw from the top down, so the V's have to flip.
+                float uvTop = (float)uv.Bottom;
+                float uvBottom = (float)uv.Top;
+
+                HudVertex topLeft = new HudVertex(left, top, DrawDepth, uvLeft, uvTop, c.Color, alpha);
+                HudVertex topRight = new HudVertex(right, top, DrawDepth, uvRight, uvTop, c.Color, alpha);
+                HudVertex bottomLeft = new HudVertex(left, bottom, DrawDepth, uvLeft, uvBottom, c.Color, alpha);
+                HudVertex bottomRight = new HudVertex(right, bottom, DrawDepth, uvRight, uvBottom, c.Color, alpha);
                 HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
                 m_drawBuffer.Add(font.Texture, quad);
 

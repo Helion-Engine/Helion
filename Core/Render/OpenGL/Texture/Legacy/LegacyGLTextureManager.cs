@@ -3,7 +3,6 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
-using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Resources;
@@ -17,26 +16,26 @@ namespace Helion.Render.OpenGL.Texture.Legacy
     public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     {
         public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
-        
-        public LegacyGLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions, 
-            ArchiveCollection archiveCollection) 
+
+        public LegacyGLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions,
+            ArchiveCollection archiveCollection)
             : base(config, capabilities, functions, archiveCollection)
         {
             ImageDrawInfoProvider = new GlLegacyImageDrawInfoProvider(this);
-            
+
             // TODO: Listen for config changes to filtering/anisotropic.
         }
-        
+
         ~LegacyGLTextureManager()
         {
             FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
-        
+
         public void UploadAndSetParameters(GLLegacyTexture texture, Image image, CIString name, ResourceNamespace resourceNamespace)
         {
             Precondition(image.Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
-            
+
             gl.BindTexture(texture.TextureType, texture.TextureId);
 
             GLHelper.ObjectLabel(gl, Capabilities, ObjectLabelType.Texture, texture.TextureId, "Texture: " + name);
@@ -45,12 +44,12 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             var lockMode = ImageLockMode.ReadOnly;
             var format = PixelFormat.Format32bppArgb;
             var bitmapData = image.Bitmap.LockBits(pixelArea, lockMode, format);
-            
+
             // Because the C# image format is 'ARGB', we can get it into the
             // RGBA format by doing a BGRA format and then reversing it.
-            gl.TexImage2D(texture.TextureType, 0, PixelInternalFormatType.Rgba8, image.Dimension, 
+            gl.TexImage2D(texture.TextureType, 0, PixelInternalFormatType.Rgba8, image.Dimension,
                 PixelFormatType.Bgra, PixelDataType.UnsignedInt8888Rev, bitmapData.Scan0);
-            
+
             image.Bitmap.UnlockBits(bitmapData);
 
             Invariant(texture.TextureType == TextureTargetType.Texture2D, "Need to support non-2D textures for mipmapping");
@@ -68,15 +67,15 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         /// <param name="resourceNamespace">What namespace the texture is from.
         /// </param>
         /// <returns>A new texture.</returns>
-        protected override GLLegacyTexture GenerateTexture(Image image, CIString name, 
+        protected override GLLegacyTexture GenerateTexture(Image image, CIString name,
             ResourceNamespace resourceNamespace)
         {
             int textureId = gl.GenTexture();
             string textureName = $"{name} [{resourceNamespace}]";
-            
+
             GLLegacyTexture texture = new GLLegacyTexture(textureId, textureName, image.Dimension, image.Metadata, gl, TextureTargetType.Texture2D);
             UploadAndSetParameters(texture, image, name, resourceNamespace);
-            
+
             return texture;
         }
 
@@ -88,9 +87,8 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         /// <returns>A newly allocated font texture.</returns>
         protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, CIString name)
         {
-            (Image image, GLFontMetrics metrics) = GLFontGenerator.CreateFontAtlasFrom(font); 
-            GLLegacyTexture texture = GenerateTexture(image, $"[FONT] {name}", ResourceNamespace.Fonts);
-            GLFontTexture<GLLegacyTexture> fontTexture = new GLFontTexture<GLLegacyTexture>(texture, metrics);
+            GLLegacyTexture texture = GenerateTexture(font.Atlas, $"[FONT] {name}", ResourceNamespace.Fonts);
+            GLFontTexture<GLLegacyTexture> fontTexture = new(texture, font);
             return fontTexture;
         }
 
@@ -111,7 +109,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             }
 
             (int minFilter, int maxFilter) = FindFilterValues(Config.Engine.Render.TextureFilter);
-            
+
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
             gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.Repeat);
@@ -140,7 +138,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         {
             int minFilter = (int)TextureMinFilterType.Nearest;
             int maxFilter = (int)TextureMagFilterType.Nearest;
-            
+
             switch (filterType)
             {
             case FilterType.Nearest:

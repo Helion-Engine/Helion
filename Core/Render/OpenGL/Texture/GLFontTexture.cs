@@ -1,17 +1,20 @@
 using System;
+using Helion.Graphics.Fonts;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Texture.Fonts
+namespace Helion.Render.OpenGL.Texture
 {
     public class GLFontTexture<GLTextureType> : IDisposable where GLTextureType : GLTexture
     {
         public readonly GLTextureType Texture;
-        public readonly GLFontMetrics Metrics;
+        public readonly Font Font;
 
-        public GLFontTexture(GLTextureType texture, GLFontMetrics metrics)
+        public int Height => Font.MaxHeight;
+
+        public GLFontTexture(GLTextureType texture, Font font)
         {
             Texture = texture;
-            Metrics = metrics;
+            Font = font;
         }
 
         ~GLFontTexture()
@@ -20,8 +23,8 @@ namespace Helion.Render.OpenGL.Texture.Fonts
             Dispose();
         }
 
-        public GLGlyph this[char c] => Metrics[c];
-        
+        public FontGlyph this[char c] => Font[c];
+
         public void Dispose()
         {
             Texture.Dispose();
