@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -286,11 +285,10 @@ namespace Helion.Render.OpenGL.Texture
         private GLFontTexture<GLTextureType> CreateNullFont()
         {
             Image nullImage = ImageHelper.CreateNullImage();
-            Glyph glyph = new Glyph('?', nullImage);
-            List<Glyph> glyphs = new List<Glyph>() { glyph };
+            List<Glyph> glyphs = new() { new Glyph('?', nullImage) };
             FontMetrics metrics = new FontMetrics(nullImage.Height, nullImage.Height, 0, 0, 0);
 
-            Font font = new Font(glyph, glyphs, metrics);
+            Font font = new Font(glyphs, metrics);
             return GenerateFont(font, "NULL");
         }
 

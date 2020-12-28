@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Linq;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
@@ -26,12 +27,18 @@ namespace Helion.Graphics.Fonts
         public readonly FontMetrics Metrics;
 
         /// <summary>
-        /// The image that contains all the compiled glyphs. They can be looked
-        /// up with the character glyph for their location in this.
+        /// The image atlas of all the glyphs (aka: the image that contains all
+        /// the compiled glyphs). They can be looked up with the character for
+        /// their location in this.
         /// </summary>
-        public readonly Image Image;
+        public readonly Image Atlas;
 
         private readonly Dictionary<char, FontGlyph> m_glyphs = new();
+
+        /// <summary>
+        /// The maximum height of any glyph.
+        /// </summary>
+        public int MaxHeight => Atlas.Height;
 
         /// <summary>
         /// Creates a new font from a series of glyphs.
@@ -54,8 +61,16 @@ namespace Helion.Graphics.Fonts
                 PopulateGlyphs(glyphs, imageArea);
             }
 
-            Image = CreateImage(imageArea);
+            Atlas = CreateImage(imageArea);
         }
+
+        /// <summary>
+        /// Gets a glyph, or if it does not exist, returns a random glyph.
+        /// </summary>
+        /// <param name="c">The character to look up.</param>
+        public FontGlyph this[char c] => m_glyphs.TryGetValue(c, out FontGlyph? glyph) ?
+            glyph :
+            m_glyphs.Values.First();
 
         /// <summary>
         /// Tries to get the value. See the Dictionary for analogous usage.
@@ -103,9 +118,9 @@ namespace Helion.Graphics.Fonts
                 Image image = glyph.Image;
 
                 Rectangle location = new Rectangle(offsetX, 0, image.Width, image.Height);
-                Vec2D topLeftUV = new Vec2D(offsetX, 0) * uvFactor;
-                Vec2D bottomRightUV = new Vec2D(offsetX + image.Width, image.Height) * uvFactor;
-                Box2D uv = new Box2D(topLeftUV, bottomRightUV);
+                Vec2D bottomLeftUv = new Vec2D(offsetX, 0) * uvFactor;
+                Vec2D topRightUV = new Vec2D(offsetX + image.Width, image.Height) * uvFactor;
+                Box2D uv = new Box2D(bottomLeftUv, topRightUV);
 
                 m_glyphs[c] = new FontGlyph(c, image, location, uv);
 

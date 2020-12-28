@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using Helion.Graphics.String;
-using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Util.Geometry;
@@ -12,7 +11,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
     public class GlLegacyImageDrawInfoProvider : IImageDrawInfoProvider
     {
         private readonly LegacyGLTextureManager m_textureManager;
-        
+
         public GlLegacyImageDrawInfoProvider(LegacyGLTextureManager textureManager)
         {
             m_textureManager = textureManager;
@@ -35,8 +34,8 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             return texture.Metadata.Offset;
         }
 
-        public int GetFontHeight(string font) => m_textureManager.GetFont(font).Metrics.MaxHeight;
-        
+        public int GetFontHeight(string font) => m_textureManager.GetFont(font).Height;
+
         public Dimension GetDrawArea(ColoredString str, string font, int fontSize, int maxWidth, bool wrap)
         {
             GLFontTexture<GLLegacyTexture> fontTexture = m_textureManager.GetFont(font);
@@ -49,7 +48,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
 
             foreach (ColoredChar c in str)
             {
-                int charWidth = (int)(fontTexture[c.Character].Dimension.Width * scaleFactor);
+                int charWidth = (int)(fontTexture[c.Character].Image.Width * scaleFactor);
 
                 if (notFirstChar && currentWidth + charWidth >= maxWidth)
                 {
@@ -57,25 +56,25 @@ namespace Helion.Render.OpenGL.Texture.Legacy
                     currentWidth = 0;
                     rowsOfCharacters++;
                 }
-                
+
                 currentWidth += charWidth;
                 notFirstChar = true;
             }
-            
+
             finalWidth = Math.Max(finalWidth, currentWidth);
-            int finalHeight = (int)(rowsOfCharacters * fontTexture.Metrics.MaxHeight * scaleFactor);
-            
+            int finalHeight = (int)(rowsOfCharacters * fontTexture.Height * scaleFactor);
+
             return new Dimension(finalWidth, finalHeight);
         }
 
-        public Rectangle GetDrawArea(ColoredString str, string font, Vec2I topLeft, int? fontSize = null)
+        public Rectangle GetDrawArea(ColoredString str, string font, Vec2I topLeft)
         {
             GLFontTexture<GLLegacyTexture> fontTexture = m_textureManager.GetFont(font);
 
             int width = 0;
             foreach (var c in str)
-                width += fontTexture[c.Character].Width;
-            return new Rectangle(topLeft.X, topLeft.Y, width, fontTexture.Metrics.MaxHeight);
+                width += fontTexture[c.Character].Image.Width;
+            return new Rectangle(topLeft.X, topLeft.Y, width, fontTexture.Height);
         }
     }
 }

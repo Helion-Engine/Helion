@@ -20,13 +20,14 @@ namespace Helion.Graphics.Fonts
 
         /// <summary>
         /// The location in the larger image of a font. Used primarily for
-        /// rendering. The origin is at the top left of the image.
+        /// rendering. The origin is at the top left of the image, which is
+        /// different from <see cref="UV"/> which starts at the bottom left.
         /// </summary>
         public readonly Rectangle Location;
 
         /// <summary>
-        /// The UV coordinates. Intended for rendering. The top left is (0, 0)
-        /// and the bottom right is (1, 1), unlike the OpenGL's convention.
+        /// The UV coordinates. Intended for rendering. Bottom left is (0, 0)
+        /// and the top right is (1, 1), as per OpenGL conventions.
         /// </summary>
         public readonly Box2D UV;
 
