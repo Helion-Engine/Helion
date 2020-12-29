@@ -58,9 +58,8 @@ namespace Helion.Client
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
             m_musicPlayer = new MidiMusicPlayer(config);
             m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device, m_musicPlayer);
-            m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
+            m_audioSystem.SetVolume(m_config.Engine.Audio.Volume * m_config.Engine.Audio.SoundVolume);
             m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console);
-
             m_console.OnConsoleCommandEvent += Console_OnCommand;
         }
 
