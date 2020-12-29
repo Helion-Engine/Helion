@@ -52,6 +52,12 @@ namespace Helion.Client.Music
             m_outputDevice.Volume = new Volume(volumeValue, volumeValue);
         }
 
+        private float GetVolumeFromConfig()
+        {
+            float volume = m_config.Engine.Audio.Volume * m_config.Engine.Audio.MusicVolume;
+            return Math.Clamp(volume, 0.0f, 1.0f);
+        }
+
         public bool Play(byte[] data)
         {
             if (m_isDisposed)
@@ -67,6 +73,10 @@ namespace Helion.Client.Music
             {
                 Stop();
 
+                float volume = GetVolumeFromConfig();
+                if (volume <= 0.0f)
+                    return true;
+
                 MemoryStream stream = new(data);
                 MidiFile midi = MidiFile.Read(stream);
                 Playback newPlayback = midi.GetPlayback(m_outputDevice);
@@ -79,7 +89,7 @@ namespace Helion.Client.Music
                 // This sucks, but this has to come here because the MIDI APIs
                 // apparently aren't fully initialized after grabbing a device,
                 // so we need to defer volume setting until we load something.
-                SetVolume(m_config.Engine.Audio.MusicVolume);
+                SetVolume(volume);
 
                 return true;
             }

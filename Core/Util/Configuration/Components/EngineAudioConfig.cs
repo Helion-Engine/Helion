@@ -8,6 +8,7 @@ namespace Helion.Util.Configuration.Components
     {
         public readonly ConfigValue<string> Device = new ConfigValue<string>(IAudioSystem.DefaultAudioDevice);
         public readonly ConfigValue<float> MusicVolume = new ConfigValue<float>(1.0f);
+        public readonly ConfigValue<float> SoundVolume = new ConfigValue<float>(1.0f);
         public readonly ConfigValue<float> Volume = new ConfigValue<float>(1.0f);
     }
 }
