@@ -259,11 +259,11 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
         {
-            if (player.Inventory.PowerupEffect?.DrawColor == null || !player.Inventory.PowerupEffect.DrawPowerupEffect)
+            if (player.Inventory.PowerupEffectColor?.DrawColor == null || !player.Inventory.PowerupEffectColor.DrawPowerupEffect)
                 return;
 
-            helper.FillRect(0, 0, viewport.Width, viewport.Height, player.Inventory.PowerupEffect.DrawColor.Value,
-                player.Inventory.PowerupEffect.DrawAlpha);
+            helper.FillRect(0, 0, viewport.Width, viewport.Height, player.Inventory.PowerupEffectColor.DrawColor.Value,
+                player.Inventory.PowerupEffectColor.DrawAlpha);
         }
 
         private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)

@@ -11,6 +11,8 @@ namespace Helion.World.Entities.Inventories.Powerups
         Color? DrawColor { get; }
         float DrawAlpha { get; }
         bool DrawPowerupEffect { get; }
+        bool DrawEffectActive { get; }
+        PowerupEffectType EffectType { get; }
         InventoryTickStatus Tick(Player player);
         void Reset();
     }

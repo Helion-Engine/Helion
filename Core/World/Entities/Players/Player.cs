@@ -69,9 +69,7 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
-        public bool DrawInvulnerableColorMap() => Inventory.PowerupEffect != null &&
-                                                  Inventory.PowerupEffect.PowerupType == PowerupType.Invulnerable &&
-                                                  Inventory.PowerupEffect.DrawPowerupEffect;
+        public bool DrawInvulnerableColorMap() => Inventory.PowerupEffectColorMap != null && Inventory.PowerupEffectColorMap.DrawPowerupEffect;
 
         public override double ViewZ => m_viewZ;
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
