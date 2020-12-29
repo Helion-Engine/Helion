@@ -46,11 +46,6 @@ namespace Helion.Render.Shared.Drawers.Helper
         public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);
 
         /// <summary>
-        /// See <see cref="DrawInfoProvider"/> for this function.
-        /// </summary>
-        public int FontHeight(string fontName) => DrawInfoProvider.GetFontHeight(fontName);
-
-        /// <summary>
         /// See <see cref="AtResolution(int,int,System.Action)"/>. Does not
         /// handle widescreen stretching/centering.
         /// </summary>
