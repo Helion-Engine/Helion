@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using Helion.Util.Geometry;
 
 namespace Helion.Graphics.Fonts.Renderable
@@ -20,16 +23,26 @@ namespace Helion.Graphics.Fonts.Renderable
         /// </summary>
         public readonly List<RenderableGlyph> Glyphs;
 
-        public RenderableSentence(List<RenderableGlyph> glyphs)
+        public RenderableSentence(IReadOnlyCollection<RenderableGlyph> glyphs)
         {
-            Glyphs = glyphs;
+            Glyphs = glyphs.ToList();
             DrawArea = CalculateDrawArea(glyphs);
         }
 
-        private static Dimension CalculateDrawArea(List<RenderableGlyph> glyphs)
+        private static Dimension CalculateDrawArea(IEnumerable<RenderableGlyph> glyphs)
         {
-            // TODO
-            return default;
+            Rectangle drawArea = glyphs
+                .Select(g => g.Location)
+                .Aggregate((acc, glyphLoc) =>
+                {
+                    int x = Math.Max(acc.Width, glyphLoc.Right);
+                    int y = Math.Max(acc.Height, glyphLoc.Height);
+                    return new Rectangle(0, 0, x, y);
+                });
+
+            return new Dimension(drawArea.Width, drawArea.Height);
         }
+
+        public override string ToString() => new(Glyphs.Select(g => g.Character).ToArray());
     }
 }

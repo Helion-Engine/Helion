@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using Helion.Graphics.String;
 using Helion.Render.Commands.Alignment;
 using Helion.Util.Extensions;
@@ -158,6 +159,11 @@ namespace Helion.Graphics.Fonts.Renderable
 
                 sentence.Glyphs[i] = new RenderableGlyph(glyph.Character, newLocation, glyph.UV, glyph.Color);
             }
+        }
+
+        public override string ToString()
+        {
+            return string.Join("\n", Sentences.Select(s => s.ToString()));
         }
     }
 }

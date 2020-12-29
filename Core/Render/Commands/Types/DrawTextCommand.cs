@@ -15,5 +15,7 @@ namespace Helion.Render.Commands.Types
             DrawArea = new Rectangle(x, y, width, height);
             Alpha = alpha;
         }
+
+        public override string ToString() => Text.ToString();
     }
 }
