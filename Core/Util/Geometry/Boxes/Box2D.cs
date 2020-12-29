@@ -15,6 +15,11 @@ namespace Helion.Util.Geometry.Boxes
     public struct Box2D
     {
         /// <summary>
+        /// A box that goes from (0, 0) to (1, 1).
+        /// </summary>
+        public static readonly Box2D ZeroToOne = new(Vec2D.Zero, Vec2D.One);
+
+        /// <summary>
         /// The minimum point in the box. This is equal to the bottom left
         /// corner.
         /// </summary>

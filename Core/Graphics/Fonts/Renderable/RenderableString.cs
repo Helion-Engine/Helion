@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
+using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Commands.Alignment;
 using Helion.Util.Extensions;
@@ -46,10 +45,13 @@ namespace Helion.Graphics.Fonts.Renderable
         public RenderableString(ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
             int maxWidth = int.MaxValue)
         {
+            if (str.ToString() == "FPS: 0")
+                Console.WriteLine("hi");
             Font = font;
             Sentences = PopulateSentences(str, font, fontSize, maxWidth);
             DrawArea = CalculateDrawArea();
             AlignTo(align);
+            RecalculateGlyphLocations();
         }
 
         private static List<RenderableSentence> PopulateSentences(ColoredString str, Font font, int fontSize,
@@ -58,30 +60,33 @@ namespace Helion.Graphics.Fonts.Renderable
             double scale = (double)fontSize / font.MaxHeight;
             int currentWidth = 0;
             int currentHeight = 0;
-            List<RenderableSentence> sentences = new();
             List<RenderableGlyph> currentSentence = new();
+            List<RenderableSentence> sentences = new();
 
             foreach (ColoredChar c in str)
             {
                 FontGlyph fontGlyph = font[c.Character];
 
-                Vec2D dimension = new Vec2D(fontGlyph.Location.Width, fontGlyph.Location.Height) * scale;
-                Vec2I location = new Vec2I((int)(dimension.X + currentWidth), currentHeight);
+                int endX = currentWidth + (int)(fontGlyph.Location.Width * scale);
+                int endY = currentHeight + (int)(fontGlyph.Location.Height * scale);
+                Vec2I endLocation = new Vec2I(endX, endY);
 
                 // We want to make sure each sentence has one character. This
                 // also avoids infinite looping cases like a max width that is
                 // too small.
-                if (location.X > maxWidth && !currentSentence.Empty())
+                if (endLocation.X > maxWidth && !currentSentence.Empty())
                 {
                     CreateAndAddSentenceIfPossible();
                     continue;
                 }
 
-                Rectangle drawLocation = new(location.X, location.Y, (int)dimension.X, (int)dimension.Y);
-                RenderableGlyph glyph = new(c.Character, drawLocation, fontGlyph.UV, c.Color);
+                // We use a dummy box temporarily, and calculate it at the end
+                // properly (for code clarity reasons).
+                ImageBox2I drawLocation = new(currentWidth, currentHeight, endLocation.X, endLocation.Y);
+                RenderableGlyph glyph = new(c.Character, drawLocation, ImageBox2D.ZeroToOne, fontGlyph.UV, c.Color);
                 currentSentence.Add(glyph);
 
-                currentWidth += location.X;
+                currentWidth = endLocation.X;
             }
 
             CreateAndAddSentenceIfPossible();
@@ -96,6 +101,7 @@ namespace Helion.Graphics.Fonts.Renderable
                 RenderableSentence sentence = new(currentSentence);
                 sentences.Add(sentence);
 
+                currentWidth = 0;
                 currentHeight += sentence.DrawArea.Height;
                 currentSentence.Clear();
             }
@@ -154,10 +160,33 @@ namespace Helion.Graphics.Fonts.Renderable
             {
                 RenderableGlyph glyph = sentence.Glyphs[i];
 
-                Rectangle newLocation = glyph.Location;
-                newLocation.X += pixelAdjustmentWidth;
+                ImageBox2I pos = glyph.Coordinates;
+                ImageBox2I newCoordinate = new(pos.Left + pixelAdjustmentWidth, pos.Top, pos.Right, pos.Bottom);
+                sentence.Glyphs[i] = new RenderableGlyph(glyph.Character, newCoordinate, glyph.Location, glyph.UV, glyph.Color);
+            }
+        }
 
-                sentence.Glyphs[i] = new RenderableGlyph(glyph.Character, newLocation, glyph.UV, glyph.Color);
+        private void RecalculateGlyphLocations()
+        {
+            // It is easier to do this after the fact. Doing it during glyph
+            // construction would require a ton of reading ahead, alignment,
+            // and calculations which would complicate the code. Instead, we
+            // do one final recalculation of the normalized coordinates here.
+            Vec2D inverse = new Vec2D(1.0 / DrawArea.Width, 1.0 / DrawArea.Height);
+
+            foreach (RenderableSentence sentence in Sentences)
+            {
+                for (int i = 0; i < sentence.Glyphs.Count; i++)
+                {
+                    RenderableGlyph glyph = sentence.Glyphs[i];
+
+                    ImageBox2I coordinates = glyph.Coordinates;
+                    Vec2D topLeft = coordinates.Min.ToDouble() * inverse;
+                    Vec2D bottomRight = coordinates.Max.ToDouble() * inverse;
+                    ImageBox2D location = new ImageBox2D(topLeft, bottomRight);
+
+                    sentence.Glyphs[i] = new RenderableGlyph(glyph, location);
+                }
             }
         }
 

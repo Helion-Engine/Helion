@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using Helion.Graphics.Geometry;
 using Helion.Util.Geometry;
 
 namespace Helion.Graphics.Fonts.Renderable
@@ -31,16 +31,14 @@ namespace Helion.Graphics.Fonts.Renderable
 
         private static Dimension CalculateDrawArea(IEnumerable<RenderableGlyph> glyphs)
         {
-            Rectangle drawArea = glyphs
-                .Select(g => g.Location)
-                .Aggregate((acc, glyphLoc) =>
-                {
-                    int x = Math.Max(acc.Width, glyphLoc.Right);
-                    int y = Math.Max(acc.Height, glyphLoc.Height);
-                    return new Rectangle(0, 0, x, y);
-                });
-
-            return new Dimension(drawArea.Width, drawArea.Height);
+            return glyphs.Select(g => g.Coordinates)
+                         .Aggregate((acc, glyphLoc) =>
+                         {
+                             int x = Math.Max(acc.Width, glyphLoc.Right);
+                             int y = Math.Max(acc.Height, glyphLoc.Height);
+                             return new ImageBox2I(0, 0, x, y);
+                         })
+                         .ToDimension();
         }
 
         public override string ToString() => new(Glyphs.Select(g => g.Character).ToArray());

@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using Helion.Util.Geometry.Boxes;
+﻿using Helion.Graphics.Geometry;
 
 namespace Helion.Graphics.Fonts
 {
@@ -20,18 +19,17 @@ namespace Helion.Graphics.Fonts
 
         /// <summary>
         /// The location in the larger image of a font. Used primarily for
-        /// rendering. The origin is at the top left of the image, which is
-        /// different from <see cref="UV"/> which starts at the bottom left.
+        /// rendering. The origin is at the top left of the image.
         /// </summary>
-        public readonly Rectangle Location;
+        public readonly ImageBox2I Location;
 
         /// <summary>
         /// The UV coordinates. Intended for rendering. Bottom left is (0, 0)
         /// and the top right is (1, 1), as per OpenGL conventions.
         /// </summary>
-        public readonly Box2D UV;
+        public readonly ImageBox2D UV;
 
-        public FontGlyph(char letter, Image image, Rectangle location, Box2D uv)
+        public FontGlyph(char letter, Image image, ImageBox2I location, ImageBox2D uv)
         {
             Letter = letter;
             Image = image;

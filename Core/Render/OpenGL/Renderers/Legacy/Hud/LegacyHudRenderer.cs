@@ -88,10 +88,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
             foreach (RenderableGlyph glyph in text.Sentences.SelectMany(s => s.Glyphs))
             {
-                int left = glyph.Location.X;
-                int top = glyph.Location.Y;
-                int right = glyph.Location.Right;
-                int bottom = glyph.Location.Bottom;
+                // Reminder that top/bottom are special because of the images
+                // being in the 'image coordinate system'.
+                float left = drawArea.Left + (float)(glyph.Location.Left * drawArea.Width);
+                float right = drawArea.Left + (float)(glyph.Location.Right * drawArea.Width);
+                float top = drawArea.Bottom + (float)(glyph.Location.Bottom * drawArea.Height);
+                float bottom = drawArea.Bottom + (float)(glyph.Location.Top * drawArea.Height);
                 float uvLeft = (float)glyph.UV.Left;
                 float uvTop = (float)glyph.UV.Top;
                 float uvRight = (float)glyph.UV.Right;
@@ -108,7 +110,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
             DrawDepth += 1.0f;
 
-            HudVertex MakeVertex(int x, int y, float u, float v, RenderableGlyph glyph)
+            HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph)
             {
                 return new(x, y, DrawDepth, u, v, glyph.Color, alpha);
             }
