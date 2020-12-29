@@ -51,7 +51,8 @@ namespace Helion.Graphics.Fonts.Renderable
             AlignTo(align);
         }
 
-        private List<RenderedSentence> PopulateSentences(Font font, ColoredString str, int fontSize, int maxWidth)
+        private static List<RenderedSentence> PopulateSentences(Font font, ColoredString str, int fontSize,
+            int maxWidth)
         {
             double scale = (double)fontSize / font.MaxHeight;
             int currentWidth = 0;

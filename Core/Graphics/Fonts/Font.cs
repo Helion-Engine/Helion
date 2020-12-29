@@ -52,9 +52,9 @@ namespace Helion.Graphics.Fonts
 
             Metrics = metrics;
 
-            Rectangle imageArea = default;
+            Rectangle imageArea;
             if (glyphs.Empty())
-                GenerateMissingGlyph(ref imageArea);
+                GenerateMissingGlyph(out imageArea);
             else
             {
                 imageArea = CalculateImageArea(glyphs);
@@ -84,7 +84,7 @@ namespace Helion.Graphics.Fonts
             return m_glyphs.TryGetValue(c, out glyph);
         }
 
-        private void GenerateMissingGlyph(ref Rectangle imageArea)
+        private void GenerateMissingGlyph(out Rectangle imageArea)
         {
             Image image = ImageHelper.CreateNullImage();
             imageArea = new Rectangle(0, 0, image.Width, image.Height);
