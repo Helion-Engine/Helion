@@ -8,6 +8,13 @@ namespace Helion.Audio
     public interface IMusicPlayer : IDisposable
     {
         /// <summary>
+        /// Sets the volume to the value provided. 0.0 is off, and 1.0 is fully
+        /// on. Any value outside of this range will be clamped to [0.0, 1.0].
+        /// </summary>
+        /// <param name="volume">The volume. Should be in [0.0, 1.0].</param>
+        void SetVolume(float volume);
+
+        /// <summary>
         /// The data to play.
         /// </summary>
         /// <param name="data">The data.</param>
