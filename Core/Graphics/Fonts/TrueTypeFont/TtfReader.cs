@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Helion.Resources;
+using Helion.Util;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -25,11 +26,12 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
         /// A native font reading subsystem that leverages the standard library to
         /// read fonts.
         /// </summary>
+        /// <param name="name">The font name.</param>
         /// <param name="data">The data to read.</param>
         /// <param name="alphaCutoff">The cutoff to which anything under it is
         /// made transparent.</param>
         /// <returns>The font, or null on failure.</returns>
-        public static Font? ReadFont(byte[] data, float alphaCutoff)
+        public static Font? ReadFont(CIString name, byte[] data, float alphaCutoff)
         {
             // I have no idea if this can throw, or if nulls get returned (and
             // that would be an exception anyways...) so I'm playing it safe.
@@ -65,7 +67,7 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
                         List<Glyph> glyphs = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
 
                         FontMetrics metrics = new FontMetrics(RenderFontSize, height, 0, 0, 0);
-                        return new Font(glyphs, metrics);
+                        return new Font(name, glyphs, metrics);
                     }
                 }
             }

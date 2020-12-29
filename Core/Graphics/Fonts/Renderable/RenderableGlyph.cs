@@ -6,7 +6,7 @@ namespace Helion.Graphics.Fonts.Renderable
     /// <summary>
     /// A glyph to be rendered.
     /// </summary>
-    public readonly struct RenderedGlyph
+    public readonly struct RenderableGlyph
     {
         /// <summary>
         /// The character.
@@ -29,7 +29,7 @@ namespace Helion.Graphics.Fonts.Renderable
         /// </summary>
         public readonly Color Color;
 
-        public RenderedGlyph(char character, Rectangle location, Box2D uv, Color color)
+        public RenderableGlyph(char character, Rectangle location, Box2D uv, Color color)
         {
             Character = character;
             Location = location;

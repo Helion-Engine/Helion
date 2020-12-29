@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Time;
@@ -14,21 +15,23 @@ namespace Helion.Layer
     public class ConsoleLayer : GameLayer
     {
         private const int NoInputMessageIndex = -1;
-        
         public static readonly CIString LayerName = "CONSOLE";
+
         private readonly HelionConsole m_console;
-        private int SubmittedInputIndex = NoInputMessageIndex;
+        private readonly ConsoleDrawer m_consoleDrawer;
+        private int m_submittedInputIndex = NoInputMessageIndex;
 
         protected override CIString Name => LayerName;
         protected override double Priority => 0.9f;
 
-        public ConsoleLayer(HelionConsole console)
+        public ConsoleLayer(ArchiveCollection archiveCollection, HelionConsole console)
         {
             m_console = console;
+            m_consoleDrawer = new(archiveCollection);
 
             console.ClearInputText();
         }
-        
+
         public override void HandleInput(ConsumableInput consumableInput)
         {
             consumableInput.ConsumeTypedCharacters().ForEach(m_console.AddInput);
@@ -42,22 +45,22 @@ namespace Helion.Layer
             if (consumableInput.ConsumeKeyPressed(InputKey.Enter))
             {
                 m_console.SubmitInputText();
-                SubmittedInputIndex = NoInputMessageIndex;
+                m_submittedInputIndex = NoInputMessageIndex;
             }
 
             if (ConsumeControlV(consumableInput))
                 AddClipboardToConsole();
-            
+
             consumableInput.ConsumeAll();
-            
+
             base.HandleInput(consumableInput);
         }
 
         public override void Render(RenderCommands renderCommands)
         {
             // TODO: This should not use the window dimension.
-            ConsoleDrawer.Draw(m_console, renderCommands.WindowDimension, renderCommands);
-            
+            m_consoleDrawer.Draw(m_console, renderCommands.WindowDimension, renderCommands);
+
             base.Render(renderCommands);
         }
 
@@ -65,10 +68,10 @@ namespace Helion.Layer
         {
             m_console.ClearInputText();
             m_console.LastClosedNanos = Ticker.NanoTime();
-            
+
             base.PerformDispose();
         }
-        
+
         private static bool ConsumeControlV(ConsumableInput consumableInput)
         {
             // MacOS is going to have problems with this probably!
@@ -77,23 +80,23 @@ namespace Helion.Layer
             bool v = consumableInput.ConsumeKeyPressed(InputKey.V);
             return ctrl && v;
         }
-        
+
         private void SetToMoreRecentInput()
         {
-            if (m_console.SubmittedInput.Empty() || SubmittedInputIndex == NoInputMessageIndex)
+            if (m_console.SubmittedInput.Empty() || m_submittedInputIndex == NoInputMessageIndex)
                 return;
-            
-            SubmittedInputIndex = Math.Max(SubmittedInputIndex - 1, NoInputMessageIndex);
-            
+
+            m_submittedInputIndex = Math.Max(m_submittedInputIndex - 1, NoInputMessageIndex);
+
             m_console.ClearInputText();
-            
+
             // If we press down and currently was at the most recent message,
             // we will just clear the input and exit to act like both ZDoom (I
             // think it does that?) and like the terminal does on Linux.
-            if (SubmittedInputIndex == NoInputMessageIndex)
+            if (m_submittedInputIndex == NoInputMessageIndex)
                 return;
-            
-            string message = m_console.SubmittedInput.ElementAt(SubmittedInputIndex);
+
+            string message = m_console.SubmittedInput.ElementAt(m_submittedInputIndex);
             m_console.AddInput(message);
         }
 
@@ -102,13 +105,13 @@ namespace Helion.Layer
             if (m_console.SubmittedInput.Empty())
                 return;
 
-            SubmittedInputIndex = Math.Min(SubmittedInputIndex + 1, m_console.SubmittedInput.Count - 1);
-            string message = m_console.SubmittedInput.ElementAt(SubmittedInputIndex);
-            
+            m_submittedInputIndex = Math.Min(m_submittedInputIndex + 1, m_console.SubmittedInput.Count - 1);
+            string message = m_console.SubmittedInput.ElementAt(m_submittedInputIndex);
+
             m_console.ClearInputText();
             m_console.AddInput(message);
         }
-        
+
         private void AddClipboardToConsole()
         {
             bool resetInputTracking = false;
@@ -123,11 +126,11 @@ namespace Helion.Layer
             text = text.Trim();
             if (text.Empty())
                 return;
-            
+
             m_console.AddInput(text);
-            
+
             if (resetInputTracking)
-                SubmittedInputIndex = NoInputMessageIndex;
+                m_submittedInputIndex = NoInputMessageIndex;
         }
     }
 }

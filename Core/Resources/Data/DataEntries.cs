@@ -17,7 +17,7 @@ namespace Helion.Resources.Data
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly Dictionary<CIString, Font> TrueTypeFonts = new Dictionary<CIString, Font>();
+        public readonly Dictionary<CIString, Font> TrueTypeFonts = new();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction;
         private readonly Dictionary<CIString, Action<Entry>> m_extensionToAction;
         private Palette? m_latestPalette;
@@ -38,7 +38,7 @@ namespace Helion.Resources.Data
             {
                 ["PLAYPAL"] = HandlePlaypal,
             };
-            
+
             m_extensionToAction = new Dictionary<CIString, Action<Entry>>
             {
                 ["TTF"] = HandleTrueTypeFont,
@@ -69,10 +69,11 @@ namespace Helion.Resources.Data
 
         private void HandleTrueTypeFont(Entry entry)
         {
-            Font? font = TtfReader.ReadFont(entry.ReadData(), 0.4f);
+            CIString fontName = entry.Path.Name;
+            Font? font = TtfReader.ReadFont(fontName, entry.ReadData(), 0.4f);
 
             if (font != null)
-                TrueTypeFonts[entry.Path.Name] = font;
+                TrueTypeFonts[fontName] = font;
             else
                 Log.Warn("Unable to load font from entry {0}", entry.Path);
         }

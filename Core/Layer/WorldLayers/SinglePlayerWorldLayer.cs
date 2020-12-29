@@ -29,6 +29,7 @@ namespace Helion.Layer.WorldLayers
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
         private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumePressedKeys;
+        private readonly WorldHudDrawer m_worldHudDrawer;
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
         private SinglePlayerWorld m_world;
@@ -40,6 +41,7 @@ namespace Helion.Layer.WorldLayers
             : base(config, console, archiveCollection, audioSystem)
         {
             m_world = world;
+            m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
 
             m_ticker.Start();
@@ -166,7 +168,7 @@ namespace Helion.Layer.WorldLayers
             renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player);
 
             // TODO: Should not be passing the window dimension as the viewport.
-            WorldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,
+            m_worldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,
                 Config, renderCommands);
         }
 

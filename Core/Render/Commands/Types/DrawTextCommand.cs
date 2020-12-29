@@ -1,29 +1,18 @@
-using Helion.Graphics.String;
-using Helion.Render.Commands.Alignment;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+using System.Drawing;
+using Helion.Graphics.Fonts.Renderable;
 
 namespace Helion.Render.Commands.Types
 {
     public record DrawTextCommand : IRenderCommand
     {
-        public readonly ColoredString Text;
-        public readonly string FontName;
-        public readonly int FontSize;
-        public readonly Vec2I Location;
-        public readonly Dimension Dimension;
-        public readonly TextAlign TextAlignment;
+        public readonly RenderableString Text;
+        public readonly Rectangle DrawArea;
         public readonly float Alpha;
 
-        public DrawTextCommand(ColoredString text, string font, int fontSize, int x, int y, int width, int height,
-            TextAlign textAlign, float alpha)
+        public DrawTextCommand(RenderableString text, int x, int y, int width, int height, float alpha)
         {
             Text = text;
-            FontName = font;
-            FontSize = fontSize;
-            Location = new Vec2I(x, y);
-            Dimension = new Dimension(width, height);
-            TextAlignment = textAlign;
+            DrawArea = new Rectangle(x, y, width, height);
             Alpha = alpha;
         }
     }

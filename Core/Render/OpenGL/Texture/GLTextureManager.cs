@@ -215,7 +215,7 @@ namespace Helion.Render.OpenGL.Texture
             if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? existingFontTexture))
                 return existingFontTexture;
 
-            Font? font = ArchiveCollection.CompileFont(name);
+            Font? font = ArchiveCollection.GetFont(name);
             if (font != null)
                 return CreateNewFont(font, name);
 
@@ -284,12 +284,14 @@ namespace Helion.Render.OpenGL.Texture
 
         private GLFontTexture<GLTextureType> CreateNullFont()
         {
+            const string NullFontName = "NULL";
+
             Image nullImage = ImageHelper.CreateNullImage();
             List<Glyph> glyphs = new() { new Glyph('?', nullImage) };
             FontMetrics metrics = new FontMetrics(nullImage.Height, nullImage.Height, 0, 0, 0);
 
-            Font font = new Font(glyphs, metrics);
-            return GenerateFont(font, "NULL");
+            Font font = new Font(NullFontName, glyphs, metrics);
+            return GenerateFont(font, NullFontName);
         }
 
         private void DeleteOldTextureIfAny(CIString name, ResourceNamespace resourceNamespace)

@@ -23,11 +23,12 @@ namespace Helion.Resources.Archives.Collection
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly ArchiveCollectionEntries Entries = new ArchiveCollectionEntries();
-        public readonly DataEntries Data = new DataEntries();
+        public readonly ArchiveCollectionEntries Entries = new();
+        public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
         private readonly IArchiveLocator m_archiveLocator;
-        private readonly List<Archive> m_archives = new List<Archive>();
+        private readonly List<Archive> m_archives = new();
+        private readonly Dictionary<CIString, Font?> m_fonts = new();
 
         public ArchiveCollection(IArchiveLocator archiveLocator)
         {
@@ -117,17 +118,25 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
-        public Font? CompileFont(CIString name)
+        public Font? GetFont(CIString name)
         {
+            if (m_fonts.TryGetValue(name, out Font? font))
+                return font;
+
             FontDefinition? definition = Definitions.Fonts.Get(name);
             if (definition != null)
             {
                 IImageRetriever imageRetriever = new ArchiveImageRetriever(this);
-                return FontCompiler.From(definition, imageRetriever);
+                Font? compiledFont = FontCompiler.From(definition, imageRetriever);
+                m_fonts[name] = compiledFont;
+                return compiledFont;
             }
 
             if (Data.TrueTypeFonts.TryGetValue(name, out Font? ttfFont))
+            {
+                m_fonts[name] = ttfFont;
                 return ttfFont;
+            }
 
             return null;
         }

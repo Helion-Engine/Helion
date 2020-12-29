@@ -37,7 +37,7 @@ namespace Helion.Graphics.Fonts
             AddSpaceGlyphIfMissing(charImages, metrics, definition);
 
             List<Glyph> glyphs = CreateGlyphs(charImages, definition, metrics);
-            return new Font(glyphs, metrics);
+            return new Font(definition.Name, glyphs, metrics);
         }
 
         private static void AddSpaceGlyphIfMissing(IDictionary<char, GlyphPrototype> charImages, FontMetrics metrics,

@@ -56,7 +56,7 @@ namespace Helion.Client
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
             m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device, new MidiMusicPlayer());
             m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
-            m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
+            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
         }
@@ -188,7 +188,10 @@ namespace Helion.Client
 
             // If the map is corrupt, go to the console.
             if (!m_layerManager.Contains(typeof(WorldLayer)))
-                m_layerManager.Add(new ConsoleLayer(m_console));
+            {
+                ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
+                m_layerManager.Add(consoleLayer);
+            }
         }
 
         private string GetWarpMapFormat(int level)

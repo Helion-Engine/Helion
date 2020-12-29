@@ -6,6 +6,7 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared.Drawers.Helper;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -15,10 +16,11 @@ using Helion.World;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using MoreLinq;
+using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
 {
-    public static class WorldHudDrawer
+    public class WorldHudDrawer
     {
         private const int MaxHudMessages = 4;
         private const int LeftOffset = 1;
@@ -36,25 +38,37 @@ namespace Helion.Render.Shared.Drawers
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
         private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
-        private static readonly string HudFont = "LargeHudFont";
+        private static readonly CIString SmallHudFont = "SmallFont";
+        private static readonly CIString LargeHudFont = "LargeHudFont";
+        private static readonly CIString ConsoleFont = "Console";
 
-        public static void Draw(Player player, WorldBase world, float tickFraction, HelionConsole console,
+        private readonly ArchiveCollection m_archiveCollection;
+
+        public WorldHudDrawer(ArchiveCollection archiveCollection)
+        {
+            m_archiveCollection = archiveCollection;
+        }
+
+        public void Draw(Player player, WorldBase world, float tickFraction, HelionConsole console,
             Dimension viewport, Config config, RenderCommands cmd)
         {
             DrawHelper draw = new(cmd);
+            Font? smallFont = m_archiveCollection.GetFont(SmallHudFont);
+            Font? largeFont = m_archiveCollection.GetFont(LargeHudFont);
+            Font? consoleFont = m_archiveCollection.GetFont(ConsoleFont);
 
             cmd.ClearDepth();
 
-            DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, out int topRightY);
-            DrawHud(topRightY, player, world, tickFraction, viewport, config, draw);
+            DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, consoleFont, out int topRightY);
+            DrawHud(topRightY, player, world, tickFraction, viewport, config, largeFont, draw);
             DrawPowerupEffect(player, viewport, draw);
             DrawPickupFlash(player, world, viewport, draw);
             DrawDamage(player, world, viewport, draw);
-            DrawRecentConsoleMessages(world, console, draw);
+            DrawRecentConsoleMessages(world, console, smallFont, draw);
         }
 
-        private static void DrawHud(int topRightY, Player player, WorldBase world, float tickFraction,
-            Dimension viewport, Config config, DrawHelper draw)
+        private void DrawHud(int topRightY, Player player, WorldBase world, float tickFraction,
+            Dimension viewport, Config config, Font? largeFont, DrawHelper draw)
         {
             if (player.AnimationWeapon != null)
             {
@@ -67,26 +81,26 @@ namespace Helion.Render.Shared.Drawers
 
             // TODO: This should be at the top, rendering order is reversed somehow (check impl)
             if (config.Engine.Hud.FullStatusBar)
-                DrawFullStatusBar(player, draw);
+                DrawFullStatusBar(player, largeFont, draw);
             else
-                DrawMinimalStatusBar(player, topRightY, viewport, draw);
+                DrawMinimalStatusBar(player, topRightY, viewport, largeFont, draw);
         }
 
 
-        private static void DrawFullStatusBar(Player player, DrawHelper draw)
+        private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw)
         {
             draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
             {
                 draw.Image("STBAR", window: Align.BottomLeft, image: Align.BottomLeft);
 
-                DrawFullHudHealthArmorAmmo(player, draw);
+                DrawFullHudHealthArmorAmmo(player, largeFont, draw);
                 DrawFullHudWeaponSlots(player, draw);
                 DrawFullHudKeys(player, draw);
                 DrawFullHudFace(player, draw);
             });
         }
 
-        private static void DrawFullHudHealthArmorAmmo(Player player, DrawHelper draw)
+        private void DrawFullHudHealthArmorAmmo(Player player, Font? largeFont, DrawHelper draw)
         {
             const int offsetY = 172;
 
@@ -95,50 +109,58 @@ namespace Helion.Render.Shared.Drawers
                 // TODO: Need to get the ammo.
                 int ammoAmount = 50;
                 string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
-                DrawFullHudBigFont(ammo, 8, offsetY, draw);
+                DrawFullHudBigFont(ammo, 8, offsetY, largeFont, draw);
             }
 
             string health = $"{Math.Clamp(player.Health, 0, 999)}%";
-            DrawFullHudBigFont(health, 53, offsetY, draw);
+            DrawFullHudBigFont(health, 53, offsetY, largeFont, draw);
 
             string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
-            DrawFullHudBigFont(armor, 188, offsetY, draw);
+            DrawFullHudBigFont(armor, 188, offsetY, largeFont, draw);
         }
 
-        private static void DrawFullHudBigFont(string message, int x, int y, DrawHelper draw)
+        private void DrawFullHudBigFont(string message, int x, int y, Font? largeFont, DrawHelper draw)
         {
-            const int FullHudLargeFontSize = 76;
+            const int FullHudLargeFontSize = 24;
 
-            draw.Text(Color.Red, message, "LargeHudFont", FullHudLargeFontSize, x, y, TextAlign.Right,
+            if (largeFont == null)
+                return;
+
+            draw.Text(Color.Red, message, largeFont, FullHudLargeFontSize, x, y, TextAlign.Right,
                 textbox: Align.TopLeft);
         }
 
-        private static void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
+        private void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
         {
             draw.Image("STARMS", 104, 0, window: Align.BottomLeft, image: Align.BottomLeft);
 
             // TODO: Draw weapon numbers if we have them.
         }
 
-        private static void DrawFullHudKeys(Player player, DrawHelper draw)
+        private void DrawFullHudKeys(Player player, DrawHelper draw)
         {
             // TODO
         }
 
-        private static void DrawFullHudFace(Player player, DrawHelper draw)
+        private void DrawFullHudFace(Player player, DrawHelper draw)
         {
             // TODO
         }
 
-        private static void DrawMinimalStatusBar(Player player, in int topRightY, Dimension viewport, DrawHelper draw)
+        private void DrawMinimalStatusBar(Player player, in int topRightY, Dimension viewport, Font? largeFont,
+            DrawHelper draw)
         {
-            DrawMinimalHudHealthAndArmor(player, viewport, draw);
+            DrawMinimalHudHealthAndArmor(player, viewport, largeFont, draw);
             DrawMinimalHudKeys(topRightY, player, viewport, draw);
-            DrawMinimalHudAmmo(player, viewport, draw);
+            DrawMinimalHudAmmo(player, viewport, largeFont, draw);
         }
 
-        private static void DrawMinimalHudHealthAndArmor(Player player, Dimension viewport, DrawHelper draw)
+        private void DrawMinimalHudHealthAndArmor(Player player, Dimension viewport, Font? largeFont,
+            DrawHelper draw)
         {
+            if (largeFont == null)
+                return;
+
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
             int x = Padding;
@@ -155,7 +177,7 @@ namespace Helion.Render.Shared.Drawers
             // the future!
             int fontHeight = Math.Max(16, medkitArea.Height);
             int health = Math.Max(0, player.Health);
-            draw.Text(Color.Red, health.ToString(), HudFont, fontHeight, out Dimension healthArea,
+            draw.Text(Color.Red, health.ToString(), largeFont, fontHeight, out Dimension healthArea,
                 x + medkitArea.Width + Padding, y, TextAlign.Left, textbox: Align.BottomLeft);
 
             if (player.Armor > 0)
@@ -168,12 +190,12 @@ namespace Helion.Render.Shared.Drawers
                     x += armorArea.Width + Padding;
                 }
 
-                draw.Text(Color.Red, player.Armor.ToString(), HudFont, fontHeight,
+                draw.Text(Color.Red, player.Armor.ToString(), largeFont, fontHeight,
                     x, y, TextAlign.Left, textbox: Align.BottomLeft);
             }
         }
 
-        private static void DrawMinimalHudKeys(int y, Player player, Dimension viewport, DrawHelper draw)
+        private void DrawMinimalHudKeys(int y, Player player, Dimension viewport, DrawHelper draw)
         {
             var keys = player.Inventory.GetKeys();
             y += Padding;
@@ -191,7 +213,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
+        private void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
             DrawHelper draw)
         {
             int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
@@ -216,31 +238,28 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawMinimalHudAmmo(Player player, Dimension viewport, DrawHelper helper)
+        private void DrawMinimalHudAmmo(Player player, Dimension viewport, Font? largeFont, DrawHelper helper)
         {
-            if (player.Weapon == null || player.Weapon.Definition.Properties.Weapons.AmmoType.Length == 0)
+            if (largeFont == null || player.Weapon == null || player.Weapon.Definition.Properties.Weapons.AmmoType.Length == 0)
                 return;
 
             int x = viewport.Width - Padding;
             int y = viewport.Height - Padding;
 
             int ammo = player.Inventory.Amount(player.Weapon.Definition.Properties.Weapons.AmmoType);
-            ColoredString colorString = ColoredStringBuilder.From(Color.Red, ammo.ToString());
+            helper.Text(Color.Red, ammo.ToString(), largeFont, 19, out Dimension textRect,
+                x, y, textbox: Align.BottomLeft);
 
-            Dimension textRect = helper.DrawInfoProvider.GetDrawArea(colorString, HudFont, 19);
-
+            x = x - textRect.Width - Padding;
             if (player.Weapon.AmmoSprite.Length > 0 && helper.ImageExists(player.Weapon.AmmoSprite))
             {
                 Dimension dimension = helper.DrawInfoProvider.GetImageDimension(player.Weapon.AmmoSprite);
                 x -= dimension.Width;
                 helper.Image(player.Weapon.AmmoSprite, x, y - dimension.Height);
             }
-
-            x = x - textRect.Width - Padding;
-            helper.Text(colorString, HudFont, 19, x, y, textbox: Align.BottomLeft);
         }
 
-        private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
+        private void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
         {
             Vec2I center = viewport.ToVector() / 2;
             Vec2I horizontalStart = center - new Vec2I(CrosshairLength, CrosshairHalfWidth);
@@ -250,14 +269,14 @@ namespace Helion.Render.Shared.Drawers
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
-        private static void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             int ticksSincePickup = world.Gametick - player.LastPickupGametick;
             if (ticksSincePickup < FlashPickupTickDuration)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
         }
 
-        private static void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
+        private void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
         {
             if (player.Inventory.PowerupEffectColor?.DrawColor == null || !player.Inventory.PowerupEffectColor.DrawPowerupEffect)
                 return;
@@ -266,16 +285,19 @@ namespace Helion.Render.Shared.Drawers
                 player.Inventory.PowerupEffectColor.DrawAlpha);
         }
 
-        private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             if (player.DamageCount > 0)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
         }
 
-        private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, DrawHelper helper)
+        private void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, Font? smallFont,
+            DrawHelper helper)
         {
-            long currentNanos = Ticker.NanoTime();
+            if (smallFont == null)
+                return;
 
+            long currentNanos = Ticker.NanoTime();
             int messagesDrawn = 0;
             int offsetY = TopOffset;
 
@@ -301,7 +323,7 @@ namespace Helion.Render.Shared.Drawers
 
             messages.ForEach(pair =>
             {
-                helper.Text(pair.message, "SmallFont", 16, out Dimension drawArea,
+                helper.Text(pair.message, smallFont, 16, out Dimension drawArea,
                     LeftOffset, offsetY, textbox: Align.TopLeft, alpha: pair.alpha);
                 offsetY += drawArea.Height + MessageSpacing;
             });
@@ -312,26 +334,26 @@ namespace Helion.Render.Shared.Drawers
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }
 
-        private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker,
-            DrawHelper draw, out int y)
+        private void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker,
+            DrawHelper draw, Font? consoleFont, out int y)
         {
             y = 0;
 
-            if (!config.Engine.Render.ShowFPS)
+            if (consoleFont == null || !config.Engine.Render.ShowFPS)
                 return;
 
             string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";
-            draw.Text(Color.White, avgFps, "Console", 16, out Dimension avgArea,
+            draw.Text(Color.White, avgFps, consoleFont, 16, out Dimension avgArea,
                 viewport.Width - 1, y, textbox: Align.TopRight);
             y += avgArea.Height + FpsMessageSpacing;
 
             string maxFps = $"Max FPS: {(int)Math.Round(fpsTracker.MaxFramesPerSecond)}";
-            draw.Text(Color.White, maxFps, "Console", 16, out Dimension maxArea,
+            draw.Text(Color.White, maxFps, consoleFont, 16, out Dimension maxArea,
                 viewport.Width - 1, y, textbox: Align.TopRight);
             y += maxArea.Height + FpsMessageSpacing;
 
             string minFps = $"Min FPS: {(int)Math.Round(fpsTracker.MinFramesPerSecond)}";
-            draw.Text(Color.White, minFps, "Console", 16, out Dimension minArea,
+            draw.Text(Color.White, minFps, consoleFont, 16, out Dimension minArea,
                 viewport.Width - 1, y, textbox: Align.TopRight);
 
             y += minArea.Height;

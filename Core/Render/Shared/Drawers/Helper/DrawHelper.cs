@@ -1,10 +1,12 @@
 using System;
 using System.Drawing;
+using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
+using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers.Helper
 {
@@ -190,8 +192,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// certain channels (ex: to make it red, use [255, 0, 0]).</param>
         /// <param name="alpha">The transparency (1.0 is unchanged, 0.5 is
         /// half visible, 0.0 is not visible at all). Default is 1.0.</param>
-        public void Image(string name, Vec2I offset, out Dimension drawDimension, int? width = null, int? height = null,
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null, float alpha = 1.0f)
+        public void Image(string name, Vec2I offset, out Dimension drawDimension, int? width = null,
+            int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
+            float alpha = 1.0f)
         {
             if (width == null || height == null)
             {
@@ -214,24 +217,24 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// Since most (or all) text is colored white by default, this is
         /// more or less the same as being the color that will be drawn.
         /// Finally, Does not care about returning the drawing area.
-        /// See <see cref="Text(System.Drawing.Color,string,string,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,bool,float)"/>
+        /// See <see cref="Text(System.Drawing.Color,string,Font,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,float)"/>
         /// </summary>
-        public void Text(Color color, string message, string font, int fontSize, int x, int y,
+        public void Text(Color color, string message, Font font, int fontSize, int x, int y,
             TextAlign text = TextAlign.Left, Align window = Align.TopLeft, Align textbox = Align.TopLeft,
-            int maxWidth = int.MaxValue, bool wrap = false, float alpha = 1.0f)
+            int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
-            Text(color, message, font, fontSize, out _, x, y, text, window, textbox, maxWidth, wrap, alpha);
+            Text(color, message, font, fontSize, out _, x, y, text, window, textbox, maxWidth, alpha);
         }
 
         /// <summary>
         /// Draws a text. Does not care about returning the drawing area.
-        /// See <see cref="Text(System.Drawing.Color,string,string,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,bool,float)"/>
+        /// See <see cref="Text(System.Drawing.Color,string,Font,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,float)"/>
         /// </summary>
-        public void Text(ColoredString message, string font, int fontSize, int x, int y,
+        public void Text(ColoredString message, Font font, int fontSize, int x, int y,
             TextAlign text = TextAlign.Left, Align window = Align.TopLeft, Align textbox = Align.TopLeft,
-            int maxWidth = int.MaxValue, bool wrap = false, float alpha = 1.0f)
+            int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
-            Text(message, font, fontSize, out _, x, y, text, window, textbox, maxWidth, wrap, alpha);
+            Text(message, font, fontSize, out _, x, y, text, window, textbox, maxWidth, alpha);
         }
 
         /// <summary>
@@ -242,15 +245,14 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// blue and green channels will be zero, making the text look red.
         /// Since most (or all) text is colored white by default, this is
         /// more or less the same as being the color that will be drawn.
-        /// See <see cref="Text(System.Drawing.Color,string,string,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,bool,float)"/>
+        /// See <see cref="Text(System.Drawing.Color,string,Font,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,float)"/>
         /// </summary>
-        public void Text(Color color, string message, string font, int fontSize, out Dimension drawArea,
+        public void Text(Color color, string message, Font font, int fontSize, out Dimension drawArea,
             int x, int y, TextAlign text = TextAlign.Left, Align window = Align.TopLeft,
-            Align textbox = Align.TopLeft, int maxWidth = int.MaxValue, bool wrap = false,
-            float alpha = 1.0f)
+            Align textbox = Align.TopLeft, int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
             ColoredString coloredString = ColoredStringBuilder.From(color, message);
-            Text(coloredString, font, fontSize, out drawArea, x, y, text, window, textbox, maxWidth, wrap, alpha);
+            Text(coloredString, font, fontSize, out drawArea, x, y, text, window, textbox, maxWidth, alpha);
         }
 
         /// <summary>
@@ -280,18 +282,16 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// will not draw a character that leaks past the edge, meaning if the
         /// space remaining is half a character, then the last character will
         /// not be drawn.</param>
-        /// <param name="wrap">True if text should wrap around instead of no
-        /// longer drawing on horizontal overflow, false otherwise.</param>
         /// <param name="alpha">The transparency (1.0 is unchanged, 0.5 is
         /// half visible, 0.0 is not visible at all). Default is 1.0.</param>
-        public void Text(ColoredString message, string font, int fontSize, out Dimension drawArea,
+        public void Text(ColoredString message, Font font, int fontSize, out Dimension drawArea,
             int x, int y, TextAlign text = TextAlign.Left, Align window = Align.TopLeft,
-            Align textbox = Align.TopLeft, int maxWidth = int.MaxValue, bool wrap = false,
-            float alpha = 1.0f)
+            Align textbox = Align.TopLeft, int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
-            drawArea = DrawInfoProvider.GetDrawArea(message, font, fontSize, maxWidth, wrap);
+            RenderableString renderableString = new(message, font, fontSize, text, maxWidth);
+            drawArea = renderableString.DrawArea;
             Vec2I pos = GetDrawingCoordinateFromAlign(x, y, drawArea.Width, drawArea.Height, window, textbox);
-            m_renderCommands.DrawText(message, font, fontSize, pos.X, pos.Y, drawArea.Width, drawArea.Height, text, alpha);
+            m_renderCommands.DrawText(renderableString, pos.X, pos.Y, alpha);
         }
 
         /// <summary>

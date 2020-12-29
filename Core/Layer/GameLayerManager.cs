@@ -1,5 +1,5 @@
-using Helion.Audio;
 using Helion.Input;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
 
@@ -18,17 +18,17 @@ namespace Helion.Layer
     public class GameLayerManager : GameLayer
     {
         private readonly Config m_config;
+        private readonly ArchiveCollection m_archiveCollection;
         private readonly HelionConsole m_console;
-        private readonly IAudioSystem m_audioSystem;
 
         protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
-        public GameLayerManager(Config config, HelionConsole console, IAudioSystem audioSystem)
+        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console)
         {
             m_config = config;
             m_console = console;
-            m_audioSystem = audioSystem;
+            m_archiveCollection = archiveCollection;
         }
 
         public override void HandleInput(ConsumableInput consumableInput)
@@ -42,10 +42,12 @@ namespace Helion.Layer
                     // Don't want input that opened the console to be something
                     // added to the console, so first we clear all characters.
                     consumableInput.ConsumeTypedCharacters();
-                    Add(new ConsoleLayer(m_console));
+
+                    ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
+                    Add(consoleLayer);
                 }
             }
-            
+
             base.HandleInput(consumableInput);
         }
     }

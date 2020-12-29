@@ -13,7 +13,7 @@ namespace Helion.Graphics.Fonts.Renderable
     /// <summary>
     /// A collection of render information that can be used to draw a string.
     /// </summary>
-    public class RenderedString
+    public class RenderableString
     {
         /// <summary>
         /// The font used when rendering this.
@@ -28,7 +28,7 @@ namespace Helion.Graphics.Fonts.Renderable
         /// <summary>
         /// All the glyphs and their positions to be drawn.
         /// </summary>
-        public readonly List<RenderedSentence> Sentences;
+        public readonly List<RenderableSentence> Sentences;
 
         /// <summary>
         /// Creates a rendered string that is ready to be passed to a renderer.
@@ -42,23 +42,23 @@ namespace Helion.Graphics.Fonts.Renderable
         /// <param name="align">Alignment (only needed if there are multiple
         /// lines, otherwise it does not matter).</param>
         /// <param name="maxWidth">How wide before wrapping around.</param>
-        public RenderedString(Font font, ColoredString str, int fontSize, TextAlign align = TextAlign.Left,
+        public RenderableString(ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
             int maxWidth = int.MaxValue)
         {
             Font = font;
-            Sentences = PopulateSentences(font, str, fontSize, maxWidth);
+            Sentences = PopulateSentences(str, font, fontSize, maxWidth);
             DrawArea = CalculateDrawArea();
             AlignTo(align);
         }
 
-        private static List<RenderedSentence> PopulateSentences(Font font, ColoredString str, int fontSize,
+        private static List<RenderableSentence> PopulateSentences(ColoredString str, Font font, int fontSize,
             int maxWidth)
         {
             double scale = (double)fontSize / font.MaxHeight;
             int currentWidth = 0;
             int currentHeight = 0;
-            List<RenderedSentence> sentences = new();
-            List<RenderedGlyph> currentSentence = new();
+            List<RenderableSentence> sentences = new();
+            List<RenderableGlyph> currentSentence = new();
 
             foreach (ColoredChar c in str)
             {
@@ -77,7 +77,7 @@ namespace Helion.Graphics.Fonts.Renderable
                 }
 
                 Rectangle drawLocation = new(location.X, location.Y, (int)dimension.X, (int)dimension.Y);
-                RenderedGlyph glyph = new(c.Character, drawLocation, fontGlyph.UV, c.Color);
+                RenderableGlyph glyph = new(c.Character, drawLocation, fontGlyph.UV, c.Color);
                 currentSentence.Add(glyph);
 
                 currentWidth += location.X;
@@ -92,7 +92,7 @@ namespace Helion.Graphics.Fonts.Renderable
                 if (currentSentence.Empty())
                     return;
 
-                RenderedSentence sentence = new(currentSentence);
+                RenderableSentence sentence = new(currentSentence);
                 sentences.Add(sentence);
 
                 currentHeight += sentence.DrawArea.Height;
@@ -125,7 +125,7 @@ namespace Helion.Graphics.Fonts.Renderable
 
         private void AlignCenter()
         {
-            foreach (RenderedSentence sentence in Sentences)
+            foreach (RenderableSentence sentence in Sentences)
             {
                 int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
                 AdjustOffsetsBy(sentence, gutter);
@@ -134,26 +134,26 @@ namespace Helion.Graphics.Fonts.Renderable
 
         private void AlignRight()
         {
-            foreach (RenderedSentence sentence in Sentences)
+            foreach (RenderableSentence sentence in Sentences)
             {
                 int gutter = DrawArea.Width - sentence.DrawArea.Width;
                 AdjustOffsetsBy(sentence, gutter);
             }
         }
 
-        private static void AdjustOffsetsBy(RenderedSentence sentence, int pixelAdjustmentWidth)
+        private static void AdjustOffsetsBy(RenderableSentence sentence, int pixelAdjustmentWidth)
         {
             // I am afraid of ending up with copies because this is a
             // struct, so I'll do this to make sure we don't have bugs.
             //foreach (RenderedGlyph glyph in sentence.Glyphs)
             for (int i = 0; i < sentence.Glyphs.Count; i++)
             {
-                RenderedGlyph glyph = sentence.Glyphs[i];
+                RenderableGlyph glyph = sentence.Glyphs[i];
 
                 Rectangle newLocation = glyph.Location;
                 newLocation.X += pixelAdjustmentWidth;
 
-                sentence.Glyphs[i] = new RenderedGlyph(glyph.Character, newLocation, glyph.UV, glyph.Color);
+                sentence.Glyphs[i] = new RenderableGlyph(glyph.Character, newLocation, glyph.UV, glyph.Color);
             }
         }
     }

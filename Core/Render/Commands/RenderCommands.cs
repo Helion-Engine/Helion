@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using Helion.Graphics.String;
-using Helion.Render.Commands.Alignment;
+using Helion.Graphics.Fonts.Renderable;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
@@ -62,11 +61,10 @@ namespace Helion.Render.Commands
             m_commands.Add(command);
         }
 
-        public void DrawText(ColoredString text, string font, int fontSize, int left, int top, int width,
-            int height, TextAlign textAlign, float alpha)
+        public void DrawText(RenderableString str, int left, int top, float alpha)
         {
-            (int x, int y, int w, int h) = TranslateDimensions(left, top, width, height);
-            DrawTextCommand command = new(text, font, fontSize, x, y, w, h, textAlign, alpha);
+            Rectangle drawArea = TranslateDimensions(left, top, str.DrawArea);
+            DrawTextCommand command = new(str, drawArea.X, drawArea.Y, drawArea.Width, drawArea.Height, alpha);
             m_commands.Add(command);
         }
 
@@ -137,11 +135,14 @@ namespace Helion.Render.Commands
             };
         }
 
-        public int GetFontHeight(string fontName) => ImageDrawInfoProvider.GetFontHeight(fontName);
-
         public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private Rectangle TranslateDimensions(int x, int y, Dimension dimension)
+        {
+            return TranslateDimensions(new Rectangle(x, y, dimension.Width, dimension.Height));
+        }
 
         private (int x, int y, int w, int h) TranslateDimensions(int x, int y, int width, int height)
         {

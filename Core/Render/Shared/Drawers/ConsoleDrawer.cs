@@ -2,17 +2,19 @@ using System.Drawing;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
+using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
 {
     /// <summary>
     /// Performs console drawing by issuing rendering commands.
     /// </summary>
-    public static class ConsoleDrawer
+    public class ConsoleDrawer
     {
         private const int ConsoleFontSize = 32;
         private const int BlackBarDividerHeight = 3;
@@ -27,20 +29,28 @@ namespace Helion.Render.Shared.Drawers
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
 
-        public static void Draw(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
+        private ArchiveCollection m_archiveCollection;
+
+        public ConsoleDrawer(ArchiveCollection archiveCollection)
+        {
+            m_archiveCollection = archiveCollection;
+        }
+
+        public void Draw(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
+            Font consoleFont = m_archiveCollection.Data.TrueTypeFonts[ConsoleFontName];
 
             renderCommands.ClearDepth();
 
             DrawBackgroundImage(viewport, helper);
-            DrawInput(console, viewport, helper, out int inputDrawTop);
-            DrawMessages(console, viewport, helper, inputDrawTop);
+            DrawInput(console, viewport, helper, consoleFont, out int inputDrawTop);
+            DrawMessages(console, viewport, helper, inputDrawTop, consoleFont);
         }
 
         private static bool IsCursorFlashTime() => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
 
-        private static void DrawBackgroundImage(Dimension viewport, DrawHelper draw)
+        private void DrawBackgroundImage(Dimension viewport, DrawHelper draw)
         {
             (int width, int height) = viewport;
             int halfHeight = viewport.Height / 2;
@@ -57,15 +67,16 @@ namespace Helion.Render.Shared.Drawers
             draw.FillRect(0, halfHeight - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
-        private static void DrawInput(HelionConsole console, Dimension viewport, DrawHelper draw,
+        private void DrawInput(HelionConsole console, Dimension viewport, DrawHelper draw, Font consoleFont,
             out int inputDrawTop)
         {
             int offsetX = LeftEdgeOffset;
+            int maxWidth = viewport.Width - offsetX;
             int middleY = viewport.Height / 2;
             int baseY = middleY - BlackBarDividerHeight - 5;
 
-            draw.Text(Color.Yellow, console.Input, ConsoleFontName, ConsoleFontSize, out Dimension drawArea,
-                offsetX, baseY, textbox: Align.BottomLeft);
+            draw.Text(Color.Yellow, console.Input, consoleFont, ConsoleFontSize, out Dimension drawArea,
+                offsetX, baseY, textbox: Align.BottomLeft, maxWidth: maxWidth);
 
             inputDrawTop = baseY - drawArea.Height;
             offsetX += drawArea.Width;
@@ -80,14 +91,16 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawMessages(HelionConsole console, Dimension viewport, DrawHelper draw, int inputDrawTop)
+        private void DrawMessages(HelionConsole console, Dimension viewport, DrawHelper draw, int inputDrawTop,
+            Font consoleFont)
         {
             int topY = inputDrawTop - InputToMessagePadding;
+            int maxWidth = viewport.Width - LeftEdgeOffset;
 
             foreach (ConsoleMessage msg in console.Messages)
             {
-                draw.Text(msg.Message, ConsoleFontName, ConsoleFontSize, out Dimension drawArea,
-                    LeftEdgeOffset, topY, textbox: Align.BottomLeft);
+                draw.Text(msg.Message, consoleFont, ConsoleFontSize, out Dimension drawArea,
+                    LeftEdgeOffset, topY, textbox: Align.BottomLeft, maxWidth: maxWidth);
 
                 topY -= drawArea.Height + BetweenMessagePadding;
                 if (topY < 0)

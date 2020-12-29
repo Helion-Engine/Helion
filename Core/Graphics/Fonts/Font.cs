@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;
@@ -20,6 +21,11 @@ namespace Helion.Graphics.Fonts
         /// The character to use when a letter cannot be found.
         /// </summary>
         public const char DefaultChar = '?';
+
+        /// <summary>
+        /// The name of the font.
+        /// </summary>
+        public readonly CIString Name;
 
         /// <summary>
         /// The metrics for the entire font.
@@ -43,13 +49,15 @@ namespace Helion.Graphics.Fonts
         /// <summary>
         /// Creates a new font from a series of glyphs.
         /// </summary>
+        /// <param name="name">The font name.</param>
         /// <param name="glyphs">A list of all the glyphs. This must contain
         /// the default glyph.</param>
         /// <param name="metrics">The font metrics for drawing with.</param>
-        public Font(IList<Glyph> glyphs, FontMetrics metrics)
+        public Font(CIString name, IList<Glyph> glyphs, FontMetrics metrics)
         {
             Precondition(!glyphs.Empty(), "Cannot make a font that has no glyphs");
 
+            Name = name;
             Metrics = metrics;
 
             Rectangle imageArea;

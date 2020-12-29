@@ -8,7 +8,7 @@ namespace Helion.Graphics.Fonts.Renderable
     /// characters, meaning it's not an actual sentence ended by a period, but
     /// rather a single line of characters.
     /// </summary>
-    public class RenderedSentence
+    public class RenderableSentence
     {
         /// <summary>
         /// The enclosing box around all the glyphs.
@@ -18,15 +18,15 @@ namespace Helion.Graphics.Fonts.Renderable
         /// <summary>
         /// The glyphs and their draw positions.
         /// </summary>
-        public readonly List<RenderedGlyph> Glyphs;
+        public readonly List<RenderableGlyph> Glyphs;
 
-        public RenderedSentence(List<RenderedGlyph> glyphs)
+        public RenderableSentence(List<RenderableGlyph> glyphs)
         {
             Glyphs = glyphs;
             DrawArea = CalculateDrawArea(glyphs);
         }
 
-        private static Dimension CalculateDrawArea(List<RenderedGlyph> glyphs)
+        private static Dimension CalculateDrawArea(List<RenderableGlyph> glyphs)
         {
             // TODO
             return default;

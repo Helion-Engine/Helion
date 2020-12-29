@@ -293,7 +293,7 @@ namespace Helion.Render.OpenGL
 
         private void HandleDrawText(DrawTextCommand cmd)
         {
-            m_hudRenderer.DrawText(cmd.Text, cmd.FontName, cmd.FontSize, cmd.Location, cmd.Alpha);
+            m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha);
         }
 
         private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
