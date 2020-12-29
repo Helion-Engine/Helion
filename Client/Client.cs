@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Helion.Audio;
 using Helion.Client.Music;
 using Helion.Client.OpenAL;
 using Helion.Input;
@@ -38,6 +39,7 @@ namespace Helion.Client
         private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
+        private readonly IMusicPlayer m_musicPlayer;
         private readonly ALAudioSystem m_audioSystem;
         private readonly FpsTracker m_fpsTracker = new();
         private readonly Stopwatch m_fpsLimit = new();
@@ -54,7 +56,8 @@ namespace Helion.Client
 
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
-            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device, new MidiMusicPlayer());
+            m_musicPlayer = new MidiMusicPlayer(config);
+            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device, m_musicPlayer);
             m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
             m_layerManager = new GameLayerManager(config, m_console, m_audioSystem);
 
@@ -81,6 +84,7 @@ namespace Helion.Client
 
             m_layerManager.Dispose();
             m_window.Dispose();
+            m_musicPlayer.Dispose();
             m_audioSystem.Dispose();
             m_console.Dispose();
         }

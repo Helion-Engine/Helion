@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Helion.Audio;
+using Helion.Util.Configuration;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Smf;
 using NLog;
@@ -16,6 +17,7 @@ namespace Helion.Client.Music
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        private readonly Config m_config;
         private OutputDevice? m_outputDevice;
         private Playback? m_playback;
         private bool m_isDisposed;
@@ -23,9 +25,11 @@ namespace Helion.Client.Music
         /// <summary>
         /// Creates a music player using the default MIDI device.
         /// </summary>
-        public MidiMusicPlayer()
+        public MidiMusicPlayer(Config config)
         {
+            m_config = config;
             m_outputDevice = OutputDevice.GetAll().FirstOrDefault();
+
             if (m_outputDevice != null)
                 Log.Info("Using MIDI device: {0}", m_outputDevice.Name);
             else
@@ -36,6 +40,16 @@ namespace Helion.Client.Music
         {
             FailedToDispose(this);
             PerformDispose();
+        }
+
+        public void SetVolume(float volume)
+        {
+            if (m_outputDevice == null)
+                return;
+
+            volume = Math.Clamp(volume, 0.0f, 1.0f);
+            ushort volumeValue = (ushort)(volume * ushort.MaxValue);
+            m_outputDevice.Volume = new Volume(volumeValue, volumeValue);
         }
 
         public bool Play(byte[] data)
@@ -61,6 +75,11 @@ namespace Helion.Client.Music
                 newPlayback.InterruptNotesOnStop = true;
                 newPlayback.Loop = true;
                 newPlayback.Start();
+
+                // This sucks, but this has to come here because the MIDI APIs
+                // apparently aren't fully initialized after grabbing a device,
+                // so we need to defer volume setting until we load something.
+                SetVolume(m_config.Engine.Audio.MusicVolume);
 
                 return true;
             }
