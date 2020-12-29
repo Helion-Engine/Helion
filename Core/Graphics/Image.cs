@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using NLog;
@@ -14,7 +13,7 @@ namespace Helion.Graphics
     /// A 32-bit ARGB image that can be used with both any windowed forms and
     /// also compatible for being transferred to any GPU driver.
     /// </summary>
-    /// 
+    ///
     public class Image
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -28,7 +27,7 @@ namespace Helion.Graphics
         /// The height of the image.
         /// </summary>
         public int Height => Bitmap.Height;
-        
+
         /// <summary>
         /// Calculates the dimension of the bitmap.
         /// </summary>
@@ -37,7 +36,7 @@ namespace Helion.Graphics
         /// <summary>
         /// The raw data for the image.
         /// </summary>
-        public Bitmap Bitmap { get; } = MakeDefaultBitmap();
+        public Bitmap Bitmap { get; }
 
         /// <summary>
         /// The extra data that accompanies the pixels/dimensions.
@@ -148,14 +147,14 @@ namespace Helion.Graphics
         public Image ToBrightnessCopy()
         {
             Precondition(Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Unsupported pixel format type");
-            
+
             Rectangle rect = new Rectangle(0, 0, Width, Height);
             BitmapData data = Bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
             int numBytes = 4 * Width * Height;
             byte[] argb = new byte[numBytes];
             Marshal.Copy(data.Scan0, argb, 0, numBytes);
-            
+
             Bitmap.UnlockBits(data);
 
             for (int i = 0; i < numBytes; i += 4)
@@ -203,7 +202,7 @@ namespace Helion.Graphics
                 return false;
             }
         }
-        
+
         private static Bitmap MakeDefaultBitmap() => new Bitmap(1, 1, PixelFormat.Format32bppArgb);
 
         private static Bitmap EnsureInArgbFormat(Bitmap bitmap)

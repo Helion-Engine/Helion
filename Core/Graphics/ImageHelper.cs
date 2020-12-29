@@ -12,7 +12,7 @@ namespace Helion.Graphics
         {
             int dimension = 8;
             int halfDimension = dimension / 2;
-            Image image = new Image(dimension, dimension, Color.Black);
+            Image image = new(dimension, dimension, Color.Black);
 
             for (int y = 0; y < halfDimension; y++)
                 for (int x = 0; x < halfDimension; x++)
@@ -29,6 +29,6 @@ namespace Helion.Graphics
         /// Creates a new checked 8x8 black/white null image.
         /// </summary>
         /// <returns>A null image.</returns>
-        public static Image CreateWhiteImage() => new Image(1, 1, Color.White);
+        public static Image CreateWhiteImage() => new(1, 1, Color.White);
     }
 }
