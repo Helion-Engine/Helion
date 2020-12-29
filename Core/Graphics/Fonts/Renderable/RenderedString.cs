@@ -124,12 +124,36 @@ namespace Helion.Graphics.Fonts.Renderable
 
         private void AlignCenter()
         {
-            // TODO
+            foreach (RenderedSentence sentence in Sentences)
+            {
+                int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
+                AdjustOffsetsBy(sentence, gutter);
+            }
         }
 
         private void AlignRight()
         {
-            // TODO
+            foreach (RenderedSentence sentence in Sentences)
+            {
+                int gutter = DrawArea.Width - sentence.DrawArea.Width;
+                AdjustOffsetsBy(sentence, gutter);
+            }
+        }
+
+        private static void AdjustOffsetsBy(RenderedSentence sentence, int pixelAdjustmentWidth)
+        {
+            // I am afraid of ending up with copies because this is a
+            // struct, so I'll do this to make sure we don't have bugs.
+            //foreach (RenderedGlyph glyph in sentence.Glyphs)
+            for (int i = 0; i < sentence.Glyphs.Count; i++)
+            {
+                RenderedGlyph glyph = sentence.Glyphs[i];
+
+                Rectangle newLocation = glyph.Location;
+                newLocation.X += pixelAdjustmentWidth;
+
+                sentence.Glyphs[i] = new RenderedGlyph(glyph.Character, newLocation, glyph.UV, glyph.Color);
+            }
         }
     }
 }
