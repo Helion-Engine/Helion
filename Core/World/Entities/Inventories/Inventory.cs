@@ -37,7 +37,9 @@ namespace Helion.World.Entities.Inventories
         public readonly Weapons Weapons = new();
 
         public readonly List<IPowerup> Powerups = new();
-        public IPowerup? PowerupEffect { get; private set; }
+
+        public IPowerup? PowerupEffectColor { get; private set; }
+        public IPowerup? PowerupEffectColorMap { get; private set; }
 
         public Inventory(Player owner, EntityDefinitionComposer composer)
         {
@@ -65,23 +67,30 @@ namespace Helion.World.Entities.Inventories
             foreach (IPowerup powerup in Powerups)
                 Remove(powerup.EntityDefinition.Name, 1);
             Powerups.Clear();
-            PowerupEffect = null;
+            PowerupEffectColor = null;
+            PowerupEffectColorMap = null;
         }
 
         public void Tick()
         {
+            bool setPriority = false;
             for (int i = 0; i < Powerups.Count; i++)
             {
                 IPowerup powerup = Powerups[i];
                 if (powerup.Tick(Owner) == InventoryTickStatus.Destroy)
                 {
-                    if (ReferenceEquals(powerup, PowerupEffect))
-                        PowerupEffect = null;
                     Remove(powerup.EntityDefinition.Name, 1);
                     Powerups.RemoveAt(i);
                     i--;
+                    setPriority = true;
                 }
-            }          
+
+                if (!powerup.DrawEffectActive && (ReferenceEquals(powerup, PowerupEffectColor) || ReferenceEquals(powerup, PowerupEffectColorMap)))
+                    setPriority = true;
+            }
+
+            if (setPriority)
+                SetPriorityPowerupEffects();
         }
 
         public bool Add(EntityDefinition definition, int amount, EntityFlags? flags = null)
@@ -157,10 +166,8 @@ namespace Helion.World.Entities.Inventories
                 return;
             }
 
-            IPowerup powerup = new PowerupBase(Owner, powerupDef, powerupType);
-            if (powerup.DrawColor.HasValue && (PowerupEffect == null || (int)PowerupEffect.PowerupType > (int)powerupType))
-                PowerupEffect = powerup;
-            Powerups.Add(powerup);
+            Powerups.Add(new PowerupBase(Owner, powerupDef, powerupType));
+            SetPriorityPowerupEffects();
         }
 
         private static PowerupType GetPowerupType(string type)
@@ -174,6 +181,12 @@ namespace Helion.World.Entities.Inventories
             }
 
             return PowerupType.None;
+        }
+
+        private void SetPriorityPowerupEffects()
+        {
+            PowerupEffectColor = Powerups.Where(x => x.EffectType == PowerupEffectType.Color && x.DrawEffectActive).OrderBy(y => (int)y.PowerupType).FirstOrDefault();
+            PowerupEffectColorMap = Powerups.Where(x => x.EffectType == PowerupEffectType.ColorMap).OrderBy(y => (int)y.PowerupType).FirstOrDefault();
         }
 
         public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)

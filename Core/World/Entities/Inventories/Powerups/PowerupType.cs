@@ -7,7 +7,6 @@
         Strength,
         Invisibility,
         IronFeet,
-        AllMap,
         LightAmp
     }
 }

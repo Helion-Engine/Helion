@@ -8,6 +8,14 @@ namespace Helion.World.Entities.Inventories.Powerups
 {
     public class PowerupBase : IPowerup
     {
+        public EntityDefinition EntityDefinition { get; private set; }
+        public PowerupType PowerupType { get; private set; }
+        public Color? DrawColor => m_drawColor;
+        public float DrawAlpha { get; private set; }
+        public bool DrawPowerupEffect { get; private set; } = true;
+        public bool DrawEffectActive { get; private set; } = true;
+        public PowerupEffectType EffectType { get; private set; } = PowerupEffectType.None;
+
         private const int EffectTicks = 60 * (int)Constants.TicksPerSecond;
 
         private readonly Player m_player;
@@ -30,6 +38,11 @@ namespace Helion.World.Entities.Inventories.Powerups
 
             SetTics();
             InitType();
+
+            if (EntityDefinition.Properties.Powerup.Colormap != null)
+                EffectType = PowerupEffectType.ColorMap;
+            else if (DrawColor.HasValue)
+                EffectType = PowerupEffectType.Color;
         }
 
         private void SetTics()
@@ -65,16 +78,6 @@ namespace Helion.World.Entities.Inventories.Powerups
             return Color.FromArgb(0, r, g, b);
         }
 
-        public EntityDefinition EntityDefinition { get; private set; }
-
-        public PowerupType PowerupType { get; private set; }
-
-        public Color? DrawColor => m_drawColor;
-
-        public float DrawAlpha { get; private set; }
-
-        public bool DrawPowerupEffect { get; private set; } = true;
-
         public virtual InventoryTickStatus Tick(Player player)
         {
             if (PowerupType == PowerupType.Strength)
@@ -85,9 +88,14 @@ namespace Helion.World.Entities.Inventories.Powerups
             m_effectTics--;
 
             if (m_effectTics > 0)
+            {
                 CheckDrawPowerupEffect();
+            }
             else
+            {
+                DrawEffectActive = false;
                 m_drawColor = null;
+            }
 
             if (m_tics <= 0)
             {
@@ -111,14 +119,14 @@ namespace Helion.World.Entities.Inventories.Powerups
 
         private void InitType()
         {
-            // TODO temporary until colormap implemented
-            if (PowerupType == PowerupType.Invulnerable)
-            {
-                m_drawColor = Color.White;
-            }
-            else if (PowerupType == PowerupType.Invisibility)
+            if (PowerupType == PowerupType.Invisibility)
             {
                 m_player.Flags.Shadow = true;
+            }
+            else if (PowerupType == PowerupType.Invulnerable)
+            {
+                EntityDefinition.Properties.Powerup.Color = new PowerupColor("00 00 00");
+                EntityDefinition.Properties.Powerup.Colormap = new PowerupColorMap(Color.FromArgb(0, 0, 0, 0));
             }
         }
 
