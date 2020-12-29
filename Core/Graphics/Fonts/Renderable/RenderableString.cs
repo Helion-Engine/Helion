@@ -102,6 +102,9 @@ namespace Helion.Graphics.Fonts.Renderable
 
         private Dimension CalculateDrawArea()
         {
+            if (Sentences.Empty())
+                return default;
+
             // We want to pick the largest X, but sum up the Y.
             return Sentences
                 .Select(s => s.DrawArea.ToVector())
