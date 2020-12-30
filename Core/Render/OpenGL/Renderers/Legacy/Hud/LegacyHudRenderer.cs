@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using GlmSharp;
 using Helion.Graphics.Fonts.Renderable;
+using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
@@ -60,7 +61,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_drawBuffer.Clear();
         }
 
-        public override void DrawImage(CIString textureName, Rectangle drawArea, Color multiplyColor,
+        public override void DrawImage(CIString textureName, ImageBox2I drawArea, Color multiplyColor,
             float alpha)
         {
             m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
@@ -72,28 +73,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         {
             m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
             (int width, int height) = texture.Dimension;
-            Rectangle drawArea = new Rectangle(topLeft.X, topLeft.Y, width, height);
+            ImageBox2I drawArea = new ImageBox2I(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
             AddImage(texture, drawArea, multiplyColor, alpha);
         }
 
-        public override void DrawShape(Rectangle area, Color color, float alpha)
+        public override void DrawShape(ImageBox2I drawArea, Color color, float alpha)
         {
             GLLegacyTexture texture = m_textureManager.WhiteTexture;
-            AddImage(texture, area, Color.FromArgb(255, color.R, color.G, color.B), alpha);
+            AddImage(texture, drawArea, Color.FromArgb(255, color.R, color.G, color.B), alpha);
         }
 
-        public override void DrawText(RenderableString text, Rectangle drawArea, float alpha)
+        public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha)
         {
             GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(text.Font.Name);
 
             foreach (RenderableGlyph glyph in text.Sentences.SelectMany(s => s.Glyphs))
             {
-                // Reminder that top/bottom are special because of the images
-                // being in the 'image coordinate system'.
                 float left = drawArea.Left + (float)(glyph.Location.Left * drawArea.Width);
+                float top = drawArea.Top + (float)(glyph.Location.Top * drawArea.Height);
                 float right = drawArea.Left + (float)(glyph.Location.Right * drawArea.Width);
-                float top = drawArea.Bottom + (float)(glyph.Location.Bottom * drawArea.Height);
-                float bottom = drawArea.Bottom + (float)(glyph.Location.Top * drawArea.Height);
+                float bottom = drawArea.Top + (float)(glyph.Location.Bottom * drawArea.Height);
                 float uvLeft = (float)glyph.UV.Left;
                 float uvTop = (float)glyph.UV.Top;
                 float uvRight = (float)glyph.UV.Right;
@@ -161,7 +160,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_vbo.Unbind();
         }
 
-        private void AddImage(GLLegacyTexture texture, Rectangle drawArea, Color multiplyColor,
+        private void AddImage(GLLegacyTexture texture, ImageBox2I drawArea, Color multiplyColor,
             float alpha)
         {
             // Remember that we are drawing along the Z for visual depth now.

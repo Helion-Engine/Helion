@@ -45,8 +45,6 @@ namespace Helion.Graphics.Fonts.Renderable
         public RenderableString(ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
             int maxWidth = int.MaxValue)
         {
-            if (str.ToString() == "FPS: 0")
-                Console.WriteLine("hi");
             Font = font;
             Sentences = PopulateSentences(str, font, fontSize, maxWidth);
             DrawArea = CalculateDrawArea();

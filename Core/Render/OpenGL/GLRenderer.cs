@@ -279,7 +279,7 @@ namespace Helion.Render.OpenGL
         {
             if (cmd.AreaIsTextureDimension)
             {
-                Vec2I topLeft = new Vec2I(cmd.DrawArea.X, cmd.DrawArea.Y);
+                Vec2I topLeft = new Vec2I(cmd.DrawArea.Top, cmd.DrawArea.Left);
                 m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha);
             }
             else

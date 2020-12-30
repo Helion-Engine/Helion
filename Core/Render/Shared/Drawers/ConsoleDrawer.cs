@@ -29,7 +29,7 @@ namespace Helion.Render.Shared.Drawers
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
 
-        private ArchiveCollection m_archiveCollection;
+        private readonly ArchiveCollection m_archiveCollection;
 
         public ConsoleDrawer(ArchiveCollection archiveCollection)
         {

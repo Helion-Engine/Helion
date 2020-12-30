@@ -1,14 +1,15 @@
 using System.Drawing;
+using Helion.Graphics.Geometry;
 
 namespace Helion.Render.Commands.Types
 {
     public record DrawShapeCommand : IRenderCommand
     {
-        public readonly Rectangle Rectangle;
+        public readonly ImageBox2I Rectangle;
         public readonly Color Color;
         public readonly float Alpha;
 
-        public DrawShapeCommand(Rectangle rectangle, Color color, float alpha)
+        public DrawShapeCommand(ImageBox2I rectangle, Color color, float alpha)
         {
             Rectangle = rectangle;
             Color = color;

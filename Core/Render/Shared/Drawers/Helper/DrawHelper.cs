@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using Helion.Graphics.Fonts.Renderable;
+using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
@@ -118,7 +119,8 @@ namespace Helion.Render.Shared.Drawers.Helper
         // TODO: Support window and box alignment.
         public void FillRect(int x, int y, int width, int height, Color color, float alpha = Opaque)
         {
-            m_renderCommands.FillRect(new Rectangle(x, y, width, height), color, alpha);
+            ImageBox2I drawArea = new ImageBox2I(x, y, x + width, y + height);
+            m_renderCommands.FillRect(drawArea, color, alpha);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Graphics.Fonts.Renderable;
+using Helion.Graphics.Geometry;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
@@ -49,22 +50,22 @@ namespace Helion.Render.Commands
             float alpha = 1.0f)
         {
             (int x, int y, int w, int h) = TranslateDimensions(left, top, width, height);
-            Rectangle drawArea = new(x, y, w, h);
+            ImageBox2I drawArea = new(x, y, x + w, y + h);
             DrawImageCommand cmd = new(textureName, drawArea, color, alpha);
             m_commands.Add(cmd);
         }
 
-        public void FillRect(Rectangle rectangle, Color color, float alpha)
+        public void FillRect(ImageBox2I rectangle, Color color, float alpha)
         {
-            Rectangle transformedRectangle = TranslateDimensions(rectangle);
+            ImageBox2I transformedRectangle = TranslateDimensions(rectangle);
             DrawShapeCommand command = new(transformedRectangle, color, alpha);
             m_commands.Add(command);
         }
 
         public void DrawText(RenderableString str, int left, int top, float alpha)
         {
-            Rectangle drawArea = TranslateDimensions(left, top, str.DrawArea);
-            DrawTextCommand command = new(str, drawArea.X, drawArea.Y, drawArea.Width, drawArea.Height, alpha);
+            ImageBox2I drawArea = TranslateDimensions(left, top, str.DrawArea);
+            DrawTextCommand command = new(str, drawArea, alpha);
             m_commands.Add(command);
         }
 
@@ -139,27 +140,25 @@ namespace Helion.Render.Commands
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private Rectangle TranslateDimensions(int x, int y, Dimension dimension)
+        private ImageBox2I TranslateDimensions(int x, int y, Dimension dimension)
         {
-            return TranslateDimensions(new Rectangle(x, y, dimension.Width, dimension.Height));
+            return TranslateDimensions(new ImageBox2I(x, y, x + dimension.Width, y + dimension.Height));
         }
 
         private (int x, int y, int w, int h) TranslateDimensions(int x, int y, int width, int height)
         {
-            Rectangle drawArea = TranslateDimensions(new Rectangle(x, y, width, height));
-            return (drawArea.X, drawArea.Y, drawArea.Width, drawArea.Height);
+            ImageBox2I drawArea = TranslateDimensions(new ImageBox2I(x, y, x + width, y + height));
+            return (drawArea.Left, drawArea.Top, drawArea.Right, drawArea.Bottom);
         }
 
-        private Rectangle TranslateDimensions(Rectangle drawArea)
+        private ImageBox2I TranslateDimensions(ImageBox2I drawArea)
         {
             if (WindowDimension == ResolutionInfo.VirtualDimensions)
                 return drawArea;
 
-            Vec2I start = TranslatePoint(drawArea.X, drawArea.Y);
-            Vec2I end = TranslatePoint(drawArea.X + drawArea.Width, drawArea.Y + drawArea.Height);
-            Vec2I width = end - start;
-
-            return new Rectangle(start.X + m_centeringOffsetX, start.Y, width.X, width.Y);
+            Vec2I start = TranslatePoint(drawArea.Left, drawArea.Top);
+            Vec2I end = TranslatePoint(drawArea.Right, drawArea.Bottom);
+            return new ImageBox2I(start.X + m_centeringOffsetX, start.Y, end.X, end.Y);
         }
 
         private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).ToInt();

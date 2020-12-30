@@ -1,18 +1,18 @@
-using System.Drawing;
 using Helion.Graphics.Fonts.Renderable;
+using Helion.Graphics.Geometry;
 
 namespace Helion.Render.Commands.Types
 {
     public record DrawTextCommand : IRenderCommand
     {
         public readonly RenderableString Text;
-        public readonly Rectangle DrawArea;
+        public readonly ImageBox2I DrawArea;
         public readonly float Alpha;
 
-        public DrawTextCommand(RenderableString text, int x, int y, int width, int height, float alpha)
+        public DrawTextCommand(RenderableString text, ImageBox2I drawArea, float alpha)
         {
             Text = text;
-            DrawArea = new Rectangle(x, y, width, height);
+            DrawArea = drawArea;
             Alpha = alpha;
         }
 
