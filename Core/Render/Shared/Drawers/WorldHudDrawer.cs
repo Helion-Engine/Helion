@@ -9,6 +9,7 @@ using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
@@ -105,10 +106,9 @@ namespace Helion.Render.Shared.Drawers
         {
             const int offsetY = 171;
 
-            if (player.Weapon != null)
+            if (player.Weapon != null && !player.Weapon.Definition.Properties.Weapons.AmmoType.Empty())
             {
-                // TODO: Need to get the ammo.
-                int ammoAmount = 50;
+                int ammoAmount = player.Inventory.Amount(player.Weapon.Definition.Properties.Weapons.AmmoType);
                 string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
                 DrawFullHudBigFont(ammo, 43, offsetY, largeFont, draw);
             }
@@ -167,7 +167,17 @@ namespace Helion.Render.Shared.Drawers
 
         private void DrawFullHudFace(Player player, DrawHelper draw)
         {
-            // TODO
+            const int faceX = 149;
+            const int faceY = 170;
+
+            string faceImage = (player.World.Gametick % 130) switch
+            {
+                < 70 => "STFST01",
+                < 100 => "STFST00",
+                _ => "STFST02"
+            };
+
+            draw.Image(faceImage, faceX, faceY);
         }
 
         private void DrawMinimalStatusBar(Player player, int topRightY, Font? largeFont, DrawHelper draw)
