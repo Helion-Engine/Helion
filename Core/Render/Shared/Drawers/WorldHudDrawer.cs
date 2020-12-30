@@ -104,38 +104,54 @@ namespace Helion.Render.Shared.Drawers
 
         private void DrawFullHudHealthArmorAmmo(Player player, Font? largeFont, DrawHelper draw)
         {
-            const int offsetY = 171;
+            const int OffsetY = 171;
+            const int FontSize = 15;
+
+            if (largeFont == null)
+                return;
 
             if (player.Weapon != null && !player.Weapon.Definition.Properties.Weapons.AmmoType.Empty())
             {
                 int ammoAmount = player.Inventory.Amount(player.Weapon.Definition.Properties.Weapons.AmmoType);
                 string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
-                DrawFullHudBigFont(ammo, 43, offsetY, largeFont, draw);
+                draw.Text(Color.Red, ammo, largeFont, FontSize, 43, OffsetY, TextAlign.Right, textbox: Align.TopRight);
             }
 
             string health = $"{Math.Clamp(player.Health, 0, 999)}%";
-            DrawFullHudBigFont(health, 102, offsetY, largeFont, draw);
+            draw.Text(Color.Red, health, largeFont, FontSize, 102, OffsetY, TextAlign.Right, textbox: Align.TopRight);
 
             string armor = $"{Math.Clamp(player.Armor, 0, 999)}%";
-            DrawFullHudBigFont(armor, 233, offsetY, largeFont, draw);
-        }
-
-        private void DrawFullHudBigFont(string message, int x, int y, Font? largeFont, DrawHelper draw)
-        {
-            const int FullHudLargeFontSize = 15;
-
-            if (largeFont == null)
-                return;
-
-            draw.Text(Color.Red, message, largeFont, FullHudLargeFontSize, x, y, TextAlign.Right,
-                textbox: Align.TopRight);
+            draw.Text(Color.Red, armor, largeFont, FontSize, 233, OffsetY, TextAlign.Right, textbox: Align.TopRight);
         }
 
         private void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
         {
             draw.Image("STARMS", 104, 0, both: Align.BottomLeft);
 
-            // TODO: Draw weapon numbers if we have them.
+            for (int slot = 2; slot <= 7; slot++)
+                DrawWeaponNumber(player, slot, draw);
+        }
+
+        private void DrawWeaponNumber(Player player, int slot, DrawHelper draw)
+        {
+            Weapon? weapon = player.Inventory.Weapons.GetWeapon(player, slot, 0);
+            if (slot == 3 && weapon == null)
+                weapon = player.Inventory.Weapons.GetWeapon(player, slot, 1);
+
+            string numberImage = (weapon != null ? "STYSNUM" : "STGNUM") + slot;
+
+            (int x, int y) = slot switch
+            {
+                2 => (111, 172),
+                3 => (123, 172),
+                4 => (135, 172),
+                5 => (111, 182),
+                6 => (123, 182),
+                7 => (135, 182),
+                _ => throw new Exception($"Bad slot index: {slot}")
+            };
+
+            draw.Image(numberImage, x, y);
         }
 
         private void DrawFullHudKeys(Player player, DrawHelper draw)

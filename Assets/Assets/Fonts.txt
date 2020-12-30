@@ -1,8 +1,8 @@
-font SmallFont 
+font SmallFont
 {
     space = 8;
     grayscale = true;
-    characters 
+    characters
     {
         "!" STCFN033;
         "\"" STCFN034 align top;
@@ -97,11 +97,11 @@ font SmallFont
     }
 }
 
-font LargeHudFont 
+font LargeHudFont
 {
     space = 12;
     grayscale = true;
-    characters 
+    characters
     {
         "-" STTMINUS align center;
         "%" STTPRCNT;
@@ -115,5 +115,41 @@ font LargeHudFont
         "7" STTNUM7;
         "8" STTNUM8;
         "9" STTNUM9;
+    }
+}
+
+font HudGrayNumbers
+{
+    space = 4;
+    characters
+    {
+        "0" STGNUM0 default;
+        "1" STGNUM1;
+        "2" STGNUM2;
+        "3" STGNUM3;
+        "4" STGNUM4;
+        "5" STGNUM5;
+        "6" STGNUM6;
+        "7" STGNUM7;
+        "8" STGNUM8;
+        "9" STGNUM9;
+    }
+}
+
+font HudYellowNumbers
+{
+    space = 4;
+    characters
+    {
+        "0" STYSNUM0 default;
+        "1" STYSNUM1;
+        "2" STYSNUM2;
+        "3" STYSNUM3;
+        "4" STYSNUM4;
+        "5" STYSNUM5;
+        "6" STYSNUM6;
+        "7" STYSNUM7;
+        "8" STYSNUM8;
+        "9" STYSNUM9;
     }
 }
