@@ -70,7 +70,7 @@ namespace Helion.Client.OpenAL
         {
             ALError error = AL.GetError();
             if (error != ALError.NoError)
-                Fail($"Unexpected OpenAL error: {error}");
+                Fail($"Unexpected OpenAL error: {error} (reason: {AL.GetErrorString(error)})");
         }
 
         private void PrintOpenALInfo()
