@@ -34,6 +34,11 @@ namespace Helion.World.Physics
         /// </summary>
         public readonly Line ActivateLineSpecial;
 
+        /// <summary>
+        /// If the activation was successful.
+        /// </summary>
+        public bool Success { get; set; }
+
         public EntityActivateSpecialEventArgs(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
         {
             ActivationContext = activationContext;
