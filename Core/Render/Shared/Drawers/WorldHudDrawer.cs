@@ -140,7 +140,29 @@ namespace Helion.Render.Shared.Drawers
 
         private void DrawFullHudKeys(Player player, DrawHelper draw)
         {
-            // TODO
+            const int x = 239;
+
+            foreach (InventoryItem key in player.Inventory.GetKeys())
+            {
+                DrawKeyIfOwned(key, "BlueSkull", "BlueCard", x, 171, draw);
+                DrawKeyIfOwned(key, "YellowSkull", "YellowCard", x, 181, draw);
+                DrawKeyIfOwned(key, "RedSkull", "RedCard", x, 191, draw);
+            }
+        }
+
+        private void DrawKeyIfOwned(InventoryItem key, string skullKeyName, string keyName, int x, int y,
+            DrawHelper draw)
+        {
+            string imageName = key.Definition.Properties.Inventory.Icon;
+
+            foreach (string name in new[] { skullKeyName, keyName })
+            {
+                if (key.Definition.Name == name && draw.ImageExists(imageName))
+                {
+                    draw.Image(imageName, x, y);
+                    break;
+                }
+            }
         }
 
         private void DrawFullHudFace(Player player, DrawHelper draw)
