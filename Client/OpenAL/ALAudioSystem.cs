@@ -66,11 +66,14 @@ namespace Helion.Client.OpenAL
         }
 
         [Conditional("DEBUG")]
-        public static void CheckForErrors()
+        public static void CheckForErrors(string debugInfo = "", params object[] objs)
         {
             ALError error = AL.GetError();
             if (error != ALError.NoError)
-                Fail($"Unexpected OpenAL error: {error} (reason: {AL.GetErrorString(error)})");
+            {
+                string reason = string.Format(debugInfo, objs);
+                Fail($"Unexpected OpenAL error: {error} (reason: {AL.GetErrorString(error)}) {reason}");
+            }
         }
 
         private void PrintOpenALInfo()
@@ -97,7 +100,7 @@ namespace Helion.Client.OpenAL
 
         public IAudioSourceManager CreateContext()
         {
-            ALAudioSourceManager sourceManager = new ALAudioSourceManager(this, m_archiveCollection);
+            ALAudioSourceManager sourceManager = new(this, m_archiveCollection);
             m_sourceManagers.Add(sourceManager);
             return sourceManager;
         }

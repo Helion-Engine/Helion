@@ -9,7 +9,8 @@ namespace Helion.Client.OpenAL.Components
     public class ALContext : IDisposable
     {
         private readonly ContextHandle m_context;
-        private readonly int[] m_attributeList = new int[0];
+        private readonly int[] m_attributeList = Array.Empty<int>();
+        private bool m_disposed;
 
         public ALContext(ALDevice device)
         {
@@ -19,7 +20,7 @@ namespace Helion.Client.OpenAL.Components
 
             Alc.MakeContextCurrent(m_context);
         }
-        
+
         ~ALContext()
         {
             FailedToDispose(this);
@@ -34,8 +35,16 @@ namespace Helion.Client.OpenAL.Components
 
         private void ReleaseUnmanagedResources()
         {
-            Alc.MakeContextCurrent(m_context);
+            if (m_disposed)
+                return;
+
+            // The spec tells us we have to set a null context before
+            // destroying a valid one.
+            Alc.MakeContextCurrent(ContextHandle.Zero);
+            // TODO: Not checking this right now since even NULL causes this to error.
             Alc.DestroyContext(m_context);
+
+            m_disposed = true;
         }
     }
 }

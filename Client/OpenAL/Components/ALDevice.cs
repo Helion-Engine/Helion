@@ -10,7 +10,7 @@ namespace Helion.Client.OpenAL.Components
     {
         public string DeviceName { get; private set; }
         internal IntPtr Device;
-        
+
         public ALDevice()
         {
             DeviceName = string.Empty;
@@ -40,7 +40,7 @@ namespace Helion.Client.OpenAL.Components
             if (Device == IntPtr.Zero)
                 throw new HelionException("Unable to access OpenAL device");
         }
-        
+
         ~ALDevice()
         {
             FailedToDispose(this);
@@ -55,6 +55,8 @@ namespace Helion.Client.OpenAL.Components
 
         private void ReleaseUnmanagedResources()
         {
+            // TODO: Not checking this right now since it should not be setting errors (but is).
+            // TODO: Appears to fail if we did not dispose all buffers/contexts.
             Alc.CloseDevice(Device);
         }
     }

@@ -16,33 +16,15 @@ namespace Helion.Client.OpenAL
         private const float DefaultReference = 296.0f;
         private const float DefaultMaxDistance = (float)Constants.MaxSoundDistance;
         private const float DefaultRadius = 32.0f;
-
         private const ALSourcef SourceRadius = (ALSourcef)0x1031;
-        private const ALSourcei SourceDistanceModel = (ALSourcei)53248; 
-
-        private readonly ALAudioSourceManager m_owner;
-        private readonly int m_sourceId;
-        private bool m_disposed;
-
-        public void SetPosition(in Vector3 pos)
-        {
-            AL.Source(m_sourceId, ALSource3f.Position, pos.X, pos.Y, pos.Z);
-        }
-
-        public Vector3 GetPosition()
-        {
-            OpenTK.Vector3 pos;
-            AL.GetSource(m_sourceId, ALSource3f.Position, out pos);
-            return new Vector3(pos.X, pos.Y, pos.Z);
-        }
-
-        public void SetVelocity(in Vector3 velocity)
-        {
-            AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
-        }
+        private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
 
         public Vector3 Velocity { get; set; }
         public AudioData AudioData { get; set; }
+        private readonly ALAudioSourceManager m_owner;
+        private int m_sourceId;
+        private bool m_disposed;
+
         public int ID => m_sourceId;
 
         public ALAudioSource(ALAudioSourceManager owner, ALBuffer buffer, AudioData audioData, SoundParams soundParams)
@@ -62,30 +44,61 @@ namespace Helion.Client.OpenAL
 
             switch (soundParams.Attenuation)
             {
-                case Attenuation.None:
-                    // Max out the distance to prevent directional sound from taking effect
-                    radius = 65536.0f;
-                    referenceDistance = 0.0f;
-                    maxDistance = 0.0f;
-                    rolloffFactor = 0.0f;
-                    break;
-                case Attenuation.Rapid:
-                    rolloffFactor = DefaultRolloff * 2.0f;
-                    break;
-                case Attenuation.Default:
-                default:
-                    break;
+            case Attenuation.None:
+                // Max out the distance to prevent directional sound from taking effect
+                radius = 65536.0f;
+                referenceDistance = 0.0f;
+                maxDistance = 0.0f;
+                rolloffFactor = 0.0f;
+                break;
+            case Attenuation.Rapid:
+                rolloffFactor = DefaultRolloff * 2.0f;
+                break;
+            case Attenuation.Default:
+            default:
+                break;
             }
 
-            m_sourceId = AL.GenSource();
-            AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
-            AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
-            AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
-            AL.Source(m_sourceId, SourceRadius, radius);
-            AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
-            AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
-            AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
-            AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
+            ALExecutor.Run("Creating new source", () =>
+            {
+                m_sourceId = AL.GenSource();
+                AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
+                AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
+                AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
+                AL.Source(m_sourceId, SourceRadius, radius);
+                AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
+                AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
+                AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
+                AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
+            });
+        }
+
+        public void SetPosition(Vector3 pos)
+        {
+            ALExecutor.Run("Setting sound position", () =>
+            {
+                AL.Source(m_sourceId, ALSource3f.Position, pos.X, pos.Y, pos.Z);
+            });
+        }
+
+        public Vector3 GetPosition()
+        {
+            OpenTK.Vector3 pos = default;
+
+            ALExecutor.Run("Getting sound position", () =>
+            {
+                AL.GetSource(m_sourceId, ALSource3f.Position, out pos);
+            });
+
+            return new Vector3(pos.X, pos.Y, pos.Z);
+        }
+
+        public void SetVelocity(Vector3 velocity)
+        {
+            ALExecutor.Run("Setting sound velocity", () =>
+            {
+                AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+            });
         }
 
         ~ALAudioSource()
@@ -94,10 +107,7 @@ namespace Helion.Client.OpenAL
             PerformDispose();
         }
 
-        public override int GetHashCode()
-        {
-            return m_sourceId;
-        }
+        public override int GetHashCode() => m_sourceId;
 
         public override bool Equals(object? obj)
         {
@@ -110,33 +120,53 @@ namespace Helion.Client.OpenAL
         public void Play()
         {
             if (!m_disposed)
-                AL.SourcePlay(m_sourceId);
+            {
+                ALExecutor.Run("Playing sound", () =>
+                {
+                    AL.SourcePlay(m_sourceId);
+                });
+            }
         }
 
         public bool IsPlaying()
         {
             if (m_disposed)
                 return false;
-            
-            AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out int state);
+
+            int state = 0;
+            ALExecutor.Run("Checking if sound is playing", () =>
+            {
+                AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out state);
+            });
+
             return (ALSourceState)state == ALSourceState.Playing;
         }
 
         public void Stop()
         {
             if (!m_disposed)
-                AL.SourceStop(m_sourceId);
+            {
+                ALExecutor.Run("Stopping sound source", () =>
+                {
+                    AL.SourceStop(m_sourceId);
+                });
+            }
         }
 
         public bool IsFinished()
         {
             if (m_disposed)
                 return true;
-            
+
             // For the future, maybe we should just track timestamps instead as
             // using "stopped" means we don't know if someone called Stop() or
             // if the sound fully finished.
-            AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out int state);
+            int state = 0;
+            ALExecutor.Run("Checking if sound finished playing", () =>
+            {
+                AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out state);
+            });
+
             return (ALSourceState)state == ALSourceState.Stopped;
         }
 
@@ -144,7 +174,7 @@ namespace Helion.Client.OpenAL
         {
             if (m_disposed)
                 return;
-            
+
             PerformDispose();
             GC.SuppressFinalize(this);
         }
@@ -155,7 +185,10 @@ namespace Helion.Client.OpenAL
                 return;
 
             m_owner.Unlink(this);
-            AL.DeleteSource(m_sourceId);
+            ALExecutor.Run("Deleting sound source", () =>
+            {
+                AL.DeleteSource(m_sourceId);
+            });
 
             m_disposed = true;
         }

@@ -22,15 +22,18 @@ namespace Helion.Client.OpenAL
 
         private readonly ArchiveCollection m_archiveCollection;
         private readonly ALAudioSystem m_owner;
-        private readonly HashSet<ALAudioSource> m_sources = new HashSet<ALAudioSource>();
-        private readonly Dictionary<string, ALBuffer> m_nameToBuffer = new Dictionary<string, ALBuffer>();
-        private readonly DynamicArray<int> m_playGroup = new DynamicArray<int>();
+        private readonly HashSet<ALAudioSource> m_sources = new();
+        private readonly Dictionary<string, ALBuffer> m_nameToBuffer = new();
+        private readonly DynamicArray<int> m_playGroup = new();
 
         public ALAudioSourceManager(ALAudioSystem owner, ArchiveCollection archiveCollection)
         {
             m_owner = owner;
             m_archiveCollection = archiveCollection;
-            AL.DistanceModel(ALDistanceModel.ExponentDistance);
+            ALExecutor.Run("Setting distance model", () =>
+            {
+                AL.DistanceModel(ALDistanceModel.ExponentDistance);
+            });
 
             owner.DeviceChanging += Owner_DeviceChanging;
         }
@@ -56,13 +59,19 @@ namespace Helion.Client.OpenAL
             OpenTK.Vector3 up = new OpenTK.Vector3(0, 0, 1);
             OpenTK.Vector3 at = new OpenTK.Vector3((float)vec.X, (float)vec.Y, (float)vec.Z);
 
-            AL.Listener(ALListenerfv.Orientation, ref at, ref up);
-            AL.Listener(ALListener3f.Position, (float)pos.X, (float)pos.Y, (float)pos.Z);
+            ALExecutor.Run("Setting source manager position and orientation", () =>
+            {
+                AL.Listener(ALListenerfv.Orientation, ref at, ref up);
+                AL.Listener(ALListener3f.Position, (float)pos.X, (float)pos.Y, (float)pos.Z);
+            });
         }
 
         public void SetListenerVelocity(System.Numerics.Vector3 velocity)
         {
-            AL.Listener(ALListener3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+            ALExecutor.Run("Setting listener velocity", () =>
+            {
+                AL.Listener(ALListener3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+            });
         }
 
         ~ALAudioSourceManager()
@@ -76,18 +85,22 @@ namespace Helion.Client.OpenAL
             ALBuffer? buffer = GetBuffer(sound);
             if (buffer == null)
                 return null;
-            
-            ALAudioSource source = new ALAudioSource(this, buffer, audioData, soundParams);
+
+            ALAudioSource source = new(this, buffer, audioData, soundParams);
             m_sources.Add(source);
             return source;
         }
 
         public void PlayGroup(IEnumerable<IAudioSource> audioSources)
-        {        
+        {
             foreach (IAudioSource audioSource in audioSources)
                m_playGroup.Add(((ALAudioSource)audioSource).ID);
 
-            AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
+            ALExecutor.Run("Playing audio group", () =>
+            {
+                AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
+            });
+
             m_playGroup.Clear();
         }
 
@@ -103,14 +116,14 @@ namespace Helion.Client.OpenAL
                 Log.Warn("Cannot find sound: {0}", sound);
                 return null;
             }
-            
+
             ALBuffer? buffer = ALBuffer.Create(entry.ReadData());
             if (buffer == null)
             {
                 Log.Warn("Sound {0} is either corrupt or not a DMX sound", sound);
                 return null;
             }
-            
+
             m_nameToBuffer[upperSound] = buffer;
             return buffer;
         }
@@ -123,13 +136,13 @@ namespace Helion.Client.OpenAL
 
         internal void Unlink(ALAudioSource source)
         {
-            m_sources.Remove(source);  
+            m_sources.Remove(source);
         }
 
         private void PerformDispose()
         {
             m_owner.Unlink(this);
-            
+
             // We create a copy list because disposing will mutate the list
             // that it belongs to, since it has no idea if we're disposing it
             // manually or by disposal of its manager.

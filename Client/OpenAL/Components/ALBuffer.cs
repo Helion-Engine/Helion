@@ -7,13 +7,20 @@ namespace Helion.Client.OpenAL.Components
 {
     public class ALBuffer : IDisposable
     {
-        public readonly int BufferId;
-        
+        public int BufferId;
+
         private ALBuffer(int sampleRate, byte[] sampleData)
         {
-            BufferId = AL.GenBuffer();
-            // Note: We only support DMX sounds currently!
-            AL.BufferData(BufferId, ALFormat.Mono8, sampleData, sampleData.Length, sampleRate);
+            ALExecutor.Run("Creating buffer", () =>
+            {
+                BufferId = AL.GenBuffer();
+            });
+
+            ALExecutor.Run("Setting buffer data", () =>
+            {
+                // Note: We only support DMX sounds currently!
+                AL.BufferData(BufferId, ALFormat.Mono8, sampleData, sampleData.Length, sampleRate);
+            });
         }
 
         ~ALBuffer()
@@ -21,7 +28,7 @@ namespace Helion.Client.OpenAL.Components
             FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
-        
+
         public static ALBuffer? Create(byte[] data)
         {
             if (AudioHelper.TryReadDoomSound(data, out int sampleRate, out byte[] sampleData))
@@ -37,7 +44,10 @@ namespace Helion.Client.OpenAL.Components
 
         private void ReleaseUnmanagedResources()
         {
-            AL.DeleteBuffer(BufferId);
+            ALExecutor.Run("Deleting sound buffer", () =>
+            {
+                AL.DeleteBuffer(BufferId);
+            });
         }
     }
 }
