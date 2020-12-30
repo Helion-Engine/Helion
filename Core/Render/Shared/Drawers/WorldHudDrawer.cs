@@ -97,8 +97,9 @@ namespace Helion.Render.Shared.Drawers
 
                 DrawFullHudHealthArmorAmmo(player, largeFont, draw);
                 DrawFullHudWeaponSlots(player, draw);
-                DrawFullHudKeys(player, draw);
                 DrawFullHudFace(player, draw);
+                DrawFullHudKeys(player, draw);
+                DrawFullTotalAmmo(player, draw);
             });
         }
 
@@ -154,6 +155,21 @@ namespace Helion.Render.Shared.Drawers
             draw.Image(numberImage, x, y);
         }
 
+        private void DrawFullHudFace(Player player, DrawHelper draw)
+        {
+            const int faceX = 149;
+            const int faceY = 170;
+
+            string faceImage = (player.World.Gametick % 130) switch
+            {
+                < 70 => "STFST01",
+                < 100 => "STFST00",
+                _ => "STFST02"
+            };
+
+            draw.Image(faceImage, faceX, faceY);
+        }
+
         private void DrawFullHudKeys(Player player, DrawHelper draw)
         {
             const int x = 239;
@@ -181,19 +197,27 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawFullHudFace(Player player, DrawHelper draw)
+        private void DrawFullTotalAmmo(Player player, DrawHelper draw)
         {
-            const int faceX = 149;
-            const int faceY = 170;
+            Font? yellowFont = m_archiveCollection.GetFont("HudYellowNumbers");
+            if (yellowFont == null)
+                return;
 
-            string faceImage = (player.World.Gametick % 130) switch
+            bool backpack = player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
+
+            DrawFullTotalAmmoText("Clip", backpack ? 400 : 200, 173);
+            DrawFullTotalAmmoText("Shell", backpack ? 100 : 50, 179);
+            DrawFullTotalAmmoText("RocketAmmo", backpack ? 100 : 50, 185);
+            DrawFullTotalAmmoText("Cell", backpack ? 600 : 300, 191);
+
+            void DrawFullTotalAmmoText(string ammoName, int maxAmmo, int y)
             {
-                < 70 => "STFST01",
-                < 100 => "STFST00",
-                _ => "STFST02"
-            };
+                const int FontSize = 6;
 
-            draw.Image(faceImage, faceX, faceY);
+                int ammo = player.Inventory.Amount(ammoName);
+                draw.Text(Color.White, ammo.ToString(), yellowFont, FontSize, 287, y, textbox: Align.TopRight);
+                draw.Text(Color.White, maxAmmo.ToString(), yellowFont, FontSize, 315, y, textbox: Align.TopRight);
+            }
         }
 
         private void DrawMinimalStatusBar(Player player, int topRightY, Font? largeFont, DrawHelper draw)
