@@ -78,7 +78,7 @@ namespace Helion.Render.Shared.Drawers
             draw.Text(Color.Yellow, console.Input, consoleFont, ConsoleFontSize, out Dimension drawArea,
                 offsetX, baseY, textbox: Align.BottomLeft, maxWidth: maxWidth);
 
-            inputDrawTop = baseY - drawArea.Height;
+            inputDrawTop = baseY - ConsoleFontSize;
             offsetX += drawArea.Width;
 
             if (IsCursorFlashTime())
