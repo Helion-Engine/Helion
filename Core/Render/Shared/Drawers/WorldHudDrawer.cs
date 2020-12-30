@@ -13,7 +13,9 @@ using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;
 using Helion.World;
+using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using MoreLinq;
 using Font = Helion.Graphics.Fonts.Font;
@@ -32,7 +34,6 @@ namespace Helion.Render.Shared.Drawers
         private const int CrosshairHalfWidth = CrosshairWidth / 2;
         private const int FlashPickupTickDuration = 6;
         private const int Padding = 4;
-        private const int KeyWidth = 16;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
@@ -83,7 +84,7 @@ namespace Helion.Render.Shared.Drawers
             if (config.Engine.Hud.FullStatusBar)
                 DrawFullStatusBar(player, largeFont, draw);
             else
-                DrawMinimalStatusBar(player, topRightY, viewport, largeFont, draw);
+                DrawMinimalStatusBar(player, topRightY, largeFont, draw);
         }
 
 
@@ -132,7 +133,7 @@ namespace Helion.Render.Shared.Drawers
 
         private void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
         {
-            draw.Image("STARMS", 104, 0, window: Align.BottomLeft, image: Align.BottomLeft);
+            draw.Image("STARMS", 104, 0, both: Align.BottomLeft);
 
             // TODO: Draw weapon numbers if we have them.
         }
@@ -147,16 +148,14 @@ namespace Helion.Render.Shared.Drawers
             // TODO
         }
 
-        private void DrawMinimalStatusBar(Player player, in int topRightY, Dimension viewport, Font? largeFont,
-            DrawHelper draw)
+        private void DrawMinimalStatusBar(Player player, int topRightY, Font? largeFont, DrawHelper draw)
         {
-            DrawMinimalHudHealthAndArmor(player, viewport, largeFont, draw);
-            DrawMinimalHudKeys(topRightY, player, viewport, draw);
-            DrawMinimalHudAmmo(player, viewport, largeFont, draw);
+            DrawMinimalHudHealthAndArmor(player, largeFont, draw);
+            DrawMinimalHudKeys(topRightY, player, draw);
+            DrawMinimalHudAmmo(player, largeFont, draw);
         }
 
-        private void DrawMinimalHudHealthAndArmor(Player player, Dimension viewport, Font? largeFont,
-            DrawHelper draw)
+        private void DrawMinimalHudHealthAndArmor(Player player, Font? largeFont, DrawHelper draw)
         {
             if (largeFont == null)
                 return;
@@ -164,52 +163,51 @@ namespace Helion.Render.Shared.Drawers
             // We will draw the medkit slightly higher so it looks like it
             // aligns with the font.
             int x = Padding;
-            int y = viewport.Height - Padding;
+            int y = -Padding;
 
-            draw.Image("MEDIA0", Padding, -Padding, out Dimension medkitArea,
-                window: Align.BottomLeft, image: Align.BottomLeft);
+            draw.Image("MEDIA0", x, y, out Dimension medkitArea, both: Align.BottomLeft);
 
             // We will draw the health numbers with the same height as the
             // medkit image. However if someone ever replaces it, we probably
             // want to draw it at the height of that image. We also don't want
             // to have a missing or small image screw up the height so we'll
-            // clamp it to be at least 16. Let's get a more robust solution in
-            // the future!
+            // clamp it to be at least 16.
             int fontHeight = Math.Max(16, medkitArea.Height);
             int health = Math.Max(0, player.Health);
             draw.Text(Color.Red, health.ToString(), largeFont, fontHeight, out Dimension healthArea,
-                x + medkitArea.Width + Padding, y, TextAlign.Left, textbox: Align.BottomLeft);
+                x + medkitArea.Width + Padding, y, TextAlign.Left, both: Align.BottomLeft);
 
             if (player.Armor > 0)
             {
                 y -= healthArea.Height + Padding;
 
-                if (player.ArmorProperties != null && draw.ImageExists(player.ArmorProperties.Inventory.Icon))
+                EntityProperties? armorProp = player.ArmorProperties;
+                if (armorProp != null && draw.ImageExists(armorProp.Inventory.Icon))
                 {
-                    draw.Image(player.ArmorProperties.Inventory.Icon, x, y, out Dimension armorArea, window: Align.BottomLeft);
+                    draw.Image(armorProp.Inventory.Icon, x, y, out Dimension armorArea, both: Align.BottomLeft);
                     x += armorArea.Width + Padding;
                 }
 
                 draw.Text(Color.Red, player.Armor.ToString(), largeFont, fontHeight,
-                    x, y, TextAlign.Left, textbox: Align.BottomLeft);
+                    x, y, TextAlign.Left, both: Align.BottomLeft);
             }
         }
 
-        private void DrawMinimalHudKeys(int y, Player player, Dimension viewport, DrawHelper draw)
+        private void DrawMinimalHudKeys(int y, Player player, DrawHelper draw)
         {
-            var keys = player.Inventory.GetKeys();
+            List<InventoryItem> keys = player.Inventory.GetKeys();
             y += Padding;
 
-            foreach (var key in keys)
+            foreach (InventoryItem key in keys)
             {
                 string icon = key.Definition.Properties.Inventory.Icon;
                 if (!draw.ImageExists(icon))
                     continue;
 
-                Dimension dimension = draw.DrawInfoProvider.GetImageDimension(icon);
-                int height = (int)(KeyWidth / dimension.AspectRatio);
-                draw.Image(icon, viewport.Width - Padding - KeyWidth, y, KeyWidth, height);
-                y += height + Padding;
+                // If we want to scale these, use `draw.DrawInfoProvider.GetImageDimension(icon)`
+                // and use that width/height below but scaled.
+                draw.Image(icon, -Padding, y, out Dimension drawArea, both: Align.TopRight);
+                y += drawArea.Height + Padding;
             }
         }
 
@@ -238,24 +236,24 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawMinimalHudAmmo(Player player, Dimension viewport, Font? largeFont, DrawHelper helper)
+        private void DrawMinimalHudAmmo(Player player, Font? largeFont, DrawHelper helper)
         {
             if (largeFont == null || player.Weapon == null || player.Weapon.Definition.Properties.Weapons.AmmoType.Length == 0)
                 return;
 
-            int x = viewport.Width - Padding;
-            int y = viewport.Height - Padding;
+            int x = -Padding;
+            int y = -Padding;
 
             int ammo = player.Inventory.Amount(player.Weapon.Definition.Properties.Weapons.AmmoType);
             helper.Text(Color.Red, ammo.ToString(), largeFont, 19, out Dimension textRect,
-                x, y, textbox: Align.BottomLeft);
+                x, y, both: Align.BottomRight);
 
             x = x - textRect.Width - Padding;
             if (player.Weapon.AmmoSprite.Length > 0 && helper.ImageExists(player.Weapon.AmmoSprite))
             {
                 Dimension dimension = helper.DrawInfoProvider.GetImageDimension(player.Weapon.AmmoSprite);
                 x -= dimension.Width;
-                helper.Image(player.Weapon.AmmoSprite, x, y - dimension.Height);
+                helper.Image(player.Weapon.AmmoSprite, x, y, both: Align.BottomRight);
             }
         }
 

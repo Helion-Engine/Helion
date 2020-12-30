@@ -126,45 +126,46 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// <summary>
         /// Draws an image at the aligned origin. Does not care about returning
         /// the drawing area.
-        /// See <see cref="Image(string,int,int,out Helion.Util.Geometry.Dimension,System.Nullable{int},System.Nullable{int},Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,System.Nullable{System.Drawing.Color},float)"/>
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Image(string name, int? width = null, int? height = null,
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
-            float alpha = 1.0f)
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
+            Color? color = null, float alpha = 1.0f)
         {
-            Image(name, 0, 0, out _, width, height, window, image, color, alpha);
+            Image(name, 0, 0, out _, width, height, window, image, both, color, alpha);
         }
 
         /// <summary>
         /// Draws an image. Does not care about returning the drawing area.
-        /// See <see cref="Image(string,int,int,out Helion.Util.Geometry.Dimension,System.Nullable{int},System.Nullable{int},Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,System.Nullable{System.Drawing.Color},float)"/>
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Image(string name, int x, int y, int? width = null, int? height = null,
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
-            float alpha = 1.0f)
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
+            Color? color = null, float alpha = 1.0f)
         {
-            Image(name, x, y, out _, width, height, window, image, color, alpha);
+            Image(name, x, y, out _, width, height, window, image, both, color, alpha);
         }
 
         /// <summary>
         /// Draws an image. Does not care about returning the drawing area.
-        /// See <see cref="Image(string,int,int,out Helion.Util.Geometry.Dimension,System.Nullable{int},System.Nullable{int},Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,System.Nullable{System.Drawing.Color},float)"/>
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Image(string name, Vec2I offset, int? width = null, int? height = null,
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
-            float alpha = 1.0f)
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
+            Color? color = null, float alpha = 1.0f)
         {
-            Image(name, offset, out _, width, height, window, image, color, alpha);
+            Image(name, offset, out _, width, height, window, image, both, color, alpha);
         }
 
         /// <summary>
-        /// Draws an image. See <see cref="Image(string,int,int,out Helion.Util.Geometry.Dimension,System.Nullable{int},System.Nullable{int},Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,System.Nullable{System.Drawing.Color},float)"/>
+        /// Draws an image.
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Image(string name, int x, int y, out Dimension drawDimension, int? width = null,
             int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft,
-            Color? color = null, float alpha = 1.0f)
+            Align? both = null, Color? color = null, float alpha = 1.0f)
         {
-            Image(name, new Vec2I(x, y), out drawDimension, width, height, window, image, color, alpha);
+            Image(name, new Vec2I(x, y), out drawDimension, width, height, window, image, both, color, alpha);
         }
 
         /// <summary>
@@ -172,7 +173,7 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         /// <param name="name">The image name.</param>
         /// <param name="offset">The offset. Positive is down/right.</param>
-        /// <param name="drawDimension">The output of the area that is drawn.
+        /// <param name="drawArea">The output of the area that is drawn.
         /// This is populated if either width or height are null.</param>
         /// <param name="width">If not null, uses the width instead of the
         /// native width of the image.</param>
@@ -184,25 +185,34 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// <param name="image">The alignment to the image pivot. For more
         /// info, see <see cref="GetDrawingCoordinateFromAlign"/>. The top
         /// left is the default.</param>
+        /// <param name="both">Instead of specifying the same alignment for
+        /// both the `window` and `image`, you can set this value and it sets
+        /// both of them to be this value. Whatever value is present overrides
+        /// the other two (provided this is not null).</param>
         /// <param name="color">The color to draw with. If not present, the
         /// color of the image will be unchanged. This can be used to select
         /// certain channels (ex: to make it red, use [255, 0, 0]).</param>
         /// <param name="alpha">The transparency (1.0 is unchanged, 0.5 is
         /// half visible, 0.0 is not visible at all). Default is 1.0.</param>
-        public void Image(string name, Vec2I offset, out Dimension drawDimension, int? width = null,
-            int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft, Color? color = null,
-            float alpha = 1.0f)
+        public void Image(string name, Vec2I offset, out Dimension drawArea, int? width = null,
+            int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
+            Color? color = null, float alpha = 1.0f)
         {
+            Align alignWindow = both ?? window;
+            Align alignImage = both ?? image;
+
             if (width == null || height == null)
             {
-                var (imageWidth, imageHeight) = DrawInfoProvider.GetImageDimension(name);
-                drawDimension = new Dimension(width ?? imageWidth, height ?? imageHeight);
+                (int imageWidth, int imageHeight) = DrawInfoProvider.GetImageDimension(name);
+                drawArea = new Dimension(width ?? imageWidth, height ?? imageHeight);
             }
             else
-                drawDimension = new Dimension(width.Value, height.Value);
+                drawArea = new Dimension(width.Value, height.Value);
 
-            Vec2I pos = GetDrawingCoordinateFromAlign(offset.X, offset.Y, drawDimension.Width, drawDimension.Height, window, image);
-            m_renderCommands.DrawImage(name, pos.X, pos.Y, drawDimension.Width, drawDimension.Height, color ?? NoColor, alpha);
+            Vec2I pos = GetDrawingCoordinateFromAlign(offset.X, offset.Y, drawArea.Width, drawArea.Height,
+                alignWindow, alignImage);
+            m_renderCommands.DrawImage(name, pos.X, pos.Y, drawArea.Width, drawArea.Height,
+                color ?? NoColor, alpha);
         }
 
         /// <summary>
@@ -214,24 +224,24 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// Since most (or all) text is colored white by default, this is
         /// more or less the same as being the color that will be drawn.
         /// Finally, Does not care about returning the drawing area.
-        /// See <see cref="Text(System.Drawing.Color,string,Font,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,float)"/>
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Text(Color color, string message, Font font, int fontSize, int x, int y,
             TextAlign text = TextAlign.Left, Align window = Align.TopLeft, Align textbox = Align.TopLeft,
-            int maxWidth = int.MaxValue, float alpha = 1.0f)
+            Align? both = null, int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
-            Text(color, message, font, fontSize, out _, x, y, text, window, textbox, maxWidth, alpha);
+            Text(color, message, font, fontSize, out _, x, y, text, window, textbox, both, maxWidth, alpha);
         }
 
         /// <summary>
         /// Draws a text. Does not care about returning the drawing area.
-        /// See <see cref="Text(System.Drawing.Color,string,Font,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,float)"/>
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Text(ColoredString message, Font font, int fontSize, int x, int y,
             TextAlign text = TextAlign.Left, Align window = Align.TopLeft, Align textbox = Align.TopLeft,
-            int maxWidth = int.MaxValue, float alpha = 1.0f)
+            Align? both = null, int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
-            Text(message, font, fontSize, out _, x, y, text, window, textbox, maxWidth, alpha);
+            Text(message, font, fontSize, out _, x, y, text, window, textbox, both, maxWidth, alpha);
         }
 
         /// <summary>
@@ -242,14 +252,14 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// blue and green channels will be zero, making the text look red.
         /// Since most (or all) text is colored white by default, this is
         /// more or less the same as being the color that will be drawn.
-        /// See <see cref="Text(System.Drawing.Color,string,Font,int,out Helion.Util.Geometry.Dimension,int,int,Helion.Render.Commands.Alignment.TextAlign,Helion.Render.Commands.Alignment.Align,Helion.Render.Commands.Alignment.Align,int,float)"/>
+        /// See the method that has all the options for the parameter info.
         /// </summary>
         public void Text(Color color, string message, Font font, int fontSize, out Dimension drawArea,
             int x, int y, TextAlign text = TextAlign.Left, Align window = Align.TopLeft,
-            Align textbox = Align.TopLeft, int maxWidth = int.MaxValue, float alpha = 1.0f)
+            Align textbox = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
             ColoredString coloredString = ColoredStringBuilder.From(color, message);
-            Text(coloredString, font, fontSize, out drawArea, x, y, text, window, textbox, maxWidth, alpha);
+            Text(coloredString, font, fontSize, out drawArea, x, y, text, window, textbox, both, maxWidth, alpha);
         }
 
         /// <summary>
@@ -273,6 +283,10 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// <param name="textbox">The alignment to the image pivot. For more
         /// info, see <see cref="GetDrawingCoordinateFromAlign"/>. The top
         /// left is the default.</param>
+        /// <param name="both">Instead of specifying the same alignment for
+        /// `window` and `textbox`, you can set this value and it sets both
+        /// of them to be this value. Whatever value is present overrides the
+        /// other two (provided this is not null).</param>
         /// <param name="maxWidth">How many pixels wide the text drawing should
         /// go before it stops, or wraps if wrap is true. If wrap is false then
         /// it will terminate drawing as soon as it exceeds the max width. It
@@ -283,11 +297,15 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// half visible, 0.0 is not visible at all). Default is 1.0.</param>
         public void Text(ColoredString message, Font font, int fontSize, out Dimension drawArea,
             int x, int y, TextAlign text = TextAlign.Left, Align window = Align.TopLeft,
-            Align textbox = Align.TopLeft, int maxWidth = int.MaxValue, float alpha = 1.0f)
+            Align textbox = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, float alpha = 1.0f)
         {
+            Align alignWindow = both ?? window;
+            Align alignTextbox = both ?? textbox;
+
             RenderableString renderableString = new(message, font, fontSize, text, maxWidth);
             drawArea = renderableString.DrawArea;
-            Vec2I pos = GetDrawingCoordinateFromAlign(x, y, drawArea.Width, drawArea.Height, window, textbox);
+
+            Vec2I pos = GetDrawingCoordinateFromAlign(x, y, drawArea.Width, drawArea.Height, alignWindow, alignTextbox);
             m_renderCommands.DrawText(renderableString, pos.X, pos.Y, alpha);
         }
 
