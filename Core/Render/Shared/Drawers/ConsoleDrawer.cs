@@ -59,7 +59,7 @@ namespace Helion.Render.Shared.Drawers
             if (draw.ImageExists("CONBACK"))
                 draw.Image("CONBACK", 0, 0, width, height, color: BackgroundFade, alpha: BackgroundAlpha);
             else if (draw.ImageExists("TITLEPIC"))
-                draw.Image("TITLEPIC", 0, 0, width, halfHeight, color: BackgroundFade, alpha: BackgroundAlpha);
+                draw.Image("TITLEPIC", 0, -halfHeight, width, height, color: BackgroundFade, alpha: BackgroundAlpha);
             else
                 draw.FillRect(0, 0, width, 3, Color.Gray);
 
