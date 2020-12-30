@@ -314,7 +314,7 @@ namespace Helion.World.Impl.SinglePlayer
         private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)
         {
             if (e.ActivateLineSpecial != null)
-                SpecialManager.TryAddActivatedLineSpecial(e);
+                e.Success = SpecialManager.TryAddActivatedLineSpecial(e);
         }
 
         private void HandleMouseLook(ConsumableInput frameInput)

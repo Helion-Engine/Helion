@@ -282,8 +282,8 @@ namespace Helion.World
             if (entity.IsDead)
                 return false;
 
-            Line? activateLine = null;
             bool hitBlockLine = false;
+            bool activateSuccess = false;
             Vec2D start = entity.Position.To2D();
             Vec2D end = start + (Vec2D.RadiansToUnit(entity.AngleRadians) * entity.Properties.Player.UseRange);
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
@@ -296,10 +296,7 @@ namespace Helion.World
                     if (bi.Line.Segment.OnRight(start))
                     {
                         if (bi.Line.HasSpecial)
-                        {
-                            activateLine = bi.Line;
-                            break;
-                        }
+                            activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
                         if (bi.Line.Back == null)
                         {
@@ -324,7 +321,7 @@ namespace Helion.World
                 }
             }
 
-            bool activateSuccess = activateLine != null && ActivateSpecialLine(entity, activateLine, ActivationContext.UseLine);
+
             if (!activateSuccess && hitBlockLine && entity is Player player)
                 player.PlayUseFailSound();
 
@@ -368,7 +365,7 @@ namespace Helion.World
 
             EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(context, entity, line);
             EntityActivatedSpecial?.Invoke(this, args);
-            return true;
+            return args.Success;
         }
 
         public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity)
