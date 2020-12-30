@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using Helion.Audio;
 using Helion.Client.OpenAL.Components;
+using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
@@ -13,7 +14,7 @@ namespace Helion.Client.OpenAL
     {
         private const float DefaultRolloff = 2.5f;
         private const float DefaultReference = 296.0f;
-        private const float DefaultMaxDistance = 1752.0f;
+        private const float DefaultMaxDistance = (float)Constants.MaxSoundDistance;
         private const float DefaultRadius = 32.0f;
 
         private const ALSourcef SourceRadius = (ALSourcef)0x1031;
@@ -77,6 +78,7 @@ namespace Helion.Client.OpenAL
             }
 
             m_sourceId = AL.GenSource();
+            AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
             AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
             AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
             AL.Source(m_sourceId, SourceRadius, radius);

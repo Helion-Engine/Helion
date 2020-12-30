@@ -101,5 +101,7 @@ namespace Helion.Util
         public const int WeaponTop = 32;
 
         public const int ExtraLightFactor = 32;
+
+        public const double MaxSoundDistance = 2048.0;
     }
 }
