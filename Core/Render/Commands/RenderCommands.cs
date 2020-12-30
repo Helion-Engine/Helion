@@ -49,8 +49,7 @@ namespace Helion.Render.Commands
         public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color,
             float alpha = 1.0f)
         {
-            (int x, int y, int w, int h) = TranslateDimensions(left, top, width, height);
-            ImageBox2I drawArea = new(x, y, x + w, y + h);
+            ImageBox2I drawArea = TranslateDimensions(left, top, width, height);
             DrawImageCommand cmd = new(textureName, drawArea, color, alpha);
             m_commands.Add(cmd);
         }
@@ -145,10 +144,10 @@ namespace Helion.Render.Commands
             return TranslateDimensions(new ImageBox2I(x, y, x + dimension.Width, y + dimension.Height));
         }
 
-        private (int x, int y, int w, int h) TranslateDimensions(int x, int y, int width, int height)
+        private ImageBox2I TranslateDimensions(int x, int y, int width, int height)
         {
-            ImageBox2I drawArea = TranslateDimensions(new ImageBox2I(x, y, x + width, y + height));
-            return (drawArea.Left, drawArea.Top, drawArea.Right, drawArea.Bottom);
+            ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
+            return TranslateDimensions(drawLocation);
         }
 
         private ImageBox2I TranslateDimensions(ImageBox2I drawArea)
@@ -156,9 +155,10 @@ namespace Helion.Render.Commands
             if (WindowDimension == ResolutionInfo.VirtualDimensions)
                 return drawArea;
 
+            int offsetX = m_centeringOffsetX;
             Vec2I start = TranslatePoint(drawArea.Left, drawArea.Top);
             Vec2I end = TranslatePoint(drawArea.Right, drawArea.Bottom);
-            return new ImageBox2I(start.X + m_centeringOffsetX, start.Y, end.X, end.Y);
+            return new ImageBox2I(start.X + offsetX, start.Y, end.X + offsetX, end.Y);
         }
 
         private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).ToInt();
