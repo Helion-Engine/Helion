@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Resources.Definitions.Language;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
@@ -62,6 +63,6 @@ namespace Helion.World
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush);
-        void DisplayMessage(Player player, string message);
+        void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
     }
 }

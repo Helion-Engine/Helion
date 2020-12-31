@@ -17,9 +17,18 @@ namespace Helion.Util.Parser
         }
 
         private readonly List<ParserToken> m_tokens = new List<ParserToken>();
+        private readonly char[] m_itemSplit;
 
         private int m_index = 0;
         private bool m_multiLineComment;
+
+        public SimpleParser(char[]? itemSplit = null)
+        {
+            if (itemSplit == null)
+                m_itemSplit = new char[] { '\t', ' ' };
+            else
+                m_itemSplit = itemSplit;
+        }
 
         public void Parse(string data)
         {
@@ -31,13 +40,12 @@ namespace Helion.Util.Parser
             foreach (string line in lines)
             {
                 string parseLine = StripComments(line);
-                string[] subSplit = parseLine.Split(new char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] subSplit = parseLine.Split(m_itemSplit, StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (string sub in subSplit)
                     m_tokens.Add(new ParserToken(lineCount, sub));
             }
         }
-
         public int GetCurrentLine() => m_tokens[m_index].Line;
 
         public bool IsDone() => m_index >= m_tokens.Count;

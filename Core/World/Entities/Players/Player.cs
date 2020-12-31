@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
+using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
@@ -654,6 +655,7 @@ namespace Helion.World.Entities.Players
             SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, new SoundParams(this));
         }
 
+        public string GetPlayerName() => "Player";
         public string GetGenderString() => "male";
 
         protected override void SetDeath(Entity? source, bool gibbed)
@@ -668,9 +670,26 @@ namespace Helion.World.Entities.Players
 
             SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Voice, new SoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
-            m_killer = source;
+
+            if (source != null)
+            {
+                m_killer = source.Owner ?? source;
+                HandleObituary(source, m_killer);                
+            }
 
             ForceLowerWeapon(true);
+        }
+
+        private void HandleObituary(Entity? source, Entity killer)
+        {
+            string? obituary;
+            if (killer == source && killer.Definition.Properties.HitObituary.Length > 0)
+                obituary = killer.Definition.Properties.HitObituary;
+            else
+                obituary = killer.Definition.Properties.Obituary;
+
+            if (!string.IsNullOrEmpty(obituary))
+                World.DisplayMessage(this, source as Player, obituary, LanguageMessageType.Obituary);
         }
 
         public void Jump()

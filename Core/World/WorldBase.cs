@@ -6,6 +6,7 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
@@ -335,7 +336,7 @@ namespace Helion.World
             if (entity is Player player && lockFail != null)
             {
                 player.PlayUseFailSound();
-                DisplayMessage(player, GetLockFailMessage(line, lockFail));
+                DisplayMessage(player, null, GetLockFailMessage(line, lockFail), LanguageMessageType.Lock);
             }
             return success;
         }
@@ -706,9 +707,11 @@ namespace Helion.World
             MoveDirection direction, double speed, double destZ, CrushData? crush)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, direction, speed, destZ, crush);
 
-        public virtual void DisplayMessage(Player player, string message)
+        public virtual void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type)
         {
-            Log.Info(message);
+            message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message, type);
+            if (message.Length > 0)
+                Log.Info(message);
         }
 
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)

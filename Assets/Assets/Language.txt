@@ -1,0 +1,161 @@
+Pickup
+GOTARMOR,Picked up the armor.
+GOTMEGA,Picked up the MegaArmor!
+GOTHTHBONUS,Picked up a health bonus.
+GOTARMBONUS,Picked up an armor bonus.
+GOTSTIM,Picked up a stimpack.
+GOTMEDINEED,Picked up a medikit that you REALLY need!
+GOTMEDIKIT,Picked up a medikit.
+GOTSUPER,Supercharge!
+GOTBLUECARD,Picked up a blue keycard.
+GOTYELWCARD,Picked up a yellow keycard.
+GOTREDCARD,Picked up a red keycard.
+GOTBLUESKUL,Picked up a blue skull key.
+GOTYELWSKUL,Picked up a yellow skull key.
+GOTREDSKUL,Picked up a red skull key.
+GOTINVUL,Invulnerability!
+GOTBERSERK,Berserk!
+GOTINVIS,Partial Invisibility
+GOTSUIT,Radiation Shielding Suit
+GOTMAP,Computer Area Map
+GOTVISOR,Light Amplification Visor
+GOTMSPHERE,MegaSphere!
+GOTCLIP,Picked up a clip.
+GOTCLIPBOX,Picked up a box of bullets.
+GOTROCKET,Picked up a rocket.
+GOTROCKBOX,Picked up a box of rockets.
+GOTCELL,Picked up an energy cell.
+GOTCELLBOX,Picked up an energy cell pack.
+GOTSHELLS,Picked up 4 shotgun shells.
+GOTSHELLBOX,Picked up a box of shotgun shells.
+GOTBACKPACK,Picked up a backpack full of ammo!
+GOTCHAINGUN,You got the chaingun!
+GOTCHAINSAW,A chainsaw!  Find some meat!
+GOTLAUNCHER,You got the rocket launcher!
+GOTPLASMA,You got the plasma gun!
+GOTSHOTGUN,You got the shotgun!
+GOTSHOTGUN2,You got the super shotgun!
+PICKUP_PISTOL_DROPPED,Picked up a pistol.
+BETA_BONUS1,You pick up a demonic dagger.
+BETA_BONUS2,You pick up a skullchest.
+BETA_BONUS3,You pick up an evil sceptre.
+BETA_BONUS4,You pick up an unholy bible.
+Locks
+PD_BLUEO,You need a blue key to activate this object
+PD_REDO,You need a red key to activate this object
+PD_YELLOWO,You need a yellow key to activate this object
+PD_BLUEK,You need a blue key to open this door
+PD_REDK,You need a red key to open this door
+PD_YELLOWK,You need a yellow key to open this door
+PD_BLUECO,You need a blue card to activate this object
+PD_REDCO,You need a red card to activate this object
+PD_YELLOWCO,You need a yellow card to activate this object
+PD_BLUESO,You need a blue skull to activate this object
+PD_REDSO,You need a red skull to activate this object
+PD_YELLOWSO,You need a yellow skull to activate this object
+PD_BLUEC,You need a blue card to open this door
+PD_REDC,You need a red card to open this door
+PD_YELLOWC,You need a yellow card to open this door
+PD_BLUES,You need a blue skull to open this door
+PD_REDS,You need a red skull to open this door
+PD_YELLOWS,You need a yellow skull to open this door
+Cast call names
+CC_ZOMBIE,Zombieman
+CC_SHOTGUN,Shotgun Guy
+CC_HEAVY,Heavy Weapon Dude
+CC_IMP,Imp
+CC_DEMON,Demon
+CC_LOST,Lost Soul
+CC_CACO,Cacodemon
+CC_HELL,Hell Knight
+CC_BARON,Baron of Hell
+CC_ARACH,Arachnotron
+CC_PAIN,Pain Elemental
+CC_REVEN,Revenant
+CC_MANCU,Mancubus
+CC_ARCH,Arch-Vile
+CC_SPIDER,The Spider Mastermind
+CC_CYBER,The Cyberdemon
+CC_HERO,Our Hero
+Actor tag names
+FN_ZOMBIE,Zombieman
+FN_SHOTGUN,Sergeant
+FN_HEAVY,Chaingunner
+FN_IMP,Imp
+FN_DEMON,Demon
+FN_SPECTRE,Spectre
+FN_LOST,Lost Soul
+FN_CACO,Cacodemon
+FN_HELL,Hell Knight
+FN_BARON,Baron of Hell
+FN_ARACH,Arachnotron
+FN_PAIN,Pain Elemental
+FN_REVEN,Revenant
+FN_MANCU,Mancubus
+FN_ARCH,Arch-vile
+FN_SPIDER,Spider Mastermind
+FN_CYBER,Cyberdemon
+FN_WOLFSS,Nazi
+FN_DOG,Dog
+TAG_FIST,Brass Knuckles
+TAG_CHAINSAW,Chainsaw
+TAG_PISTOL,Pistol
+TAG_SHOTGUN,Shotgun
+TAG_SUPERSHOTGUN,Super Shotgun
+TAG_CHAINGUN,Chaingun
+TAG_ROCKETLAUNCHER,Rocket Launcher
+TAG_PLASMARIFLE,Plasma Rifle
+TAG_BFG9000,BFG 9000
+AMMO_CLIP,Bullets
+AMMO_SHELLS,Shotgun Shells
+AMMO_ROCKETS,Rockets
+AMMO_CELLS,Energy Cells
+Obituaries
+OB_STEALTHBABY,%o thought %g saw an arachnotron.
+OB_STEALTHVILE,%o thought %g saw an archvile.
+OB_STEALTHBARON,%o thought %g saw a Baron of Hell.
+OB_STEALTHCACO,%o thought %g saw a cacodemon.
+OB_STEALTHCHAINGUY,%o thought %g saw a chaingunner.
+OB_STEALTHDEMON,%o thought %g saw a demon.
+OB_STEALTHKNIGHT,%o thought %g saw a Hell Knight.
+OB_STEALTHIMP,%o thought %g saw an imp.
+OB_STEALTHFATSO,%o thought %g saw a mancubus.
+OB_STEALTHUNDEAD,%o thought %g saw a revenant.
+OB_STEALTHSHOTGUNGUY,%o thought %g saw a sergeant.
+OB_STEALTHZOMBIE,%o thought %g saw a zombieman.
+OB_UNDEADHIT,%o was punched by a revenant.
+OB_IMPHIT,%o was slashed by an imp.
+OB_CACOHIT,%o got too close to a cacodemon.
+OB_DEMONHIT,%o was bit by a demon.
+OB_SPECTREHIT,%o was eaten by a spectre.
+OB_BARONHIT,%o was ripped open by a Baron of Hell.
+OB_KNIGHTHIT,%o was gutted by a Hell Knight.
+OB_ZOMBIE,%o was killed by a zombieman.
+OB_SHOTGUY,%o was shot by a sergeant.
+OB_VILE,%o was incinerated by an archvile.
+OB_UNDEAD,%o couldn't evade a revenant's fireball.
+OB_FATSO,%o was squashed by a mancubus.
+OB_CHAINGUY,%o was perforated by a chaingunner.
+OB_SKULL,%o was spooked by a lost soul.
+OB_IMP,%o was burned by an imp.
+OB_CACO,%o was smitten by a cacodemon.
+OB_BARON,%o was bruised by a Baron of Hell.
+OB_KNIGHT,%o was splayed by a Hell Knight.
+OB_SPIDER,%o stood in awe of the spider demon.
+OB_BABY,%o let an arachnotron get %h.
+OB_CYBORG,%o was splattered by a cyberdemon.
+OB_WOLFSS,%o met a Nazi.
+OB_DOG,%o was mauled by a dog.
+OB_MPFIST,%o chewed on %k's fist.
+OB_MPCHAINSAW,%o was mowed over by %k's chainsaw.
+OB_MPPISTOL,%o was tickled by %k's pea shooter.
+OB_MPSHOTGUN,%o chewed on %k's boomstick.
+OB_MPSSHOTGUN,%o was splattered by %k's super shotgun.
+OB_MPCHAINGUN,%o was mowed down by %k's chaingun.
+OB_MPROCKET,%o rode %k's rocket.
+OB_MPR_SPLASH,%o almost dodged %k's rocket.
+OB_MPPLASMARIFLE,%o was melted by %k's plasma gun.
+OB_MPBFG_BOOM,%o was splintered by %k's BFG.
+OB_MPBFG_SPLASH,%o couldn't hide from %k's BFG.
+OB_RAILGUN,%o was railed by %k.
+OB_MPBFG_MBF,%o was burned by %k's BFG.

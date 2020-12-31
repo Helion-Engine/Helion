@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.Language;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -818,15 +819,25 @@ namespace Helion.World.Physics
 
         private void PerformItemPickup(Entity entity, Entity item)
         {
-            if (entity is Player player && player.GiveItem(item.Definition, item.Flags))
-            {
-                if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
-                {
-                    m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                        new SoundParams(entity));
-                }
+            if (entity is not Player player)
+                return;
 
-                m_entityManager.Destroy(item);
+            int health = player.Health;
+            if (!player.GiveItem(item.Definition, item.Flags))
+                return;
+
+            string message = item.Definition.Properties.Inventory.PickupMessage;
+            var healthProperty = item.Definition.Properties.HealthProperty;
+            if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
+                message = healthProperty.Value.LowMessage;
+
+            m_world.DisplayMessage(player, null, message, LanguageMessageType.Pickup);
+            m_entityManager.Destroy(item);
+
+            if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+            {
+                m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
+                    new SoundParams(entity));
             }
         }
 
