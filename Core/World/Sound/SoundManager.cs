@@ -166,10 +166,12 @@ namespace Helion.World.Sound
         {
             audioSources.ForEach(sound =>
             {
-                sound.AudioData.SoundSource?.ClearSound(sound, sound.AudioData.SoundChannelType);
+                sound.AudioData.SoundSource.ClearSound(sound, sound.AudioData.SoundChannelType);
                 sound.Stop();
                 sound.Dispose();
             });
+
+            audioSources.Clear();
         }
 
         private void PlaySounds()
