@@ -3,6 +3,7 @@ using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Terminals;
 using Helion.World.Cheats;
 
 namespace Helion.Client

@@ -6,6 +6,7 @@ using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Terminals;
 using Helion.Util.Time;
 using MoreLinq;
 using TextCopy;
@@ -17,14 +18,14 @@ namespace Helion.Layer
         private const int NoInputMessageIndex = -1;
         public static readonly CIString LayerName = "CONSOLE";
 
-        private readonly HelionConsole m_console;
+        private readonly Terminal m_console;
         private readonly ConsoleDrawer m_consoleDrawer;
         private int m_submittedInputIndex = NoInputMessageIndex;
 
         protected override CIString Name => LayerName;
         protected override double Priority => 0.9f;
 
-        public ConsoleLayer(ArchiveCollection archiveCollection, HelionConsole console)
+        public ConsoleLayer(ArchiveCollection archiveCollection, Terminal console)
         {
             m_console = console;
             m_consoleDrawer = new(archiveCollection);

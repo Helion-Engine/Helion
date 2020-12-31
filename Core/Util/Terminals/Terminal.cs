@@ -10,7 +10,7 @@ using NLog;
 using NLog.Targets;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util
+namespace Helion.Util.Terminals
 {
     /// <summary>
     /// A console object that accepts input, emits console commands, and will
@@ -21,7 +21,7 @@ namespace Helion.Util
     /// be a medium for user pressed characters and messages from a variety of
     /// message emitters (ex: loggers).
     /// </remarks>
-    public class HelionConsole : Target
+    public class Terminal : Target
     {
         private const string TargetName = "HelionConsole";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -29,23 +29,10 @@ namespace Helion.Util
         private static readonly Color TraceColor = Color.FromArgb(255, 200, 255, 255);
 
         /// <summary>
-        /// How many console messages wil be logged. Any more than this will
-        /// cause older messages to be removed. This also applies to the input
-        /// message submission list.
-        /// </summary>
-        public int Capacity { get; private set; }
-
-        /// <summary>
-        /// The current location of the input caret. This will be between the
-        /// range of [0, length]. Note that the upper bound is inclusive.
-        /// </summary>
-        public int InputCaretPosition { get; private set; }
-
-        /// <summary>
         /// All the messages that have been received thus far.
         /// </summary>
         /// <remarks>
-        /// This will never exceed <see cref="Capacity"/>. Any messages at the
+        /// This will never exceed <see cref="m_capacity"/>. Any messages at the
         /// end of the list will be removed once this grows past the capacity
         /// value.
         /// </remarks>
@@ -57,10 +44,15 @@ namespace Helion.Util
         /// the most recent command.
         /// </summary>
         /// <remarks>
-        /// This will never grow beyond <see cref="Capacity"/> in length.
+        /// This will never grow beyond <see cref="m_capacity"/> in length.
         /// </remarks>
         public readonly LinkedList<string> SubmittedInput = new LinkedList<string>();
-        
+
+        /// <summary>
+        /// All the fields that the terminal can access.
+        /// </summary>
+        public readonly TerminalFields Fields;
+
         /// <summary>
         /// The clock epoch in nanoseconds when this was last closed.
         /// </summary>
@@ -79,39 +71,41 @@ namespace Helion.Util
         /// <remarks>
         /// This causes a copy allocation of the current input text.
         /// </remarks>
-        public string Input => input.ToString();
+        public string Input => m_input.ToString();
 
         /// <summary>
         /// The event handler that emits console commands on user input.
         /// </summary>
         public event EventHandler<ConsoleCommandEventArgs>? OnConsoleCommandEvent;
 
-        private readonly Config config;
-        private readonly StringBuilder input = new StringBuilder();
+        private readonly Config m_config;
+        private readonly StringBuilder m_input = new();
+        private int m_capacity;
 
-        public HelionConsole(Config cfg)
+        public Terminal(Config cfg)
         {
             Name = TargetName;
-            config = cfg;
-            
-            Capacity = config.Engine.Console.MaxMessages;
-            config.Engine.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
+            m_config = cfg;
+            m_capacity = m_config.Engine.Console.MaxMessages;
+            Fields = new(cfg);
+
+            m_config.Engine.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
 
             AddToLogger();
         }
 
-        ~HelionConsole()
+        ~Terminal()
         {
             FailedToDispose(this);
         }
-        
+
         /// <summary>
         /// Removes an input character, if any.
         /// </summary>
         public void RemoveInputCharacter()
         {
-            if (input.Length > 0)
-                input.Remove(input.Length - 1, 1);
+            if (m_input.Length > 0)
+                m_input.Remove(m_input.Length - 1, 1);
         }
 
         /// <summary>
@@ -119,17 +113,16 @@ namespace Helion.Util
         /// </summary>
         public void ClearInputText()
         {
-            input.Clear();
-            InputCaretPosition = 0;
+            m_input.Clear();
         }
 
         /// <summary>
-        /// Submits the current input text by firing an event and clears the 
+        /// Submits the current input text by firing an event and clears the
         /// input.
         /// </summary>
         public void SubmitInputText()
         {
-            string inputText = input.ToString();
+            string inputText = m_input.ToString();
             ClearInputText();
 
             if (inputText.Empty())
@@ -152,10 +145,10 @@ namespace Helion.Util
         {
             if (message.Empty())
                 return;
-            
+
             AddMessage(RGBColoredStringDecoder.Decode(message));
         }
-        
+
         /// <summary>
         /// Adds a new message to the console.
         /// </summary>
@@ -168,7 +161,7 @@ namespace Helion.Util
         {
             if (message.Empty)
                 return;
-            
+
             Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime()));
             RemoveExcessMessagesIfAny();
         }
@@ -188,7 +181,7 @@ namespace Helion.Util
             else if (IsBackspaceCharacter(c))
                 RemoveInputCharacter();
             else if (IsTextCharacter(c))
-                input.Append(c);
+                m_input.Append(c);
         }
 
         /// <summary>
@@ -205,8 +198,8 @@ namespace Helion.Util
 
         public new void Dispose()
         {
-            config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
-            
+            m_config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+
             // TODO: Investigate whether this is correct or not, the logger
             // documentation isn't clear and stack overflow has some unusual
             // results for how to properly remove the logger.
@@ -245,17 +238,17 @@ namespace Helion.Util
         }
 
         private static bool IsTextCharacter(char c) => c >= 32 && c < 127;
-        
+
         private static bool IsBackspaceCharacter(char c) => c == 8;
-        
+
         private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
 
         private void OnMaxMessagesChanged(object? sender, ConfigValueEvent<int> maxMsgEvent)
         {
-            Capacity = Math.Max(1, maxMsgEvent.NewValue);
+            m_capacity = Math.Max(1, maxMsgEvent.NewValue);
             RemoveExcessMessagesIfAny();
         }
-        
+
         private void AddToLogger()
         {
             var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
@@ -271,10 +264,10 @@ namespace Helion.Util
 
         private void RemoveExcessMessagesIfAny()
         {
-            while (Messages.Count > Capacity)
+            while (Messages.Count > m_capacity)
                 Messages.RemoveLast();
         }
-        
+
         private void CacheSubmittedInput(string inputText)
         {
             RemoveExcessSubmittedInputIfAny();
@@ -283,61 +276,8 @@ namespace Helion.Util
 
         private void RemoveExcessSubmittedInputIfAny()
         {
-            while (SubmittedInput.Count > Capacity)
+            while (SubmittedInput.Count > m_capacity)
                 SubmittedInput.RemoveLast();
-        }
-    }
-
-    /// <summary>
-    /// An event fired by a console when the user submits an 'enter' character.
-    /// </summary>
-    public class ConsoleCommandEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The upper case command this event is.
-        /// </summary>
-        /// <remarks>
-        /// This is always the first string in the command. For example, if the
-        /// console was firing out "map map01" then the command would be "MAP".
-        /// </remarks>
-        public readonly string Command = "";
-
-        /// <summary>
-        /// The arguments (if any) that came with the command.
-        /// </summary>
-        public readonly IList<string> Args = new List<string>();
-
-        /// <summary>
-        /// Parses the text provided into a console command event.
-        /// </summary>
-        /// <param name="text">The input to parse. This should not be empty.
-        /// </param>
-        public ConsoleCommandEventArgs(string text)
-        {
-            Precondition(!text.Empty(), "Should not be getting an empty console command");
-
-            string[] tokens = text.Split(' ');
-            if (tokens.Length == 0)
-                return;
-
-            Command = tokens[0];
-            for (int i = 1; i < tokens.Length; i++)
-                Args.Add(tokens[i]);
-        }
-
-        public override string ToString() => $"{Command} [{string.Join(", ", Args)}]";
-    }
-
-    // TODO: Move this out of the class.
-    public readonly struct ConsoleMessage
-    {
-        public readonly ColoredString Message;
-        public readonly long TimeNanos;
-
-        public ConsoleMessage(ColoredString message, long timeNanos)
-        {
-            Message = message;
-            TimeNanos = timeNanos;
         }
     }
 }

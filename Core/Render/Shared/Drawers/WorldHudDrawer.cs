@@ -12,6 +12,7 @@ using Helion.Util.Configuration;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
+using Helion.Util.Terminals;
 using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Entities.Definition.Properties;
@@ -19,7 +20,6 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
-using MoreLinq;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
@@ -52,7 +52,7 @@ namespace Helion.Render.Shared.Drawers
             m_archiveCollection = archiveCollection;
         }
 
-        public void Draw(Player player, WorldBase world, float tickFraction, HelionConsole console,
+        public void Draw(Player player, WorldBase world, float tickFraction, Terminal console,
             Dimension viewport, Config config, RenderCommands cmd)
         {
             DrawHelper draw = new(cmd);
@@ -367,7 +367,7 @@ namespace Helion.Render.Shared.Drawers
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
         }
 
-        private void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, Font? smallFont,
+        private void DrawRecentConsoleMessages(WorldBase world, Terminal console, Font? smallFont,
             DrawHelper helper)
         {
             if (smallFont == null)
@@ -405,7 +405,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static bool MessageTooOldToDraw(in ConsoleMessage msg, WorldBase world, HelionConsole console)
+        private static bool MessageTooOldToDraw(in ConsoleMessage msg, WorldBase world, Terminal console)
         {
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }

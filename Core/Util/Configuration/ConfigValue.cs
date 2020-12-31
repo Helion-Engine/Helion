@@ -14,7 +14,7 @@ namespace Helion.Util.Configuration
         {
             value = defaultValue;
         }
-    
+
         public static implicit operator T(ConfigValue<T> configValue) => configValue.value;
 
         public T Get() => value;
@@ -22,9 +22,9 @@ namespace Helion.Util.Configuration
         public void Set(T newValue)
         {
             bool changed = CheckForChange(newValue);
-            
+
             value = newValue;
-            
+
             if (changed)
                 OnChanged?.Invoke(this, new ConfigValueEvent<T>(newValue));
         }
@@ -40,7 +40,7 @@ namespace Helion.Util.Configuration
                 Fail($"Unexpected argument type for enum type {typeof(T)}");
                 return true;
             }
-            
+
             switch (newValue)
             {
                 case bool newBoolValue:
@@ -60,19 +60,19 @@ namespace Helion.Util.Configuration
                         return !MathHelper.AreEqual(doubleValue, newDoubleValue);
                     Fail($"Unexpected argument type, expected a double but got {typeof(T)}");
                     return true;
-        
+
                 case int newIntValue:
                     if (value is int intValue)
                         return intValue != newIntValue;
                     Fail($"Unexpected argument type, expected an int but got {typeof(T)}");
                     return true;
-        
+
                 case string newStringValue:
                     if (value is string stringValue)
                         return stringValue != newStringValue;
                     Fail($"Unexpected argument type, expected a string but got {typeof(T)}");
                     return true;
-        
+
                 default:
                     Fail($"Unexpected config value type: {typeof(T)}");
                     return true;

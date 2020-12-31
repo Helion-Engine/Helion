@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
+using Helion.Util.Terminals;
 using Helion.World;
 
 namespace Helion.Layer.WorldLayers
@@ -15,13 +16,13 @@ namespace Helion.Layer.WorldLayers
         protected override CIString Name { get; } = "WORLD";
         protected override double Priority { get; } = 0.25f;
         protected readonly Config Config;
-        protected readonly HelionConsole Console;
+        protected readonly Terminal Console;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
         
         public abstract WorldBase World { get; }
 
-        public WorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
+        public WorldLayer(Config config, Terminal console, ArchiveCollection archiveCollection,
             IAudioSystem audioSystem)
         {
             Config = config;
