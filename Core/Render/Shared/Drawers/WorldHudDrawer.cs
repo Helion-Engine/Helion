@@ -17,6 +17,7 @@ using Helion.World;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using MoreLinq;
 using Font = Helion.Graphics.Fonts.Font;
@@ -301,10 +302,13 @@ namespace Helion.Render.Shared.Drawers
                 DoomHudHelper.ScaleImageDimensions(viewport, ref width, ref height);
                 DoomHudHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
 
+                IPowerup? powerup = player.Inventory.GetPowerup(PowerupType.Invisibility);
+                float alpha = powerup == null ? 1.0f : 0.3f;
+
                 // Translate doom image offset to OpenGL coordinates
                 int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
                 int y = -offset.Y - height + weaponOffset.Y;
-                draw.Image(sprite, x, y, width, height, color: lightLevelColor);
+                draw.Image(sprite, x, y, width, height, color: lightLevelColor, alpha: alpha);
             }
         }
 
@@ -391,12 +395,12 @@ namespace Helion.Render.Shared.Drawers
                 messagesDrawn++;
             }
 
-            messages.ForEach(pair =>
+            foreach ((ColoredString message, float alpha) in messages)
             {
-                helper.Text(pair.message, smallFont, 16, out Dimension drawArea,
-                    LeftOffset, offsetY, textbox: Align.TopLeft, alpha: pair.alpha);
+                helper.Text(message, smallFont, 16, out Dimension drawArea,
+                    LeftOffset, offsetY, textbox: Align.TopLeft, alpha: alpha);
                 offsetY += drawArea.Height + MessageSpacing;
-            });
+            }
         }
 
         private static bool MessageTooOldToDraw(in ConsoleMessage msg, WorldBase world, HelionConsole console)
