@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL.Shader.Component
     {
         protected readonly int ShaderId;
         protected readonly IGLFunctions gl;
-        
+
         protected ShaderComponent(IGLFunctions functions, string shaderText)
         {
             gl = functions;
@@ -33,7 +33,7 @@ namespace Helion.Render.OpenGL.Shader.Component
             action.Invoke();
             gl.DetachShader(programId, ShaderId);
         }
-        
+
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -45,12 +45,13 @@ namespace Helion.Render.OpenGL.Shader.Component
         private void CleanupAndThrowIfCompilationError()
         {
             gl.GetShader(ShaderId, ShaderParameterType.CompileStatus, out int status);
-            if (status == GLHelper.GLTrue) 
+            if (status == GLHelper.GLTrue)
                 return;
-            
-            Dispose();
-                
+
             string errorMsg = gl.GetShaderInfoLog(ShaderId);
+
+            Dispose();
+
             throw new ShaderException($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
         }
 

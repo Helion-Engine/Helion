@@ -89,7 +89,6 @@ namespace Helion.Render.Shared.Drawers
                 DrawMinimalStatusBar(player, topRightY, largeFont, draw);
         }
 
-
         private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw)
         {
             draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
