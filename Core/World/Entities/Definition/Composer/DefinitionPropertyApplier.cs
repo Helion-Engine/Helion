@@ -6,6 +6,9 @@ namespace Helion.World.Entities.Definition.Composer
     {
         public static void Apply(EntityDefinition definition, ActorProperties properties)
         {
+            if (properties.Alpha != null)
+                definition.Properties.Alpha = properties.Alpha.Value;
+
             if (properties.Damage.Value != null)
             {
                 definition.Properties.Damage.Value = properties.Damage.Value.Value;

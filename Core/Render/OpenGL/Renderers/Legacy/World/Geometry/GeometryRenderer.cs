@@ -114,7 +114,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 .Select(flat => flat.TextureHandle)
                 .Distinct();
             textures.AddRange(flatTextures);
-            
+
             TextureManager.Instance.LoadTextureImages(textures);
         }
 
@@ -142,7 +142,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                     throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
                 RenderSide(side, onFrontSide);
-                
+
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
                 AddLineClip(edge);
             }
@@ -506,6 +506,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[0].Z = wv.TopLeft.Z;
             data[0].U = wv.TopLeft.U;
             data[0].V = wv.TopLeft.V;
+            data[0].Alpha = 1.0f;
 
             data[1].LightLevelUnit = lightLevel;
             data[1].X = wv.BottomLeft.X;
@@ -513,6 +514,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[1].Z = wv.BottomLeft.Z;
             data[1].U = wv.BottomLeft.U;
             data[1].V = wv.BottomLeft.V;
+            data[1].Alpha = 1.0f;
 
             data[2].LightLevelUnit = lightLevel;
             data[2].X = wv.TopRight.X;
@@ -520,6 +522,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[2].Z = wv.TopRight.Z;
             data[2].U = wv.TopRight.U;
             data[2].V = wv.TopRight.V;
+            data[2].Alpha = 1.0f;
 
             data[3].LightLevelUnit = lightLevel;
             data[3].X = wv.TopRight.X;
@@ -527,6 +530,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[3].Z = wv.TopRight.Z;
             data[3].U = wv.TopRight.U;
             data[3].V = wv.TopRight.V;
+            data[3].Alpha = 1.0f;
 
             data[4].LightLevelUnit = lightLevel;
             data[4].X = wv.BottomLeft.X;
@@ -534,6 +538,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[4].Z = wv.BottomLeft.Z;
             data[4].U = wv.BottomLeft.U;
             data[4].V = wv.BottomLeft.V;
+            data[4].Alpha = 1.0f;
 
             data[5].LightLevelUnit = lightLevel;
             data[5].X = wv.BottomRight.X;
@@ -541,6 +546,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[5].Z = wv.BottomRight.Z;
             data[5].U = wv.BottomRight.U;
             data[5].V = wv.BottomRight.V;
+            data[5].Alpha = 1.0f;
 
             return data;
         }
@@ -555,6 +561,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[0].Z = root.Z;
             data[0].U = root.U;
             data[0].V = root.V;
+            data[0].Alpha = 1.0f;
 
             data[1].LightLevelUnit = lightLevel;
             data[1].X = second.X;
@@ -562,6 +569,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[1].Z = second.Z;
             data[1].U = second.U;
             data[1].V = second.V;
+            data[1].Alpha = 1.0f;
 
             data[2].LightLevelUnit = lightLevel;
             data[2].X = third.X;
@@ -569,6 +577,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[2].Z = third.Z;
             data[2].U = third.U;
             data[2].V = third.V;
+            data[2].Alpha = 1.0f;
 
             return data;
         }

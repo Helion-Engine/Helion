@@ -12,8 +12,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public float U;
         public float V;
         public float LightLevelUnit;
+        public float Alpha;
 
-        public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel)
+        public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel, float alpha = 1.0f)
         {
             X = x;
             Y = y;
@@ -21,11 +22,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             U = u;
             V = v;
             LightLevelUnit = lightLevel / 256.0f;
-        }
-
-        public LegacyVertex(WorldVertex vertex, short lightLevel) :
-            this(vertex.X, vertex.Y, vertex.Z, vertex.U, vertex.V, lightLevel)
-        {
+            Alpha = alpha;
         }
     }
 }

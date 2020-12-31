@@ -25,7 +25,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private readonly Config m_config;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly RenderWorldDataManager m_worldDataManager;
-        private readonly EntityDrawnTracker m_EntityDrawnTracker = new EntityDrawnTracker();
+        private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
         private bool m_drawDebugBox;
         private double m_tickFraction;
         private Entity? m_cameraEntity;
@@ -107,7 +107,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         {
             return entity.Frame.IsInvisible ||
                     m_EntityDrawnTracker.HasDrawn(entity) ||
-                    ReferenceEquals(m_cameraEntity, entity);           
+                    ReferenceEquals(m_cameraEntity, entity);
         }
 
         private void AddSpriteQuad(in Vec2D viewDirection, in Vec3D entityCenterBottom, Entity entity,
@@ -131,11 +131,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             float leftU = mirror ? 1.0f : 0.0f;
             float rightU = mirror ? 0.0f : 1.0f;
             short lightLevel = CalculateLightLevel(entity, entity.Sector.LightLevel);
+            float alpha = (float)entity.Definition.Properties.Alpha;
 
-            LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, lightLevel);
-            LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, lightLevel);
-            LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel);
-            LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel);
+            LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha);
+            LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha);
+            LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha);
+            LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha);
 
             RenderWorldData renderWorldData = m_worldDataManager[texture];
             renderWorldData.Vbo.Add(topLeft);

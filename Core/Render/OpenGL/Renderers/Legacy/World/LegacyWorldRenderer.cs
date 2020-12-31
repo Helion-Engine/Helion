@@ -28,7 +28,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public static readonly VertexArrayAttributes Attributes = new(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
-            new VertexPointerFloatAttribute("lightLevel", 2, 1));
+            new VertexPointerFloatAttribute("lightLevel", 2, 1),
+            new VertexPointerFloatAttribute("alpha", 3, 1));
 
         private readonly Config m_config;
         private readonly IGLFunctions gl;

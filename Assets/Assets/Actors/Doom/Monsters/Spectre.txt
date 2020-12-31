@@ -1,7 +1,7 @@
 actor Spectre : Demon 58
 {
     ActiveSound "spectre/active"
-    Alpha 0.5
+    Alpha 0.4
     AttackSound "spectre/melee"
     DeathSound "spectre/death"
     HitObituary "$OB_SPECTREHIT"
@@ -9,6 +9,6 @@ actor Spectre : Demon 58
     RenderStyle OptFuzzy
     SeeSound "spectre/sight"
     SpawnID 9
-    
+
     +SHADOW
 }
