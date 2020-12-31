@@ -6,7 +6,8 @@ namespace Helion.Util.Configs
 {
     public class Config : IDisposable
     {
-        public ConfigWindow Window = new();
+        public readonly ConfigFiles Files = new();
+        public readonly ConfigWindow Window = new();
         private readonly string m_path;
         private bool m_disposed;
 

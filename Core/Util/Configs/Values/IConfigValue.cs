@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Helion.Util.Configs.Values
+﻿namespace Helion.Util.Configs.Values
 {
     public interface IConfigValue<out T>
     {
