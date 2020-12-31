@@ -153,6 +153,22 @@ namespace Helion.World.Physics
 
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
+                    if (entity.Flags.Dropped)
+                    {
+                        m_entityManager.Destroy(entity);
+                        continue;
+                    }
+
+                    // Need to gib things even when not crushing and do not count as blocking
+                    if (entity.Flags.Corpse && !entity.Flags.DontGib)
+                    {
+                        SetToGiblets(entity);
+                        continue;
+                    }
+
+                    if (!entity.Flags.Solid)
+                        continue;
+
                     if (crush != null)
                     {
                         if (crush.CrushMode == ZDoomCrushMode.Hexen)
@@ -166,22 +182,6 @@ namespace Helion.World.Physics
                     }
                     else
                     {
-                        // Need to gib things even when not crushing and do not count as blocking
-                        if (entity.Flags.Corpse && !entity.Flags.DontGib)
-                        {
-                            SetToGiblets(entity);
-                            continue;
-                        }
-
-                        if (entity.Flags.Dropped)
-                        {
-                            m_entityManager.Destroy(entity);
-                            continue;
-                        }
-
-                        if (!entity.Flags.Solid)
-                            continue;
-
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
                         status = SectorMoveStatus.Blocked;
@@ -234,13 +234,8 @@ namespace Helion.World.Physics
             stackCrush = stackCrush.Union(crushEntities).Distinct().ToList();
 
             foreach (Entity crushEntity in stackCrush)
-            {              
-                if (crushEntity.IsDead)
-                {
-                    if (!crushEntity.Flags.DontGib)
-                        SetToGiblets(crushEntity);
-                }
-                else if (m_world.DamageEntity(crushEntity, null, crush.Damage))
+            {
+                if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage))
                 {
                     Vec3D pos = crushEntity.Position;
                     pos.Z += crushEntity.Height / 2;
