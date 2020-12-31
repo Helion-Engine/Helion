@@ -510,6 +510,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[0].R = 1.0f;
             data[0].G = 1.0f;
             data[0].B = 1.0f;
+            data[0].Fuzz = 0;
 
             data[1].LightLevelUnit = lightLevel;
             data[1].X = wv.BottomLeft.X;
@@ -521,6 +522,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[1].R = 1.0f;
             data[1].G = 1.0f;
             data[1].B = 1.0f;
+            data[1].Fuzz = 0;
 
             data[2].LightLevelUnit = lightLevel;
             data[2].X = wv.TopRight.X;
@@ -532,6 +534,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[2].R = 1.0f;
             data[2].G = 1.0f;
             data[2].B = 1.0f;
+            data[2].Fuzz = 0;
 
             data[3].LightLevelUnit = lightLevel;
             data[3].X = wv.TopRight.X;
@@ -543,6 +546,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[3].R = 1.0f;
             data[3].G = 1.0f;
             data[3].B = 1.0f;
+            data[3].Fuzz = 0;
 
             data[4].LightLevelUnit = lightLevel;
             data[4].X = wv.BottomLeft.X;
@@ -554,6 +558,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[4].R = 1.0f;
             data[4].G = 1.0f;
             data[4].B = 1.0f;
+            data[4].Fuzz = 0;
 
             data[5].LightLevelUnit = lightLevel;
             data[5].X = wv.BottomRight.X;
@@ -565,6 +570,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[5].R = 1.0f;
             data[5].G = 1.0f;
             data[5].B = 1.0f;
+            data[5].Fuzz = 0;
 
             return data;
         }
@@ -583,6 +589,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[0].R = 1.0f;
             data[0].G = 1.0f;
             data[0].B = 1.0f;
+            data[0].Fuzz = 0;
 
             data[1].LightLevelUnit = lightLevel;
             data[1].X = second.X;
@@ -594,6 +601,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[1].R = 1.0f;
             data[1].G = 1.0f;
             data[1].B = 1.0f;
+            data[1].Fuzz = 0;
 
             data[2].LightLevelUnit = lightLevel;
             data[2].X = third.X;
@@ -605,6 +613,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             data[2].R = 1.0f;
             data[2].G = 1.0f;
             data[2].B = 1.0f;
+            data[2].Fuzz = 0;
 
             return data;
         }

@@ -30,7 +30,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             new VertexPointerFloatAttribute("uv", 1, 2),
             new VertexPointerFloatAttribute("lightLevel", 2, 1),
             new VertexPointerFloatAttribute("alpha", 3, 1),
-            new VertexPointerFloatAttribute("colorMul", 4, 3));
+            new VertexPointerFloatAttribute("colorMul", 4, 3),
+            new VertexPointerFloatAttribute("fuzz", 5, 1));
 
         private readonly Config m_config;
         private readonly IGLFunctions gl;
@@ -164,6 +165,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             int drawInvulnerability = 0;
             (float mix, float value) = GetLightLevelWeaponModifier(renderInfo);
 
+            // We divide by 4 to make it so the noise changes every four ticks.
+            // We then mod by 8 so that the number stays small (or else when it
+            // is multiplied in the shader it will overflow very quickly if we
+            // don't do this). This could be any number, I just arbitrarily
+            // chose 8. This means there are 8 different versions that are to
+            // be rendered if the person stares at an unmoving body long enough.
+            // Then we add 1 because if the value is 0, then the noise formula
+            // outputs zero uniformly which makes it look invisible.
+            const int ticksPerFrame = 4;
+            const int differentFrames = 8;
+            float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / ticksPerFrame) % differentFrames) + 1;
+
             if (renderInfo.ViewerEntity is Player player)
             {
                 if (player.DrawFullBright())
@@ -172,11 +185,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     drawInvulnerability = 1;
             }
 
-            m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
             m_shaderProgram.BoundTexture.Set(gl, 0);
+            m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
             m_shaderProgram.LightLevelMix.Set(gl, mix);
             m_shaderProgram.LightLevelValue.Set(gl, value);
             m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
+            m_shaderProgram.TimeFrac.Set(gl, timeFrac);
         }
 
         private void RenderWorldData(RenderInfo renderInfo)

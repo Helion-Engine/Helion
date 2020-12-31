@@ -16,13 +16,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public float R;
         public float G;
         public float B;
+        public float Fuzz;
 
         public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel = 256, float alpha = 1.0f) :
-            this(x, y, z, u, v, Color.White, lightLevel, alpha)
+            this(x, y, z, u, v, Color.White, lightLevel, alpha, false)
         {
         }
 
-        public LegacyVertex(float x, float y, float z, float u, float v, Color color, short lightLevel = 256, float alpha = 1.0f)
+        public LegacyVertex(float x, float y, float z, float u, float v, Color color, short lightLevel = 256,
+            float alpha = 1.0f, bool fuzz = false)
         {
             X = x;
             Y = y;
@@ -34,6 +36,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             R = color.R / 255.0f;
             G = color.G / 255.0f;
             B = color.B / 255.0f;
+            Fuzz = fuzz ? 1.0f : 0.0f;
         }
     }
 }

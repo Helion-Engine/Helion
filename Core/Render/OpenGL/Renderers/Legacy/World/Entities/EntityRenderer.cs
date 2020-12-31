@@ -135,11 +135,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             short lightLevel = CalculateLightLevel(entity, entity.Sector.LightLevel);
             float alpha = (float)entity.Definition.Properties.Alpha;
             Color color = entity.Definition.Flags.Shadow ? ShadowColor : Color.White;
+            bool fuzz = entity.Definition.Flags.Shadow;
 
-            LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, color, lightLevel, alpha);
-            LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, color, lightLevel, alpha);
-            LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, color, lightLevel, alpha);
-            LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, color, lightLevel, alpha);
+            LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, color, lightLevel, alpha, fuzz);
+            LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, color, lightLevel, alpha, fuzz);
+            LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, color, lightLevel, alpha, fuzz);
+            LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, color, lightLevel, alpha, fuzz);
 
             RenderWorldData renderWorldData = m_worldDataManager[texture];
             renderWorldData.Vbo.Add(topLeft);
