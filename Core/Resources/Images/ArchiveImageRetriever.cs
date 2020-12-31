@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.IO;
 using Helion.Graphics;
@@ -21,7 +22,7 @@ namespace Helion.Resources.Images
 
         private readonly ArchiveCollection m_archiveCollection;
         private readonly ResourceTracker<Image> m_compiledImages = new ResourceTracker<Image>();
-        
+
         /// <summary>
         /// Creates an image reader that uses the archive collection for its
         /// image data retrieval.
@@ -47,13 +48,12 @@ namespace Helion.Resources.Images
             return data.Length > 14 && data[0] == 'B' && data[1] == 'M';
         }
 
-        /// <inheritdoc/>
         public Image? Get(CIString name, ResourceNamespace priorityNamespace)
         {
             Image? compiledImage = m_compiledImages.Get(name, priorityNamespace);
             if (compiledImage != null)
                 return compiledImage;
-            
+
             Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, priorityNamespace);
             if (entry != null)
                 return ImageFromEntry(entry);
@@ -64,8 +64,7 @@ namespace Helion.Resources.Images
 
             return null;
         }
-        
-        /// <inheritdoc/>
+
         public Image? GetOnly(CIString name, ResourceNamespace targetNamespace)
         {
             Image? compiledImage = m_compiledImages.GetOnly(name, targetNamespace);
@@ -75,7 +74,7 @@ namespace Helion.Resources.Images
             TextureDefinition? definition = m_archiveCollection.Definitions.Textures.GetOnly(name, targetNamespace);
             if (definition != null)
                 return ImageFromDefinition(definition);
-            
+
             Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, targetNamespace);
             return entry != null ? ImageFromEntry(entry) : null;
         }
@@ -84,7 +83,7 @@ namespace Helion.Resources.Images
         {
             ImageMetadata imageMetadata = new ImageMetadata(definition.Namespace);
             Image image = new Image(definition.Width, definition.Height, Color.Transparent, imageMetadata);
-            
+
             foreach (TextureDefinitionComponent component in definition.Components)
             {
                 Image? subImage = m_compiledImages.Get(component.Name, definition.Namespace);
@@ -110,7 +109,7 @@ namespace Helion.Resources.Images
                     Log.Warn("Cannot find sub-image {0} when making image {1}, resulting will be corrupt", component.Name, definition.Name);
                     continue;
                 }
-                
+
                 subImage.DrawOnTopOf(image, component.Offset);
             }
 
@@ -136,7 +135,7 @@ namespace Helion.Resources.Images
             }
             else
             {
-                if (PaletteReaders.LikelyFlat(data))
+                if (entry.Namespace == ResourceNamespace.Flats && PaletteReaders.LikelyFlat(data))
                 {
                     PaletteImage? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
                     if (flatPaletteImage != null)
