@@ -19,7 +19,6 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
-using MoreLinq;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
@@ -88,7 +87,6 @@ namespace Helion.Render.Shared.Drawers
             else
                 DrawMinimalStatusBar(player, topRightY, largeFont, draw);
         }
-
 
         private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw)
         {
