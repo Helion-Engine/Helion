@@ -29,7 +29,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
             new VertexPointerFloatAttribute("lightLevel", 2, 1),
-            new VertexPointerFloatAttribute("alpha", 3, 1));
+            new VertexPointerFloatAttribute("alpha", 3, 1),
+            new VertexPointerFloatAttribute("colorMul", 4, 3));
 
         private readonly Config m_config;
         private readonly IGLFunctions gl;

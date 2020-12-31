@@ -28,10 +28,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 in vec2 uv;
                 in float lightLevel;
                 in float alpha;
+                in vec3 colorMul;
 
                 out vec2 uvFrag;
                 flat out float lightLevelFrag;
                 flat out float alphaFrag;
+                out vec3 colorMulFrag;
 
                 uniform mat4 mvp;
 
@@ -39,6 +41,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     uvFrag = uv;    
                     lightLevelFrag = clamp(lightLevel, 0.0, 1.0);
                     alphaFrag = alpha;
+                    colorMulFrag = colorMul;
 
                     gl_Position = mvp * vec4(pos, 1.0);
                 }
@@ -50,6 +53,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 in vec2 uvFrag;
                 flat in float lightLevelFrag;
                 flat in float alphaFrag;
+                in vec3 colorMulFrag;
 
                 out vec4 fragColor;
 
@@ -77,6 +81,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 void main() {
                     fragColor = texture(boundTexture, uvFrag.st);
+                    fragColor.xyz *= colorMulFrag;
                     fragColor.xyz *= calculateLightLevel();
                     fragColor.w *= alphaFrag;
 

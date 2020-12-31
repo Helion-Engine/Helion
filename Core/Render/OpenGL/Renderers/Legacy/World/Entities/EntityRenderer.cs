@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Numerics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -21,6 +22,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         /// for more information.
         /// </summary>
         private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
+        private static readonly Color ShadowColor = Color.FromArgb(32, 32, 32);
 
         private readonly Config m_config;
         private readonly LegacyGLTextureManager m_textureManager;
@@ -132,11 +134,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             float rightU = mirror ? 0.0f : 1.0f;
             short lightLevel = CalculateLightLevel(entity, entity.Sector.LightLevel);
             float alpha = (float)entity.Definition.Properties.Alpha;
+            Color color = entity.Definition.Flags.Shadow ? ShadowColor : Color.White;
 
-            LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha);
-            LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha);
-            LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha);
-            LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha);
+            LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, color, lightLevel, alpha);
+            LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, color, lightLevel, alpha);
+            LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, color, lightLevel, alpha);
+            LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, color, lightLevel, alpha);
 
             RenderWorldData renderWorldData = m_worldDataManager[texture];
             renderWorldData.Vbo.Add(topLeft);
@@ -196,14 +199,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 //  (min) 0----1            o--> X
                 return cornerIndex switch
                 {
-                    0 => new LegacyVertex(min.X, min.Y, min.Z, u, v, 255),
-                    1 => new LegacyVertex(max.X, min.Y, min.Z, u, v, 255),
-                    2 => new LegacyVertex(min.X, min.Y, max.Z, u, v, 255),
-                    3 => new LegacyVertex(max.X, min.Y, max.Z, u, v, 255),
-                    4 => new LegacyVertex(min.X, max.Y, min.Z, u, v, 255),
-                    5 => new LegacyVertex(max.X, max.Y, min.Z, u, v, 255),
-                    6 => new LegacyVertex(min.X, max.Y, max.Z, u, v, 255),
-                    7 => new LegacyVertex(max.X, max.Y, max.Z, u, v, 255),
+                    0 => new LegacyVertex(min.X, min.Y, min.Z, u, v),
+                    1 => new LegacyVertex(max.X, min.Y, min.Z, u, v),
+                    2 => new LegacyVertex(min.X, min.Y, max.Z, u, v),
+                    3 => new LegacyVertex(max.X, min.Y, max.Z, u, v),
+                    4 => new LegacyVertex(min.X, max.Y, min.Z, u, v),
+                    5 => new LegacyVertex(max.X, max.Y, min.Z, u, v),
+                    6 => new LegacyVertex(min.X, max.Y, max.Z, u, v),
+                    7 => new LegacyVertex(max.X, max.Y, max.Z, u, v),
                     _ => throw new Exception("Out of bounds cube index when debugging entity bounding box")
                 };
             }
