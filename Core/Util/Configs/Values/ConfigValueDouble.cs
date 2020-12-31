@@ -5,7 +5,7 @@ namespace Helion.Util.Configs.Values
     public class ConfigValueDouble : IConfigValue<double>
     {
         public double Value { get; private set; }
-
+        public bool Changed { get; private set; }
         public event EventHandler<double>? OnChanged;
 
         public ConfigValueDouble(double value = default)
@@ -62,7 +62,10 @@ namespace Helion.Util.Configs.Values
         private void EmitEventIfChanged(double oldValue)
         {
             if (!oldValue.Equals(Value))
+            {
+                Changed = true;
                 OnChanged?.Invoke(this, Value);
+            }
         }
 
         public override string ToString() => Value.ToString();

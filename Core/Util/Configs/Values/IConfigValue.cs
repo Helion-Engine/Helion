@@ -8,6 +8,11 @@
         T Value { get; }
 
         /// <summary>
+        /// If this value changed since loading.
+        /// </summary>
+        bool Changed { get; }
+
+        /// <summary>
         /// Gets the stored value.
         /// </summary>
         /// <returns>The stored value.</returns>

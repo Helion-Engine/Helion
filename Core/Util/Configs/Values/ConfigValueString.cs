@@ -6,7 +6,7 @@ namespace Helion.Util.Configs.Values
     public class ConfigValueString : IConfigValue<string>
     {
         public string Value { get; private set; }
-
+        public bool Changed { get; private set; }
         public event EventHandler<string>? OnChanged;
 
         public ConfigValueString(string value = "")
@@ -24,7 +24,10 @@ namespace Helion.Util.Configs.Values
             Value = obj.ToString() ?? "";
 
             if (oldValue != Value)
+            {
+                Changed = true;
                 OnChanged?.Invoke(this, Value);
+            }
 
             return !Value.Empty();
         }

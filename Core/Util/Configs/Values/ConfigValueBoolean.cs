@@ -6,7 +6,7 @@ namespace Helion.Util.Configs.Values
     public class ConfigValueBoolean : IConfigValue<bool>
     {
         public bool Value { get; private set; }
-
+        public bool Changed { get; private set; }
         public event EventHandler<bool>? OnChanged;
 
         public ConfigValueBoolean(bool value = default)
@@ -59,7 +59,10 @@ namespace Helion.Util.Configs.Values
         private void EmitEventIfChanged(bool oldValue)
         {
             if (oldValue != Value)
+            {
+                Changed = true;
                 OnChanged?.Invoke(this, Value);
+            }
         }
 
         public override string ToString() => Value.ToString();

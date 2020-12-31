@@ -5,7 +5,7 @@ namespace Helion.Util.Configs.Values
     public class ConfigValueEnum<E> : IConfigValue<E> where E : struct, Enum
     {
         public E Value { get; private set; }
-
+        public bool Changed { get; private set; }
         public event EventHandler<E>? OnChanged;
 
         public ConfigValueEnum(E value = default)
@@ -56,7 +56,10 @@ namespace Helion.Util.Configs.Values
         private void EmitEventIfChanged(E oldValue)
         {
             if (!Equals(oldValue, Value))
+            {
+                Changed = true;
                 OnChanged?.Invoke(this, Value);
+            }
         }
 
         public override string ToString() => Value.ToString();

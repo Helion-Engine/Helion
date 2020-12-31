@@ -5,7 +5,7 @@ namespace Helion.Util.Configs.Values
     public class ConfigValueInt : IConfigValue<int>
     {
         public int Value { get; private set; }
-
+        public bool Changed { get; private set; }
         public event EventHandler<int>? OnChanged;
 
         public ConfigValueInt(int value = default)
@@ -62,7 +62,10 @@ namespace Helion.Util.Configs.Values
         private void EmitEventIfChanged(int oldValue)
         {
             if (oldValue != Value)
+            {
+                Changed = true;
                 OnChanged?.Invoke(this, Value);
+            }
         }
 
         public override string ToString() => Value.ToString();

@@ -7,7 +7,7 @@ namespace Helion.Util.Configs.Values
     public class ConfigValueList<T> : IConfigValue<List<T>>
     {
         public List<T> Value { get; private set; }
-
+        public bool Changed { get; private set; }
         public event EventHandler<List<T>>? OnChanged;
 
         public ConfigValueList(List<T>? list = null)
@@ -31,9 +31,11 @@ namespace Helion.Util.Configs.Values
             {
             case IEnumerable<T> items:
                 Value = items.ToList();
+                EmitEventIfChanged(oldValue);
                 return true;
             case T t:
                 Value = new List<T> { t };
+                EmitEventIfChanged(oldValue);
                 return true;
             default:
                 return false;
@@ -53,6 +55,7 @@ namespace Helion.Util.Configs.Values
                 if (Equals(oldValue[i], Value[i]))
                     continue;
 
+                Changed = true;
                 OnChanged?.Invoke(this, Value);
                 return;
             }
