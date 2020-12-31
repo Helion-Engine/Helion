@@ -80,7 +80,7 @@ namespace Helion.World.Entities
                 entity.PrevPosition = entity.Position;
             }
 
-            FinishCreatingEntity(entity);
+            FinishCreatingEntity(entity, zHeight);
             return entity;
         }
 
@@ -222,7 +222,7 @@ namespace Helion.World.Entities
             return position.Z;
         }
 
-        private void FinishCreatingEntity(Entity entity)
+        private void FinishCreatingEntity(Entity entity, double zHeight)
         {          
             LinkableNode<Entity> node = Entities.Add(entity);
             entity.EntityListNode = node;
@@ -231,7 +231,7 @@ namespace Helion.World.Entities
 
             if (entity.Flags.SpawnCeiling)
             {
-                double offset = ZHeightSet(entity.Position.Z) ? -entity.Position.Z : 0;
+                double offset = ZHeightSet(zHeight) ? -zHeight : 0;
                 entity.SetZ(entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset, false);
             }
 
@@ -263,7 +263,7 @@ namespace Helion.World.Entities
             if (armor != null)
                 player.Inventory.Add(armor, 0);
             
-            FinishCreatingEntity(player);
+            FinishCreatingEntity(player, zHeight);
             
             return player;
         }
