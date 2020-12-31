@@ -108,9 +108,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     fragColor.xyz *= calculateLightLevel();
                     fragColor.w *= alphaFrag;
 
-                    if (fragColor.w <= 0.0)
-                        discard;
-
                     if (fuzzFrag > 0) {
                         // The division/floor is to chunk pixels together to make
                         // blocks. A larger denominator makes it more blocky.
@@ -119,6 +116,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                         // I chose 0.3 because it gave the best ratio if alpha to non-alpha.
                         fragColor.w *= step(0.3, noise(blockCoordinate * timeFrac));
                     }
+
+                    if (fragColor.w <= 0.0)
+                        discard;
 
                     // If invulnerable, grayscale everything and crank the brightness.
                     // Note: The 1.5x is a visual guess to make it look closer to vanilla.
