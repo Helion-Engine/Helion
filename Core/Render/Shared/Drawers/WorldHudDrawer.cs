@@ -302,8 +302,10 @@ namespace Helion.Render.Shared.Drawers
                 DoomHudHelper.ScaleImageDimensions(viewport, ref width, ref height);
                 DoomHudHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
 
+                float alpha = 1.0f;
                 IPowerup? powerup = player.Inventory.GetPowerup(PowerupType.Invisibility);
-                float alpha = powerup == null ? 1.0f : 0.3f;
+                if (powerup != null && powerup.DrawPowerupEffect)
+                    alpha = 0.3f;
 
                 // Translate doom image offset to OpenGL coordinates
                 int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
