@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Helion.Input;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Tree;
@@ -97,8 +98,7 @@ namespace Helion.Util.Configs
                    interfaceType.GetGenericTypeDefinition().IsAssignableFrom(typeof(IConfigValue<>));
         }
 
-        internal IEnumerable<(object component, object childComponent, string path, bool isValue)>
-            GetRelevantComponentFields(object component, string path = "")
+        internal IEnumerable<(object childComponent, string path, bool isValue)> GetRelevantComponentFields(object component, string path = "")
         {
             foreach (FieldInfo fieldInfo in component.GetType().GetFields())
             {
@@ -112,13 +112,13 @@ namespace Helion.Util.Configs
                 string newPath = path.Empty() ? lowerName : $"{path}.{lowerName}";
                 object childComponent = fieldInfo.GetValue(component) ?? throw new Exception($"Failed to get field for path '{newPath}'");
 
-                yield return (component, childComponent, newPath, isValue);
+                yield return (childComponent, newPath, isValue);
             }
         }
 
         private void PopulatePathConfigMapEngineRecursive(object component, string path = "")
         {
-            foreach (var (_, child, newPath, isValue) in GetRelevantComponentFields(component, path))
+            foreach (var (child, newPath, isValue) in GetRelevantComponentFields(component, path))
             {
                 if (isValue)
                     m_pathToConfigValue[newPath] = child;
@@ -127,10 +127,38 @@ namespace Helion.Util.Configs
             }
         }
 
+        /// <summary>
+        /// Gets a specific config value from an absolute path.
+        /// </summary>
+        /// <param name="path">The path to the config value. This should be
+        /// absolute, like "render.window.height".</param>
+        /// <returns>The config value object, or null if no path matches any
+        /// indexed object.</returns>
         public object? GetConfigValue(string path)
         {
             m_pathToConfigValue.TryGetValue(path.ToLower(), out object? obj);
             return obj;
+        }
+
+        /// <summary>
+        /// Uses a wildcard glob to search for all the matching possibilities.
+        /// </summary>
+        /// <param name="glob">The glob string. This only supports asterisks,
+        /// so you can search things like "*fps*" or "render.*" or such. The
+        /// stars match anything (including nothing). This is not a full regex
+        /// since it only supports *'s being turned into ".*". This means if
+        /// you pass in "render.*" that is the same regex as "render\..*".
+        /// </param>
+        /// <returns>The path and config value object pair for all matches.
+        /// </returns>
+        public IEnumerable<(string path, object configValue)> GetConfigValueWildcard(string glob)
+        {
+            string regexText = glob.Replace(".", @"\.").Replace("*", ".*");
+            Regex regex = new(regexText, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            foreach ((string path, object configValue) in m_pathToConfigValue)
+                if (regex.IsMatch(path))
+                    yield return (path, configValue);
         }
 
         public void Dispose()

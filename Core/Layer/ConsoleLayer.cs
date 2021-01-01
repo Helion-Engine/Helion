@@ -49,6 +49,9 @@ namespace Helion.Layer
                 m_submittedInputIndex = NoInputMessageIndex;
             }
 
+            if (consumableInput.ConsumeKeyPressed(InputKey.Tab))
+                m_console.ApplyAutocomplete();
+
             if (ConsumeControlV(consumableInput))
                 AddClipboardToConsole();
 

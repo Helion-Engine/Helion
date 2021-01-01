@@ -36,7 +36,7 @@ namespace Helion.Util.Terminals
         /// end of the list will be removed once this grows past the capacity
         /// value.
         /// </remarks>
-        public readonly LinkedList<ConsoleMessage> Messages = new LinkedList<ConsoleMessage>();
+        public readonly LinkedList<ConsoleMessage> Messages = new();
 
         /// <summary>
         /// A list of all the input that has been submitted. This allows us to
@@ -46,12 +46,7 @@ namespace Helion.Util.Terminals
         /// <remarks>
         /// This will never grow beyond <see cref="m_capacity"/> in length.
         /// </remarks>
-        public readonly LinkedList<string> SubmittedInput = new LinkedList<string>();
-
-        /// <summary>
-        /// All the fields that the terminal can access.
-        /// </summary>
-        public readonly TerminalFields Fields;
+        public readonly LinkedList<string> SubmittedInput = new();
 
         /// <summary>
         /// The clock epoch in nanoseconds when this was last closed.
@@ -81,13 +76,13 @@ namespace Helion.Util.Terminals
         private readonly Config m_config;
         private readonly StringBuilder m_input = new();
         private int m_capacity;
+        private bool m_disposed;
 
         public Terminal(Config cfg)
         {
             Name = TargetName;
             m_config = cfg;
             m_capacity = m_config.Engine.Console.MaxMessages;
-            Fields = new(cfg);
 
             m_config.Engine.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
 
@@ -97,6 +92,7 @@ namespace Helion.Util.Terminals
         ~Terminal()
         {
             FailedToDispose(this);
+            PerformDispose();
         }
 
         /// <summary>
@@ -196,18 +192,15 @@ namespace Helion.Util.Terminals
             Array.ForEach(text.ToCharArray(), AddInput);
         }
 
-        public new void Dispose()
+        /// <summary>
+        /// Tries to autocomplete, printing out help messages as needed.
+        /// </summary>
+        public void ApplyAutocomplete()
         {
-            m_config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+            string lowerInput = Input.Empty() ? "*" : Input.ToLower();
 
-            // TODO: Investigate whether this is correct or not, the logger
-            // documentation isn't clear and stack overflow has some unusual
-            // results for how to properly remove the logger.
-            // The logger stops logging to this target after we dispose of
-            // this object, but I'd like to make sure that it's foolproof.
-            RemoveLogger();
-            base.Dispose();
-            GC.SuppressFinalize(this);
+            // TODO: use m_config.
+            AddMessage("Autocomplete TODO!");
         }
 
         protected override void Write(LogEventInfo logEvent)
@@ -278,6 +271,30 @@ namespace Helion.Util.Terminals
         {
             while (SubmittedInput.Count > m_capacity)
                 SubmittedInput.RemoveLast();
+        }
+
+        public new void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            base.Dispose();
+            PerformDispose();
+        }
+
+        private void PerformDispose()
+        {
+            if (m_disposed)
+                return;
+
+            m_config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+
+            // TODO: Investigate whether this is correct or not, the logger
+            // documentation isn't clear and stack overflow has some unusual
+            // results for how to properly remove the logger.
+            // The logger stops logging to this target after we dispose of
+            // this object, but I'd like to make sure that it's foolproof.
+            RemoveLogger();
+
+            m_disposed = true;
         }
     }
 }

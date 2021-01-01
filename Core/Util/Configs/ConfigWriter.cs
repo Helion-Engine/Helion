@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Reflection;
 using Helion.Input;
-using Helion.Util.Extensions;
 using IniParser;
 using IniParser.Model;
 
@@ -38,22 +36,12 @@ namespace Helion.Util.Configs
 
         private void RecursivelyWriteEngineData(object component, KeyDataCollection keyData, string path = "")
         {
-            foreach (FieldInfo fieldInfo in component.GetType().GetFields())
+            foreach (var (child, newPath, isValue) in GetRelevantComponentFields(component, path))
             {
-                bool hasAttribute = HasConfigAttribute(fieldInfo);
-                bool isValue = IsConfigValue(fieldInfo);
-
-                if (!hasAttribute && !isValue)
-                    continue;
-
-                string lowerName = fieldInfo.Name.ToLower();
-                string newPath = path.Empty() ? lowerName : $"{path}.{lowerName}";
-                object childComponent = fieldInfo.GetValue(component) ?? throw new Exception($"Failed to get field at path '{path}'");
-
                 if (isValue)
-                    keyData[newPath] = childComponent.ToString();
+                    keyData[newPath] = child.ToString();
                 else
-                    RecursivelyWriteEngineData(childComponent, keyData, newPath);
+                    RecursivelyWriteEngineData(child, keyData, newPath);
             }
         }
 
