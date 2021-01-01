@@ -3,8 +3,10 @@ using Helion.Util.Configs.Values;
 
 namespace Helion.Util.Configs.Components
 {
+    [ConfigInfo("Components that deal with files on the host system.")]
     public class ConfigFiles
     {
-        public readonly ConfigValueList<string> Directories = new(new List<string> { ".", "wads" });
+        [ConfigInfo("Locations to look for archives. Earlier paths are checked before later ones.")]
+        public readonly ConfigValueString Directories = new(".;wads");
     }
 }
