@@ -711,7 +711,7 @@ namespace Helion.World
         {
             message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message, type);
             if (message.Length > 0)
-                Log.Info(message);
+                Log.Error(message);
         }
 
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
