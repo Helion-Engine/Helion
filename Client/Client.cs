@@ -268,8 +268,6 @@ namespace Helion.Client
 
         public static void Main(string[] args)
         {
-            CleanItUp();
-
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
             Logging.Initialize(cmdArgs);
 
@@ -280,7 +278,7 @@ namespace Helion.Client
 
             cmdArgs.Errors.ForEach(x => Log.Error(x));
 
-            //try
+            try
             {
                 using (Config config = new())
                     using (Client client = new(cmdArgs, config))
@@ -288,53 +286,22 @@ namespace Helion.Client
 
                 ForceFinalizersIfDebugMode();
             }
-//            catch (AssertionException)
-//            {
-//                Log.Error("Assertion failure detected");
-//                throw;
-//            }
-//            catch (Exception e)
-//            {
-//                Log.Error("Unexpected exception: {0}", e.Message);
-//#if DEBUG
-//                throw;
-//#endif
-//            }
-//            finally
-//            {
-//                LogManager.Shutdown();
-//            }
-        }
-
-        private static void CleanItUp()
-        {
-            string text = File.ReadAllText(@"C:\Users\Nick-ASUS\Desktop\parse.txt");
-            string[] lines = text.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            StringBuilder sb = new StringBuilder();
-            string[] names = new string[] { "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" };
-
-            foreach (string line in lines)
+            catch (AssertionException)
             {
-                string[] items = line.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                if (items.Length > 0 && items[0].Equals("Doom"))
-                    continue;
-
-                foreach (var item in items)
-                {
-                    if (names.Contains(item))
-                    {
-                        sb.AppendLine(item);
-                    }
-                    else if (char.IsUpper(items[0][0]) || items[0][0] == '%')
-                    {
-                        sb.AppendLine(items[1] + "," + items[0]);
-                        break;
-                    }
-                }
+                Log.Error("Assertion failure detected");
+                throw;
             }
-
-            File.WriteAllText(@"C:\Users\Nick-ASUS\Desktop\out.txt", sb.ToString());
+            catch (Exception e)
+            {
+                Log.Error("Unexpected exception: {0}", e.Message);
+#if DEBUG
+                throw;
+#endif
+            }
+            finally
+            {
+                LogManager.Shutdown();
+            }
         }
 
         [Conditional("DEBUG")]
