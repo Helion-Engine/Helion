@@ -687,6 +687,8 @@ namespace Helion.World.Entities
                 if (!Flags.DontFall)
                     Flags.NoGravity = false;
             }
+
+            World.HandleEntityDeath(this, source);
         }
 
         [Conditional("DEBUG")]

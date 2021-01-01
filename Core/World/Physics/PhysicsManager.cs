@@ -295,23 +295,6 @@ namespace Helion.World.Physics
         {
             if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
                 HandleStackedEntityPhysics(deathEntity);
-
-            if (deathEntity.Definition.Properties.DropItem != null && 
-                (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
-                    m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
-            {
-                for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
-                {
-                    Vec3D pos = deathEntity.Position;
-                    pos.Z += deathEntity.Definition.Properties.Height / 2;
-                    Entity? dropItem = m_entityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
-                    if (dropItem != null)
-                    {
-                        dropItem.Flags.Dropped = true;
-                        dropItem.Velocity.Z += 4;
-                    }
-                }
-            }
         }
 
         private static int CalculateSteps(Vec2D velocity, double radius)

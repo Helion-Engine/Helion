@@ -19,6 +19,7 @@ using Helion.Util.Time;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
@@ -600,9 +601,6 @@ namespace Helion.World
                 (target is Player player && (target.Flags.Invulnerable || player.Inventory.IsPowerupActive(PowerupType.Invulnerable))))
                 target.Velocity += thrustVelocity;
 
-            if (target.IsDead)
-                HandleEntityDeath(target);
-
             return true;
         }
 
@@ -648,8 +646,6 @@ namespace Helion.World
                     EntityManager.Destroy(entity);
                 else
                     entity.SetDeathState(null);
-
-                HandleEntityDeath(entity);
             }
             else if (tryMove != null && entity is Player)
             {
@@ -706,6 +702,58 @@ namespace Helion.World
         public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, direction, speed, destZ, crush);
+
+        public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource)
+        {
+            PhysicsManager.HandleEntityDeath(deathEntity);
+            CheckDropItem(deathEntity);
+
+            if (deathSource != null && deathEntity is Player player)
+                HandleObituary(player, deathSource);
+        }
+
+        private void CheckDropItem(Entity deathEntity)
+        {
+            if (deathEntity.Definition.Properties.DropItem != null &&
+                (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
+                    m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
+            {
+                for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
+                {
+                    Vec3D pos = deathEntity.Position;
+                    pos.Z += deathEntity.Definition.Properties.Height / 2;
+                    Entity? dropItem = EntityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
+                    if (dropItem != null)
+                    {
+                        dropItem.Flags.Dropped = true;
+                        dropItem.Velocity.Z += 4;
+                    }
+                }
+            }
+        }
+
+        private void HandleObituary(Player player, Entity deathSource)
+        {
+            // If the player killed themself then don't display the obituary message
+            // There is probably a special string for this in multiplayer for later
+            Entity killer = deathSource.Owner ?? deathSource;
+            if (ReferenceEquals(player, killer))
+                return;
+
+            // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
+            Entity obituarySource = killer;
+            if (killer is Player)
+                obituarySource = deathSource;
+
+            string? obituary;
+            if (obituarySource == deathSource && obituarySource.Definition.Properties.HitObituary.Length > 0)
+                obituary = obituarySource.Definition.Properties.HitObituary;
+            else
+                obituary = obituarySource.Definition.Properties.Obituary;
+
+            if (!string.IsNullOrEmpty(obituary))
+                DisplayMessage(player, killer as Player, obituary, LanguageMessageType.Obituary);
+        }
 
         public virtual void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type)
         {
@@ -843,11 +891,6 @@ namespace Helion.World
             }
 
             return TraversalPitchStatus.PitchNotSet;
-        }
-
-        private void HandleEntityDeath(Entity deathEntity)
-        {
-            PhysicsManager.HandleEntityDeath(deathEntity);
         }
 
         private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)

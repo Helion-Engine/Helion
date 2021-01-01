@@ -63,6 +63,7 @@ namespace Helion.World
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush);
+        void HandleEntityDeath(Entity deathEntity, Entity? deathSource);
         void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
     }
 }

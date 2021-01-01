@@ -672,24 +672,9 @@ namespace Helion.World.Entities.Players
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
             if (source != null)
-            {
                 m_killer = source.Owner ?? source;
-                HandleObituary(source, m_killer);                
-            }
 
             ForceLowerWeapon(true);
-        }
-
-        private void HandleObituary(Entity? source, Entity killer)
-        {
-            string? obituary;
-            if (killer == source && killer.Definition.Properties.HitObituary.Length > 0)
-                obituary = killer.Definition.Properties.HitObituary;
-            else
-                obituary = killer.Definition.Properties.Obituary;
-
-            if (!string.IsNullOrEmpty(obituary))
-                World.DisplayMessage(this, source as Player, obituary, LanguageMessageType.Obituary);
         }
 
         public void Jump()
