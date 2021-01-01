@@ -6,6 +6,7 @@ using Helion.Input;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Tree;
 using Helion.Util.Configs.Values;
+using Helion.Util.Extensions;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -20,24 +21,25 @@ namespace Helion.Util.Configs
         private const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        // If you want to add new serializable fields into the engine section,
-        // they should be here. Order technically doesn't matter, but it is
-        // clearer for developers adding new fields to add them here.
+        // If you want to add new serializable fields into some section, they
+        // should be here. Order technically doesn't matter, but it is clearer
+        // for developers adding new fields to add them here.
         public readonly ConfigAudio Audio = new();
         public readonly ConfigConsole Console = new();
         public readonly ConfigDeveloper Developer = new();
         public readonly ConfigFiles Files = new();
         public readonly ConfigGame Game = new();
         public readonly ConfigHud Hud = new();
+        public readonly Dictionary<InputKey, string> Keys = MakeDefaultKeyMapping();
         public readonly ConfigMouse Mouse = new();
         public readonly ConfigRender Render = new();
         public readonly ConfigWindow Window = new();
 
         // Anything below this is not serialized into the engine section of the
         // config file.
-        public readonly Dictionary<InputKey, string> Keys = MakeDefaultKeyMapping();
         public readonly ConfigTree Tree;
         private readonly string m_path;
+        private readonly Dictionary<string, object> m_pathToConfigValue = new();
         private bool m_disposed;
         private bool m_newConfig;
 
@@ -46,6 +48,7 @@ namespace Helion.Util.Configs
             m_path = path;
             ReadConfig(path);
             Tree = new(this);
+            PopulatePathConfigMapEngineRecursive(this);
         }
 
         ~Config()
@@ -92,6 +95,42 @@ namespace Helion.Util.Configs
             return interfaceType != null &&
                    interfaceType.IsGenericType &&
                    interfaceType.GetGenericTypeDefinition().IsAssignableFrom(typeof(IConfigValue<>));
+        }
+
+        internal IEnumerable<(object component, object childComponent, string path, bool isValue)>
+            GetRelevantComponentFields(object component, string path = "")
+        {
+            foreach (FieldInfo fieldInfo in component.GetType().GetFields())
+            {
+                bool hasAttribute = HasConfigAttribute(fieldInfo);
+                bool isValue = IsConfigValue(fieldInfo);
+
+                if (!hasAttribute && !isValue)
+                    continue;
+
+                string lowerName = fieldInfo.Name.ToLower();
+                string newPath = path.Empty() ? lowerName : $"{path}.{lowerName}";
+                object childComponent = fieldInfo.GetValue(component) ?? throw new Exception($"Failed to get field for path '{newPath}'");
+
+                yield return (component, childComponent, newPath, isValue);
+            }
+        }
+
+        private void PopulatePathConfigMapEngineRecursive(object component, string path = "")
+        {
+            foreach (var (_, child, newPath, isValue) in GetRelevantComponentFields(component, path))
+            {
+                if (isValue)
+                    m_pathToConfigValue[newPath] = child;
+                else
+                    PopulatePathConfigMapEngineRecursive(child, newPath);
+            }
+        }
+
+        public object? GetConfigValue(string path)
+        {
+            m_pathToConfigValue.TryGetValue(path.ToLower(), out object? obj);
+            return obj;
         }
 
         public void Dispose()

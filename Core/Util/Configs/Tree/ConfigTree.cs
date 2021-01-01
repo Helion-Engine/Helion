@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Helion.Util.Extensions;
 
@@ -49,6 +50,12 @@ namespace Helion.Util.Configs.Tree
 
                 PopulateTreeRecursively(parentNode, childComponent, newPath);
             }
+        }
+
+        public IEnumerable<object> GetAutocompleteElements(string text)
+        {
+            // TODO
+            yield break;
         }
     }
 }
