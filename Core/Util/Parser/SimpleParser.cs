@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
 namespace Helion.Util.Parser
 {
     public class SimpleParser
@@ -17,17 +20,15 @@ namespace Helion.Util.Parser
         }
 
         private readonly List<ParserToken> m_tokens = new List<ParserToken>();
-        private readonly char[] m_itemSplit;
+        private readonly char[]? m_itemSplit;
+        private readonly string m_regexSplit = "(?<=\")[^\"]*(?=\")|[^\" ]+";
 
         private int m_index = 0;
         private bool m_multiLineComment;
 
         public SimpleParser(char[]? itemSplit = null)
         {
-            if (itemSplit == null)
-                m_itemSplit = new char[] { '\t', ' ' };
-            else
-                m_itemSplit = itemSplit;
+            m_itemSplit = itemSplit;
         }
 
         public void Parse(string data)
@@ -40,7 +41,17 @@ namespace Helion.Util.Parser
             foreach (string line in lines)
             {
                 string parseLine = StripComments(line);
-                string[] subSplit = parseLine.Split(m_itemSplit, StringSplitOptions.RemoveEmptyEntries);
+                string[] subSplit;
+
+                if (m_itemSplit != null)
+                {
+                    subSplit = parseLine.Split(m_itemSplit, StringSplitOptions.RemoveEmptyEntries);
+                }
+                else
+                {
+                    Regex regex = new Regex(m_regexSplit);
+                    subSplit = regex.Matches(line).Cast<Match>().Select(x => x.Value).ToArray();
+                }
 
                 foreach (string sub in subSplit)
                     m_tokens.Add(new ParserToken(lineCount, sub));
