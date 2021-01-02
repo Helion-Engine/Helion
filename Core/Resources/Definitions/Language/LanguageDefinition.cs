@@ -17,7 +17,7 @@ namespace Helion.Resources.Definitions.Language
             { "Obituaries", LanguageMessageType.Obituary }
         };
 
-        private readonly SimpleParser m_parser = new(new char[] { ',' });
+        private readonly SimpleParser m_parser = new(ParseType.Csv);
         private readonly Dictionary<CIString, string>[] m_lookups;
 
         private LanguageMessageType m_parseType = LanguageMessageType.Pickup;
@@ -51,12 +51,12 @@ namespace Helion.Resources.Definitions.Language
             }
         }
 
-        private LanguageMessageType GetMessageType(string item)
+        public string GetString(string str)
         {
-            if (MessageTypeLookup.TryGetValue(item, out LanguageMessageType type))
-                return type;
+            if (GetLookup(LanguageMessageType.None).TryGetValue(str, out string? value))
+                return value;
 
-            return LanguageMessageType.None;
+            return str;
         }
 
         public string GetMessage(Player player, Player? other, string message, LanguageMessageType type)
@@ -94,6 +94,14 @@ namespace Helion.Resources.Definitions.Language
                 return translatedMessage;
 
             return string.Empty;
+        }
+
+        private LanguageMessageType GetMessageType(string item)
+        {
+            if (MessageTypeLookup.TryGetValue(item, out LanguageMessageType type))
+                return type;
+
+            return LanguageMessageType.None;
         }
 
         private Dictionary<CIString, string> GetLookup(LanguageMessageType type)
