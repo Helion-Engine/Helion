@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace Helion.Resources.Definitions.Decorate.Locks
+namespace Helion.Resources.Definitions.Locks
 {
     public class LockDef
     {

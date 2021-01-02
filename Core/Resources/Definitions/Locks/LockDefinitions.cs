@@ -1,14 +1,12 @@
 ﻿using Helion.Util;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace Helion.Resources.Definitions.Decorate.Locks
+namespace Helion.Resources.Definitions.Locks
 {
     public class LockDefinitions
     {
-        private List<LockDef> LockDefs = new List<LockDef>();
+        private readonly List<LockDef> LockDefs = new List<LockDef>();
 
         private static string KeyMessage(string name) => $"{name} key";
 
@@ -19,7 +17,7 @@ namespace Helion.Resources.Definitions.Decorate.Locks
                 Message = KeyMessage("red"),
                 KeyNumber = 1,
                 KeyDefinitionNames = new List<CIString>() { "RedCard" }
-            }); ;
+            });
 
             LockDefs.Add(new LockDef()
             {
