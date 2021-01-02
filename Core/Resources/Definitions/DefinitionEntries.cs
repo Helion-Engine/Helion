@@ -7,9 +7,10 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.Fonts;
 using Helion.Resources.Definitions.Language;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
@@ -33,6 +34,7 @@ namespace Helion.Resources.Definitions
         public readonly SoundInfoDefinition SoundInfo = new SoundInfoDefinition();
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         public readonly LanguageDefinition Language = new LanguageDefinition();
+        public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
@@ -54,6 +56,7 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["SNDINFO"] = entry => ParseSoundInfo(entry);
             m_entryNameToAction["LANGUAGE"] = entry => ParseLanguage(entry);
+            m_entryNameToAction["MAPINFO"] = entry => ParseMapInfo(entry);
         }
 
         private void ParseSoundInfo(Entry entry)
@@ -64,6 +67,11 @@ namespace Helion.Resources.Definitions
         private void ParseLanguage(Entry entry)
         {
             Language.Parse(entry);
+        }
+
+        private void ParseMapInfo(Entry entry)
+        {
+            MapInfoDefinition.Parse(entry);
         }
         
         /// <summary>

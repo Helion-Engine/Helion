@@ -6,6 +6,7 @@ namespace Helion.Resources.Definitions.MapInfo
     public enum MapOptions
     {
         None,
-        NoIntermission = 1
+        NoIntermission = 1,
+        NeedClusterText = 2
     }
 }

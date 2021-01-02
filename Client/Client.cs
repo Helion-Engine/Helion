@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using Helion.Audio;
 using Helion.Client.Music;
 using Helion.Client.OpenAL;
@@ -15,8 +14,8 @@ using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
@@ -106,35 +105,47 @@ namespace Helion.Client
 
         private void HandleCommandLineArgs()
         {
-            LoadFiles(out string? iwad);
+            LoadFiles();
 
             if (m_commandLineArgs.Skill.HasValue)
                 SetSkill(m_commandLineArgs.Skill.Value);
 
-            CheckLoadMap(iwad);
+            CheckLoadMap();
         }
 
-        private void CheckLoadMap(string? iwad)
+        private void CheckLoadMap()
         {
             if (m_commandLineArgs.Map != null)
+            {
                 Loadmap(m_commandLineArgs.Map);
+            }
             else if (m_commandLineArgs.Warp != null)
+            {
                 Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+            }
             else
-                Loadmap(GetDefaultMap(iwad));
+            {
+                MapInfoDef? mapInfoDef = GetDefaultMap();
+                if (mapInfoDef == null)
+                {
+                    Log.Error("Unable to find start map.");
+                    return;
+                }
+                Loadmap(mapInfoDef.MapName);
+            }
         }
 
-        private void LoadFiles(out string? iwad)
+        private void LoadFiles()
         {
             List<string> files = new List<string>();
-            iwad = LoadIWad(files);
+            LoadIWad(files);
             files.AddRange(m_commandLineArgs.Files);
 
             if (!m_archiveCollection.Load(files))
                 Log.Error("Unable to load files at startup");
         }
 
-        private string? LoadIWad(List<string> files)
+        private void LoadIWad(List<string> files)
         {
             if (m_commandLineArgs.Iwad == null)
             {
@@ -145,13 +156,10 @@ namespace Helion.Client
                     Log.Error("No IWAD found!");
                 else
                     files.Add(iwad);
-
-                return iwad;
             }
             else
             {
                 files.Add(m_commandLineArgs.Iwad);
-                return m_commandLineArgs.Iwad;
             }
         }
 
@@ -168,14 +176,17 @@ namespace Helion.Client
             return null;
         }
 
-        private string GetDefaultMap(string? iwad)
+        private MapInfoDef? GetDefaultMap()
         {
-            // TODO temporary until mapinfo is implemented
-            string? name = Path.GetFileNameWithoutExtension(iwad);
-            if (name != null && (name.Equals("DOOM1") || name.Equals("DOOM")))
-                return "E1M1";
+            if (m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Count == 0)
+            {
+                Log.Error("No episodes defined.");
+                return null;
+            }
 
-            return "MAP01";
+            var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
+            string startMapName = mapInfo.Episodes[0].StartMap;
+            return mapInfo.GetMap(startMapName);
         }
 
         private void SetSkill(int value)
@@ -308,33 +319,9 @@ namespace Helion.Client
 
         private static void CleanItUp()
         {
-            string text = File.ReadAllText(@"C:\Users\Nick-ASUS\Desktop\parse.txt");
-            string[] lines = text.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            StringBuilder sb = new StringBuilder();
-            string[] names = new string[] { "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" };
-
-            foreach (string line in lines)
-            {
-                string[] items = line.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                if (items.Length > 0 && items[0].Equals("Doom"))
-                    continue;
-
-                foreach (var item in items)
-                {
-                    if (names.Contains(item))
-                    {
-                        sb.AppendLine(item);
-                    }
-                    else if (char.IsUpper(items[0][0]) || items[0][0] == '%')
-                    {
-                        sb.AppendLine(items[1] + "," + items[0]);
-                        break;
-                    }
-                }
-            }
-
-            File.WriteAllText(@"C:\Users\Nick-ASUS\Desktop\out.txt", sb.ToString());
+            //SimpleParser parser = new SimpleParser();
+            //parser.Parse("test \"more words\" stuff\tspace");
+            //int lol = 1;
         }
 
         [Conditional("DEBUG")]

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
@@ -7,6 +8,7 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Time;
@@ -35,11 +37,13 @@ namespace Helion.Layer.WorldLayers
         private SinglePlayerWorld m_world;
 
         public override WorldBase World => m_world;
+        public MapInfoDef CurrentMap { get; set; }
 
         private SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SinglePlayerWorld world)
+            IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
             : base(config, console, archiveCollection, audioSystem)
         {
+            CurrentMap = mapInfoDef;
             m_world = world;
             m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
@@ -79,34 +83,36 @@ namespace Helion.Layer.WorldLayers
         }
 
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, IMap map)
+            ArchiveCollection archiveCollection, MapInfoDef mapDef, IMap map)
         {
             TextureManager.Init(archiveCollection);
             CheatManager.Instance.Clear();
-            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, map);
+            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapDef, map);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world);
+            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world, mapDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, IMap map, Player? existingPlayer = null)
+            ArchiveCollection archiveCollection, MapInfoDef mapDef, IMap map, Player? existingPlayer = null)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
             if (geometry == null)
                 return null;
 
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, map, existingPlayer);
+            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, map, existingPlayer);
         }
 
-        public void LoadMap(string mapName, bool keepPlayer)
+        public void LoadMap(MapInfoDef mapDef, bool keepPlayer)
         {
-            IMap? map = ArchiveCollection.FindMap(mapName);
+            IMap? map = ArchiveCollection.FindMap(mapDef.MapName);
             if (map == null)
             {
-                Log.Warn("Unable to find map {0}", mapName);
+                Log.Warn("Unable to find map {0}", mapDef.MapName);
                 return;
             }
+
+            CurrentMap = mapDef;
 
             Player? existingPlayer = null;
             if (keepPlayer && !m_world.Player.IsDead)
@@ -114,7 +120,7 @@ namespace Helion.Layer.WorldLayers
             else
                 CheatManager.Instance.Clear();
 
-            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, map, existingPlayer);
+            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, map, existingPlayer);
             if (world == null)
             {
                 Log.Error("Unable to load map {0}", map.Name);
@@ -186,66 +192,45 @@ namespace Helion.Layer.WorldLayers
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    string nextLevelName = GetNextLevelName(m_world.MapName.ToString());
-                    LoadMap(nextLevelName, true);
+                    {
+                        MapInfoDef? nextMap = GetNextLevel(CurrentMap);
+                        // TODO implement endgame, this also stupidly assumes endgame
+                        if (nextMap == null)
+                        {
+                            Log.Info("Your did it!!!");
+                            return;
+                        }
+                        LoadMap(nextMap, true);
+                    }
                     break;
 
                 case LevelChangeType.SecretNext:
-                    // TODO: When we have MAPINFO working, we can do this.
-                    Log.Warn("Change level to secret type to be implemented...");
+                    {
+                        MapInfoDef? nextMap = GetNextSecretLevel(CurrentMap);
+                        if (nextMap == null)
+                        {
+                            Log.Error($"Unable to find map {CurrentMap.SecretNext}");
+                            return;
+                        }
+                        LoadMap(nextMap, true);
+                    }
                     break;
 
                 case LevelChangeType.SpecificLevel:
                     // TODO: Need to figure out this ExMx situation...
-                    string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
-                    LoadMap($"MAP{levelNumber}", false);
+                    //string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
+                    //LoadMap($"MAP{levelNumber}", false);
                     break;
 
                 case LevelChangeType.Reset:
-                    LoadMap(m_world.MapName.ToString(), false);
+                    LoadMap(CurrentMap, false);
                     break;
             }
         }
 
-        private string GetNextLevelName(string currentName)
-        {
-            // TODO: We'd use MAPINFO here eventually!
-            // TODO: This ugly function will be fixed with MAPINFO.
+        private MapInfoDef? GetNextLevel(MapInfoDef mapDef) => ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
 
-            if (currentName.Length == 4 && currentName.StartsWith("E", StringComparison.OrdinalIgnoreCase))
-            {
-                string episodeText = currentName[1].ToString();
-                string numberText = currentName[3].ToString();
-
-                if (int.TryParse(episodeText, out int episode) && int.TryParse(numberText, out int number))
-                {
-                    if (number == 8)
-                        return $"E{episode + 1}M1";
-                    if (number == 9)
-                        return $"E{episode}M1"; // TODO: Obviously wrong... (ex: E1M4)
-                    return $"E{episode}M{number + 1}";
-                }
-
-                Log.Warn("Unable to parse E#M# from {0}", currentName);
-            }
-            else if (currentName.Length == 5 && currentName.StartsWith("MAP", StringComparison.OrdinalIgnoreCase))
-            {
-                string mapNumberText = currentName.Substring(3);
-                if (int.TryParse(mapNumberText, out int mapNumber))
-                {
-                    // TODO: Obviously wrong... (overshoots to 33+)
-                    string nextMapNumbers = (mapNumber + 1).ToString().PadLeft(2, '0');
-                    return $"MAP{nextMapNumbers}";
-                }
-
-                Log.Warn("Unable to parse MAP## from {0}", currentName);
-            }
-            else
-                Log.Warn("Cannot predict next map from {0}, going back to map", currentName);
-
-            Log.Warn("Returning to current level");
-            return currentName;
-        }
+        private MapInfoDef? GetNextSecretLevel(MapInfoDef mapDef) => ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
 
         private void AddWorldEventListeners(WorldBase world)
         {

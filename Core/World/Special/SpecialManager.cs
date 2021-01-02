@@ -20,7 +20,7 @@ namespace Helion.World.Special
     public class SpecialManager : ITickable
     {
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
-        private const double SpeedFactor = 0.125;
+        public const double SpeedFactor = 0.125;
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();

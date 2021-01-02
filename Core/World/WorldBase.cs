@@ -5,7 +5,7 @@ using Helion.Maps;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -35,6 +35,9 @@ using Helion.World.Special.SectorMovement;
 using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using Helion.Resources.Definitions.MapInfo;
+using System.Linq;
+using Helion.Maps.Specials.Vanilla;
 
 namespace Helion.World
 {
@@ -68,6 +71,7 @@ namespace Helion.World
 
         private int m_exitTicks = 0;
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
+        private bool m_mapActionSpecialExecuted = false;
 
         public IList<Line> Lines => Geometry.Lines;
         public IList<Side> Sides => Geometry.Sides;
@@ -83,17 +87,19 @@ namespace Helion.World
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
         public Config Config { get; private set; }
+        public MapInfoDef MapInfo { get; private set; }
 
         private readonly DoomRandom m_random = new DoomRandom();
         private int m_soundCount;
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, IMap map)
+            MapGeometry geometry, MapInfoDef mapInfoDef, IMap map)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
             AudioSystem = audioSystem;
             Config = config;
+            MapInfo = mapInfoDef;
             MapName = map.Name;
             Geometry = geometry;
             Map = map;
@@ -209,12 +215,59 @@ namespace Helion.World
                 SpecialManager.Tick();
                 TextureManager.Instance.Tick();
 
+                CheckMapSpecial();
+
                 LevelTime++;
             }
 
             SoundManager.Tick();
 
             Gametick++;
+        }
+
+        private void CheckMapSpecial()
+        {
+            if (m_mapActionSpecialExecuted || MapInfo.MapSpecial == MapSpecial.None)
+                return;
+
+            int id = 0;
+            switch (MapInfo.MapSpecial)
+            {
+                case MapSpecial.BaronSpecial:
+                    id = 3003;
+                    break;
+                case MapSpecial.CyberdemonSpecial:
+                    id = 16;
+                    break;
+                case MapSpecial.SpiderMastermindSpecial:
+                    id = 7;
+                    break;
+            }
+
+            int count = EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue && x.Definition.EditorId.Value == id && !x.IsDead);
+
+            if (count == 0)
+            {
+                m_mapActionSpecialExecuted = true;
+                List<Sector> sectors = Sectors.Where(x => x.Tag == 666).ToList();
+
+                switch (MapInfo.MapSpecialAction)
+                {
+                    case MapSpecialAction.LowerFloor:
+                        foreach (var sector in sectors)
+                            SpecialManager.AddSpecial(SpecialManager.CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, 
+                                VanillaConstants.SectorSlowSpeed * SpecialManager.SpeedFactor));
+                        break;
+                    case MapSpecialAction.OpenDoor:
+                        foreach (var sector in sectors)
+                            SpecialManager.AddSpecial(SpecialManager.CreateDoorOpenStaySpecial(sector, 
+                                VanillaConstants.DoorSlowSpeed * SpecialManager.SpeedFactor));
+                        break;
+                    case MapSpecialAction.ExitLevel:
+                        LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Next));
+                        break;
+                }
+            }
         }
 
         public IEnumerable<Sector> FindBySectorTag(int tag)
