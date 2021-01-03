@@ -34,6 +34,7 @@ namespace Helion.Resources.Definitions.MapInfo
             return DefaultMap;
         }
 
+
         public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;
         public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);
         public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);

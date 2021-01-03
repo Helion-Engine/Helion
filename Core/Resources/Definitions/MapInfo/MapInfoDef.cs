@@ -9,7 +9,8 @@
         public string SecretNext { get; set; } = string.Empty;
         public string Sky1 { get; set; } = string.Empty;
         public string Music { get; set; } = string.Empty;
-        public string Lookup { get; set; } = string.Empty;
+        public string LookupName { get; set; } = string.Empty;
+        public string NiceName { get; set; } = string.Empty;
         public int LevelNumber { get; set; }
         public int Cluster { get; set; }
         public int ParTime { get; set; }

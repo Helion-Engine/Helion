@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Helion.Graphics.Fonts;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
@@ -36,37 +38,68 @@ namespace Helion.Resources.Archives.Collection
             Definitions = new DefinitionEntries(this);
         }
 
-        public bool Load(IEnumerable<string> files, bool loadDefaultAssets = true)
+        public bool Load(IEnumerable<string> files, string? iwad, bool loadDefaultAssets = true)
         {
             List<Archive> loadedArchives = new List<Archive>();
             List<string> filePaths = new List<string>();
+
+            Archive? assetsArchive = null;
+            Archive? iwadArchive = null;
 
             // If we have nothing loaded, we want to make sure assets.pk3 is
             // loaded before anything else. We also do not want it to be loaded
             // if we have already loaded it.
             if (loadDefaultAssets && m_archives.Empty())
-                filePaths.Add(Constants.AssetsFileName);
+            {
+                assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets);
+                if (assetsArchive == null)
+                    return false;
+            }
+
+            if (iwad != null)
+            {
+                iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD);
+                if (iwadArchive == null)
+                    return false;
+            }
+
             filePaths.AddRange(files);
 
             foreach (string filePath in filePaths)
             {
-                Archive? archive = Caches.Load(filePath, m_archiveLocator);
-                if (archive != null)
-                {
-                    Log.Info("Loaded {0}", filePath);
-                    loadedArchives.Add(archive);
-                }
-                else
-                {
-                    Log.Error("Failure when loading {0}", filePath);
+                Archive? archive = LoadArchive(filePath);
+                if (archive == null)
                     return false;
-                }
             }
 
-            ProcessAndIndexEntries(loadedArchives);
+            ProcessAndIndexEntries(assetsArchive, iwadArchive, loadedArchives);
             m_archives.AddRange(loadedArchives);
 
             return true;
+        }
+
+        private Archive? LoadSpecial(string file, ArchiveType archiveType)
+        {
+            Archive? archive = LoadArchive(file);
+            if (archive == null)
+                return null;
+
+            archive.ArchiveType = archiveType;
+            return archive;
+        }
+
+        private Archive? LoadArchive(string filePath)
+        {
+            Archive? archive = Caches.Load(filePath, m_archiveLocator);
+            if (archive == null)
+            {
+                Log.Error("Failure when loading {0}", filePath);
+                return null;
+            }
+
+            archive.OriginalFilePath = filePath;
+            Log.Info("Loaded {0}", filePath);
+            return archive;
         }
 
         public MapEntryCollection? GetMapEntryCollection(string mapName)
@@ -141,8 +174,14 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
-        private void ProcessAndIndexEntries(IEnumerable<Archive> archives)
+        private void ProcessAndIndexEntries(Archive? assetsArchive, Archive? iwadArchive, List<Archive> archives)
         {
+            if (assetsArchive != null)
+                archives.Add(assetsArchive);
+
+            if (iwadArchive != null)
+                archives.Add(iwadArchive);
+
             foreach (Archive archive in archives)
             {
                 foreach (Entry entry in archive.Entries)
@@ -152,6 +191,17 @@ namespace Helion.Resources.Archives.Collection
                 }
 
                 Definitions.Track(archive);
+
+                if (archive.ArchiveType == ArchiveType.Assets && iwadArchive != null)
+                {
+                    string name = Path.GetFileNameWithoutExtension(iwadArchive.OriginalFilePath);
+                    if (name.Equals("doom", StringComparison.OrdinalIgnoreCase))
+                        Definitions.LoadMapInfo(archive, "MapInfo/Doom1.txt");
+                    else if (name.Equals("doom1", StringComparison.OrdinalIgnoreCase))
+                        Definitions.LoadMapInfo(archive, "MapInfo/Doom1.txt");
+                    else if (name.Equals("doom2", StringComparison.OrdinalIgnoreCase))
+                        Definitions.LoadMapInfo(archive, "MapInfo/Doom2.txt");
+                }
             }
         }
     }

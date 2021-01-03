@@ -59,6 +59,16 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["MAPINFO"] = entry => ParseMapInfo(entry);
         }
 
+        public bool LoadMapInfo(Archive archive, string entryName)
+        {
+            Entry? entry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.Equals(entryName, StringComparison.OrdinalIgnoreCase));
+            if (entry == null)
+                return false;
+
+            ParseMapInfo(entry);
+            return true;
+        }
+
         private void ParseSoundInfo(Entry entry)
         {
             SoundInfo.Parse(entry);

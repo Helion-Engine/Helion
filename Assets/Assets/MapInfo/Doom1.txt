@@ -1,6 +1,3 @@
-﻿// MAPINFO for Doom 1 (Shareware, Registered, and Retail)
-include "mapinfo/doomcommon.txt"
-
 gameinfo
 {
 	creditpage = "CREDIT", "HELP2"

@@ -29,16 +29,21 @@ namespace Helion.Resources.Definitions.MapInfo
                     MapInfo.ClearEpisodes();
                 else if (item == "episode")
                     ParseEpisode();
+                else if (item == "cluster")
+                    ParserCluster();
                 else if (item == "defaultmap")
                     MapInfo.SetDefaultMap(ParseMapDef(false));
+                else if (item == "adddefaultmap")
+                    ParseMapDef(false, MapInfo.DefaultMap);
                 else if (item == "map")
                     MapInfo.AddMap(ParseMapDef(true));
             }
         }
 
-        private MapInfoDef ParseMapDef(bool parseHeader)
+        private MapInfoDef ParseMapDef(bool parseHeader, MapInfoDef? mapDef = null)
         {
-            MapInfoDef mapDef = new();
+            if (mapDef == null)
+                mapDef = new();
 
             if (parseHeader)
             {
@@ -46,9 +51,12 @@ namespace Helion.Resources.Definitions.MapInfo
                 if (m_parser.Peek("lookup"))
                 {
                     m_parser.ConsumeString();
-                    mapDef.Lookup = m_parser.ConsumeString();
+                    mapDef.LookupName = m_parser.ConsumeString();
                 }
             }
+
+            if (!m_parser.Peek('{'))
+                mapDef.NiceName = m_parser.ConsumeString();
 
             m_parser.ConsumeString("{");
 
@@ -80,6 +88,8 @@ namespace Helion.Resources.Definitions.MapInfo
                     mapDef.MapOptions |= MapOptions.NoIntermission;
                 else if (item == "needclustertext")
                     mapDef.MapOptions |= MapOptions.NeedClusterText;
+                else if (item == "allowmonstertelefrags")
+                    mapDef.MapOptions |= MapOptions.AllowMonsterTelefrags;
                 else if (item == "nosoundclipping")
                     continue; // Deprecated, no longer used
                 else if (item == "baronspecial")
@@ -103,6 +113,11 @@ namespace Helion.Resources.Definitions.MapInfo
 
             m_parser.ConsumeString("}");
             return mapDef;
+        }
+
+        private void ParserCluster()
+        {
+            // TODO
         }
 
         private void ParseEpisode()
@@ -203,11 +218,6 @@ namespace Helion.Resources.Definitions.MapInfo
         {
             // Don't care for now
             m_parser.ConsumeString();
-        }
-
-        private void ConsumeThing()
-        {
-            throw new NotImplementedException();
         }
     }
 }

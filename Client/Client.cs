@@ -137,29 +137,33 @@ namespace Helion.Client
 
         private void LoadFiles()
         {
-            List<string> files = new List<string>();
-            LoadIWad(files);
-            files.AddRange(m_commandLineArgs.Files);
+            string? iwad = GetIwad();
+            if (iwad == null)
+            {
+                Log.Error("No IWAD specified");
+                return;
+            }
 
-            if (!m_archiveCollection.Load(files))
+            if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad))
                 Log.Error("Unable to load files at startup");
         }
 
-        private void LoadIWad(List<string> files)
+        private string? GetIwad()
         {
-            if (m_commandLineArgs.Iwad == null)
+            if (m_commandLineArgs != null)
+                return m_commandLineArgs.Iwad;
+
+            List<string> wadFiles = Directory.GetFiles(Directory.GetCurrentDirectory())
+                .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase)).ToList();
+            string? iwad = GetIWad(wadFiles);
+            if (iwad == null)
             {
-                List<string> wadFiles = Directory.GetFiles(Directory.GetCurrentDirectory())
-                    .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase)).ToList();
-                string? iwad = GetIWad(wadFiles);
-                if (iwad == null)
-                    Log.Error("No IWAD found!");
-                else
-                    files.Add(iwad);
+                Log.Error("No IWAD found!");
+                return null;
             }
             else
             {
-                files.Add(m_commandLineArgs.Iwad);
+                return iwad;
             }
         }
 
