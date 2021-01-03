@@ -99,7 +99,7 @@ namespace Helion.World.Entities
             entity.Dispose();
         }
 
-        public Player CreatePlayer(int playerIndex, Player? existingPlayer = null)
+        public Player CreatePlayer(int playerIndex)
         {
             EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
             if (playerDefinition == null)
@@ -116,44 +116,8 @@ namespace Helion.World.Entities
             }
 
             Player player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
-            if (existingPlayer != null)
-            {
-                player.CopyProperties(existingPlayer);
-                player.Inventory.ClearKeys();
-            }
-            else
-            {
-                SetDefaultInventory(player);
-            }
-
             Players.Add(player);
             return player;
-        }
-
-        private void SetDefaultInventory(Player player)
-        {
-            GiveWeapon(player, "FIST");
-            GiveWeapon(player, "PISTOL");
-
-            GiveAmmo(player, "CLIP", 50);
-
-            var weapon = player.Inventory.Weapons.GetWeapon("PISTOL");
-            if (weapon != null)
-                player.ChangeWeapon(weapon);
-        }
-
-        private void GiveAmmo(Player player, string name, int amount)
-        {
-            var ammo = DefinitionComposer.GetByName(name);
-            if (ammo != null)
-                player.Inventory.Add(ammo, amount);
-        }
-
-        private void GiveWeapon(Player player, string name)
-        {
-            var weapon = DefinitionComposer.GetByName(name);
-            if (weapon != null)
-                player.GiveWeapon(weapon, false);
         }
 
         public void PopulateFrom(IMap map)

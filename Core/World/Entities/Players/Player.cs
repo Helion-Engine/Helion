@@ -116,6 +116,31 @@ namespace Helion.World.Entities.Players
             base.CopyProperties(entity);
         }
 
+        public void SetDefaultInventory()
+        {
+            GiveWeapon("FIST");
+            GiveWeapon("PISTOL");
+            GiveAmmo("CLIP", 50);
+
+            var weapon = Inventory.Weapons.GetWeapon("PISTOL");
+            if (weapon != null)
+                ChangeWeapon(weapon);
+        }
+
+        private void GiveAmmo(string name, int amount)
+        {
+            var ammo = World.EntityManager.DefinitionComposer.GetByName(name);
+            if (ammo != null)
+                Inventory.Add(ammo, amount);
+        }
+
+        private void GiveWeapon(string name)
+        {
+            var weapon = World.EntityManager.DefinitionComposer.GetByName(name);
+            if (weapon != null)
+                GiveWeapon(weapon, false);
+        }
+
         public Vec3D GetViewPosition()
         {
             Vec3D position = Position;
