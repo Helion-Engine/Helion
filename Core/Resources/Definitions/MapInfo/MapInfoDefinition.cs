@@ -98,6 +98,8 @@ namespace Helion.Resources.Definitions.MapInfo
                     mapDef.MapSpecial = MapSpecial.CyberdemonSpecial;
                 else if (item == "spidermastermindspecial")
                     mapDef.MapSpecial = MapSpecial.SpiderMastermindSpecial;
+                else if (item == "map07special")
+                    mapDef.MapSpecial = MapSpecial.Map07Special;
                 else if (item == "specialaction_lowerfloor")
                     mapDef.MapSpecialAction = MapSpecialAction.LowerFloor;
                 else if (item == "specialaction_exitlevel")

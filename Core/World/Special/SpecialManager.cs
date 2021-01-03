@@ -97,7 +97,14 @@ namespace Helion.World.Special
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
                 new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
-        
+
+        public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
+        {
+            double destZ = sector.Floor.Z + sector.GetShortestLower(TextureManager.Instance);
+            SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
+        }
+
         public void Tick()
         {
             if (m_destroyedMoveSpecials.Count > 0)
@@ -672,13 +679,6 @@ namespace Helion.World.Special
             }
 
             return null;
-        }
-
-        private ISpecial? CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
-        {
-            double destZ = sector.Floor.Z + sector.GetShortestLower(TextureManager.Instance);
-            SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
         }
 
         private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)

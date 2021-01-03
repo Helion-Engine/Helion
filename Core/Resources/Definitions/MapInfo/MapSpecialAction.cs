@@ -5,6 +5,7 @@
         None,
         LowerFloor,
         ExitLevel,
-        OpenDoor
+        OpenDoor,
+        FloorRaiseByLowestTexture
     }
 }

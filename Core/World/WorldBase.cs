@@ -38,6 +38,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using System.Linq;
 using Helion.Maps.Specials.Vanilla;
+using Helion.World.Entities.Definition;
 
 namespace Helion.World
 {
@@ -71,7 +72,6 @@ namespace Helion.World
 
         private int m_exitTicks = 0;
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
-        private bool m_mapActionSpecialExecuted = false;
 
         public IList<Line> Lines => Geometry.Lines;
         public IList<Side> Sides => Geometry.Sides;
@@ -116,7 +116,10 @@ namespace Helion.World
             PerformDispose();
         }
 
-        public virtual void Start() { }
+        public virtual void Start()
+        {
+            AddMapSpecial();
+        }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
         {
@@ -215,8 +218,6 @@ namespace Helion.World
                 SpecialManager.Tick();
                 TextureManager.Instance.Tick();
 
-                CheckMapSpecial();
-
                 LevelTime++;
             }
 
@@ -225,49 +226,40 @@ namespace Helion.World
             Gametick++;
         }
 
-        private void CheckMapSpecial()
+        private void AddMapSpecial()
         {
-            if (m_mapActionSpecialExecuted || MapInfo.MapSpecial == MapSpecial.None)
-                return;
+            List<MonsterCountSpecial> monsterCountSpecials = new List<MonsterCountSpecial>();
 
-            int id = 0;
             switch (MapInfo.MapSpecial)
             {
                 case MapSpecial.BaronSpecial:
-                    id = 3003;
+                    AddMonsterCountSpecial(monsterCountSpecials, "BaronOfHell", 666, MapInfo.MapSpecialAction);
                     break;
                 case MapSpecial.CyberdemonSpecial:
-                    id = 16;
+                    AddMonsterCountSpecial(monsterCountSpecials, "Cyberdemon", 666, MapInfo.MapSpecialAction);
                     break;
                 case MapSpecial.SpiderMastermindSpecial:
-                    id = 7;
+                    AddMonsterCountSpecial(monsterCountSpecials, "SpiderMastermind", 666, MapInfo.MapSpecialAction);
+                    break;
+                case MapSpecial.Map07Special:
+                    AddMonsterCountSpecial(monsterCountSpecials, "Fatso", 666, MapSpecialAction.LowerFloor);
+                    AddMonsterCountSpecial(monsterCountSpecials, "Arachnotron", 667, MapSpecialAction.FloorRaiseByLowestTexture);
                     break;
             }
 
-            int count = EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue && x.Definition.EditorId.Value == id && !x.IsDead);
+            monsterCountSpecials.ForEach(x => SpecialManager.AddSpecial(x));
+        }
 
-            if (count == 0)
+        private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
+        {
+            EntityDefinition? definition = EntityManager.DefinitionComposer.GetByName(monsterName);
+            if (definition == null || !definition.EditorId.HasValue)
             {
-                m_mapActionSpecialExecuted = true;
-                List<Sector> sectors = Sectors.Where(x => x.Tag == 666).ToList();
-
-                switch (MapInfo.MapSpecialAction)
-                {
-                    case MapSpecialAction.LowerFloor:
-                        foreach (var sector in sectors)
-                            SpecialManager.AddSpecial(SpecialManager.CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, 
-                                VanillaConstants.SectorSlowSpeed * SpecialManager.SpeedFactor));
-                        break;
-                    case MapSpecialAction.OpenDoor:
-                        foreach (var sector in sectors)
-                            SpecialManager.AddSpecial(SpecialManager.CreateDoorOpenStaySpecial(sector, 
-                                VanillaConstants.DoorSlowSpeed * SpecialManager.SpeedFactor));
-                        break;
-                    case MapSpecialAction.ExitLevel:
-                        LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Next));
-                        break;
-                }
+                Log.Error($"Failed to find {monsterName} for {mapSpecialAction}");
+                return;
             }
+
+            monsterCountSpecials.Add(new MonsterCountSpecial(this, SpecialManager, definition.EditorId.Value, sectorTag, mapSpecialAction));
         }
 
         public IEnumerable<Sector> FindBySectorTag(int tag)

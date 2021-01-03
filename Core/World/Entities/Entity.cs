@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Helion.Audio;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -100,7 +98,7 @@ namespace Helion.World.Entities
         public bool IsDead => Health == 0;
         public EntityFrame Frame => FrameState.Frame;
         public virtual double ViewZ => 8.0;
-
+        public bool IsDeathStateFinished => IsDead && Frame.Ticks == -1;
 
         private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
 

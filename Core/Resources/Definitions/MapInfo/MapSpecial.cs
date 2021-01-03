@@ -5,6 +5,7 @@
         None,
         BaronSpecial,
         CyberdemonSpecial,
-        SpiderMastermindSpecial
+        SpiderMastermindSpecial,
+        Map07Special
     }
 }
