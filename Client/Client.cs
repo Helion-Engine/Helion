@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Client.Music;
@@ -17,6 +16,7 @@ using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
@@ -272,8 +272,6 @@ namespace Helion.Client
 
         public static void Main(string[] args)
         {
-            CleanItUp();
-
             CommandLineArgs cmdArgs = CommandLineArgs.Parse(args);
             Logging.Initialize(cmdArgs);
 
@@ -284,38 +282,43 @@ namespace Helion.Client
 
             cmdArgs.Errors.ForEach(x => Log.Error(x));
 
-            //try
-            {
-                using (Config config = new())
-                    using (Client client = new(cmdArgs, config))
-                        client.Start();
-
-                ForceFinalizersIfDebugMode();
-            }
-//            catch (AssertionException)
-//            {
-//                Log.Error("Assertion failure detected");
-//                throw;
-//            }
-//            catch (Exception e)
-//            {
-//                Log.Error("Unexpected exception: {0}", e.Message);
-//#if DEBUG
-//                throw;
-//#endif
-//            }
-//            finally
-//            {
-//                LogManager.Shutdown();
-//            }
+#if DEBUG
+            Run(cmdArgs);
+#else
+            RunRelease(cmdArgs);
+#endif
         }
 
-        private static void CleanItUp()
+        private static void RunRelease(CommandLineArgs cmdArgs)
         {
-            //SimpleParser parser = new SimpleParser();
-            //parser.Parse("test \"more words\" stuff\tspace");
-            //int lol = 1;
+            try
+            {
+                Run(cmdArgs);
+            }
+            catch (AssertionException)
+            {
+                Log.Error("Assertion failure detected");
+                throw;
+            }
+            catch (Exception e)
+            {
+                Log.Fatal("Unexpected exception: {0}", e.Message);
+            }
+            finally
+            {
+                LogManager.Shutdown();
+            }
         }
+
+        private static void Run(CommandLineArgs cmdArgs)
+        {
+            using (Config config = new())
+            using (Client client = new(cmdArgs, config))
+                client.Start();
+
+            ForceFinalizersIfDebugMode();
+        }
+      
 
         [Conditional("DEBUG")]
         private static void ForceFinalizersIfDebugMode()
