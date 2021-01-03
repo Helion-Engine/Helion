@@ -97,6 +97,7 @@
     <Content Include="Assets\Language.txt" />
     <Content Include="Assets\Licenses\fonts.console.LICENSE" />
     <Content Include="Assets\Licenses\graphics.cursor.LICENSE" />
+    <Content Include="Assets\MapInfo\Chex.txt" />
     <Content Include="Assets\MapInfo\Doom1.txt" />
     <Content Include="Assets\MapInfo\Doom2.txt" />
     <Content Include="Assets\SndInfo.txt" />
@@ -108,7 +109,12 @@
   <ItemGroup>
     <None Include="Scripts\ZipAssets.ps1" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Assets\MapInfo\Plutonia.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\MapInfo\TNT.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Client/bin/$(ConfigurationName)/net5.0-windows/assets.pk3"

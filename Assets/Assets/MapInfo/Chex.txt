@@ -1,0 +1,99 @@
+﻿clearepisodes
+episode e1m1
+{
+	picname = "M_EPI1"
+	name = "$TXT_CHEX_EP"
+	key = "k"
+}
+
+defaultmap
+{
+	sucktime = 1
+}
+
+map E1M1 lookup "CHUSTR_E1M1"
+{
+	levelnum = 1
+	titlepatch = "WILV00"
+	next = "E1M2"
+	secretnext = "E1M9"
+	sky1 = "SKY1"
+	cluster = 1
+	par = 30
+	music = "D_E1M1"
+}
+
+map E1M2 lookup "CHUSTR_E1M2"
+{
+	levelnum = 2
+	titlepatch = "WILV01"
+	next = "E1M3"
+	secretnext = "E1M9"
+	sky1 = "SKY1"
+	cluster = 1
+	par = 75
+	music = "D_E1M2"
+}
+
+map E1M3 lookup "CHUSTR_E1M3"
+{
+	levelnum = 3
+	titlepatch = "WILV02"
+	next = "E1M4"
+	secretnext = "E1M9"
+	sky1 = "SKY1"
+	cluster = 1
+	par = 120
+	music = "D_E1M3"
+}
+
+map E1M4 lookup "CHUSTR_E1M4"
+{
+	levelnum = 4
+	titlepatch = "WILV03"
+	next = "E1M5"
+	secretnext = "E1M9"
+	sky1 = "SKY1"
+	cluster = 1
+	par = 90
+	music = "D_E1M4"
+}
+
+map E1M5 lookup "CHUSTR_E1M5"
+{
+	levelnum = 5
+	titlepatch = "WILV04"
+	next = "EndGame1"
+	secretnext = "E1M9"
+	sky1 = "SKY1"
+	cluster = 1
+	par = 165
+	music = "D_E1M5"
+	needclustertext
+}
+
+// Clusters (correspond with same-numbered episode)
+
+cluster 1
+{
+	flat = "FLOOR4_8"
+	exittext = lookup, "CE1TEXT"
+}
+
+cluster 2
+{
+	flat = "SFLR6_1"
+	exittext = lookup, "CE2TEXT"
+}
+
+cluster 3
+{
+	flat = "MFLR8_4"
+	exittext = lookup, "CE3TEXT"
+}
+
+cluster 4
+{
+	flat = "MFLR8_3"
+	exittext = lookup, "CE4TEXT"
+}
