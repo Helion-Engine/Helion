@@ -2,11 +2,11 @@
 {
     public enum IWadType
     {
-        DoomShareware,
-        UltimateDoom,
         Doom2,
         Plutonia,
         TNT,
+        UltimateDoom,
+        DoomShareware,
         ChexQuest
     }
 }

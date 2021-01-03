@@ -15,6 +15,7 @@ using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configuration;
 using Helion.Util.Geometry;
@@ -137,25 +138,16 @@ namespace Helion.Client
 
         private void LoadFiles()
         {
-            string? iwad = GetIwad();
-            if (iwad == null)
-            {
-                Log.Error("No IWAD specified");
-                return;
-            }
-
-            if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad))
+            if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad()))
                 Log.Error("Unable to load files at startup");
         }
 
         private string? GetIwad()
         {
-            if (m_commandLineArgs != null)
+            if (m_commandLineArgs != null && m_commandLineArgs.Iwad != null)
                 return m_commandLineArgs.Iwad;
 
-            List<string> wadFiles = Directory.GetFiles(Directory.GetCurrentDirectory())
-                .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase)).ToList();
-            string? iwad = GetIWad(wadFiles);
+            string? iwad = LocateIwad();
             if (iwad == null)
             {
                 Log.Error("No IWAD found!");
@@ -167,15 +159,12 @@ namespace Helion.Client
             }
         }
 
-        private static string? GetIWad(List<string> files)
+        private static string? LocateIwad()
         {
-            string[] names = new string[] { "DOOM2", "PLUTONIA", "DOOM", "DOOM1" };
-            foreach (string name in names)
-            {
-                string? find = files.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(name, StringComparison.OrdinalIgnoreCase));
-                if (find != null)
-                    return find;
-            }
+            IWadLocator iwadLocator = new IWadLocator(new string[] { Directory.GetCurrentDirectory() });
+            List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
+            if (iwadData.Count > 0)
+                return iwadData[0].Item1;
 
             return null;
         }
