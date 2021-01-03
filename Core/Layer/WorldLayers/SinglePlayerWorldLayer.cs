@@ -83,14 +83,14 @@ namespace Helion.Layer.WorldLayers
         }
 
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapDef, IMap map)
+            ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, IMap map)
         {
-            TextureManager.Init(archiveCollection);
+            TextureManager.Init(archiveCollection, mapInfoDef);
             CheatManager.Instance.Clear();
-            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapDef, map);
+            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, map);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world, mapDef);
+            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
