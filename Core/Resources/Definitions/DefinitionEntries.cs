@@ -17,6 +17,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
+using NLog;
 
 namespace Helion.Resources.Definitions
 {
@@ -26,6 +27,8 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
         public readonly CompatibilityDefinitions Compatibility = new CompatibilityDefinitions();
         public readonly DecorateDefinitions Decorate;
@@ -63,7 +66,10 @@ namespace Helion.Resources.Definitions
         {
             Entry? entry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.Equals(entryName, StringComparison.OrdinalIgnoreCase));
             if (entry == null)
+            {
+                Log.Error($"Failed to find map info resource {entryName}");
                 return false;
+            }
 
             ParseMapInfo(entry);
             return true;

@@ -11,6 +11,7 @@ using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Extensions;
 using NLog;
@@ -194,13 +195,9 @@ namespace Helion.Resources.Archives.Collection
 
                 if (archive.ArchiveType == ArchiveType.Assets && iwadArchive != null)
                 {
-                    string name = Path.GetFileNameWithoutExtension(iwadArchive.OriginalFilePath);
-                    if (name.Equals("doom", StringComparison.OrdinalIgnoreCase))
-                        Definitions.LoadMapInfo(archive, "MapInfo/Doom1.txt");
-                    else if (name.Equals("doom1", StringComparison.OrdinalIgnoreCase))
-                        Definitions.LoadMapInfo(archive, "MapInfo/Doom1.txt");
-                    else if (name.Equals("doom2", StringComparison.OrdinalIgnoreCase))
-                        Definitions.LoadMapInfo(archive, "MapInfo/Doom2.txt");
+                    IWadInfo? wadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
+                    if (wadInfo != null)
+                        Definitions.LoadMapInfo(archive, wadInfo.MapInfoResource);
                 }
             }
         }
