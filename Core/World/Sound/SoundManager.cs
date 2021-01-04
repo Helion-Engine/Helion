@@ -84,7 +84,7 @@ namespace Helion.World.Sound
                 else
                 {
                     double distance = node.Value.AudioData.SoundSource.GetDistanceFrom(m_world.ListenerEntity);
-                    if (distance > Constants.MaxSoundDistance)
+                    if (!CheckDistance(distance, node.Value.AudioData.Attenuation))
                     {
                         node.Value.Stop();
                         m_playingSounds.Remove(node);
