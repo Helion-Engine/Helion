@@ -81,6 +81,9 @@ namespace Helion.World.Special.Specials
                     Sector.Floor.TextureHandle = MoveData.FloorChangeTextureHandle.Value;
                 }
 
+                if (MoveData.DamageSpecial != null)
+                    Sector.SectorDamageSpecial = MoveData.DamageSpecial;
+
                 Sector.ActiveMoveSpecial = null;
                 return SpecialTickStatus.Destroy;
             }

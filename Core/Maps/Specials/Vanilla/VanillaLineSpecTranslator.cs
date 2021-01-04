@@ -2,7 +2,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 using Helion.World.Special;
-using System;
 
 namespace Helion.Maps.Specials.Vanilla
 {
@@ -103,14 +102,18 @@ namespace Helion.Maps.Specials.Vanilla
                     return ZDoomLineSpecialType.FloorLowerToHighest;
 
                 case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
-                case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
                 case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
-                case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     return ZDoomLineSpecialType.FloorLowerToLowest;
+
+                case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                    return ZDoomLineSpecialType.FloorLowerToLowestTxTy;
 
                 case VanillaLineSpecialType.W1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
