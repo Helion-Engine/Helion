@@ -39,7 +39,7 @@ namespace Helion.Resources.Archives.Collection
             Definitions = new DefinitionEntries(this);
         }
 
-        public bool Load(IEnumerable<string> files, string? iwad, bool loadDefaultAssets = true)
+        public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true)
         {
             List<Archive> loadedArchives = new List<Archive>();
             List<string> filePaths = new List<string>();
