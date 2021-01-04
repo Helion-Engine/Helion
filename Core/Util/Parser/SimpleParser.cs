@@ -74,7 +74,7 @@ namespace Helion.Util.Parser
 
                     if (IsStartMultiLineComment(parseSub))
                     {
-                        m_multiLineComment = true;
+                        m_multiLineComment = !IsEndMultiLineComment(parseSub);
                         parseSub = StripStartMultiLineComment(parseSub);
                     }
 

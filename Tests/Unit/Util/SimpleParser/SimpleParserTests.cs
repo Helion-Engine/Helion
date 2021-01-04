@@ -220,6 +220,21 @@ Line2 Data2";
         }
 
         [TestMethod()]
+        public void CommentMultiLineTest3()
+        {
+            string data = @"Line1 Data1
+                /*******/
+                Line2 Data2";
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(data);
+
+            Assert.AreEqual("Line1", parser.ConsumeString());
+            Assert.AreEqual("Data1", parser.ConsumeString());
+            Assert.AreEqual("Line2", parser.ConsumeString());
+            Assert.AreEqual("Data2", parser.ConsumeString());
+        }
+
+        [TestMethod()]
         public void CommentMultiLineMiddle()
         {
             string data = @"Line1 /*lol comment*/ Data1";
