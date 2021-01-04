@@ -55,6 +55,8 @@ namespace Helion.Resources.Archives.Collection
                 assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets);
                 if (assetsArchive == null)
                     return false;
+
+                loadedArchives.Add(assetsArchive);
             }
 
             if (iwad != null)
@@ -62,6 +64,8 @@ namespace Helion.Resources.Archives.Collection
                 iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD);
                 if (iwadArchive == null)
                     return false;
+
+                loadedArchives.Add(iwadArchive);
             }
 
             filePaths.AddRange(files);
@@ -71,9 +75,11 @@ namespace Helion.Resources.Archives.Collection
                 Archive? archive = LoadArchive(filePath);
                 if (archive == null)
                     return false;
+
+                loadedArchives.Add(archive);
             }
 
-            ProcessAndIndexEntries(assetsArchive, iwadArchive, loadedArchives);
+            ProcessAndIndexEntries(iwadArchive, loadedArchives);
             m_archives.AddRange(loadedArchives);
 
             return true;
@@ -175,14 +181,8 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
-        private void ProcessAndIndexEntries(Archive? assetsArchive, Archive? iwadArchive, List<Archive> archives)
+        private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)
         {
-            if (assetsArchive != null)
-                archives.Add(assetsArchive);
-
-            if (iwadArchive != null)
-                archives.Add(iwadArchive);
-
             foreach (Archive archive in archives)
             {
                 foreach (Entry entry in archive.Entries)
