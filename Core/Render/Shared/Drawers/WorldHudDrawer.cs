@@ -305,10 +305,12 @@ namespace Helion.Render.Shared.Drawers
                 if (powerup != null && powerup.DrawPowerupEffect)
                     alpha = 0.3f;
 
+                bool drawInvul = player.DrawInvulnerableColorMap();
+
                 // Translate doom image offset to OpenGL coordinates
                 int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
                 int y = -offset.Y - height + weaponOffset.Y;
-                draw.Image(sprite, x, y, width, height, color: lightLevelColor, alpha: alpha);
+                draw.Image(sprite, x, y, width, height, color: lightLevelColor, alpha: alpha, drawInvul: drawInvul);
             }
         }
 

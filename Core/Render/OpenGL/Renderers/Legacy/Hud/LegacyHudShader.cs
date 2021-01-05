@@ -25,10 +25,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 in vec2 uv;
                 in vec4 rgbMultiplier;    
                 in float alpha;
+                in float hasInvulnerability;
 
                 out vec2 uvFrag;
                 flat out vec4 rgbMultiplierFrag;   
                 flat out float alphaFrag;
+                flat out float hasInvulnerabilityFrag;
 
                 uniform mat4 mvp;
 
@@ -36,6 +38,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                     uvFrag = uv;
                     rgbMultiplierFrag = rgbMultiplier; 
                     alphaFrag = alpha; 
+                    hasInvulnerabilityFrag = hasInvulnerability;
 
                     gl_Position = mvp * vec4(pos, 1.0);
                 }
@@ -47,6 +50,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                 in vec2 uvFrag;
                 flat in vec4 rgbMultiplierFrag;   
                 flat in float alphaFrag;
+                flat in float hasInvulnerabilityFrag;
 
                 out vec4 fragColor;
 
@@ -56,6 +60,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
                     fragColor = texture(boundTexture, uvFrag.st);
                     fragColor.w *= alphaFrag;
                     fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
+
+                    if (hasInvulnerabilityFrag != 0) {
+                        float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
+                        maxColor *= 1.5;
+                        fragColor.xyz = vec3(maxColor, maxColor, maxColor);
+                    }
                 }
             ";
 

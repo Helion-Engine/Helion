@@ -16,9 +16,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         public readonly byte MultiplierB;
         public readonly byte MultiplierFactor;
         public readonly float Alpha;
+        public readonly float DrawInvulnerability;
 
         public HudVertex(float x, float y, float z, float u, float v, byte multiplierR, byte multiplierG,
-            byte multiplierB, byte multiplierFactor, float alpha)
+            byte multiplierB, byte multiplierFactor, float alpha, bool drawInvul)
         {
             X = x;
             Y = y;
@@ -30,10 +31,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             MultiplierB = multiplierB;
             MultiplierFactor = multiplierFactor;
             Alpha = alpha;
+            DrawInvulnerability = drawInvul ? 1.0f : 0.0f;
         }
 
-        public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha) :
-            this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha)
+        public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha,
+            bool drawInvul)
+            : this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A,
+                alpha, drawInvul)
         {
         }
     }

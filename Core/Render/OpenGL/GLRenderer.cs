@@ -280,10 +280,10 @@ namespace Helion.Render.OpenGL
             if (cmd.AreaIsTextureDimension)
             {
                 Vec2I topLeft = new Vec2I(cmd.DrawArea.Top, cmd.DrawArea.Left);
-                m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha);
+                m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability);
             }
             else
-                m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha);
+                m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability);
         }
 
         private void HandleDrawShape(DrawShapeCommand cmd)

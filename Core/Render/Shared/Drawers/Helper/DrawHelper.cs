@@ -130,9 +130,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         public void Image(string name, int? width = null, int? height = null,
             Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
-            Color? color = null, float alpha = 1.0f)
+            Color? color = null, float alpha = 1.0f, bool drawInvul = false)
         {
-            Image(name, 0, 0, out _, width, height, window, image, both, color, alpha);
+            Image(name, 0, 0, out _, width, height, window, image, both, color, alpha, drawInvul);
         }
 
         /// <summary>
@@ -141,9 +141,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         public void Image(string name, int x, int y, int? width = null, int? height = null,
             Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
-            Color? color = null, float alpha = 1.0f)
+            Color? color = null, float alpha = 1.0f, bool drawInvul = false)
         {
-            Image(name, x, y, out _, width, height, window, image, both, color, alpha);
+            Image(name, x, y, out _, width, height, window, image, both, color, alpha, drawInvul);
         }
 
         /// <summary>
@@ -152,9 +152,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         public void Image(string name, Vec2I offset, int? width = null, int? height = null,
             Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
-            Color? color = null, float alpha = 1.0f)
+            Color? color = null, float alpha = 1.0f, bool drawInvul = false)
         {
-            Image(name, offset, out _, width, height, window, image, both, color, alpha);
+            Image(name, offset, out _, width, height, window, image, both, color, alpha, drawInvul);
         }
 
         /// <summary>
@@ -163,9 +163,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         public void Image(string name, int x, int y, out Dimension drawDimension, int? width = null,
             int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft,
-            Align? both = null, Color? color = null, float alpha = 1.0f)
+            Align? both = null, Color? color = null, float alpha = 1.0f, bool drawInvul = false)
         {
-            Image(name, new Vec2I(x, y), out drawDimension, width, height, window, image, both, color, alpha);
+            Image(name, new Vec2I(x, y), out drawDimension, width, height, window, image, both, color, alpha, drawInvul);
         }
 
         /// <summary>
@@ -194,9 +194,11 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// certain channels (ex: to make it red, use [255, 0, 0]).</param>
         /// <param name="alpha">The transparency (1.0 is unchanged, 0.5 is
         /// half visible, 0.0 is not visible at all). Default is 1.0.</param>
+        /// <param name="drawInvul">If invulnerability coloring should be
+        /// applied to the image.</param>
         public void Image(string name, Vec2I offset, out Dimension drawArea, int? width = null,
             int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
-            Color? color = null, float alpha = 1.0f)
+            Color? color = null, float alpha = 1.0f, bool drawInvul = false)
         {
             Align alignWindow = both ?? window;
             Align alignImage = both ?? image;
@@ -212,7 +214,7 @@ namespace Helion.Render.Shared.Drawers.Helper
             Vec2I pos = GetDrawingCoordinateFromAlign(offset.X, offset.Y, drawArea.Width, drawArea.Height,
                 alignWindow, alignImage);
             m_renderCommands.DrawImage(name, pos.X, pos.Y, drawArea.Width, drawArea.Height,
-                color ?? NoColor, alpha);
+                color ?? NoColor, alpha, drawInvul);
         }
 
         /// <summary>

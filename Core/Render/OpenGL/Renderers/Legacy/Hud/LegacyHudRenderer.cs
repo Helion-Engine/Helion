@@ -27,7 +27,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2),
             new VertexPointerUnsignedByteAttribute("rgbMultiplier", 3, 4, true),
-            new VertexPointerFloatAttribute("alpha", 4, 1));
+            new VertexPointerFloatAttribute("alpha", 4, 1),
+            new VertexPointerFloatAttribute("hasInvulnerability", 5, 1));
 
         private readonly IGLFunctions gl;
         private readonly LegacyGLTextureManager m_textureManager;
@@ -62,25 +63,25 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         }
 
         public override void DrawImage(CIString textureName, ImageBox2I drawArea, Color multiplyColor,
-            float alpha)
+            float alpha, bool drawInvul)
         {
             m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
-            AddImage(texture, drawArea, multiplyColor, alpha);
+            AddImage(texture, drawArea, multiplyColor, alpha, drawInvul);
         }
 
         public override void DrawImage(CIString textureName, Vec2I topLeft, Color multiplyColor,
-            float alpha)
+            float alpha, bool drawInvul)
         {
             m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
             (int width, int height) = texture.Dimension;
             ImageBox2I drawArea = new ImageBox2I(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
-            AddImage(texture, drawArea, multiplyColor, alpha);
+            AddImage(texture, drawArea, multiplyColor, alpha, drawInvul);
         }
 
         public override void DrawShape(ImageBox2I drawArea, Color color, float alpha)
         {
             GLLegacyTexture texture = m_textureManager.WhiteTexture;
-            AddImage(texture, drawArea, Color.FromArgb(255, color.R, color.G, color.B), alpha);
+            AddImage(texture, drawArea, Color.FromArgb(255, color.R, color.G, color.B), alpha, false);
         }
 
         public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha)
@@ -111,7 +112,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
 
             HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph)
             {
-                return new(x, y, DrawDepth, u, v, glyph.Color, alpha);
+                return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false);
             }
         }
 
@@ -161,13 +162,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
         }
 
         private void AddImage(GLLegacyTexture texture, ImageBox2I drawArea, Color multiplyColor,
-            float alpha)
+            float alpha, bool drawInvul)
         {
             // Remember that we are drawing along the Z for visual depth now.
-            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha);
-            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha);
-            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha);
-            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha);
+            HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha, drawInvul);
+            HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha, drawInvul);
+            HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha, drawInvul);
+            HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha, drawInvul);
 
             HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
             m_drawBuffer.Add(texture, quad);
