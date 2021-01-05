@@ -681,53 +681,47 @@ namespace Helion.World.Physics
             LinkToWorld(entity);
         }
 
-        public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData? tryMove)
+        public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
         {
             if (!entity.Flags.Float && !(entity is Player) && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
                 return false;
 
-            if (tryMove != null)
+            tryMove.Success = true;
+            tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+            if (entity.HighestFloorObject is Entity highFloorEntity)
             {
-                tryMove.LowestCeilingZ = entity.LowestCeilingZ;
-                if (entity.HighestFloorObject is Entity highFloorEntity)
-                {
-                    tryMove.HighestFloorZ = highFloorEntity.Box.Top;
-                    tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
-                }
-                else
-                {
-                    tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
-                }
+                tryMove.HighestFloorZ = highFloorEntity.Box.Top;
+                tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
+            }
+            else
+            {
+                tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
             }
 
-            if (tryMove != null)
-                tryMove.Success = true;
-
-            bool success = false;
             Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
             entity.BlockingLine = null;
             entity.BlockingEntity = null;
             entity.BlockingSectorPlane = null;
-            if (!m_blockmap.Iterate(nextBox, CheckForBlockers))
-                success = true;
+            m_blockmap.Iterate(nextBox, CheckForBlockers);
 
-            if (tryMove != null)
+            if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
             {
-                if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
-                    return false;
-
-                if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
-                    return false;
-
-                tryMove.CanFloat = true;
-
-                if (!entity.CheckDropOff(tryMove))
-                    return false;
-
-                success = tryMove.Success;
+                tryMove.Success = false;
+                return false;
             }
 
-            return success;
+            if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
+            {
+                tryMove.Success = false;
+                return false;
+            }
+
+            tryMove.CanFloat = true;
+
+            if (!entity.CheckDropOff(tryMove))
+                tryMove.Success = false;
+
+            return tryMove.Success;
 
             GridIterationStatus CheckForBlockers(Block block)
             {
@@ -737,15 +731,14 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(nextBox))
                     {
-                        if (tryMove != null && !entity.Flags.NoClip && line.HasSpecial)
+                        if (!entity.Flags.NoClip && line.HasSpecial)
                             tryMove.AddIntersectSpecialLine(line);
 
                         LineBlock blockType = LineBlocksEntity(entity, line, tryMove);
                         if (blockType != LineBlock.NoBlock)
                         {
                             entity.BlockingLine = line;
-                            if (tryMove != null)
-                                tryMove.Success = false;
+                            tryMove.Success = false;
                             // Only keep checking if entity floats
                             // Block floating check needs all intersecting LineOpenings
                             if (blockType == LineBlock.BlockStopChecking || (blockType == LineBlock.BlockContinueIfFloat && !entity.Flags.Float))
@@ -764,7 +757,7 @@ namespace Helion.World.Physics
 
                         if (nextEntity.Box.Overlaps2D(nextBox))
                         {
-                            tryMove?.IntersectEntities2D.Add(nextEntity);
+                            tryMove.IntersectEntities2D.Add(nextEntity);
                             if (!entity.Box.OverlapsZ(nextEntity.Box))
                                 continue;
 
@@ -778,9 +771,8 @@ namespace Helion.World.Physics
                                     continue;
 
                                 if (lineOpening != null)
-                                    tryMove?.SetIntersectionData(lineOpening);
-                                if (tryMove != null)
-                                    tryMove.Success = false;
+                                    tryMove.SetIntersectionData(lineOpening);
+                                tryMove.Success = false;
                                 entity.BlockingEntity = nextEntity;
                                 return GridIterationStatus.Stop;
                             }
@@ -972,7 +964,7 @@ namespace Helion.World.Physics
             residualStep = stepDelta - usedStepDelta;
 
             Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
-            if (IsPositionValid(entity, closeToLinePosition, null))
+            if (IsPositionValid(entity, closeToLinePosition, tryMove))
             {
                 MoveTo(entity, closeToLinePosition, tryMove);
                 return true;
@@ -1028,7 +1020,7 @@ namespace Helion.World.Physics
             if (axis == Axis2D.X)
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
-                if (IsPositionValid(entity, nextPosition, null))
+                if (IsPositionValid(entity, nextPosition, tryMove))
                 {
                     MoveTo(entity, nextPosition, tryMove);
                     entity.Velocity.Y = 0;
@@ -1039,7 +1031,7 @@ namespace Helion.World.Physics
             else
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
-                if (IsPositionValid(entity, nextPosition, null))
+                if (IsPositionValid(entity, nextPosition, tryMove))
                 {
                     MoveTo(entity, nextPosition, tryMove);
                     entity.Velocity.X = 0;
