@@ -758,23 +758,24 @@ namespace Helion.World.Physics
                         if (nextEntity.Box.Overlaps2D(nextBox))
                         {
                             tryMove.IntersectEntities2D.Add(nextEntity);
-                            if (!entity.Box.OverlapsZ(nextEntity.Box))
-                                continue;
+                            bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
 
-                            if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
+                            if (overlapsZ && entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
                             else if (entity.CanBlockEntity(nextEntity))
                             {
-                                if (!entity.BlocksEntityZ(nextEntity, out LineOpening? lineOpening))
-                                    continue;
-
+                                bool blocksZ = BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ, out LineOpening? lineOpening);
                                 if (lineOpening != null)
                                     tryMove.SetIntersectionData(lineOpening);
-                                tryMove.Success = false;
-                                entity.BlockingEntity = nextEntity;
-                                return GridIterationStatus.Stop;
+
+                                if (blocksZ)
+                                {
+                                    tryMove.Success = false;
+                                    entity.BlockingEntity = nextEntity;
+                                    return GridIterationStatus.Stop;
+                                }
                             }
                         }
                     }
@@ -782,6 +783,35 @@ namespace Helion.World.Physics
 
                 return GridIterationStatus.Continue;
             }
+        }
+
+        private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, out LineOpening? lineOpening)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                lineOpening = null;
+                return false;
+            }
+
+            LineOpening openTop = new LineOpening();
+            openTop.SetTop(tryMove, other);
+
+            LineOpening openBottom = new LineOpening();
+            openBottom.SetBottom(tryMove, other);
+
+            if (entity.Position.Z + entity.Height > other.Position.Z)
+                lineOpening = openTop;
+            else
+                lineOpening = openBottom;
+
+            // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
+            if (overlapsZ && entity.Flags.IsMonster)
+                return true;
+
+            if (!overlapsZ)
+                return false;
+
+            return !openTop.CanPassOrStepThrough(entity) && !openBottom.CanPassOrStepThrough(entity);
         }
 
         private bool EntityCanPickupItem(Entity entity, Entity item)
@@ -1063,7 +1093,7 @@ namespace Helion.World.Physics
             if (entity.ShouldApplyGravity())
                 entity.Velocity.Z -= m_world.Gravity;
 
-            double floatZ = entity.GetEnemyFloatMove();
+            double floatZ = 0;// = entity.GetEnemyFloatMove();
             if (entity.Velocity.Z == 0 && floatZ == 0)
                 return;
 
