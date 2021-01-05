@@ -72,5 +72,10 @@ namespace Helion.World.Geometry.Lines
         {
             return OneSided || (entity.Flags.Monster && Flags.Blocking.Monsters) || (entity is Player && Flags.Blocking.Players);
         }
+
+        public override string ToString()
+        {
+            return $"Id={Id} [{StartPosition}] [{EndPosition}]";
+        }
     }
 }
