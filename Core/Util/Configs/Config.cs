@@ -21,6 +21,7 @@ namespace Helion.Util.Configs
         private const string EngineSectionName = "engine";
         private const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly Dictionary<string, InputCommand> LowerNameCommands = new();
 
         // If you want to add new serializable fields into some section, they
         // should be here. Order technically doesn't matter, but it is clearer
@@ -43,6 +44,12 @@ namespace Helion.Util.Configs
         private readonly Dictionary<string, object> m_pathToConfigValue = new();
         private bool m_disposed;
         private bool m_newConfig;
+
+        static Config()
+        {
+            foreach (InputCommand value in Enum.GetValues(typeof(InputCommand)))
+                LowerNameCommands[value.ToString().ToLower()] = value;
+        }
 
         public Config(string path = "config.ini")
         {
@@ -161,6 +168,15 @@ namespace Helion.Util.Configs
                     yield return (path, configValue);
         }
 
+        public InputCommand? InputKeyToCommand(InputKey inputKey)
+        {
+            if (!Keys.TryGetValue(inputKey, out string? commandName))
+                return null;
+            if (LowerNameCommands.TryGetValue(commandName.ToLower(), out InputCommand command))
+                return command;
+            return null;
+        }
+
         public void Dispose()
         {
             GC.SuppressFinalize(this);
@@ -174,21 +190,6 @@ namespace Helion.Util.Configs
 
             WriteConfig();
             m_disposed = true;
-        }
-
-        public InputCommand? InputKeyToCommand(InputKey inputKey)
-        {
-            // TODO: Cache me!
-            Dictionary<string, InputCommand> lowerNameCommands = new();
-            foreach (InputCommand value in Enum.GetValues(typeof(InputCommand)))
-                lowerNameCommands[value.ToString().ToLower()] = value;
-
-            if (!Keys.TryGetValue(inputKey, out string? commandName))
-                return null;
-
-            if (lowerNameCommands.TryGetValue(commandName.ToLower(), out InputCommand command))
-                return command;
-            return null;
         }
     }
 }
