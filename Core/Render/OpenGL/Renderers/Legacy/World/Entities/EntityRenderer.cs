@@ -66,6 +66,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         {
             foreach (Entity entity in subsector.Entities)
             {
+                if (m_drawDebugBox)
+                    AddSpriteDebugBox(entity);
+
                 if (ShouldNotDraw(entity))
                     continue;
 
@@ -240,9 +243,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
             AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteRotation.Mirror);
-
-            if (m_drawDebugBox)
-                AddSpriteDebugBox(entity);
         }
     }
 }
