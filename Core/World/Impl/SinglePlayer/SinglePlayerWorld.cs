@@ -7,7 +7,7 @@ using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Sounds.Mus;
 using Helion.World.Cheats;
@@ -325,13 +325,13 @@ namespace Helion.World.Impl.SinglePlayer
             Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
             if (pixelsMoved.X != 0 || pixelsMoved.Y != 0)
             {
-                Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Engine.Mouse.PixelDivisor;
-                moveDelta.X *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Yaw);
-                moveDelta.Y *= (float)(Config.Engine.Mouse.Sensitivity * Config.Engine.Mouse.Pitch);
+                Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Mouse.PixelDivisor;
+                moveDelta.X *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Yaw);
+                moveDelta.Y *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Pitch);
 
                 Player.AddToYaw(moveDelta.X);
 
-                if (Config.Engine.Mouse.MouseLook)
+                if (Config.Mouse.Look)
                     Player.AddToPitch(moveDelta.Y);
             }
         }

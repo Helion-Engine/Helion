@@ -16,7 +16,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Geometry;
 using Helion.Util.Terminals;
 using Helion.Util.Time;
@@ -58,8 +58,8 @@ namespace Helion.Client
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_window = new OpenTKWindow(config, m_archiveCollection, RunGameLoop);
             m_musicPlayer = new MidiMusicPlayer(config);
-            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Engine.Audio.Device, m_musicPlayer);
-            m_audioSystem.SetVolume(m_config.Engine.Audio.Volume * m_config.Engine.Audio.SoundVolume);
+            m_audioSystem = new ALAudioSystem(m_archiveCollection, config.Audio.Device, m_musicPlayer);
+            m_audioSystem.SetVolume(m_config.Audio.Volume * m_config.Audio.SoundVolume);
             m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console);
             m_console.OnConsoleCommandEvent += Console_OnCommand;
         }
@@ -71,8 +71,8 @@ namespace Helion.Client
 
         private void SetFPSLimit()
         {
-            if (m_config.Engine.Render.MaxFPS > 0)
-                m_fpsLimitValue = StopwatchFrequencyValue / m_config.Engine.Render.MaxFPS;
+            if (m_config.Render.MaxFPS > 0)
+                m_fpsLimitValue = StopwatchFrequencyValue / m_config.Render.MaxFPS;
             m_fpsLimit.Start();
         }
 
@@ -181,7 +181,7 @@ namespace Helion.Client
         private void SetSkill(int value)
         {
             if (value > 0 && value < 6)
-                m_config.Engine.Game.Skill.Set((Maps.Shared.SkillLevel)value - 1);
+                m_config.Game.Skill.Set((Maps.Shared.SkillLevel)value - 1);
             else
                 Log.Info($"Invalid skill level: {value}");
         }
@@ -207,7 +207,8 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            ConsumableInput input = new ConsumableInput(m_window.PollInput());
+            InputEvent inputEvent = m_window.PollInput(m_config);
+            ConsumableInput input = new(inputEvent);
             m_layerManager.HandleInput(input);
         }
 
@@ -220,7 +221,7 @@ namespace Helion.Client
         {
             Dimension windowDimension = m_window.WindowDimension;
             IRenderer renderer = m_window.Renderer;
-            RenderCommands renderCommands = new RenderCommands(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
+            RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
 
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();

@@ -17,7 +17,7 @@ namespace Helion.World.Entities.Definition.States
     public static class EntityActionFunctions
     {
         public delegate void ActionFunction(Entity entity);
-         
+
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private static readonly Dictionary<string, ActionFunction> ActionFunctions = new Dictionary<string, ActionFunction>
@@ -348,19 +348,19 @@ namespace Helion.World.Entities.Definition.States
             ["A_XSCREAM"] = A_XScream,
             ["A_ZOOMFACTOR"] = A_ZoomFactor,
         };
-        
+
         public static ActionFunction? Find(string? actionFuncName)
         {
              if (actionFuncName != null)
              {
-                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out ActionFunction? func)) 
+                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out ActionFunction? func))
                        return func;
                   Log.Warn("Unable to find action function: {0}", actionFuncName);
              }
-                  
+
              return null;
         }
-        
+
         private static void ACS_NamedExecute(Entity entity)
         {
              // TODO
@@ -425,7 +425,7 @@ namespace Helion.World.Entities.Definition.States
             for (int i = 0; i < 40; i++)
             {
                 double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
-                if (!entity.World.GetAutoAimEntity(entity.Owner, entity.Owner.HitscanAttackPos, angle, Constants.EntityShootDistance, out _, 
+                if (!entity.World.GetAutoAimEntity(entity.Owner, entity.Owner.HitscanAttackPos, angle, Constants.EntityShootDistance, out _,
                     out Entity? hitEntity) || hitEntity == null)
                     continue;
 
@@ -480,7 +480,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BrainExplode(Entity entity)
         {
-            Vec3D pos = new Vec3D(entity.Position.X + (entity.World.Random.NextDiff() * 2048), 
+            Vec3D pos = new Vec3D(entity.Position.X + (entity.World.Random.NextDiff() * 2048),
                 entity.Position.Y, 128 + (entity.World.Random.NextByte() * 2));
             BrainExplodeRocket(entity.EntityManager, pos);
         }
@@ -808,7 +808,7 @@ namespace Helion.World.Entities.Definition.States
         {
              // TODO
         }
-        
+
         private static void A_CloseShotgun2(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", entity.WeaponSoundChannel, new SoundParams(entity));
@@ -1075,8 +1075,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, 
-                    player.World.Config.Engine.Gameplay.AutoAim, "BFGBall");
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance,
+                    player.World.Config.Game.AutoAim, "BFGBall");
             }
         }
 
@@ -1093,7 +1093,7 @@ namespace Helion.World.Entities.Definition.States
                 int offset = player.Weapon == null ? 0 : Math.Clamp(player.Weapon.FrameState.Frame.Frame, 0, 1);
                 player.Weapon?.SetFlashState(offset);
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
             }
         }
 
@@ -1112,8 +1112,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, 
-                    player.World.Config.Engine.Gameplay.AutoAim, "Rocket");
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance,
+                    player.World.Config.Game.AutoAim, "Rocket");
             }
         }
 
@@ -1134,7 +1134,7 @@ namespace Helion.World.Entities.Definition.States
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
             }
         }
 
@@ -1143,8 +1143,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity is Player player)
             {
                 player.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, 
-                    player.World.Config.Engine.Gameplay.AutoAim, "PlasmaBall");
+                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance,
+                    player.World.Config.Game.AutoAim, "PlasmaBall");
             }
         }
 
@@ -1164,8 +1164,8 @@ namespace Helion.World.Entities.Definition.States
             {
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
-                player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0, 
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
+                player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
             }
         }
 
@@ -1176,7 +1176,7 @@ namespace Helion.World.Entities.Definition.States
                 player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, new SoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Engine.Gameplay.AutoAim);
+                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
             }
         }
 
@@ -1245,7 +1245,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), 
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "CacodemonBall");
         }
 
@@ -1403,12 +1403,12 @@ namespace Helion.World.Entities.Definition.States
         {
              // TODO
         }
-        
+
         private static void A_LoadShotgun2(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", entity.WeaponSoundChannel, new SoundParams(entity));
         }
-        
+
         private static void A_Log(Entity entity)
         {
              // TODO
@@ -1498,7 +1498,7 @@ namespace Helion.World.Entities.Definition.States
         {
              // TODO
         }
-        
+
         private static void A_OpenShotgun2(Entity entity)
         {
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", entity.WeaponSoundChannel, new SoundParams(entity));
@@ -1615,7 +1615,7 @@ namespace Helion.World.Entities.Definition.States
             // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
             entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
             entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
-            entity.World.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0, 
+            entity.World.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0,
                 pitch, Constants.EntityShootDistance, false);
         }
 
@@ -1725,10 +1725,10 @@ namespace Helion.World.Entities.Definition.States
                 if (player.PendingWeapon != null || player.IsDead)
                     player.LowerWeapon();
 
-                if (player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 && 
+                if (player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
                     player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
                 {
-                    player.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound, 
+                    player.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
                         SoundChannelType.Auto, new SoundParams(entity));
                 }
             }
@@ -2238,7 +2238,7 @@ namespace Helion.World.Entities.Definition.States
                 entity.SetSeeState();
             }
         }
-        
+
         private static void A_SPosAttackUseAtkSound(Entity entity)
         {
             PosessedAttack(entity, 3, true);
@@ -2408,7 +2408,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), 
+            entity.World.FireProjectile(entity, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
                 Constants.EntityShootDistance, false, "DoomImpBall");
         }
 
@@ -2486,7 +2486,7 @@ namespace Helion.World.Entities.Definition.States
         private static void A_VileChase(Entity entity)
         {
             Box2D nextBox = Box2D.CopyToOffset(entity.GetNextEnemyPos(), entity.Radius);
-            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox, 
+            List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
                 BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
 
             for (int i = 0; i < intersections.Count; i++)

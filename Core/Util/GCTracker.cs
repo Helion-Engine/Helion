@@ -1,5 +1,5 @@
 using System;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using NLog;
 
 namespace Helion.Util
@@ -32,9 +32,9 @@ namespace Helion.Util
         /// </summary>
         public void Update()
         {
-            if (!m_config.Engine.Developer.GCStats)
+            if (!m_config.Developer.GCStats)
                 return;
-            
+
             for (int gen = 0; gen < Generations; gen++)
             {
                 m_collectionGen[gen] = m_lastGenAmount[gen];

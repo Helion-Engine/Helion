@@ -62,23 +62,23 @@ namespace Helion.Util.Configs
         {
             return new()
             {
-                [InputKey.W] = "+forward",
-                [InputKey.A] = "+left",
-                [InputKey.S] = "+back",
-                [InputKey.D] = "+right",
-                [InputKey.E] = "+use",
-                [InputKey.Space] = "+jump",
-                [InputKey.C] = "+crouch",
-                [InputKey.MouseLeft] = "+attack",
-                [InputKey.Up] = "+nextweapon",
-                [InputKey.Down] = "+prevweapon",
-                [InputKey.One] = "+slot1",
-                [InputKey.Two] = "+slot2",
-                [InputKey.Three] = "+slot3",
-                [InputKey.Four] = "+slot4",
-                [InputKey.Five] = "+slot5",
-                [InputKey.Six] = "+slot6",
-                [InputKey.Seven] = "+slot7",
+                [InputKey.W] = "forward",
+                [InputKey.A] = "left",
+                [InputKey.S] = "back",
+                [InputKey.D] = "right",
+                [InputKey.E] = "use",
+                [InputKey.Space] = "jump",
+                [InputKey.C] = "crouch",
+                [InputKey.MouseLeft] = "attack",
+                [InputKey.Up] = "nextweapon",
+                [InputKey.Down] = "prevweapon",
+                [InputKey.One] = "slot1",
+                [InputKey.Two] = "slot2",
+                [InputKey.Three] = "slot3",
+                [InputKey.Four] = "slot4",
+                [InputKey.Five] = "slot5",
+                [InputKey.Six] = "slot6",
+                [InputKey.Seven] = "slot7",
                 [InputKey.Backtick] = "console"
             };
         }
@@ -174,6 +174,21 @@ namespace Helion.Util.Configs
 
             WriteConfig();
             m_disposed = true;
+        }
+
+        public InputCommand? InputKeyToCommand(InputKey inputKey)
+        {
+            // TODO: Cache me!
+            Dictionary<string, InputCommand> lowerNameCommands = new();
+            foreach (InputCommand value in Enum.GetValues(typeof(InputCommand)))
+                lowerNameCommands[value.ToString().ToLower()] = value;
+
+            if (!Keys.TryGetValue(inputKey, out string? commandName))
+                return null;
+
+            if (lowerNameCommands.TryGetValue(commandName.ToLower(), out InputCommand command))
+                return command;
+            return null;
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Terminals;
 using Helion.World.Cheats;
@@ -58,7 +57,7 @@ namespace Helion.Client
                 Log.Info(m_audioSystem.GetDeviceName());
                 return;
             }
-                
+
             if (!int.TryParse(args[0], out int deviceIndex))
                 return;
 
@@ -72,9 +71,9 @@ namespace Helion.Client
 
         private void SetAudioDevice(string deviceName)
         {
-            m_config.Engine.Audio.Device.Set(deviceName);
+            m_config.Audio.Device.Set(deviceName);
             m_audioSystem.SetDevice(deviceName);
-            m_audioSystem.SetVolume(m_config.Engine.Audio.Volume);
+            m_audioSystem.SetVolume(m_config.Audio.Volume);
         }
 
         private void SetVolume(IList<string> args)
@@ -85,7 +84,7 @@ namespace Helion.Client
                 return;
             }
 
-            m_config.Engine.Audio.Volume.Set(volume);
+            m_config.Audio.Volume.Set(volume);
             m_audioSystem.SetVolume(volume);
         }
 
@@ -96,7 +95,7 @@ namespace Helion.Client
                 Log.Info("Usage: map <mapName>");
                 return;
             }
-            
+
             // For now, we will only have one world layer present. If someone
             // wants to `map mapXX` offline then it will kill their connection
             // and go offline to some world.
@@ -109,11 +108,11 @@ namespace Helion.Client
                 Log.Warn("Cannot load map '{0}', it cannot be found or is corrupt", mapName);
                 return;
             }
-            
+
             SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem, m_archiveCollection, map);
             if (newLayer == null)
                 return;
-            
+
             m_layerManager.Add(newLayer);
             newLayer.World.Start();
         }

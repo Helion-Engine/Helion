@@ -1,7 +1,7 @@
 using Helion.Input;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Terminals;
 
 namespace Helion.Layer
@@ -34,7 +34,8 @@ namespace Helion.Layer
 
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            if (consumableInput.ConsumeKeyPressed(m_config.Engine.Controls.Console))
+            // TODO;
+            if (consumableInput.ConsumeCommandPressed(InputCommand.Console))
             {
                 if (Contains(ConsoleLayer.LayerName))
                     RemoveByName(ConsoleLayer.LayerName);

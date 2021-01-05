@@ -6,7 +6,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
@@ -14,11 +14,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
     public class LegacySkyRenderer : IDisposable
     {
         private const int StencilIndex = 1;
-       
+
         public readonly ISkyComponent DefaultSky;
         private readonly IGLFunctions gl;
         private readonly List<ISkyComponent> m_skyComponents;
-        
+
         public LegacySkyRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
@@ -32,7 +32,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky
             FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
-        
+
         public void Clear()
         {
             for (int i = 0; i < m_skyComponents.Count; i++)

@@ -6,9 +6,8 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
-using Helion.Render.Shared.World;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
@@ -33,7 +32,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             m_config = config;
             gl = functions;
             m_skySphereRenderer = new SkySphereRenderer(archiveCollection, capabilities, functions, textureManager);
-    
+
             m_geometryVao = new VertexArrayObject(capabilities, functions, GeometryAttributes, "VAO: Sky sphere geometry");
             m_geometryVbo = new StreamVertexBuffer<SkyGeometryVertex>(capabilities, functions, m_geometryVao, "VBO: Sky sphere geometry");
             using (ShaderBuilder builder = SkySphereGeometryShader.MakeBuilder(functions))
@@ -45,7 +44,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             FailedToDispose(this);
             ReleaseUnmanagedResources();
         }
-        
+
         public void Clear()
         {
             m_geometryVbo.Clear();
@@ -62,13 +61,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             m_geometryShaderProgram.Bind();
 
             m_geometryShaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
-            
+
             m_geometryVbo.UploadIfNeeded();
-            
+
             m_geometryVao.Bind();
             m_geometryVbo.DrawArrays();
             m_geometryVao.Unbind();
-            
+
             m_geometryShaderProgram.Unbind();
         }
 
@@ -82,7 +81,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-        
+
         private void ReleaseUnmanagedResources()
         {
             m_geometryShaderProgram.Dispose();

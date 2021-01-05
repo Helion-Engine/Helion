@@ -8,7 +8,7 @@ using Helion.Render.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Legacy
@@ -108,7 +108,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
                 return;
             }
 
-            (int minFilter, int maxFilter) = FindFilterValues(Config.Engine.Render.TextureFilter);
+            (int minFilter, int maxFilter) = FindFilterValues(Config.Render.TextureFilter);
 
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
@@ -127,7 +127,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
 
         private void HandleFontTextureParameters(TextureTargetType targetType)
         {
-            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Engine.Render.FontFilter);
+            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.FontFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, fontMinFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, fontMaxFilter);
             gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);
@@ -159,11 +159,11 @@ namespace Helion.Render.OpenGL.Texture.Legacy
 
         private void SetAnisotropicFiltering(TextureTargetType targetType)
         {
-            if (!Config.Engine.Render.Anisotropy.Enable)
+            if (!Config.Render.Anisotropy.Enable)
                 return;
 
-            float value = (float)Config.Engine.Render.Anisotropy.Value;
-            if (Config.Engine.Render.Anisotropy.UseMaxSupported)
+            float value = (float)Config.Render.Anisotropy.Value;
+            if (Config.Render.Anisotropy.UseMaxSupported)
                 value = Capabilities.Limits.MaxAnisotropy;
             value = MathHelper.Clamp(value, 1.0f, Capabilities.Limits.MaxAnisotropy);
 

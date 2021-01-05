@@ -8,7 +8,7 @@ using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
@@ -83,7 +83,7 @@ namespace Helion.Render.Shared.Drawers
             DrawHudCrosshair(viewport, draw);
 
             // TODO: This should be at the top, rendering order is reversed somehow (check impl)
-            if (config.Engine.Hud.FullStatusBar)
+            if (config.Hud.FullStatusBar)
                 DrawFullStatusBar(player, largeFont, draw);
             else
                 DrawMinimalStatusBar(player, topRightY, largeFont, draw);
@@ -414,7 +414,7 @@ namespace Helion.Render.Shared.Drawers
         {
             y = 0;
 
-            if (consoleFont == null || !config.Engine.Render.ShowFPS)
+            if (consoleFont == null || !config.Render.ShowFPS)
                 return;
 
             string avgFps = $"FPS: {(int)Math.Round(fpsTracker.AverageFramesPerSecond)}";

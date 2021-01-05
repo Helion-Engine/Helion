@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using Helion.Graphics.String;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Time;
 using NLog;
@@ -82,9 +82,9 @@ namespace Helion.Util.Terminals
         {
             Name = TargetName;
             m_config = cfg;
-            m_capacity = m_config.Engine.Console.MaxMessages;
+            m_capacity = m_config.Console.MaxMessages;
 
-            m_config.Engine.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
+            m_config.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
 
             AddToLogger();
         }
@@ -199,8 +199,9 @@ namespace Helion.Util.Terminals
         {
             string lowerInput = Input.Empty() ? "*" : Input.ToLower();
 
-            // TODO: use m_config.
-            AddMessage("Autocomplete TODO!");
+            AddMessage("Matches:");
+            foreach ((string path, _) in m_config.GetConfigValueWildcard(lowerInput))
+                AddMessage(ColoredStringBuilder.From(Color.Cyan, $"    {path}"));
         }
 
         protected override void Write(LogEventInfo logEvent)
@@ -236,9 +237,9 @@ namespace Helion.Util.Terminals
 
         private static bool IsInputSubmissionCharacter(char c) => c == '\n' || c == '\r';
 
-        private void OnMaxMessagesChanged(object? sender, ConfigValueEvent<int> maxMsgEvent)
+        private void OnMaxMessagesChanged(object? sender, int newMaxMessage)
         {
-            m_capacity = Math.Max(1, maxMsgEvent.NewValue);
+            m_capacity = Math.Max(1, newMaxMessage);
             RemoveExcessMessagesIfAny();
         }
 
@@ -285,7 +286,7 @@ namespace Helion.Util.Terminals
             if (m_disposed)
                 return;
 
-            m_config.Engine.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+            m_config.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
 
             // TODO: Investigate whether this is correct or not, the logger
             // documentation isn't clear and stack overflow has some unusual

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Helion.Audio;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Smf;
 using NLog;
@@ -54,7 +54,7 @@ namespace Helion.Client.Music
 
         private float GetVolumeFromConfig()
         {
-            float volume = m_config.Engine.Audio.Volume * m_config.Engine.Audio.MusicVolume;
+            float volume = (float)(m_config.Audio.Volume * m_config.Audio.MusicVolume);
             return Math.Clamp(volume, 0.0f, 1.0f);
         }
 

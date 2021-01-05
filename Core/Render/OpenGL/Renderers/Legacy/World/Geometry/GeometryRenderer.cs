@@ -12,7 +12,7 @@ using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;

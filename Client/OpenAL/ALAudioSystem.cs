@@ -60,9 +60,9 @@ namespace Helion.Client.OpenAL
             m_alContext = new ALContext(m_alDevice);
         }
 
-        public void SetVolume(float volume)
+        public void SetVolume(double volume)
         {
-            AL.Listener(ALListenerf.Gain, volume);
+            AL.Listener(ALListenerf.Gain, (float)volume);
         }
 
         [Conditional("DEBUG")]

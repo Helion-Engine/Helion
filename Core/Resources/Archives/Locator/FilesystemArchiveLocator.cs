@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Helion.Resources.Archives.Entries;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using MoreLinq;
 using NLog;
@@ -38,7 +38,7 @@ namespace Helion.Resources.Archives.Locator
         public FilesystemArchiveLocator()
         {
         }
-        
+
         /// <summary>
         /// Creates a file system locator that looks in the working directory
         /// and any additional directories that are in the config.
@@ -47,7 +47,7 @@ namespace Helion.Resources.Archives.Locator
         /// from.</param>
         public FilesystemArchiveLocator(Config config)
         {
-            config.Engine.Files.Directories.Get().Split(Separator)
+            config.Files.Directories.Value.Split(Separator)
                 .Where(p => !p.Empty())
                 .Select(EnsureEndsWithDirectorySeparator)
                 .ForEach(m_paths.Add);
@@ -55,8 +55,8 @@ namespace Helion.Resources.Archives.Locator
 
         public Archive? Locate(string uri)
         {
-            string? extension = Path.GetExtension(uri);
-            if (extension == null)
+            string extension = Path.GetExtension(uri);
+            if (extension.Empty())
             {
                 Log.Error("Missing extension, cannot determine archive type from: {0}", uri);
                 return null;
@@ -68,7 +68,7 @@ namespace Helion.Resources.Archives.Locator
 
                 if (!File.Exists(path))
                     continue;
-                
+
                 try
                 {
                     if (extension.Equals(".wad", StringComparison.OrdinalIgnoreCase))
@@ -86,7 +86,7 @@ namespace Helion.Resources.Archives.Locator
             Log.Error("Either could not find {0}, or the extension is not supported", uri);
             return null;
         }
-        
+
         private static string EnsureEndsWithDirectorySeparator(string path)
         {
             return path.EndsWith(Path.DirectorySeparatorChar) ? path : path + Path.DirectorySeparatorChar;

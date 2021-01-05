@@ -24,9 +24,10 @@ namespace Helion.Audio
         string GetDeviceName();
 
         /// <summary>
-        /// <param name="volume">Volume in range of 0.0 to 1.0.</param>
+        /// Sets the volume.
         /// </summary>
-        void SetVolume(float volume);
+        /// <param name="volume">Volume in range of 0.0 to 1.0.</param>
+        void SetVolume(double volume);
 
         /// <summary>
         /// <param name="deviceName">String of the audio device to set. Use DefaultAudioDevice property to set default audio device.</param>
