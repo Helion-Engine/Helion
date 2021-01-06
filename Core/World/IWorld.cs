@@ -43,6 +43,8 @@ namespace Helion.World
 
         void Link(Entity entity);
         void Tick();
+        void Pause();
+        void Resume();
         IEnumerable<Sector> FindBySectorTag(int tag);
         IEnumerable<Entity> FindByTid(int tid);
         void ExitLevel(LevelChangeType type);

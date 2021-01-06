@@ -36,8 +36,6 @@ using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
-using System.Linq;
-using Helion.Maps.Specials.Vanilla;
 using Helion.World.Entities.Definition;
 
 namespace Helion.World
@@ -62,6 +60,7 @@ namespace Helion.World
         public int Gametick { get; private set; }
         public int LevelTime { get; private set; }
         public double Gravity { get; private set; } = 1.0;
+        public bool Paused { get; private set; }
         public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
@@ -192,6 +191,9 @@ namespace Helion.World
 
         public void Tick()
         {
+            if (Paused)
+                return;
+
             if (WorldState == WorldState.Exit)
             {
                 m_exitTicks--;
@@ -224,6 +226,24 @@ namespace Helion.World
             SoundManager.Tick();
 
             Gametick++;
+        }
+
+        public void Pause()
+        {
+            EntityManager.Entities.ForEach(entity =>
+            {
+                entity.ResetInterpolation();
+            });
+
+            SoundManager.Pause();
+
+            Paused = true;
+        }
+
+        public void Resume()
+        {
+            SoundManager.Resume();
+            Paused = false;
         }
 
         private void AddMapSpecial()
