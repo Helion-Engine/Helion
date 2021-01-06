@@ -760,7 +760,7 @@ namespace Helion.World.Physics
                             tryMove.IntersectEntities2D.Add(nextEntity);
                             bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
 
-                            if (overlapsZ && entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
+                            if (overlapsZ && entity.Flags.Pickup && nextEntity.Definition.IsType(EntityDefinitionType.Inventory))
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
@@ -793,16 +793,17 @@ namespace Helion.World.Physics
                 return false;
             }
 
-            LineOpening openTop = new LineOpening();
-            openTop.SetTop(tryMove, other);
-
-            LineOpening openBottom = new LineOpening();
-            openBottom.SetBottom(tryMove, other);
-
+            lineOpening = new LineOpening();
             if (entity.Position.Z + entity.Height > other.Position.Z)
-                lineOpening = openTop;
+            {
+                // This entity is higher than the other entity and requires step up checking
+                lineOpening.SetTop(tryMove, other);
+            }
             else
-                lineOpening = openBottom;
+            {
+                // This entity is within the other entity's Z or below
+                lineOpening.SetBottom(tryMove, other);
+            }
 
             // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
             if (overlapsZ && entity.Flags.IsMonster)
@@ -811,15 +812,7 @@ namespace Helion.World.Physics
             if (!overlapsZ)
                 return false;
 
-            return !openTop.CanPassOrStepThrough(entity) && !openBottom.CanPassOrStepThrough(entity);
-        }
-
-        private bool EntityCanPickupItem(Entity entity, Entity item)
-        {
-            // TODO: Eventually we need to respect how many items are in the
-            //       inventory so that we don't automatically pick up all the
-            //       items even if we can't anymore (ex: maxed out on ammo).
-            return item.Definition.IsType(EntityDefinitionType.Inventory);
+            return !lineOpening.CanPassOrStepThrough(entity);
         }
 
         private void PerformItemPickup(Entity entity, Entity item)
