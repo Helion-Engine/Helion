@@ -230,14 +230,18 @@ namespace Helion.World
 
         public void Pause()
         {
+            ResetEntityInterpolation();
+            SoundManager.Pause();
+
+            Paused = true;
+        }
+
+        private void ResetEntityInterpolation()
+        {
             EntityManager.Entities.ForEach(entity =>
             {
                 entity.ResetInterpolation();
             });
-
-            SoundManager.Pause();
-
-            Paused = true;
         }
 
         public void Resume()
@@ -305,8 +309,7 @@ namespace Helion.World
             WorldState = WorldState.Exit;
             m_exitTicks = 15;
 
-            foreach (Player player in EntityManager.Players)
-                player.ResetInterpolation();
+            ResetEntityInterpolation();
         }
 
         public List<Entity> GetBossTargets()
