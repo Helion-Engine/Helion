@@ -1,4 +1,5 @@
 using Helion.Input;
+using Helion.Layer.WorldLayers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configuration;
@@ -31,12 +32,24 @@ namespace Helion.Layer
             m_archiveCollection = archiveCollection;
         }
 
+        public override void Add(GameLayer layer)
+        {
+            base.Add(layer);
+            if (layer is SinglePlayerWorldLayer singlePlayerWorldLayer && Contains(ConsoleLayer.LayerName))
+                singlePlayerWorldLayer.World.Pause();
+        }
+
         public override void HandleInput(ConsumableInput consumableInput)
         {
             if (consumableInput.ConsumeKeyPressed(m_config.Engine.Controls.Console))
             {
                 if (Contains(ConsoleLayer.LayerName))
+                {
                     RemoveByName(ConsoleLayer.LayerName);
+
+                    if (TryGetLayer(out SinglePlayerWorldLayer? layer) && layer != null)
+                        layer.World.Resume();
+                }
                 else
                 {
                     // Don't want input that opened the console to be something
@@ -45,6 +58,9 @@ namespace Helion.Layer
 
                     ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
                     Add(consoleLayer);
+
+                    if (TryGetLayer(out SinglePlayerWorldLayer? layer) && layer != null)
+                        layer.World.Pause();
                 }
             }
 

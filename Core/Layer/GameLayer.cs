@@ -96,7 +96,7 @@ namespace Helion.Layer
         /// priority.
         /// </summary>
         /// <param name="layer">The layer to add.</param>
-        public void Add(GameLayer layer)
+        public virtual void Add(GameLayer layer)
         {
             RemoveByType(layer.GetType());
 
