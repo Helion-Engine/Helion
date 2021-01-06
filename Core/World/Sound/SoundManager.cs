@@ -104,6 +104,26 @@ namespace Helion.World.Sound
             }
         }
 
+        public void Pause()
+        {
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            while (node != null)
+            {
+                node.Value.Pause();
+                node = node.Next;
+            }
+        }
+
+        public void Resume()
+        {
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            while (node != null)
+            {
+                node.Value.Play();
+                node = node.Next;
+            }
+        }
+
         public void StopSoundBySource(ISoundSource source, SoundChannelType channel, string sound)
         {
             IAudioSource? stoppedSound = source.TryClearSound(sound, channel);
