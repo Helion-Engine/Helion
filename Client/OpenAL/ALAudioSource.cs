@@ -128,6 +128,17 @@ namespace Helion.Client.OpenAL
             }
         }
 
+        public void Pause()
+        {
+            if (!m_disposed)
+            {
+                ALExecutor.Run("Pausing sound", () =>
+                {
+                    AL.SourcePause(m_sourceId);
+                });
+            }
+        }
+
         public bool IsPlaying()
         {
             if (m_disposed)

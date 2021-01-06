@@ -47,6 +47,11 @@ namespace Helion.Audio
         void Stop();
 
         /// <summary>
+        /// Pauses playing the sound.
+        /// </summary>
+        void Pause();
+
+        /// <summary>
         /// Checks whether the sound is finished playing and is eligible to be
         /// removed by whatever is managing this object.
         /// </summary>
