@@ -100,6 +100,11 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Continue;
         }
 
+        public void ResetInterpolation()
+        {
+            SectorPlane.PrevZ = SectorPlane.Z;
+        }
+
         private void PlaySound()
         {
             if (SectorPlane.Z == DestZ)

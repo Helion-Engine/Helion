@@ -52,6 +52,12 @@ namespace Helion.World.Special
             StartInitSpecials();
         }
 
+        public void ResetInterpolation()
+        {
+            foreach(ISpecial special in m_specials)
+                special.ResetInterpolation();
+        }
+
         public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
         {
             if (args.ActivateLineSpecial == null || (args.ActivateLineSpecial.Activated && !args.ActivateLineSpecial.Flags.Repeat))
