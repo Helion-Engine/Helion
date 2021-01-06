@@ -89,7 +89,7 @@ namespace Helion.World.Entities.Players
 
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
-            m_viewZ = m_prevViewZ = m_deltaViewHeight;
+            m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
         }
 
         public override void CopyProperties(Entity entity)
