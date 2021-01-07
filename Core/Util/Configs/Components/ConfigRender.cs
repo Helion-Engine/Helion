@@ -22,7 +22,7 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValueBoolean ShowFPS = new();
 
         [ConfigInfo("The filter to be applied to textures.")]
-        public readonly ConfigValueEnum<FilterType> TextureFilter = new(FilterType.Trilinear);
+        public readonly ConfigValueEnum<FilterType> TextureFilter = new(FilterType.Nearest);
 
         [ConfigInfo("If VSync should be on or off.",
             "There are multiple types. If you want very accurate mouse movement, this should be off. However, it will cause tearing. An adaptive mode tries to get the best of both worlds (if supported).")]
