@@ -1,37 +1,23 @@
-﻿using System;
-using Helion.Util.Extensions;
+﻿using Helion.Util.Extensions;
 
 namespace Helion.Util.Configs.Values
 {
-    public class ConfigValueString : IConfigValue<string>
+    public class ConfigValueString : ConfigValue<string>
     {
-        public string Value { get; private set; }
-        public bool Changed { get; private set; }
-        public event EventHandler<string>? OnChanged;
-
-        public ConfigValueString(string value = "")
+        public ConfigValueString(string value = "") : base(value)
         {
-            Value = value;
         }
 
         public static implicit operator string(ConfigValueString configValue) => configValue.Value;
 
-        public object Get() => Value;
-
-        public bool Set(object obj)
+        public override bool Set(object obj)
         {
             string oldValue = Value;
             Value = obj.ToString() ?? "";
 
-            if (oldValue != Value)
-            {
-                Changed = true;
-                OnChanged?.Invoke(this, Value);
-            }
+            EmitEventIfChanged(oldValue);
 
             return !Value.Empty();
         }
-
-        public override string ToString() => Value;
     }
 }

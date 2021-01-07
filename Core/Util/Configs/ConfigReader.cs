@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Helion.Input;
 using Helion.Util.Configs.Tree;
 using Helion.Util.Extensions;
 using IniParser;
@@ -27,7 +26,6 @@ namespace Helion.Util.Configs
                 FileIniDataParser parser = new();
                 IniData data = parser.ReadFile(path);
                 ReadEngineAssignments(data.Sections[EngineSectionName]);
-                ReadKeys(data.Sections[KeysSectionName]);
             }
             catch (Exception e)
             {
@@ -107,23 +105,6 @@ namespace Helion.Util.Configs
             // If this is ever reached, it means the config has a path to a
             // parent node.
             return null;
-        }
-
-        private void ReadKeys(KeyDataCollection keyData)
-        {
-            // We want to map the lower case name to the enumeration value.
-            Dictionary<string, InputKey> keys = new();
-            foreach (object enumValue in Enum.GetValues(typeof(InputKey)))
-            {
-                InputKey inputKey = (InputKey)enumValue;
-                keys[inputKey.ToString().ToLower()] = inputKey;
-            }
-
-            // Now take all the keys in their lower named form, and assign them
-            // to our known keys (provided it is not the `Unknown` enum value).
-            foreach (KeyData data in keyData)
-                if (keys.TryGetValue(data.KeyName.ToLower(), out InputKey key) && key != InputKey.Unknown)
-                    Keys[key] = data.Value;
         }
     }
 }

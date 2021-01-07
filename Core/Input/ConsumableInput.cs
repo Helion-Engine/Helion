@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 
@@ -25,10 +24,8 @@ namespace Helion.Input
     /// </remarks>
     public class ConsumableInput
     {
-        private readonly HashSet<InputKey> m_inputDown = new();
-        private readonly HashSet<InputKey> m_inputPressed = new();
-        private readonly HashSet<InputCommand> m_commandsDown = new();
-        private readonly HashSet<InputCommand> m_commandsPressed = new();
+        private readonly HashSet<InputKey> m_keysDown = new();
+        private readonly HashSet<InputKey> m_keysPressed = new();
         private readonly List<char> m_typedCharacters = new();
         private Vec2I m_mouseDelta;
         private int m_mouseScroll;
@@ -40,18 +37,12 @@ namespace Helion.Input
         /// with.</param>
         public ConsumableInput(InputEvent inputEvent)
         {
-            foreach (InputCommand command in inputEvent.CommandDown)
-            {
-                m_commandsDown.Add(command);
-                if (!inputEvent.CommandPrevDown.Contains(command))
-                    m_commandsPressed.Add(command);
-            }
-
             foreach (InputKey inputKey in inputEvent.InputDown)
             {
-                m_inputDown.Add(inputKey);
+                m_keysDown.Add(inputKey);
+
                 if (!inputEvent.InputPrevDown.Contains(inputKey))
-                    m_inputPressed.Add(inputKey);
+                    m_keysPressed.Add(inputKey);
             }
 
             inputEvent.CharactersTyped.ForEach(m_typedCharacters.Add);
@@ -64,10 +55,8 @@ namespace Helion.Input
         /// </summary>
         public void ConsumeAll()
         {
-            m_inputDown.Clear();
-            m_inputPressed.Clear();
-            m_commandsDown.Clear();
-            m_commandsPressed.Clear();
+            m_keysDown.Clear();
+            m_keysPressed.Clear();
             m_typedCharacters.Clear();
             m_mouseDelta = new Vec2I(0, 0);
             m_mouseScroll = 0;
@@ -82,10 +71,23 @@ namespace Helion.Input
         /// it was consumed before this invocation.</returns>
         public bool ConsumeKeyPressedOrDown(InputKey inputKey)
         {
-            bool contains = m_inputPressed.Contains(inputKey) || m_inputDown.Contains(inputKey);
-            m_inputPressed.Remove(inputKey);
-            m_inputDown.Remove(inputKey);
+            bool contains = m_keysPressed.Contains(inputKey) || m_keysDown.Contains(inputKey);
+            m_keysPressed.Remove(inputKey);
+            m_keysDown.Remove(inputKey);
             return contains;
+        }
+
+        /// <summary>
+        /// Peeks whether the key is pressed or down, returns the result of
+        /// whether it's down or pressed depending whether it's been consumed
+        /// or not.
+        /// </summary>
+        /// <param name="inputKey">The key to check.</param>
+        /// <returns>True if it was pressed or down, false if it was not or if
+        /// it was consumed before this invocation.</returns>
+        public bool PeekKeyPressedOrDown(InputKey inputKey)
+        {
+            return m_keysPressed.Contains(inputKey) || m_keysDown.Contains(inputKey);
         }
 
         /// <summary>
@@ -97,39 +99,19 @@ namespace Helion.Input
         /// consumed before this invocation.</returns>
         public bool ConsumeKeyPressed(InputKey inputKey)
         {
-            bool contains = m_inputPressed.Contains(inputKey);
-            m_inputPressed.Remove(inputKey);
+            bool contains = m_keysPressed.Contains(inputKey);
+            m_keysPressed.Remove(inputKey);
             return contains;
         }
 
         /// <summary>
-        /// Consumes the key, returns the result of whether it's down or
+        /// Peeks if the key was pressed, returns the result of whether it's
         /// pressed depending whether it's been consumed or not.
         /// </summary>
-        /// <param name="command">The key to check.</param>
-        /// <returns>True if it was pressed or down, false if it was not or if
-        /// it was consumed before this invocation.</returns>
-        public bool ConsumeCommandPressedOrDown(InputCommand command)
-        {
-            bool contains = m_commandsPressed.Contains(command) || m_commandsDown.Contains(command);
-            m_commandsPressed.Remove(command);
-            m_commandsDown.Remove(command);
-            return contains;
-        }
-
-        /// <summary>
-        /// Consumes the key, returns the result of whether it's pressed
-        /// depending whether it's been consumed or not.
-        /// </summary>
-        /// <param name="command">The key to check.</param>
+        /// <param name="inputKey">The key to check.</param>
         /// <returns>True if it was pressed, false if it was not or if it was
         /// consumed before this invocation.</returns>
-        public bool ConsumeCommandPressed(InputCommand command)
-        {
-            bool contains = m_commandsPressed.Contains(command);
-            m_commandsPressed.Remove(command);
-            return contains;
-        }
+        public bool PeekKeyPressed(InputKey inputKey) => m_keysPressed.Contains(inputKey);
 
         /// <summary>
         /// Consumes the mouse movement.
@@ -144,6 +126,12 @@ namespace Helion.Input
         }
 
         /// <summary>
+        /// Peeks at the value without consuming it.
+        /// </summary>
+        /// <returns>The mouse movement value.</returns>
+        public Vec2I PeekMouseDelta() => m_mouseDelta;
+
+        /// <summary>
         /// Consumes the mouse scroll movement.
         /// </summary>
         /// <returns>The mouse scroll movement, or an zero value result if it
@@ -154,6 +142,12 @@ namespace Helion.Input
             m_mouseScroll = 0;
             return scroll;
         }
+
+        /// <summary>
+        /// Peeks at the value without consuming it.
+        /// </summary>
+        /// <returns>The mouse scroll value.</returns>
+        public int PeekMouseScroll() => m_mouseScroll;
 
         /// <summary>
         /// Consumes the typed characters.

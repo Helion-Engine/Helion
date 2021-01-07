@@ -1,5 +1,5 @@
 ﻿using System;
-using Helion.Input;
+using Helion.Util.Configs.Values;
 using IniParser;
 using IniParser.Model;
 
@@ -9,8 +9,7 @@ namespace Helion.Util.Configs
     {
         private void WriteConfig()
         {
-            // TODO: AND if not changed, then return.
-            if (!m_newConfig)
+            if (!m_newConfig && !IsChanged())
                 return;
 
             try
@@ -18,7 +17,6 @@ namespace Helion.Util.Configs
                 FileIniDataParser parser = new();
                 IniData data = new();
                 WriteEngineFields(data);
-                WriteKeys(data);
 
                 parser.WriteFile(m_path, data);
             }
@@ -26,6 +24,22 @@ namespace Helion.Util.Configs
             {
                 Log.Error($"Unable to write config file: {e.Message}");
             }
+        }
+
+        private bool IsChanged()
+        {
+            // The generic type doesn't matter here, we just need any type.
+            const string ChangedProperty = nameof(ConfigValue<int>.Changed);
+
+            foreach (object configValue in m_pathToConfigValue.Values)
+            {
+                object? value = configValue.GetType().GetProperty(ChangedProperty)?.GetValue(configValue);
+                bool changed = (bool)(value ?? false);
+                if (changed)
+                    return true;
+            }
+
+            return false;
         }
 
         private void WriteEngineFields(IniData data)
@@ -43,16 +57,6 @@ namespace Helion.Util.Configs
                 else
                     RecursivelyWriteEngineData(child, keyData, newPath);
             }
-        }
-
-        private void WriteKeys(IniData data)
-        {
-            data.Sections.AddSection(KeysSectionName);
-            KeyDataCollection keySection = data[KeysSectionName];
-
-            foreach ((InputKey inputKey, string command) in Keys)
-                if (inputKey != InputKey.Unknown)
-                    keySection[inputKey.ToString()] = command;
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Helion.Input;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Tree;
 using Helion.Util.Configs.Values;
@@ -19,9 +18,7 @@ namespace Helion.Util.Configs
     public partial class Config : IDisposable
     {
         private const string EngineSectionName = "engine";
-        private const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static readonly Dictionary<string, InputCommand> LowerNameCommands = new();
 
         // If you want to add new serializable fields into some section, they
         // should be here. Order technically doesn't matter, but it is clearer
@@ -32,7 +29,7 @@ namespace Helion.Util.Configs
         public readonly ConfigFiles Files = new();
         public readonly ConfigGame Game = new();
         public readonly ConfigHud Hud = new();
-        public readonly Dictionary<InputKey, string> Keys = MakeDefaultKeyMapping();
+        public readonly ConfigControls Controls = new();
         public readonly ConfigMouse Mouse = new();
         public readonly ConfigRender Render = new();
         public readonly ConfigWindow Window = new();
@@ -44,12 +41,6 @@ namespace Helion.Util.Configs
         private readonly Dictionary<string, object> m_pathToConfigValue = new();
         private bool m_disposed;
         private bool m_newConfig;
-
-        static Config()
-        {
-            foreach (InputCommand value in Enum.GetValues(typeof(InputCommand)))
-                LowerNameCommands[value.ToString().ToLower()] = value;
-        }
 
         public Config(string path = "config.ini")
         {
@@ -65,31 +56,6 @@ namespace Helion.Util.Configs
             PerformDispose();
         }
 
-        private static Dictionary<InputKey, string> MakeDefaultKeyMapping()
-        {
-            return new()
-            {
-                [InputKey.W] = "forward",
-                [InputKey.A] = "left",
-                [InputKey.S] = "back",
-                [InputKey.D] = "right",
-                [InputKey.E] = "use",
-                [InputKey.Space] = "jump",
-                [InputKey.C] = "crouch",
-                [InputKey.MouseLeft] = "attack",
-                [InputKey.Up] = "nextweapon",
-                [InputKey.Down] = "prevweapon",
-                [InputKey.One] = "slot1",
-                [InputKey.Two] = "slot2",
-                [InputKey.Three] = "slot3",
-                [InputKey.Four] = "slot4",
-                [InputKey.Five] = "slot5",
-                [InputKey.Six] = "slot6",
-                [InputKey.Seven] = "slot7",
-                [InputKey.Backtick] = "console"
-            };
-        }
-
         internal static bool HasConfigAttribute(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType.IsDefined(typeof(ConfigInfoAttribute), true);
@@ -102,7 +68,7 @@ namespace Helion.Util.Configs
             Type? interfaceType = type.GetInterfaces().FirstOrDefault();
             return interfaceType != null &&
                    interfaceType.IsGenericType &&
-                   interfaceType.GetGenericTypeDefinition().IsAssignableFrom(typeof(IConfigValue<>));
+                   interfaceType.GetGenericTypeDefinition().IsAssignableFrom(typeof(ConfigValue<>));
         }
 
         internal IEnumerable<(object childComponent, string path, bool isValue)> GetRelevantComponentFields(object component, string path = "")
@@ -166,15 +132,6 @@ namespace Helion.Util.Configs
             foreach ((string path, object configValue) in m_pathToConfigValue)
                 if (regex.IsMatch(path))
                     yield return (path, configValue);
-        }
-
-        public InputCommand? InputKeyToCommand(InputKey inputKey)
-        {
-            if (!Keys.TryGetValue(inputKey, out string? commandName))
-                return null;
-            if (LowerNameCommands.TryGetValue(commandName.ToLower(), out InputCommand command))
-                return command;
-            return null;
         }
 
         public void Dispose()

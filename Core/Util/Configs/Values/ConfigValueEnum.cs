@@ -2,22 +2,15 @@
 
 namespace Helion.Util.Configs.Values
 {
-    public class ConfigValueEnum<E> : IConfigValue<E> where E : struct, Enum
+    public class ConfigValueEnum<E> : ConfigValue<E> where E : struct, Enum
     {
-        public E Value { get; private set; }
-        public bool Changed { get; private set; }
-        public event EventHandler<E>? OnChanged;
-
-        public ConfigValueEnum(E value = default)
+        public ConfigValueEnum(E value = default) : base(value)
         {
-            Value = value;
         }
 
         public static implicit operator E(ConfigValueEnum<E> configValue) => configValue.Value;
 
-        public object Get() => Value;
-
-        public bool Set(object obj)
+        public override bool Set(object obj)
         {
             E oldValue = Value;
 
@@ -52,16 +45,5 @@ namespace Helion.Util.Configs.Values
                 return false;
             }
         }
-
-        private void EmitEventIfChanged(E oldValue)
-        {
-            if (!Equals(oldValue, Value))
-            {
-                Changed = true;
-                OnChanged?.Invoke(this, Value);
-            }
-        }
-
-        public override string ToString() => Value.ToString();
     }
 }

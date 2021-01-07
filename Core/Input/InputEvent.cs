@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Helion.Util.Configs;
 
 namespace Helion.Input
 {
@@ -20,16 +19,6 @@ namespace Helion.Input
         public readonly HashSet<InputKey> InputPrevDown = new();
 
         /// <summary>
-        /// All the input currently down since ticking.
-        /// </summary>
-        public readonly HashSet<InputCommand> CommandDown = new();
-
-        /// <summary>
-        /// The input that was down in the previous tick.
-        /// </summary>
-        public readonly HashSet<InputCommand> CommandPrevDown = new();
-
-        /// <summary>
         /// An ordered list of all the characters typed. Any character towards
         /// the front of the list was typed before the ones after it.
         /// </summary>
@@ -39,24 +28,5 @@ namespace Helion.Input
         /// The mouse input data.
         /// </summary>
         public readonly MouseInputData MouseInput = new();
-
-        public InputEvent()
-        {
-        }
-
-        public InputEvent(InputEvent other)
-        {
-            foreach (InputCommand command in other.CommandDown)
-            {
-                CommandDown.Add(command);
-                CommandPrevDown.Add(command);
-            }
-
-            foreach (InputKey inputKey in other.InputDown)
-            {
-                InputDown.Add(inputKey);
-                InputPrevDown.Add(inputKey);
-            }
-        }
     }
 }
