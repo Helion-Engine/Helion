@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using Helion.Graphics.String;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
 using Helion.Util.Time;
 using NLog;
@@ -118,15 +121,67 @@ namespace Helion.Util.Terminals
         /// </summary>
         public void SubmitInputText()
         {
-            string inputText = m_input.ToString();
+            string inputText = m_input.ToString().Trim();
             ClearInputText();
 
             if (inputText.Empty())
                 return;
 
-            Log.Info(inputText);
             CacheSubmittedInput(inputText);
+
+            if (IsConfigValueQuery(inputText))
+            {
+                HandleConfigValueQuery(inputText);
+                return;
+            }
+
+            Log.Info(inputText);
             OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(inputText));
+        }
+
+        private bool IsConfigValueQuery(string inputText)
+        {
+            // The user is either doing something like "window.height" to query
+            // it, or doing "window.height 123", and in either case, we want
+            // the first part only.
+            string lowerPath = inputText.Split(" ")[0].ToLower();
+            object? configValue = m_config.GetConfigValue(lowerPath);
+            return configValue != null;
+        }
+
+        private void HandleConfigValueQuery(string inputText)
+        {
+            string[] tokens = inputText.Split(" ");
+            string lowerPath = tokens[0].ToLower();
+            dynamic? configValue = m_config.GetConfigValue(lowerPath);
+            if (configValue == null)
+            {
+                Fail($"IsConfigValueQuery said {inputText} existed, when it did not");
+                return;
+            }
+
+            // If we're trying to set the value (and thus, a second arg to set
+            // something) then perform the setting before printing out the new
+            // state of the field.
+            if (tokens.Length == 1)
+            {
+                AddMessage($"{lowerPath} = {configValue}");
+                return;
+            }
+
+            try
+            {
+                string newValue = tokens[1];
+                bool set = configValue.Set(newValue);
+                if (set)
+                    AddMessage($"{lowerPath} set to: {configValue}");
+                else
+                    AddMessage($"{lowerPath} could not be set with value: {newValue}");
+            }
+            catch
+            {
+                Log.Error($"Unable to set config value '{lowerPath}' (contact a developer)");
+            }
         }
 
         /// <summary>
@@ -199,9 +254,23 @@ namespace Helion.Util.Terminals
         {
             string lowerInput = Input.Empty() ? "*" : Input.ToLower();
 
+            var matches = m_config.GetConfigValueWildcard(lowerInput).ToList();
+            if (matches.Empty())
+            {
+                AddMessage($"No matches found for: {Input}");
+                return;
+            }
+
             AddMessage("Matches:");
-            foreach ((string path, _) in m_config.GetConfigValueWildcard(lowerInput))
-                AddMessage(ColoredStringBuilder.From(Color.Cyan, $"    {path}"));
+            foreach ((string path, _, FieldInfo fieldInfo) in matches)
+            {
+                string explanation = ConfigInfoAttribute.GetDescription(fieldInfo) ?? "[ERROR]";
+
+                AddMessage(ColoredStringBuilder.From(
+                    Color.Cyan, $"    {path}",
+                    Color.White, " - ",
+                    Color.Tan, explanation));
+            }
         }
 
         protected override void Write(LogEventInfo logEvent)

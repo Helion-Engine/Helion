@@ -315,8 +315,8 @@ namespace Helion.Client
         private static void Run(CommandLineArgs cmdArgs)
         {
             using (Config config = new())
-            using (Client client = new(cmdArgs, config))
-                client.Start();
+                using (Client client = new(cmdArgs, config))
+                    client.Start();
 
             ForceFinalizersIfDebugMode();
         }

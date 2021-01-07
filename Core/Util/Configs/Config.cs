@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Helion.Util.Configs.Components;
@@ -38,7 +37,7 @@ namespace Helion.Util.Configs
         // config file.
         public readonly ConfigTree Tree;
         private readonly string m_path;
-        private readonly Dictionary<string, object> m_pathToConfigValue = new();
+        private readonly Dictionary<string, (object value, FieldInfo field)> m_pathToConfigValue = new();
         private bool m_disposed;
         private bool m_newConfig;
 
@@ -56,22 +55,35 @@ namespace Helion.Util.Configs
             PerformDispose();
         }
 
-        internal static bool HasConfigAttribute(FieldInfo fieldInfo)
+        internal static bool HasConfigAttribute(FieldInfo fieldInfo) => HasConfigAttribute(fieldInfo.FieldType);
+
+        internal static bool HasConfigAttribute(Type type)
         {
-            return fieldInfo.FieldType.IsDefined(typeof(ConfigInfoAttribute), true);
+            return type.IsDefined(typeof(ConfigInfoAttribute), true);
         }
 
         internal static bool IsConfigValue(FieldInfo fieldInfo) => IsConfigValueType(fieldInfo.FieldType);
 
         internal static bool IsConfigValueType(Type type)
         {
-            Type? interfaceType = type.GetInterfaces().FirstOrDefault();
-            return interfaceType != null &&
-                   interfaceType.IsGenericType &&
-                   interfaceType.GetGenericTypeDefinition().IsAssignableFrom(typeof(ConfigValue<>));
+            // While this is probably overkill since at the time of writing
+            // there is only an immediate parent inheritance, walking the tree
+            // to the parent is the most robust solution. We also have to do
+            // some weird stuff because checking generic parents requires the
+            // use of a different type method for checking inheritance.
+            Type? t = type;
+            while (t != null)
+            {
+                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ConfigValue<>))
+                    return true;
+                t = t.BaseType;
+            }
+
+            return false;
         }
 
-        internal IEnumerable<(object childComponent, string path, bool isValue)> GetRelevantComponentFields(object component, string path = "")
+        internal IEnumerable<(object childComponent, FieldInfo fieldInfo, string path, bool isValue)>
+            GetRelevantComponentFields(object component, string path = "")
         {
             foreach (FieldInfo fieldInfo in component.GetType().GetFields())
             {
@@ -85,16 +97,16 @@ namespace Helion.Util.Configs
                 string newPath = path.Empty() ? lowerName : $"{path}.{lowerName}";
                 object childComponent = fieldInfo.GetValue(component) ?? throw new Exception($"Failed to get field for path '{newPath}'");
 
-                yield return (childComponent, newPath, isValue);
+                yield return (childComponent, fieldInfo, newPath, isValue);
             }
         }
 
         private void PopulatePathConfigMapEngineRecursive(object component, string path = "")
         {
-            foreach (var (child, newPath, isValue) in GetRelevantComponentFields(component, path))
+            foreach (var (child, fieldInfo, newPath, isValue) in GetRelevantComponentFields(component, path))
             {
                 if (isValue)
-                    m_pathToConfigValue[newPath] = child;
+                    m_pathToConfigValue[newPath] = (child, fieldInfo);
                 else
                     PopulatePathConfigMapEngineRecursive(child, newPath);
             }
@@ -109,12 +121,15 @@ namespace Helion.Util.Configs
         /// indexed object.</returns>
         public object? GetConfigValue(string path)
         {
-            m_pathToConfigValue.TryGetValue(path.ToLower(), out object? obj);
-            return obj;
+            if (m_pathToConfigValue.TryGetValue(path.ToLower(), out var obj))
+                return obj.value;
+            return null;
         }
 
         /// <summary>
         /// Uses a wildcard glob to search for all the matching possibilities.
+        /// This always treats the glob as being anchored to the beginning of
+        /// the word (similar to a regex starting with "^").
         /// </summary>
         /// <param name="glob">The glob string. This only supports asterisks,
         /// so you can search things like "*fps*" or "render.*" or such. The
@@ -124,14 +139,15 @@ namespace Helion.Util.Configs
         /// </param>
         /// <returns>The path and config value object pair for all matches.
         /// </returns>
-        public IEnumerable<(string path, object configValue)> GetConfigValueWildcard(string glob)
+        public IEnumerable<(string path, object configValue, FieldInfo fieldInfo)>
+            GetConfigValueWildcard(string glob)
         {
             string regexText = glob.Replace(".", @"\.").Replace("*", ".*");
-            Regex regex = new(regexText, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Regex regex = new($"^{regexText}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            foreach ((string path, object configValue) in m_pathToConfigValue)
+            foreach ((string path, (object configValue, FieldInfo fieldInfo)) in m_pathToConfigValue)
                 if (regex.IsMatch(path))
-                    yield return (path, configValue);
+                    yield return (path, configValue, fieldInfo);
         }
 
         public void Dispose()

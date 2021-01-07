@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace Helion.Util.Configs.Values
 {
@@ -31,6 +32,21 @@ namespace Helion.Util.Configs.Values
             Description = description;
             ExtendedDescription = extendedDescription;
             Advanced = advanced;
+        }
+
+        /// <summary>
+        /// Gets the description of the config value.
+        /// </summary>
+        /// <param name="field">The field for the config value.</param>
+        /// <returns>The explanation value, or null if the attribute does not
+        /// exist on the object.</returns>
+        public static string? GetDescription(FieldInfo field)
+        {
+
+            Attribute? attribute = field.GetCustomAttribute(typeof(ConfigInfoAttribute));
+            if (attribute is ConfigInfoAttribute configInfoAttribute)
+                return configInfoAttribute.Description;
+            return null;
         }
     }
 }
