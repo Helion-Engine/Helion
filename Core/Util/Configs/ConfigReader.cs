@@ -17,7 +17,6 @@ namespace Helion.Util.Configs
             if (!File.Exists(path))
             {
                 Log.Info("Config file not found, generating new config file and using default values");
-                m_newConfig = true;
                 return;
             }
 

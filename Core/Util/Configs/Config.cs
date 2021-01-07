@@ -39,7 +39,6 @@ namespace Helion.Util.Configs
         private readonly string m_path;
         private readonly Dictionary<string, (object value, FieldInfo field)> m_pathToConfigValue = new();
         private bool m_disposed;
-        private bool m_newConfig;
 
         public Config(string path = "config.ini")
         {

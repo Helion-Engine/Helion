@@ -9,9 +9,6 @@ namespace Helion.Util.Configs
     {
         private void WriteConfig()
         {
-            if (!m_newConfig && !IsChanged())
-                return;
-
             try
             {
                 FileIniDataParser parser = new();
