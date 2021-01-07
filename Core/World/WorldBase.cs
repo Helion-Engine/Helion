@@ -8,7 +8,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.Language;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Boxes;
@@ -104,7 +104,7 @@ namespace Helion.World
             Map = map;
             Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
-            EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Engine.Game.Skill);
+            EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Game.Skill);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
         }
@@ -667,7 +667,7 @@ namespace Helion.World
                 thrustVelocity.Multiply(thrustAmount);
             }
 
-            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || 
+            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) ||
                 (target is Player player && (target.Flags.Invulnerable || player.Inventory.IsPowerupActive(PowerupType.Invulnerable))))
                 target.Velocity += thrustVelocity;
 

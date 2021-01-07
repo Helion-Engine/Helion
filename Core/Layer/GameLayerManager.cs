@@ -2,7 +2,8 @@ using Helion.Input;
 using Helion.Layer.WorldLayers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
 
 namespace Helion.Layer
 {
@@ -41,7 +42,7 @@ namespace Helion.Layer
 
         public override void HandleInput(ConsumableInput consumableInput)
         {
-            if (consumableInput.ConsumeKeyPressed(m_config.Engine.Controls.Console))
+            if (consumableInput.ConsumeKeyPressed(m_config.Controls.Console))
             {
                 if (Contains(ConsoleLayer.LayerName))
                 {

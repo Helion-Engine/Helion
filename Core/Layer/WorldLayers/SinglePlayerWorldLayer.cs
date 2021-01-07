@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
@@ -10,7 +8,9 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Values;
+using Helion.Util.Consoles;
 using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Cheats;
@@ -29,8 +29,8 @@ namespace Helion.Layer.WorldLayers
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
-        private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumeDownKeys;
-        private readonly (ConfigValue<InputKey>, TickCommands)[] m_consumePressedKeys;
+        private readonly (ConfigValueEnum<InputKey>, TickCommands)[] m_consumeDownKeys;
+        private readonly (ConfigValueEnum<InputKey>, TickCommands)[] m_consumePressedKeys;
         private readonly WorldHudDrawer m_worldHudDrawer;
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
@@ -52,27 +52,27 @@ namespace Helion.Layer.WorldLayers
 
             m_consumeDownKeys = new[]
             {
-                (config.Engine.Controls.MoveForward,    TickCommands.Forward),
-                (config.Engine.Controls.MoveLeft,       TickCommands.Left),
-                (config.Engine.Controls.MoveBackward,   TickCommands.Backward),
-                (config.Engine.Controls.MoveRight,      TickCommands.Right),
-                (config.Engine.Controls.Jump,           TickCommands.Jump),
-                (config.Engine.Controls.Crouch,         TickCommands.Crouch),
-                (config.Engine.Controls.Attack,         TickCommands.Attack),
+                (config.Controls.Forward,  TickCommands.Forward),
+                (config.Controls.Left,     TickCommands.Left),
+                (config.Controls.Backward, TickCommands.Backward),
+                (config.Controls.Right,    TickCommands.Right),
+                (config.Controls.Jump,     TickCommands.Jump),
+                (config.Controls.Crouch,   TickCommands.Crouch),
+                (config.Controls.Attack,   TickCommands.Attack),
             };
 
             m_consumePressedKeys = new[]
             {
-                (config.Engine.Controls.Use,            TickCommands.Use),
-                (config.Engine.Controls.NextWeapon,     TickCommands.NextWeapon),
-                (config.Engine.Controls.PreviousWeapon, TickCommands.PreviousWeapon),
-                (config.Engine.Controls.WeaponSlot1,    TickCommands.WeaponSlot1),
-                (config.Engine.Controls.WeaponSlot2,    TickCommands.WeaponSlot2),
-                (config.Engine.Controls.WeaponSlot3,    TickCommands.WeaponSlot3),
-                (config.Engine.Controls.WeaponSlot4,    TickCommands.WeaponSlot4),
-                (config.Engine.Controls.WeaponSlot5,    TickCommands.WeaponSlot5),
-                (config.Engine.Controls.WeaponSlot6,    TickCommands.WeaponSlot6),
-                (config.Engine.Controls.WeaponSlot7,    TickCommands.WeaponSlot7),
+                (config.Controls.Use,            TickCommands.Use),
+                (config.Controls.NextWeapon,     TickCommands.NextWeapon),
+                (config.Controls.PreviousWeapon, TickCommands.PreviousWeapon),
+                (config.Controls.WeaponSlot1,    TickCommands.WeaponSlot1),
+                (config.Controls.WeaponSlot2,    TickCommands.WeaponSlot2),
+                (config.Controls.WeaponSlot3,    TickCommands.WeaponSlot3),
+                (config.Controls.WeaponSlot4,    TickCommands.WeaponSlot4),
+                (config.Controls.WeaponSlot5,    TickCommands.WeaponSlot5),
+                (config.Controls.WeaponSlot6,    TickCommands.WeaponSlot6),
+                (config.Controls.WeaponSlot7,    TickCommands.WeaponSlot7),
             };
         }
 

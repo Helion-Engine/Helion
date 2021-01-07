@@ -6,7 +6,7 @@ using Helion.Graphics.Geometry;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Time;

@@ -15,7 +15,7 @@ using Helion.Render.OpenGL.Util;
 using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using NLog;
@@ -81,13 +81,13 @@ namespace Helion.Render.OpenGL
 
         private static void WarnForInvalidStates(Config config)
         {
-            if (config.Engine.Render.Anisotropy.Enable)
+            if (config.Render.Anisotropy.Enable)
             {
-                if (config.Engine.Render.Anisotropy.Value <= 1.0)
+                if (config.Render.Anisotropy.Value <= 1.0)
                     Log.Warn("Anisotropic filter is enabled, but the desired value of 1.0 (equal to being off). Set a higher value than 1.0!");
 
-                if (config.Engine.Render.TextureFilter != FilterType.Trilinear)
-                    Log.Warn("Anisotropic filter should be paired with trilinear filtering (you have {0}), you will not get the best results!", config.Engine.Render.TextureFilter);
+                if (config.Render.TextureFilter != FilterType.Trilinear)
+                    Log.Warn("Anisotropic filter should be paired with trilinear filtering (you have {0}), you will not get the best results!", config.Render.TextureFilter);
             }
         }
 
@@ -156,7 +156,7 @@ namespace Helion.Render.OpenGL
         {
             gl.Enable(EnableType.DepthTest);
 
-            if (m_config.Engine.Render.Multisample.Enable)
+            if (m_config.Render.Multisample.Enable)
                 gl.Enable(EnableType.Multisample);
 
             if (m_capabilities.Version.Supports(3, 2))
@@ -179,7 +179,7 @@ namespace Helion.Render.OpenGL
             // some glDebugControl... setting that changes them all to don't
             // cares if we have already registered a function? See:
             // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Engine.Developer.RenderDebug)
+            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Developer.RenderDebug)
                 return;
 
             gl.Enable(EnableType.DebugOutput);

@@ -1,7 +1,8 @@
 using Helion.Audio;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
 using Helion.World;
 
 namespace Helion.Layer.WorldLayers
@@ -18,7 +19,7 @@ namespace Helion.Layer.WorldLayers
         protected readonly HelionConsole Console;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
-        
+
         public abstract WorldBase World { get; }
 
         public WorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,

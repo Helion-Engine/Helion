@@ -5,6 +5,7 @@ using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Time;
 using MoreLinq;
@@ -47,6 +48,9 @@ namespace Helion.Layer
                 m_console.SubmitInputText();
                 m_submittedInputIndex = NoInputMessageIndex;
             }
+
+            if (consumableInput.ConsumeKeyPressed(InputKey.Tab))
+                m_console.ApplyAutocomplete();
 
             if (ConsumeControlV(consumableInput))
                 AddClipboardToConsole();

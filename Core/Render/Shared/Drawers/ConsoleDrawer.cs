@@ -4,6 +4,7 @@ using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Time;

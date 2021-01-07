@@ -6,7 +6,7 @@ using Helion.Render;
 using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.Util.Geometry;
 using Helion.Window;
 using NLog;
@@ -28,13 +28,13 @@ namespace Helion.Client
         private readonly OpenTKInputAdapter m_inputAdapter = new OpenTKInputAdapter();
         private bool m_disposed;
         private bool m_useMouseOpenTK;
-        
+
         public int WindowID { get; }
         public IRenderer Renderer => m_renderer;
         public Dimension WindowDimension => new Dimension(Width, Height);
 
         public OpenTKWindow(Config cfg, ArchiveCollection archiveCollection, Action gameLoopFunction) :
-            base(cfg.Engine.Window.Width, cfg.Engine.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
+            base(cfg.Window.Width, cfg.Window.Height, MakeGraphicsMode(cfg), Constants.ApplicationName)
         {
             m_config = cfg;
             WindowID = NextAvailableWindowId++;
@@ -50,7 +50,7 @@ namespace Helion.Client
             FailedToDispose(this);
             Dispose(false);
         }
-        
+
         public InputEvent PollInput() => m_inputAdapter.PollInput();
 
         public override void Dispose()
@@ -109,7 +109,7 @@ namespace Helion.Client
             {
                 // Reset the mouse to the center of the screen. Unfortunately
                 // we have to do this ourselves...
-                if (m_config.Engine.Developer.MouseFocus)
+                if (m_config.Mouse.Focus)
                 {
                     MouseState state = Mouse.GetCursorState();
                     int centerX = Width / 2;
@@ -158,9 +158,9 @@ namespace Helion.Client
 
             if (disposing)
             {
-                m_config.Engine.Developer.MouseFocus.OnChanged -= OnMouseFocusChanged;
-                m_config.Engine.Window.VSync.OnChanged -= OnVSyncChanged;
-                m_config.Engine.Window.State.OnChanged -= OnWindowStateChanged;
+                m_config.Mouse.Focus.OnChanged -= OnMouseFocusChanged;
+                m_config.Render.VSync.OnChanged -= OnVSyncChanged;
+                m_config.Window.State.OnChanged -= OnWindowStateChanged;
 
                 m_renderer.Dispose();
 
@@ -172,16 +172,16 @@ namespace Helion.Client
 
         private static GraphicsMode MakeGraphicsMode(Config cfg)
         {
-            int samples = cfg.Engine.Render.Multisample.Enable ? cfg.Engine.Render.Multisample.Value : 0;
+            int samples = cfg.Render.Multisample.Enable ? cfg.Render.Multisample.Value : 0;
             return new GraphicsMode(new ColorFormat(32), 24, 8, samples);
         }
-        
+
         private void ToggleWindowStateViaConfig()
         {
-            if (m_config.Engine.Window.State == WindowStatus.Fullscreen)
-                m_config.Engine.Window.State.Set(WindowStatus.Windowed);
+            if (m_config.Window.State == WindowStatus.Fullscreen)
+                m_config.Window.State.Set(WindowStatus.Windowed);
             else
-                m_config.Engine.Window.State.Set(WindowStatus.Fullscreen);
+                m_config.Window.State.Set(WindowStatus.Fullscreen);
         }
 
         private void SetupMouse()
@@ -210,7 +210,7 @@ namespace Helion.Client
 
             return false;
         }
-        
+
         private void HandleWinMouseMove(int deltaX, int deltaY)
         {
             if (Focused)
@@ -222,31 +222,31 @@ namespace Helion.Client
 
         private void RegisterConfigListeners()
         {
-            CursorVisible = !m_config.Engine.Developer.MouseFocus;
-            m_config.Engine.Developer.MouseFocus.OnChanged += OnMouseFocusChanged;
+            CursorVisible = !m_config.Mouse.Focus;
+            m_config.Mouse.Focus.OnChanged += OnMouseFocusChanged;
 
-            VSync = m_config.Engine.Window.VSync.Get().ToOpenTKVSync();
-            m_config.Engine.Window.VSync.OnChanged += OnVSyncChanged;
+            VSync = m_config.Render.VSync.Value.ToOpenTKVSync();
+            m_config.Render.VSync.OnChanged += OnVSyncChanged;
 
-            WindowState = m_config.Engine.Window.State.Get().ToOpenTKWindowState();
-            m_config.Engine.Window.State.OnChanged += OnWindowStateChanged;
+            WindowState = m_config.Window.State.Value.ToOpenTKWindowState();
+            m_config.Window.State.OnChanged += OnWindowStateChanged;
 
             // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
         }
 
-        private void OnMouseFocusChanged(object? sender, ConfigValueEvent<bool> mouseFocusEvent)
+        private void OnMouseFocusChanged(object? sender, bool mouseFocusEvent)
         {
-            CursorVisible = !mouseFocusEvent.NewValue;
+            CursorVisible = !mouseFocusEvent;
         }
 
-        private void OnVSyncChanged(object? sender, ConfigValueEvent<VerticalSync> vsyncEvent)
+        private void OnVSyncChanged(object? sender, VerticalSync vsyncEvent)
         {
-            VSync = vsyncEvent.NewValue.ToOpenTKVSync();
+            VSync = vsyncEvent.ToOpenTKVSync();
         }
 
-        private void OnWindowStateChanged(object? sender, ConfigValueEvent<WindowStatus> stateEvent)
+        private void OnWindowStateChanged(object? sender, WindowStatus stateEvent)
         {
-            WindowState = stateEvent.NewValue.ToOpenTKWindowState();
+            WindowState = stateEvent.ToOpenTKWindowState();
         }
     }
 }

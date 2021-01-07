@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util.Configs;
 using Helion.Resources.Definitions.Language;
-using Helion.Util.Configuration;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;

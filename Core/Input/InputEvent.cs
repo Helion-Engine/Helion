@@ -11,22 +11,22 @@ namespace Helion.Input
         /// <summary>
         /// All the input currently down since ticking.
         /// </summary>
-        public readonly HashSet<InputKey> InputDown = new HashSet<InputKey>();
+        public readonly HashSet<InputKey> InputDown = new();
 
         /// <summary>
         /// The input that was down in the previous tick.
         /// </summary>
-        public readonly HashSet<InputKey> InputPrevDown = new HashSet<InputKey>();
+        public readonly HashSet<InputKey> InputPrevDown = new();
 
         /// <summary>
         /// An ordered list of all the characters typed. Any character towards
         /// the front of the list was typed before the ones after it.
         /// </summary>
-        public readonly List<char> CharactersTyped = new List<char>();
+        public readonly List<char> CharactersTyped = new();
 
         /// <summary>
         /// The mouse input data.
         /// </summary>
-        public readonly MouseInputData MouseInput = new MouseInputData();
+        public readonly MouseInputData MouseInput = new();
     }
 }

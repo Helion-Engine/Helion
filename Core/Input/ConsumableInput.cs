@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Input
@@ -12,22 +11,22 @@ namespace Helion.Input
     /// <para>An issue with layered windows and systems is that input can pass
     /// through multiple layers. This leads to problems because input events
     /// can leak to the next layer, which is undesirable.</para>
-    /// <para>This class solves the problem by removing the key if it is read 
-    /// by some caller. For example, suppose we want to pass input through a 
+    /// <para>This class solves the problem by removing the key if it is read
+    /// by some caller. For example, suppose we want to pass input through a
     /// menu, a hud, and then to the player in a world. If we have a menu open,
     /// it can consume the mouse x/y movements and any mouse clicks. This way
-    /// if  it does, the data structure will clear those fields and any other 
+    /// if  it does, the data structure will clear those fields and any other
     /// layers  after it will poll an empty result from mouse movements because
     /// it was  "consumed" by the menu layer.</para>
-    /// <para>This allows for construction of this object from an input 
-    /// collection, and then one can recursively pass it to all the different 
+    /// <para>This allows for construction of this object from an input
+    /// collection, and then one can recursively pass it to all the different
     /// layers in a worry-free way.</para>
     /// </remarks>
     public class ConsumableInput
     {
-        private readonly HashSet<InputKey> m_keysDown = new HashSet<InputKey>();
-        private readonly HashSet<InputKey> m_keysPressed = new HashSet<InputKey>();
-        private readonly List<char> m_typedCharacters = new List<char>();
+        private readonly HashSet<InputKey> m_keysDown = new();
+        private readonly HashSet<InputKey> m_keysPressed = new();
+        private readonly List<char> m_typedCharacters = new();
         private Vec2I m_mouseDelta;
         private int m_mouseScroll;
 
@@ -38,7 +37,7 @@ namespace Helion.Input
         /// with.</param>
         public ConsumableInput(InputEvent inputEvent)
         {
-            foreach (InputKey inputKey in inputEvent.InputDown) 
+            foreach (InputKey inputKey in inputEvent.InputDown)
             {
                 m_keysDown.Add(inputKey);
 
@@ -88,11 +87,11 @@ namespace Helion.Input
         /// it was consumed before this invocation.</returns>
         public bool PeekKeyPressedOrDown(InputKey inputKey)
         {
-            return m_keysPressed.Contains(inputKey) || m_keysDown.Contains(inputKey); 
-        } 
-        
+            return m_keysPressed.Contains(inputKey) || m_keysDown.Contains(inputKey);
+        }
+
         /// <summary>
-        /// Consumes the key, returns the result of whether it's pressed 
+        /// Consumes the key, returns the result of whether it's pressed
         /// depending whether it's been consumed or not.
         /// </summary>
         /// <param name="inputKey">The key to check.</param>
@@ -104,7 +103,7 @@ namespace Helion.Input
             m_keysPressed.Remove(inputKey);
             return contains;
         }
-                
+
         /// <summary>
         /// Peeks if the key was pressed, returns the result of whether it's
         /// pressed depending whether it's been consumed or not.
@@ -125,7 +124,7 @@ namespace Helion.Input
             m_mouseDelta = new Vec2I(0, 0);
             return delta;
         }
-        
+
         /// <summary>
         /// Peeks at the value without consuming it.
         /// </summary>
@@ -153,7 +152,7 @@ namespace Helion.Input
         /// <summary>
         /// Consumes the typed characters.
         /// </summary>
-        /// <returns>The typed characters, or an empty list if it was already 
+        /// <returns>The typed characters, or an empty list if it was already
         /// consumed.</returns>
         public IList<char> ConsumeTypedCharacters()
         {
@@ -161,7 +160,7 @@ namespace Helion.Input
             m_typedCharacters.Clear();
             return typedChars;
         }
-        
+
         /// <summary>
         /// Peeks at the typed characters without consuming them.
         /// </summary>

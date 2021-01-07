@@ -4,7 +4,7 @@ using Helion.Bsp.Builder.GLBSP;
 using Helion.Maps;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
-using Helion.Util.Configuration;
+using Helion.Util.Configs;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -36,7 +36,7 @@ namespace Helion.World.Geometry.Builder
         /// the line IDs in a map are not guaranteed to be contiguous due to
         /// map corruption, line removal, etc.
         /// </remarks>
-        public readonly Dictionary<int, Line> MapLines = new Dictionary<int, Line>();
+        public readonly Dictionary<int, Line> MapLines = new();
 
         internal GeometryBuilder()
         {
@@ -69,18 +69,13 @@ namespace Helion.World.Geometry.Builder
 
         private static IBspBuilder? CreateBspBuilder(IMap map, Config config)
         {
-            if (config.Engine.Developer.UseZdbsp)
-            {
-                if (map.GL != null)
-                    return new GLBspBuilder(map);
-
-                Log.Warn("Unable to find GL nodes from ZDBSP, building with internal node builder");
-            }
-            else
-            {
+            if (config.Developer.InternalBSPBuilder)
                 return new BspBuilder(map);
-            }
 
+            if (map.GL != null)
+                return new GLBspBuilder(map);
+
+            Log.Warn("Unable to find GL nodes from ZDBSP");
             return null;
         }
     }
