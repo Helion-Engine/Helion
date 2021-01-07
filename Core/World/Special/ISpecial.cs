@@ -6,6 +6,7 @@ namespace Helion.World.Special
     {
         SpecialTickStatus Tick();
         void Use(Entity entity);
+        void ResetInterpolation() { }
         SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Default;
     }
 }

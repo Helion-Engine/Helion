@@ -25,6 +25,10 @@ namespace Helion.Resources.Archives
         // TODO: Implement!
         public string MD5 = "00000000000000000000000000000000";
 
+        public ArchiveType ArchiveType { get; set; }
+
+        public string OriginalFilePath { get; set; } = string.Empty;
+
         /// <summary>
         /// Creates an archive, which may either be a top level file or some
         /// nested entry.

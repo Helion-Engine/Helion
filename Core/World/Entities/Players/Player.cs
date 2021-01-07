@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
+using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
@@ -88,7 +89,7 @@ namespace Helion.World.Entities.Players
 
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
-            m_viewZ = m_prevViewZ = m_deltaViewHeight;
+            m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
         }
 
         public override void CopyProperties(Entity entity)
@@ -113,6 +114,31 @@ namespace Helion.World.Entities.Players
             }
 
             base.CopyProperties(entity);
+        }
+
+        public void SetDefaultInventory()
+        {
+            GiveWeapon("FIST");
+            GiveWeapon("PISTOL");
+            GiveAmmo("CLIP", 50);
+
+            var weapon = Inventory.Weapons.GetWeapon("PISTOL");
+            if (weapon != null)
+                ChangeWeapon(weapon);
+        }
+
+        private void GiveAmmo(string name, int amount)
+        {
+            var ammo = World.EntityManager.DefinitionComposer.GetByName(name);
+            if (ammo != null)
+                Inventory.Add(ammo, amount);
+        }
+
+        private void GiveWeapon(string name)
+        {
+            var weapon = World.EntityManager.DefinitionComposer.GetByName(name);
+            if (weapon != null)
+                GiveWeapon(weapon, false);
         }
 
         public Vec3D GetViewPosition()
@@ -654,6 +680,7 @@ namespace Helion.World.Entities.Players
             SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, new SoundParams(this));
         }
 
+        public string GetPlayerName() => "Player";
         public string GetGenderString() => "male";
 
         protected override void SetDeath(Entity? source, bool gibbed)
@@ -668,7 +695,9 @@ namespace Helion.World.Entities.Players
 
             SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Voice, new SoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
-            m_killer = source;
+
+            if (source != null)
+                m_killer = source.Owner ?? source;
 
             ForceLowerWeapon(true);
         }

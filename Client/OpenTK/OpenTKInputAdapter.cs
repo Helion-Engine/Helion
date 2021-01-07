@@ -1,5 +1,4 @@
 ﻿using Helion.Input;
-using Helion.Util.Configs;
 using OpenTK;
 using OpenTK.Input;
 
@@ -7,13 +6,7 @@ namespace Helion.Client
 {
     public class OpenTKInputAdapter
     {
-        private readonly Config m_config;
         private InputEvent inputEvent = new();
-
-        public OpenTKInputAdapter(Config config)
-        {
-            m_config = config;
-        }
 
         private static InputKey ToInputKey(Key key)
         {
@@ -145,11 +138,7 @@ namespace Helion.Client
         public void HandleKeyDown(KeyboardKeyEventArgs e)
         {
             InputKey inputKey = ToInputKey(e.Key);
-            if (inputKey == InputKey.Unknown)
-                return;
-
-            InputCommand? command = m_config.InputKeyToCommand(inputKey);
-            if (command != null)
+            if (inputKey != InputKey.Unknown)
                 inputEvent.InputDown.Add(inputKey);
         }
 
@@ -248,8 +237,16 @@ namespace Helion.Client
 
         public InputEvent PollInput()
         {
-            inputEvent = new InputEvent(inputEvent);
-            return inputEvent;
+            InputEvent eventToReturn = inputEvent;
+
+            inputEvent = new InputEvent();
+            foreach (InputKey key in eventToReturn.InputDown)
+            {
+                inputEvent.InputDown.Add(key);
+                inputEvent.InputPrevDown.Add(key);
+            }
+
+            return eventToReturn;
         }
     }
 }

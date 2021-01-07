@@ -7,14 +7,17 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.Fonts;
+using Helion.Resources.Definitions.Language;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Extensions;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
+using NLog;
 
 namespace Helion.Resources.Definitions
 {
@@ -24,6 +27,8 @@ namespace Helion.Resources.Definitions
     /// </summary>
     public class DefinitionEntries
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
         public readonly CompatibilityDefinitions Compatibility = new CompatibilityDefinitions();
         public readonly DecorateDefinitions Decorate;
@@ -31,6 +36,8 @@ namespace Helion.Resources.Definitions
         public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
         public readonly SoundInfoDefinition SoundInfo = new SoundInfoDefinition();
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
+        public readonly LanguageDefinition Language = new LanguageDefinition();
+        public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
@@ -51,11 +58,36 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["SNDINFO"] = entry => ParseSoundInfo(entry);
+            m_entryNameToAction["LANGUAGE"] = entry => ParseLanguage(entry);
+            m_entryNameToAction["MAPINFO"] = entry => ParseMapInfo(entry);
+        }
+
+        public bool LoadMapInfo(Archive archive, string entryName)
+        {
+            Entry? entry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.Equals(entryName, StringComparison.OrdinalIgnoreCase));
+            if (entry == null)
+            {
+                Log.Error($"Failed to find map info resource {entryName}");
+                return false;
+            }
+
+            ParseMapInfo(entry);
+            return true;
         }
 
         private void ParseSoundInfo(Entry entry)
         {
             SoundInfo.Parse(entry);
+        }
+
+        private void ParseLanguage(Entry entry)
+        {
+            Language.Parse(entry);
+        }
+
+        private void ParseMapInfo(Entry entry)
+        {
+            MapInfoDefinition.Parse(entry);
         }
         
         /// <summary>

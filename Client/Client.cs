@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Client.Music;
@@ -14,6 +13,8 @@ using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Configs;
@@ -106,76 +107,80 @@ namespace Helion.Client
 
         private void HandleCommandLineArgs()
         {
-            LoadFiles(out string? iwad);
+            LoadFiles();
 
             if (m_commandLineArgs.Skill.HasValue)
                 SetSkill(m_commandLineArgs.Skill.Value);
 
-            CheckLoadMap(iwad);
+            CheckLoadMap();
         }
 
-        private void CheckLoadMap(string? iwad)
+        private void CheckLoadMap()
         {
             if (m_commandLineArgs.Map != null)
+            {
                 Loadmap(m_commandLineArgs.Map);
+            }
             else if (m_commandLineArgs.Warp != null)
+            {
                 Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+            }
             else
-                Loadmap(GetDefaultMap(iwad));
+            {
+                MapInfoDef? mapInfoDef = GetDefaultMap();
+                if (mapInfoDef == null)
+                {
+                    Log.Error("Unable to find start map.");
+                    return;
+                }
+                Loadmap(mapInfoDef.MapName);
+            }
         }
 
-        private void LoadFiles(out string? iwad)
+        private void LoadFiles()
         {
-            List<string> files = new List<string>();
-            iwad = LoadIWad(files);
-            files.AddRange(m_commandLineArgs.Files);
-
-            if (!m_archiveCollection.Load(files))
+            if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad()))
                 Log.Error("Unable to load files at startup");
         }
 
-        private string? LoadIWad(List<string> files)
+        private string? GetIwad()
         {
-            if (m_commandLineArgs.Iwad == null)
-            {
-                List<string> wadFiles = Directory.GetFiles(Directory.GetCurrentDirectory())
-                    .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase)).ToList();
-                string? iwad = GetIWad(wadFiles);
-                if (iwad == null)
-                    Log.Error("No IWAD found!");
-                else
-                    files.Add(iwad);
+            if (m_commandLineArgs != null && m_commandLineArgs.Iwad != null)
+                return m_commandLineArgs.Iwad;
 
-                return iwad;
+            string? iwad = LocateIwad();
+            if (iwad == null)
+            {
+                Log.Error("No IWAD found!");
+                return null;
             }
             else
             {
-                files.Add(m_commandLineArgs.Iwad);
-                return m_commandLineArgs.Iwad;
+                return iwad;
             }
         }
 
-        private static string? GetIWad(List<string> files)
+        private static string? LocateIwad()
         {
-            string[] names = new string[] { "DOOM2", "PLUTONIA", "DOOM", "DOOM1" };
-            foreach (string name in names)
-            {
-                string? find = files.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(name, StringComparison.OrdinalIgnoreCase));
-                if (find != null)
-                    return find;
-            }
+            IWadLocator iwadLocator = new IWadLocator(new string[] { Directory.GetCurrentDirectory() });
+            List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
+            if (iwadData.Count > 0)
+                return iwadData[0].Item1;
 
             return null;
         }
 
-        private string GetDefaultMap(string? iwad)
+        private MapInfoDef? GetDefaultMap()
         {
-            // TODO temporary until mapinfo is implemented
-            string? name = Path.GetFileNameWithoutExtension(iwad);
-            if (name != null && (name.Equals("DOOM1") || name.Equals("DOOM")))
-                return "E1M1";
+            if (m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Count == 0)
+            {
+                Log.Error("No episodes defined.");
+                return null;
+            }
 
-            return "MAP01";
+            var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
+            string startMapName = mapInfo.Episodes[0].StartMap;
+            return mapInfo.GetMap(startMapName);
         }
 
         private void SetSkill(int value)
@@ -207,7 +212,7 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            InputEvent inputEvent = m_window.PollInput(m_config);
+            InputEvent inputEvent = m_window.PollInput();
             ConsumableInput input = new(inputEvent);
             m_layerManager.HandleInput(input);
         }
@@ -279,13 +284,18 @@ namespace Helion.Client
 
             cmdArgs.Errors.ForEach(x => Log.Error(x));
 
+#if DEBUG
+            Run(cmdArgs);
+#else
+            RunRelease(cmdArgs);
+#endif
+        }
+
+        private static void RunRelease(CommandLineArgs cmdArgs)
+        {
             try
             {
-                using (Config config = new())
-                    using (Client client = new(cmdArgs, config))
-                        client.Start();
-
-                ForceFinalizersIfDebugMode();
+                Run(cmdArgs);
             }
             catch (AssertionException)
             {
@@ -294,16 +304,23 @@ namespace Helion.Client
             }
             catch (Exception e)
             {
-                Log.Error("Unexpected exception: {0}", e.Message);
-#if DEBUG
-                throw;
-#endif
+                Log.Fatal("Unexpected exception: {0}", e.Message);
             }
             finally
             {
                 LogManager.Shutdown();
             }
         }
+
+        private static void Run(CommandLineArgs cmdArgs)
+        {
+            using (Config config = new())
+            using (Client client = new(cmdArgs, config))
+                client.Start();
+
+            ForceFinalizersIfDebugMode();
+        }
+
 
         [Conditional("DEBUG")]
         private static void ForceFinalizersIfDebugMode()

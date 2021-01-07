@@ -2,7 +2,7 @@ using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resources.Definitions.Locks;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;

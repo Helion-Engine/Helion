@@ -20,7 +20,7 @@ namespace Helion.World.Special
     public class SpecialManager : ITickable
     {
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
-        private const double SpeedFactor = 0.125;
+        public const double SpeedFactor = 0.125;
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
@@ -50,6 +50,12 @@ namespace Helion.World.Special
             m_random = random;
 
             StartInitSpecials();
+        }
+
+        public void ResetInterpolation()
+        {
+            foreach(ISpecial special in m_specials)
+                special.ResetInterpolation();
         }
 
         public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
@@ -97,7 +103,14 @@ namespace Helion.World.Special
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
                 new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
-        
+
+        public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
+        {
+            double destZ = sector.Floor.Z + sector.GetShortestLower(TextureManager.Instance);
+            SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
+        }
+
         public void Tick()
         {
             if (m_destroyedMoveSpecials.Count > 0)
@@ -196,7 +209,16 @@ namespace Helion.World.Special
         public ISpecial CreateFloorLowerSpecial(Sector sector, double amount, double speed)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Down, MoveRepetition.None, speed, 0, null), GetDefaultSectorSound());
+        }
+
+        public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, Line line, SectorDest sectorDest, double speed)
+        {
+            int floorChangeTexture = line.Front.Sector.Floor.TextureHandle;
+            SectorDamageSpecial? damageSpecial = line.Front.Sector.SectorDamageSpecial;
+            double destZ = GetDestZ(sector, sectorDest);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
+                MoveDirection.Down, MoveRepetition.None, speed, 0, null, floorChangeTexture, damageSpecial), GetDefaultSectorSound());
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
@@ -655,6 +677,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorRaiseByValueTxTy:
                     return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
 
+                case ZDoomLineSpecialType.FloorLowerToLowestTxTy:
+                    return CreateFloorLowerSpecialChangeTextureAndType(sector, line, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
                     return CreateRaisePlatTxSpecial(sector, line, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
 
@@ -672,13 +697,6 @@ namespace Helion.World.Special
             }
 
             return null;
-        }
-
-        private ISpecial? CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
-        {
-            double destZ = sector.Floor.Z + sector.GetShortestLower(TextureManager.Instance);
-            SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
         }
 
         private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)

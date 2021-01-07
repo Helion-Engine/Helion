@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Extensions;
 using Helion.Util.Terminals;
 using Helion.World.Cheats;
@@ -109,7 +110,9 @@ namespace Helion.Client
                 return;
             }
 
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem, m_archiveCollection, map);
+            MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
+            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem,
+                m_archiveCollection, mapInfoDef, map);
             if (newLayer == null)
                 return;
 

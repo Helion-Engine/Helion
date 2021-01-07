@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Helion.Audio;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -100,7 +98,7 @@ namespace Helion.World.Entities
         public bool IsDead => Health == 0;
         public EntityFrame Frame => FrameState.Frame;
         public virtual double ViewZ => 8.0;
-
+        public bool IsDeathStateFinished => IsDead && Frame.Ticks == -1;
 
         private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
 
@@ -600,40 +598,6 @@ namespace Helion.World.Entities
             return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
         }
 
-        /// <summary>
-        /// Checks if another entity can block this entity on the Z axis.
-        /// This is not just box overlap checking, will check if this entity can step onto the other.
-        /// Sets a LineOpening using the entities similar to sector intersection.
-        /// </summary>
-        /// <param name="other">The potential blocking entity.</param>
-        /// <param name="lineOpening">The LineOpening to set.</param>
-        public bool BlocksEntityZ(Entity other, out LineOpening? lineOpening)
-        {
-            bool blocks = Box.OverlapsZ(other.Box);
-            if (ReferenceEquals(this, other) || !blocks)
-            {
-                lineOpening = null;
-                return false;
-            }
-
-            LineOpening openTop = new LineOpening();
-            openTop.SetTop(other);
-
-            LineOpening openBottom = new LineOpening();
-            openBottom.SetBottom(other);
-
-            if (Position.Z + Height > other.Position.Z)
-                lineOpening = openTop;
-            else
-                lineOpening = openBottom;
-
-            // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
-            if (blocks && Flags.IsMonster)
-                return true;
-
-            return !openTop.CanPassOrStepThrough(this) && !openBottom.CanPassOrStepThrough(this);
-        }
-
         public virtual void Hit(in Vec3D velocity)
         {
             if (Flags.Skullfly)
@@ -687,6 +651,8 @@ namespace Helion.World.Entities
                 if (!Flags.DontFall)
                     Flags.NoGravity = false;
             }
+
+            World.HandleEntityDeath(this, source);
         }
 
         [Conditional("DEBUG")]

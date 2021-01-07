@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
@@ -11,6 +13,7 @@ namespace Helion.Resources
 {
     public class TextureManager : ITickable
     {
+        private readonly List<Action<TextureManager>> m_notifyInitizalized = new List<Action<TextureManager>>();
         private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Texture[] m_textures;
@@ -21,8 +24,11 @@ namespace Helion.Resources
 
         public static TextureManager Instance { get; private set; } = null!;
 
-        private TextureManager(ArchiveCollection archiveCollection)
+        public string SkyTextureName { get; set; }
+
+        private TextureManager(ArchiveCollection archiveCollection, MapInfoDef mapInfoDef)
         {
+            SkyTextureName = mapInfoDef.Sky1;
             m_archiveCollection = archiveCollection;
             m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
 
@@ -43,9 +49,23 @@ namespace Helion.Resources
             InitSprites(spriteNames, spriteEntries);
         }
 
-        public static void Init(ArchiveCollection archiveCollection)
+        public static void Init(ArchiveCollection archiveCollection, MapInfoDef mapInfoDef)
         {
-            Instance = new TextureManager(archiveCollection);
+            // This whole notify thing kind of sucks.
+            // This exists because the SkySphere exists before this instance is created.
+            // Since this gets recreated on a new map the SkySphereTexture needs to be 
+            // notified that this is initializing for a new texture.
+            List<Action<TextureManager>> notify = new();
+            if (Instance != null)
+                notify = Instance.m_notifyInitizalized;
+
+            Instance = new TextureManager(archiveCollection, mapInfoDef);
+            notify.ForEach(x => x.Invoke(Instance));
+        }
+
+        public void AddNotifyInitialized(Action<TextureManager> action)
+        {
+            m_notifyInitizalized.Add(action);
         }
 
         /// <summary>

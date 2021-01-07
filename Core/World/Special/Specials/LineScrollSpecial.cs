@@ -8,10 +8,10 @@ namespace Helion.World.Special.Specials
     public class LineScrollSpecial : ISpecial
     {
         private readonly Line m_line;
-        private readonly double m_speedX;
-        private readonly double m_speedY;
         private readonly ZDoomLineScroll m_scroll;
         private readonly bool m_front;
+        private double m_speedX;
+        private double m_speedY;
 
         public LineScrollSpecial(Line line, double speedX, double speedY, ZDoomLineScroll scroll, bool front = true)
         {
@@ -44,6 +44,16 @@ namespace Helion.World.Special.Specials
                 Scroll(m_line.Back.ScrollData!);
 
             return SpecialTickStatus.Continue;
+        }
+
+        public void ResetInterpolation()
+        {
+            double saveSpeedX = m_speedX;
+            double saveSpeedY = m_speedY;
+            m_speedX = m_speedY = 0;
+            Tick();
+            m_speedX = saveSpeedX;
+            m_speedY = saveSpeedY;
         }
 
         private void Scroll(SideScrollData scrollData)

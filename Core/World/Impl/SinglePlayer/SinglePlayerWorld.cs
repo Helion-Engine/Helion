@@ -6,6 +6,7 @@ using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Geometry.Vectors;
@@ -36,12 +37,22 @@ namespace Helion.World.Impl.SinglePlayer
         private readonly IAudioSystem m_audioSystem;
 
         public SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, IMap map, Player? existingPlayer = null)
-            : base(config, archiveCollection, audioSystem, geometry, map)
+            MapGeometry geometry, MapInfoDef mapDef, IMap map, Player? existingPlayer = null)
+            : base(config, archiveCollection, audioSystem, geometry, mapDef, map)
         {
             EntityManager.PopulateFrom(map);
 
-            Player = EntityManager.CreatePlayer(0, existingPlayer);
+            Player = EntityManager.CreatePlayer(0);
+
+            if (existingPlayer != null)
+            {
+                Player.CopyProperties(existingPlayer);
+                Player.Inventory.ClearKeys();
+            }
+            else
+            {
+                Player.SetDefaultInventory();
+            }
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
@@ -57,14 +68,12 @@ namespace Helion.World.Impl.SinglePlayer
 
         public override void Start()
         {
-            PlayLevelMusic(AudioSystem, Map, ArchiveCollection);
+            PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection);
             base.Start();
         }
 
-        private static void PlayLevelMusic(IAudioSystem audioSystem, IMap map, ArchiveCollection archiveCollection)
+        private static void PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
         {
-            string entryName = map.Name.StartsWith("E") ? $"D_{map.Name}" : "D_RUNNIN";
-
             Entry? entry = archiveCollection.Entries.FindByName(entryName);
             if (entry == null)
             {

@@ -105,10 +105,24 @@ namespace Helion.World.Entities.Definition.Composer
             if (properties.ActiveSound != null)
                 definition.Properties.ActiveSound = properties.ActiveSound;
 
+            if (properties.HitObituary != null)
+                definition.Properties.HitObituary = properties.HitObituary;
+            if (properties.Obituary != null)
+                definition.Properties.Obituary = properties.Obituary;
+
+            if (properties.HealthProperty.LowMessage != null && properties.HealthProperty.LowMessageHealth.HasValue)
+            {
+                definition.Properties.HealthProperty = new Properties.Components.HealthProperty()
+                {
+                    LowMessage = properties.HealthProperty.LowMessage,
+                    LowMessageHealth = properties.HealthProperty.LowMessageHealth.Value
+                };
+            }
+
             if (properties.DropItem.ClassName != null)
             {
-                byte probability = properties.DropItem.Probability.HasValue ? properties.DropItem.Probability.Value : Properties.Components.DropItemProperty.DefaultProbability;
-                int amount = properties.DropItem.Amount.HasValue ? properties.DropItem.Amount.Value : Properties.Components.DropItemProperty.DefaultAmount;
+                byte probability = properties.DropItem.Probability ?? Properties.Components.DropItemProperty.DefaultProbability;
+                int amount = properties.DropItem.Amount ?? Properties.Components.DropItemProperty.DefaultAmount;
                 definition.Properties.DropItem = new Properties.Components.DropItemProperty(properties.DropItem.ClassName,
                     probability, amount);
             }

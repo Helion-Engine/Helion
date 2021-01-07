@@ -10,6 +10,6 @@ namespace Helion.Window
         int WindowID { get; }
         IRenderer Renderer { get; }
         Dimension WindowDimension { get; }
-        InputEvent PollInput(Config config);
+        InputEvent PollInput();
     }
 }

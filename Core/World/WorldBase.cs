@@ -5,7 +5,8 @@ using Helion.Maps;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Decorate.Locks;
+using Helion.Resources.Definitions.Locks;
+using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container.Linkable;
@@ -18,6 +19,7 @@ using Helion.Util.Time;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
@@ -33,6 +35,8 @@ using Helion.World.Special.SectorMovement;
 using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.World.Entities.Definition;
 
 namespace Helion.World
 {
@@ -56,6 +60,7 @@ namespace Helion.World
         public int Gametick { get; private set; }
         public int LevelTime { get; private set; }
         public double Gravity { get; private set; } = 1.0;
+        public bool Paused { get; private set; }
         public IRandom Random => m_random;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
@@ -81,17 +86,19 @@ namespace Helion.World
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
         public Config Config { get; private set; }
+        public MapInfoDef MapInfo { get; private set; }
 
         private readonly DoomRandom m_random = new DoomRandom();
         private int m_soundCount;
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, IMap map)
+            MapGeometry geometry, MapInfoDef mapInfoDef, IMap map)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
             AudioSystem = audioSystem;
             Config = config;
+            MapInfo = mapInfoDef;
             MapName = map.Name;
             Geometry = geometry;
             Map = map;
@@ -108,7 +115,10 @@ namespace Helion.World
             PerformDispose();
         }
 
-        public virtual void Start() { }
+        public virtual void Start()
+        {
+            AddMapSpecial();
+        }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
         {
@@ -181,6 +191,9 @@ namespace Helion.World
 
         public void Tick()
         {
+            if (Paused)
+                return;
+
             if (WorldState == WorldState.Exit)
             {
                 m_exitTicks--;
@@ -215,6 +228,66 @@ namespace Helion.World
             Gametick++;
         }
 
+        public void Pause()
+        {
+            ResetInterpolation();
+            SoundManager.Pause();
+
+            Paused = true;
+        }
+
+        private void ResetInterpolation()
+        {
+            EntityManager.Entities.ForEach(entity =>
+            {
+                entity.ResetInterpolation();
+            });
+
+            SpecialManager.ResetInterpolation();
+        }
+
+        public void Resume()
+        {
+            SoundManager.Resume();
+            Paused = false;
+        }
+
+        private void AddMapSpecial()
+        {
+            List<MonsterCountSpecial> monsterCountSpecials = new List<MonsterCountSpecial>();
+
+            switch (MapInfo.MapSpecial)
+            {
+                case MapSpecial.BaronSpecial:
+                    AddMonsterCountSpecial(monsterCountSpecials, "BaronOfHell", 666, MapInfo.MapSpecialAction);
+                    break;
+                case MapSpecial.CyberdemonSpecial:
+                    AddMonsterCountSpecial(monsterCountSpecials, "Cyberdemon", 666, MapInfo.MapSpecialAction);
+                    break;
+                case MapSpecial.SpiderMastermindSpecial:
+                    AddMonsterCountSpecial(monsterCountSpecials, "SpiderMastermind", 666, MapInfo.MapSpecialAction);
+                    break;
+                case MapSpecial.Map07Special:
+                    AddMonsterCountSpecial(monsterCountSpecials, "Fatso", 666, MapSpecialAction.LowerFloor);
+                    AddMonsterCountSpecial(monsterCountSpecials, "Arachnotron", 667, MapSpecialAction.FloorRaiseByLowestTexture);
+                    break;
+            }
+
+            monsterCountSpecials.ForEach(x => SpecialManager.AddSpecial(x));
+        }
+
+        private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
+        {
+            EntityDefinition? definition = EntityManager.DefinitionComposer.GetByName(monsterName);
+            if (definition == null || !definition.EditorId.HasValue)
+            {
+                Log.Error($"Failed to find {monsterName} for {mapSpecialAction}");
+                return;
+            }
+
+            monsterCountSpecials.Add(new MonsterCountSpecial(this, SpecialManager, definition.EditorId.Value, sectorTag, mapSpecialAction));
+        }
+
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {
             return Geometry.FindBySectorTag(tag);
@@ -238,8 +311,7 @@ namespace Helion.World
             WorldState = WorldState.Exit;
             m_exitTicks = 15;
 
-            foreach (Player player in EntityManager.Players)
-                player.ResetInterpolation();
+            ResetInterpolation();
         }
 
         public List<Entity> GetBossTargets()
@@ -335,7 +407,7 @@ namespace Helion.World
             if (entity is Player player && lockFail != null)
             {
                 player.PlayUseFailSound();
-                DisplayMessage(player, GetLockFailMessage(line, lockFail));
+                DisplayMessage(player, null, GetLockFailMessage(line, lockFail), LanguageMessageType.Lock);
             }
             return success;
         }
@@ -599,9 +671,6 @@ namespace Helion.World
                 (target is Player player && (target.Flags.Invulnerable || player.Inventory.IsPowerupActive(PowerupType.Invulnerable))))
                 target.Velocity += thrustVelocity;
 
-            if (target.IsDead)
-                HandleEntityDeath(target);
-
             return true;
         }
 
@@ -647,8 +716,6 @@ namespace Helion.World
                     EntityManager.Destroy(entity);
                 else
                     entity.SetDeathState(null);
-
-                HandleEntityDeath(entity);
             }
             else if (tryMove != null && entity is Player)
             {
@@ -706,9 +773,63 @@ namespace Helion.World
             MoveDirection direction, double speed, double destZ, CrushData? crush)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, direction, speed, destZ, crush);
 
-        public virtual void DisplayMessage(Player player, string message)
+        public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource)
         {
-            Log.Info(message);
+            PhysicsManager.HandleEntityDeath(deathEntity);
+            CheckDropItem(deathEntity);
+
+            if (deathSource != null && deathEntity is Player player)
+                HandleObituary(player, deathSource);
+        }
+
+        private void CheckDropItem(Entity deathEntity)
+        {
+            if (deathEntity.Definition.Properties.DropItem != null &&
+                (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
+                    m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
+            {
+                for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
+                {
+                    Vec3D pos = deathEntity.Position;
+                    pos.Z += deathEntity.Definition.Properties.Height / 2;
+                    Entity? dropItem = EntityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
+                    if (dropItem != null)
+                    {
+                        dropItem.Flags.Dropped = true;
+                        dropItem.Velocity.Z += 4;
+                    }
+                }
+            }
+        }
+
+        private void HandleObituary(Player player, Entity deathSource)
+        {
+            // If the player killed themself then don't display the obituary message
+            // There is probably a special string for this in multiplayer for later
+            Entity killer = deathSource.Owner ?? deathSource;
+            if (ReferenceEquals(player, killer))
+                return;
+
+            // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
+            Entity obituarySource = killer;
+            if (killer is Player)
+                obituarySource = deathSource;
+
+            string? obituary;
+            if (obituarySource == deathSource && obituarySource.Definition.Properties.HitObituary.Length > 0)
+                obituary = obituarySource.Definition.Properties.HitObituary;
+            else
+                obituary = obituarySource.Definition.Properties.Obituary;
+
+            if (!string.IsNullOrEmpty(obituary))
+                DisplayMessage(player, killer as Player, obituary, LanguageMessageType.Obituary);
+        }
+
+        public virtual void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type)
+        {
+            message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message, type);
+            if (message.Length > 0)
+                Log.Error(message);
         }
 
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
@@ -840,11 +961,6 @@ namespace Helion.World
             }
 
             return TraversalPitchStatus.PitchNotSet;
-        }
-
-        private void HandleEntityDeath(Entity deathEntity)
-        {
-            PhysicsManager.HandleEntityDeath(deathEntity);
         }
 
         private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)

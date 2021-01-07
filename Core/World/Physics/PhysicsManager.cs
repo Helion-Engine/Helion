@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.Language;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -294,23 +295,6 @@ namespace Helion.World.Physics
         {
             if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
                 HandleStackedEntityPhysics(deathEntity);
-
-            if (deathEntity.Definition.Properties.DropItem != null && 
-                (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
-                    m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
-            {
-                for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
-                {
-                    Vec3D pos = deathEntity.Position;
-                    pos.Z += deathEntity.Definition.Properties.Height / 2;
-                    Entity? dropItem = m_entityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
-                    if (dropItem != null)
-                    {
-                        dropItem.Flags.Dropped = true;
-                        dropItem.Velocity.Z += 4;
-                    }
-                }
-            }
         }
 
         private static int CalculateSteps(Vec2D velocity, double radius)
@@ -697,53 +681,47 @@ namespace Helion.World.Physics
             LinkToWorld(entity);
         }
 
-        public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData? tryMove)
+        public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
         {
             if (!entity.Flags.Float && !(entity is Player) && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
                 return false;
 
-            if (tryMove != null)
+            tryMove.Success = true;
+            tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+            if (entity.HighestFloorObject is Entity highFloorEntity)
             {
-                tryMove.LowestCeilingZ = entity.LowestCeilingZ;
-                if (entity.HighestFloorObject is Entity highFloorEntity)
-                {
-                    tryMove.HighestFloorZ = highFloorEntity.Box.Top;
-                    tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
-                }
-                else
-                {
-                    tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
-                }
+                tryMove.HighestFloorZ = highFloorEntity.Box.Top;
+                tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
+            }
+            else
+            {
+                tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
             }
 
-            if (tryMove != null)
-                tryMove.Success = true;
-
-            bool success = false;
             Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
             entity.BlockingLine = null;
             entity.BlockingEntity = null;
             entity.BlockingSectorPlane = null;
-            if (!m_blockmap.Iterate(nextBox, CheckForBlockers))
-                success = true;
+            m_blockmap.Iterate(nextBox, CheckForBlockers);
 
-            if (tryMove != null)
+            if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
             {
-                if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
-                    return false;
-
-                if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
-                    return false;
-
-                tryMove.CanFloat = true;
-
-                if (!entity.CheckDropOff(tryMove))
-                    return false;
-
-                success = tryMove.Success;
+                tryMove.Success = false;
+                return false;
             }
 
-            return success;
+            if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
+            {
+                tryMove.Success = false;
+                return false;
+            }
+
+            tryMove.CanFloat = true;
+
+            if (!entity.CheckDropOff(tryMove))
+                tryMove.Success = false;
+
+            return tryMove.Success;
 
             GridIterationStatus CheckForBlockers(Block block)
             {
@@ -753,15 +731,14 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(nextBox))
                     {
-                        if (tryMove != null && !entity.Flags.NoClip && line.HasSpecial)
+                        if (!entity.Flags.NoClip && line.HasSpecial)
                             tryMove.AddIntersectSpecialLine(line);
 
                         LineBlock blockType = LineBlocksEntity(entity, line, tryMove);
                         if (blockType != LineBlock.NoBlock)
                         {
                             entity.BlockingLine = line;
-                            if (tryMove != null)
-                                tryMove.Success = false;
+                            tryMove.Success = false;
                             // Only keep checking if entity floats
                             // Block floating check needs all intersecting LineOpenings
                             if (blockType == LineBlock.BlockStopChecking || (blockType == LineBlock.BlockContinueIfFloat && !entity.Flags.Float))
@@ -780,25 +757,25 @@ namespace Helion.World.Physics
 
                         if (nextEntity.Box.Overlaps2D(nextBox))
                         {
-                            tryMove?.IntersectEntities2D.Add(nextEntity);
-                            if (!entity.Box.OverlapsZ(nextEntity.Box))
-                                continue;
+                            tryMove.IntersectEntities2D.Add(nextEntity);
+                            bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
 
-                            if (entity.Flags.Pickup && EntityCanPickupItem(entity, nextEntity))
+                            if (overlapsZ && entity.Flags.Pickup && nextEntity.Definition.IsType(EntityDefinitionType.Inventory))
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
                             else if (entity.CanBlockEntity(nextEntity))
                             {
-                                if (!entity.BlocksEntityZ(nextEntity, out LineOpening? lineOpening))
-                                    continue;
-
+                                bool blocksZ = BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ, out LineOpening? lineOpening);
                                 if (lineOpening != null)
-                                    tryMove?.SetIntersectionData(lineOpening);
-                                if (tryMove != null)
+                                    tryMove.SetIntersectionData(lineOpening);
+
+                                if (blocksZ)
+                                {
                                     tryMove.Success = false;
-                                entity.BlockingEntity = nextEntity;
-                                return GridIterationStatus.Stop;
+                                    entity.BlockingEntity = nextEntity;
+                                    return GridIterationStatus.Stop;
+                                }
                             }
                         }
                     }
@@ -808,25 +785,57 @@ namespace Helion.World.Physics
             }
         }
 
-        private bool EntityCanPickupItem(Entity entity, Entity item)
+        private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, out LineOpening? lineOpening)
         {
-            // TODO: Eventually we need to respect how many items are in the
-            //       inventory so that we don't automatically pick up all the
-            //       items even if we can't anymore (ex: maxed out on ammo).
-            return item.Definition.IsType(EntityDefinitionType.Inventory);
+            if (ReferenceEquals(this, other))
+            {
+                lineOpening = null;
+                return false;
+            }
+
+            lineOpening = new LineOpening();
+            if (entity.Position.Z + entity.Height > other.Position.Z)
+            {
+                // This entity is higher than the other entity and requires step up checking
+                lineOpening.SetTop(tryMove, other);
+            }
+            else
+            {
+                // This entity is within the other entity's Z or below
+                lineOpening.SetBottom(tryMove, other);
+            }
+
+            // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
+            if (overlapsZ && entity.Flags.IsMonster)
+                return true;
+
+            if (!overlapsZ)
+                return false;
+
+            return !lineOpening.CanPassOrStepThrough(entity);
         }
 
         private void PerformItemPickup(Entity entity, Entity item)
         {
-            if (entity is Player player && player.GiveItem(item.Definition, item.Flags))
-            {
-                if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
-                {
-                    m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                        new SoundParams(entity));
-                }
+            if (entity is not Player player)
+                return;
 
-                m_entityManager.Destroy(item);
+            int health = player.Health;
+            if (!player.GiveItem(item.Definition, item.Flags))
+                return;
+
+            string message = item.Definition.Properties.Inventory.PickupMessage;
+            var healthProperty = item.Definition.Properties.HealthProperty;
+            if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
+                message = healthProperty.Value.LowMessage;
+
+            m_world.DisplayMessage(player, null, message, LanguageMessageType.Pickup);
+            m_entityManager.Destroy(item);
+
+            if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+            {
+                m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
+                    new SoundParams(entity));
             }
         }
 
@@ -978,7 +987,7 @@ namespace Helion.World.Physics
             residualStep = stepDelta - usedStepDelta;
 
             Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
-            if (IsPositionValid(entity, closeToLinePosition, null))
+            if (IsPositionValid(entity, closeToLinePosition, tryMove))
             {
                 MoveTo(entity, closeToLinePosition, tryMove);
                 return true;
@@ -1034,7 +1043,7 @@ namespace Helion.World.Physics
             if (axis == Axis2D.X)
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
-                if (IsPositionValid(entity, nextPosition, null))
+                if (IsPositionValid(entity, nextPosition, tryMove))
                 {
                     MoveTo(entity, nextPosition, tryMove);
                     entity.Velocity.Y = 0;
@@ -1045,7 +1054,7 @@ namespace Helion.World.Physics
             else
             {
                 Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
-                if (IsPositionValid(entity, nextPosition, null))
+                if (IsPositionValid(entity, nextPosition, tryMove))
                 {
                     MoveTo(entity, nextPosition, tryMove);
                     entity.Velocity.X = 0;
@@ -1077,7 +1086,7 @@ namespace Helion.World.Physics
             if (entity.ShouldApplyGravity())
                 entity.Velocity.Z -= m_world.Gravity;
 
-            double floatZ = entity.GetEnemyFloatMove();
+            double floatZ = 0;// = entity.GetEnemyFloatMove();
             if (entity.Velocity.Z == 0 && floatZ == 0)
                 return;
 

@@ -16,7 +16,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
 {
     public class SkySphereTexture : IDisposable
     {
-        private const string DefaultSky = "SKY1";
         private const int PixelRowsToEvaluate = 16;
         private const int DefaultPaddingDivisor = 3;
 
@@ -35,6 +34,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             gl = functions;
             m_textureManager = textureManager;
             m_texture = textureManager.NullTexture;
+        }
+
+        private void NotifyTextureManagerChanged(TextureManager textureManager)
+        {
+            m_generatedSky = false;
+            GenerateSkyIfNeeded();
         }
 
         ~SkySphereTexture()
@@ -191,7 +196,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         {
             if (m_generatedSky)
                 return;
-         
+
+            TextureManager.Instance.AddNotifyInitialized(NotifyTextureManagerChanged);
+
             // This sucks, but we need the archive to be populated before we
             // can draw the sky. This has to be lazily loaded when we request
             // rendering so we know all the textures have been loaded.
@@ -205,6 +212,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             if (skyImage == null)
                 return;
 
+            if (m_texture != m_textureManager.NullTexture)
+                m_texture.Dispose();
+
             ScaleU = CalculateScale(skyImage.Width);
             m_texture = CreateSkyTexture(skyImage);
             m_allocatedNewTexture = true;
@@ -213,7 +223,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
         private Image? GetSkyImage()
         {
             ArchiveImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
-            return imageRetriever.Get(DefaultSky, ResourceNamespace.Textures);
+            return imageRetriever.Get(TextureManager.Instance.SkyTextureName, ResourceNamespace.Textures);
         }
 
         private GLLegacyTexture CreateSkyTexture(Image skyImage)
@@ -232,7 +242,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
 
             Bitmap fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
-            return CreateTexture(fadedSkyImage, $"[SKY] {DefaultSky}");
+            return CreateTexture(fadedSkyImage, $"[SKY] {TextureManager.Instance.SkyTextureName}");
         }
 
         private GLLegacyTexture CreateTexture(Bitmap fadedSkyImage, string debugName = "")

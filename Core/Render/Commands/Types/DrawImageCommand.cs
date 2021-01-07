@@ -11,24 +11,17 @@ namespace Helion.Render.Commands.Types
         public readonly float Alpha;
         public readonly Color MultiplyColor;
         public readonly bool AreaIsTextureDimension;
+        public readonly bool DrawInvulnerability;
 
-        public DrawImageCommand(CIString textureName, int x, int y, float alpha = 1.0f) :
-            this(textureName, new ImageBox2I(x, y, int.MaxValue, int.MaxValue), Color.White, alpha)
-        {
-        }
-
-        public DrawImageCommand(CIString textureName, ImageBox2I drawArea, float alpha = 1.0f) :
-            this(textureName, drawArea, Color.White, alpha)
-        {
-        }
-
-        public DrawImageCommand(CIString textureName, ImageBox2I drawArea, Color multiplyColor, float alpha = 1.0f)
+        public DrawImageCommand(CIString textureName, ImageBox2I drawArea, Color multiplyColor,
+            float alpha = 1.0f, bool drawInvul = false)
         {
             TextureName = textureName;
             DrawArea = drawArea;
             Alpha = alpha;
             MultiplyColor = multiplyColor;
             AreaIsTextureDimension = false;
+            DrawInvulnerability = drawInvul;
         }
     }
 }

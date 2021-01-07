@@ -51,7 +51,7 @@ namespace Helion.Client
             Dispose(false);
         }
 
-        public InputEvent PollInput(Config config) => m_inputAdapter.PollInput(config);
+        public InputEvent PollInput() => m_inputAdapter.PollInput();
 
         public override void Dispose()
         {
@@ -234,19 +234,19 @@ namespace Helion.Client
             // TODO: Investigate if this.WindowBorder can emulate borderless fullscreen.
         }
 
-        private void OnMouseFocusChanged(object? sender, bool newValue)
+        private void OnMouseFocusChanged(object? sender, bool mouseFocusEvent)
         {
-            CursorVisible = !newValue;
+            CursorVisible = !mouseFocusEvent;
         }
 
-        private void OnVSyncChanged(object? sender, VerticalSync vsync)
+        private void OnVSyncChanged(object? sender, VerticalSync vsyncEvent)
         {
-            VSync = vsync.ToOpenTKVSync();
+            VSync = vsyncEvent.ToOpenTKVSync();
         }
 
-        private void OnWindowStateChanged(object? sender, WindowStatus windowStatus)
+        private void OnWindowStateChanged(object? sender, WindowStatus stateEvent)
         {
-            WindowState = windowStatus.ToOpenTKWindowState();
+            WindowState = stateEvent.ToOpenTKWindowState();
         }
     }
 }

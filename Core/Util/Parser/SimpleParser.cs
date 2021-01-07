@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
 namespace Helion.Util.Parser
 {
     public class SimpleParser
@@ -16,27 +19,77 @@ namespace Helion.Util.Parser
             public string Data { get; private set; }
         }
 
+        private static readonly Regex NormalSplitRegex = new Regex("(?<=\")[^\"]*(?=\")|[^\" \t]+");
+        private static readonly Regex CsvSplitRegex = new Regex("(?<=\")[^\"]*(?=\")|[^\",]+");
+
         private readonly List<ParserToken> m_tokens = new List<ParserToken>();
+        private readonly ParseType m_parseType;
 
         private int m_index = 0;
         private bool m_multiLineComment;
+
+        public SimpleParser(ParseType parseType = ParseType.Normal)
+        {
+            m_parseType = parseType;
+        }
 
         public void Parse(string data)
         {
             m_index = 0;
             m_multiLineComment = false;
-
             int lineCount = 0;
             string[] lines = data.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
-                string parseLine = StripComments(line);
-                string[] subSplit = parseLine.Split(new char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                string parseLine = line.Trim();
+                if (string.IsNullOrEmpty(parseLine))
+                    continue;
+
+                string[] subSplit;
+
+                if (m_parseType == ParseType.Csv)
+                    subSplit = CsvSplitRegex.Matches(parseLine).Cast<Match>().Select(x => x.Value).ToArray();
+                else
+                    subSplit = NormalSplitRegex.Matches(parseLine).Cast<Match>().Select(x => x.Value).ToArray();
 
                 foreach (string sub in subSplit)
-                    m_tokens.Add(new ParserToken(lineCount, sub));
+                {
+                    bool comment = false;
+                    string parseSub = sub;
+
+                    if (IsComment(parseSub))
+                    {
+                        comment = true;
+                        parseSub = StripComment(parseSub);
+                    }
+
+                    if (m_multiLineComment)
+                    {
+                        if (!IsEndMultiLineComment(parseSub))
+                            continue;
+
+                        m_multiLineComment = false;
+                        parseSub = StripEndMultiLineComment(parseSub);
+                    }
+
+                    if (IsStartMultiLineComment(parseSub))
+                    {
+                        m_multiLineComment = !IsEndMultiLineComment(parseSub);
+                        parseSub = StripStartMultiLineComment(parseSub);
+                    }
+
+                    parseSub = parseSub.Trim();
+                    if (parseSub.Length > 0)
+                        m_tokens.Add(new ParserToken(lineCount, parseSub));
+
+                    if (comment)
+                        break;
+                }
+
+                lineCount++;
             }
         }
+
 
         public int GetCurrentLine() => m_tokens[m_index].Line;
 
@@ -46,7 +99,17 @@ namespace Helion.Util.Parser
         {
             AssertData();
 
-            if (m_tokens[m_index].Data[0] == c)
+            if (char.ToUpperInvariant(m_tokens[m_index].Data[0]) == char.ToUpperInvariant(c))
+                return true;
+
+            return false;
+        }
+
+        public bool Peek(string str)
+        {
+            AssertData();
+
+            if (m_tokens[m_index].Data.Equals(str, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             return false;
@@ -54,7 +117,18 @@ namespace Helion.Util.Parser
 
         public string ConsumeString()
         {
+            AssertData();
+
             return m_tokens[m_index++].Data;
+        }
+
+        public void ConsumeString(string str)
+        {
+            AssertData();
+
+            ParserToken token = m_tokens[m_index++];
+            if (!token.Data.Equals(str, StringComparison.OrdinalIgnoreCase))
+                throw new ParserException(token.Line, 0, 0, $"Expected {str} but got {token.Data}");
         }
 
         public int ConsumeInteger()
@@ -71,15 +145,39 @@ namespace Helion.Util.Parser
             throw new ParserException(token.Line, 0, 0, $"Could not parse {token.Data} as integer.");
         }
 
+        public bool ConsumeBool()
+        {
+            AssertData();
+
+            ParserToken token = m_tokens[m_index];
+            if (bool.TryParse(token.Data, out bool b))
+            {
+                m_index++;
+                return b;
+            }
+
+            throw new ParserException(token.Line, 0, 0, $"Could not parse {token.Data} as a bool.");
+        }
+
         public void Consume(char c)
         {
             AssertData();
 
             ParserToken token = m_tokens[m_index];
-            if (token.Data.Length != 1 || token.Data[0] != c)
+            if (token.Data.Length != 1 || char.ToUpperInvariant(token.Data[0]) != char.ToUpperInvariant(c))
                 throw new ParserException(token.Line, 0, 0, $"Expected {c} but got {token.Data}.");
 
             m_index++;
+        }
+
+        /// <summary>
+        /// Eats the rest of the tokens until the current line is consumed.
+        /// </summary>
+        public void ConsumeLine()
+        {
+            int startLine = m_tokens[m_index].Line;
+            while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
+                m_index++;
         }
 
         private void AssertData()
@@ -91,37 +189,12 @@ namespace Helion.Util.Parser
             }           
         }
 
-        private string StripComments(string line)
-        {
-            int start = 0;
-            for (int i = 0; i < line.Length - 1; i++)
-            {
-                if (m_multiLineComment)
-                {
-                    if (line[i] == '*' && line[i + 1] == '/')
-                    {
-                        m_multiLineComment = false;
-                        start = i + 1;
-                    }
-                }
-                else
-                {
-                    if (line[i] == '/')
-                    {
-                        if (line[i + 1] == '/')
-                        {
-                            return line.Substring(start, i);
-                        }
-                        else if (line[i] == '*')
-                        {
-                            m_multiLineComment = true;
-                            return line.Substring(start, i);
-                        }
-                    }
-                }
-            }
+        private bool IsComment(string data) => data.Contains("//");
+        private bool IsStartMultiLineComment(string data) => data.Contains("/*");
+        private bool IsEndMultiLineComment(string data) => data.Contains("*/");
 
-            return line;
-        }
+        private string StripComment(string data) => data.Substring(0, data.IndexOf("//"));
+        private string StripStartMultiLineComment(string data) => data.Substring(0, data.IndexOf("/*"));
+        private string StripEndMultiLineComment(string data) => data.Substring(data.IndexOf("*/") + 2);
     }
 }

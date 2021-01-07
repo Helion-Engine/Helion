@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Helion.Graphics.Fonts;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
@@ -9,6 +11,7 @@ using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Extensions;
 using NLog;
@@ -36,37 +39,74 @@ namespace Helion.Resources.Archives.Collection
             Definitions = new DefinitionEntries(this);
         }
 
-        public bool Load(IEnumerable<string> files, bool loadDefaultAssets = true)
+        public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true)
         {
             List<Archive> loadedArchives = new List<Archive>();
             List<string> filePaths = new List<string>();
+
+            Archive? assetsArchive = null;
+            Archive? iwadArchive = null;
 
             // If we have nothing loaded, we want to make sure assets.pk3 is
             // loaded before anything else. We also do not want it to be loaded
             // if we have already loaded it.
             if (loadDefaultAssets && m_archives.Empty())
-                filePaths.Add(Constants.AssetsFileName);
+            {
+                assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets);
+                if (assetsArchive == null)
+                    return false;
+
+                loadedArchives.Add(assetsArchive);
+            }
+
+            if (iwad != null)
+            {
+                iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD);
+                if (iwadArchive == null)
+                    return false;
+
+                loadedArchives.Add(iwadArchive);
+            }
+
             filePaths.AddRange(files);
 
             foreach (string filePath in filePaths)
             {
-                Archive? archive = Caches.Load(filePath, m_archiveLocator);
-                if (archive != null)
-                {
-                    Log.Info("Loaded {0}", filePath);
-                    loadedArchives.Add(archive);
-                }
-                else
-                {
-                    Log.Error("Failure when loading {0}", filePath);
+                Archive? archive = LoadArchive(filePath);
+                if (archive == null)
                     return false;
-                }
+
+                loadedArchives.Add(archive);
             }
 
-            ProcessAndIndexEntries(loadedArchives);
+            ProcessAndIndexEntries(iwadArchive, loadedArchives);
             m_archives.AddRange(loadedArchives);
 
             return true;
+        }
+
+        private Archive? LoadSpecial(string file, ArchiveType archiveType)
+        {
+            Archive? archive = LoadArchive(file);
+            if (archive == null)
+                return null;
+
+            archive.ArchiveType = archiveType;
+            return archive;
+        }
+
+        private Archive? LoadArchive(string filePath)
+        {
+            Archive? archive = Caches.Load(filePath, m_archiveLocator);
+            if (archive == null)
+            {
+                Log.Error("Failure when loading {0}", filePath);
+                return null;
+            }
+
+            archive.OriginalFilePath = filePath;
+            Log.Info("Loaded {0}", filePath);
+            return archive;
         }
 
         public MapEntryCollection? GetMapEntryCollection(string mapName)
@@ -141,7 +181,7 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
-        private void ProcessAndIndexEntries(IEnumerable<Archive> archives)
+        private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)
         {
             foreach (Archive archive in archives)
             {
@@ -152,6 +192,13 @@ namespace Helion.Resources.Archives.Collection
                 }
 
                 Definitions.Track(archive);
+
+                if (archive.ArchiveType == ArchiveType.Assets && iwadArchive != null)
+                {
+                    IWadInfo? wadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
+                    if (wadInfo != null)
+                        Definitions.LoadMapInfo(archive, wadInfo.MapInfoResource);
+                }
             }
         }
     }

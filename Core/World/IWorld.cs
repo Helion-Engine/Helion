@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Util.Configs;
+using Helion.Resources.Definitions.Language;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
@@ -42,6 +43,8 @@ namespace Helion.World
 
         void Link(Entity entity);
         void Tick();
+        void Pause();
+        void Resume();
         IEnumerable<Sector> FindBySectorTag(int tag);
         IEnumerable<Entity> FindByTid(int tid);
         void ExitLevel(LevelChangeType type);
@@ -62,6 +65,7 @@ namespace Helion.World
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             MoveDirection direction, double speed, double destZ, CrushData? crush);
-        void DisplayMessage(Player player, string message);
+        void HandleEntityDeath(Entity deathEntity, Entity? deathSource);
+        void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
     }
 }

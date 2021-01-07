@@ -47,10 +47,10 @@ namespace Helion.Render.Commands
         }
 
         public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color,
-            float alpha = 1.0f)
+            float alpha = 1.0f, bool drawInvul = false)
         {
             ImageBox2I drawArea = TranslateDimensions(left, top, width, height);
-            DrawImageCommand cmd = new(textureName, drawArea, color, alpha);
+            DrawImageCommand cmd = new(textureName, drawArea, color, alpha, drawInvul);
             m_commands.Add(cmd);
         }
 

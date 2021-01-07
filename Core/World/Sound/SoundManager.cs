@@ -84,7 +84,7 @@ namespace Helion.World.Sound
                 else
                 {
                     double distance = node.Value.AudioData.SoundSource.GetDistanceFrom(m_world.ListenerEntity);
-                    if (distance > Constants.MaxSoundDistance)
+                    if (!CheckDistance(distance, node.Value.AudioData.Attenuation))
                     {
                         node.Value.Stop();
                         m_playingSounds.Remove(node);
@@ -101,6 +101,26 @@ namespace Helion.World.Sound
                 }
 
                 node = nextNode;
+            }
+        }
+
+        public void Pause()
+        {
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            while (node != null)
+            {
+                node.Value.Pause();
+                node = node.Next;
+            }
+        }
+
+        public void Resume()
+        {
+            LinkedListNode<IAudioSource>? node = m_playingSounds.First;
+            while (node != null)
+            {
+                node.Value.Play();
+                node = node.Next;
             }
         }
 

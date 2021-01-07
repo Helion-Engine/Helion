@@ -78,18 +78,18 @@ namespace Helion.World.Physics
                 DropOffZ = front.Floor.Z;
         }
 
-        public void SetTop(Entity other)
+        public void SetTop(TryMoveData tryMove, Entity other)
         {
-            CeilingZ = other.LowestCeilingZ;
+            CeilingZ = tryMove.LowestCeilingZ;
             FloorZ = other.Position.Z + other.Height;
             OpeningHeight = CeilingZ - FloorZ;
             DropOffZ = FloorZ;
         }
 
-        public void SetBottom(Entity other)
+        public void SetBottom(TryMoveData tryMove, Entity other)
         {
             CeilingZ = other.Position.Z;
-            FloorZ = other.HighestFloorZ;
+            FloorZ = tryMove.HighestFloorZ;
             OpeningHeight = CeilingZ - FloorZ;
             DropOffZ = FloorZ;
         }
