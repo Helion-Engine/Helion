@@ -45,6 +45,7 @@ namespace Helion.Client
         private readonly FpsTracker m_fpsTracker = new();
         private readonly Stopwatch m_fpsLimit = new();
         private int m_fpsLimitValue;
+        private InputEvent m_lastInputEvent = new();
 
         private Client(CommandLineArgs cmdArgs, Config config)
         {
@@ -160,7 +161,7 @@ namespace Helion.Client
 
         private static string? LocateIwad()
         {
-            IWadLocator iwadLocator = new IWadLocator(new string[] { Directory.GetCurrentDirectory() });
+            IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
             List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
             if (iwadData.Count > 0)
                 return iwadData[0].Item1;
@@ -210,8 +211,8 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            InputEvent inputEvent = m_window.PollInput();
-            ConsumableInput input = new(inputEvent);
+            m_lastInputEvent = m_window.PollInput();
+            ConsumableInput input = new(m_lastInputEvent);
             m_layerManager.HandleInput(input);
         }
 
@@ -233,6 +234,11 @@ namespace Helion.Client
             renderer.Render(renderCommands);
         }
 
+        private bool ShouldRender()
+        {
+            return m_fpsLimitValue <= 0 || m_fpsLimit.ElapsedTicks * StopwatchFrequencyValue / Stopwatch.Frequency >= m_fpsLimitValue;
+        }
+
         private void RunGameLoop()
         {
             ALAudioSystem.CheckForErrors();
@@ -240,7 +246,7 @@ namespace Helion.Client
             HandleInput();
             RunLogic();
 
-            if (m_fpsLimitValue <= 0 || m_fpsLimit.ElapsedTicks * StopwatchFrequencyValue / Stopwatch.Frequency >= m_fpsLimitValue)
+            if (ShouldRender())
             {
                 m_fpsLimit.Restart();
                 Render();

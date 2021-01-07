@@ -59,5 +59,8 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("The key for switching to weapon slot 7")]
         public readonly ConfigValueEnum<InputKey> WeaponSlot7 = new(InputKey.Seven);
+
+        [ConfigInfo("The key for getting a screenshot")]
+        public readonly ConfigValueEnum<InputKey> Screenshot = new(InputKey.PrintScreen);
     }
 }

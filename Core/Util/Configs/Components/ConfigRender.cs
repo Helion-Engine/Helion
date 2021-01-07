@@ -11,7 +11,7 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigRenderAnisotropy Anisotropy = new();
 
         [ConfigInfo("The kind of filter applied to fonts.")]
-        public readonly ConfigValueEnum<FilterType> FontFilter = new(FilterType.Trilinear);
+        public readonly ConfigValueEnum<FilterType> FontFilter = new(FilterType.Nearest);
 
         [ConfigInfo("A cap on the maximum amount of frames per second. Zero is equivalent to no cap.")]
         public readonly ConfigValueInt MaxFPS = new();
