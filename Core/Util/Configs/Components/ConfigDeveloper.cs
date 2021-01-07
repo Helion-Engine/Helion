@@ -6,7 +6,7 @@ namespace Helion.Util.Configs.Components
     public class ConfigDeveloper
     {
         [ConfigInfo("If the internal BSP builder should be used.")]
-        public readonly ConfigValueBoolean UseInternalBSPBuilder = new();
+        public readonly ConfigValueBoolean InternalBSPBuilder = new();
 
         [ConfigInfo("If rendering should have debugging information drawn.")]
         public readonly ConfigValueBoolean RenderDebug = new();

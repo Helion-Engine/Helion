@@ -36,7 +36,7 @@ namespace Helion.World.Geometry.Builder
         /// the line IDs in a map are not guaranteed to be contiguous due to
         /// map corruption, line removal, etc.
         /// </remarks>
-        public readonly Dictionary<int, Line> MapLines = new Dictionary<int, Line>();
+        public readonly Dictionary<int, Line> MapLines = new();
 
         internal GeometryBuilder()
         {
@@ -69,7 +69,7 @@ namespace Helion.World.Geometry.Builder
 
         private static IBspBuilder? CreateBspBuilder(IMap map, Config config)
         {
-            if (config.Developer.UseInternalBSPBuilder)
+            if (config.Developer.InternalBSPBuilder)
                 return new BspBuilder(map);
 
             if (map.GL != null)
