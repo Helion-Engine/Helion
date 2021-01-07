@@ -3,7 +3,7 @@ using Helion.Layer.WorldLayers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Terminals;
+using Helion.Util.Consoles;
 
 namespace Helion.Layer
 {
@@ -21,12 +21,12 @@ namespace Helion.Layer
     {
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly Terminal m_console;
+        private readonly HelionConsole m_console;
 
         protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
-        public GameLayerManager(Config config, ArchiveCollection archiveCollection, Terminal console)
+        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console)
         {
             m_config = config;
             m_console = console;

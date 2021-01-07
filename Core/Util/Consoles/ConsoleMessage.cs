@@ -1,6 +1,6 @@
 ﻿using Helion.Graphics.String;
 
-namespace Helion.Util.Terminals
+namespace Helion.Util.Consoles
 {
     public readonly struct ConsoleMessage
     {

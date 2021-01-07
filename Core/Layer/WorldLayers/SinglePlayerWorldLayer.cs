@@ -10,7 +10,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
-using Helion.Util.Terminals;
+using Helion.Util.Consoles;
 using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Cheats;
@@ -39,7 +39,7 @@ namespace Helion.Layer.WorldLayers
         public override WorldBase World => m_world;
         public MapInfoDef CurrentMap { get; set; }
 
-        private SinglePlayerWorldLayer(Config config, Terminal console, ArchiveCollection archiveCollection,
+        private SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
             IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
             : base(config, console, archiveCollection, audioSystem)
         {
@@ -82,7 +82,7 @@ namespace Helion.Layer.WorldLayers
             PerformDispose();
         }
 
-        public static SinglePlayerWorldLayer? Create(Config config, Terminal console, IAudioSystem audioSystem,
+        public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, IMap map)
         {
             TextureManager.Init(archiveCollection, mapInfoDef);

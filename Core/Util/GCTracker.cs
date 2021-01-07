@@ -32,9 +32,6 @@ namespace Helion.Util
         /// </summary>
         public void Update()
         {
-            if (!m_config.Developer.GCStats)
-                return;
-
             for (int gen = 0; gen < Generations; gen++)
             {
                 m_collectionGen[gen] = m_lastGenAmount[gen];

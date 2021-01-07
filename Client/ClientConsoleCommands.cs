@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util.Consoles;
 using Helion.Util.Extensions;
-using Helion.Util.Terminals;
 using Helion.World.Cheats;
 
 namespace Helion.Client

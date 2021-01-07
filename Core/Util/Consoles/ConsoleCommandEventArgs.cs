@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Terminals
+namespace Helion.Util.Consoles
 {
     /// <summary>
     /// An event fired by a console when the user submits an 'enter' character.

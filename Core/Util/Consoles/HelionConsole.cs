@@ -13,7 +13,7 @@ using NLog;
 using NLog.Targets;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Terminals
+namespace Helion.Util.Consoles
 {
     /// <summary>
     /// A console object that accepts input, emits console commands, and will
@@ -24,7 +24,7 @@ namespace Helion.Util.Terminals
     /// be a medium for user pressed characters and messages from a variety of
     /// message emitters (ex: loggers).
     /// </remarks>
-    public class Terminal : Target
+    public class HelionConsole : Target
     {
         private const string TargetName = "HelionConsole";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -81,7 +81,7 @@ namespace Helion.Util.Terminals
         private int m_capacity;
         private bool m_disposed;
 
-        public Terminal(Config cfg)
+        public HelionConsole(Config cfg)
         {
             Name = TargetName;
             m_config = cfg;
@@ -92,7 +92,7 @@ namespace Helion.Util.Terminals
             AddToLogger();
         }
 
-        ~Terminal()
+        ~HelionConsole()
         {
             FailedToDispose(this);
             PerformDispose();

@@ -4,9 +4,9 @@ using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
-using Helion.Util.Terminals;
 using Helion.Util.Time;
 using Font = Helion.Graphics.Fonts.Font;
 
@@ -37,7 +37,7 @@ namespace Helion.Render.Shared.Drawers
             m_archiveCollection = archiveCollection;
         }
 
-        public void Draw(Terminal console, Dimension viewport, RenderCommands renderCommands)
+        public void Draw(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
             Font consoleFont = m_archiveCollection.Data.TrueTypeFonts[ConsoleFontName];
@@ -68,7 +68,7 @@ namespace Helion.Render.Shared.Drawers
             draw.FillRect(0, halfHeight - BlackBarDividerHeight, viewport.Width, 3, Color.Black);
         }
 
-        private void DrawInput(Terminal console, Dimension viewport, DrawHelper draw, Font consoleFont,
+        private void DrawInput(HelionConsole console, Dimension viewport, DrawHelper draw, Font consoleFont,
             out int inputDrawTop)
         {
             int offsetX = LeftEdgeOffset;
@@ -92,7 +92,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawMessages(Terminal console, Dimension viewport, DrawHelper draw, int inputDrawTop,
+        private void DrawMessages(HelionConsole console, Dimension viewport, DrawHelper draw, int inputDrawTop,
             Font consoleFont)
         {
             int topY = inputDrawTop - InputToMessagePadding;

@@ -18,8 +18,8 @@ using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Configs;
+using Helion.Util.Consoles;
 using Helion.Util.Geometry;
-using Helion.Util.Terminals;
 using Helion.Util.Time;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -35,9 +35,8 @@ namespace Helion.Client
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly CommandLineArgs m_commandLineArgs;
-        private readonly Terminal m_console;
+        private readonly HelionConsole m_console;
         private readonly Config m_config;
-        private readonly GCTracker m_gcTracker;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenTKWindow m_window;
         private readonly GameLayerManager m_layerManager;
@@ -51,8 +50,7 @@ namespace Helion.Client
         {
             m_commandLineArgs = cmdArgs;
             m_config = config;
-            m_gcTracker = new GCTracker(config);
-            m_console = new Terminal(config);
+            m_console = new HelionConsole(config);
             LogClientInformation();
             SetFPSLimit();
 
@@ -237,7 +235,6 @@ namespace Helion.Client
 
         private void RunGameLoop()
         {
-            m_gcTracker.Update();
             ALAudioSystem.CheckForErrors();
 
             HandleInput();
