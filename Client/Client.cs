@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Helion.Audio;
+using Helion.Audio.Impl;
 using Helion.Client.Music;
 using Helion.Layer;
 using Helion.Resources.Archives.Collection;
@@ -25,7 +26,6 @@ namespace Helion.Client
         private readonly Config m_config;
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
-        private readonly IMusicPlayer m_musicPlayer;
         private readonly Window m_window;
         private bool m_disposed;
 
@@ -36,7 +36,6 @@ namespace Helion.Client
             m_config = config;
             m_console = console;
             m_audioSystem = audioSystem;
-            m_musicPlayer = musicPlayer;
             m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
             m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console);
             m_window = new Window(config);
@@ -177,9 +176,10 @@ namespace Helion.Client
             try
             {
                 using Config config = new();
+                ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config));
                 using HelionConsole console = new(config);
-                using IAudioSystem audioPlayer = null!; // TODO
                 using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
+                using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
                 using Client client = new(commandLineArgs, config, console, audioPlayer, musicPlayer);
                 client.Run();
             }
