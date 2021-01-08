@@ -65,6 +65,11 @@ namespace Helion.Audio.Impl
             AL.Listener(ALListenerf.Gain, (float)volume);
         }
 
+        public void ThrowIfErrorCheckFails()
+        {
+            CheckForErrors("Checking for errors");
+        }
+
         [Conditional("DEBUG")]
         public static void CheckForErrors(string debugInfo = "", params object[] objs)
         {

@@ -49,9 +49,10 @@ namespace Helion.Client
             PerformDispose();
         }
 
-        private void CheckForErrors()
+        [Conditional("DEBUG")]
+        private void CheckForErrorsIfDebug()
         {
-            // TODO: ALAudioSystem.CheckForErrors();
+            m_audioSystem.ThrowIfErrorCheckFails();
         }
 
         private void HandleInput()
@@ -82,7 +83,7 @@ namespace Helion.Client
 
         private void Window_MainLoop(FrameEventArgs frameEventArgs)
         {
-            CheckForErrors();
+            CheckForErrorsIfDebug();
 
             HandleInput();
             RunLogic();

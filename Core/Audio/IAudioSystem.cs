@@ -12,6 +12,12 @@ namespace Helion.Audio
         public static readonly string DefaultAudioDevice = "Default";
 
         /// <summary>
+        /// Requests that the subsystem check for any errors, and throw an
+        /// exception if any are found. Intended for debugging only.
+        /// </summary>
+        void ThrowIfErrorCheckFails();
+
+        /// <summary>
         /// Creates a new audio context. See <see cref="IAudioSourceManager"/> for
         /// more information on how to use this.
         /// </summary>
