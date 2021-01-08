@@ -7,60 +7,60 @@ namespace Helion.Util.Configs.Components
     public class ConfigControls
     {
         [ConfigInfo("The key for moving forward")]
-        public readonly ConfigValueEnum<InputKey> Forward = new(InputKey.W);
+        public readonly ConfigValueEnum<Key> Forward = new(Key.W);
 
         [ConfigInfo("The key for moving left")]
-        public readonly ConfigValueEnum<InputKey> Left = new(InputKey.A);
+        public readonly ConfigValueEnum<Key> Left = new(Key.A);
 
         [ConfigInfo("The key for moving backward")]
-        public readonly ConfigValueEnum<InputKey> Backward = new(InputKey.S);
+        public readonly ConfigValueEnum<Key> Backward = new(Key.S);
 
         [ConfigInfo("The key for moving right")]
-        public readonly ConfigValueEnum<InputKey> Right = new(InputKey.D);
+        public readonly ConfigValueEnum<Key> Right = new(Key.D);
 
         [ConfigInfo("The key for use")]
-        public readonly ConfigValueEnum<InputKey> Use = new(InputKey.E);
+        public readonly ConfigValueEnum<Key> Use = new(Key.E);
 
         [ConfigInfo("The key for jump")]
-        public readonly ConfigValueEnum<InputKey> Jump = new(InputKey.Space);
+        public readonly ConfigValueEnum<Key> Jump = new(Key.Space);
 
         [ConfigInfo("The key for crouch")]
-        public readonly ConfigValueEnum<InputKey> Crouch = new(InputKey.C);
+        public readonly ConfigValueEnum<Key> Crouch = new(Key.C);
 
         [ConfigInfo("The key for opening/closing the console")]
-        public readonly ConfigValueEnum<InputKey> Console = new(InputKey.Backtick);
+        public readonly ConfigValueEnum<Key> Console = new(Key.Backtick);
 
         [ConfigInfo("The key for attacking")]
-        public readonly ConfigValueEnum<InputKey> Attack = new(InputKey.MouseLeft);
+        public readonly ConfigValueEnum<Key> Attack = new(Key.MouseLeft);
 
         [ConfigInfo("The key for switching to the next weapon")]
-        public readonly ConfigValueEnum<InputKey> NextWeapon = new(InputKey.Up);
+        public readonly ConfigValueEnum<Key> NextWeapon = new(Key.Up);
 
         [ConfigInfo("The key for switching to the previous weapon")]
-        public readonly ConfigValueEnum<InputKey> PreviousWeapon = new(InputKey.Down);
+        public readonly ConfigValueEnum<Key> PreviousWeapon = new(Key.Down);
 
         [ConfigInfo("The key for switching to weapon slot 1")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot1 = new(InputKey.One);
+        public readonly ConfigValueEnum<Key> WeaponSlot1 = new(Key.One);
 
         [ConfigInfo("The key for switching to weapon slot 2")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot2 = new(InputKey.Two);
+        public readonly ConfigValueEnum<Key> WeaponSlot2 = new(Key.Two);
 
         [ConfigInfo("The key for switching to weapon slot 3")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot3 = new(InputKey.Three);
+        public readonly ConfigValueEnum<Key> WeaponSlot3 = new(Key.Three);
 
         [ConfigInfo("The key for switching to weapon slot 4")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot4 = new(InputKey.Four);
+        public readonly ConfigValueEnum<Key> WeaponSlot4 = new(Key.Four);
 
         [ConfigInfo("The key for switching to weapon slot 5")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot5 = new(InputKey.Five);
+        public readonly ConfigValueEnum<Key> WeaponSlot5 = new(Key.Five);
 
         [ConfigInfo("The key for switching to weapon slot 6")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot6 = new(InputKey.Six);
+        public readonly ConfigValueEnum<Key> WeaponSlot6 = new(Key.Six);
 
         [ConfigInfo("The key for switching to weapon slot 7")]
-        public readonly ConfigValueEnum<InputKey> WeaponSlot7 = new(InputKey.Seven);
+        public readonly ConfigValueEnum<Key> WeaponSlot7 = new(Key.Seven);
 
         [ConfigInfo("The key for getting a screenshot")]
-        public readonly ConfigValueEnum<InputKey> Screenshot = new(InputKey.PrintScreen);
+        public readonly ConfigValueEnum<Key> Screenshot = new(Key.PrintScreen);
     }
 }

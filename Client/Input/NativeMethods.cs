@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using NLog;
 
-namespace Helion.Client.RawInput
+namespace Helion.Client.Input
 {
     public static class NativeMethods
     {

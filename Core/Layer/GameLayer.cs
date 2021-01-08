@@ -111,7 +111,7 @@ namespace Helion.Layer
         /// </param>
         /// <typeparam name="T">The type of layer.</typeparam>
         /// <returns>True on success, false otherwise.</returns>
-        public bool TryGetLayer<T>([MaybeNullWhen(false)] out T? layer) where T : GameLayer
+        public bool TryGetLayer<T>([NotNullWhen(true)] out T? layer) where T : GameLayer
         {
             GameLayer? gameLayer = Get(typeof(T));
             if (gameLayer != null)
@@ -130,10 +130,10 @@ namespace Helion.Layer
         /// <remarks>
         /// Overriding implementations should always call the base function.
         /// </remarks>
-        /// <param name="consumableInput">The input.</param>
-        public virtual void HandleInput(ConsumableInput consumableInput)
+        /// <param name="input">The input.</param>
+        public virtual void HandleInput(InputEvent input)
         {
-            m_layers.ForEachReverse(layer => layer.HandleInput(consumableInput));
+            m_layers.ForEachReverse(layer => layer.HandleInput(input));
         }
 
         /// <summary>

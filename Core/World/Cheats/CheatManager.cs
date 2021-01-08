@@ -10,7 +10,7 @@ namespace Helion.World.Cheats
     public class CheatManager
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static readonly ICheat[] Cheats = 
+        private static readonly ICheat[] Cheats =
         {
             new ChangeLevelCheat(),
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
@@ -40,9 +40,9 @@ namespace Helion.World.Cheats
 
         public void ActivateCheat(CheatType cheatType)
         {
-            if (!m_cheatLookup.ContainsKey(cheatType)) 
+            if (!m_cheatLookup.ContainsKey(cheatType))
                 return;
-            
+
             ICheat cheat = m_cheatLookup[cheatType];
             if (cheat.IsToggleCheat)
                 cheat.Activated = !cheat.Activated;
@@ -64,9 +64,9 @@ namespace Helion.World.Cheats
             return false;
         }
 
-        public void HandleInput(ConsumableInput consumableInput)
+        public void HandleInput(InputEvent input)
         {
-            foreach (char key in consumableInput.PeekTypedCharacters())
+            foreach (char key in input.Manager.TypedCharacters)
             {
                 m_currentCheat.Append(key);
                 string cheatString = m_currentCheat.ToString();

@@ -1,4 +1,4 @@
-﻿namespace Helion.InputNew
+﻿namespace Helion.Input
 {
     /// <summary>
     /// All the supported input keys.
@@ -125,7 +125,6 @@
         MouseCustom5,
         MouseCustom6,
         MouseCustom7,
-        MouseCustom8,
-        MouseCustom9
+        MouseCustom8
     }
 }

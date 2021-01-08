@@ -1,6 +1,5 @@
 ﻿using Helion.Input;
 using Helion.Render;
-using Helion.Util.Configs;
 using Helion.Util.Geometry;
 
 namespace Helion.Window

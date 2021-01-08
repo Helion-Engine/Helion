@@ -1,5 +1,5 @@
 ﻿using System;
-using Helion.InputNew;
+using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Context;

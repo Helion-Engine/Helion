@@ -8,7 +8,7 @@ using Helion.Util;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Time;
-using MoreLinq;
+using MoreLinq.Extensions;
 using TextCopy;
 
 namespace Helion.Layer
@@ -33,31 +33,31 @@ namespace Helion.Layer
             console.ClearInputText();
         }
 
-        public override void HandleInput(ConsumableInput consumableInput)
+        public override void HandleInput(InputEvent input)
         {
-            consumableInput.ConsumeTypedCharacters().ForEach(m_console.AddInput);
+            input.ConsumeTypedCharacters().ForEach(m_console.AddInput);
 
-            if (consumableInput.ConsumeKeyPressed(InputKey.Backspace))
+            if (input.ConsumeKeyPressed(Key.Backspace))
                 m_console.RemoveInputCharacter();
-            if (consumableInput.ConsumeKeyPressed(InputKey.Up))
+            if (input.ConsumeKeyPressed(Key.Up))
                 SetToLessRecentInput();
-            if (consumableInput.ConsumeKeyPressed(InputKey.Down))
+            if (input.ConsumeKeyPressed(Key.Down))
                 SetToMoreRecentInput();
-            if (consumableInput.ConsumeKeyPressed(InputKey.Enter))
+            if (input.ConsumeKeyPressed(Key.Enter))
             {
                 m_console.SubmitInputText();
                 m_submittedInputIndex = NoInputMessageIndex;
             }
 
-            if (consumableInput.ConsumeKeyPressed(InputKey.Tab))
+            if (input.ConsumeKeyPressed(Key.Tab))
                 m_console.ApplyAutocomplete();
 
-            if (ConsumeControlV(consumableInput))
+            if (ConsumeControlV(input))
                 AddClipboardToConsole();
 
-            consumableInput.ConsumeAll();
+            input.ConsumeAll();
 
-            base.HandleInput(consumableInput);
+            base.HandleInput(input);
         }
 
         public override void Render(RenderCommands renderCommands)
@@ -76,12 +76,12 @@ namespace Helion.Layer
             base.PerformDispose();
         }
 
-        private static bool ConsumeControlV(ConsumableInput consumableInput)
+        private static bool ConsumeControlV(InputEvent input)
         {
             // MacOS is going to have problems with this probably!
-            bool ctrl = consumableInput.ConsumeKeyPressedOrDown(InputKey.ControlLeft) ||
-                        consumableInput.ConsumeKeyPressedOrDown(InputKey.ControlRight);
-            bool v = consumableInput.ConsumeKeyPressed(InputKey.V);
+            bool ctrl = input.ConsumeKeyPressedOrDown(Key.ControlLeft) ||
+                        input.ConsumeKeyPressedOrDown(Key.ControlRight);
+            bool v = input.ConsumeKeyPressed(Key.V);
             return ctrl && v;
         }
 

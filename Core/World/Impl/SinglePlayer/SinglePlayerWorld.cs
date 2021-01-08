@@ -102,10 +102,10 @@ namespace Helion.World.Impl.SinglePlayer
                 Log.Warn("Unable to play MIDI track through device");
         }
 
-        public void HandleFrameInput(ConsumableInput frameInput)
+        public void HandleFrameInput(InputEvent input)
         {
-            CheatManager.Instance.HandleInput(frameInput);
-            HandleMouseLook(frameInput);
+            CheatManager.Instance.HandleInput(input);
+            HandleMouseLook(input);
         }
 
         public void HandleTickCommand(TickCommand tickCommand)
@@ -326,12 +326,12 @@ namespace Helion.World.Impl.SinglePlayer
                 e.Success = SpecialManager.TryAddActivatedLineSpecial(e);
         }
 
-        private void HandleMouseLook(ConsumableInput frameInput)
+        private void HandleMouseLook(InputEvent input)
         {
             if (Player.IsFrozen || Player.IsDead || WorldState == WorldState.Exit)
                 return;
 
-            Vec2I pixelsMoved = frameInput.ConsumeMouseDelta();
+            Vec2I pixelsMoved = input.ConsumeMouseDelta();
             if (pixelsMoved.X != 0 || pixelsMoved.Y != 0)
             {
                 Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Mouse.PixelDivisor;

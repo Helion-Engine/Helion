@@ -29,8 +29,8 @@ namespace Helion.Layer.WorldLayers
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
-        private readonly (ConfigValueEnum<InputKey>, TickCommands)[] m_consumeDownKeys;
-        private readonly (ConfigValueEnum<InputKey>, TickCommands)[] m_consumePressedKeys;
+        private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
+        private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys;
         private readonly WorldHudDrawer m_worldHudDrawer;
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
@@ -137,10 +137,10 @@ namespace Helion.Layer.WorldLayers
             m_ticker.Restart();
         }
 
-        public override void HandleInput(ConsumableInput consumableInput)
+        public override void HandleInput(InputEvent input)
         {
-            HandleMovementInput(consumableInput);
-            m_world.HandleFrameInput(consumableInput);
+            HandleMovementInput(input);
+            m_world.HandleFrameInput(input);
         }
 
         public override void RunLogic()
@@ -242,14 +242,14 @@ namespace Helion.Layer.WorldLayers
             world.LevelExit -= World_LevelExit;
         }
 
-        private void HandleMovementInput(ConsumableInput consumableInput)
+        private void HandleMovementInput(InputEvent input)
         {
             foreach (var (inputKey, command) in m_consumeDownKeys)
-                if (consumableInput.ConsumeKeyPressedOrDown(inputKey))
+                if (input.ConsumeKeyPressedOrDown(inputKey))
                     m_tickCommand.Add(command);
 
             foreach (var (inputKey, command) in m_consumePressedKeys)
-                if (consumableInput.ConsumeKeyPressed(inputKey))
+                if (input.ConsumeKeyPressed(inputKey))
                     m_tickCommand.Add(command);
         }
     }

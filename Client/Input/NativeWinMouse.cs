@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
-using static Helion.Client.RawInput.NativeMethods;
+using static Helion.Client.Input.NativeMethods;
 
-namespace Helion.Client.RawInput
+namespace Helion.Client.Input
 {
     public delegate void WinMouseMove(int deltaX, int deltaY);
 

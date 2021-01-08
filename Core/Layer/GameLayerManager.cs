@@ -40,32 +40,32 @@ namespace Helion.Layer
                 singlePlayerWorldLayer.World.Pause();
         }
 
-        public override void HandleInput(ConsumableInput consumableInput)
+        public override void HandleInput(InputEvent input)
         {
-            if (consumableInput.ConsumeKeyPressed(m_config.Controls.Console))
+            if (input.ConsumeKeyPressed(m_config.Controls.Console))
             {
                 if (Contains(ConsoleLayer.LayerName))
                 {
                     RemoveByName(ConsoleLayer.LayerName);
 
-                    if (TryGetLayer(out SinglePlayerWorldLayer? layer) && layer != null)
+                    if (TryGetLayer(out SinglePlayerWorldLayer? layer))
                         layer.World.Resume();
                 }
                 else
                 {
                     // Don't want input that opened the console to be something
                     // added to the console, so first we clear all characters.
-                    consumableInput.ConsumeTypedCharacters();
+                    input.ConsumeTypedCharacters();
 
                     ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
                     Add(consoleLayer);
 
-                    if (TryGetLayer(out SinglePlayerWorldLayer? layer) && layer != null)
+                    if (TryGetLayer(out SinglePlayerWorldLayer? layer))
                         layer.World.Pause();
                 }
             }
 
-            base.HandleInput(consumableInput);
+            base.HandleInput(input);
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Text;
 using Helion.Util.Geometry.Vectors;
 
-namespace Helion.InputNew
+namespace Helion.Input
 {
     /// <summary>
     /// Manages all of the input. All methods here are based on the raw state,
@@ -29,6 +29,16 @@ namespace Helion.InputNew
         /// The characters typed on the keyboard since the last update.
         /// </summary>
         public string TypedCharacters => m_typedCharacters.ToString();
+
+        /// <summary>
+        /// Gets a read-only view of all the keys that are down.
+        /// </summary>
+        /// <remarks>
+        /// This is useful for checking what keys are down, which helps for
+        /// detecting input when the user is asked to press 'any key' for the
+        /// setting of new key binds.
+        /// </remarks>
+        public IReadOnlySet<Key> KeysDown => m_inputDown;
 
         /// <summary>
         /// Checks if a key is down.
