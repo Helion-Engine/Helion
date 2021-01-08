@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Client.Music;
-using Helion.Input;
 using Helion.Layer;
 using Helion.Render;
 using Helion.Render.Commands;
@@ -31,9 +30,7 @@ namespace Helion.Client
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
         private readonly Window m_window;
-        private readonly InputManager m_inputManager = new();
         private bool m_disposed;
-        private InputEvent m_lastInputEvent = new();
 
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection)
@@ -47,12 +44,6 @@ namespace Helion.Client
             m_window = new Window(config, m_archiveCollection);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
-            m_window.KeyDown += Window_KeyDown;
-            m_window.KeyUp += Window_KeyUp;
-            m_window.MouseDown += Window_MouseDown;
-            m_window.MouseMove += Window_MouseMove;
-            m_window.MouseUp += Window_MouseUp;
-            m_window.MouseWheel += Window_MouseWheel;
             m_window.RenderFrame += Window_MainLoop;
         }
 
@@ -70,9 +61,7 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            m_lastInputEvent = m_inputManager.PollInput();
-            ConsumableInput input = new(m_lastInputEvent);
-            m_layerManager.HandleInput(input);
+            m_layerManager.HandleInput(m_window.Input.PollInput());
         }
 
         private void RunLogic()
@@ -109,36 +98,6 @@ namespace Helion.Client
             m_fpsTracker.FinishFrame();
         }
 
-        private void Window_KeyUp(KeyboardKeyEventArgs keyEventArgs)
-        {
-            // TODO
-        }
-
-        private void Window_KeyDown(KeyboardKeyEventArgs keyEventArgs)
-        {
-            // TODO
-        }
-
-        private void Window_MouseDown(MouseButtonEventArgs buttonEventArgs)
-        {
-            // TODO
-        }
-
-        private void Window_MouseMove(MouseMoveEventArgs moveEventArgs)
-        {
-            // TODO
-        }
-
-        private void Window_MouseUp(MouseButtonEventArgs buttonEventArgs)
-        {
-            // TODO
-        }
-
-        private void Window_MouseWheel(MouseWheelEventArgs wheelEventArgs)
-        {
-            // TODO
-        }
-
         private void Window_MainLoop(FrameEventArgs frameEventArgs)
         {
             CheckForErrorsIfDebug();
@@ -163,12 +122,6 @@ namespace Helion.Client
                 return;
 
             m_console.OnConsoleCommandEvent -= Console_OnCommand;
-            m_window.KeyDown -= Window_KeyDown;
-            m_window.KeyUp -= Window_KeyUp;
-            m_window.MouseDown -= Window_MouseDown;
-            m_window.MouseMove -= Window_MouseMove;
-            m_window.MouseUp -= Window_MouseUp;
-            m_window.MouseWheel -= Window_MouseWheel;
             m_window.RenderFrame -= Window_MainLoop;
 
             m_layerManager.Dispose();
