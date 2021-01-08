@@ -125,7 +125,7 @@ namespace Helion.Client.Input
         /// </summary>
         /// <param name="mouseButton">The OpenTK button to convert.</param>
         /// <returns>The converted mouse button.</returns>
-        private static Key ToMouseKey(MouseButton mouseButton)
+        public static Key ToMouseKey(MouseButton mouseButton)
         {
             return mouseButton switch
             {

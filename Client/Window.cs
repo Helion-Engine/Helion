@@ -1,4 +1,5 @@
 ﻿using System;
+using Helion.Client.Input;
 using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;
@@ -31,6 +32,12 @@ namespace Helion.Client
         /// The input management for this window.
         /// </summary>
         public readonly InputManager Input = new();
+
+        /// <summary>
+        /// If true, ignores the mouse input. This means we will source the
+        /// mouse movement from somewhere else (ex: raw input).
+        /// </summary>
+        public bool IgnoreMouseMovement { get; set; }
 
         private bool m_disposed;
 
@@ -73,34 +80,43 @@ namespace Helion.Client
             };
         }
 
-        private void Window_KeyUp(KeyboardKeyEventArgs keyEventArgs)
+        private void Window_KeyUp(KeyboardKeyEventArgs args)
         {
-            // TODO
+            Key key = OpenTKInputAdapter.ToKey(args.Key);
+            if (key != Key.Unknown)
+                Input.SetKeyUp(key);
         }
 
-        private void Window_KeyDown(KeyboardKeyEventArgs keyEventArgs)
+        private void Window_KeyDown(KeyboardKeyEventArgs args)
         {
-            // TODO
+            Key key = OpenTKInputAdapter.ToKey(args.Key);
+            if (key != Key.Unknown)
+                Input.SetKeyDown(key, args.Shift, args.IsRepeat);
         }
 
-        private void Window_MouseDown(MouseButtonEventArgs buttonEventArgs)
+        private void Window_MouseDown(MouseButtonEventArgs args)
         {
-            // TODO
+            Key key = OpenTKInputAdapter.ToMouseKey(args.Button);
+            if (key != Key.Unknown)
+                Input.SetKeyDown(key, false, false);
         }
 
-        private void Window_MouseMove(MouseMoveEventArgs moveEventArgs)
+        private void Window_MouseMove(MouseMoveEventArgs args)
         {
-            // TODO
+            if (!IgnoreMouseMovement)
+                Input.AddMouseMovement(args.Delta.X, args.Delta.Y);
         }
 
-        private void Window_MouseUp(MouseButtonEventArgs buttonEventArgs)
+        private void Window_MouseUp(MouseButtonEventArgs args)
         {
-            // TODO
+            Key key = OpenTKInputAdapter.ToMouseKey(args.Button);
+            if (key != Key.Unknown)
+                Input.SetKeyUp(key);
         }
 
-        private void Window_MouseWheel(MouseWheelEventArgs wheelEventArgs)
+        private void Window_MouseWheel(MouseWheelEventArgs args)
         {
-            // TODO
+            Input.AddScroll(args.OffsetY);
         }
 
         private void PerformDispose()
