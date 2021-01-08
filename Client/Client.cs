@@ -4,12 +4,16 @@ using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Client.Music;
+using Helion.Input;
 using Helion.Layer;
+using Helion.Render;
+using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Geometry;
 using NLog;
 using OpenTK.Windowing.Common;
 using static Helion.Util.Assertion.Assert;
@@ -27,19 +31,28 @@ namespace Helion.Client
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
         private readonly Window m_window;
+        private readonly InputManager m_inputManager = new();
         private bool m_disposed;
+        private InputEvent m_lastInputEvent = new();
 
-        private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem)
+        private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
+            ArchiveCollection archiveCollection)
         {
             m_commandLineArgs = commandLineArgs;
             m_config = config;
             m_console = console;
             m_audioSystem = audioSystem;
-            m_archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(config));
+            m_archiveCollection = archiveCollection;
             m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console);
-            m_window = new Window(config);
+            m_window = new Window(config, m_archiveCollection);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
+            m_window.KeyDown += Window_KeyDown;
+            m_window.KeyUp += Window_KeyUp;
+            m_window.MouseDown += Window_MouseDown;
+            m_window.MouseMove += Window_MouseMove;
+            m_window.MouseUp += Window_MouseUp;
+            m_window.MouseWheel += Window_MouseWheel;
             m_window.RenderFrame += Window_MainLoop;
         }
 
@@ -57,17 +70,32 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            // TODO
+            m_lastInputEvent = m_inputManager.PollInput();
+            ConsumableInput input = new(m_lastInputEvent);
+            m_layerManager.HandleInput(input);
         }
 
         private void RunLogic()
         {
-            // TODO
+            m_layerManager.RunLogic();
         }
 
         private bool ShouldRender()
         {
             return m_fpsLimitValue <= 0 || m_fpsLimit.ElapsedTicks * StopwatchFrequencyValue / Stopwatch.Frequency >= m_fpsLimitValue;
+        }
+
+        private void PerformRender()
+        {
+            Dimension windowDimension = m_window.Dimension;
+            IRenderer renderer = m_window.Renderer;
+            RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
+
+            renderCommands.Viewport(windowDimension);
+            renderCommands.Clear();
+            m_layerManager.Render(renderCommands);
+
+            renderer.Render(renderCommands);
         }
 
         private void Render()
@@ -76,9 +104,39 @@ namespace Helion.Client
                 return;
 
             m_fpsLimit.Restart();
-            // TODO: Issue render commands.
+            PerformRender();
             m_window.SwapBuffers();
             m_fpsTracker.FinishFrame();
+        }
+
+        private void Window_KeyUp(KeyboardKeyEventArgs keyEventArgs)
+        {
+            // TODO
+        }
+
+        private void Window_KeyDown(KeyboardKeyEventArgs keyEventArgs)
+        {
+            // TODO
+        }
+
+        private void Window_MouseDown(MouseButtonEventArgs buttonEventArgs)
+        {
+            // TODO
+        }
+
+        private void Window_MouseMove(MouseMoveEventArgs moveEventArgs)
+        {
+            // TODO
+        }
+
+        private void Window_MouseUp(MouseButtonEventArgs buttonEventArgs)
+        {
+            // TODO
+        }
+
+        private void Window_MouseWheel(MouseWheelEventArgs wheelEventArgs)
+        {
+            // TODO
         }
 
         private void Window_MainLoop(FrameEventArgs frameEventArgs)
@@ -105,6 +163,12 @@ namespace Helion.Client
                 return;
 
             m_console.OnConsoleCommandEvent -= Console_OnCommand;
+            m_window.KeyDown -= Window_KeyDown;
+            m_window.KeyUp -= Window_KeyUp;
+            m_window.MouseDown -= Window_MouseDown;
+            m_window.MouseMove -= Window_MouseMove;
+            m_window.MouseUp -= Window_MouseUp;
+            m_window.MouseWheel -= Window_MouseWheel;
             m_window.RenderFrame -= Window_MainLoop;
 
             m_layerManager.Dispose();
@@ -180,7 +244,7 @@ namespace Helion.Client
                 using HelionConsole console = new(config);
                 using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
                 using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
-                using Client client = new(commandLineArgs, config, console, audioPlayer);
+                using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
                 client.Run();
             }
             catch (Exception e)

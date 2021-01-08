@@ -7,7 +7,7 @@ namespace Helion.Input
     /// </summary>
     public static class InputKeyHelper
     {
-        private static Dictionary<string, InputKey> NameToKey = new Dictionary<string, InputKey>()
+        private static readonly Dictionary<string, InputKey> NameToKey = new()
         {
             ["0"] = InputKey.Zero,
             ["1"] = InputKey.One,

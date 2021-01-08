@@ -1,5 +1,10 @@
-﻿using Helion.Util;
+﻿using Helion.Render;
+using Helion.Render.OpenGL;
+using Helion.Render.OpenGL.Context;
+using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Geometry;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -14,8 +19,21 @@ namespace Helion.Client
     /// </remarks>
     public class Window : GameWindow
     {
-        public Window(Config config) : base(new GameWindowSettings(), MakeNativeWindowSettings(config))
+        /// <summary>
+        /// The renderer for this window.
+        /// </summary>
+        public readonly IRenderer Renderer;
+
+        /// <summary>
+        /// The window dimensions.
+        /// </summary>
+        public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
+
+        public Window(Config config, ArchiveCollection archiveCollection) :
+            base(new GameWindowSettings(), MakeNativeWindowSettings(config))
         {
+            VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
+            Renderer = new GLRenderer(config, archiveCollection, new OpenTKGLFunctions());
         }
 
         private static NativeWindowSettings MakeNativeWindowSettings(Config config)
