@@ -29,8 +29,7 @@ namespace Helion.Client
         private readonly Window m_window;
         private bool m_disposed;
 
-        private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
-            IMusicPlayer musicPlayer)
+        private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem)
         {
             m_commandLineArgs = commandLineArgs;
             m_config = config;
@@ -180,7 +179,7 @@ namespace Helion.Client
                 using HelionConsole console = new(config);
                 using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
                 using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
-                using Client client = new(commandLineArgs, config, console, audioPlayer, musicPlayer);
+                using Client client = new(commandLineArgs, config, console, audioPlayer);
                 client.Run();
             }
             catch (Exception e)
