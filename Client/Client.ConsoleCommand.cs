@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Resources.Definitions.MapInfo;
@@ -8,9 +8,6 @@ using Helion.World.Cheats;
 
 namespace Helion.Client
 {
-    /// <summary>
-    /// The client that runs the engine.
-    /// </summary>
     public partial class Client
     {
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
