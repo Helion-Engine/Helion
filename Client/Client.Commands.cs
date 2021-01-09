@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Resources.Definitions.MapInfo;
@@ -60,7 +61,7 @@ namespace Helion.Client
                 return;
 
             deviceIndex--;
-            IList<string> deviceNames = m_audioSystem.GetDeviceNames();
+            List<string> deviceNames = m_audioSystem.GetDeviceNames().ToList();
             if (deviceIndex < 0 || deviceIndex >= deviceNames.Count)
                 return;
 

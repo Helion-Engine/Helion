@@ -74,8 +74,8 @@ namespace Helion.Render.OpenGL
             //       distance or the length of the level.
             float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
             zNear = MathHelper.Clamp(zNear, 0.5f, 7.9f);
-            mat4 projection = mat4.PerspectiveFov(fovY, w, h, zNear, 65536.0f);
 
+            mat4 projection = mat4.PerspectiveFov(fovY, w, h, zNear, 65536.0f);
             return projection * view * model;
         }
 
@@ -296,19 +296,22 @@ namespace Helion.Render.OpenGL
             m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha);
         }
 
-        private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle currentViewport)
+        private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle viewport)
         {
-            DrawHudImagesIfAnyQueued(currentViewport);
+            if (viewport.Width == 0 || viewport.Height == 0)
+                return;
 
-            RenderInfo renderInfo = new RenderInfo(cmd.Camera, cmd.GametickFraction, currentViewport, cmd.ViewerEntity);
+            DrawHudImagesIfAnyQueued(viewport);
+
+            RenderInfo renderInfo = new(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity);
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
 
-        private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle currentViewport)
+        private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
         {
             Vec2I offset = viewportCommand.Offset;
             Dimension dimension = viewportCommand.Dimension;
-            currentViewport = new Rectangle(offset.X, offset.Y, dimension.Width, dimension.Height);
+            viewport = new Rectangle(offset.X, offset.Y, dimension.Width, dimension.Height);
 
             gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
         }

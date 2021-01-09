@@ -1,6 +1,5 @@
 ﻿using System;
-using Helion.Util;
-using Helion.Util.Extensions;
+using Helion.Util.Configs;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
@@ -8,39 +7,27 @@ namespace Helion.Audio.Impl.Components
 {
     public class OpenALDevice : IDisposable
     {
-        public string DeviceName { get; private set; }
-        internal readonly ALDevice Device = ALDevice.Null;
+        public readonly string DeviceName;
+        internal readonly ALDevice Device;
 
-        public OpenALDevice()
+        public OpenALDevice(Config config)
         {
-            DeviceName = string.Empty;
-            CreateDefault();
-        }
-
-        public OpenALDevice(string deviceName)
-        {
-            DeviceName = deviceName;
-
-            if (!deviceName.Empty())
-            {
-                if (deviceName.Equals(IAudioSystem.DefaultAudioDevice, StringComparison.OrdinalIgnoreCase))
-                    CreateDefault();
-                else
-                    Device = ALC.OpenDevice(deviceName);
-            }
+            DeviceName = FindDeviceName(config);
+            Device = ALC.OpenDevice(DeviceName);
 
             if (Device == ALDevice.Null)
-                Device = CreateDefault();
+                throw new Exception($"Unable to open device: {DeviceName}");
         }
 
-        private ALDevice CreateDefault()
+        private string FindDeviceName(Config config)
         {
-            DeviceName = IAudioSystem.DefaultAudioDevice;
-            ALDevice device = ALC.OpenDevice(DeviceName);
-            if (device == IntPtr.Zero)
-                throw new Exception("Unable to access OpenAL device");
+            // TODO: We can use the config here if we are sure of the type we want.
 
-            return device;
+            foreach (string name in ALC.GetStringList(GetEnumerationStringList.DeviceSpecifier))
+                if (name.Contains("OpenAL Soft"))
+                    return name;
+
+            return ALC.GetString(ALDevice.Null, AlcGetString.DefaultDeviceSpecifier);
         }
 
         ~OpenALDevice()

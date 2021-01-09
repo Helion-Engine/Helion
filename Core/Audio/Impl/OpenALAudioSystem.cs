@@ -17,19 +17,21 @@ namespace Helion.Audio.Impl
         public event EventHandler? DeviceChanging;
 
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private bool PrintedALInfo;
+        private static bool PrintedALInfo;
 
         public IMusicPlayer Music { get; }
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
         private readonly ISet<string> m_extensions = new HashSet<string>();
+        private readonly Config m_config;
         private OpenALDevice m_alDevice;
         private OpenALContext m_alContext;
 
         public OpenALAudioSystem(Config config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
         {
+            m_config = config;
             m_archiveCollection = archiveCollection;
-            m_alDevice = new OpenALDevice(config.Audio.Device);
+            m_alDevice = new OpenALDevice(config);
             m_alContext = new OpenALContext(m_alDevice);
             Music = musicPlayer;
 
@@ -37,11 +39,9 @@ namespace Helion.Audio.Impl
             DiscoverExtensions();
         }
 
-        public IList<string> GetDeviceNames()
+        public IEnumerable<string> GetDeviceNames()
         {
-            IList<string> devices = ALC.GetString(m_alDevice.Device, AlcGetStringList.AllDevicesSpecifier);
-            devices.Insert(0, IAudioSystem.DefaultAudioDevice);
-            return devices;
+            return ALC.GetStringList(GetEnumerationStringList.DeviceSpecifier);
         }
 
         public string GetDeviceName()
@@ -56,7 +56,7 @@ namespace Helion.Audio.Impl
             m_alContext.Dispose();
             m_alDevice.Dispose();
 
-            m_alDevice = new OpenALDevice(deviceName);
+            m_alDevice = new OpenALDevice(m_config);
             m_alContext = new OpenALContext(m_alDevice);
         }
 
