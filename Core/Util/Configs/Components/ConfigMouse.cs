@@ -19,6 +19,9 @@ namespace Helion.Util.Configs.Components
             advanced: true)]
         public readonly ConfigValueDouble PixelDivisor = new(1024.0);
 
+        [ConfigInfo("If the mouse should use raw input.")]
+        public readonly ConfigValueBoolean RawInput = new(true);
+
         [ConfigInfo("A scale for both the pitch and yaw, meaning this affects both axes.")]
         public readonly ConfigValueDouble Sensitivity = new(1.0);
 

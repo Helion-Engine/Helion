@@ -8,8 +8,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
-using Microsoft.VisualBasic.Devices;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -54,9 +52,10 @@ namespace Helion.Client
         {
             m_config = config;
 
-            CursorGrabbed = config.Mouse.Focus;
             CursorVisible = !config.Mouse.Focus;
             Renderer = new GLRenderer(config, archiveCollection, new OpenTKGLFunctions());
+            IgnoreMouseMovement = config.Mouse.RawInput;
+            CursorGrabbed = config.Mouse.Focus;
             VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
 
             KeyDown += Window_KeyDown;
@@ -113,16 +112,15 @@ namespace Helion.Client
             if (IgnoreMouseMovement)
                 return;
 
-            Input.AddMouseMovement(-args.Delta.X, -args.Delta.Y);
-
-            // if (m_config.Mouse.Focus)
-            // {
-            //     Vec2I center = new(Size.X / 2, Size.Y / 2);
-            //     Input.AddMouseMovement(MouseState.X - center.X, MouseState.Y - center.Y);
-            //     MousePosition.
-            // }
-            // else
-            //     Input.AddMouseMovement(-args.Delta.X, -args.Delta.Y);
+            if (m_config.Mouse.Focus)
+            {
+                int centerX = Size.X / 2;
+                int centerY = Size.Y / 2;
+                Input.AddMouseMovement(centerX - MouseState.X, centerY - MouseState.Y);
+                MousePosition = new Vector2(centerX, centerY);
+            }
+            else
+                Input.AddMouseMovement(-args.Delta.X, -args.Delta.Y);
         }
 
         private void Window_MouseUp(MouseButtonEventArgs args)

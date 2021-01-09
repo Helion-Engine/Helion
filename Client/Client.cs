@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Audio.Impl;
+using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Layer;
 using Helion.Render;
@@ -30,6 +31,7 @@ namespace Helion.Client
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
         private readonly Window m_window;
+        private readonly NativeWinMouse? m_nativeWinMouse;
         private bool m_disposed;
 
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
@@ -45,6 +47,9 @@ namespace Helion.Client
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
             m_window.RenderFrame += Window_MainLoop;
+
+            if (config.Mouse.RawInput)
+                m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
         }
 
         ~Client()
@@ -114,6 +119,18 @@ namespace Helion.Client
         {
             Initialize();
             m_window.Run();
+        }
+
+        private void HandleWinMouseMove(int deltaX, int deltaY)
+        {
+            if (!m_window.IsFocused)
+                return;
+
+            m_window.Input.AddMouseMovement(-deltaX, -deltaY);
+
+            int x = m_window.Location.X + (m_window.Size.X / 2);
+            int y = m_window.Location.Y + (m_window.Size.Y / 2);
+            NativeMethods.SetMousePosition(x, y);
         }
 
         private void PerformDispose()

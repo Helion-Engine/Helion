@@ -25,8 +25,8 @@ namespace Helion.Client.Input
         {
             m_callback = callback;
 
-            if (!NativeMethods.RegisterRawMouseInput(Handle))
-                throw new Exception();
+            if (!RegisterRawMouseInput(Handle))
+                throw new Exception("Unable to register raw mouse input");
         }
 
         protected override void WndProc(ref Message message)
