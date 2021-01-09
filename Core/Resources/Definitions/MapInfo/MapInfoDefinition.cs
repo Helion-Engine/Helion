@@ -3,6 +3,7 @@ using Helion.Util;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo
 {
@@ -201,20 +202,9 @@ namespace Helion.Resources.Definitions.MapInfo
 
         private List<string> GetStringList()
         {
-            List<string> items = new();
-            int line = m_parser.GetCurrentLine();
-
-            while (m_parser.GetCurrentLine() == line)
-            {
-                items.Add(m_parser.ConsumeString());
-
-                if (m_parser.GetCurrentLine() == line)
-                    m_parser.ConsumeString(",");
-            }
-
-            return items;
+            string data = m_parser.ConsumeLine();
+            return data.Split(new char[] { ',' }).ToList();
         }
-
 
         private void ParseInclude()
         {
