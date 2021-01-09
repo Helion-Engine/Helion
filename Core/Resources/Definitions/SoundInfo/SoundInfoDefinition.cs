@@ -26,9 +26,9 @@ namespace Helion.Resources.Definitions.SoundInfo
             return sound;
         }
 
-        public void Parse(Entry entry)
+        public void Parse(string data)
         {
-            m_parser.Parse(System.Text.Encoding.UTF8.GetString(entry.ReadData()));          
+            m_parser.Parse(data);          
             PerformParsing();
         }
 

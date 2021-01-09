@@ -1,5 +1,4 @@
-﻿using Helion.Resources.Archives.Entries;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Parser;
 using Helion.World.Entities.Players;
 using System;
@@ -29,10 +28,10 @@ namespace Helion.Resources.Definitions.Language
                 m_lookups[i] = new();
         }
 
-        public void Parse(Entry entry)
+        public void Parse(string data)
         {
             Dictionary<CIString, string> currentLookup = new();
-            m_parser.Parse(System.Text.Encoding.UTF8.GetString(entry.ReadData()));
+            m_parser.Parse(data);
 
             while (!m_parser.IsDone())
             {

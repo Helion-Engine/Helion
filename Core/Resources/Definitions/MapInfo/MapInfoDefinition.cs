@@ -1,7 +1,5 @@
-﻿using Helion.Resources.Archives.Entries;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Parser;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,9 +12,9 @@ namespace Helion.Resources.Definitions.MapInfo
 
         private readonly SimpleParser m_parser = new();
 
-        public void Parse(Entry entry)
+        public void Parse(string data)
         {
-            m_parser.Parse(System.Text.Encoding.UTF8.GetString(entry.ReadData()));
+            m_parser.Parse(data);
 
             while (!m_parser.IsDone())
             {
