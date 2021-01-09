@@ -14,12 +14,11 @@ namespace Helion.Audio.Impl
 {
     public class OpenALAudioSystem : IAudioSystem
     {
-        public event EventHandler? DeviceChanging;
-
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool PrintedALInfo;
 
         public IMusicPlayer Music { get; }
+        public event EventHandler? DeviceChanging;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
         private readonly ISet<string> m_extensions = new HashSet<string>();
