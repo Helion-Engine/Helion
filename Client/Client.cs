@@ -30,8 +30,8 @@ namespace Helion.Client
         private readonly Config m_config;
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
-        private readonly Window m_window;
         private readonly NativeWinMouse? m_nativeWinMouse;
+        private readonly Window m_window;
         private bool m_disposed;
 
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
@@ -179,16 +179,9 @@ namespace Helion.Client
         private static void LogClientInfo()
         {
             Log.Info("{0} v{1}", Constants.ApplicationName, Constants.ApplicationVersion);
-
             Log.Info("Processor: {0} {1}", Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER"), RuntimeInformation.OSArchitecture);
             Log.Info("Processor count: {0}", Environment.ProcessorCount);
             Log.Info("OS: {0} {1} (running {2})", Environment.OSVersion, Environment.Is64BitOperatingSystem ? "x64" : "x86", Environment.Is64BitProcess ? "x64" : "x86");
-
-            if (Environment.Is64BitOperatingSystem != Environment.Is64BitProcess)
-            {
-                Log.Warn("Using a different bit architecture for the process than the OS supports!");
-                Log.Warn("This may lead to performance issues.");
-            }
         }
 
         private static void LogAnyCommandLineErrors(CommandLineArgs commandLineArgs)
