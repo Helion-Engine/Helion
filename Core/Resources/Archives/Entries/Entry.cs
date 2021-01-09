@@ -15,6 +15,8 @@
         /// </summary>
         public abstract byte[] ReadData();
 
+        public string ReadDataAsString() => System.Text.Encoding.UTF8.GetString(ReadData());
+
         /// <summary>
         /// The namespace this entry was located in.
         /// </summary>
