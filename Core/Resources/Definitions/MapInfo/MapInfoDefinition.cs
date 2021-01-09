@@ -10,79 +10,78 @@ namespace Helion.Resources.Definitions.MapInfo
         public MapInfo MapInfo { get; private set; } = new();
         public GameInfoDef GameDefinition { get; private set; } = new();
 
-        private readonly SimpleParser m_parser = new();
-
         public void Parse(string data)
         {
-            m_parser.Parse(data);
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(data);
 
-            while (!m_parser.IsDone())
+            while (!parser.IsDone())
             {
-                CIString item = m_parser.ConsumeString();
+                CIString item = parser.ConsumeString();
 
                 if (item == "include")
-                    ParseInclude();
+                    ParseInclude(parser);
                 else if (item == "gameinfo")
-                    GameDefinition = ParseGameInfo();
+                    GameDefinition = ParseGameInfo(parser);
                 else if (item == "clearepisodes")
                     MapInfo.ClearEpisodes();
                 else if (item == "episode")
-                    ParseEpisode();
+                    ParseEpisode(parser);
                 else if (item == "cluster")
-                    ParserCluster();
+                    ParseCluster(parser);
                 else if (item == "defaultmap")
-                    MapInfo.SetDefaultMap(ParseMapDef(false));
+                    MapInfo.SetDefaultMap(ParseMapDef(parser, false));
                 else if (item == "adddefaultmap")
-                    ParseMapDef(false, MapInfo.DefaultMap);
+                    ParseMapDef(parser, false, MapInfo.DefaultMap);
                 else if (item == "map")
-                    MapInfo.AddMap(ParseMapDef(true));
+                    MapInfo.AddMap(ParseMapDef(parser, true));
             }
         }
 
-        private MapInfoDef ParseMapDef(bool parseHeader, MapInfoDef? mapDef = null)
+        private MapInfoDef ParseMapDef(SimpleParser parser, bool parseHeader, MapInfoDef? mapDef = null)
         {
             if (mapDef == null)
                 mapDef = new();
 
             if (parseHeader)
             {
-                mapDef.MapName = m_parser.ConsumeString();
-                if (m_parser.Peek("lookup"))
+                mapDef.MapName = parser.ConsumeString();
+                if (parser.Peek("lookup"))
                 {
-                    m_parser.ConsumeString();
-                    mapDef.LookupName = m_parser.ConsumeString();
+                    parser.ConsumeString();
+                    mapDef.LookupName = parser.ConsumeString();
                 }
             }
 
-            if (!m_parser.Peek('{'))
-                mapDef.NiceName = m_parser.ConsumeString();
+            if (!parser.Peek('{'))
+                mapDef.NiceName = parser.ConsumeString();
 
-            m_parser.ConsumeString("{");
+            parser.ConsumeString("{");
 
-            while (!m_parser.Peek('}'))
+            while (!parser.Peek('}'))
             {
-                CIString item = m_parser.ConsumeString();
-                if (m_parser.Peek("="))
-                    m_parser.ConsumeString("=");
+                CIString item = parser.ConsumeString();
+                if (parser.Peek("="))
+                    parser.ConsumeString("=");
 
                 if (item == "levelnum")
-                    mapDef.LevelNumber = m_parser.ConsumeInteger();
+                    mapDef.LevelNumber = parser.ConsumeInteger();
                 else if (item == "titlepatch")
-                    mapDef.TitlePatch = m_parser.ConsumeString();
+                    mapDef.TitlePatch = parser.ConsumeString();
                 else if (item == "next")
-                    mapDef.Next = m_parser.ConsumeString();
+                    mapDef.Next = parser.ConsumeString();
                 else if (item == "secretnext")
-                    mapDef.SecretNext = m_parser.ConsumeString();
+                    mapDef.SecretNext = parser.ConsumeString();
                 else if (item == "sky1")
-                    mapDef.Sky1 = m_parser.ConsumeString();
+                    mapDef.Sky1 = parser.ConsumeString();
                 else if (item == "cluster")
-                    mapDef.Cluster = m_parser.ConsumeInteger();
+                    mapDef.Cluster = parser.ConsumeInteger();
                 else if (item == "par")
-                    mapDef.ParTime = m_parser.ConsumeInteger();
+                    mapDef.ParTime = parser.ConsumeInteger();
                 else if (item == "sucktime")
-                    mapDef.SuckTime = m_parser.ConsumeInteger();
+                    mapDef.SuckTime = parser.ConsumeInteger();
                 else if (item == "music")
-                    mapDef.Music = m_parser.ConsumeString();
+                    mapDef.Music = parser.ConsumeString();
                 else if (item == "nointermission")
                     mapDef.MapOptions |= MapOptions.NoIntermission;
                 else if (item == "needclustertext")
@@ -108,106 +107,106 @@ namespace Helion.Resources.Definitions.MapInfo
                 else
                 {
                     // Warn we do not know what this is
-                    m_parser.ConsumeLine();
+                    parser.ConsumeLine();
                 }
             }
 
-            m_parser.ConsumeString("}");
+            parser.ConsumeString("}");
             return mapDef;
         }
 
-        private void ParserCluster()
+        private void ParseCluster(SimpleParser parser)
         {
             // TODO
         }
 
-        private void ParseEpisode()
+        private void ParseEpisode(SimpleParser parser)
         {
             EpisodeDef episodeDef = new();
-            episodeDef.StartMap = m_parser.ConsumeString();
-            m_parser.ConsumeString("{");
+            episodeDef.StartMap = parser.ConsumeString();
+            parser.ConsumeString("{");
 
-            while (!m_parser.Peek('}'))
+            while (!parser.Peek('}'))
             {
-                CIString item = m_parser.ConsumeString();
-                if (m_parser.Peek("="))
-                    m_parser.ConsumeString("=");
+                CIString item = parser.ConsumeString();
+                if (parser.Peek("="))
+                    parser.ConsumeString("=");
 
                 if (item == "picname")
-                    episodeDef.PicName = m_parser.ConsumeString();
+                    episodeDef.PicName = parser.ConsumeString();
                 else if (item == "name")
-                    episodeDef.Name = m_parser.ConsumeString();
+                    episodeDef.Name = parser.ConsumeString();
                 else if (item == "key")
-                    episodeDef.Key = m_parser.ConsumeString();
+                    episodeDef.Key = parser.ConsumeString();
                 else if (item == "optional")
                     episodeDef.Optional = true;
                 else
                 {
                     // Warn we do not know what this is
-                    m_parser.ConsumeLine();
+                    parser.ConsumeLine();
                 }
             }
 
-            m_parser.ConsumeString("}");
+            parser.ConsumeString("}");
             MapInfo.AddEpisode(episodeDef);
         }
 
-        private GameInfoDef ParseGameInfo()
+        private GameInfoDef ParseGameInfo(SimpleParser parser)
         {
             GameInfoDef gameDef = new();
-            m_parser.ConsumeString("{");
+            parser.ConsumeString("{");
 
-            while (!m_parser.Peek('}'))
+            while (!parser.Peek('}'))
             {
-                CIString item = m_parser.ConsumeString();
-                if (m_parser.Peek("="))
-                    m_parser.ConsumeString("=");
+                CIString item = parser.ConsumeString();
+                if (parser.Peek("="))
+                    parser.ConsumeString("=");
 
                 if (item == "creditpage")
-                    gameDef.CreditPages = GetStringList();
+                    gameDef.CreditPages = GetStringList(parser);
                 else if (item == "finalepage")
-                    gameDef.FinalePages = GetStringList();
+                    gameDef.FinalePages = GetStringList(parser);
                 else if (item == "infopage")
-                    gameDef.InfoPages = GetStringList();
+                    gameDef.InfoPages = GetStringList(parser);
                 else if (item == "quitmessages")
-                    gameDef.QuitMessages = GetStringList();
+                    gameDef.QuitMessages = GetStringList(parser);
                 else if (item == "titlemusic")
-                    gameDef.TitleMusic = m_parser.ConsumeString();
+                    gameDef.TitleMusic = parser.ConsumeString();
                 else if (item == "titletime")
-                    gameDef.TitleTime = m_parser.ConsumeInteger();
+                    gameDef.TitleTime = parser.ConsumeInteger();
                 else if (item == "finalemusic")
-                    gameDef.FinaleMusic = m_parser.ConsumeString();
+                    gameDef.FinaleMusic = parser.ConsumeString();
                 else if (item == "finaleflat")
-                    gameDef.FinaleFlat = m_parser.ConsumeString();
+                    gameDef.FinaleFlat = parser.ConsumeString();
                 else if (item == "quitsound")
-                    gameDef.QuitSound = m_parser.ConsumeString();
+                    gameDef.QuitSound = parser.ConsumeString();
                 else if (item == "borderflat")
-                    gameDef.BorderFlat = m_parser.ConsumeString();
+                    gameDef.BorderFlat = parser.ConsumeString();
                 else if (item == "drawreadthis")
-                    gameDef.DrawReadThis = m_parser.ConsumeBool();
+                    gameDef.DrawReadThis = parser.ConsumeBool();
                 else if (item == "intermissionmusic")
-                    gameDef.IntermissionMusic = m_parser.ConsumeString();
+                    gameDef.IntermissionMusic = parser.ConsumeString();
                 else
                 {
                     // Warn we do not know what this is
-                    m_parser.ConsumeLine();
+                    parser.ConsumeLine();
                 }
             }
 
-            m_parser.ConsumeString("}");
+            parser.ConsumeString("}");
             return gameDef;
         }
 
-        private List<string> GetStringList()
+        private List<string> GetStringList(SimpleParser parser)
         {
-            string data = m_parser.ConsumeLine();
+            string data = parser.ConsumeLine();
             return data.Split(new char[] { ',' }).ToList();
         }
 
-        private void ParseInclude()
+        private void ParseInclude(SimpleParser parser)
         {
             // Don't care for now
-            m_parser.ConsumeString();
+            parser.ConsumeString();
         }
     }
 }

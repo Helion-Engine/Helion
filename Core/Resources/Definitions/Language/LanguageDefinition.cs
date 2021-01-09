@@ -16,7 +16,6 @@ namespace Helion.Resources.Definitions.Language
             { "Obituaries", LanguageMessageType.Obituary }
         };
 
-        private readonly SimpleParser m_parser = new(ParseType.Csv);
         private readonly Dictionary<CIString, string>[] m_lookups;
 
         private LanguageMessageType m_parseType = LanguageMessageType.Pickup;
@@ -31,11 +30,12 @@ namespace Helion.Resources.Definitions.Language
         public void Parse(string data)
         {
             Dictionary<CIString, string> currentLookup = new();
-            m_parser.Parse(data);
+            SimpleParser parser = new SimpleParser(ParseType.Csv);
+            parser.Parse(data);
 
-            while (!m_parser.IsDone())
+            while (!parser.IsDone())
             {
-                string item = m_parser.ConsumeString();
+                string item = parser.ConsumeString();
                 if (TypeNames.Contains(item))
                 {
                     m_parseType = GetMessageType(item);
@@ -46,7 +46,7 @@ namespace Helion.Resources.Definitions.Language
                 if (m_parseType == LanguageMessageType.None)
                     continue;
 
-                currentLookup[item] = m_parser.ConsumeString();
+                currentLookup[item] = parser.ConsumeString();
             }
         }
 
@@ -69,7 +69,7 @@ namespace Helion.Resources.Definitions.Language
             return message;
         }
 
-        private string AddMessageParams(Player player, Player? other, string message, LanguageMessageType type)
+        private static string AddMessageParams(Player player, Player? other, string message, LanguageMessageType type)
         {
             switch (type)
             {
