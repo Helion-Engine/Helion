@@ -35,25 +35,28 @@ namespace Helion.Layer
 
         public override void HandleInput(InputEvent input)
         {
+            if (ConsumeControlV(input))
+            {
+                input.ConsumeTypedCharacter('v', 'V');
+                AddClipboardToConsole();
+            }
+
             input.ConsumeTypedCharacters().ForEach(m_console.AddInput);
 
-            if (input.ConsumeKeyPressed(Key.Backspace))
+            if (input.ConsumeTypedKey(Key.Backspace))
                 m_console.RemoveInputCharacter();
-            if (input.ConsumeKeyPressed(Key.Up))
+            if (input.ConsumeTypedKey(Key.Up))
                 SetToLessRecentInput();
-            if (input.ConsumeKeyPressed(Key.Down))
+            if (input.ConsumeTypedKey(Key.Down))
                 SetToMoreRecentInput();
+            if (input.ConsumeTypedKey(Key.Tab))
+                m_console.ApplyAutocomplete();
+
             if (input.ConsumeKeyPressed(Key.Enter))
             {
                 m_console.SubmitInputText();
                 m_submittedInputIndex = NoInputMessageIndex;
             }
-
-            if (input.ConsumeKeyPressed(Key.Tab))
-                m_console.ApplyAutocomplete();
-
-            if (ConsumeControlV(input))
-                AddClipboardToConsole();
 
             input.ConsumeAll();
 

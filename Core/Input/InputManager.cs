@@ -12,6 +12,7 @@ namespace Helion.Input
     public class InputManager
     {
         private readonly StringBuilder m_typedCharacters = new();
+        private readonly HashSet<Key> m_typedKeys = new();
         private HashSet<Key> m_inputDown = new();
         private HashSet<Key> m_inputPrevDown = new();
         private Vec2D m_mouseMove = Vec2D.Zero;
@@ -33,6 +34,17 @@ namespace Helion.Input
         public string TypedCharacters => m_typedCharacters.ToString();
 
         /// <summary>
+        /// The keys that were typed. This is a workaround which respects the
+        /// "repetition" that comes from the OS. We can implement reasonable
+        /// handling of backspaces, arrow keys, etc, to make it feel like the
+        /// normal operating system using this for non-characters.
+        /// </summary>
+        /// <remarks>
+        /// There will be characters in this set, but they can be ignored.
+        /// </remarks>
+        public IEnumerable<Key> TypedKeys => m_typedKeys;
+
+        /// <summary>
         /// Gets a read-only view of all the keys that are down.
         /// </summary>
         /// <remarks>
@@ -40,7 +52,7 @@ namespace Helion.Input
         /// detecting input when the user is asked to press 'any key' for the
         /// setting of new key binds.
         /// </remarks>
-        public IReadOnlySet<Key> KeysDown => m_inputDown;
+        public IEnumerable<Key> KeysDown => m_inputDown;
 
         /// <summary>
         /// Checks if a key is down.
@@ -73,15 +85,22 @@ namespace Helion.Input
         private void ClearStates()
         {
             m_typedCharacters.Clear();
+            m_typedKeys.Clear();
             m_inputPrevDown = m_inputDown;
-            m_inputDown = new();
+            m_inputDown = new HashSet<Key>(m_inputDown);
             m_mouseMove = Vec2D.Zero;
             m_mouseScroll = 0;
         }
 
+        private void HandleTypedKey(Key key, bool repeat)
+        {
+            if (IsKeyPressed(key) || repeat)
+                m_typedKeys.Add(key);
+        }
+
         private void AddLetter(Key key, char c, bool repeat)
         {
-            if (!m_inputDown.Contains(key) || repeat)
+            if (IsKeyPressed(key) || repeat)
                 m_typedCharacters.Append(c);
         }
 
@@ -300,24 +319,25 @@ namespace Helion.Input
         }
 
         /// <summary>
-        /// Sets the key to a down state.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="shift">If shift was down.</param>
-        /// <param name="repeat">If this is a repetition event.</param>
-        public void SetKeyDown(Key key, bool shift, bool repeat)
-        {
-            m_inputDown.Add(key);
-            HandleTypedCharacter(key, shift, repeat);
-        }
-
-        /// <summary>
         /// Sets the key to be released.
         /// </summary>
         /// <param name="key">The key to be released.</param>
         public void SetKeyUp(Key key)
         {
             m_inputDown.Remove(key);
+        }
+
+        /// <summary>
+        /// Sets the key to a down state.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="shift">If shift was down.</param>
+        /// <param name="repeat">If this is a repetition event.</param>
+        public void SetKeyDown(Key key, bool shift = false, bool repeat = false)
+        {
+            m_inputDown.Add(key);
+            HandleTypedCharacter(key, shift, repeat);
+            HandleTypedKey(key, repeat);
         }
 
         /// <summary>

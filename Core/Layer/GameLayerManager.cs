@@ -42,8 +42,12 @@ namespace Helion.Layer
 
         public override void HandleInput(InputEvent input)
         {
-            if (input.ConsumeKeyPressed(m_config.Controls.Console))
+            if (input.ConsumeTypedKey(m_config.Controls.Console))
             {
+                // Due to the workaround above, we also want to prune it from
+                // anyone else's visibility.
+                input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
+
                 if (Contains(ConsoleLayer.LayerName))
                 {
                     RemoveByName(ConsoleLayer.LayerName);
