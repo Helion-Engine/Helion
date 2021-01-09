@@ -26,6 +26,7 @@ namespace Helion.Client
 
         private void Initialize()
         {
+            SetFPSLimit();
             LoadFiles();
 
             if (m_commandLineArgs.Skill.HasValue)
