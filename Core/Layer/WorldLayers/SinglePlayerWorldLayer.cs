@@ -85,6 +85,7 @@ namespace Helion.Layer.WorldLayers
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, IMap map)
         {
+            Log.Info($"{mapInfoDef.MapName}: {mapInfoDef.NiceName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
             CheatManager.Instance.Clear();
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, map);
