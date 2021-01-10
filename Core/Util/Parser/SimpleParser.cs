@@ -144,6 +144,12 @@ namespace Helion.Util.Parser
             return false;
         }
 
+        public string PeekString()
+        {
+            AssertData();
+            return GetData(m_index);
+        }
+
         public string ConsumeString()
         {
             AssertData();

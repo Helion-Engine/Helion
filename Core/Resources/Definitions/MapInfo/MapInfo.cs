@@ -17,7 +17,20 @@ namespace Helion.Resources.Definitions.MapInfo
 
         public void AddEpisode(EpisodeDef episode) => m_episodes.Add(episode);
 
-        public void AddMap(MapInfoDef map) => m_maps.Add(map);
+        public void AddMap(MapInfoDef newMap)
+        {
+            for (int i=0; i < m_maps.Count; i++)
+            {
+                MapInfoDef mapDef = m_maps[i];
+                if (newMap.MapName.Equals(mapDef.MapName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    m_maps[i] = newMap;
+                    break;
+                }
+            }
+
+            m_maps.Add(newMap);
+        }
 
         public List<MapInfoDef> GetMaps(EpisodeDef episode)
         {

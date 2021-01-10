@@ -10,8 +10,30 @@ namespace Helion.Resources.Definitions.MapInfo
         public MapInfo MapInfo { get; private set; } = new();
         public GameInfoDef GameDefinition { get; private set; } = new();
 
+        private static readonly CIString GameInfoName = "gameinfo";
+        private static readonly CIString ClearEpisodesName = "clearepisodes";
+        private static readonly CIString EpisodeName = "episode";
+        private static readonly CIString ClusterName = "cluster";
+        private static readonly CIString DefaultMapName = "defaultmap";
+        private static readonly CIString AddDefaultMapName = "adddefaultmap";
+        private static readonly CIString MapName = "map";
+
+        private static readonly HashSet<CIString> HighLevelNames = new HashSet<CIString>
+        {
+            GameInfoName,
+            ClearEpisodesName,
+            EpisodeName,
+            ClusterName,
+            DefaultMapName,
+            AddDefaultMapName,
+            MapName
+        };
+
+        private bool m_legacy;
+
         public void Parse(string data)
         {
+            m_legacy = true;
             SimpleParser parser = new SimpleParser();
             parser.Parse(data);
 
@@ -21,19 +43,19 @@ namespace Helion.Resources.Definitions.MapInfo
 
                 if (item == "include")
                     ParseInclude(parser);
-                else if (item == "gameinfo")
+                else if (item == GameInfoName)
                     GameDefinition = ParseGameInfo(parser);
-                else if (item == "clearepisodes")
+                else if (item == ClearEpisodesName)
                     MapInfo.ClearEpisodes();
-                else if (item == "episode")
+                else if (item == EpisodeName)
                     ParseEpisode(parser);
-                else if (item == "cluster")
+                else if (item == ClusterName)
                     ParseCluster(parser);
-                else if (item == "defaultmap")
+                else if (item == DefaultMapName)
                     MapInfo.SetDefaultMap(ParseMapDef(parser, false));
-                else if (item == "adddefaultmap")
+                else if (item == AddDefaultMapName)
                     ParseMapDef(parser, false, MapInfo.DefaultMap);
-                else if (item == "map")
+                else if (item == MapName)
                     MapInfo.AddMap(ParseMapDef(parser, true));
             }
         }
@@ -45,24 +67,25 @@ namespace Helion.Resources.Definitions.MapInfo
 
             if (parseHeader)
             {
+                int defLine = parser.GetCurrentLine();
                 mapDef.MapName = parser.ConsumeString();
                 if (parser.Peek("lookup"))
                 {
                     parser.ConsumeString();
                     mapDef.LookupName = parser.ConsumeString();
                 }
+
+                // Have to check current line for nicename thanks to legacy mapinfo
+                if (defLine == parser.GetCurrentLine())
+                    mapDef.NiceName = parser.ConsumeString();
             }
 
-            if (!parser.Peek('{'))
-                mapDef.NiceName = parser.ConsumeString();
+            ConsumeBrace(parser, true);
 
-            parser.ConsumeString("{");
-
-            while (!parser.Peek('}'))
+            while (!IsBlockComplete(parser))
             {
                 CIString item = parser.ConsumeString();
-                if (parser.Peek("="))
-                    parser.ConsumeString("=");
+                ConsumeEquals(parser);
 
                 if (item == "levelnum")
                     mapDef.LevelNumber = parser.ConsumeInteger();
@@ -88,6 +111,10 @@ namespace Helion.Resources.Definitions.MapInfo
                     mapDef.MapOptions |= MapOptions.NeedClusterText;
                 else if (item == "allowmonstertelefrags")
                     mapDef.MapOptions |= MapOptions.AllowMonsterTelefrags;
+                else if (item == "nocrouch")
+                    mapDef.MapOptions |= MapOptions.NoCrouch;
+                else if (item == "nojump")
+                    mapDef.MapOptions |= MapOptions.NoJump;
                 else if (item == "nosoundclipping")
                     continue; // Deprecated, no longer used
                 else if (item == "baronspecial")
@@ -111,7 +138,7 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
             }
 
-            parser.ConsumeString("}");
+            ConsumeBrace(parser, false);
             return mapDef;
         }
 
@@ -124,13 +151,12 @@ namespace Helion.Resources.Definitions.MapInfo
         {
             EpisodeDef episodeDef = new();
             episodeDef.StartMap = parser.ConsumeString();
-            parser.ConsumeString("{");
+            ConsumeBrace(parser, true);
 
-            while (!parser.Peek('}'))
+            while (!IsBlockComplete(parser))
             {
                 CIString item = parser.ConsumeString();
-                if (parser.Peek("="))
-                    parser.ConsumeString("=");
+                ConsumeEquals(parser);
 
                 if (item == "picname")
                     episodeDef.PicName = parser.ConsumeString();
@@ -147,20 +173,19 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
             }
 
-            parser.ConsumeString("}");
+            ConsumeBrace(parser, false);
             MapInfo.AddEpisode(episodeDef);
         }
 
         private GameInfoDef ParseGameInfo(SimpleParser parser)
         {
             GameInfoDef gameDef = new();
-            parser.ConsumeString("{");
+            ConsumeBrace(parser, true);
 
-            while (!parser.Peek('}'))
+            while (!IsBlockComplete(parser))
             {
                 CIString item = parser.ConsumeString();
-                if (parser.Peek("="))
-                    parser.ConsumeString("=");
+                ConsumeEquals(parser);
 
                 if (item == "creditpage")
                     gameDef.CreditPages = GetStringList(parser);
@@ -193,8 +218,44 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
             }
 
-            parser.ConsumeString("}");
+            ConsumeBrace(parser, false);
             return gameDef;
+        }
+
+        private void ConsumeBrace(SimpleParser parser, bool start)
+        {
+            if (m_legacy && !parser.IsDone() && (parser.Peek('{') || parser.Peek('}')))
+                m_legacy = false;
+
+            if (m_legacy)
+                return;
+
+            if (start)
+                parser.ConsumeString("{");
+            else
+                parser.ConsumeString("}");
+        }
+
+        private bool IsBlockComplete(SimpleParser parser)
+        {
+            if (m_legacy)
+            {
+                if (parser.IsDone())
+                    return true;
+
+                return HighLevelNames.Contains(parser.PeekString());
+            }
+
+            return parser.Peek('}');
+        }
+
+        private void ConsumeEquals(SimpleParser parser)
+        {
+            if (m_legacy)
+                return;
+
+            if (parser.Peek("="))
+                parser.ConsumeString("=");
         }
 
         private List<string> GetStringList(SimpleParser parser)

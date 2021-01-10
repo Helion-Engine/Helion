@@ -8,6 +8,8 @@ namespace Helion.Resources.Definitions.MapInfo
         None,
         NoIntermission = 1,
         NeedClusterText = 2,
-        AllowMonsterTelefrags = 4
+        AllowMonsterTelefrags = 4,
+        NoCrouch = 8,
+        NoJump = 16
     }
 }
