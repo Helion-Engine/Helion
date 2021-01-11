@@ -298,12 +298,45 @@ Line2 Data2";
             {
                 parser.Parse(data);
             }
-            catch(ParserException)
+            catch (ParserException)
             {
                 success = true;
             }
 
             Assert.IsTrue(success);
+        }
+
+        [TestMethod()]
+        public void TestSpecial()
+        {
+            string data = @"item{thing=1}";
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(data);
+
+            Assert.AreEqual("item", parser.ConsumeString());
+            Assert.AreEqual("{", parser.ConsumeString());
+            Assert.AreEqual("thing", parser.ConsumeString());
+            Assert.AreEqual("=", parser.ConsumeString());
+            Assert.AreEqual("1", parser.ConsumeString());
+            Assert.AreEqual("}", parser.ConsumeString());
+        }
+
+        [TestMethod()]
+        public void TestBrace2()
+        {
+            string data = @"item
+            {
+                thing = 1
+            }";
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(data);
+
+            Assert.AreEqual("item", parser.ConsumeString());
+            Assert.AreEqual("{", parser.ConsumeString());
+            Assert.AreEqual("thing", parser.ConsumeString());
+            Assert.AreEqual("=", parser.ConsumeString());
+            Assert.AreEqual("1", parser.ConsumeString());
+            Assert.AreEqual("}", parser.ConsumeString());
         }
     }
 }

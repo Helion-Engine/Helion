@@ -33,7 +33,6 @@ namespace Helion.Util.Parser
         public void Parse(string data)
         {
             m_index = 0;
-
             m_lines = data.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
             bool multiLineComment = false;
             int lineCount = 0;
@@ -47,7 +46,7 @@ namespace Helion.Util.Parser
 
                 for (int i = 0; i < line.Length; i++)
                 {
-                    if (line[i] == '/' && CheckNext(line, i, '/'))
+                    if (IsSingleLineComment(line, i))
                     {
                         if (i > 0)
                             AddToken(startIndex, i, lineCount, false);
@@ -55,13 +54,13 @@ namespace Helion.Util.Parser
                         break;
                     }
 
-                    if (line[i] == '/' && CheckNext(line, i, '*'))
+                    if (IsStartMultiLineComment(line, i))
                     {
                         multiLineComment = true;
                         i += 2;
                     }
 
-                    if (multiLineComment && line[i] == '*' && CheckNext(line, i, '/'))
+                    if (multiLineComment && IsEndMultiLineComment(line, i))
                     {
                         multiLineComment = false;
                         i += 2;
@@ -82,12 +81,20 @@ namespace Helion.Util.Parser
                             split = true;
                     }
 
-                    if (!isQuote && (split || CheckSplit(line[i])))
+                    if (!isQuote)
                     {
-                        AddToken(startIndex, i, lineCount, quotedString);
-                        startIndex = i + 1;
-                        split = false;
-                        quotedString = false;
+                        bool special = CheckSpecial(line[i]);
+                        if (split || special || CheckSplit(line[i]))
+                        {
+                            AddToken(startIndex, i, lineCount, quotedString);
+                            startIndex = i + 1;
+                            split = false;
+                            quotedString = false;
+                        }
+
+                        // Also add the special char as a token (e.g. '{')
+                        if (special)
+                            AddToken(i, i + 1, lineCount, quotedString);
                     }
                 }
 
@@ -101,12 +108,29 @@ namespace Helion.Util.Parser
             }
         }
 
+        private static bool IsEndMultiLineComment(string line, int i)
+            => line[i] == '*' && CheckNext(line, i, '/');
+
+        private static bool IsStartMultiLineComment(string line, int i)
+            => line[i] == '/' && CheckNext(line, i, '*');
+
+        private static bool IsSingleLineComment(string line, int i)
+            => line[i] == '/' && CheckNext(line, i, '/');
+
         private bool CheckSplit(char c)
         {
             if (m_parseType == ParseType.Normal)
                 return c == ' ' || c == '\t';
             else
                 return c == ',';
+        }
+
+        private bool CheckSpecial(char c)
+        {
+            if (m_parseType != ParseType.Normal)
+                return false;
+
+            return c == '{' || c == '}' || c == '=';
         }
 
         private void AddToken(int startIndex, int currentIndex, int lineCount, bool quotedString)

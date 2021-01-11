@@ -1,5 +1,6 @@
 ﻿using Helion.Util;
 using Helion.Util.Parser;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,6 +30,90 @@ namespace Helion.Resources.Definitions.MapInfo
             MapName
         };
 
+        private static readonly CIString GameCreditPageName = "creditpage";
+        private static readonly CIString GameFinalePageName = "finalepage";
+        private static readonly CIString GameInfoPageName = "infopage";
+        private static readonly CIString GameQuitMessagesName = "quitmessages";
+        private static readonly CIString GameTitleMusicName = "titlemusic";
+        private static readonly CIString GameTitleTimeName = "titletime";
+        private static readonly CIString GameFinaleMusicName = "finalemusic";
+        private static readonly CIString GameFinaleFlatName = "finaleflat";
+        private static readonly CIString GameQuitSoundName = "quitsound";
+        private static readonly CIString GameBorderFlatName = "borderflat";
+        private static readonly CIString GameDrawReadThisName = "drawreadthis";
+        private static readonly CIString GameIntermissionMusicName = "intermissionmusic";
+
+        private static readonly HashSet<CIString> GameInfoNames = new HashSet<CIString>
+        {
+            GameCreditPageName,
+            GameFinalePageName,
+            GameInfoPageName,
+            GameQuitMessagesName,
+            GameTitleMusicName,
+            GameTitleTimeName,
+            GameFinaleMusicName,
+            GameFinaleFlatName,
+            GameQuitSoundName,
+            GameBorderFlatName,
+            GameDrawReadThisName,
+            GameIntermissionMusicName,
+        };
+
+        private static readonly CIString EpisodePicName = "picname";
+        private static readonly CIString EpisodeEpName = "name";
+        private static readonly CIString EpisodeKeyName = "key";
+
+        private static readonly HashSet<CIString> EpisodeNames = new HashSet<CIString>
+        {
+            EpisodePicName,
+            EpisodeEpName,
+            EpisodeKeyName
+        };
+
+        private static readonly CIString MapLevelNumName = "levelnum";
+        private static readonly CIString MapTitlePatchName = "titlepatch";
+        private static readonly CIString MapNextName = "next";
+        private static readonly CIString MapSecretName = "secretnext";
+        private static readonly CIString MapSky1Name = "sky1";
+        private static readonly CIString MapSky2Name = "sky2";
+        private static readonly CIString MapClusterName = "cluster";
+        private static readonly CIString MapParName = "par";
+        private static readonly CIString MapSuckName = "sucktime";
+        private static readonly CIString MapMusicName = "music";
+
+        private static readonly HashSet<CIString> MapNames = new HashSet<CIString>
+        {
+            MapLevelNumName,
+            MapTitlePatchName,
+            MapNextName,
+            MapSecretName,
+            MapSky1Name,
+            MapSky2Name,
+            MapClusterName,
+            MapParName,
+            MapSuckName,
+            MapMusicName
+        };
+
+        private static readonly CIString ClusterEnterTextName = "entertext";
+        private static readonly CIString ClusterExitTextName = "exittext";
+        private static readonly CIString ClusterExitTextIsLumpName = "exittextislump";
+        private static readonly CIString ClusterMusicName = "music";
+        private static readonly CIString ClusterFlatName = "flat";
+        private static readonly CIString ClusterPicName = "pic";
+        private static readonly CIString ClusterHubName = "hub";
+        private static readonly CIString ClusterAllowIntermissionName = "allowintermission";
+
+        private static readonly HashSet<CIString> ClusterNames = new HashSet<CIString>
+        {
+            ClusterEnterTextName,
+            ClusterExitTextName,
+            ClusterMusicName,
+            ClusterMusicName,
+            ClusterFlatName,
+            ClusterPicName,
+        };
+
         private bool m_legacy;
 
         public void Parse(string data)
@@ -50,7 +135,7 @@ namespace Helion.Resources.Definitions.MapInfo
                 else if (item == EpisodeName)
                     ParseEpisode(parser);
                 else if (item == ClusterName)
-                    ParseCluster(parser);
+                    MapInfo.AddCluster(ParseCluster(parser));
                 else if (item == DefaultMapName)
                     MapInfo.SetDefaultMap(ParseMapDef(parser, false));
                 else if (item == AddDefaultMapName)
@@ -72,7 +157,7 @@ namespace Helion.Resources.Definitions.MapInfo
                 if (parser.Peek("lookup"))
                 {
                     parser.ConsumeString();
-                    mapDef.LookupName = parser.ConsumeString();
+                    mapDef.LookupName = "$" + parser.ConsumeString();
                 }
 
                 // Have to check current line for nicename thanks to legacy mapinfo
@@ -85,26 +170,32 @@ namespace Helion.Resources.Definitions.MapInfo
             while (!IsBlockComplete(parser))
             {
                 CIString item = parser.ConsumeString();
-                ConsumeEquals(parser);
 
-                if (item == "levelnum")
-                    mapDef.LevelNumber = parser.ConsumeInteger();
-                else if (item == "titlepatch")
-                    mapDef.TitlePatch = parser.ConsumeString();
-                else if (item == "next")
-                    mapDef.Next = parser.ConsumeString();
-                else if (item == "secretnext")
-                    mapDef.SecretNext = parser.ConsumeString();
-                else if (item == "sky1")
-                    mapDef.Sky1 = parser.ConsumeString();
-                else if (item == "cluster")
-                    mapDef.Cluster = parser.ConsumeInteger();
-                else if (item == "par")
-                    mapDef.ParTime = parser.ConsumeInteger();
-                else if (item == "sucktime")
-                    mapDef.SuckTime = parser.ConsumeInteger();
-                else if (item == "music")
-                    mapDef.Music = parser.ConsumeString();
+                if (MapNames.Contains(item))
+                {
+                    ConsumeEquals(parser);
+
+                    if (item == MapLevelNumName)
+                        mapDef.LevelNumber = parser.ConsumeInteger();
+                    else if (item == MapTitlePatchName)
+                        mapDef.TitlePatch = parser.ConsumeString();
+                    else if (item == MapNextName)
+                        mapDef.Next = parser.ConsumeString();
+                    else if (item == MapSecretName)
+                        mapDef.SecretNext = parser.ConsumeString();
+                    else if (item == MapSky1Name)
+                        mapDef.Sky1 = ParseMapSky(parser);
+                    else if (item == MapSky2Name)
+                        mapDef.Sky2 = ParseMapSky(parser);
+                    else if (item == MapClusterName)
+                        mapDef.Cluster = parser.ConsumeInteger();
+                    else if (item == MapParName)
+                        mapDef.ParTime = parser.ConsumeInteger();
+                    else if (item == MapSuckName)
+                        mapDef.SuckTime = parser.ConsumeInteger();
+                    else if (item == MapMusicName)
+                        mapDef.Music = parser.ConsumeString();
+                }
                 else if (item == "nointermission")
                     mapDef.MapOptions |= MapOptions.NoIntermission;
                 else if (item == "needclustertext")
@@ -142,9 +233,80 @@ namespace Helion.Resources.Definitions.MapInfo
             return mapDef;
         }
 
-        private void ParseCluster(SimpleParser parser)
+        private SkyDef ParseMapSky(SimpleParser parser)
         {
-            // TODO
+            SkyDef sky = new();
+            sky.Name = parser.ConsumeString();
+            if (!MapNames.Contains(parser.PeekString()))
+                sky.ScrollSpeed = parser.ConsumeInteger();
+            return sky;
+        }
+
+        private ClusterDef ParseCluster(SimpleParser parser)
+        {
+            ClusterDef clusterDef = new ClusterDef();
+            clusterDef.ClusterNum = parser.ConsumeInteger();
+
+            ConsumeBrace(parser, true);
+
+            while (!IsBlockComplete(parser))
+            {
+                CIString item = parser.ConsumeString();
+
+                if (ClusterNames.Contains(item))
+                {
+                    ConsumeEquals(parser);
+
+                    if (item == ClusterEnterTextName)
+                        clusterDef.EnterText = GetClusterText(parser);
+                    else if (item == ClusterExitTextName)
+                        clusterDef.ExitText = GetClusterText(parser);
+                    else if (item == ClusterMusicName)
+                        clusterDef.Music = parser.ConsumeString();
+                    else if (item == ClusterFlatName)
+                        clusterDef.Flat = parser.ConsumeString();
+                    else if (item == ClusterPicName)
+                        clusterDef.Pic = parser.ConsumeString();
+                }
+                else if (item == ClusterExitTextIsLumpName)
+                    clusterDef.IsExitTextLump = true;
+                else if (item == ClusterHubName)
+                    clusterDef.IsHub = true;
+                else if (item == ClusterAllowIntermissionName)
+                    clusterDef.AllowIntermission = true;
+                else
+                {
+                    // Warn we do not know what this is
+                    parser.ConsumeLine();
+                }
+            }
+
+            return clusterDef;
+        }
+
+        private List<string> GetClusterText(SimpleParser parser)
+        {
+            List<string> textItems = new List<string>();
+            while (!ClusterNames.Contains(parser.PeekString()))
+            {
+                string text = parser.ConsumeString();
+                bool hasComma = text.EndsWith(',');
+                if (text.EndsWith(','))
+                    text = text[..^1];
+
+                if (text.Equals("lookup", StringComparison.OrdinalIgnoreCase))
+                {
+                    textItems.Add("$" + parser.ConsumeString());
+                    break;
+                }
+
+                textItems.Add(text);
+
+                if (!hasComma)
+                    break;
+            }
+
+            return textItems;
         }
 
         private void ParseEpisode(SimpleParser parser)
@@ -156,14 +318,17 @@ namespace Helion.Resources.Definitions.MapInfo
             while (!IsBlockComplete(parser))
             {
                 CIString item = parser.ConsumeString();
-                ConsumeEquals(parser);
 
-                if (item == "picname")
-                    episodeDef.PicName = parser.ConsumeString();
-                else if (item == "name")
-                    episodeDef.Name = parser.ConsumeString();
-                else if (item == "key")
-                    episodeDef.Key = parser.ConsumeString();
+                if (EpisodeNames.Contains(item))
+                {
+                    ConsumeEquals(parser);
+                    if (item == EpisodePicName)
+                        episodeDef.PicName = parser.ConsumeString();
+                    else if (item == EpisodeEpName)
+                        episodeDef.Name = parser.ConsumeString();
+                    else if (item == EpisodeKeyName)
+                        episodeDef.Key = parser.ConsumeString();
+                }
                 else if (item == "optional")
                     episodeDef.Optional = true;
                 else
@@ -185,32 +350,36 @@ namespace Helion.Resources.Definitions.MapInfo
             while (!IsBlockComplete(parser))
             {
                 CIString item = parser.ConsumeString();
-                ConsumeEquals(parser);
 
-                if (item == "creditpage")
-                    gameDef.CreditPages = GetStringList(parser);
-                else if (item == "finalepage")
-                    gameDef.FinalePages = GetStringList(parser);
-                else if (item == "infopage")
-                    gameDef.InfoPages = GetStringList(parser);
-                else if (item == "quitmessages")
-                    gameDef.QuitMessages = GetStringList(parser);
-                else if (item == "titlemusic")
-                    gameDef.TitleMusic = parser.ConsumeString();
-                else if (item == "titletime")
-                    gameDef.TitleTime = parser.ConsumeInteger();
-                else if (item == "finalemusic")
-                    gameDef.FinaleMusic = parser.ConsumeString();
-                else if (item == "finaleflat")
-                    gameDef.FinaleFlat = parser.ConsumeString();
-                else if (item == "quitsound")
-                    gameDef.QuitSound = parser.ConsumeString();
-                else if (item == "borderflat")
-                    gameDef.BorderFlat = parser.ConsumeString();
-                else if (item == "drawreadthis")
-                    gameDef.DrawReadThis = parser.ConsumeBool();
-                else if (item == "intermissionmusic")
-                    gameDef.IntermissionMusic = parser.ConsumeString();
+                if (GameInfoNames.Contains(item))
+                {
+                    ConsumeEquals(parser);
+
+                    if (item == GameCreditPageName)
+                        gameDef.CreditPages = GetStringList(parser);
+                    else if (item == GameFinalePageName)
+                        gameDef.FinalePages = GetStringList(parser);
+                    else if (item == GameInfoPageName)
+                        gameDef.InfoPages = GetStringList(parser);
+                    else if (item == GameQuitMessagesName)
+                        gameDef.QuitMessages = GetStringList(parser);
+                    else if (item == GameTitleMusicName)
+                        gameDef.TitleMusic = parser.ConsumeString();
+                    else if (item == GameTitleTimeName)
+                        gameDef.TitleTime = parser.ConsumeInteger();
+                    else if (item == GameFinaleMusicName)
+                        gameDef.FinaleMusic = parser.ConsumeString();
+                    else if (item == GameFinaleFlatName)
+                        gameDef.FinaleFlat = parser.ConsumeString();
+                    else if (item == GameQuitSoundName)
+                        gameDef.QuitSound = parser.ConsumeString();
+                    else if (item == GameBorderFlatName)
+                        gameDef.BorderFlat = parser.ConsumeString();
+                    else if (item == GameDrawReadThisName)
+                        gameDef.DrawReadThis = parser.ConsumeBool();
+                    else if (item == GameIntermissionMusicName)
+                        gameDef.IntermissionMusic = parser.ConsumeString();
+                }
                 else
                 {
                     // Warn we do not know what this is
@@ -254,8 +423,7 @@ namespace Helion.Resources.Definitions.MapInfo
             if (m_legacy)
                 return;
 
-            if (parser.Peek("="))
-                parser.ConsumeString("=");
+            parser.ConsumeString("=");
         }
 
         private List<string> GetStringList(SimpleParser parser)
