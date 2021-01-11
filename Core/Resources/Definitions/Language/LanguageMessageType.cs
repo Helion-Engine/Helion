@@ -7,4 +7,12 @@
         Lock,
         Obituary,
     }
+
+    public enum IWadLanguageMessageType
+    {
+        None,
+        EpisodeName,
+        LevelName,
+        IntermissionText,
+    }
 }

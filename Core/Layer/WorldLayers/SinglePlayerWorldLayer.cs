@@ -6,7 +6,9 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
@@ -85,7 +87,14 @@ namespace Helion.Layer.WorldLayers
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, IMap map)
         {
-            Log.Info($"{mapInfoDef.MapName}: {mapInfoDef.NiceName}");
+            string displayName = mapInfoDef.NiceName;
+            if (mapInfoDef.LookupName.Length > 0)
+            {
+                displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfoDef.LookupName,
+                    archiveCollection.GetIWadInfo().IWadType, IWadLanguageMessageType.LevelName);
+            }
+
+            Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
             CheatManager.Instance.Clear();
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, map);

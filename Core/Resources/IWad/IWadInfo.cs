@@ -4,6 +4,8 @@ namespace Helion.Resources.IWad
 {
     public class IWadInfo
     {
+        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadType.None, string.Empty);
+
         public readonly string Title;
         public readonly IWadType IWadType;
         public readonly string MapInfoResource;

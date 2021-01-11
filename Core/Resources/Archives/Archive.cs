@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.IWad;
 
 namespace Helion.Resources.Archives
 {
@@ -26,6 +27,7 @@ namespace Helion.Resources.Archives
         public string MD5 = "00000000000000000000000000000000";
 
         public ArchiveType ArchiveType { get; set; }
+        public IWadInfo IWadInfo { get; set; } = IWadInfo.DefaultIWadInfo;
 
         public string OriginalFilePath { get; set; } = string.Empty;
 
