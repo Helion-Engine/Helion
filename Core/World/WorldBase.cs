@@ -942,7 +942,12 @@ namespace Helion.World
                 else if (bi.Entity != null && !ReferenceEquals(startEntity, bi.Entity))
                 {
                     double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                    if (thingTopPitch < bottomPitch)
+                        continue;
+
                     double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+                    if (thingBottomPitch > topPitch)
+                        continue;
 
                     if (thingBottomPitch > topPitch)
                         return TraversalPitchStatus.Blocked;
