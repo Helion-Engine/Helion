@@ -145,6 +145,7 @@ namespace Helion.Util.Parser
         private static bool CheckNext(string str, int i, char c) => i + 1 < str.Length && str[i + 1] == c;
 
         public int GetCurrentLine() => m_tokens[m_index].Line;
+        public int GetCurrentCharOffset() => m_tokens[m_index].Index;
 
         public bool IsDone() => m_index >= m_tokens.Count;
 
