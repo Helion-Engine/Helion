@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Helion.Maps.Specials;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -10,6 +11,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared.World
@@ -68,11 +70,11 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
         
-        public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide, Side otherSide, 
+        public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide, 
             in Dimension textureDimension, in Vector2 textureUVInverse, double bottomOpeningZ, double topOpeningZ,
             bool isFrontSide, out bool nothingVisible, double tickFraction)
         {
-            if (topOpeningZ <= bottomOpeningZ)
+            if (LineOpening.IsRenderingBlocked(facingSide.Line))
             {
                 nothingVisible = true;
                 return default;
@@ -185,7 +187,7 @@ namespace Helion.Render.Shared.World
             }
         }
         
-        private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, double bottomOpeningZ, 
+        private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, TwoSided facingSide, double bottomOpeningZ, 
             double topOpeningZ, in Dimension textureDimension)
         {
             double topZ = topOpeningZ;
@@ -198,10 +200,15 @@ namespace Helion.Render.Shared.World
 
             topZ += facingSide.Offset.Y;
             bottomZ += facingSide.Offset.Y;
-            
-            double visibleTopZ = Math.Min(topZ, topOpeningZ);
-            double visibleBottomZ = Math.Max(bottomZ, bottomOpeningZ);
-            
+
+            // Check if the lower/upper textures are set. If not then then the middle can be drawn through.
+            double visibleTopZ = topZ;
+            if (facingSide.Upper.TextureHandle != Constants.NoTextureIndex)
+                visibleTopZ = Math.Min(topZ, topOpeningZ);
+            double visibleBottomZ = bottomZ;
+            if (facingSide.Lower.TextureHandle != Constants.NoTextureIndex)
+                visibleBottomZ = Math.Max(bottomZ, bottomOpeningZ);
+
             return new MiddleDrawSpan(bottomZ, topZ, visibleBottomZ, visibleTopZ);
         }
 
