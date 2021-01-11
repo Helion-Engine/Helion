@@ -10,19 +10,20 @@ namespace Helion.World.Cheats
         public string? ConsoleCommand { get; }
         public CheatType CheatType { get; }
         public bool Activated { get; set; }
-        public bool IsToggleCheat => true;
+        public bool IsToggleCheat { get; private set; }
         
-        public ExactMatchCheat(string name, string code, CheatType cheatType) : 
-            this(name, code, "", cheatType)
+        public ExactMatchCheat(string name, string code, CheatType cheatType, bool canToggle = true) : 
+            this(name, code, "", cheatType, canToggle)
         {
         }
 
-        public ExactMatchCheat(string name, string code, string consoleCommand, CheatType cheatType)
+        public ExactMatchCheat(string name, string code, string consoleCommand, CheatType cheatType, bool canToggle = true)
         {
             CheatName = name;
             ConsoleCommand = consoleCommand;
             m_code = code;
             CheatType = cheatType;
+            IsToggleCheat = canToggle;
         }
 
         public bool IsMatch(string str) => m_code.Equals(str, StringComparison.InvariantCultureIgnoreCase);

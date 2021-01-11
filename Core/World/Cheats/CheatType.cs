@@ -15,5 +15,6 @@ namespace Helion.World.Cheats
 
         // Start non-vanilla doom cheats
         Fly,
+        Ressurect
     }
 }

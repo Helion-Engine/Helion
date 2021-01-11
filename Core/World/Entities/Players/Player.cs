@@ -199,6 +199,13 @@ namespace Helion.World.Entities.Players
             base.ResetInterpolation();
         }
 
+        public override void SetRaiseState()
+        {
+            base.SetRaiseState();
+            PendingWeapon = Weapon;
+            BringupWeapon();
+        }
+
         public void AddToYaw(double delta)
         {
             AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
@@ -698,6 +705,8 @@ namespace Helion.World.Entities.Players
 
             if (source != null)
                 m_killer = source.Owner ?? source;
+            if (m_killer == this)
+                m_killer = null;
 
             ForceLowerWeapon(true);
         }

@@ -285,6 +285,10 @@ namespace Helion.World.Impl.SinglePlayer
                 case CheatType.Fly:
                     Player.Flags.NoGravity = cheatEvent.Activated;
                     break;
+                case CheatType.Ressurect:
+                    if (Player.IsDead)
+                        Player.SetRaiseState();
+                    break;
                 case CheatType.God:
                     Player.Flags.Invulnerable = cheatEvent.Activated;
                     break;

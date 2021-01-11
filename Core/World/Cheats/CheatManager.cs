@@ -16,6 +16,7 @@ namespace Helion.World.Cheats
             new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
             new ExactMatchCheat("God mode", "iddqd", "god", CheatType.God),
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
+            new ExactMatchCheat("Resurrect", "resurrect", "resurrect", CheatType.Ressurect, false),
             new ExactMatchCheat("Ammo (no keys) added", "idfa", "idfa", CheatType.GiveAllNoKeys),
             new ExactMatchCheat("Very happy ammo added", "idkfa", "idkfa", CheatType.GiveAll),
         };
@@ -47,7 +48,7 @@ namespace Helion.World.Cheats
             if (cheat.IsToggleCheat)
                 cheat.Activated = !cheat.Activated;
 
-            Log.Warn("{0} cheat: {1}", cheat.Activated ? "Activated" : "Deactivated", cheat.CheatName);
+            Log.Warn("{0} cheat: {1}", cheat.Activated || !cheat.IsToggleCheat ? "Activated" : "Deactivated", cheat.CheatName);
             CheatActivationChanged?.Invoke(this, cheat);
         }
 
