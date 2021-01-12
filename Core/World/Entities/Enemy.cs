@@ -279,7 +279,7 @@ namespace Helion.World.Entities
 
             double distance = Position.ApproximateDistance2D(entity.Position);
 
-            if (distance >= Properties.MeleeRange + Radius)
+            if (distance >= Properties.MeleeRange + entity.Radius)
                 return false;
 
             if (!Flags.NoVerticalMeleeRange && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))
