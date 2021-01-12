@@ -11,6 +11,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
@@ -319,7 +320,7 @@ namespace Helion.World.Entities.Players
         private void SetBob()
         {
             m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Hud.MoveBob;
-            if (Weapon != null && Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
+            if (Weapon != null && Weapon.FrameState.IsState(FrameStateLabel.Ready))
             {
                 double value = 0.1 * World.LevelTime;
                 WeaponOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
@@ -550,11 +551,11 @@ namespace Helion.World.Entities.Players
 
         public bool FireWeapon()
         {
-            if (!CheckAmmo() || PendingWeapon != null)
+            if (!CheckAmmo() || PendingWeapon != null ||Weapon == null || !Weapon.FrameState.IsState(FrameStateLabel.Ready))
                 return false;
 
             SetWeaponTop();
-            Weapon?.RequestFire();
+            Weapon.RequestFire();
             return true;
         }
 
@@ -590,7 +591,7 @@ namespace Helion.World.Entities.Players
             if (Weapon == null)
                 return;
 
-            if (Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
+            if (Weapon.FrameState.IsState(FrameStateLabel.Ready))
                 ForceLowerWeapon(setTop);
         }
 
