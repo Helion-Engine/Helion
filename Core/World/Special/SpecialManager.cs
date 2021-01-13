@@ -71,13 +71,16 @@ namespace Helion.World.Special
             else
                 specialActivateSuccess = HandleDefault(args, special, m_world);
 
-            if (specialActivateSuccess && ShouldCreateSwitchSpecial(args))
+            if (specialActivateSuccess)
             {
-                AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial, 
-                    GetSwitchType(args.ActivateLineSpecial.Special)));
-            }
+                if (ShouldCreateSwitchSpecial(args))
+                {
+                    AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial,
+                        GetSwitchType(args.ActivateLineSpecial.Special)));
+                }
 
-            args.ActivateLineSpecial.Activated = true;
+                args.ActivateLineSpecial.Activated = true;
+            }
 
             return specialActivateSuccess;
         }
