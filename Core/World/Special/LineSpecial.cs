@@ -106,7 +106,7 @@ namespace Helion.World.Special
                 else if (context == ActivationContext.UseLine)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
                 else if (context == ActivationContext.ProjectileHitLine)
-                    contextSuccess = flags.ActivationType == ActivationType.ProjectileHitsWall;
+                    contextSuccess = flags.ActivationType == ActivationType.ProjectileHitsWall || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
                 else if (context == ActivationContext.PlayerPushesWall)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerPushesWall;
 

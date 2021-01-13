@@ -528,11 +528,6 @@ namespace Helion.World
             if (bi != null)
             {
                 Line? line = bi.Value.Line;
-                if (line != null && line.HasSpecial && CanActivate(shooter, line, ActivationContext.ProjectileHitLine))
-                {
-                    var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, line);
-                    EntityActivatedSpecial?.Invoke(this, args);
-                }
 
                 if (damage > 0)
                 {
@@ -566,6 +561,12 @@ namespace Helion.World
 
                 if (bi.Line != null)
                 {
+                    if (bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.ProjectileHitLine))
+                    {
+                        var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, bi.Line);
+                        EntityActivatedSpecial?.Invoke(this, args);
+                    }
+
                     intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
 
                     if (bi.Line.Back == null)
