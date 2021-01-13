@@ -2,11 +2,14 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 using Helion.World.Special;
+using NLog;
 
 namespace Helion.Maps.Specials.Vanilla
 {
     public static class VanillaLineSpecTranslator
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, byte tag,
             ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility)
         {
@@ -14,7 +17,6 @@ namespace Helion.Maps.Specials.Vanilla
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);
 
-            // TODO handle keys
             switch (type)
             {
                 case VanillaLineSpecialType.W1_Teleport:
@@ -47,6 +49,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.S1_OpenDoorFastStay:
                 case VanillaLineSpecialType.S1_OpenDoorStay:
                 case VanillaLineSpecialType.W1_DoorOpenStay:
+                case VanillaLineSpecialType.WR_OpenDoorFastStayOpen:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     return ZDoomLineSpecialType.DoorOpenStay;
@@ -317,6 +320,13 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.S_EndLevelSecret:
                 case VanillaLineSpecialType.W_EndLevelSecret:
                     return ZDoomLineSpecialType.ExitSecret;
+
+                case VanillaLineSpecialType.None:
+                    break;
+
+                default:
+                    Log.Error($"Missing type in VanillaLineSpecTranslator: {type}");
+                    break;
             }
 
             return ZDoomLineSpecialType.None;
@@ -655,154 +665,154 @@ namespace Helion.Maps.Specials.Vanilla
         {
             switch (type)
             {
-            case VanillaLineSpecialType.DR_DoorOpenClose:
-            case VanillaLineSpecialType.S1_RaiseStairs8:
-            case VanillaLineSpecialType.S1_Donut:
-            case VanillaLineSpecialType.S_EndLevel:
-            case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
-            case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
-            case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
-            case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigherChangeTexture:
-            case VanillaLineSpecialType.S1_LowerLiftRaise:
-            case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
-            case VanillaLineSpecialType.DR_OpenBlueKeyClose:
-            case VanillaLineSpecialType.DR_OpenYellowKeyClose:
-            case VanillaLineSpecialType.DR_OpenRedKeyClose:
-            case VanillaLineSpecialType.D1_OpenDoorStay:
-            case VanillaLineSpecialType.D1_OpenBlueKeyStay:
-            case VanillaLineSpecialType.D1_OpenRedKeyStay:
-            case VanillaLineSpecialType.D1_OpenYellowKeyStay:
-            case VanillaLineSpecialType.S1_OpenDoorClose:
-            case VanillaLineSpecialType.SR_CloseDoor:
-            case VanillaLineSpecialType.SR_LowerCeilingToFloor:
-            case VanillaLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
-            case VanillaLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
-            case VanillaLineSpecialType.S1_CloseDoor:
-            case VanillaLineSpecialType.S_EndLevelSecret:
-            case VanillaLineSpecialType.S1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-            case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
-            case VanillaLineSpecialType.SR_OpenDoorStay:
-            case VanillaLineSpecialType.SR_LowerLiftRaise:
-            case VanillaLineSpecialType.SR_OpenDoorClose:
-            case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-            case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-            case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
-            case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
-            case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
-            case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
-            case VanillaLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
-            case VanillaLineSpecialType.SR_OpenBlueKeyFastStay:
-            case VanillaLineSpecialType.S1_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.S1_LowerFloorToHighestAdjacentFloor:
-            case VanillaLineSpecialType.S1_OpenDoorStay:
-            case VanillaLineSpecialType.S1_OpenDoorFastClose:
-            case VanillaLineSpecialType.S1_OpenDoorFastStay:
-            case VanillaLineSpecialType.S1_CloseDoorFast:
-            case VanillaLineSpecialType.SR_OpenDoorFastClose:
-            case VanillaLineSpecialType.SR_OpenDoorFastStay:
-            case VanillaLineSpecialType.SR_CloseDoorFast:
-            case VanillaLineSpecialType.DR_OpenDoorFastClose:
-            case VanillaLineSpecialType.D1_OpenDoorFastStay:
-            case VanillaLineSpecialType.S1_RaiseFloorToNextHigherFloor:
-            case VanillaLineSpecialType.S1_LowerLiftFastRaise:
-            case VanillaLineSpecialType.SR_LowerLiftFastRaise:
-            case VanillaLineSpecialType.S1_RaiseStairsFast:
-            case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
-            case VanillaLineSpecialType.S1_OpenBlueKeyFastStay:
-            case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
-            case VanillaLineSpecialType.S1_OpenRedKeyFastStay:
-            case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
-            case VanillaLineSpecialType.S1_OpenYellowKeyFastStay:
-            case VanillaLineSpecialType.SR_LightOnMaxBrightness:
-            case VanillaLineSpecialType.SR_LightOffMinBrightness:
-            case VanillaLineSpecialType.S1_RaiseFloor512:
-                return ActivationType.PlayerUse;
+                case VanillaLineSpecialType.DR_DoorOpenClose:
+                case VanillaLineSpecialType.S1_RaiseStairs8:
+                case VanillaLineSpecialType.S1_Donut:
+                case VanillaLineSpecialType.S_EndLevel:
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
+                case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VanillaLineSpecialType.S1_LowerLiftRaise:
+                case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.DR_OpenBlueKeyClose:
+                case VanillaLineSpecialType.DR_OpenYellowKeyClose:
+                case VanillaLineSpecialType.DR_OpenRedKeyClose:
+                case VanillaLineSpecialType.D1_OpenDoorStay:
+                case VanillaLineSpecialType.D1_OpenBlueKeyStay:
+                case VanillaLineSpecialType.D1_OpenRedKeyStay:
+                case VanillaLineSpecialType.D1_OpenYellowKeyStay:
+                case VanillaLineSpecialType.S1_OpenDoorClose:
+                case VanillaLineSpecialType.SR_CloseDoor:
+                case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.S1_CloseDoor:
+                case VanillaLineSpecialType.S_EndLevelSecret:
+                case VanillaLineSpecialType.S1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.SR_OpenDoorStay:
+                case VanillaLineSpecialType.SR_LowerLiftRaise:
+                case VanillaLineSpecialType.SR_OpenDoorClose:
+                case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
+                case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_OpenBlueKeyFastStay:
+                case VanillaLineSpecialType.S1_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_OpenDoorStay:
+                case VanillaLineSpecialType.S1_OpenDoorFastClose:
+                case VanillaLineSpecialType.S1_OpenDoorFastStay:
+                case VanillaLineSpecialType.S1_CloseDoorFast:
+                case VanillaLineSpecialType.SR_OpenDoorFastClose:
+                case VanillaLineSpecialType.SR_OpenDoorFastStay:
+                case VanillaLineSpecialType.SR_CloseDoorFast:
+                case VanillaLineSpecialType.DR_OpenDoorFastClose:
+                case VanillaLineSpecialType.D1_OpenDoorFastStay:
+                case VanillaLineSpecialType.S1_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.S1_LowerLiftFastRaise:
+                case VanillaLineSpecialType.SR_LowerLiftFastRaise:
+                case VanillaLineSpecialType.S1_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.S1_OpenBlueKeyFastStay:
+                case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
+                case VanillaLineSpecialType.S1_OpenRedKeyFastStay:
+                case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
+                case VanillaLineSpecialType.S1_OpenYellowKeyFastStay:
+                case VanillaLineSpecialType.SR_LightOnMaxBrightness:
+                case VanillaLineSpecialType.SR_LightOffMinBrightness:
+                case VanillaLineSpecialType.S1_RaiseFloor512:
+                    return ActivationType.PlayerUse;
 
-            case VanillaLineSpecialType.W1_DoorOpenStay:
-            case VanillaLineSpecialType.W1_CloseDoor:
-            case VanillaLineSpecialType.W1_DoorOpenClose:
-            case VanillaLineSpecialType.W1_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.W1_FastCrusherCeiling:
-            case VanillaLineSpecialType.W1_RaiseStairs8:
-            case VanillaLineSpecialType.W1_LowerLiftRaise:
-            case VanillaLineSpecialType.W1_LightLevelMatchBrightness:
-            case VanillaLineSpecialType.W1_LightOnMaxBrightness:
-            case VanillaLineSpecialType.W1_CloseDoorThirtySeconds:
-            case VanillaLineSpecialType.W1_BlinkLightStartEveryOneSecond:
-            case VanillaLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
-            case VanillaLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
-            case VanillaLineSpecialType.W1_SlowCrusherCeiling:
-            case VanillaLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
-            case VanillaLineSpecialType.W1_LightOffMinBrightness:
-            case VanillaLineSpecialType.W1_LowerFloorEightAboveHighestAdjacentFloor:
-            case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
-            case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
-            case VanillaLineSpecialType.W1_Teleport:
-            case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
-            case VanillaLineSpecialType.W1_LowerCeilingToFloor:
-            case VanillaLineSpecialType.W1_LowerCeilingToEightAboveFloor:
-            case VanillaLineSpecialType.W_EndLevel:
-            case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
-            case VanillaLineSpecialType.W1_StopMovingFloor:
-            case VanillaLineSpecialType.W1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-            case VanillaLineSpecialType.W1_StopCrusherCeiling:
-            case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
-            case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
-            case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
-            case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
-            case VanillaLineSpecialType.WR_StopCrusherCeiling:
-            case VanillaLineSpecialType.WR_CloseDoor:
-            case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
-            case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
-            case VanillaLineSpecialType.WR_LightOffMinBrightness:
-            case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:
-            case VanillaLineSpecialType.WR_LightOnMaxBrightness:
-            case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
-            case VanillaLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
-            case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
-            case VanillaLineSpecialType.WR_OpenDoorStay:
-            case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
-            case VanillaLineSpecialType.WR_LowerLiftRaise:
-            case VanillaLineSpecialType.WR_StopMovingFloor:
-            case VanillaLineSpecialType.WR_OpenDoorClose:
-            case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
-            case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
-            case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-            case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
-            case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
-            case VanillaLineSpecialType.WR_Teleport:
-            case VanillaLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
-            case VanillaLineSpecialType.W1_RaiseStairsFast:
-            case VanillaLineSpecialType.W1_LightMatchDimmestAdjacent:
-            case VanillaLineSpecialType.WR_OpenDoorFastClose:
-            case VanillaLineSpecialType.WR_OpenDoorFastStayOpen:
-            case VanillaLineSpecialType.WR_CloseDoorFast:
-            case VanillaLineSpecialType.W1_OpenDoorFastClose:
-            case VanillaLineSpecialType.W1_OpenDoorFastStay:
-            case VanillaLineSpecialType.W1_CloseDoorFast:
-            case VanillaLineSpecialType.WR_LowerLiftFastRaise:
-            case VanillaLineSpecialType.W1_LowerLiftFastRaise:
-            case VanillaLineSpecialType.W_EndLevelSecret:
-            case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
-            case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
-            case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
-            case VanillaLineSpecialType.W1_QuietCrusherCeilingFastDamage:
-            case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
-                return ActivationType.PlayerLineCross;
+                case VanillaLineSpecialType.W1_DoorOpenStay:
+                case VanillaLineSpecialType.W1_CloseDoor:
+                case VanillaLineSpecialType.W1_DoorOpenClose:
+                case VanillaLineSpecialType.W1_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.W1_FastCrusherCeiling:
+                case VanillaLineSpecialType.W1_RaiseStairs8:
+                case VanillaLineSpecialType.W1_LowerLiftRaise:
+                case VanillaLineSpecialType.W1_LightLevelMatchBrightness:
+                case VanillaLineSpecialType.W1_LightOnMaxBrightness:
+                case VanillaLineSpecialType.W1_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.W1_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VanillaLineSpecialType.W1_SlowCrusherCeiling:
+                case VanillaLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.W1_LightOffMinBrightness:
+                case VanillaLineSpecialType.W1_LowerFloorEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.W1_Teleport:
+                case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
+                case VanillaLineSpecialType.W1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.W1_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.W_EndLevel:
+                case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.W1_StopMovingFloor:
+                case VanillaLineSpecialType.W1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.W1_StopCrusherCeiling:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.WR_StopCrusherCeiling:
+                case VanillaLineSpecialType.WR_CloseDoor:
+                case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
+                case VanillaLineSpecialType.WR_LightOffMinBrightness:
+                case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:
+                case VanillaLineSpecialType.WR_LightOnMaxBrightness:
+                case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.WR_OpenDoorStay:
+                case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.WR_LowerLiftRaise:
+                case VanillaLineSpecialType.WR_StopMovingFloor:
+                case VanillaLineSpecialType.WR_OpenDoorClose:
+                case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
+                case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
+                case VanillaLineSpecialType.WR_Teleport:
+                case VanillaLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.W1_RaiseStairsFast:
+                case VanillaLineSpecialType.W1_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.WR_OpenDoorFastClose:
+                case VanillaLineSpecialType.WR_OpenDoorFastStayOpen:
+                case VanillaLineSpecialType.WR_CloseDoorFast:
+                case VanillaLineSpecialType.W1_OpenDoorFastClose:
+                case VanillaLineSpecialType.W1_OpenDoorFastStay:
+                case VanillaLineSpecialType.W1_CloseDoorFast:
+                case VanillaLineSpecialType.WR_LowerLiftFastRaise:
+                case VanillaLineSpecialType.W1_LowerLiftFastRaise:
+                case VanillaLineSpecialType.W_EndLevelSecret:
+                case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.W1_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
+                    return ActivationType.PlayerLineCross;
 
-            case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.GR_OpenDoorStayOpen:
-            case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
-                return ActivationType.ProjectileHitsWall;
+                case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.GR_OpenDoorStayOpen:
+                case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
+                    return ActivationType.ProjectileHitsWall;
 
-            case VanillaLineSpecialType.ScrollTextureLeft:
-                return ActivationType.LevelStart;
+                case VanillaLineSpecialType.ScrollTextureLeft:
+                    return ActivationType.LevelStart;
 
-            case VanillaLineSpecialType.W1_MonsterTeleport:
-            case VanillaLineSpecialType.WR_MonsterTeleport:
-                return ActivationType.MonsterLineCross;
+                case VanillaLineSpecialType.W1_MonsterTeleport:
+                case VanillaLineSpecialType.WR_MonsterTeleport:
+                    return ActivationType.MonsterLineCross;
             }
 
             return ActivationType.None;
@@ -812,69 +822,69 @@ namespace Helion.Maps.Specials.Vanilla
         {
             switch (type)
             {
-            case VanillaLineSpecialType.DR_DoorOpenClose:
-            case VanillaLineSpecialType.DR_OpenBlueKeyClose:
-            case VanillaLineSpecialType.DR_OpenYellowKeyClose:
-            case VanillaLineSpecialType.DR_OpenRedKeyClose:
-            case VanillaLineSpecialType.SR_CloseDoor:
-            case VanillaLineSpecialType.SR_LowerCeilingToFloor:
-            case VanillaLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
-            case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
-            case VanillaLineSpecialType.SR_OpenDoorStay:
-            case VanillaLineSpecialType.SR_LowerLiftRaise:
-            case VanillaLineSpecialType.SR_OpenDoorClose:
-            case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-            case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-            case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
-            case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
-            case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
-            case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
-            case VanillaLineSpecialType.SR_OpenBlueKeyFastStay:
-            case VanillaLineSpecialType.SR_OpenDoorFastClose:
-            case VanillaLineSpecialType.SR_OpenDoorFastStay:
-            case VanillaLineSpecialType.SR_CloseDoorFast:
-            case VanillaLineSpecialType.DR_OpenDoorFastClose:
-            case VanillaLineSpecialType.SR_LowerLiftFastRaise:
-            case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
-            case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
-            case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
-            case VanillaLineSpecialType.SR_LightOnMaxBrightness:
-            case VanillaLineSpecialType.SR_LightOffMinBrightness:
-            case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
-            case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
-            case VanillaLineSpecialType.WR_StopCrusherCeiling:
-            case VanillaLineSpecialType.WR_CloseDoor:
-            case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
-            case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
-            case VanillaLineSpecialType.WR_LightOffMinBrightness:
-            case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:
-            case VanillaLineSpecialType.WR_LightOnMaxBrightness:
-            case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
-            case VanillaLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
-            case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
-            case VanillaLineSpecialType.WR_OpenDoorStay:
-            case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
-            case VanillaLineSpecialType.WR_LowerLiftRaise:
-            case VanillaLineSpecialType.WR_StopMovingFloor:
-            case VanillaLineSpecialType.WR_OpenDoorClose:
-            case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
-            case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
-            case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
-            case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-            case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
-            case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
-            case VanillaLineSpecialType.WR_Teleport:
-            case VanillaLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
-            case VanillaLineSpecialType.WR_OpenDoorFastClose:
-            case VanillaLineSpecialType.WR_OpenDoorFastStayOpen:
-            case VanillaLineSpecialType.WR_CloseDoorFast:
-            case VanillaLineSpecialType.WR_LowerLiftFastRaise:
-            case VanillaLineSpecialType.WR_MonsterTeleport:
-            case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
-            case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
-            case VanillaLineSpecialType.GR_OpenDoorStayOpen:
-                return true;
+                case VanillaLineSpecialType.DR_DoorOpenClose:
+                case VanillaLineSpecialType.DR_OpenBlueKeyClose:
+                case VanillaLineSpecialType.DR_OpenYellowKeyClose:
+                case VanillaLineSpecialType.DR_OpenRedKeyClose:
+                case VanillaLineSpecialType.SR_CloseDoor:
+                case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.SR_OpenDoorStay:
+                case VanillaLineSpecialType.SR_LowerLiftRaise:
+                case VanillaLineSpecialType.SR_OpenDoorClose:
+                case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
+                case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_OpenBlueKeyFastStay:
+                case VanillaLineSpecialType.SR_OpenDoorFastClose:
+                case VanillaLineSpecialType.SR_OpenDoorFastStay:
+                case VanillaLineSpecialType.SR_CloseDoorFast:
+                case VanillaLineSpecialType.DR_OpenDoorFastClose:
+                case VanillaLineSpecialType.SR_LowerLiftFastRaise:
+                case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
+                case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
+                case VanillaLineSpecialType.SR_LightOnMaxBrightness:
+                case VanillaLineSpecialType.SR_LightOffMinBrightness:
+                case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.WR_StopCrusherCeiling:
+                case VanillaLineSpecialType.WR_CloseDoor:
+                case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
+                case VanillaLineSpecialType.WR_LightOffMinBrightness:
+                case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:
+                case VanillaLineSpecialType.WR_LightOnMaxBrightness:
+                case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
+                case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.WR_OpenDoorStay:
+                case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.WR_LowerLiftRaise:
+                case VanillaLineSpecialType.WR_StopMovingFloor:
+                case VanillaLineSpecialType.WR_OpenDoorClose:
+                case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
+                case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
+                case VanillaLineSpecialType.WR_Teleport:
+                case VanillaLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.WR_OpenDoorFastClose:
+                case VanillaLineSpecialType.WR_OpenDoorFastStayOpen:
+                case VanillaLineSpecialType.WR_CloseDoorFast:
+                case VanillaLineSpecialType.WR_LowerLiftFastRaise:
+                case VanillaLineSpecialType.WR_MonsterTeleport:
+                case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.GR_OpenDoorStayOpen:
+                    return true;
             }
 
             return false;
