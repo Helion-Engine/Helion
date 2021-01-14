@@ -699,6 +699,9 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.FloorRaiseByTexture:
                     return CreateFloorRaiseByTextureSpecial(sector, line.Args.Arg1 * SpeedFactor);
+
+                case ZDoomLineSpecialType.CeilingRaiseToHighest:
+                    return CreateCeilingRaiseSpecial(sector, SectorDest.HighestAdjacentCeiling, line.Args.Arg1 * SpeedFactor);
             }
 
             return null;

@@ -249,6 +249,7 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.CeilingCrushAndRaiseDist:
                 case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
+                case ZDoomLineSpecialType.CeilingRaiseToHighest:
                     return true;
             }
 
