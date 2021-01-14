@@ -141,7 +141,7 @@ namespace Helion.Resources.Definitions.MapInfo
                 else if (item == AddDefaultMapName)
                     ParseMapDef(parser, false, MapInfo.DefaultMap);
                 else if (item == MapName)
-                    MapInfo.AddMap(ParseMapDef(parser, true));
+                    MapInfo.AddMap(ParseMapDef(parser, true, (MapInfoDef)MapInfo.DefaultMap.Clone()));
             }
         }
 
@@ -162,7 +162,14 @@ namespace Helion.Resources.Definitions.MapInfo
 
                 // Have to check current line for nicename thanks to legacy mapinfo
                 if (defLine == parser.GetCurrentLine())
+                {
                     mapDef.NiceName = parser.ConsumeString();
+                    if (mapDef.NiceName.StartsWith('$'))
+                    {
+                        mapDef.LookupName = mapDef.NiceName;
+                        mapDef.NiceName = string.Empty;
+                    }
+                }
             }
 
             ConsumeBrace(parser, true);

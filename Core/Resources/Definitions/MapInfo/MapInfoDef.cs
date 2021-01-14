@@ -2,7 +2,7 @@
 
 namespace Helion.Resources.Definitions.MapInfo
 {
-    public class MapInfoDef
+    public class MapInfoDef : ICloneable
     {
         public string Map { get; set; } = string.Empty;
         public string MapName { get; set; } = string.Empty;
@@ -21,6 +21,30 @@ namespace Helion.Resources.Definitions.MapInfo
         public MapSpecial MapSpecial { get; set; }
         public MapSpecialAction MapSpecialAction { get; set; }
         public MapOptions MapOptions { get; set; }
+
+        public object Clone()
+        {
+            return new MapInfoDef
+            {
+                Map = Map,
+                MapName = MapName,
+                TitlePatch = TitlePatch,
+                Next = Next,
+                SecretNext = SecretNext,
+                Music = Music,
+                LookupName = LookupName,
+                LevelNumber = LevelNumber,
+                Cluster = Cluster,
+                ParTime = ParTime,
+                SuckTime = SuckTime,
+                MapSpecial = MapSpecial,
+                MapSpecialAction = MapSpecialAction,
+                MapOptions = MapOptions,
+
+                Sky1 = (SkyDef)Sky1.Clone(),
+                Sky2 = (SkyDef)Sky2.Clone()
+            };
+        }
 
         public override bool Equals(object? obj)
         {
