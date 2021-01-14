@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Specials;
@@ -42,7 +41,7 @@ namespace Helion.World.Special
         private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
         private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
         private static SectorSoundData GetCrusherSound(bool repeat = true) => new SectorSoundData(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
-        private static SectorSoundData GetSilentCrusherSound(bool repeat = true) => new SectorSoundData(null, null, Constants.PlatStopSound);
+        private static SectorSoundData GetSilentCrusherSound() => new SectorSoundData(null, null, Constants.PlatStopSound);
 
         public SpecialManager(WorldBase world, DefinitionEntries definition, IRandom random)
         {
@@ -119,8 +118,6 @@ namespace Helion.World.Special
         {
             if (m_destroyedMoveSpecials.Count > 0)
             {
-                // TODO: Encapsulate in a 'reset interpolation' function?
-                // As we need to also update the Plane (if present) as well.
                 for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
                     m_destroyedMoveSpecials[i].FinalizeDestroy();
 
