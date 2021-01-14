@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using Helion.Bsp;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen;
 using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
-using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Util.Assertion;
@@ -167,9 +165,13 @@ namespace Helion.World.Geometry.Builder
 
                 Seg2D seg = new Seg2D(hexenLine.Start.Position, hexenLine.End.Position);
                 LineFlags flags = new LineFlags(hexenLine.Flags);
-                LineSpecial special = new LineSpecial(hexenLine.LineType, LineActivationType.Any, LineSpecial.GetCompatibility(hexenLine));
-                SpecialArgs specialArgs = new SpecialArgs(hexenLine.Args);
+                LineSpecial special;
+                if (hexenLine.LineType == ZDoomLineSpecialType.None)
+                    special = LineSpecial.Default;
+                else
+                    special = new LineSpecial(hexenLine.LineType, LineActivationType.Any, LineSpecial.GetCompatibility(hexenLine));
 
+                SpecialArgs specialArgs = new SpecialArgs(hexenLine.Args);
                 LineSpecial.ValidateActivationFlags(special.LineSpecialType, flags);
                 
                 Line line = new Line(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);

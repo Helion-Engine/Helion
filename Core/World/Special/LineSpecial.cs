@@ -16,6 +16,8 @@ namespace Helion.World.Special
     /// </summary>
     public class LineSpecial
     {
+        public static LineSpecial Default { get; private set; } = new LineSpecial(ZDoomLineSpecialType.None);
+
         public const int NoLock = 0;
 
         public readonly ZDoomLineSpecialType LineSpecialType;
@@ -33,7 +35,12 @@ namespace Helion.World.Special
         public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility? compatibility)
         {
             LineSpecialType = type;
-            LineSpecialCompatibility = compatibility;
+
+            if (compatibility == null)
+                LineSpecialCompatibility = LineSpecialCompatibility.Default;
+            else
+                LineSpecialCompatibility = compatibility;
+
             m_lineActivationType = lineActivationType;
             m_moveSpecial = SetMoveSpecial();
             m_sectorStopMoveSpecial = SetSectorStopSpecial();
@@ -240,8 +247,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.StairsBuildUpDoomCrush:
                 case ZDoomLineSpecialType.DoorLockedRaise:
                 case ZDoomLineSpecialType.CeilingCrushAndRaiseDist:
+                case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
-                return true;
+                    return true;
             }
 
             return false;
