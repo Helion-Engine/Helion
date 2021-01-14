@@ -753,7 +753,6 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_LowerFloorEightAboveHighestAdjacentFloor:
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
-                case VanillaLineSpecialType.W1_Teleport:
                 case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
                 case VanillaLineSpecialType.W1_LowerCeilingToFloor:
                 case VanillaLineSpecialType.W1_LowerCeilingToEightAboveFloor:
@@ -787,7 +786,6 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
-                case VanillaLineSpecialType.WR_Teleport:
                 case VanillaLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
                 case VanillaLineSpecialType.W1_RaiseStairsFast:
                 case VanillaLineSpecialType.W1_LightMatchDimmestAdjacent:
@@ -814,6 +812,10 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.ScrollTextureLeft:
                     return ActivationType.LevelStart;
+
+                case VanillaLineSpecialType.W1_Teleport:
+                case VanillaLineSpecialType.WR_Teleport:
+                    return ActivationType.PlayerOrMonsterLineCross;
 
                 case VanillaLineSpecialType.W1_MonsterTeleport:
                 case VanillaLineSpecialType.WR_MonsterTeleport:

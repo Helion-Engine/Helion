@@ -99,7 +99,7 @@ namespace Helion.World.Special
                     return false;
 
                 if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.MonsterLineCross;
+                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
                 else if (context == ActivationContext.UseLine)
                     return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
                         line.Special.MonsterCanUse();
@@ -109,7 +109,7 @@ namespace Helion.World.Special
                 bool contextSuccess = false;
 
                 if (context == ActivationContext.CrossLine)
-                    contextSuccess = flags.ActivationType == ActivationType.PlayerLineCross;
+                    contextSuccess = flags.ActivationType == ActivationType.PlayerLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
                 else if (context == ActivationContext.UseLine)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
                 else if (context == ActivationContext.ProjectileHitLine)
