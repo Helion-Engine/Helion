@@ -202,14 +202,17 @@ namespace Helion.World
             }
             else if (WorldState == WorldState.Normal)
             {
-                EntityManager.Entities.ForEach(entity =>
+                foreach (Entity entity in EntityManager.Entities)
                 {
                     entity.Tick();
 
                     // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
                     if (!entity.IsDisposed)
                         PhysicsManager.Move(entity);
-                });
+
+                    if (WorldState == WorldState.Exit)
+                        return;
+                }
 
                 foreach (Player player in EntityManager.Players)
                 {

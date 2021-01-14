@@ -4,7 +4,6 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
-using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
