@@ -21,6 +21,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Geometry;
 using Helion.Util.Time;
+using Helion.World.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -122,7 +123,9 @@ namespace Helion.Client
             }
             else if (m_commandLineArgs.Warp != null)
             {
-                Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+                if (MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
+                    out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+                    Loadmap(mapInfoDef.MapName);
             }
             else
             {
@@ -200,13 +203,6 @@ namespace Helion.Client
                 ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
                 m_layerManager.Add(consoleLayer);
             }
-        }
-
-        private string GetWarpMapFormat(int level)
-        {
-            bool usesMap = m_archiveCollection.FindMap("MAP01") != null;
-            string levelDigits = level.ToString().PadLeft(2, '0');
-            return usesMap ? $"MAP{levelDigits}" : $"E{levelDigits[0]}M{levelDigits[1]}";
         }
 
         private void HandleInput()
