@@ -8,7 +8,6 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
@@ -20,7 +19,11 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Util;
 using NLog;
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers
@@ -227,15 +230,20 @@ namespace Helion.Layer.WorldLayers
                     break;
 
                 case LevelChangeType.SpecificLevel:
-                    // TODO: Need to figure out this ExMx situation...
-                    //string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
-                    //LoadMap($"MAP{levelNumber}", false);
+                    ChangeLevel(e);
                     break;
 
                 case LevelChangeType.Reset:
                     LoadMap(CurrentMap, false);
                     break;
             }
+        }
+
+        private void ChangeLevel(LevelChangeEvent e)
+        {
+            if (MapWarp.GetMap(e.LevelNumber, ArchiveCollection.Definitions.MapInfoDefinition.MapInfo, 
+                out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+                LoadMap(mapInfoDef, false);
         }
 
         private MapInfoDef? GetNextLevel(MapInfoDef mapDef) => ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);

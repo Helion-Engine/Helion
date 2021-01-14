@@ -13,16 +13,13 @@
 
         public bool IsMatch(string str)
         {
-            if (PartialMatch(str) && str.Length == Code.Length + 2)
+            if (PartialMatch(str) && str.Length == Code.Length + 2 && char.IsDigit(str[^1]) && char.IsDigit(str[^2]))
             {
-                if (char.IsDigit(str[str.Length - 1]) && char.IsDigit(str[str.Length - 2]))
+                string digits = str.Substring(str.Length - 2, 2);
+                if (int.TryParse(digits, out int levelNumber))
                 {
-                    string digits = str.Substring(str.Length - 2, 2);
-                    if (int.TryParse(digits, out int levelNumber))
-                    {
-                        LevelNumber = levelNumber;
-                        return true;
-                    }
+                    LevelNumber = levelNumber;
+                    return true;
                 }
             }
 
