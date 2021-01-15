@@ -170,6 +170,14 @@ namespace Helion.World.Entities.Inventories
 
         public bool OwnsWeapon(CIString name) => GetWeapon(name) != null;
 
+        public List<Weapon> GetWeapons()
+        {
+            List<Weapon> allWeapons = new List<Weapon>();
+            foreach (var weapons in m_weaponSlots.Values)
+                allWeapons.AddRange(weapons.Values);
+            return allWeapons;
+        }
+
         public Weapon? GetWeapon(CIString name)
         {
             foreach (var weapons in m_weaponSlots.Values)
@@ -182,14 +190,6 @@ namespace Helion.World.Entities.Inventories
             }
 
             return null;
-        }
-
-        public List<Weapon> GetWeapons()
-        {
-            List<Weapon> allWeapons = new List<Weapon>();
-            foreach (var weapons in m_weaponSlots.Values)
-                allWeapons.AddRange(weapons.Values);
-            return allWeapons;
         }
 
         public Weapon? GetWeapon(Player player, int slot, int subslot = -1)

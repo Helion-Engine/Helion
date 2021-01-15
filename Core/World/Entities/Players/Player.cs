@@ -337,19 +337,9 @@ namespace Helion.World.Entities.Players
             bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
             if (success)
-            {
                 CheckAutoSwitchWeapon(definition, ownedWeapon);
-            }
             else
-            {
-                bool isAmmo = IsAmmo(definition);
-                int count = Inventory.Amount(definition.Name);
                 success = GiveItemBase(definition, flags);
-                if (success && IsWeapon(definition))
-                    CheckAutoSwitchWeapon(definition, ownedWeapon);
-                else if (success && isAmmo)
-                    CheckAutoSwitchAmmo(definition, count);
-            }
 
             if (success && pickupFlash)
             {
@@ -365,6 +355,7 @@ namespace Helion.World.Entities.Players
             var invData = definition.Properties.Inventory;
             bool isHealth = definition.IsType(Inventory.HealthClassName);
             bool isArmor = definition.IsType(Inventory.ArmorClassName);
+            bool isAmmo = IsAmmo(definition);
 
             if (isHealth)
             {
@@ -382,7 +373,7 @@ namespace Helion.World.Entities.Players
             {
                 EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
                 if (ammoDef != null)
-                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
+                    return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
 
                 return false;
             }
@@ -394,7 +385,19 @@ namespace Helion.World.Entities.Players
                 return true;
             }
 
+            if (isAmmo)
+                return AddAmmo(definition, invData.Amount, flags);
+
             return Inventory.Add(definition, invData.Amount, flags);
+        }
+
+        private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags)
+        {
+            int oldCount = Inventory.Amount(ammoDef.Name);
+            bool success = Inventory.Add(ammoDef, amount, flags);
+            if (success)
+                CheckAutoSwitchAmmo(ammoDef, oldCount);
+            return success;
         }
 
         public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
