@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
@@ -10,36 +6,45 @@ namespace Helion.Audio.Impl.Components
 {
     public class OpenALDevice : IDisposable
     {
-        public readonly string DeviceName;
-        internal readonly ALDevice Device;
+        public string DeviceName { get; private set; }
+        public string OpenALDeviceName { get; private set; }
+        internal ALDevice Device;
 
-        public OpenALDevice(Config config)
+        public OpenALDevice()
         {
-            DeviceName = FindDeviceName(config);
-            Device = ALC.OpenDevice(DeviceName);
-
-            if (Device == ALDevice.Null)
-                throw new Exception($"Unable to open device: {DeviceName}");
+            DeviceName = string.Empty;
+            CreateDefault();
         }
 
-        private static string FindDeviceName(Config config)
+        public OpenALDevice(string deviceName)
         {
-            List<string> devices = ALC.GetStringList(GetEnumerationStringList.DeviceSpecifier).ToList();
+            DeviceName = deviceName;
 
-            // If the user requests something specific, try to give it to them.
-            if (!config.Audio.Device.Value.Empty())
-                foreach (string name in devices)
-                    if (name.Contains(config.Audio.Device))
-                        return name;
+            if (!string.IsNullOrEmpty(deviceName))
+            {
+                if (deviceName.Equals(IAudioSystem.DefaultAudioDevice, StringComparison.OrdinalIgnoreCase))
+                {
+                    CreateDefault();
+                }
+                else
+                {
+                    Device = ALC.OpenDevice(deviceName);
+                    OpenALDeviceName = ALC.GetString(Device, AlcGetString.AllDevicesSpecifier);
+                }
+            }
 
-            // If we can't find the one we want, or if we don't care, try to
-            // find the best one on the system. Usually this is one that has
-            // the word 'Soft' in it.
-            foreach (string name in devices)
-                if (name.Contains("OpenAL Soft"))
-                    return name;
+            if (Device == IntPtr.Zero)
+                CreateDefault();
+        }
 
-            return ALC.GetString(ALDevice.Null, AlcGetString.DefaultDeviceSpecifier);
+        private void CreateDefault()
+        {
+            DeviceName = IAudioSystem.DefaultAudioDevice;
+            Device = ALC.OpenDevice(null);
+            if (Device == IntPtr.Zero)
+                throw new Exception("Unable to access OpenAL device");
+
+            OpenALDeviceName = ALC.GetString(Device, AlcGetString.AllDevicesSpecifier);
         }
 
         ~OpenALDevice()

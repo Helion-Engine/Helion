@@ -1,4 +1,5 @@
-﻿using Helion.Util.Configs.Values;
+﻿using Helion.Audio;
+using Helion.Util.Configs.Values;
 
 namespace Helion.Util.Configs.Components
 {
@@ -6,7 +7,7 @@ namespace Helion.Util.Configs.Components
     public class ConfigAudio
     {
         [ConfigInfo("The main device to use for audio.")]
-        public readonly ConfigValueString Device = new();
+        public readonly ConfigValueString Device = new(IAudioSystem.DefaultAudioDevice);
 
         [ConfigInfo("The volume of the music. 0.0 is off, 1.0 is max.")]
         public readonly ConfigValueDouble MusicVolume = new(1.0);

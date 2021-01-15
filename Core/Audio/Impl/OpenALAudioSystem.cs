@@ -26,11 +26,12 @@ namespace Helion.Audio.Impl
         private OpenALDevice m_alDevice;
         private OpenALContext m_alContext;
 
+
         public OpenALAudioSystem(Config config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
         {
             m_config = config;
             m_archiveCollection = archiveCollection;
-            m_alDevice = new OpenALDevice(config);
+            m_alDevice = new OpenALDevice(config.Audio.Device);
             m_alContext = new OpenALContext(m_alDevice);
             Music = musicPlayer;
 
@@ -40,7 +41,9 @@ namespace Helion.Audio.Impl
 
         public IEnumerable<string> GetDeviceNames()
         {
-            return ALC.GetStringList(GetEnumerationStringList.DeviceSpecifier);
+            List<string> devices = ALC.GetString(AlcGetStringList.AllDevicesSpecifier);
+            devices.Insert(0, IAudioSystem.DefaultAudioDevice);
+            return devices;
         }
 
         public string GetDeviceName()
@@ -55,7 +58,7 @@ namespace Helion.Audio.Impl
             m_alContext.Dispose();
             m_alDevice.Dispose();
 
-            m_alDevice = new OpenALDevice(m_config);
+            m_alDevice = new OpenALDevice(deviceName);
             m_alContext = new OpenALContext(m_alDevice);
         }
 
