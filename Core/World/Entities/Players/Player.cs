@@ -193,6 +193,8 @@ namespace Helion.World.Entities.Players
         {
             m_viewHeight = Definition.Properties.Player.ViewHeight;
             m_prevViewZ = m_viewZ;
+            m_prevAngle = AngleRadians;
+            m_prevPitch = PitchRadians;
             m_deltaViewHeight = 0;
             PrevWeaponOffset = WeaponOffset;
 
