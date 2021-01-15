@@ -4,6 +4,7 @@ using Helion.Util.Parser;
 using Helion.World.Entities.Players;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Helion.Resources.Definitions.Language
 {
@@ -50,7 +51,7 @@ namespace Helion.Resources.Definitions.Language
             }
         }
 
-        public void Parse(string data)
+        public void ParseInternal(string data)
         {
             Dictionary<CIString, string> currentLookup = new();
             Dictionary<CIString, string> currentIwadLookup = new();
@@ -96,6 +97,46 @@ namespace Helion.Resources.Definitions.Language
                     currentLookup[item] = parser.ConsumeString();
                 else if (iwadParseType != IWadLanguageMessageType.None)
                     currentIwadLookup[item] = parser.ConsumeString();
+            }
+        }
+
+        public void Parse(string data)
+        {
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(data);
+            var lookup = GetIWadLookup(IWadType.None, IWadLanguageMessageType.None);
+            bool consumeLanguage = false;
+            StringBuilder sb = new StringBuilder();
+
+            while (!parser.IsDone())
+            {
+                string item = parser.ConsumeString();
+
+                if (item.StartsWith('['))
+                {
+                    consumeLanguage = item[1..].StartsWith("enu", StringComparison.OrdinalIgnoreCase);
+
+                    item = parser.ConsumeString();
+                    if (item.EndsWith(']'))
+                        continue;
+                }
+
+                if (!consumeLanguage)
+                    continue;
+
+                string key = item;
+                parser.ConsumeString("=");
+
+                sb.Clear();
+                do
+                {
+                    item = parser.ConsumeString();
+                    sb.Append(item);
+                } while (!parser.Peek(';'));
+
+                parser.ConsumeString(";");
+
+                lookup.Add(key, sb.ToString());
             }
         }
 
@@ -159,6 +200,9 @@ namespace Helion.Resources.Definitions.Language
         {
             if (GetIWadLookup(iwad, type).TryGetValue(message, out string? translatedMessage))
                 return translatedMessage;
+
+            if (GetIWadLookup(IWadType.None, IWadLanguageMessageType.None).TryGetValue(message, out string? translatedMessage2))
+                return translatedMessage2;
 
             return string.Empty;
         }

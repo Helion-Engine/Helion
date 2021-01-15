@@ -58,8 +58,10 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["SNDINFO"] = entry => ParseSoundInfo(entry);
+            m_entryNameToAction["ILANGUAGE"] = entry => ParseInternalLanguage(entry);
             m_entryNameToAction["LANGUAGE"] = entry => ParseLanguage(entry);
             m_entryNameToAction["MAPINFO"] = entry => ParseMapInfo(entry);
+            m_entryNameToAction["ZMAPINFO"] = entry => ParseMapInfo(entry);
         }
 
         public bool LoadMapInfo(Archive archive, string entryName)
@@ -75,20 +77,10 @@ namespace Helion.Resources.Definitions
             return true;
         }
 
-        private void ParseSoundInfo(Entry entry)
-        {
-            SoundInfo.Parse(entry.ReadDataAsString());
-        }
-
-        private void ParseLanguage(Entry entry)
-        {
-            Language.Parse(entry.ReadDataAsString());
-        }
-
-        private void ParseMapInfo(Entry entry)
-        {
-            MapInfoDefinition.Parse(entry.ReadDataAsString());
-        }
+        private void ParseSoundInfo(Entry entry) => SoundInfo.Parse(entry.ReadDataAsString());
+        private void ParseInternalLanguage(Entry entry) =>Language.ParseInternal(entry.ReadDataAsString());
+        private void ParseLanguage(Entry entry) => Language.Parse(entry.ReadDataAsString());
+        private void ParseMapInfo(Entry entry) => MapInfoDefinition.Parse(entry.ReadDataAsString());
         
         /// <summary>
         /// Tracks all the resources from an archive.
