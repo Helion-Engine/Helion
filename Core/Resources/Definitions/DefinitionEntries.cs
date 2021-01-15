@@ -77,17 +77,17 @@ namespace Helion.Resources.Definitions
 
         private void ParseSoundInfo(Entry entry)
         {
-            SoundInfo.Parse(entry);
+            SoundInfo.Parse(entry.ReadDataAsString());
         }
 
         private void ParseLanguage(Entry entry)
         {
-            Language.Parse(entry);
+            Language.Parse(entry.ReadDataAsString());
         }
 
         private void ParseMapInfo(Entry entry)
         {
-            MapInfoDefinition.Parse(entry);
+            MapInfoDefinition.Parse(entry.ReadDataAsString());
         }
         
         /// <summary>

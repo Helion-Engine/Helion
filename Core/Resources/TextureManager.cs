@@ -28,7 +28,7 @@ namespace Helion.Resources
 
         private TextureManager(ArchiveCollection archiveCollection, MapInfoDef mapInfoDef)
         {
-            SkyTextureName = mapInfoDef.Sky1;
+            SkyTextureName = mapInfoDef.Sky1.Name;
             m_archiveCollection = archiveCollection;
             m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
 

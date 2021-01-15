@@ -6,6 +6,7 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -18,7 +19,11 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Util;
 using NLog;
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers
@@ -85,6 +90,14 @@ namespace Helion.Layer.WorldLayers
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, IMap map)
         {
+            string displayName = mapInfoDef.NiceName;
+            if (mapInfoDef.LookupName.Length > 0)
+            {
+                displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfoDef.LookupName,
+                    archiveCollection.GetIWadInfo().IWadType, IWadLanguageMessageType.LevelName);
+            }
+
+            Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
             CheatManager.Instance.Clear();
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, map);
@@ -120,6 +133,9 @@ namespace Helion.Layer.WorldLayers
             else
                 CheatManager.Instance.Clear();
 
+            // TODO there is some duplication with the static Create call and it's kind of messy
+            // Should probably make this all work without the same Create so this function can be shared
+            TextureManager.Init(ArchiveCollection, mapDef);
             SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, map, existingPlayer);
             if (world == null)
             {
@@ -217,15 +233,20 @@ namespace Helion.Layer.WorldLayers
                     break;
 
                 case LevelChangeType.SpecificLevel:
-                    // TODO: Need to figure out this ExMx situation...
-                    //string levelNumber = e.LevelNumber.ToString().PadLeft(2, '0');
-                    //LoadMap($"MAP{levelNumber}", false);
+                    ChangeLevel(e);
                     break;
 
                 case LevelChangeType.Reset:
                     LoadMap(CurrentMap, false);
                     break;
             }
+        }
+
+        private void ChangeLevel(LevelChangeEvent e)
+        {
+            if (MapWarp.GetMap(e.LevelNumber, ArchiveCollection.Definitions.MapInfoDefinition.MapInfo, 
+                out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+                LoadMap(mapInfoDef, false);
         }
 
         private MapInfoDef? GetNextLevel(MapInfoDef mapDef) => ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);

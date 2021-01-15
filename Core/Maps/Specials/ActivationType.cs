@@ -9,6 +9,7 @@ namespace Helion.Maps.Specials
         PlayerLineCross,
         PlayerUse,
         MonsterLineCross,
+        PlayerOrMonsterLineCross,
         ProjectileHitsWall,
         PlayerPushesWall,
         ProjectileCrossesLine,

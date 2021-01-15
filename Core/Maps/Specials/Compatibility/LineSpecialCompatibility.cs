@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Helion.Maps.Specials.Compatibility
+﻿namespace Helion.Maps.Specials.Compatibility
 {
     public class LineSpecialCompatibility
     {
+        public static LineSpecialCompatibility Default { get; private set; } = new() { CompatibilityType = LineSpecialCompatibilityType.None };
+
         public LineSpecialCompatibilityType CompatibilityType;
     }
 }

@@ -1232,7 +1232,6 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_HeadAttack(Entity entity)
         {
-            return;
             if (entity.Target == null)
                 return;
 

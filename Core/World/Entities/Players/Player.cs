@@ -4,13 +4,13 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
-using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
@@ -193,10 +193,19 @@ namespace Helion.World.Entities.Players
         {
             m_viewHeight = Definition.Properties.Player.ViewHeight;
             m_prevViewZ = m_viewZ;
+            m_prevAngle = AngleRadians;
+            m_prevPitch = PitchRadians;
             m_deltaViewHeight = 0;
             PrevWeaponOffset = WeaponOffset;
 
             base.ResetInterpolation();
+        }
+
+        public override void SetRaiseState()
+        {
+            base.SetRaiseState();
+            PendingWeapon = Weapon;
+            BringupWeapon();
         }
 
         public void AddToYaw(double delta)
@@ -312,7 +321,7 @@ namespace Helion.World.Entities.Players
         private void SetBob()
         {
             m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Hud.MoveBob;
-            if (Weapon != null && Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
+            if (Weapon != null && Weapon.FrameState.IsState(FrameStateLabel.Ready))
             {
                 double value = 0.1 * World.LevelTime;
                 WeaponOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
@@ -328,19 +337,9 @@ namespace Helion.World.Entities.Players
             bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
             if (success)
-            {
                 CheckAutoSwitchWeapon(definition, ownedWeapon);
-            }
             else
-            {
-                bool isAmmo = IsAmmo(definition);
-                int count = Inventory.Amount(definition.Name);
                 success = GiveItemBase(definition, flags);
-                if (success && IsWeapon(definition))
-                    CheckAutoSwitchWeapon(definition, ownedWeapon);
-                else if (success && isAmmo)
-                    CheckAutoSwitchAmmo(definition, count);
-            }
 
             if (success && pickupFlash)
             {
@@ -356,6 +355,7 @@ namespace Helion.World.Entities.Players
             var invData = definition.Properties.Inventory;
             bool isHealth = definition.IsType(Inventory.HealthClassName);
             bool isArmor = definition.IsType(Inventory.ArmorClassName);
+            bool isAmmo = IsAmmo(definition);
 
             if (isHealth)
             {
@@ -373,7 +373,7 @@ namespace Helion.World.Entities.Players
             {
                 EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
                 if (ammoDef != null)
-                    return Inventory.Add(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
+                    return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
 
                 return false;
             }
@@ -385,7 +385,19 @@ namespace Helion.World.Entities.Players
                 return true;
             }
 
+            if (isAmmo)
+                return AddAmmo(definition, invData.Amount, flags);
+
             return Inventory.Add(definition, invData.Amount, flags);
+        }
+
+        private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags)
+        {
+            int oldCount = Inventory.Amount(ammoDef.Name);
+            bool success = Inventory.Add(ammoDef, amount, flags);
+            if (success)
+                CheckAutoSwitchAmmo(ammoDef, oldCount);
+            return success;
         }
 
         public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
@@ -543,11 +555,11 @@ namespace Helion.World.Entities.Players
 
         public bool FireWeapon()
         {
-            if (!CheckAmmo() || PendingWeapon != null)
+            if (!CheckAmmo() || PendingWeapon != null ||Weapon == null || !Weapon.FrameState.IsState(FrameStateLabel.Ready))
                 return false;
 
             SetWeaponTop();
-            Weapon?.RequestFire();
+            Weapon.RequestFire();
             return true;
         }
 
@@ -583,7 +595,7 @@ namespace Helion.World.Entities.Players
             if (Weapon == null)
                 return;
 
-            if (Weapon.FrameState.IsState(Entities.Definition.States.FrameStateLabel.Ready))
+            if (Weapon.FrameState.IsState(FrameStateLabel.Ready))
                 ForceLowerWeapon(setTop);
         }
 
@@ -698,6 +710,8 @@ namespace Helion.World.Entities.Players
 
             if (source != null)
                 m_killer = source.Owner ?? source;
+            if (m_killer == this)
+                m_killer = null;
 
             ForceLowerWeapon(true);
         }

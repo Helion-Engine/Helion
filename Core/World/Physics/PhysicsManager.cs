@@ -609,7 +609,7 @@ namespace Helion.World.Physics
 
                 for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
                 {
-                    if (stepDelta == Vec2D.Zero)
+                    if (stepDelta == Vec2D.Zero || m_world.WorldState == WorldState.Exit)
                         break;
 
                     Vec2D nextPosition = entity.Position.To2D() + stepDelta;
@@ -1081,12 +1081,15 @@ namespace Helion.World.Physics
 
         private void MoveZ(Entity entity)
         {
+            if (m_world.WorldState == WorldState.Exit)
+                return;
+
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
             if (entity.ShouldApplyGravity())
                 entity.Velocity.Z -= m_world.Gravity;
 
-            double floatZ = 0;// = entity.GetEnemyFloatMove();
+            double floatZ = entity.GetEnemyFloatMove();
             if (entity.Velocity.Z == 0 && floatZ == 0)
                 return;
 

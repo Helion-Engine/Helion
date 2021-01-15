@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Helion.Graphics.Fonts;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
@@ -181,6 +182,14 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
+        public IWadInfo GetIWadInfo()
+        {
+            Archive? iwad = m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);
+            if (iwad != null)
+                return iwad.IWadInfo;
+            return IWadInfo.DefaultIWadInfo;
+        }
+
         private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)
         {
             foreach (Archive archive in archives)
@@ -195,9 +204,12 @@ namespace Helion.Resources.Archives.Collection
 
                 if (archive.ArchiveType == ArchiveType.Assets && iwadArchive != null)
                 {
-                    IWadInfo? wadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
-                    if (wadInfo != null)
-                        Definitions.LoadMapInfo(archive, wadInfo.MapInfoResource);
+                    IWadInfo? iwadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
+                    if (iwadInfo != null)
+                    {
+                        iwadArchive.IWadInfo = iwadInfo;
+                        Definitions.LoadMapInfo(archive, iwadInfo.MapInfoResource);
+                    }
                 }
             }
         }

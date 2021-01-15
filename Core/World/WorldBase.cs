@@ -202,14 +202,17 @@ namespace Helion.World
             }
             else if (WorldState == WorldState.Normal)
             {
-                EntityManager.Entities.ForEach(entity =>
+                foreach (Entity entity in EntityManager.Entities)
                 {
                     entity.Tick();
 
                     // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
                     if (!entity.IsDisposed)
                         PhysicsManager.Move(entity);
-                });
+
+                    if (WorldState == WorldState.Exit)
+                        return;
+                }
 
                 foreach (Player player in EntityManager.Players)
                 {
@@ -528,11 +531,6 @@ namespace Helion.World
             if (bi != null)
             {
                 Line? line = bi.Value.Line;
-                if (line != null && line.HasSpecial && CanActivate(shooter, line, ActivationContext.ProjectileHitLine))
-                {
-                    var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, line);
-                    EntityActivatedSpecial?.Invoke(this, args);
-                }
 
                 if (damage > 0)
                 {
@@ -566,6 +564,12 @@ namespace Helion.World
 
                 if (bi.Line != null)
                 {
+                    if (bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.ProjectileHitLine))
+                    {
+                        var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, bi.Line);
+                        EntityActivatedSpecial?.Invoke(this, args);
+                    }
+
                     intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
 
                     if (bi.Line.Back == null)
@@ -942,7 +946,12 @@ namespace Helion.World
                 else if (bi.Entity != null && !ReferenceEquals(startEntity, bi.Entity))
                 {
                     double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                    if (thingTopPitch < bottomPitch)
+                        continue;
+
                     double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+                    if (thingBottomPitch > topPitch)
+                        continue;
 
                     if (thingBottomPitch > topPitch)
                         return TraversalPitchStatus.Blocked;

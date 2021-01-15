@@ -2,6 +2,7 @@
 {
     public enum IWadType
     {
+        None,
         Doom2,
         Plutonia,
         TNT,

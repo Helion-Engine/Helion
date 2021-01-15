@@ -82,5 +82,8 @@ actor DoomPlayer : PlayerPawn
         PLAY RSTUV 5
         PLAY W -1
         Stop
+    Raise:
+        PLAY NMLKJIH 10
+        Goto See
     }
 }

@@ -16,6 +16,8 @@ namespace Helion.World.Special
     /// </summary>
     public class LineSpecial
     {
+        public static LineSpecial Default { get; private set; } = new LineSpecial(ZDoomLineSpecialType.None);
+
         public const int NoLock = 0;
 
         public readonly ZDoomLineSpecialType LineSpecialType;
@@ -33,7 +35,12 @@ namespace Helion.World.Special
         public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility? compatibility)
         {
             LineSpecialType = type;
-            LineSpecialCompatibility = compatibility;
+
+            if (compatibility == null)
+                LineSpecialCompatibility = LineSpecialCompatibility.Default;
+            else
+                LineSpecialCompatibility = compatibility;
+
             m_lineActivationType = lineActivationType;
             m_moveSpecial = SetMoveSpecial();
             m_sectorStopMoveSpecial = SetSectorStopSpecial();
@@ -92,7 +99,7 @@ namespace Helion.World.Special
                     return false;
 
                 if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.MonsterLineCross;
+                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
                 else if (context == ActivationContext.UseLine)
                     return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
                         line.Special.MonsterCanUse();
@@ -102,11 +109,11 @@ namespace Helion.World.Special
                 bool contextSuccess = false;
 
                 if (context == ActivationContext.CrossLine)
-                    contextSuccess = flags.ActivationType == ActivationType.PlayerLineCross;
+                    contextSuccess = flags.ActivationType == ActivationType.PlayerLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
                 else if (context == ActivationContext.UseLine)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
                 else if (context == ActivationContext.ProjectileHitLine)
-                    contextSuccess = flags.ActivationType == ActivationType.ProjectileHitsWall;
+                    contextSuccess = flags.ActivationType == ActivationType.ProjectileHitsWall || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
                 else if (context == ActivationContext.PlayerPushesWall)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerPushesWall;
 
@@ -240,8 +247,10 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.StairsBuildUpDoomCrush:
                 case ZDoomLineSpecialType.DoorLockedRaise:
                 case ZDoomLineSpecialType.CeilingCrushAndRaiseDist:
+                case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
-                return true;
+                case ZDoomLineSpecialType.CeilingRaiseToHighest:
+                    return true;
             }
 
             return false;

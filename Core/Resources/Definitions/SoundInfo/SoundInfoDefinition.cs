@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Helion.Resources.Archives.Entries;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
@@ -10,13 +9,8 @@ namespace Helion.Resources.Definitions.SoundInfo
     {
         private readonly Dictionary<string, SoundInfo> m_lookup = new Dictionary<string, SoundInfo>();
         private readonly Dictionary<string, List<string>> m_randomLookup = new Dictionary<string, List<string>>();
-        private readonly SimpleParser m_parser = new SimpleParser();
 
         private int m_pitchShiftRange = 0;
-
-        public SoundInfoDefinition()
-        {
-        }
 
         public static string GetPlayerSound(Player player, string sound)
         {
@@ -24,12 +18,6 @@ namespace Helion.Resources.Definitions.SoundInfo
                 return $"player/{player.GetGenderString()}/{sound}";
 
             return sound;
-        }
-
-        public void Parse(Entry entry)
-        {
-            m_parser.Parse(System.Text.Encoding.UTF8.GetString(entry.ReadData()));          
-            PerformParsing();
         }
 
         public SoundInfo? Lookup(string name, IRandom random)
@@ -47,87 +35,90 @@ namespace Helion.Resources.Definitions.SoundInfo
             return null;
         }
 
-        protected void PerformParsing()
+        public void Parse(string data)
         {
-            while (!m_parser.IsDone())
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(data);
+
+            while (!parser.IsDone())
             {
-                if (m_parser.Peek('$'))
-                    ParseCommand();
+                if (parser.Peek('$'))
+                    ParseCommand(parser);
                 else
-                    ParseSound();
+                    ParseSound(parser);
             }
         }
 
-        private void ParseSound()
+        private void ParseSound(SimpleParser parser)
         {
-            AddSound(m_parser.ConsumeString(), m_parser.ConsumeString());
+            AddSound(parser.ConsumeString(), parser.ConsumeString());
         }
 
-        private void ParseCommand()
+        private void ParseCommand(SimpleParser parser)
         {
-            string type = m_parser.ConsumeString();
+            string type = parser.ConsumeString();
 
             if (type == "$playercompat")
-                ParsePlayerCompat();
+                ParsePlayerCompat(parser);
             else if (type == "$playersound")
-                ParsePlayerSound();
+                ParsePlayerSound(parser);
             else if (type == "$playersounddup")
-                ParsePlayerSoundDup();
+                ParsePlayerSoundDup(parser);
             else if (type == "$pitchshift")
-                ParsePitchShift();
+                ParsePitchShift(parser);
             else if (type == "$pitchshiftrange")
-                m_pitchShiftRange = m_parser.ConsumeInteger();
+                m_pitchShiftRange = parser.ConsumeInteger();
             else if (type == "$alias")
-                ParseAlias();
+                ParseAlias(parser);
             else if (type == "$limit")
-                ParseLimit();
+                ParseLimit(parser);
             else if (type == "$random")
-                ParseRandom();
+                ParseRandom(parser);
             else
-                throw new ParserException(m_parser.GetCurrentLine(), 0, 0, "Bad command.");
+                throw new ParserException(parser.GetCurrentLine(), 0, 0, "Bad command.");
         }
 
-        private void ParsePitchShift()
+        private void ParsePitchShift(SimpleParser parser)
         {
-            string key = m_parser.ConsumeString();
-            int pitch = m_parser.ConsumeInteger();
+            string key = parser.ConsumeString();
+            int pitch = parser.ConsumeInteger();
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
                 soundInfo.PitchShift = pitch;
         }
 
-        private void ParseLimit()
+        private void ParseLimit(SimpleParser parser)
         {
-            string key = m_parser.ConsumeString();
-            int limit = m_parser.ConsumeInteger();
+            string key = parser.ConsumeString();
+            int limit = parser.ConsumeInteger();
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
                 soundInfo.Limit = limit;
         }
 
-        private void ParseAlias()
+        private void ParseAlias(SimpleParser parser)
         {
-            string alias = m_parser.ConsumeString();
-            string key = m_parser.ConsumeString();
+            string alias = parser.ConsumeString();
+            string key = parser.ConsumeString();
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
                 m_lookup[alias] = soundInfo;
         }
 
-        private void ParsePlayerCompat()
+        private void ParsePlayerCompat(SimpleParser parser)
         {
-            m_parser.ConsumeString();
-            m_parser.ConsumeString();
-            m_parser.ConsumeString();
-            m_parser.ConsumeString();
+            parser.ConsumeString();
+            parser.ConsumeString();
+            parser.ConsumeString();
+            parser.ConsumeString();
         }
 
-        private void ParsePlayerSoundDup()
+        private void ParsePlayerSoundDup(SimpleParser parser)
         {
-            string player = m_parser.ConsumeString();
-            string gender = m_parser.ConsumeString();
-            string name = m_parser.ConsumeString();
-            string entryName = m_parser.ConsumeString();
+            string player = parser.ConsumeString();
+            string gender = parser.ConsumeString();
+            string name = parser.ConsumeString();
+            string entryName = parser.ConsumeString();
             string key = $"{player}/{gender}/{entryName}";
 
             if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
@@ -137,21 +128,21 @@ namespace Helion.Resources.Definitions.SoundInfo
             }
         }
 
-        private void ParsePlayerSound()
+        private void ParsePlayerSound(SimpleParser parser)
         {
-            string key = $"{m_parser.ConsumeString()}/{m_parser.ConsumeString()}/{m_parser.ConsumeString()}";
-            AddSound(key, m_parser.ConsumeString(), true);
+            string key = $"{parser.ConsumeString()}/{parser.ConsumeString()}/{parser.ConsumeString()}";
+            AddSound(key, parser.ConsumeString(), true);
         }
 
-        private void ParseRandom()
+        private void ParseRandom(SimpleParser parser)
         {
             List<string> sounds = new List<string>();
-            string key = m_parser.ConsumeString();
-            m_parser.Consume('{');
+            string key = parser.ConsumeString();
+            parser.Consume('{');
 
-            while (!m_parser.Peek('}'))
-                sounds.Add(m_parser.ConsumeString());
-            m_parser.Consume('}');
+            while (!parser.Peek('}'))
+                sounds.Add(parser.ConsumeString());
+            parser.Consume('}');
 
             m_randomLookup[key] = sounds;
         }

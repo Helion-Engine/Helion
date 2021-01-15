@@ -6,6 +6,7 @@ using Helion.Layer.WorldLayers;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util.Time;
+using Helion.World.Util;
 
 namespace Helion.Client
 {
@@ -49,7 +50,9 @@ namespace Helion.Client
             }
             else if (m_commandLineArgs.Warp != null)
             {
-                Loadmap(GetWarpMapFormat(m_commandLineArgs.Warp.Value));
+                if (MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
+                    out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+                    Loadmap(mapInfoDef.MapName);
             }
             else
             {

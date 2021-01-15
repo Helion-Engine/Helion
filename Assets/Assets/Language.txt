@@ -159,3 +159,144 @@ OB_MPBFG_BOOM,%o was splintered by %k's BFG.
 OB_MPBFG_SPLASH,%o couldn't hide from %k's BFG.
 OB_RAILGUN,%o was railed by %k.
 OB_MPBFG_MBF,%o was burned by %k's BFG.
+Level names
+Doom 1
+HUSTR_E1M1,Hangar
+HUSTR_E1M2,Nuclear Plant
+HUSTR_E1M3,Toxin Refinery
+HUSTR_E1M4,Command Control
+HUSTR_E1M5,Phobos Lab
+HUSTR_E1M6,Central Processing
+HUSTR_E1M7,Computer Station
+HUSTR_E1M8,Phobos Anomaly
+HUSTR_E1M9,Military Base
+HUSTR_E1M10,Sewers
+HUSTR_E2M1,Deimos Anomaly
+HUSTR_E2M2,Containment Area
+HUSTR_E2M3,Refinery
+HUSTR_E2M4,Deimos Lab
+HUSTR_E2M5,Command Center
+HUSTR_E2M6,Halls of the Damned
+HUSTR_E2M7,Spawning Vats
+HUSTR_E2M8,Tower of Babel
+HUSTR_E2M9,Fortress of Mystery
+HUSTR_E3M1,Hell Keep
+HUSTR_E3M2,Slough of Despair
+HUSTR_E3M3,Pandemonium
+HUSTR_E3M4,House of Pain
+HUSTR_E3M5,Unholy Cathedral
+HUSTR_E3M6,Mt. Erebus
+HUSTR_E3M7,Limbo
+HUSTR_E3M8,Dis
+HUSTR_E3M9,Warrens
+HUSTR_E4M1,Hell Beneath
+HUSTR_E4M2,Perfect Hatred
+HUSTR_E4M3,Sever The Wicked
+HUSTR_E4M4,Unruly Evil
+HUSTR_E4M5,They Will Repent
+HUSTR_E4M6,Against Thee Wickedly
+HUSTR_E4M7,And Hell Followed
+HUSTR_E4M8,Unto The Cruel
+HUSTR_E4M9,Fear
+Doom 2
+HUSTR_1,Entryway
+HUSTR_2,Underhalls
+HUSTR_3,The Gantlet
+HUSTR_4,The Focus
+HUSTR_5,The Waste Tunnels
+HUSTR_6,The Crusher
+HUSTR_7,Dead Simple
+HUSTR_8,Tricks and Traps
+HUSTR_9,The Pit
+HUSTR_10,Refueling Base
+HUSTR_11,'O' of Destruction!
+HUSTR_12,The Factory
+HUSTR_13,Downtown
+HUSTR_14,The Inmost Dens
+HUSTR_15,Industrial Zone
+HUSTR_16,Suburbs
+HUSTR_17,Tenements
+HUSTR_18,The Courtyard
+HUSTR_19,The Citadel
+HUSTR_20,Gotcha!
+HUSTR_21,Nirvana
+HUSTR_22,The Catacombs
+HUSTR_23,Barrels O' Fun
+HUSTR_24,The Chasm
+HUSTR_25,Bloodfalls
+HUSTR_26,The Abandoned Mines
+HUSTR_27,Monster Condo
+HUSTR_28,The Spirit World
+HUSTR_29,The Living End
+HUSTR_30,Icon of Sin
+HUSTR_31,Wolfenstein
+HUSTR_32,Grosse
+HUSTR_31B,IDKFA
+HUSTR_32B,Keen
+HUSTR_33,Betray
+Plutonia
+PHUSTR_1,Congo
+PHUSTR_2,Well of Souls
+PHUSTR_3,Aztec
+PHUSTR_4,Caged
+PHUSTR_5,Ghost Town
+PHUSTR_6,Baron's Lair
+PHUSTR_7,Caughtyard
+PHUSTR_8,Realm
+PHUSTR_9,Abattoire
+PHUSTR_10,Onslaught
+PHUSTR_11,Hunted
+PHUSTR_12,Speed
+PHUSTR_13,The Crypt
+PHUSTR_14,Genesis
+PHUSTR_15,The Twilight
+PHUSTR_16,The Omen
+PHUSTR_17,Compound
+PHUSTR_18,Neurosphere
+PHUSTR_19,LNME
+PHUSTR_20,The Death Domain
+PHUSTR_21,Slayer
+PHUSTR_22,Impossible Mission
+PHUSTR_23,Tombstone
+PHUSTR_24,The Final Frontier
+PHUSTR_25,The Temple of Darkness
+PHUSTR_26,Bunker
+PHUSTR_27,Anti-christ
+PHUSTR_28,The Sewers
+PHUSTR_29,Odyssey of Noises
+PHUSTR_30,The Gateway of Hell
+PHUSTR_31,Cyberden
+PHUSTR_32,Go 2 It
+TNT: Evilution
+THUSTR_1,System Control
+THUSTR_2,Human BBQ
+THUSTR_3,Power Control
+THUSTR_4,Wormhole
+THUSTR_5,Hanger
+THUSTR_6,Open Season
+THUSTR_7,Prison
+THUSTR_8,Metal
+THUSTR_9,Stronghold
+THUSTR_10,Redemption
+THUSTR_11,Storage Facility
+THUSTR_12,Crater
+THUSTR_13,Nukage Processing
+THUSTR_14,Steel Works
+THUSTR_15,Dead Zone
+THUSTR_16,Deepest Reaches
+THUSTR_17,Processing Area
+THUSTR_18,Mill
+THUSTR_19,Shipping/respawning
+THUSTR_20,Central Processing
+THUSTR_21,Administration Center
+THUSTR_22,Habitat
+THUSTR_23,Lunar Mining Project
+THUSTR_24,Quarry
+THUSTR_25,Baron's Den
+THUSTR_26,Ballistyx
+THUSTR_27,Mount Pain
+THUSTR_28,Heck
+THUSTR_29,River Styx
+THUSTR_30,Last Call
+THUSTR_31,Pharaoh
+THUSTR_32,Caribbean

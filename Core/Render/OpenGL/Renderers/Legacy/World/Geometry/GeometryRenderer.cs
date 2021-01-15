@@ -36,14 +36,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly LegacySkyRenderer m_skyRenderer;
         private double m_tickFraction;
 
-        private LegacyVertex[][] m_vertexLookup = new LegacyVertex[0][];
-        private LegacyVertex[][] m_vertexLowerLookup = new LegacyVertex[0][];
-        private LegacyVertex[][] m_vertexUpperLookup = new LegacyVertex[0][];
+        private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
+        private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
+        private LegacyVertex[][] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
         private SkyGeometryVertex[][] m_skyWallVertexLookup = new SkyGeometryVertex[0][];
-        private LegacyVertex[][] m_vertexFloorLookup = new LegacyVertex[0][];
-        private LegacyVertex[][] m_vertexCeilingLookup = new LegacyVertex[0][];
-        private SkyGeometryVertex[][] m_skyFloorVertexLookup = new SkyGeometryVertex[0][];
-        private SkyGeometryVertex[][] m_skyCeilingVertexLookup = new SkyGeometryVertex[0][];
+        private LegacyVertex[][] m_vertexFloorLookup = Array.Empty<LegacyVertex[]>();
+        private LegacyVertex[][] m_vertexCeilingLookup = Array.Empty<LegacyVertex[]>();
+        private SkyGeometryVertex[][] m_skyFloorVertexLookup = Array.Empty<SkyGeometryVertex[]>();
+        private SkyGeometryVertex[][] m_skyCeilingVertexLookup = Array.Empty<SkyGeometryVertex[]>();
 
         public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
@@ -152,7 +152,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         {
             if (edge.Line.OneSided)
                 m_viewClipper.AddLine(edge.Start, edge.End);
-            else if(LineOpening.GetOpeningHeight(edge.Line) <= 0)
+            else if (LineOpening.IsRenderingBlocked(edge.Line))
                 m_viewClipper.AddLine(edge.Start, edge.End);
         }
 
@@ -226,12 +226,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             Wall lowerWall = facingSide.Lower;
 
-            GLLegacyTexture texture;
             if (lowerWall.TextureHandle == Constants.NoTextureIndex)
-                texture = m_textureManager.GetTexture(plane.TextureHandle);
-            else
-                texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
+                return;
 
+            GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
 
             if (isSky)
@@ -277,12 +275,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             Wall upperWall = facingSide.Upper;
 
-            GLLegacyTexture texture;
             if (upperWall.TextureHandle == Constants.NoTextureIndex)
-                texture = m_textureManager.GetTexture(plane.TextureHandle);
-            else
-                texture = m_textureManager.GetTexture(upperWall.TextureHandle);
+                return;
 
+            GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
 
             if (isSky)
@@ -328,17 +324,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             RenderWorldData renderData = m_worldDataManager[texture];
             LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
-            if (facingSide.Sector.DataChanged || data == null)
+            if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
             {
                 (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
-                WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide, otherSide,
+                WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                     texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible, m_tickFraction);
 
                 // If the texture can't be drawn because the level has offsets that
                 // are messed up (ex: offset causes it to be completely missing) we
                 // can exit early since nothing can be drawn.
                 if (nothingVisible)
-                    data = new LegacyVertex[0];
+                    data = Array.Empty<LegacyVertex>();
                 else
                     data = GetWallVertices(wall, facingSide.Sector.LightLevel / 256.0f);
 

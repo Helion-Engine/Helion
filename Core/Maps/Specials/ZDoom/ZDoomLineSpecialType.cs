@@ -264,6 +264,7 @@ namespace Helion.Maps.Specials.ZDoom
         Unused71,
         Unused72,
         Unused73,
+        CeilingRaiseToHighest = 262,
         StairsBuildUpDoomCrush = 273,
     }
 }

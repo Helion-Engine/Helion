@@ -336,7 +336,7 @@ namespace Helion.World.Entities
             return false;
         }
 
-        public void SetRaiseState()
+        public virtual void SetRaiseState()
         {
             if (FrameState.SetState(FrameStateLabel.Raise))
             {

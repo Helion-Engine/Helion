@@ -18,7 +18,7 @@ namespace Helion.Util
         public string? Iwad { get; set; }
         public string? Map { get; set; }
         public string? LogPath { get; set; }
-        public int? Warp { get; set; }
+        public string? Warp { get; set; }
         public int? Skill { get; set; }
 
         public List<string> Errors { get; set; } = new List<string>();
@@ -44,7 +44,7 @@ namespace Helion.Util
                 else if (IsArgMatch(parsedArg, "-log"))
                     commandLineArgs.LogPath = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "-warp"))
-                    commandLineArgs.Warp = ParseInt(commandLineArgs, parsedArg);
+                    commandLineArgs.Warp = GetConcatString(commandLineArgs, parsedArg, " ");
                 else if (IsArgMatch(parsedArg, "-skill"))
                     commandLineArgs.Skill = ParseInt(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "+map"))
@@ -57,6 +57,17 @@ namespace Helion.Util
         }
 
         private static bool IsArgMatch(CommandArg arg, string str) => arg.Key.Equals(str, StringComparison.OrdinalIgnoreCase);  
+
+        private static string? GetConcatString(CommandLineArgs commandLineArgs, CommandArg arg, string separator)
+        {
+            if (arg.Values.Count == 0)
+            {
+                commandLineArgs.Errors.Add($"No parameter specified for {arg.Key}");
+                return null;
+            }
+
+            return string.Join(separator, arg.Values);
+        }
 
         private static string? GetString(CommandLineArgs commandLineArgs, CommandArg arg)
         {
