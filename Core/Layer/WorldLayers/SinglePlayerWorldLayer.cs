@@ -133,6 +133,9 @@ namespace Helion.Layer.WorldLayers
             else
                 CheatManager.Instance.Clear();
 
+            // TODO there is some duplication with the static Create call and it's kind of messy
+            // Should probably make this all work without the same Create so this function can be shared
+            TextureManager.Init(ArchiveCollection, mapDef);
             SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, map, existingPlayer);
             if (world == null)
             {
