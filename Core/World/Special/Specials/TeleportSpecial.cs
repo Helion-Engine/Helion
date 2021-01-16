@@ -1,4 +1,5 @@
 ﻿using Helion.Audio;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
@@ -9,9 +10,18 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
+using System;
 
 namespace Helion.World.Special.Specials
 {
+    [Flags]
+    public enum TeleportFog
+    {
+        None = 0,
+        Source = 1,
+        Dest = 2
+    }
+
     public class TeleportSpecial : ISpecial
     {
         private const int TeleportFreezeTicks = 18;
@@ -19,11 +29,29 @@ namespace Helion.World.Special.Specials
         
         private readonly EntityActivateSpecialEventArgs m_args;
         private readonly IWorld m_world;
+        private readonly TeleportFog m_fogFlags;
 
-        public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world)
+        public static TeleportFog GetTeleportFog(Line line)
+        {
+            switch (line.Special.LineSpecialType)
+            {
+                case ZDoomLineSpecialType.Teleport:
+                    if (line.Args.Arg2 == 0)
+                        return TeleportFog.Source | TeleportFog.Dest;
+                    else
+                        return TeleportFog.Dest;
+                default:
+                    break;
+            }
+
+            return TeleportFog.None;
+        }
+
+        public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, TeleportFog flags)
         {
             m_args = args;
             m_world = world;
+            m_fogFlags = flags;
         }
 
         public SpecialTickStatus Tick()
@@ -33,11 +61,14 @@ namespace Helion.World.Special.Specials
             if (teleportSpot == null)
                 return SpecialTickStatus.Destroy;
 
+            Vec3D oldPosition = entity.Position;
             if (Teleport(entity, teleportSpot))
             {
-                Entity? teleport = CreateTeleportFogAt(entity.Position + (Vec3D.Unit(entity.AngleRadians, 0.0) * TeleportOffsetDist));
-                if (teleport != null)
-                    m_world.SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
+                if ((m_fogFlags & TeleportFog.Source) != 0)
+                    CreateTeleportFog(oldPosition, entity.AngleRadians);
+
+                if ((m_fogFlags & TeleportFog.Dest) != 0)
+                    CreateTeleportFog(entity.Position, entity.AngleRadians);
             }
 
             return SpecialTickStatus.Destroy;
@@ -72,6 +103,13 @@ namespace Helion.World.Special.Specials
                 return true;
 
             return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count == 0;
+        }
+
+        private void CreateTeleportFog(in Vec3D pos, double angle)
+        {
+            Entity? teleport = CreateTeleportFogAt(pos + (Vec3D.Unit(angle, 0.0) * TeleportOffsetDist));
+            if (teleport != null)
+                m_world.SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
         }
 
         private Entity? CreateTeleportFogAt(in Vec3D pos)

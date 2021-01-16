@@ -400,7 +400,8 @@ namespace Helion.World.Special
             switch (special.LineSpecialType)
             {
                 case ZDoomLineSpecialType.Teleport:
-                    AddSpecial(new TeleportSpecial(args, world));
+                case ZDoomLineSpecialType.TeleportNoFog:
+                    AddSpecial(new TeleportSpecial(args, world, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)));
                     return true;
             
                 case ZDoomLineSpecialType.ExitNormal:
@@ -553,9 +554,6 @@ namespace Helion.World.Special
 
             switch (special.LineSpecialType)
             {
-                case ZDoomLineSpecialType.Teleport:
-                    return new TeleportSpecial(args, m_world);
-
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
 

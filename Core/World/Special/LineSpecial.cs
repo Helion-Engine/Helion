@@ -57,6 +57,12 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ScrollTextureDown:
                     flags.ActivationType = ActivationType.LevelStart;
                     break;
+
+                case ZDoomLineSpecialType.Teleport:
+                case ZDoomLineSpecialType.TeleportNoFog:
+                    if (flags.ActivationType == ActivationType.PlayerLineCross)
+                        flags.ActivationType = ActivationType.PlayerOrMonsterLineCross;
+                    break;
             }
         }
 
