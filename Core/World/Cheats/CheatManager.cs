@@ -67,7 +67,7 @@ namespace Helion.World.Cheats
 
         public void HandleInput(InputEvent input)
         {
-            foreach (char key in input.Manager.TypedCharacters)
+            foreach (char key in input.GetTypedCharacters())
             {
                 m_currentCheat.Append(key);
                 string cheatString = m_currentCheat.ToString();

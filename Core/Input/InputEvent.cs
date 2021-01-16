@@ -119,6 +119,12 @@ namespace Helion.Input
         }
 
         /// <summary>
+        /// Gets the typed characters.
+        /// </summary>
+        /// <returns>The typed characters, or null if there are none.</returns>
+        public string GetTypedCharacters() =>  m_typedCharacters;
+
+        /// <summary>
         /// Consumes all of the typed keys.
         /// </summary>
         /// <returns>All of the keys that were typed.</returns>
