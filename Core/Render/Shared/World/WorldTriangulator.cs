@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Helion.Maps.Specials;
+using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -18,7 +19,10 @@ namespace Helion.Render.Shared.World
 {
     public static class WorldTriangulator
     {
-        public static WallVertices HandleOneSided(Side side, in Vector2 textureUVInverse, double tickFraction)
+        public const double NoOverride = double.MaxValue;
+
+        public static WallVertices HandleOneSided(Side side, in Vector2 textureUVInverse, double tickFraction,
+            double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
@@ -27,10 +31,10 @@ namespace Helion.Render.Shared.World
             SectorPlane floor = sector.Floor;
             SectorPlane ceiling = sector.Ceiling;
 
-            Vec2D left = line.Segment.Start;
-            Vec2D right = line.Segment.End;
-            double topZ = ceiling.PrevZ.Interpolate(ceiling.Z, tickFraction);
-            double bottomZ = floor.PrevZ.Interpolate(floor.Z, tickFraction);
+            Vec2D left = isFront ? line.Segment.Start : line.Segment.End;
+            Vec2D right = isFront ? line.Segment.End : line.Segment.Start;
+            double topZ = overrideCeiling == NoOverride ? ceiling.PrevZ.Interpolate(ceiling.Z, tickFraction) : overrideCeiling;
+            double bottomZ = overrideFloor == NoOverride ? floor.PrevZ.Interpolate(floor.Z, tickFraction) : overrideFloor;
 
             double length = line.Segment.Length();
             double spanZ = topZ - bottomZ;
@@ -103,7 +107,7 @@ namespace Helion.Render.Shared.World
         }
 
         public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, in Vector2 textureUVInverse, 
-            bool isFrontSide, double tickFraction)
+            bool isFrontSide, double tickFraction, double overrideTopZ = NoOverride)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
@@ -114,7 +118,7 @@ namespace Helion.Render.Shared.World
             
             Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
             Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
-            double topZ = topPlane.PrevZ.Interpolate(topPlane.Z, tickFraction);
+            double topZ = overrideTopZ == NoOverride ? topPlane.PrevZ.Interpolate(topPlane.Z, tickFraction) : overrideTopZ;
             double bottomZ = bottomPlane.PrevZ.Interpolate(bottomPlane.Z, tickFraction);
             
             // TODO: If unchanging, we can pre-calculate the length.
@@ -142,7 +146,7 @@ namespace Helion.Render.Shared.World
         /// <param name="verticesToPopulate">An output array where vertices are
         /// written to upon triangulating.</param>
         public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension, 
-            double tickFraction, DynamicArray<WorldVertex> verticesToPopulate)
+            double tickFraction, DynamicArray<WorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
             Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
@@ -159,6 +163,8 @@ namespace Helion.Render.Shared.World
                     // TODO: Interpolation and slopes needs a slight change in
                     //       how we store sector flat plane information.
                     double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
+                    if (overrideZ != int.MaxValue)
+                        z = overrideZ;
                     
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, (float)z);
                     Vector2 uv = CalculateFlatUV(vertex, textureDimension);
@@ -178,7 +184,9 @@ namespace Helion.Render.Shared.World
                     // TODO: Interpolation and slopes needs a slight change in
                     //       how we store sector flat plane information.
                     double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
-                    
+                    if (overrideZ != int.MaxValue)
+                        z = overrideZ;
+
                     Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, (float)z);
                     Vector2 uv = CalculateFlatUV(vertex, textureDimension);
                     
