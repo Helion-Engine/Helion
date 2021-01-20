@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.Language;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
@@ -501,6 +502,8 @@ namespace Helion.World.Physics
                         highestFloorZ = intersectEntity.Box.Top;
                     }
                 }
+
+                DataCache.Instance.FreeBlockmapIntersectList(intersections);
             }
 
             entity.HighestFloorZ = highestFloorZ;

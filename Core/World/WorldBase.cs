@@ -396,6 +396,7 @@ namespace Helion.World
                 }
             }
 
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
 
             if (!activateSuccess && hitBlockLine && entity is Player player)
                 player.PlayUseFailSound();
@@ -552,6 +553,7 @@ namespace Helion.World
 
         public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, ref Vec3D intersect)
         {
+            BlockmapIntersect? returnValue = null;
             double floorZ, ceilingZ;
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
@@ -578,10 +580,13 @@ namespace Helion.World
                         ceilingZ = bi.Line.Front.Sector.ToCeilingZ(intersect);
 
                         if (intersect.Z > floorZ && intersect.Z < ceilingZ)
-                            return bi;
+                        {
+                            returnValue = bi;
+                            break;
+                        }
 
                         if (IsSkyClipOneSided(bi.Line.Front.Sector, floorZ, ceilingZ, intersect))
-                            return null;
+                            break;
 
                         GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
                         bi.Sector = bi.Line.Front.Sector;
@@ -590,7 +595,7 @@ namespace Helion.World
 
                     GetOrderedSectors(bi.Line, start, out Sector front, out Sector back);
                     if (IsSkyClipTwoSided(front, back, intersect))
-                        return null;
+                        break;
 
                     floorZ = front.ToFloorZ(intersect);
                     ceilingZ = front.ToCeilingZ(intersect);
@@ -599,20 +604,26 @@ namespace Helion.World
                     {
                         GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, ref intersect);
                         bi.Sector = front;
-                        return bi;
+                        returnValue = bi;
+                        break;
                     }
 
                     LineOpening opening = PhysicsManager.GetLineOpening(bi.Intersection, bi.Line);
                     if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
-                        return bi;
+                    {
+                        returnValue = bi;
+                        break;
+                    }
                 }
                 else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity) && bi.Entity.Box.Intersects(start, end, ref intersect))
                 {
-                    return bi;
+                    returnValue = bi;
+                    break;
                 }
             }
 
-            return null;
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            return returnValue;
         }
 
         public virtual bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical)
@@ -741,15 +752,19 @@ namespace Helion.World
             List<BlockmapIntersect> intersections = BlockmapTraverser.Traverse(null, seg, BlockmapTraverseFlags.Lines | BlockmapTraverseFlags.StopOnOneSidedLine,
                 BlockmapTraverseEntityFlags.None, out bool hitOneSidedLine);
             if (hitOneSidedLine)
+            {
+                DataCache.Instance.FreeBlockmapIntersectList(intersections);
                 return false;
+            }
 
             Vec3D sightPos = new Vec3D(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
             double distance2D = start.Distance(end);
             double topPitch = sightPos.Pitch(to.Position.Z + to.Height, distance2D);
             double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
-
-            return GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+            TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            return  status != TraversalPitchStatus.Blocked;
         }
 
         public virtual void RadiusExplosion(Entity source, int radius)
@@ -768,6 +783,8 @@ namespace Helion.World
                 if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, source))
                     ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust);
             }
+
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
         }
 
         public virtual TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
@@ -899,7 +916,9 @@ namespace Helion.World
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
-            return GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity) == TraversalPitchStatus.PitchSet;
+            TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            return status == TraversalPitchStatus.PitchSet;
         }
 
         private enum TraversalPitchStatus

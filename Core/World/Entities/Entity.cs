@@ -497,6 +497,8 @@ namespace Helion.World.Entities
                     entities.Add(entity);
             }
 
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+
             return entities;
         }
 
@@ -520,6 +522,8 @@ namespace Helion.World.Entities
                 if (CanBlockEntity(entity) && box.Overlaps(entity.Box))
                     entities.Add(entity);
             }
+
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
 
             return entities;
         }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helion.Util;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
@@ -33,7 +34,7 @@ namespace Helion.World.Physics.Blockmap
 
         public List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, out bool hitOneSidedLine)
         {
-            List<BlockmapIntersect> intersections = new List<BlockmapIntersect>();
+            List<BlockmapIntersect> intersections = DataCache.Instance.GetBlockmapIntersectList();
             Vec2D intersect = Vec2D.Zero;
             Vec2D center = default;
             m_lineMap.Clear();
