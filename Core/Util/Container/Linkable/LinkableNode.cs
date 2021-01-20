@@ -22,7 +22,7 @@ namespace Helion.Util.Container.Linkable
         /// is the first dummy element in a list, but this is an implementation
         /// detail.
         /// </summary>
-        private LinkableNode<T> m_previous;
+        public LinkableNode<T> Previous;
 
         /// <summary>
         /// Creates a dummy node which should only ever be used for the head of
@@ -33,7 +33,7 @@ namespace Helion.Util.Container.Linkable
             // Due to how we implemented a linkable list, we need to have some
             // dummy node at the front to emulated a 'pointer to a pointer'
             // which you get in C.
-            m_previous = null !;
+            Previous = null !;
             Next = null !;
             Value = default !;
         }
@@ -51,11 +51,11 @@ namespace Helion.Util.Container.Linkable
             Value = value;
             
             Next = previous.Next;
-            m_previous = previous;
+            Previous = previous;
 
             previous.Next = this;
             if (Next != null)
-                Next.m_previous = this;
+                Next.Previous = this;
         }
 
         /// <summary>
@@ -64,8 +64,8 @@ namespace Helion.Util.Container.Linkable
         public void Unlink()
         {
             if (Next != null)
-                Next.m_previous = m_previous !;
-            m_previous!.Next = Next;
+                Next.Previous = Previous!;
+            Previous!.Next = Next;
         }
     }
 }
