@@ -19,9 +19,13 @@ namespace Helion.World.Physics
         public List<Entity> IntersectEntities2D = new List<Entity>();
         public List<Line> IntersectSpecialLines = new List<Line>();
 
-        public TryMoveData(Vec2D position)
+        public void SetPosition(in Vec2D position)
         {
             Position = position;
+            CanFloat = false;
+            IntersectEntities2D.Clear();
+            IntersectSpecialLines.Clear();
+            DropOffEntity = null;
         }
 
         public void SetIntersectionData(LineOpening opening)

@@ -50,6 +50,7 @@ namespace Helion.World.Physics
         private readonly SoundManager m_soundManager;
         private readonly IRandom m_random;
         private readonly LineOpening m_lineOpening = new LineOpening();
+        private readonly TryMoveData m_tryMoveData = new TryMoveData();
 
         /// <summary>
         /// Creates a new physics manager which utilizes the arguments for any
@@ -330,14 +331,14 @@ namespace Helion.World.Physics
             BlockContinueIfFloat,
         }
 
-        private LineBlock LineBlocksEntity(Entity entity, Line line, TryMoveData? tryMove)
+        private LineBlock LineBlocksEntity(Entity entity, in Vec2D position, Line line, TryMoveData? tryMove)
         {
             if (line.BlocksEntity(entity))
                 return LineBlock.BlockStopChecking;
             if (line.Back == null)
                 return LineBlock.NoBlock;
 
-            LineOpening opening = GetLineOpening(entity.Position.To2D(), line);
+            LineOpening opening = GetLineOpening(position, line);
             tryMove?.SetIntersectionData(opening);
 
             if (opening.CanPassOrStepThrough(entity))
@@ -450,7 +451,7 @@ namespace Helion.World.Physics
             if (entity.Flags.CanPass && !entity.Flags.NoClip)
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-                List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(), 
+                List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(),
                     BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid);
 
                 for (int i = 0; i < intersections.Count; i++)
@@ -574,25 +575,25 @@ namespace Helion.World.Physics
 
         public TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
         {
-            TryMoveData tryMoveData = new TryMoveData(position);
+            m_tryMoveData.SetPosition(position);
             if (entity.Flags.NoClip)
             {
                 HandleNoClip(entity, position);
-                tryMoveData.Success = true;
-                return tryMoveData;
+                m_tryMoveData.Success = true;
+                return m_tryMoveData;
             }
 
             if (entity.ClippedWithEntity && !entity.OnGround && entity.IsClippedWithEntity())
             {
-                tryMoveData.Success = false;
+                m_tryMoveData.Success = false;
                 entity.Velocity = Vec3D.Zero;
-                return tryMoveData;
+                return m_tryMoveData;
             }
 
             if (entity.IsCrushing())
             {
-                tryMoveData.Success = false;
-                return tryMoveData;
+                m_tryMoveData.Success = false;
+                return m_tryMoveData;
             }
 
             bool success = true;
@@ -614,16 +615,16 @@ namespace Helion.World.Physics
 
                     Vec2D nextPosition = entity.Position.To2D() + stepDelta;
 
-                    if (IsPositionValid(entity, nextPosition, tryMoveData))
+                    if (IsPositionValid(entity, nextPosition, m_tryMoveData))
                     {
                         entity.MoveLinked = true;
-                        MoveTo(entity, nextPosition, tryMoveData);
+                        MoveTo(entity, nextPosition, m_tryMoveData);
                         continue;
                     }
 
                     if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
                     {
-                        HandleSlide(entity, ref stepDelta, ref movesLeft, tryMoveData);
+                        HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
                         slidesLeft--;
                         success = false;
                         continue;
@@ -636,19 +637,19 @@ namespace Helion.World.Physics
             }
             else
             {
-                success = IsPositionValid(entity, position, tryMoveData);
+                success = IsPositionValid(entity, position, m_tryMoveData);
                 if (success)
                 {
                     entity.MoveLinked = true;
-                    MoveTo(entity, position, tryMoveData);
+                    MoveTo(entity, position, m_tryMoveData);
                 }
             }
 
             if (success && entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);
 
-            tryMoveData.Success = success;
-            return tryMoveData;
+            m_tryMoveData.Success = success;
+            return m_tryMoveData;
         }
 
         private void HandleStackedEntityPhysics(Entity entity)
@@ -734,7 +735,7 @@ namespace Helion.World.Physics
                         if (!entity.Flags.NoClip && line.HasSpecial)
                             tryMove.AddIntersectSpecialLine(line);
 
-                        LineBlock blockType = LineBlocksEntity(entity, line, tryMove);
+                        LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
                         if (blockType != LineBlock.NoBlock)
                         {
                             entity.BlockingLine = line;
@@ -764,18 +765,11 @@ namespace Helion.World.Physics
                             {
                                 PerformItemPickup(entity, nextEntity);
                             }
-                            else if (entity.CanBlockEntity(nextEntity))
+                            else if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
                             {
-                                bool blocksZ = BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ, out LineOpening? lineOpening);
-                                if (lineOpening != null)
-                                    tryMove.SetIntersectionData(lineOpening);
-
-                                if (blocksZ)
-                                {
-                                    tryMove.Success = false;
-                                    entity.BlockingEntity = nextEntity;
-                                    return GridIterationStatus.Stop;
-                                }
+                                tryMove.Success = false;
+                                entity.BlockingEntity = nextEntity;
+                                return GridIterationStatus.Stop;
                             }
                         }
                     }
@@ -785,25 +779,23 @@ namespace Helion.World.Physics
             }
         }
 
-        private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, out LineOpening? lineOpening)
+        private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
         {
             if (ReferenceEquals(this, other))
-            {
-                lineOpening = null;
                 return false;
-            }
 
-            lineOpening = new LineOpening();
             if (entity.Position.Z + entity.Height > other.Position.Z)
             {
                 // This entity is higher than the other entity and requires step up checking
-                lineOpening.SetTop(tryMove, other);
+                m_lineOpening.SetTop(tryMove, other);
             }
             else
             {
                 // This entity is within the other entity's Z or below
-                lineOpening.SetBottom(tryMove, other);
+                m_lineOpening.SetBottom(tryMove, other);
             }
+
+            tryMove.SetIntersectionData(m_lineOpening);
 
             // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
             if (overlapsZ && entity.Flags.IsMonster)
@@ -812,7 +804,7 @@ namespace Helion.World.Physics
             if (!overlapsZ)
                 return false;
 
-            return !lineOpening.CanPassOrStepThrough(entity);
+            return !m_lineOpening.CanPassOrStepThrough(entity);
         }
 
         private void PerformItemPickup(Entity entity, Entity item)
@@ -917,7 +909,7 @@ namespace Helion.World.Physics
             bool hit = false;
             double hitTime = double.MaxValue;
             Line? blockingLine = null;
-
+            Vec2D position = entity.Position.To2D();
             m_blockmap.Iterate(cornerTracer, CheckForTracerHit);
 
             if (hit && hitTime < moveInfo.LineIntersectionTime)
@@ -930,7 +922,7 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
 
                     if (cornerTracer.Intersection(line.Segment, out double time) &&
-                        LineBlocksEntity(entity, line, null) != LineBlock.NoBlock &&
+                        LineBlocksEntity(entity, position, line, null) != LineBlock.NoBlock &&
                         time < hitTime)
                     {
                         hit = true;
