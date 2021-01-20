@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.Util;
+using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
@@ -70,18 +71,10 @@ namespace Helion.World.Physics.Blockmap
                             m_lineMap.Add(line.Id);
                             intersect = line.Segment.FromTime(t);
 
-                            if (stopOnOneSidedLine)
+                            if (stopOnOneSidedLine && (line.OneSided || LineOpening.GetOpeningHeight(line) <= 0))
                             {
-                                if (line.OneSided)
-                                {
-                                    hitOneSidedIterate = true;
-                                    return GridIterationStatus.Stop;
-                                }
-                                else if (LineOpening.GetOpeningHeight(line) <= 0)
-                                {
-                                    hitOneSidedIterate = true;
-                                    return GridIterationStatus.Stop;
-                                }
+                                hitOneSidedIterate = true;
+                                return GridIterationStatus.Stop;
                             }
 
                             intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
@@ -97,8 +90,9 @@ namespace Helion.World.Physics.Blockmap
 
                 if ((flags & BlockmapTraverseFlags.Entities) != 0)
                 {
-                    foreach (Entity entity in block.Entities)
+                    for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                     {
+                        Entity entity = entityNode.Value;
                         if (entityFlags != BlockmapTraverseEntityFlags.None)
                         {
                             if ((entityFlags & BlockmapTraverseEntityFlags.Shootable) != 0 && !entity.Flags.Shootable)
