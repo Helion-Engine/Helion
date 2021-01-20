@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Boxes;
 using Helion.World.Entities;
@@ -30,8 +31,10 @@ namespace Helion.World.Geometry.Subsectors
         public LinkableNode<Entity> Link(Entity entity)
         {
             Precondition(!Entities.Contains(entity), "Trying to link an entity to a sector twice");
-            
-            return Entities.Add(entity);            
+
+            LinkableNode<Entity> node = DataCache.Instance.GetLinkableNodeEntity(entity);
+            Entities.Add(node);
+            return node;
         }
     }
 }
