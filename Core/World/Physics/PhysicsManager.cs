@@ -139,7 +139,7 @@ namespace Helion.World.Physics
                         PushDownBlockingEntities(entity);
                     // Clipped something that wasn't directly on this entity before the move and now it will be
                     // Push the entity up, and the next loop will verify it is legal
-                    else if (entity.OverEntity == null)
+                    else
                         PushUpBlockingEntity(entity);
                 }
             }
@@ -261,7 +261,7 @@ namespace Helion.World.Physics
             }
         }
 
-        private void PushUpBlockingEntity(Entity pusher)
+        private static void PushUpBlockingEntity(Entity pusher)
         {
             if (!(pusher.LowestCeilingObject is Entity))
                 return;
@@ -270,7 +270,7 @@ namespace Helion.World.Physics
             entity.SetZ(pusher.Box.Top, false);
         }
 
-        private void PushDownBlockingEntities(Entity pusher)
+        private static void PushDownBlockingEntities(Entity pusher)
         {
             // Because of how ClampBetweenFloorAndCeiling works, try to push down the entire stack and stop when something clips a floor
             if (pusher.HighestFloorObject is Sector && pusher.HighestFloorZ > pusher.LowestCeilingZ - pusher.Height)
