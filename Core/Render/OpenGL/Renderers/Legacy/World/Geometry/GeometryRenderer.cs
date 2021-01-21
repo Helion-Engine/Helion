@@ -294,6 +294,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             Wall upperWall = facingSide.Upper;
 
+            if (!isSky && upperWall.TextureHandle == Constants.NoTextureIndex)
+                return;
+
             GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager[texture];
 
@@ -303,7 +306,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             {
                 SkyGeometryVertex[]? data = m_skyWallVertexUpperLookup[facingSide.Id];
 
-                if (TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))// && LineOpening.IsOpen(facingSide.Line))
+                if (TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
                     return;
 
                 if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
