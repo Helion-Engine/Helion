@@ -3,6 +3,7 @@ using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
@@ -112,8 +113,10 @@ namespace Helion.World.Geometry.Sectors
         public LinkableNode<Entity> Link(Entity entity)
         {
             Precondition(!Entities.Contains(entity), "Trying to link an entity to a sector twice");
-            
-            return Entities.Add(entity);            
+
+            LinkableNode<Entity> node = DataCache.Instance.GetLinkableNodeEntity(entity);
+            Entities.Add(node);
+            return node;
         }
 
         public void SetLightLevel(short lightLevel)

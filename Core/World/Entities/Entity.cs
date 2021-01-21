@@ -244,13 +244,24 @@ namespace Helion.World.Entities
             // clearing may cause garbage collection to not be run for any
             // lingering elements in the list.
             for (int i = 0; i < SectorNodes.Count; i++)
+            {
                 SectorNodes[i].Unlink();
-            SubsectorNode?.Unlink();
+                DataCache.Instance.FreeLinkableNodeEntity(SectorNodes[i]);
+            }
+
+            if (SubsectorNode != null)
+            {
+                SubsectorNode.Unlink();
+                DataCache.Instance.FreeLinkableNodeEntity(SubsectorNode);
+            }
             SectorNodes.Clear();
             SubsectorNode = null;
 
             for (int i = 0; i < BlockmapNodes.Count; i++)
+            {
                 BlockmapNodes[i].Unlink();
+                DataCache.Instance.FreeLinkableNodeEntity(BlockmapNodes[i]);
+            }
             BlockmapNodes.Clear();
 
             IntersectSectors.Clear();
@@ -486,6 +497,8 @@ namespace Helion.World.Entities
                     entities.Add(entity);
             }
 
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+
             return entities;
         }
 
@@ -509,6 +522,8 @@ namespace Helion.World.Entities
                 if (CanBlockEntity(entity) && box.Overlaps(entity.Box))
                     entities.Add(entity);
             }
+
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
 
             return entities;
         }

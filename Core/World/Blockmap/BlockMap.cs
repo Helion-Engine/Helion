@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
@@ -88,7 +89,9 @@ namespace Helion.World.Blockmap
             
             GridIterationStatus BlockLinkFunc(Block block)
             {
-                LinkableNode<Entity> blockEntityNode = block.Entities.Add(entity);
+                LinkableNode<Entity> blockEntityNode = DataCache.Instance.GetLinkableNodeEntity(entity);
+                block.Entities.Add(blockEntityNode);
+
                 entity.BlockmapNodes.Add(blockEntityNode);
                 return GridIterationStatus.Continue;
             }

@@ -114,6 +114,11 @@ namespace Helion.Util.Container
                 yield return Data[i];
         }
 
+        public void RemoveLast()
+        {
+            Length--;
+        }
+
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         

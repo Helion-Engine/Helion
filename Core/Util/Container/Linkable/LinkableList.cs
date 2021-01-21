@@ -48,6 +48,18 @@ namespace Helion.Util.Container.Linkable
         {
             return new LinkableNode<T>(value, m_dummyHead);
         }
+
+        public void Add(LinkableNode<T> node)
+        {
+            var previous = m_dummyHead;
+
+            node.Next = previous.Next;
+            node.Previous = previous;
+
+            previous.Next = node;
+            if (node.Next != null)
+                node.Next.Previous = node;
+        }
         
         /// <summary>
         /// Checks if an object is contained (checks via reference).

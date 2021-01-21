@@ -2518,6 +2518,8 @@ namespace Helion.World.Entities.Definition.States
                 break;
             }
 
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+
             A_Chase(entity);
         }
 
