@@ -37,6 +37,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private readonly RenderWorldDataManager m_worldDataManager;
         private readonly LegacySkyRenderer m_skyRenderer;
         private double m_tickFraction;
+        private bool m_skyOverride;
 
         private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
         private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -133,7 +134,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
                 if (m_lineDrawnTracker.HasDrawn(edge.Line))
                 {
-                    AddLineClip(edge);
+                    if (!edge.Line.Sky)
+                        AddLineClip(edge);
                     continue;
                 }
 
@@ -148,7 +150,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 RenderSide(side, onFrontSide);
 
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
-                AddLineClip(edge);
+
+                edge.Line.Sky = m_skyOverride;
+                if (!m_skyOverride)
+                    AddLineClip(edge);
             }
         }
 
@@ -162,6 +167,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderSide(Side side, bool isFrontSide)
         {
+            m_skyOverride = false;
             if (!(side is TwoSided twoSided))
                 RenderOneSided(side);
             else
@@ -289,12 +295,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-
             SectorPlane plane = otherSide.Sector.Ceiling;
             bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             Wall upperWall = facingSide.Upper;
 
-            if (!isSky && upperWall.TextureHandle == Constants.NoTextureIndex)
+            if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle) && upperWall.TextureHandle == Constants.NoTextureIndex)
                 return;
 
             GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
@@ -307,7 +312,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 SkyGeometryVertex[]? data = m_skyWallVertexUpperLookup[facingSide.Id];
 
                 if (TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+                {
+                    m_skyOverride = true;
                     return;
+                }
 
                 if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
                 {
@@ -346,8 +354,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 return;
 
             bool isFront = twoSided == null || twoSided.IsFront;
-            WallVertices wall = WorldTriangulator.HandleOneSided(facingSide, texture.UVInverse, m_tickFraction,
-                overrideFloor: facingSide.Sector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
+            WallVertices wall;
+
+            if (twoSided != null && LineOpening.IsRenderingBlocked(twoSided.Line) && twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
+            {
+                wall = WorldTriangulator.HandleOneSided(facingSide, texture.UVInverse, m_tickFraction,
+                    overrideFloor: facingSide.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
+            }
+            else
+            {
+                wall = WorldTriangulator.HandleOneSided(facingSide, texture.UVInverse, m_tickFraction,
+                    overrideFloor: facingSide.Sector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
+            }
 
             var skyData = CreateSkyWallVertices(wall);
             m_skyRenderer.DefaultSky.Add(skyData);

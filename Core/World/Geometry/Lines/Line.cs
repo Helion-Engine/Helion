@@ -22,7 +22,9 @@ namespace Helion.World.Geometry.Lines
         public readonly LineFlags Flags;
         public readonly LineSpecial Special;
         public bool Activated;
-        
+        // Rendering hax...
+        public bool Sky;
+
         public Vec2D StartPosition => Segment.Start;
         public Vec2D EndPosition => Segment.End;
         
