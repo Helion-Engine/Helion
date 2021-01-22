@@ -393,7 +393,7 @@ namespace Helion.World.Entities.Players
 
         private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags)
         {
-            int oldCount = Inventory.Amount(ammoDef.Name);
+            int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
             bool success = Inventory.Add(ammoDef, amount, flags);
             if (success)
                 CheckAutoSwitchAmmo(ammoDef, oldCount);
