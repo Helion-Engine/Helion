@@ -11,5 +11,7 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("The skill level in the game.")]
         public readonly ConfigValueEnum<SkillLevel> Skill = new(SkillLevel.Hard);
+
+        public bool NoMonsters { get; set; }
     }
 }

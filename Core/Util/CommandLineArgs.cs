@@ -20,6 +20,7 @@ namespace Helion.Util
         public string? LogPath { get; set; }
         public string? Warp { get; set; }
         public int? Skill { get; set; }
+        public bool NoMonsters { get; set; }
 
         public List<string> Errors { get; set; } = new List<string>();
 
@@ -49,6 +50,8 @@ namespace Helion.Util
                     commandLineArgs.Skill = ParseInt(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "+map"))
                     commandLineArgs.Map = GetString(commandLineArgs, parsedArg);
+                else if (IsArgMatch(parsedArg, "-nomonsters"))
+                    commandLineArgs.NoMonsters = true;
                 else
                     commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
             }

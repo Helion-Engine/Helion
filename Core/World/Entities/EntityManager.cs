@@ -128,13 +128,16 @@ namespace Helion.World.Entities
             {
                 if (!ShouldSpawn(mapThing, m_skill))
                     continue;
-                
+
                 EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
                 if (definition == null)
                 {
                     Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.To2D());
                     continue;
                 }
+
+                if (World.Config.Game.NoMonsters && definition.Flags.IsMonster)
+                    continue;
 
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
                 Vec3D position = mapThing.Position.ToDouble();
