@@ -359,7 +359,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             if (twoSided != null && LineOpening.IsRenderingBlocked(twoSided.Line) && twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
             {
                 wall = WorldTriangulator.HandleOneSided(facingSide, texture.UVInverse, m_tickFraction,
-                    overrideFloor: facingSide.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
+                    overrideFloor: twoSided.PartnerSide.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
             }
             else
             {
