@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Helion.Util.Configs.Tree;
+using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
 using IniParser;
 using IniParser.Model;
@@ -78,6 +79,10 @@ namespace Helion.Util.Configs
 
                 if (i == tokens.Count - 1)
                 {
+                    // If it's never saved, it should never be read either.
+                    if (!ConfigInfoAttribute.IsSaved(fieldInfo))
+                        return null;
+
                     // Now that we've reached the final piece in the path (as
                     // in, "render.showfps" would result in the field object
                     // named 'showfps' under the 'render' object), we can grab

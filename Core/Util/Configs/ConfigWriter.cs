@@ -47,9 +47,9 @@ namespace Helion.Util.Configs
 
         private void RecursivelyWriteEngineData(object component, KeyDataCollection keyData, string path = "")
         {
-            foreach (var (child, _, newPath, isValue) in GetRelevantComponentFields(component, path))
+            foreach (var (child, fieldInfo, newPath, isValue) in GetRelevantComponentFields(component, path))
             {
-                if (isValue)
+                if (isValue && ConfigInfoAttribute.IsSaved(fieldInfo))
                     keyData[newPath] = child.ToString();
                 else
                     RecursivelyWriteEngineData(child, keyData, newPath);
