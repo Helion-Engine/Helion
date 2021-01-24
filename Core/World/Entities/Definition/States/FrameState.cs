@@ -77,6 +77,9 @@ namespace Helion.World.Entities.Definition.States
             if (m_entity.World.SkillDefinition.FastMonsters && Frame.Properties.Fast)
                 m_tics /= 2;
 
+            if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
+                m_tics *= 2;
+
             Frame.ActionFunction?.Invoke(m_entity);
         }
 
