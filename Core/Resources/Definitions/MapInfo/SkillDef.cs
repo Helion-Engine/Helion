@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities.Definition.Flags;
+﻿using Helion.Util.Configs;
+using Helion.World.Entities.Definition.Flags;
 using System;
 using System.Drawing;
 
@@ -48,5 +49,7 @@ namespace Helion.Resources.Definitions.MapInfo
         }
 
         public int GetDamage(int damage) => (int)(damage * DamageFator);
+
+        public bool IsFastMonsters(Config config) => config.Game.SV_FastMonsters || FastMonsters;
     }
 }

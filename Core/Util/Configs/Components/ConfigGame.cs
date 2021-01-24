@@ -11,5 +11,6 @@ namespace Helion.Util.Configs.Components
 
         public SkillLevel Skill { get; set; }
         public bool NoMonsters { get; set; }
+        public bool SV_FastMonsters { get; set; }
     }
 }

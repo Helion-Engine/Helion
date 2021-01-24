@@ -21,6 +21,7 @@ namespace Helion.Util
         public string? Warp { get; set; }
         public int? Skill { get; set; }
         public bool NoMonsters { get; set; }
+        public bool SV_FastMonsters { get; set; }
 
         public List<string> Errors { get; set; } = new List<string>();
 
@@ -52,6 +53,8 @@ namespace Helion.Util
                     commandLineArgs.Map = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "-nomonsters"))
                     commandLineArgs.NoMonsters = true;
+                else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
+                    commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
                 else
                     commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
             }
@@ -81,6 +84,14 @@ namespace Helion.Util
             }
 
             return arg.Values.First();
+        }
+
+        private static bool GetBoolArg(CommandArg arg)
+        {
+            if (arg.Values.Count == 0)
+                return false;
+
+            return arg.Values[0] != "0";
         }
 
         private static int? ParseInt(CommandLineArgs commandLineArgs, CommandArg arg)
