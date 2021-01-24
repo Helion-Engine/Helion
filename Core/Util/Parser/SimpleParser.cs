@@ -208,6 +208,21 @@ namespace Helion.Util.Parser
             throw new ParserException(token.Line, token.Index, 0, $"Could not parse {data} as integer.");
         }
 
+        public double ConsumeDouble()
+        {
+            AssertData();
+
+            ParserToken token = m_tokens[m_index];
+            string data = GetData(m_index);
+            if (double.TryParse(data, out double d))
+            {
+                m_index++;
+                return d;
+            }
+
+            throw new ParserException(token.Line, token.Index, 0, $"Could not parse {data} as a double.");
+        }
+
         public bool ConsumeBool()
         {
             AssertData();
