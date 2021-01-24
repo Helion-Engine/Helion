@@ -212,6 +212,9 @@ namespace Helion.World
                     if (!entity.IsDisposed)
                         PhysicsManager.Move(entity);
 
+                    if (entity.Respawn)
+                        HandleRespawn(entity);
+
                     if (WorldState == WorldState.Exit)
                         return;
                 }
@@ -855,6 +858,46 @@ namespace Helion.World
                 Log.Error(message);
         }
 
+        private void HandleRespawn(Entity entity)
+        {
+            entity.Respawn = false;
+            if (entity.Definition.Flags.Solid && !IsPositionBlockedByEntity(entity, entity.SpawnPoint))
+                return;
+
+            Entity? newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
+            if (newEntity != null)
+            {
+                CreateTeleportFog(entity.Position);
+                CreateTeleportFog(entity.SpawnPoint);
+
+                newEntity.SetSpawnState();
+                newEntity.AngleRadians = entity.AngleRadians;
+                newEntity.Properties.ReactionTime = 18;
+
+                entity.Dispose();
+            }
+        }
+
+        public bool IsPositionBlockedByEntity(Entity entity, in Vec3D position)
+        {
+            if (!entity.Definition.Flags.Solid)
+                return true;
+
+            double oldHeight = entity.Height;
+            entity.Flags.Solid = true;
+            entity.SetHeight(entity.Definition.Properties.Height);
+
+            //if (!entity.World.TryMoveXY(entity, position.To2D(), false).Success)
+            if (entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count > 0)
+            {
+                entity.Flags.Solid = false;
+                entity.SetHeight(oldHeight);
+                return false;
+            }
+
+            return true;
+        }
+
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
         {
             double distance;
@@ -1045,6 +1088,20 @@ namespace Helion.World
             {
                 front = line.Back!.Sector;
                 back = line.Front.Sector;
+            }
+        }
+
+        public void CreateTeleportFog(in Vec3D pos, bool playSound = true)
+        {
+            EntityDefinition? teleportFog = EntityManager.DefinitionComposer.GetByName("TeleportFog");
+            if (teleportFog != null)
+            {
+                var teleport = EntityManager.Create(teleportFog, pos, 0.0, 0.0, 0);
+                if (teleport != null)
+                {
+                    teleport.SetZ(teleport.Sector.ToFloorZ(pos), false);
+                    SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
+                }
             }
         }
     }

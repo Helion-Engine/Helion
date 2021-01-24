@@ -2496,16 +2496,8 @@ namespace Helion.World.Entities.Definition.States
                 if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1)
                     continue;
 
-                bi.Entity.Flags.Solid = true;
-                double oldHeight = bi.Entity.Height;
-                bi.Entity.SetHeight(bi.Entity.Definition.Properties.Height);
-
-                if (!entity.World.TryMoveXY(bi.Entity, bi.Entity.Position.To2D(), false).Success)
-                {
-                    bi.Entity.Flags.Solid = false;
-                    bi.Entity.SetHeight(oldHeight);
+                if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
                     continue;
-                }
 
                 Entity? saveTarget = entity.Target;
                 entity.Target = bi.Entity;

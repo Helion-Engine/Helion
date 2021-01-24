@@ -25,7 +25,6 @@ namespace Helion.World.Special.Specials
     public class TeleportSpecial : ISpecial
     {
         private const int TeleportFreezeTicks = 18;
-        private const int TeleportOffsetDist = 16;
         
         private readonly EntityActivateSpecialEventArgs m_args;
         private readonly IWorld m_world;
@@ -65,10 +64,10 @@ namespace Helion.World.Special.Specials
             if (Teleport(entity, teleportSpot))
             {
                 if ((m_fogFlags & TeleportFog.Source) != 0)
-                    CreateTeleportFog(oldPosition, entity.AngleRadians);
+                    m_world.CreateTeleportFog(oldPosition + (Vec3D.Unit(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
 
                 if ((m_fogFlags & TeleportFog.Dest) != 0)
-                    CreateTeleportFog(entity.Position, entity.AngleRadians);
+                    m_world.CreateTeleportFog(entity.Position + (Vec3D.Unit(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
             }
 
             return SpecialTickStatus.Destroy;
@@ -97,28 +96,12 @@ namespace Helion.World.Special.Specials
             return true;
         }
 
-        private bool CanTeleport(Entity teleportEntity, Entity teleportSpot)
+        private static bool CanTeleport(Entity teleportEntity, Entity teleportSpot)
         {
             if (teleportEntity is Player)
                 return true;
 
             return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count == 0;
-        }
-
-        private void CreateTeleportFog(in Vec3D pos, double angle)
-        {
-            Entity? teleport = CreateTeleportFogAt(pos + (Vec3D.Unit(angle, 0.0) * TeleportOffsetDist));
-            if (teleport != null)
-                m_world.SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
-        }
-
-        private Entity? CreateTeleportFogAt(in Vec3D pos)
-        {
-            EntityDefinition? definition = m_world.EntityManager.DefinitionComposer.GetByName("TeleportFog");
-            if (definition != null)
-                return m_world.EntityManager.Create(definition, pos, 0.0, 0.0, 0);
-
-            return null;
         }
 
         public void Use(Entity entity)

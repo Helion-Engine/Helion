@@ -69,5 +69,8 @@ namespace Helion.World
             MoveDirection direction, double speed, double destZ, CrushData? crush);
         void HandleEntityDeath(Entity deathEntity, Entity? deathSource);
         void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
+        // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
+        public bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
+        void CreateTeleportFog(in Vec3D pos, bool playSound = true);
     }
 }

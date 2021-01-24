@@ -201,6 +201,7 @@ namespace Helion.World.Entities
 
             entity.ResetInterpolation();
             entity.SetSpawnState();
+            entity.SpawnPoint = entity.Position;
         }
 
         private void PostProcessEntity(Entity entity)

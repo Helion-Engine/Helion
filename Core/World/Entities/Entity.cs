@@ -42,6 +42,7 @@ namespace Helion.World.Entities
         public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
+        public Vec3D SpawnPoint;
         public Vec3D Position => Box.Position;
         public Vec3D CenterPoint => new Vec3D(Box.Position.X, Box.Position.Y, Box.Position.Z + (Height / 2));
         public Vec3D ProjectileAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + 32);
@@ -77,6 +78,7 @@ namespace Helion.World.Entities
         // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
         public bool ClippedWithEntity;
         public bool MoveLinked;
+        public bool Respawn;
 
         public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
 
@@ -281,6 +283,25 @@ namespace Helion.World.Entities
                 FrozenTics--;
 
             FrameState.Tick();
+
+            if (Flags.Monster && IsDeathStateFinished)
+            {
+                if (World.SkillDefinition.RespawnTime.Seconds == 0)
+                    return;
+
+                MoveCount++;
+
+                if (MoveCount < World.SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond)
+                    return;
+
+                if ((World.LevelTime & 31) != 0)
+                    return;
+
+                if (World.Random.NextByte() > 4)
+                    return;
+
+                Respawn = true;
+            }
 
             RunDebugSanityChecks();
         }
