@@ -678,7 +678,8 @@ namespace Helion.World.Entities.Definition.States
             if (entity.Flags.JustAttacked)
             {
                 entity.Flags.JustAttacked = false;
-                entity.SetNewChaseDirection();
+                if (!entity.World.SkillDefinition.FastMonsters)
+                    entity.SetNewChaseDirection();
                 return;
             }
 
@@ -693,7 +694,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.MoveCount < 0 || !entity.MoveEnemy(out TryMoveData? _))
                 entity.SetNewChaseDirection();
 
-            if (entity.MoveCount == 0 && entity.HasMissileState() && entity.CheckMissileRange())
+            if ((entity.MoveCount == 0 || entity.World.SkillDefinition.FastMonsters) && entity.HasMissileState() && entity.CheckMissileRange())
             {
                 entity.Flags.JustAttacked = true;
                 entity.SetMissileState();

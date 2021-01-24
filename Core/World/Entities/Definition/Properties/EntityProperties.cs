@@ -192,6 +192,7 @@ namespace Helion.World.Entities.Definition.Properties
             WeaveIndexXY = properties.WeaveIndexXY;
             WoundHealth = properties.WoundHealth;
             YScale = properties.YScale;
+            Speed = properties.Speed;
         }
     }
 }

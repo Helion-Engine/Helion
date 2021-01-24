@@ -474,7 +474,7 @@ namespace Helion.World
             if (projectileDef != null)
             {
                 Entity projectile = EntityManager.Create(projectileDef, start, 0.0, shooter.AngleRadians, 0);
-                Vec3D velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Definition.Properties.Speed);
+                Vec3D velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Properties.Speed);
                 Vec3D testPos = projectile.Position + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, shooter.Radius - 2.0);
                 projectile.Owner = shooter;
                 projectile.PlaySeeSound();

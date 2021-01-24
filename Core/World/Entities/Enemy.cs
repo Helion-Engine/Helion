@@ -209,8 +209,8 @@ namespace Helion.World.Entities
             if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
                 return Position.To2D();
 
-            double speedX = SpeedX[(int)m_direction] * Definition.Properties.Speed;
-            double speedY = SpeedY[(int)m_direction] * Definition.Properties.Speed;
+            double speedX = SpeedX[(int)m_direction] * Properties.Speed;
+            double speedY = SpeedY[(int)m_direction] * Properties.Speed;
 
             return new Vec2D(Position.X + speedX, Position.Y + speedY);
         }

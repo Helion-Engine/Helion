@@ -40,7 +40,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public int? ExplosionDamage;
         public int? ExplosionRadius;
         public FakeInventoryProperty FakeInventoryProperty = default;
-        public double? FastSpeed;
+        public int? FastSpeed;
         public double? FloatBobPhase;
         public double? FloatBobStrength;
         public double? FloatSpeed;

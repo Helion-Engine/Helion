@@ -1194,7 +1194,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                 m_currentDefinition.Properties.ExplosionRadius = ConsumeInteger();
                 break;
             case "FASTSPEED":
-                m_currentDefinition.Properties.FastSpeed = ConsumeFloat();
+                m_currentDefinition.Properties.FastSpeed = ConsumeInteger();
                 break;
             case "FLOATBOBPHASE":
                 m_currentDefinition.Properties.FloatBobPhase = ConsumeSignedFloat();

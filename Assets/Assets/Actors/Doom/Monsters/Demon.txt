@@ -13,6 +13,7 @@ actor Demon 3002
     SeeSound "demon/sight"
     SpawnID 8
     Speed 10
+    FastSpeed 20
     
     MONSTER
     +FLOORCLIP
