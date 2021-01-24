@@ -1,4 +1,6 @@
-﻿clearepisodes
+﻿#include "MapInfo/DoomCommon.txt"
+
+clearepisodes
 episode map01
 {
 	name  = "$TXT_PLUT_EP"

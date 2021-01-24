@@ -1,3 +1,5 @@
+#include "MapInfo/DoomCommon.txt"
+
 clearepisodes
 episode map01
 {

@@ -100,6 +100,7 @@
     <Content Include="Assets\MapInfo\Chex.txt" />
     <Content Include="Assets\MapInfo\Doom1.txt" />
     <Content Include="Assets\MapInfo\Doom2.txt" />
+    <Content Include="Assets\MapInfo\DoomCommon.txt" />
     <Content Include="Assets\SndInfo.txt" />
     <Content Include="Assets\Weapons\Doom\Chainsaw.txt" />
     <Content Include="Assets\Weapons\Doom\DoomWeapon.txt" />

@@ -39,6 +39,7 @@ namespace Helion.Resources.Definitions
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
         private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
+        private readonly ArchiveCollection m_archiveCollection;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
         /// <summary>
@@ -47,6 +48,7 @@ namespace Helion.Resources.Definitions
         /// </summary>
         public DefinitionEntries(ArchiveCollection archiveCollection)
         {
+            m_archiveCollection = archiveCollection;
             Decorate = new DecorateDefinitions(archiveCollection);
 
             m_entryNameToAction["ANIMDEFS"] = entry => Animdefs.AddDefinitions(entry);
@@ -80,7 +82,7 @@ namespace Helion.Resources.Definitions
         private void ParseSoundInfo(Entry entry) => SoundInfo.Parse(entry.ReadDataAsString());
         private void ParseInternalLanguage(Entry entry) =>Language.ParseInternal(entry.ReadDataAsString());
         private void ParseLanguage(Entry entry) => Language.Parse(entry.ReadDataAsString());
-        private void ParseMapInfo(Entry entry) => MapInfoDefinition.Parse(entry.ReadDataAsString());
+        private void ParseMapInfo(Entry entry) => MapInfoDefinition.Parse(m_archiveCollection, entry.ReadDataAsString());
         
         /// <summary>
         /// Tracks all the resources from an archive.

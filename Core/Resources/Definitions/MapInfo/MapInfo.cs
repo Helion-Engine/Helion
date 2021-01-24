@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Helion.Maps.Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,6 +15,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private readonly List<EpisodeDef> m_episodes = new List<EpisodeDef>();
         private readonly List<MapInfoDef> m_maps = new List<MapInfoDef>();
         private readonly List<ClusterDef> m_clusters = new List<ClusterDef>();
+        private readonly List<SkillDef> m_skills = new List<SkillDef>();
 
         public void ClearEpisodes() => m_episodes.Clear();
 
@@ -25,7 +27,23 @@ namespace Helion.Resources.Definitions.MapInfo
         public void AddCluster(ClusterDef newCluster)
             => AddOrReplace(m_clusters, newCluster);
 
-        private void AddOrReplace<T>(List<T> items, T newItem)
+        public void AddSkill(SkillDef skill) => m_skills.Add(skill);
+
+        public void ClearSkills() => m_skills.Clear();
+
+        public SkillDef? GetSkill(SkillLevel skill)
+        {
+            if (skill == SkillLevel.None)
+                return m_skills.FirstOrDefault(x => x.Default);
+
+            int iSkill = (int)skill - 1;
+            if (iSkill < 0 || iSkill >= m_skills.Count)
+                return null;
+
+            return m_skills[iSkill];
+        }
+
+        private static void AddOrReplace<T>(List<T> items, T newItem)
         {
             if (newItem == null)
                 return;
@@ -57,7 +75,6 @@ namespace Helion.Resources.Definitions.MapInfo
 
             return DefaultMap;
         }
-
 
         public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;
         public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);

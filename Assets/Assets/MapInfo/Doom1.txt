@@ -1,3 +1,5 @@
+#include "MapInfo/DoomCommon.txt"
+
 gameinfo
 {
 	creditpage = "CREDIT", "HELP2"

@@ -1,4 +1,7 @@
-﻿using Helion.Util;
+﻿using Helion.Maps.Shared;
+using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
@@ -18,6 +21,8 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly CIString DefaultMapName = "defaultmap";
         private static readonly CIString AddDefaultMapName = "adddefaultmap";
         private static readonly CIString MapName = "map";
+        private static readonly CIString SkillName = "skill";
+        private static readonly CIString ClearSkillsName = "clearskills";
 
         private static readonly HashSet<CIString> HighLevelNames = new HashSet<CIString>
         {
@@ -27,7 +32,9 @@ namespace Helion.Resources.Definitions.MapInfo
             ClusterName,
             DefaultMapName,
             AddDefaultMapName,
-            MapName
+            MapName,
+            SkillName,
+            ClearSkillsName
         };
 
         private static readonly CIString GameCreditPageName = "creditpage";
@@ -114,9 +121,80 @@ namespace Helion.Resources.Definitions.MapInfo
             ClusterPicName,
         };
 
+        private static readonly CIString Skill_AmmoFactorName = "AmmoFactor";
+        private static readonly CIString Skill_DropAmmoFactorName = "DropAmmoFactor";
+        private static readonly CIString Skill_DoubleAmmoFactorName = "DoubleAmmoFactor";
+        private static readonly CIString Skill_DamageFactorName = "DamageFactor";
+        private static readonly CIString Skill_RespawnTimeName = "RespawnTime";
+        private static readonly CIString Skill_RespawnLimit= "RespawnLimit";
+        private static readonly CIString Skill_AggressivenessName = "Aggressiveness";
+        private static readonly CIString Skill_SpawnFilterName = "SpawnFilter";
+        private static readonly CIString Skill_ACSReturnName = "ACSReturn";
+        private static readonly CIString Skill_KeyName = "Key";
+        private static readonly CIString Skill_MustConfirmName = "MustConfirm";
+        private static readonly CIString Skill_Name = "Name";
+        private static readonly CIString Skill_PlayerClassNameName = "PlayerClassName";
+        private static readonly CIString Skill_PicNameName = "PicName";
+        private static readonly CIString Skill_TextColorName = "TextColorName";
+        private static readonly CIString Skill_EasyBossBrainName = "EasyBossBrain";
+        private static readonly CIString Skill_EasyKeyName = "EasyKey";
+        private static readonly CIString Skill_FastMonstersName = "FastMonsters";
+        private static readonly CIString Skill_SlowMonstersName = "SlowMonsters";
+        private static readonly CIString Skill_DisableCheatsName = "DisableCheats";
+        private static readonly CIString Skill_AutoUseHealthName = "AutoUseHealth";
+        private static readonly CIString Skill_ReplaceActorName = "ReplaceActor";
+        private static readonly CIString Skill_MonsterHealthName = "MonsterHealth";
+        private static readonly CIString Skill_FriendlyHealthName = "FriendlyHealth";
+        private static readonly CIString Skill_NoPainName = "NoPain";
+        private static readonly CIString Skill_DefaultSkillName = "DefaultSkill";
+        private static readonly CIString Skill_ArmorFactorName = "ArmorFactor";
+        private static readonly CIString Skill_NoInfightingName = "NoInfighting";
+        private static readonly CIString Skill_TotalInfightingName = "TotalInfighting";
+        private static readonly CIString Skill_HealthFactorName = "HealthFactor";
+        private static readonly CIString Skill_KickbackFactorName = "KickbackFactor";
+        private static readonly CIString Skill_NoMenuName = "NoMenu";
+        private static readonly CIString Skill_PlayerRespawnName = "PlayerRespawn";
+
+        private static readonly HashSet<CIString> SkillNames = new HashSet<CIString>()
+        {
+            Skill_AmmoFactorName,
+            Skill_DropAmmoFactorName,
+            Skill_DoubleAmmoFactorName,
+            Skill_DamageFactorName,
+            Skill_RespawnTimeName,
+            Skill_RespawnLimit,
+            Skill_AggressivenessName,
+            Skill_SpawnFilterName,
+            Skill_ACSReturnName,
+            Skill_KeyName,
+            Skill_MustConfirmName,
+            Skill_Name,
+            Skill_PlayerClassNameName,
+            Skill_PicNameName,
+            Skill_TextColorName,
+            Skill_EasyBossBrainName,
+            Skill_EasyKeyName,
+            Skill_FastMonstersName,
+            Skill_SlowMonstersName,
+            Skill_DisableCheatsName,
+            Skill_AutoUseHealthName,
+            Skill_ReplaceActorName,
+            Skill_MonsterHealthName,
+            Skill_FriendlyHealthName,
+            Skill_NoPainName,
+            Skill_DefaultSkillName,
+            Skill_ArmorFactorName,
+            Skill_NoInfightingName,
+            Skill_TotalInfightingName,
+            Skill_HealthFactorName,
+            Skill_KickbackFactorName,
+            Skill_NoMenuName,
+            Skill_PlayerRespawnName
+        };
+
         private bool m_legacy;
 
-        public void Parse(string data)
+        public void Parse(ArchiveCollection archiveCollection, string data)
         {
             m_legacy = true;
             SimpleParser parser = new SimpleParser();
@@ -126,8 +204,8 @@ namespace Helion.Resources.Definitions.MapInfo
             {
                 CIString item = parser.ConsumeString();
 
-                if (item == "include")
-                    ParseInclude(parser);
+                if (item == "#include")
+                    ParseInclude(archiveCollection, parser);
                 else if (item == GameInfoName)
                     GameDefinition = ParseGameInfo(parser);
                 else if (item == ClearEpisodesName)
@@ -142,6 +220,10 @@ namespace Helion.Resources.Definitions.MapInfo
                     ParseMapDef(parser, false, MapInfo.DefaultMap);
                 else if (item == MapName)
                     MapInfo.AddMap(ParseMapDef(parser, true, (MapInfoDef)MapInfo.DefaultMap.Clone()));
+                else if (item == SkillName)
+                    MapInfo.AddSkill(ParseSkillDef(parser));
+                else if (item == ClearSkillsName)
+                    MapInfo.ClearSkills();
             }
         }
 
@@ -398,6 +480,163 @@ namespace Helion.Resources.Definitions.MapInfo
             return gameDef;
         }
 
+        private SkillDef ParseSkillDef(SimpleParser parser)
+        {
+            SkillDef skillDef = new();
+            CIString name = parser.ConsumeString();
+            ConsumeBrace(parser, true);
+
+            while (!IsBlockComplete(parser))
+            {
+                CIString item = parser.ConsumeString();
+
+                if (SkillNames.Contains(item))
+                {
+                    if (item == Skill_AmmoFactorName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.AmmoFactor = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_DropAmmoFactorName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.DropAmmoFactor = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_DoubleAmmoFactorName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.DoubleAmmoFactor = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_DamageFactorName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.DamageFator = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_RespawnTimeName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.RespawnTime = TimeSpan.FromSeconds(parser.ConsumeInteger());
+                    }
+                    else if (item == Skill_RespawnLimit)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.RespawnLimit = parser.ConsumeInteger();
+                    }
+                    else if (item == Skill_AggressivenessName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.MonsterAggressiveness = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_SpawnFilterName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.SpawnFilter = ParseSpawnFilter(parser);
+                    }
+                    else if (item == Skill_ACSReturnName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.ACSReturn = parser.ConsumeString();
+                    }
+                    else if (item == Skill_KeyName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.Key = parser.ConsumeString();
+                    }
+                    else if (item == Skill_Name)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.Name = parser.ConsumeString();
+                    }
+                    else if (item == Skill_PlayerClassNameName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.PlayerClassName = parser.ConsumeString();
+                    }
+                    else if (item == Skill_PicNameName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.PicName = parser.ConsumeString();
+                    }
+                    else if (item == Skill_TextColorName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.TextColor = System.Drawing.Color.Red;
+                    }
+                    else if (item == Skill_MonsterHealthName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.MonsterHealthFactor = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_FriendlyHealthName)
+                    {
+                        ConsumeEquals(parser);
+                        skillDef.FriendlyHealthFactor = parser.ConsumeDouble();
+                    }
+                    else if (item == Skill_EasyBossBrainName)
+                        skillDef.EasyBossBrain = true;
+                    else if (item == Skill_EasyKeyName)
+                        skillDef.EasyKey = true;
+                    else if (item == Skill_FastMonstersName)
+                        skillDef.FastMonsters = true;
+                    else if (item == Skill_SlowMonstersName)
+                        skillDef.SlowMonsters = true;
+                    else if (item == Skill_DisableCheatsName)
+                        skillDef.DisableCheats = true;
+                    else if (item == Skill_AutoUseHealthName)
+                        skillDef.AutoUseHealth = true;
+                    else if (item == Skill_NoPainName)
+                        skillDef.NoPain = true;
+                    else if (item == Skill_DefaultSkillName)
+                        skillDef.Default = true;
+                    else if (item == Skill_ArmorFactorName)
+                        skillDef.ArmorFactor = parser.ConsumeDouble();
+                    else if (item == Skill_NoInfightingName)
+                        skillDef.NoInfighting = true;
+                    else if (item == Skill_TotalInfightingName)
+                        skillDef.TotalInfighting = true;
+                    else if (item == Skill_HealthFactorName)
+                        skillDef.HealthFactor = parser.ConsumeDouble();
+                    else if (item == Skill_KickbackFactorName)
+                        skillDef.KickbackFactor = parser.ConsumeDouble();
+                    else if (item == Skill_NoMenuName)
+                        skillDef.NoMenu = true;
+                    else if (item == Skill_PlayerRespawnName)
+                        skillDef.PlayerRespawn = true;
+                    else if (item == Skill_MustConfirmName)
+                        skillDef.MustConfirm = true;
+                }
+                else
+                {
+                    // Warn we do not know what this is
+                    parser.ConsumeLine();
+                }
+            }
+
+            ConsumeBrace(parser, false);
+
+            return skillDef;
+        }
+
+        private int ParseSpawnFilter(SimpleParser parser)
+        {
+            CIString filter = parser.ConsumeString();
+            if (int.TryParse(filter.ToString(), out int i))
+                return i;
+
+            if (filter == "baby")
+                return (int)SkillLevel.VeryEasy;
+            else if (filter == "easy")
+                return (int)SkillLevel.Easy;
+            else if (filter == "normal")
+                return (int)SkillLevel.Medium;
+            else if (filter == "hard")
+                return (int)SkillLevel.Hard;
+            else if (filter == "nightmare")
+                return (int)SkillLevel.Nightmare;
+
+            throw new ParserException(parser.GetCurrentLine(), 0, 0, $"Invalid spawn filter {filter}");
+        }
+
         private void ConsumeBrace(SimpleParser parser, bool start)
         {
             if (m_legacy && !parser.IsDone() && (parser.Peek('{') || parser.Peek('}')))
@@ -439,10 +678,15 @@ namespace Helion.Resources.Definitions.MapInfo
             return data.Split(new char[] { ',' }).ToList();
         }
 
-        private void ParseInclude(SimpleParser parser)
+        private void ParseInclude(ArchiveCollection archiveCollection, SimpleParser parser)
         {
-            // Don't care for now
-            parser.ConsumeString();
+            string file = parser.ConsumeString();
+            Entry? entry = archiveCollection.Entries.FindByPath(file);
+
+            if (entry == null)
+                throw new ParserException(parser.GetCurrentLine(), 0, 0, $"Failed to find include file {file}");
+
+            Parse(archiveCollection, entry.ReadDataAsString());
         }
     }
 }
