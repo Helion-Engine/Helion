@@ -33,19 +33,16 @@ namespace Helion.World.Entities
         private readonly SoundManager m_soundManager;
         private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
-        private readonly SkillLevel m_skill;
 
         public readonly EntityDefinitionComposer DefinitionComposer;
 
         public readonly List<Player> Players = new List<Player>();
 
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager,
-            SkillLevel skill)
+        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager)
         {
             World = world;
             m_soundManager = soundManager;
             DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
-            m_skill = skill;
         }
 
         public static bool ZHeightSet(double z)
@@ -126,7 +123,7 @@ namespace Helion.World.Entities
 
             foreach (IThing mapThing in map.GetThings())
             {
-                if (!ShouldSpawn(mapThing, m_skill))
+                if (!ShouldSpawn(mapThing))
                     continue;
 
                 EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
@@ -160,13 +157,13 @@ namespace Helion.World.Entities
             }
         }
 
-        private static bool ShouldSpawn(IThing mapThing, SkillLevel skill)
+        private bool ShouldSpawn(IThing mapThing)
         {
             // TODO: These should be offloaded into SinglePlayerWorld...
             if (!mapThing.Flags.SinglePlayer)
                 return false;
-            
-            switch (skill)
+
+            switch ((SkillLevel)World.SkillDefinition.SpawnFilter)
             {
                 case SkillLevel.VeryEasy:
                 case SkillLevel.Easy:

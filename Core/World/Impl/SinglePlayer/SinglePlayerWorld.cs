@@ -37,8 +37,8 @@ namespace Helion.World.Impl.SinglePlayer
         private readonly IAudioSystem m_audioSystem;
 
         public SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapDef, IMap map, Player? existingPlayer = null)
-            : base(config, archiveCollection, audioSystem, geometry, mapDef, map)
+            MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef, IMap map, Player? existingPlayer = null)
+            : base(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map)
         {
             EntityManager.PopulateFrom(map);
 

@@ -21,9 +21,6 @@ using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using NLog;
-using System;
-using System.Linq;
-using System.Text.RegularExpressions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers
@@ -88,7 +85,7 @@ namespace Helion.Layer.WorldLayers
         }
 
         public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, IMap map)
+            ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
         {
             string displayName = mapInfoDef.NiceName;
             if (mapInfoDef.LookupName.Length > 0)
@@ -100,20 +97,20 @@ namespace Helion.Layer.WorldLayers
             Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
             CheatManager.Instance.Clear();
-            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, map);
+            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
             return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapDef, IMap map, Player? existingPlayer = null)
+            ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map, Player? existingPlayer = null)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
             if (geometry == null)
                 return null;
 
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, map, existingPlayer);
+            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, existingPlayer);
         }
 
         public void LoadMap(MapInfoDef mapDef, bool keepPlayer)
@@ -133,10 +130,17 @@ namespace Helion.Layer.WorldLayers
             else
                 CheatManager.Instance.Clear();
 
+            SkillDef? skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(Config.Game.Skill);
+            if (skillDef == null)
+            {
+                Log.Warn($"Could not find skill definition for {Config.Game.Skill}");
+                return;
+            }
+
             // TODO there is some duplication with the static Create call and it's kind of messy
             // Should probably make this all work without the same Create so this function can be shared
             TextureManager.Init(ArchiveCollection, mapDef);
-            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, map, existingPlayer);
+            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, skillDef, map, existingPlayer);
             if (world == null)
             {
                 Log.Error("Unable to load map {0}", map.Name);

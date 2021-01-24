@@ -394,7 +394,7 @@ namespace Helion.World.Entities.Players
         private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags)
         {
             int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
-            bool success = Inventory.Add(ammoDef, amount, flags);
+            bool success = Inventory.Add(ammoDef, World.SkillDefinition.GetAmmoAmount(amount, flags), flags);
             if (success)
                 CheckAutoSwitchAmmo(ammoDef, oldCount);
             return success;
@@ -649,6 +649,8 @@ namespace Helion.World.Entities.Players
 
             if (Sector.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd && damage >= Health)
                 damage = Health - 1;
+
+            damage = World.SkillDefinition.GetDamage(damage);
 
             bool damageApplied = base.Damage(source, damage, setPainState);
             if (damageApplied)

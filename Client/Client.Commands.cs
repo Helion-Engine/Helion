@@ -108,9 +108,16 @@ namespace Helion.Client
                 return;
             }
 
+            SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(m_config.Game.Skill);
+            if (skillDef == null)
+            {
+                Log.Warn($"Could not find skill definition for {m_config.Game.Skill}");
+                return;
+            }
+
             MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
             SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem,
-                m_archiveCollection, mapInfoDef, map);
+                m_archiveCollection, mapInfoDef, skillDef, map);
             if (newLayer == null)
                 return;
 

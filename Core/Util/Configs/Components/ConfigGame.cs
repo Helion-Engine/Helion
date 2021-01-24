@@ -9,9 +9,7 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("Whether vertical autoaiming should be used.")]
         public readonly ConfigValueBoolean AutoAim = new(true);
 
-        [ConfigInfo("The skill level in the game.")]
-        public readonly ConfigValueEnum<SkillLevel> Skill = new(SkillLevel.Hard);
-
+        public SkillLevel Skill { get; set; }
         public bool NoMonsters { get; set; }
     }
 }

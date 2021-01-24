@@ -87,24 +87,26 @@ namespace Helion.World
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
         public Config Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
+        public SkillDef SkillDefinition { get; private set; }
 
         private readonly DoomRandom m_random = new DoomRandom();
         private int m_soundCount;
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapInfoDef, IMap map)
+            MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
             AudioSystem = audioSystem;
             Config = config;
             MapInfo = mapInfoDef;
+            SkillDefinition = skillDef;
             MapName = map.Name;
             Geometry = geometry;
             Map = map;
             Blockmap = new BlockMap(Lines);
             SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
-            EntityManager = new EntityManager(this, archiveCollection, SoundManager, config.Game.Skill);
+            EntityManager = new EntityManager(this, archiveCollection, SoundManager);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
         }

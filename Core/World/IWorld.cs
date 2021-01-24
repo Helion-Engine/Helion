@@ -16,6 +16,7 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
+using Helion.Resources.Definitions.MapInfo;
 
 namespace Helion.World
 {
@@ -40,6 +41,7 @@ namespace Helion.World
         SoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
         Config Config { get; }
+        SkillDef SkillDefinition { get; }
 
         void Link(Entity entity);
         void Tick();
