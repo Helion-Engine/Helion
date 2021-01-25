@@ -61,7 +61,7 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Properties.Speed = properties.Speed.Value;
 
             if (properties.FastSpeed != null)
-                definition.Properties.Speed = properties.FastSpeed.Value;
+                definition.Properties.FastSpeed = properties.FastSpeed.Value;
 
             if (properties.Mass != null)
                 definition.Properties.Mass = properties.Mass.Value;

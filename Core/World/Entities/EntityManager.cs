@@ -70,7 +70,7 @@ namespace Helion.World.Entities
             position.Z = GetPositionZ(sector, in position, zHeight);
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
-            if (World.SkillDefinition.IsFastMonsters(entity.World.Config) && entity.Definition.Properties.FastSpeed > 0)
+            if (entity.Definition.Properties.FastSpeed > 0 && World.SkillDefinition.IsFastMonsters(entity.World.Config))
                 entity.Properties.Speed = entity.Definition.Properties.FastSpeed;              
 
             // This only needs to happen on map population
