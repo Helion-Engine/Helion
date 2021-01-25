@@ -62,16 +62,6 @@ namespace Helion.World
         public double Gravity { get; private set; } = 1.0;
         public bool Paused { get; private set; }
         public IRandom Random => m_random;
-        protected readonly ArchiveCollection ArchiveCollection;
-        protected readonly IAudioSystem AudioSystem;
-        protected readonly MapGeometry Geometry;
-        protected readonly SpecialManager SpecialManager;
-        protected readonly PhysicsManager PhysicsManager;
-        protected readonly IMap Map;
-
-        private int m_exitTicks = 0;
-        private LevelChangeType m_levelChangeType = LevelChangeType.Next;
-
         public IList<Line> Lines => Geometry.Lines;
         public IList<Side> Sides => Geometry.Sides;
         public IList<Wall> Walls => Geometry.Walls;
@@ -89,8 +79,19 @@ namespace Helion.World
         public MapInfoDef MapInfo { get; private set; }
         public SkillDef SkillDefinition { get; private set; }
 
+        protected readonly ArchiveCollection ArchiveCollection;
+        protected readonly IAudioSystem AudioSystem;
+        protected readonly MapGeometry Geometry;
+        protected readonly SpecialManager SpecialManager;
+        protected readonly PhysicsManager PhysicsManager;
+        protected readonly IMap Map;
         private readonly DoomRandom m_random = new DoomRandom();
+
+        private int m_exitTicks;
+        private int m_easyBossBrain;
         private int m_soundCount;
+        private LevelChangeType m_levelChangeType = LevelChangeType.Next;
+        private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
@@ -120,6 +121,7 @@ namespace Helion.World
         public virtual void Start()
         {
             AddMapSpecial();
+            InitBossBrainTargets();
         }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
@@ -296,6 +298,18 @@ namespace Helion.World
             monsterCountSpecials.Add(new MonsterCountSpecial(this, SpecialManager, definition.EditorId.Value, sectorTag, mapSpecialAction));
         }
 
+        private void InitBossBrainTargets()
+        {
+            List<Entity> targets = new List<Entity>();
+            EntityManager.Entities.ForEach(entity =>
+            {
+                if (entity.Definition.Name == "BOSSTARGET")
+                    targets.Add(entity);
+            });
+
+            m_bossBrainTargets = targets.ToArray();
+        }
+
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {
             return Geometry.FindBySectorTag(tag);
@@ -322,16 +336,13 @@ namespace Helion.World
             ResetInterpolation();
         }
 
-        public List<Entity> GetBossTargets()
+        public Entity[] GetBossTargets()
         {
-            List<Entity> targets = new List<Entity>();
-            EntityManager.Entities.ForEach(entity =>
-            {
-                if (entity.Definition.Name == "BOSSTARGET")
-                    targets.Add(entity);
-            });
+            m_easyBossBrain ^= 1;
+            if (SkillDefinition.EasyBossBrain && m_easyBossBrain == 0)
+                return Array.Empty<Entity>();
 
-            return targets;
+            return m_bossBrainTargets;
         }
 
         public int CurrentBossTarget { get; set; }

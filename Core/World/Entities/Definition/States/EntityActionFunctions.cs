@@ -513,12 +513,12 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BrainSpit(Entity entity)
         {
-            List<Entity> targets = entity.World.GetBossTargets();
-            if (targets.Count == 0)
+            Entity[] targets = entity.World.GetBossTargets();
+            if (targets.Length == 0)
                 return;
 
             Entity target = targets[entity.World.CurrentBossTarget++];
-            entity.World.CurrentBossTarget %= targets.Count;
+            entity.World.CurrentBossTarget %= targets.Length;
 
             double pitch = entity.PitchTo(target);
             Entity? spawnShot = entity.World.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");

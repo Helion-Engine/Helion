@@ -50,7 +50,7 @@ namespace Helion.World
         IEnumerable<Sector> FindBySectorTag(int tag);
         IEnumerable<Entity> FindByTid(int tid);
         void ExitLevel(LevelChangeType type);
-        List<Entity> GetBossTargets();
+        Entity[] GetBossTargets();
         int CurrentBossTarget { get; set; }
         void TelefragBlockingEntities(Entity entity);
         bool EntityUse(Entity entity);
