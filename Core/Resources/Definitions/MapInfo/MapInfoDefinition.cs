@@ -5,6 +5,7 @@ using Helion.Util;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo
@@ -483,7 +484,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private SkillDef ParseSkillDef(SimpleParser parser)
         {
             SkillDef skillDef = new();
-            CIString name = parser.ConsumeString();
+            skillDef.SkillName = parser.ConsumeString();
             ConsumeBrace(parser, true);
 
             while (!IsBlockComplete(parser))
@@ -560,7 +561,7 @@ namespace Helion.Resources.Definitions.MapInfo
                     else if (item == Skill_TextColorName)
                     {
                         ConsumeEquals(parser);
-                        skillDef.TextColor = System.Drawing.Color.Red;
+                        skillDef.TextColor = Color.FromName(parser.ConsumeString());
                     }
                     else if (item == Skill_MonsterHealthName)
                     {

@@ -22,6 +22,7 @@ namespace Helion.Resources.Definitions.MapInfo
         public int SpawnFilter { get; set; }
         public string ACSReturn { get; set; } = string.Empty;
         public string Key { get; set; } = string.Empty;
+        public string SkillName { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string PlayerClassName { get; set; } = string.Empty;
         public string PicName { get; set; } = string.Empty;
