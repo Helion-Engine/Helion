@@ -112,7 +112,7 @@ namespace Helion.Client
         private void SetSkill(int value)
         {
             if (value > 0 && value < 6)
-                m_config.Game.Skill = (Maps.Shared.SkillLevel)value;
+                m_config.Game.Skill.Set((Maps.Shared.SkillLevel)value);
             else
                 Log.Info($"Invalid skill level: {value}");
         }
