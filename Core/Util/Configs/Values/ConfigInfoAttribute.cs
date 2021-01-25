@@ -27,26 +27,39 @@ namespace Helion.Util.Configs.Values
         /// </summary>
         public readonly bool Advanced;
 
-        public ConfigInfoAttribute(string description, string? extendedDescription = null, bool advanced = false)
+        /// <summary>
+        /// If true, saves to the config. If false, never saves.
+        /// </summary>
+        /// <remarks>
+        /// If this is false, it means it is a transient field whereby it can
+        /// be toggled via the console, but will never be saved. Upon loading
+        /// the game again, it will always have the default definition.
+        /// </remarks>
+        public readonly bool Save;
+
+        public ConfigInfoAttribute(string description, string? extendedDescription = null, bool advanced = false,
+            bool save = true)
         {
             Description = description;
             ExtendedDescription = extendedDescription;
             Advanced = advanced;
+            Save = save;
         }
 
-        /// <summary>
-        /// Gets the description of the config value.
-        /// </summary>
-        /// <param name="field">The field for the config value.</param>
-        /// <returns>The explanation value, or null if the attribute does not
-        /// exist on the object.</returns>
         public static string? GetDescription(FieldInfo field)
         {
-
             Attribute? attribute = field.GetCustomAttribute(typeof(ConfigInfoAttribute));
             if (attribute is ConfigInfoAttribute configInfoAttribute)
                 return configInfoAttribute.Description;
             return null;
+        }
+
+        public static bool IsSaved(FieldInfo field)
+        {
+            Attribute? attribute = field.GetCustomAttribute(typeof(ConfigInfoAttribute));
+            if (attribute is ConfigInfoAttribute configInfoAttribute)
+                return configInfoAttribute.Save;
+            return false;
         }
     }
 }

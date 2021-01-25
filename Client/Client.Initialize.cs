@@ -33,8 +33,8 @@ namespace Helion.Client
             if (m_commandLineArgs.Skill.HasValue)
                 SetSkill(m_commandLineArgs.Skill.Value);
 
-            m_config.Game.NoMonsters = m_commandLineArgs.NoMonsters;
-            m_config.Game.SV_FastMonsters = m_commandLineArgs.SV_FastMonsters;
+            m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
+            m_config.Game.SV_FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
 
             CheckLoadMap();
         }

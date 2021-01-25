@@ -9,8 +9,13 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("Whether vertical autoaiming should be used.")]
         public readonly ConfigValueBoolean AutoAim = new(true);
 
-        public SkillLevel Skill { get; set; }
-        public bool NoMonsters { get; set; }
-        public bool SV_FastMonsters { get; set; }
+        [ConfigInfo("The skill level to use when starting a map.", save: false)]
+        public readonly ConfigValueEnum<SkillLevel> Skill = new(SkillLevel.None);
+
+        [ConfigInfo("Whether no monsters should be spawned.", save: false)]
+        public readonly ConfigValueBoolean NoMonsters = new();
+
+        [ConfigInfo("Enables fast monsters.", save: false)]
+        public readonly ConfigValueBoolean SV_FastMonsters = new();
     }
 }
