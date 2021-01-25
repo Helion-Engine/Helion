@@ -898,15 +898,13 @@ namespace Helion.World
             entity.Flags.Solid = true;
             entity.SetHeight(entity.Definition.Properties.Height);
 
-            //if (!entity.World.TryMoveXY(entity, position.To2D(), false).Success)
-            if (entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count > 0)
-            {
-                entity.Flags.Solid = false;
-                entity.SetHeight(oldHeight);
-                return false;
-            }
+            // This is original functionality, the original game only checked against other things
+            // It didn't check if it would clip into map geometry
+            bool success = entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count == 0;
+            entity.Flags.Solid = false;
+            entity.SetHeight(oldHeight);
 
-            return true;
+            return success;
         }
 
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)

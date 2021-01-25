@@ -2501,6 +2501,9 @@ namespace Helion.World.Entities.Definition.States
                 if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
                     continue;
 
+                bi.Entity.Flags.Solid = true;
+                bi.Entity.SetHeight(entity.Definition.Properties.Height);
+
                 Entity? saveTarget = entity.Target;
                 entity.Target = bi.Entity;
                 A_FaceTarget(entity);
