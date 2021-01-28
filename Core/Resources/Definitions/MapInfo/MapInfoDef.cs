@@ -21,6 +21,8 @@ namespace Helion.Resources.Definitions.MapInfo
         public MapSpecial MapSpecial { get; set; }
         public MapSpecialAction MapSpecialAction { get; set; }
         public MapOptions MapOptions { get; set; }
+        public EndGameDef? EndGame { get; set; }
+        public EndGameDef? EndGameSecret { get; set; }
 
         public object Clone()
         {
@@ -40,6 +42,7 @@ namespace Helion.Resources.Definitions.MapInfo
                 MapSpecial = MapSpecial,
                 MapSpecialAction = MapSpecialAction,
                 MapOptions = MapOptions,
+                EndGame = EndGame,
 
                 Sky1 = (SkyDef)Sky1.Clone(),
                 Sky2 = (SkyDef)Sky2.Clone()

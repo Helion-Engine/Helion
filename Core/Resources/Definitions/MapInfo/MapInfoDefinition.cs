@@ -19,6 +19,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly CIString ClearEpisodesName = "clearepisodes";
         private static readonly CIString EpisodeName = "episode";
         private static readonly CIString ClusterName = "cluster";
+        private static readonly CIString ClusterDefName = "clusterdef";
         private static readonly CIString DefaultMapName = "defaultmap";
         private static readonly CIString AddDefaultMapName = "adddefaultmap";
         private static readonly CIString MapName = "map";
@@ -31,6 +32,7 @@ namespace Helion.Resources.Definitions.MapInfo
             ClearEpisodesName,
             EpisodeName,
             ClusterName,
+            ClusterDefName,
             DefaultMapName,
             AddDefaultMapName,
             MapName,
@@ -88,6 +90,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly CIString MapParName = "par";
         private static readonly CIString MapSuckName = "sucktime";
         private static readonly CIString MapMusicName = "music";
+        private static readonly CIString MapEndGame = "endgame";
 
         private static readonly HashSet<CIString> MapNames = new HashSet<CIString>
         {
@@ -193,6 +196,21 @@ namespace Helion.Resources.Definitions.MapInfo
             Skill_PlayerRespawnName
         };
 
+        private static readonly CIString EndGame_PicName = "pic";
+        private static readonly CIString EndGame_MusicName = "music";
+        private static readonly CIString EndGame_HScrollName = "hscroll";
+        private static readonly CIString EndGame_VScollName = "vscroll";
+        private static readonly CIString EndGame_CastName = "cast";
+
+        private static readonly HashSet<CIString> EndGameNames = new HashSet<CIString>()
+        {
+            EndGame_PicName,
+            EndGame_MusicName,
+            EndGame_HScrollName,
+            EndGame_VScollName,
+            EndGame_CastName
+        };
+
         private bool m_legacy;
 
         public void Parse(ArchiveCollection archiveCollection, string data)
@@ -205,7 +223,7 @@ namespace Helion.Resources.Definitions.MapInfo
             {
                 CIString item = parser.ConsumeString();
 
-                if (item == "#include")
+                if (item == "include")
                     ParseInclude(archiveCollection, parser);
                 else if (item == GameInfoName)
                     GameDefinition = ParseGameInfo(parser);
@@ -213,7 +231,7 @@ namespace Helion.Resources.Definitions.MapInfo
                     MapInfo.ClearEpisodes();
                 else if (item == EpisodeName)
                     ParseEpisode(parser);
-                else if (item == ClusterName)
+                else if (item == ClusterName || item == ClusterDefName)
                     MapInfo.AddCluster(ParseCluster(parser));
                 else if (item == DefaultMapName)
                     MapInfo.SetDefaultMap(ParseMapDef(parser, false));
@@ -225,6 +243,8 @@ namespace Helion.Resources.Definitions.MapInfo
                     MapInfo.AddSkill(ParseSkillDef(parser));
                 else if (item == ClearSkillsName)
                     MapInfo.ClearSkills();
+                else
+                    throw new ParserException(parser.GetCurrentLine(), parser.GetCurrentCharOffset(), 0, $"Unknown item {item}");
             }
         }
 
@@ -270,9 +290,17 @@ namespace Helion.Resources.Definitions.MapInfo
                     else if (item == MapTitlePatchName)
                         mapDef.TitlePatch = parser.ConsumeString();
                     else if (item == MapNextName)
+                    {
                         mapDef.Next = parser.ConsumeString();
+                        if (mapDef.Next == MapEndGame)
+                            mapDef.EndGame = ParseEndGame(parser);
+                    }
                     else if (item == MapSecretName)
+                    {
                         mapDef.SecretNext = parser.ConsumeString();
+                        if (mapDef.SecretNext == MapEndGame)
+                            mapDef.EndGameSecret = ParseEndGame(parser);
+                    }
                     else if (item == MapSky1Name)
                         mapDef.Sky1 = ParseMapSky(parser);
                     else if (item == MapSky2Name)
@@ -323,18 +351,86 @@ namespace Helion.Resources.Definitions.MapInfo
             return mapDef;
         }
 
-        private SkyDef ParseMapSky(SimpleParser parser)
+        private EndGameDef ParseEndGame(SimpleParser parser)
+        {
+            EndGameDef endGameDef = new();
+            ConsumeBrace(parser, true);
+
+            while (!IsBlockComplete(parser))
+            {
+                CIString item = parser.ConsumeString();
+
+                if (EndGameNames.Contains(item))
+                {
+                    if (item == EndGame_PicName)
+                    {
+                        ConsumeEquals(parser);
+                        endGameDef.Pic = parser.ConsumeString();
+                    }
+                    else if (item == EndGame_MusicName)
+                    {
+                        ConsumeEquals(parser);
+                        endGameDef.Music = parser.ConsumeString();
+                    }
+                    else if (item == EndGame_HScrollName)
+                    {
+                        ConsumeEquals(parser);
+                        endGameDef.HorizontalScroll = GetEndGameHScroll(parser);
+                    }
+                    else if (item == EndGame_VScollName)
+                    {
+                        ConsumeEquals(parser);
+                        endGameDef.VerticalScroll = GetEndGameVScroll(parser);
+                    }
+                    else if (item == EndGame_CastName)
+                    {
+                        endGameDef.Cast = true;
+                    }
+                }
+                else
+                {
+                    parser.ConsumeLine();
+                }
+            }
+
+            ConsumeBrace(parser, false);
+            return endGameDef;
+        }
+
+        private static VerticalScroll GetEndGameVScroll(SimpleParser parser)
+        {
+            string data = parser.ConsumeString();
+            if (data.StartsWith("top", StringComparison.OrdinalIgnoreCase))
+                return VerticalScroll.Top;
+            if (data.StartsWith("bottom", StringComparison.OrdinalIgnoreCase))
+                return VerticalScroll.Bottom;
+
+            throw new ParserException(parser.GetCurrentLine(), parser.GetCurrentCharOffset(), 0, $"Invalid vscroll {data}");
+        }
+
+        private static HorizontalScroll GetEndGameHScroll(SimpleParser parser)
+        {
+            string data = parser.ConsumeString();
+            if (data.StartsWith("left", StringComparison.OrdinalIgnoreCase))
+                return HorizontalScroll.Left;
+            if (data.StartsWith("right", StringComparison.OrdinalIgnoreCase))
+                return HorizontalScroll.Right;
+
+            throw new ParserException(parser.GetCurrentLine(), parser.GetCurrentCharOffset(), 0, $"Invalid vscroll {data}");
+        }
+
+        private static SkyDef ParseMapSky(SimpleParser parser)
         {
             SkyDef sky = new();
             sky.Name = parser.ConsumeString();
-            if (!MapNames.Contains(parser.PeekString()))
+            if (!MapNames.Contains(parser.PeekString()) && parser.PeekInteger(out _))
                 sky.ScrollSpeed = parser.ConsumeInteger();
             return sky;
         }
 
         private ClusterDef ParseCluster(SimpleParser parser)
         {
-            ClusterDef clusterDef = new ClusterDef();
+            ClusterDef clusterDef = new();
             clusterDef.ClusterNum = parser.ConsumeInteger();
 
             ConsumeBrace(parser, true);
@@ -370,6 +466,8 @@ namespace Helion.Resources.Definitions.MapInfo
                     parser.ConsumeLine();
                 }
             }
+
+            ConsumeBrace(parser, false);
 
             return clusterDef;
         }

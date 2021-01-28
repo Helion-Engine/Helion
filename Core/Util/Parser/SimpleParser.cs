@@ -175,6 +175,12 @@ namespace Helion.Util.Parser
             return GetData(m_index);
         }
 
+        public bool PeekInteger(out int i)
+        {
+            AssertData();
+            return int.TryParse(GetData(m_index), out i);
+        }
+
         public string ConsumeString()
         {
             AssertData();
