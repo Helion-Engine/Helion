@@ -18,6 +18,7 @@ using Helion.Util.Extensions;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 using NLog;
+using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions
 {
@@ -59,11 +60,11 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
-            m_entryNameToAction["SNDINFO"] = entry => ParseSoundInfo(entry);
-            m_entryNameToAction["ILANGUAGE"] = entry => ParseInternalLanguage(entry);
-            m_entryNameToAction["LANGUAGE"] = entry => ParseLanguage(entry);
-            m_entryNameToAction["MAPINFO"] = entry => ParseMapInfo(entry);
-            m_entryNameToAction["ZMAPINFO"] = entry => ParseMapInfo(entry);
+            m_entryNameToAction["SNDINFO"] = entry => ParseEntry(ParseSoundInfo, entry);
+            m_entryNameToAction["ILANGUAGE"] = entry => ParseEntry(ParseInternalLanguage, entry);
+            m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
+            m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
+            m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         }
 
         public bool LoadMapInfo(Archive archive, string entryName)
@@ -75,14 +76,31 @@ namespace Helion.Resources.Definitions
                 return false;
             }
 
-            ParseMapInfo(entry);
+            ParseEntry(ParseMapInfo, entry);
             return true;
         }
 
-        private void ParseSoundInfo(Entry entry) => SoundInfo.Parse(entry.ReadDataAsString());
-        private void ParseInternalLanguage(Entry entry) =>Language.ParseInternal(entry.ReadDataAsString());
-        private void ParseLanguage(Entry entry) => Language.Parse(entry.ReadDataAsString());
-        private void ParseMapInfo(Entry entry) => MapInfoDefinition.Parse(m_archiveCollection, entry.ReadDataAsString());
+        private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
+        private void ParseInternalLanguage(string text) => Language.ParseInternal(text);
+        private void ParseLanguage(string text) => Language.Parse(text);
+        private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+
+        private static void ParseEntry(Action<string> parseAction, Entry entry)
+        {
+            string text = entry.ReadDataAsString();
+
+            try
+            {
+                parseAction(text);
+            }
+            catch (ParserException e)
+            {
+                var logMessages = e.LogToReadableMessage(text);
+                foreach (var message in logMessages)
+                    Log.Error(message);
+                throw;
+            }
+        }
         
         /// <summary>
         /// Tracks all the resources from an archive.
