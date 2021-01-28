@@ -1,4 +1,4 @@
-﻿#include "MapInfo/DoomCommon.txt"
+include "MapInfo/DoomCommon.txt"
 
 clearepisodes
 episode map01
