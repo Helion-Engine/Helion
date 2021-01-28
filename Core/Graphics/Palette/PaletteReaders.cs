@@ -113,6 +113,7 @@ namespace Helion.Graphics.Palette
                 for (int col = 0; col < width; col++)
                 {
                     reader.Offset(offsets[col]);
+                    int offset = 0;
 
                     while (true)
                     {
@@ -125,9 +126,19 @@ namespace Helion.Graphics.Palette
                         byte[] paletteIndices = reader.ReadBytes(indicesCount);
                         reader.Advance(1); // Skip dummy.
 
-                        int indicesOffset = (rowStart * width) + col;
+                        // Tall patch support, since we are writing up the column we expect rowStart to be greater than the last
+                        // If it's smaller or equal then add to the offset to support images greater than 254 in height
+                        if (rowStart <= offset)
+                            offset += rowStart;
+                        else
+                            offset = rowStart;
+
+                        int indicesOffset = (offset * width) + col;
                         for (int i = 0; i < paletteIndices.Length; i++)
                         {
+                            if (indicesOffset >= indices.Length)
+                                break;
+
                             indices[indicesOffset] = paletteIndices[i];
                             indicesOffset += width;
                         }
