@@ -36,6 +36,8 @@ namespace Helion.Render.Shared.Drawers
         private const int CrosshairHalfWidth = CrosshairWidth / 2;
         private const int FlashPickupTickDuration = 6;
         private const int Padding = 4;
+        private const int FullHudFaceX = 149;
+        private const int FullHudFaceY = 170;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
@@ -46,6 +48,9 @@ namespace Helion.Render.Shared.Drawers
         private static readonly CIString ConsoleFont = "Console";
 
         private readonly ArchiveCollection m_archiveCollection;
+
+        private bool m_maxHealthAreaInit;
+        private Dimension m_maxHealthArea;
 
         public WorldHudDrawer(ArchiveCollection archiveCollection)
         {
@@ -97,13 +102,13 @@ namespace Helion.Render.Shared.Drawers
 
                 DrawFullHudHealthArmorAmmo(player, largeFont, draw);
                 DrawFullHudWeaponSlots(player, draw);
-                DrawFullHudFace(player, draw);
+                DrawFace(player, draw, FullHudFaceX, FullHudFaceY);
                 DrawFullHudKeys(player, draw);
                 DrawFullTotalAmmo(player, draw);
             });
         }
 
-        private void DrawFullHudHealthArmorAmmo(Player player, Font? largeFont, DrawHelper draw)
+        private static void DrawFullHudHealthArmorAmmo(Player player, Font? largeFont, DrawHelper draw)
         {
             const int OffsetY = 171;
             const int FontSize = 15;
@@ -125,7 +130,7 @@ namespace Helion.Render.Shared.Drawers
             draw.Text(Color.Red, armor, largeFont, FontSize, 233, OffsetY, TextAlign.Right, textbox: Align.TopRight);
         }
 
-        private void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
+        private static void DrawFullHudWeaponSlots(Player player, DrawHelper draw)
         {
             draw.Image("STARMS", 104, 0, both: Align.BottomLeft);
 
@@ -133,7 +138,7 @@ namespace Helion.Render.Shared.Drawers
                 DrawWeaponNumber(player, slot, draw);
         }
 
-        private void DrawWeaponNumber(Player player, int slot, DrawHelper draw)
+        private static void DrawWeaponNumber(Player player, int slot, DrawHelper draw)
         {
             Weapon? weapon = player.Inventory.Weapons.GetWeapon(player, slot, 0);
             if (slot == 3 && weapon == null)
@@ -155,22 +160,13 @@ namespace Helion.Render.Shared.Drawers
             draw.Image(numberImage, x, y);
         }
 
-        private void DrawFullHudFace(Player player, DrawHelper draw)
+        private static void DrawFace(Player player, DrawHelper draw, int x, int y, 
+            Align? both = null)
         {
-            const int faceX = 149;
-            const int faceY = 170;
-
-            string faceImage = (player.World.Gametick % 130) switch
-            {
-                < 70 => "STFST01",
-                < 100 => "STFST00",
-                _ => "STFST02"
-            };
-
-            draw.Image(faceImage, faceX, faceY);
+            draw.Image(player.StatusBar.GetFacePatch(), x, y, both: both);
         }
 
-        private void DrawFullHudKeys(Player player, DrawHelper draw)
+        private static void DrawFullHudKeys(Player player, DrawHelper draw)
         {
             const int x = 239;
 
@@ -182,7 +178,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawKeyIfOwned(InventoryItem key, string skullKeyName, string keyName, int x, int y,
+        private static void DrawKeyIfOwned(InventoryItem key, string skullKeyName, string keyName, int x, int y,
             DrawHelper draw)
         {
             string imageName = key.Definition.Properties.Inventory.Icon;
@@ -197,7 +193,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawFullTotalAmmo(Player player, DrawHelper draw)
+        private  void DrawFullTotalAmmo(Player player, DrawHelper draw)
         {
             Font? yellowFont = m_archiveCollection.GetFont("HudYellowNumbers");
             if (yellowFont == null)
@@ -249,6 +245,9 @@ namespace Helion.Render.Shared.Drawers
             draw.Text(Color.Red, health.ToString(), largeFont, fontHeight, out Dimension healthArea,
                 x + medkitArea.Width + Padding, y, TextAlign.Left, both: Align.BottomLeft);
 
+            Dimension maxHealthArea = GetMaxHealthArea(largeFont, draw, fontHeight);
+            DrawFace(player, draw, x + medkitArea.Width + maxHealthArea.Width + (Padding * 3), y, both: Align.BottomLeft);
+
             if (player.Armor > 0)
             {
                 y -= healthArea.Height + Padding;
@@ -260,12 +259,24 @@ namespace Helion.Render.Shared.Drawers
                     x += armorArea.Width + Padding;
                 }
 
-                draw.Text(Color.Red, player.Armor.ToString(), largeFont, fontHeight,
+                draw.Text(Color.Red, player.Armor.ToString(), largeFont, fontHeight, out Dimension armorTextArea,
                     x, y, TextAlign.Left, both: Align.BottomLeft);
             }
         }
 
-        private void DrawMinimalHudKeys(int y, Player player, DrawHelper draw)
+        private Dimension GetMaxHealthArea(Font font, DrawHelper draw, int fontHeight)
+        {
+            if (m_maxHealthAreaInit)
+                return m_maxHealthArea;
+
+            // This is assuming vanilla doom maxing out with 3 numbers
+            // Decorate can change this and will need to be accounted for later
+            m_maxHealthArea = draw.TextDrawArea("000", font, fontHeight);
+            m_maxHealthAreaInit = true;
+            return m_maxHealthArea;
+        }
+
+        private static void DrawMinimalHudKeys(int y, Player player, DrawHelper draw)
         {
             List<InventoryItem> keys = player.Inventory.GetKeys();
             y += Padding;
@@ -283,7 +294,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
+        private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
             DrawHelper draw)
         {
             int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
@@ -315,7 +326,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawMinimalHudAmmo(Player player, Font? largeFont, DrawHelper helper)
+        private static void DrawMinimalHudAmmo(Player player, Font? largeFont, DrawHelper helper)
         {
             if (largeFont == null || player.Weapon == null || player.Weapon.Definition.Properties.Weapons.AmmoType.Length == 0)
                 return;
@@ -336,7 +347,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
+        private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
         {
             Vec2I center = viewport.ToVector() / 2;
             Vec2I horizontalStart = center - new Vec2I(CrosshairLength, CrosshairHalfWidth);
@@ -346,14 +357,14 @@ namespace Helion.Render.Shared.Drawers
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
-        private void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             int ticksSincePickup = world.Gametick - player.LastPickupGametick;
             if (ticksSincePickup < FlashPickupTickDuration)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
         }
 
-        private void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
+        private static void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
         {
             if (player.Inventory.PowerupEffectColor?.DrawColor == null || !player.Inventory.PowerupEffectColor.DrawPowerupEffect)
                 return;
@@ -362,13 +373,13 @@ namespace Helion.Render.Shared.Drawers
                 player.Inventory.PowerupEffectColor.DrawAlpha);
         }
 
-        private void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
         {
             if (player.DamageCount > 0)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
         }
 
-        private void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, Font? smallFont,
+        private static void DrawRecentConsoleMessages(WorldBase world, HelionConsole console, Font? smallFont,
             DrawHelper helper)
         {
             if (smallFont == null)
@@ -411,7 +422,7 @@ namespace Helion.Render.Shared.Drawers
             return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
         }
 
-        private void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker,
+        private static void DrawFPS(Config config, Dimension viewport, FpsTracker fpsTracker,
             DrawHelper draw, Font? consoleFont, out int y)
         {
             y = 0;

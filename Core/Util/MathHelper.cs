@@ -8,24 +8,9 @@ namespace Helion.Util
     /// </summary>
     public static class MathHelper
     {
-        /// <summary>
-        /// A constant value for pi / 4.
-        /// </summary>
-        public const double QuarterPi = Math.PI / 4;
-        
-        /// <summary>
-        /// A constant value for pi / 2.
-        /// </summary>
-        public const double HalfPi = Math.PI / 2;
-
-        /// <summary>
-        /// A constant value for pi.
-        /// </summary>
         public const double Pi = Math.PI;
-            
-        /// <summary>
-        /// A constant value for 2 * pi.
-        /// </summary>
+        public const double QuarterPi = Math.PI / 4;
+        public const double HalfPi = Math.PI / 2;
         public const double TwoPi = 2 * Math.PI;
 
         /// <summary>

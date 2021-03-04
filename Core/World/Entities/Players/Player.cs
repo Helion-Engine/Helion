@@ -15,6 +15,7 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
+using Helion.World.StatusBar;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities.Players
@@ -38,6 +39,7 @@ namespace Helion.World.Entities.Players
         public int ExtraLight;
 
         private bool m_isJumping;
+        private bool m_hasNewWeapon;
         private int m_jumpTics;
         private int m_deathTics;
         private double m_prevAngle;
@@ -57,6 +59,8 @@ namespace Helion.World.Entities.Players
         public int WeaponSubSlot { get; private set; }
         public Vec2D PrevWeaponOffset;
         public Vec2D WeaponOffset;
+        public Entity? Attacker { get; private set; }
+        public PlayerStatusBar StatusBar { get; private set; }
 
         public bool DrawFullBright()
         {
@@ -90,6 +94,8 @@ namespace Helion.World.Entities.Players
             m_prevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
+
+            StatusBar = new PlayerStatusBar(this);
         }
 
         public override void CopyProperties(Entity entity)
@@ -114,6 +120,7 @@ namespace Helion.World.Entities.Players
             }
 
             base.CopyProperties(entity);
+            m_hasNewWeapon = false;
         }
 
         public void SetDefaultInventory()
@@ -125,6 +132,8 @@ namespace Helion.World.Entities.Players
             var weapon = Inventory.Weapons.GetWeapon("PISTOL");
             if (weapon != null)
                 ChangeWeapon(weapon);
+
+            m_hasNewWeapon = false;
         }
 
         private void GiveAmmo(string name, int amount)
@@ -140,6 +149,9 @@ namespace Helion.World.Entities.Players
             if (weapon != null)
                 GiveWeapon(weapon, false);
         }
+
+        // TODO
+        public bool HasNewWeapon() => m_hasNewWeapon;
 
         public Vec3D GetViewPosition()
         {
@@ -279,6 +291,9 @@ namespace Helion.World.Entities.Players
 
             if (IsDead)
                 DeathTick();
+
+            StatusBar.Tick();
+            m_hasNewWeapon = false;
         }
 
         private void DeathTick()
@@ -525,7 +540,11 @@ namespace Helion.World.Entities.Players
                 if (giveDefaultAmmo)
                     GiveItemBase(definition, null);
 
-                return addedWeapon != null;
+                if (addedWeapon != null)
+                {
+                    m_hasNewWeapon = true;
+                    return true;
+                }
             }
 
             return false;
@@ -655,6 +674,7 @@ namespace Helion.World.Entities.Players
             bool damageApplied = base.Damage(source, damage, setPainState);
             if (damageApplied)
             {
+                Attacker = source;
                 PlayPainSound();
                 DamageCount += damage;
                 DamageCount = Math.Min(DamageCount, Definition.Properties.Health);

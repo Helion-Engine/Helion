@@ -311,6 +311,14 @@ namespace Helion.Render.Shared.Drawers.Helper
             m_renderCommands.DrawText(renderableString, pos.X, pos.Y, alpha);
         }
 
+        public Dimension TextDrawArea(string text, Font font, int fontSize,
+            TextAlign align = TextAlign.Left, int maxWidth = int.MaxValue)
+        {
+            ColoredString coloredString = ColoredStringBuilder.From(Color.Black, text);
+            RenderableString renderableString = new(coloredString, font, fontSize, align, maxWidth);
+            return renderableString.DrawArea;
+        }
+
         /// <summary>
         /// This takes offsets, image dimensions, alignment values, and it
         /// calculates the position on the virtual window where it should be
