@@ -13,6 +13,6 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValueDouble MoveBob = new(1.0);
 
         [ConfigInfo("Amount to scale minimal hud.")]
-        public readonly ConfigValueDouble Scale = new ConfigValueDouble(1.0, 0.0);
+        public readonly ConfigValueDouble Scale = new ConfigValueDouble(2.0, 0.0);
     }
 }
