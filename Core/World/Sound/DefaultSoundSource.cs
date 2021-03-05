@@ -7,6 +7,8 @@ namespace Helion.World.Sound
 {
     public class DefaultSoundSource : ISoundSource
     {
+        public static readonly DefaultSoundSource Default = new DefaultSoundSource();
+
         private IAudioSource? m_audioSource;
         private readonly Vec3D m_position;
         private readonly bool m_attenuate;
