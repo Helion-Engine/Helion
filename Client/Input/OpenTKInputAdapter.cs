@@ -71,6 +71,7 @@ namespace Helion.Client.Input
                 Keys.KeyPadAdd => Key.Plus,
                 Keys.KeyPadDecimal => Key.Period,
                 Keys.KeyPadEnter => Key.Enter,
+                Keys.Equal => Key.Equals,
                 Keys.A => Key.A,
                 Keys.B => Key.B,
                 Keys.C => Key.C,

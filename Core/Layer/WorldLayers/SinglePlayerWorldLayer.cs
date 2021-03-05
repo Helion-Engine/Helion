@@ -19,8 +19,11 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Sound;
+using Helion.World.StatusBar;
 using Helion.World.Util;
 using NLog;
+using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers
@@ -276,6 +279,28 @@ namespace Helion.Layer.WorldLayers
             foreach (var (inputKey, command) in m_consumePressedKeys)
                 if (input.ConsumeKeyPressed(inputKey))
                     m_tickCommand.Add(command);
+
+            if (input.ConsumeTypedKey(Config.Controls.HudDecrease))
+                ChangeHudSize(false);
+            else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
+                ChangeHudSize(true);
+        }
+
+        private void ChangeHudSize(bool increase)
+        {
+            int size = (int)Config.Hud.StatusBarSize.Value;
+            if (increase)
+                size++;
+            else
+                size--;
+
+            size = Math.Clamp(size, 0, Enum.GetValues(typeof(StatusBarSizeType)).Length - 1);
+
+            if ((int)Config.Hud.StatusBarSize.Value != size)
+            {
+                Config.Hud.StatusBarSize.Set((StatusBarSizeType)size);
+                m_world.SoundManager.CreateSoundOn(DefaultSoundSource.Default, "plats/pt1_mid", SoundChannelType.Default, new SoundParams(DefaultSoundSource.Default));
+            }
         }
     }
 }

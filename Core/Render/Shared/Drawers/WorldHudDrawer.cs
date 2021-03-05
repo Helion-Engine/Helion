@@ -20,6 +20,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
+using Helion.World.StatusBar;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
@@ -88,18 +89,39 @@ namespace Helion.Render.Shared.Drawers
             DrawHudCrosshair(viewport, draw);
 
             // TODO: This should be at the top, rendering order is reversed somehow (check impl)
-            if (config.Hud.FullStatusBar)
-                DrawFullStatusBar(player, largeFont, draw);
-            else
-                DrawMinimalStatusBar(player, topRightY, largeFont, draw);
+            switch(config.Hud.StatusBarSize.Value)
+            {
+                case StatusBarSizeType.Full:
+                    DrawFullStatusBar(player, largeFont, draw, viewport);
+                    break;
+                case StatusBarSizeType.Minimal:
+                    DrawMinimalStatusBar(player, topRightY, largeFont, draw);
+                    break;
+                default:
+                    break;
+            }            
         }
-
-        private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw)
+     
+        private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw, Dimension viewport)
         {
+            const string StatusBar = "STBAR";
+            const string StatusBackground = "W94_1";
+            Dimension barArea = draw.DrawInfoProvider.GetImageDimension(StatusBar);
+            Dimension backgroundArea = draw.DrawInfoProvider.GetImageDimension(StatusBackground);
+            DoomHudHelper.ScaleImageDimensions(viewport, ref barArea.Width, ref barArea.Height);
+            DoomHudHelper.ScaleImageDimensions(viewport, ref backgroundArea.Width, ref backgroundArea.Height);
+
+            int yOffset = backgroundArea.Height - barArea.Height;
+            int xOffset = 0;
+            while (xOffset < viewport.Width)
+            {
+                draw.Image(StatusBackground, xOffset, yOffset, backgroundArea.Width, backgroundArea.Height, both: Align.BottomLeft);
+                xOffset += backgroundArea.Width;
+            }
+
             draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
             {
-                draw.Image("STBAR", window: Align.BottomLeft, image: Align.BottomLeft);
-
+                draw.Image(StatusBar, window: Align.BottomLeft, image: Align.BottomLeft);
                 DrawFullHudHealthArmorAmmo(player, largeFont, draw);
                 DrawFullHudWeaponSlots(player, draw);
                 DrawFace(player, draw, FullHudFaceX, FullHudFaceY);

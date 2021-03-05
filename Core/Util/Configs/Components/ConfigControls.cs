@@ -62,5 +62,11 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("The key for getting a screenshot")]
         public readonly ConfigValueEnum<Key> Screenshot = new(Key.PrintScreen);
+
+        [ConfigInfo("The key for increasing hud size")]
+        public readonly ConfigValueEnum<Key> HudIncrease = new(Key.Equals);
+
+        [ConfigInfo("The key for decreasing hud size")]
+        public readonly ConfigValueEnum<Key> HudDecrease = new(Key.Minus);
     }
 }
