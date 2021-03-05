@@ -67,6 +67,12 @@ namespace Helion.Util.Geometry
             height = Height;
         }
 
+        public void Scale(float scale)
+        {
+            Width = (int)(Width * scale);
+            Height = (int)(Height * scale);
+        }
+
         /// <summary>
         /// Checks for equality between dimensions.
         /// </summary>

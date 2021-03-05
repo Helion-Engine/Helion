@@ -2,8 +2,12 @@
 {
     public class ConfigValueDouble : ConfigValue<double>
     {
-        public ConfigValueDouble(double value = default) : base(value)
+        private double m_min, m_max;
+
+        public ConfigValueDouble(double value = default, double min = double.MinValue, double max = double.MaxValue) : base(value)
         {
+            m_min = min;
+            m_max = max;
         }
 
         public static implicit operator double(ConfigValueDouble configValue) => configValue.Value;
@@ -11,13 +15,6 @@
         public override bool Set(object obj)
         {
             double oldValue = Value;
-
-            if (obj.GetType().IsEnum)
-            {
-                Value = (double)obj;
-                EmitEventIfChanged(oldValue);
-                return true;
-            }
 
             switch (obj)
             {
@@ -34,7 +31,7 @@
             case double d:
                 if (!double.IsFinite(d))
                     return false;
-                Value = d;
+                Value = MathHelper.Clamp((double)obj, m_min, m_max);
                 EmitEventIfChanged(oldValue);
                 return true;
 

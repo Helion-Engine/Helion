@@ -11,5 +11,8 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("The amount of move bobbing the weapon does. 0.0 is off, 1.0 is normal.")]
         public readonly ConfigValueDouble MoveBob = new(1.0);
+
+        [ConfigInfo("Amount to scale minimal hud.")]
+        public readonly ConfigValueDouble Scale = new ConfigValueDouble(1.0, 0.0);
     }
 }

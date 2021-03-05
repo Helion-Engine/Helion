@@ -152,9 +152,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         public void Image(string name, Vec2I offset, int? width = null, int? height = null,
             Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
-            Color? color = null, float alpha = 1.0f, bool drawInvul = false)
+            Color? color = null, float alpha = 1.0f, bool drawInvul = false, float scale = 1.0f)
         {
-            Image(name, offset, out _, width, height, window, image, both, color, alpha, drawInvul);
+            Image(name, offset, out _, width, height, window, image, both, color, alpha, drawInvul, scale);
         }
 
         /// <summary>
@@ -163,9 +163,9 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// </summary>
         public void Image(string name, int x, int y, out Dimension drawDimension, int? width = null,
             int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft,
-            Align? both = null, Color? color = null, float alpha = 1.0f, bool drawInvul = false)
+            Align? both = null, Color? color = null, float alpha = 1.0f, bool drawInvul = false, float scale = 1.0f)
         {
-            Image(name, new Vec2I(x, y), out drawDimension, width, height, window, image, both, color, alpha, drawInvul);
+            Image(name, new Vec2I(x, y), out drawDimension, width, height, window, image, both, color, alpha, drawInvul, scale);
         }
 
         /// <summary>
@@ -196,9 +196,10 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// half visible, 0.0 is not visible at all). Default is 1.0.</param>
         /// <param name="drawInvul">If invulnerability coloring should be
         /// applied to the image.</param>
+        /// <param name="scale">Scales the draw area.</param>
         public void Image(string name, Vec2I offset, out Dimension drawArea, int? width = null,
             int? height = null, Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null,
-            Color? color = null, float alpha = 1.0f, bool drawInvul = false)
+            Color? color = null, float alpha = 1.0f, bool drawInvul = false, float scale = 1.0f)
         {
             Align alignWindow = both ?? window;
             Align alignImage = both ?? image;
@@ -210,6 +211,9 @@ namespace Helion.Render.Shared.Drawers.Helper
             }
             else
                 drawArea = new Dimension(width.Value, height.Value);
+
+            if (scale != 1.0f)
+                drawArea.Scale(scale);
 
             Vec2I pos = GetDrawingCoordinateFromAlign(offset.X, offset.Y, drawArea.Width, drawArea.Height,
                 alignWindow, alignImage);
