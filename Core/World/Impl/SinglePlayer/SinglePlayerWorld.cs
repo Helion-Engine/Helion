@@ -312,7 +312,7 @@ namespace Helion.World.Impl.SinglePlayer
             {
                 var weapon = EntityManager.DefinitionComposer.GetByName(name);
                 if (weapon != null)
-                    Player.GiveWeapon(weapon);
+                    Player.GiveWeapon(weapon, autoSwitch: false);
             }
 
             Player.Inventory.GiveAllAmmo(EntityManager.DefinitionComposer);

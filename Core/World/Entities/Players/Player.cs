@@ -365,7 +365,7 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
-        private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags)
+        private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags, bool autoSwitchWeapon = true)
         {
             var invData = definition.Properties.Inventory;
             bool isHealth = definition.IsType(Inventory.HealthClassName);
@@ -388,7 +388,7 @@ namespace Helion.World.Entities.Players
             {
                 EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
                 if (ammoDef != null)
-                    return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags);
+                    return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags, autoSwitchWeapon);
 
                 return false;
             }
@@ -401,16 +401,16 @@ namespace Helion.World.Entities.Players
             }
 
             if (isAmmo)
-                return AddAmmo(definition, invData.Amount, flags);
+                return AddAmmo(definition, invData.Amount, flags, autoSwitchWeapon);
 
             return Inventory.Add(definition, invData.Amount, flags);
         }
 
-        private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags)
+        private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
         {
             int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
             bool success = Inventory.Add(ammoDef, World.SkillDefinition.GetAmmoAmount(amount, flags), flags);
-            if (success)
+            if (success && autoSwitchWeapon)
                 CheckAutoSwitchAmmo(ammoDef, oldCount);
             return success;
         }
@@ -532,13 +532,13 @@ namespace Helion.World.Entities.Players
 
         private IEnumerable<Weapon> GetSelectionOrderedWeapons() => Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
 
-        public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true)
+        public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true, bool autoSwitch = true)
         {
             if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition.Name))
             {
                 Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
                 if (giveDefaultAmmo)
-                    GiveItemBase(definition, null);
+                    GiveItemBase(definition, null, autoSwitch);
 
                 if (addedWeapon != null)
                 {
