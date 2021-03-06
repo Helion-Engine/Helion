@@ -72,21 +72,23 @@ namespace Helion.Render.Shared.Drawers
             cmd.ClearDepth();
 
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, consoleFont, out int topRightY);
-            DrawHud(topRightY, player, world, tickFraction, viewport, config, largeFont, draw);
+            DrawHud(topRightY, player, tickFraction, viewport, config, largeFont, draw);
             DrawPowerupEffect(player, viewport, draw);
             DrawPickupFlash(player, world, viewport, draw);
             DrawDamage(player, world, viewport, draw);
             DrawRecentConsoleMessages(world, console, smallFont, draw);
         }
 
-        private void DrawHud(int topRightY, Player player, WorldBase world, float tickFraction,
+        private void DrawHud(int topRightY, Player player, float tickFraction,
             Dimension viewport, Config config, Font? largeFont, DrawHelper draw)
         {
             if (player.AnimationWeapon != null)
             {
-                DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, viewport, draw);
+                // Doom pushes the gun sprite up when the status bar is showing
+                int yOffset = config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
+                DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, viewport, draw, yOffset);
                 if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, viewport, draw);
+                    DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, viewport, draw, yOffset);
             }
 
             DrawHudCrosshair(viewport, draw);
@@ -310,7 +312,7 @@ namespace Helion.Render.Shared.Drawers
         }
 
         private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
-            DrawHelper draw)
+            DrawHelper draw, int yOffset)
         {
             int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
                 (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
@@ -322,6 +324,7 @@ namespace Helion.Render.Shared.Drawers
             {
                 (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
                 Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
+                offset.Y += yOffset;
                 Vec2D interpolateOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction);
                 Vec2I weaponOffset = DoomHudHelper.ScaleWorldOffset(viewport, interpolateOffset);
                 DoomHudHelper.ScaleImageDimensions(viewport, ref width, ref height);
