@@ -76,7 +76,7 @@ namespace Helion.World.StatusBar
             if (m_priority < 10 && m_player.IsDead)
                 DeathFace();
 
-            if (m_priority < 9 && m_player.HasNewWeapon())
+            if (m_priority < 9 && m_player.BonusCount > 0 && m_player.HasNewWeapon())
                 NewWeaponFace();
 
             if (m_priority < 8 && m_player.DamageCount > 0 && m_player.Attacker != null && m_player.Attacker != m_player)

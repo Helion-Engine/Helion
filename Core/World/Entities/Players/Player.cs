@@ -35,6 +35,7 @@ namespace Helion.World.Entities.Players
         public double PitchRadians;
         public int LastPickupGametick = int.MinValue / 2;
         public int DamageCount;
+        public int BonusCount;
         public TickCommand TickCommand = new();
         public int ExtraLight;
 
@@ -277,6 +278,9 @@ namespace Helion.World.Entities.Players
             if (DamageCount > 0)
                 DamageCount--;
 
+            if (BonusCount > 0)
+                BonusCount--;
+
             if (m_deathTics > 0)
             {
                 m_deathTics--;
@@ -358,6 +362,7 @@ namespace Helion.World.Entities.Players
 
             if (success && pickupFlash)
             {
+                BonusCount = 6;
                 LastPickupGametick = World.Gametick;
                 return true;
             }

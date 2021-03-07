@@ -35,7 +35,6 @@ namespace Helion.Render.Shared.Drawers
         private const int CrosshairLength = 10;
         private const int CrosshairWidth = 4;
         private const int CrosshairHalfWidth = CrosshairWidth / 2;
-        private const int FlashPickupTickDuration = 6;
         private const int FullHudFaceX = 149;
         private const int FullHudFaceY = 170;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
@@ -74,8 +73,8 @@ namespace Helion.Render.Shared.Drawers
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, consoleFont, out int topRightY);
             DrawHud(topRightY, player, tickFraction, viewport, config, largeFont, draw);
             DrawPowerupEffect(player, viewport, draw);
-            DrawPickupFlash(player, world, viewport, draw);
-            DrawDamage(player, world, viewport, draw);
+            DrawPickupFlash(player, viewport, draw);
+            DrawDamage(player, viewport, draw);
             DrawRecentConsoleMessages(world, console, smallFont, draw);
         }
 
@@ -376,13 +375,6 @@ namespace Helion.Render.Shared.Drawers
             helper.FillRect(verticalStart.X, verticalStart.Y, CrosshairHalfWidth * 2, CrosshairLength * 2, Color.LawnGreen);
         }
 
-        private static void DrawPickupFlash(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
-        {
-            int ticksSincePickup = world.Gametick - player.LastPickupGametick;
-            if (ticksSincePickup < FlashPickupTickDuration)
-                helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.15f);
-        }
-
         private static void DrawPowerupEffect(Player player, Dimension viewport, DrawHelper helper)
         {
             if (player.Inventory.PowerupEffectColor?.DrawColor == null || !player.Inventory.PowerupEffectColor.DrawPowerupEffect)
@@ -392,7 +384,13 @@ namespace Helion.Render.Shared.Drawers
                 player.Inventory.PowerupEffectColor.DrawAlpha);
         }
 
-        private static void DrawDamage(Player player, WorldBase world, Dimension viewport, DrawHelper helper)
+        private static void DrawPickupFlash(Player player, Dimension viewport, DrawHelper helper)
+        {
+            if (player.BonusCount > 0)
+                helper.FillRect(0, 0, viewport.Width, viewport.Height, PickupColor, 0.2f);
+        }
+
+        private static void DrawDamage(Player player, Dimension viewport, DrawHelper helper)
         {
             if (player.DamageCount > 0)
                 helper.FillRect(0, 0, viewport.Width, viewport.Height, DamageColor, player.DamageCount * 0.01f);
