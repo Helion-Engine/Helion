@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -34,13 +36,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private GLLegacyTexture m_debugBoxTexture;
         private RenderWorldData m_debugBoxRenderWorldData;
 
+        private readonly List<Entity> m_alphaEntities = new();
+        private readonly List<GLLegacyTexture> m_alphaEntityTextures = new();
+
         public EntityRenderer(Config config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
         {
             m_config = config;
             m_textureManager = textureManager;
             m_worldDataManager = worldDataManager;
             m_debugBoxTexture = m_textureManager.NullTexture;
-            m_debugBoxRenderWorldData = m_worldDataManager[m_debugBoxTexture];
+            m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
         }
 
         public void UpdateTo(WorldBase world)
@@ -55,11 +60,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             // of asking the config for a new value every time.
             m_drawDebugBox = m_config.Developer.RenderDebug;
             m_textureManager.TryGet(Constants.DebugBoxTexture, ResourceNamespace.Graphics, out m_debugBoxTexture);
-            m_debugBoxRenderWorldData = m_worldDataManager[m_debugBoxTexture];
+            m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
 
             m_tickFraction = tickFraction;
             m_cameraEntity = cameraEntity;
             m_EntityDrawnTracker.Reset(world);
+            m_alphaEntities.Clear();
         }
 
         public void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
@@ -72,9 +78,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 if (ShouldNotDraw(entity))
                     continue;
 
+                if (entity.Definition.Properties.Alpha < 1)
+                {
+                    entity.RenderDistance = entity.Position.To2D().Distance(position);
+                    m_alphaEntities.Add(entity);
+                    continue;
+                }
+
                 RenderEntity(entity, position, viewDirection);
                 m_EntityDrawnTracker.MarkDrawn(entity);
             }
+        }
+
+        public void RenderAlphaEntities(in Vec2D position, in Vec2D viewDirection)
+        {
+            // Entities with alpha need to be drawn last to draw correctly
+            // Sort from farthest to nearest
+            // This should work well enough since we are only dealing with sprites
+            m_alphaEntities.Sort((i1, i2) => i2.RenderDistance.CompareTo(i1.RenderDistance));
+            for (int i = 0; i < m_alphaEntities.Count; i++)
+                RenderEntity(m_alphaEntities[i], position, viewDirection);
         }
 
         private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -145,7 +168,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, color, lightLevel, alpha, fuzz);
             LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, color, lightLevel, alpha, fuzz);
 
-            RenderWorldData renderWorldData = m_worldDataManager[texture];
+            RenderWorldData renderWorldData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
             renderWorldData.Vbo.Add(topLeft);
             renderWorldData.Vbo.Add(bottomLeft);
             renderWorldData.Vbo.Add(topRight);
@@ -241,7 +264,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             else
                 spriteRotation = m_textureManager.NullSpriteRotation;
             GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
-
+            
             AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteRotation.Mirror);
         }
     }

@@ -1,4 +1,7 @@
-﻿using Helion.Util.Container;
+﻿using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Util.Container;
 using Helion.Util.Container.Linkable;
 using Helion.World.Entities;
 using Helion.World.Physics.Blockmap;
@@ -12,6 +15,7 @@ namespace Helion.Util
 
         private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new DynamicArray<LinkableNode<Entity>>(1024);
         private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new DynamicArray<List<BlockmapIntersect>>();
+        private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>>();
 
         public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
         {
@@ -54,6 +58,33 @@ namespace Helion.Util
         {
             list.Clear();
             m_blockmapLists.Add(list);
+        }
+
+        public RenderWorldData GetAlphaRenderWorldData(IGLFunctions functions, GLCapabilities capabilities, GLLegacyTexture texture)
+        {
+            if (m_alphaRender.TryGetValue(texture, out var data))
+            {
+                if (data.Length > 0)
+                {
+                    var renderWorldData = data.Data[data.Length - 1];
+                    data.RemoveLast();
+                    return renderWorldData;
+                }
+
+                return new RenderWorldData(capabilities, functions, texture);
+            }
+            else
+            {
+                RenderWorldData renderWorldData = new RenderWorldData(capabilities, functions, texture);
+                m_alphaRender.Add(texture, new DynamicArray<RenderWorldData>());
+                return renderWorldData;
+            }
+        }
+
+        public void FreeAlphaRenderWorldData(RenderWorldData renderWorldData)
+        {
+            renderWorldData.Clear();
+            m_alphaRender[renderWorldData.Texture].Add(renderWorldData);
         }
     }
 }

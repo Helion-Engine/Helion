@@ -19,7 +19,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
-using Helion.World.Sound;
 using Helion.World.StatusBar;
 using Helion.World.Util;
 using NLog;
@@ -162,8 +161,16 @@ namespace Helion.Layer.WorldLayers
 
         public override void HandleInput(InputEvent input)
         {
-            HandleMovementInput(input);
-            m_world.HandleFrameInput(input);
+            if (!m_world.Paused)
+            {
+                HandleMovementInput(input);
+                m_world.HandleFrameInput(input);
+            }
+
+            if (input.ConsumeTypedKey(Config.Controls.HudDecrease))
+                ChangeHudSize(false);
+            else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
+                ChangeHudSize(true);
         }
 
         public override void RunLogic()
@@ -279,11 +286,6 @@ namespace Helion.Layer.WorldLayers
             foreach (var (inputKey, command) in m_consumePressedKeys)
                 if (input.ConsumeKeyPressed(inputKey))
                     m_tickCommand.Add(command);
-
-            if (input.ConsumeTypedKey(Config.Controls.HudDecrease))
-                ChangeHudSize(false);
-            else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
-                ChangeHudSize(true);
         }
 
         private void ChangeHudSize(bool increase)
@@ -299,7 +301,7 @@ namespace Helion.Layer.WorldLayers
             if ((int)Config.Hud.StatusBarSize.Value != size)
             {
                 Config.Hud.StatusBarSize.Set((StatusBarSizeType)size);
-                m_world.SoundManager.CreateSoundOn(DefaultSoundSource.Default, "plats/pt1_mid", SoundChannelType.Default, new SoundParams(DefaultSoundSource.Default));
+                m_world.SoundManager.PlayStaticSound(Constants.PlatMoveSound);
             }
         }
     }

@@ -259,6 +259,14 @@ namespace Helion.World.Sound
             return soundStopped;
         }
 
+        public void PlayStaticSound(string sound)
+        {
+            ISoundSource soundSource = DefaultSoundSource.Default;
+            IAudioSource? audioSource = m_world.SoundManager.CreateSoundOn(DefaultSoundSource.Default, sound,
+                SoundChannelType.Auto, new SoundParams(soundSource));
+            audioSource?.Play();
+        }
+
         public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundChannelType channel, SoundParams soundParams)
         {
             return CreateSound(soundSource, soundSource.GetSoundPosition(m_world.ListenerEntity), soundSource.GetSoundVelocity(), sound, channel, soundParams);

@@ -99,6 +99,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
             m_viewClipper.Center = position;
             RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);
+            m_entityRenderer.RenderAlphaEntities(position, viewDirection);
         }
 
         private bool Occluded(in Box2D box, in Vec2D position)

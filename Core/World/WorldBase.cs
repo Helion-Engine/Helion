@@ -240,6 +240,9 @@ namespace Helion.World
 
         public void Pause()
         {
+            if (Paused)
+                return;
+
             ResetInterpolation();
             SoundManager.Pause();
 
@@ -258,6 +261,9 @@ namespace Helion.World
 
         public void Resume()
         {
+            if (!Paused)
+                return;
+
             SoundManager.Resume();
             Paused = false;
         }

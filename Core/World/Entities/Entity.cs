@@ -80,6 +80,8 @@ namespace Helion.World.Entities
         public bool MoveLinked;
         public bool Respawn;
 
+        public double RenderDistance;
+
         public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;

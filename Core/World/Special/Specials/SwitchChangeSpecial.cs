@@ -27,10 +27,7 @@ namespace Helion.World.Special.Specials
             {
                 // The level is about to exit so everything will be stopped
                 // Force play the switch exit sound and Tick to switch the line texture
-                DefaultSoundSource soundSource = DefaultSoundSource.Default;
-                IAudioSource? sound = soundManager.CreateSoundOn(DefaultSoundSource.Default, Constants.SwitchExitSound, 
-                    SoundChannelType.Auto, new SoundParams(soundSource));
-                sound?.Play();
+                soundManager.PlayStaticSound(Constants.SwitchExitSound);
                 Tick();
             }
             else

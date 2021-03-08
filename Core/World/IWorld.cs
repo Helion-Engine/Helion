@@ -42,6 +42,7 @@ namespace Helion.World
         BlockmapTraverser BlockmapTraverser { get; }
         Config Config { get; }
         SkillDef SkillDefinition { get; }
+        bool Paused { get; }
 
         void Link(Entity entity);
         void Tick();

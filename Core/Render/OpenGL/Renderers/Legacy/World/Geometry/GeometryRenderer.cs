@@ -193,7 +193,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 SetLightToVertices(data, side.Sector.LightLevel / 256.0f);
             }
 
-            RenderWorldData renderData = m_worldDataManager[texture];
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
             renderData.Vbo.Add(data);
         }
 
@@ -255,7 +255,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 return;
 
             GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
-            RenderWorldData renderData = m_worldDataManager[texture];
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
             if (isSky)
             {
@@ -303,7 +303,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 return;
 
             GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
-            RenderWorldData renderData = m_worldDataManager[texture];
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
             RenderSkySide(facingSide, facingSide, texture);
 
@@ -376,7 +376,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             Wall middleWall = facingSide.Middle;
             GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle);
-            RenderWorldData renderData = m_worldDataManager[texture];
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
             LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
             if (facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
@@ -431,7 +431,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             // TODO: If we can't see it (dot product the plane) then exit.
             bool isSky = TextureManager.Instance.IsSkyTexture(flat.TextureHandle);
             GLLegacyTexture texture = m_textureManager.GetTexture(flat.TextureHandle);
-            RenderWorldData renderData = m_worldDataManager[texture];
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
             if (isSky)
             {
