@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Helion.Menus.Base;
@@ -24,11 +23,13 @@ namespace Helion.Menus
 
         public void MoveToNextComponent()
         {
-            Console.WriteLine(":)");
-            
-            int currentIndex = ComponentIndex ?? 0;
+            // We want to searching at the element after the current one, but
+            // if it's the case where we have nothing selected, we want to keep
+            // the logic the same. To do this, we start at -1 if there is no
+            // index so we force it onto the first element (which may be 0).
+            int currentIndex = ComponentIndex ?? -1;
 
-            for (int iter = 0; iter < Components.Count; iter++)
+            for (int iter = 1; iter <= Components.Count; iter++)
             {
                 int index = (currentIndex + iter) % Components.Count;
                 if (Components[index].HasAction)
@@ -41,7 +42,24 @@ namespace Helion.Menus
         
         public void MoveToPreviousComponent()
         {
-            // TODO
+            if (ComponentIndex == null)
+            {
+                MoveToNextComponent();
+                return;
+            }
+            
+            for (int iter = 1; iter <= Components.Count; iter++)
+            {
+                int index = (ComponentIndex.Value - iter) % Components.Count;
+                if (index < 0)
+                    index += Components.Count;
+                
+                if (Components[index].HasAction)
+                {
+                    ComponentIndex = index;
+                    return;
+                }
+            }
         }
         
         public void SetToFirstActiveComponent()

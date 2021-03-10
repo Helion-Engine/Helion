@@ -5,6 +5,7 @@ using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Client.Input;
 using Helion.Client.Music;
+using Helion.Input;
 using Helion.Layer;
 using Helion.Render;
 using Helion.Render.Commands;
@@ -66,7 +67,8 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            m_layerManager.HandleInput(m_window.Input.PollInput());
+            InputEvent inputEvent = m_window.Input.PollInput();
+            m_layerManager.HandleInput(inputEvent);
         }
 
         private void RunLogic()

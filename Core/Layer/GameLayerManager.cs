@@ -43,6 +43,9 @@ namespace Helion.Layer
 
         public override void HandleInput(InputEvent input)
         {
+            if (input.ConsumeTypedKey(m_config.Controls.Console))
+                HandleConsoleToggle(input);
+            
             if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
             {
                 input.ConsumeAll();
@@ -51,10 +54,7 @@ namespace Helion.Layer
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection);
                 Add(menuLayer);
             }
-            
-            if (input.ConsumeTypedKey(m_config.Controls.Console))
-                HandleConsoleToggle(input);
-            
+
             base.HandleInput(input);
         }
 

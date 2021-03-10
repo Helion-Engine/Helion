@@ -58,7 +58,7 @@ namespace Helion.Layer
                 if (m_menus.Count > 1)
                     m_menus.Pop();
                 else
-                    Dispose();
+                    Parent?.Remove<MenuLayer>();
             }
         }
 
