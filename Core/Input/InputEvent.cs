@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Input
@@ -172,5 +173,12 @@ namespace Helion.Input
             m_typedKeys.Remove(key);
             return true;
         }
+
+        /// <summary>
+        /// Checks if any keys have been pressed.
+        /// </summary>
+        /// <returns>True if one or more keys were just pressed, false
+        /// otherwise.</returns>
+        public bool HasAnyKeyPressed() => !m_keysPressed.Empty();
     }
 }

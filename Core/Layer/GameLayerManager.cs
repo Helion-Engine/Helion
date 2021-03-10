@@ -1,5 +1,6 @@
 using Helion.Input;
 using Helion.Layer.WorldLayers;
+using Helion.Menus.Impl;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -36,40 +37,53 @@ namespace Helion.Layer
         public override void Add(GameLayer layer)
         {
             base.Add(layer);
+            
             if (layer is SinglePlayerWorldLayer singlePlayerWorldLayer && Contains(ConsoleLayer.LayerName))
                 singlePlayerWorldLayer.World.Pause();
         }
 
         public override void HandleInput(InputEvent input)
         {
-            if (input.ConsumeTypedKey(m_config.Controls.Console))
+            base.HandleInput(input);
+            
+            if (Empty && input.HasAnyKeyPressed())
             {
-                // Due to the workaround above, we also want to prune it from
-                // anyone else's visibility.
-                input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
+                input.ConsumeAll();
 
-                if (Contains(ConsoleLayer.LayerName))
-                {
-                    RemoveByName(ConsoleLayer.LayerName);
-
-                    if (TryGetLayer(out SinglePlayerWorldLayer? layer))
-                        layer.World.Resume();
-                }
-                else
-                {
-                    // Don't want input that opened the console to be something
-                    // added to the console, so first we clear all characters.
-                    input.ConsumeTypedCharacters();
-
-                    ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
-                    Add(consoleLayer);
-
-                    if (TryGetLayer(out SinglePlayerWorldLayer? layer))
-                        layer.World.Pause();
-                }
+                MainMenu mainMenu = new();
+                MenuLayer menuLayer = new(mainMenu);
+                Add(menuLayer);
             }
 
-            base.HandleInput(input);
+            if (input.ConsumeTypedKey(m_config.Controls.Console))
+                HandleConsoleToggle(input);
+        }
+
+        private void HandleConsoleToggle(InputEvent input)
+        {
+            // Due to the workaround above, we also want to prune it from
+            // anyone else's visibility.
+            input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
+
+            if (Contains(ConsoleLayer.LayerName))
+            {
+                RemoveByName(ConsoleLayer.LayerName);
+
+                if (TryGetLayer(out SinglePlayerWorldLayer? layer))
+                    layer.World.Resume();
+            }
+            else
+            {
+                // Don't want input that opened the console to be something
+                // added to the console, so first we clear all characters.
+                input.ConsumeTypedCharacters();
+
+                ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
+                Add(consoleLayer);
+
+                if (TryGetLayer(out SinglePlayerWorldLayer? layer))
+                    layer.World.Pause();
+            }
         }
     }
 }

@@ -28,6 +28,16 @@ namespace Helion.Layer
         private readonly List<GameLayer> m_layers = new List<GameLayer>();
 
         /// <summary>
+        /// How many child layers there are under this.
+        /// </summary>
+        public int Count => m_layers.Count;
+
+        /// <summary>
+        /// Checks if there are no child layers under this.
+        /// </summary>
+        public bool Empty => m_layers.Empty();
+        
+        /// <summary>
         /// The unique name of the layer.
         /// </summary>
         protected abstract CIString Name { get; }
