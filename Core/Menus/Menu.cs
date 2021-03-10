@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Helion.Menus.Base;
@@ -19,6 +20,28 @@ namespace Helion.Menus
             Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
             
             TopPixelPadding = topPixelPadding;
+        }
+
+        public void MoveToNextComponent()
+        {
+            Console.WriteLine(":)");
+            
+            int currentIndex = ComponentIndex ?? 0;
+
+            for (int iter = 0; iter < Components.Count; iter++)
+            {
+                int index = (currentIndex + iter) % Components.Count;
+                if (Components[index].HasAction)
+                {
+                    ComponentIndex = index;
+                    return;
+                }
+            }
+        }
+        
+        public void MoveToPreviousComponent()
+        {
+            // TODO
         }
         
         public void SetToFirstActiveComponent()

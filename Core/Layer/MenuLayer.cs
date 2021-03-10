@@ -33,6 +33,11 @@ namespace Helion.Layer
 
             Menu menu = m_menus.Peek();
 
+            if (input.ConsumeKeyPressed(Key.Up))
+                menu.MoveToPreviousComponent();
+            if (input.ConsumeKeyPressed(Key.Down))
+                menu.MoveToNextComponent();
+
             if (menu.CurrentComponent is MenuOptionListComponent options)
             {
                 if (input.ConsumeKeyPressed(Key.Left))

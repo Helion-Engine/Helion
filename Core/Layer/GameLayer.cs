@@ -83,7 +83,7 @@ namespace Helion.Layer
         public void Remove(Type type)
         {
             List<GameLayer> layersToRemove = Layers.Values
-                .Where(layer => layer.GetType().IsSubclassOf(type) || layer.GetType() == type)
+                .Where(layer => layer.GetType().IsSubclassOf(type) || layer.GetType() == type || layer.Disposed)
                 .ToList();
             RemoveLayers(layersToRemove);
         }
@@ -170,21 +170,20 @@ namespace Helion.Layer
             
             Layers.ForEach(pair => pair.Value.Dispose());
             Layers.Clear();
-            Parent?.Remove(GetType());
 
             Disposed = true;
         }
 
-        private void RemoveLayers(List<GameLayer> layersToRemove)
+        private void RemoveLayers(IEnumerable<GameLayer> layersToRemove)
         {
             // Though we extracted the list so we could invoke .Any(), it must
             // also be noted that we can't call this as part of the query or it
             // may (will?) mutate while handling iteration, which is bad.
-            layersToRemove.ForEach(layer =>
+            foreach (GameLayer layer in layersToRemove)
             {
                 layer.Dispose();
-                Remove(layer.GetType());
-            });
+                Layers.Remove(layer.Priority);
+            }
         }
     }
 }

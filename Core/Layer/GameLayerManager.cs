@@ -43,8 +43,6 @@ namespace Helion.Layer
 
         public override void HandleInput(InputEvent input)
         {
-            base.HandleInput(input);
-            
             if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
             {
                 input.ConsumeAll();
@@ -53,9 +51,11 @@ namespace Helion.Layer
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection);
                 Add(menuLayer);
             }
-
+            
             if (input.ConsumeTypedKey(m_config.Controls.Console))
                 HandleConsoleToggle(input);
+            
+            base.HandleInput(input);
         }
 
         private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
@@ -69,7 +69,8 @@ namespace Helion.Layer
             if (Contains<ConsoleLayer>())
             {
                 Remove<ConsoleLayer>();
-
+                
+                // TODO: Only resume if the world layer is the top layer now after removing the above.
                 if (TryGetLayer(out SinglePlayerWorldLayer? layer))
                     layer.World.Resume();
             }
