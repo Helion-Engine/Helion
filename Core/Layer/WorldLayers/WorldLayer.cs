@@ -12,11 +12,11 @@ namespace Helion.Layer.WorldLayers
     /// </summary>
     public abstract class WorldLayer : GameLayer
     {
-        protected override double Priority { get; } = 0.25f;
         protected readonly Config Config;
         protected readonly HelionConsole Console;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
+        protected override double Priority => 0.25f;
 
         public abstract WorldBase World { get; }
 

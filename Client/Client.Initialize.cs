@@ -37,6 +37,16 @@ namespace Helion.Client
             m_config.Game.SV_FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
 
             CheckLoadMap();
+            AddTitlepicIfNoMap();
+        }
+
+        private void AddTitlepicIfNoMap()
+        {
+            if (!m_layerManager.Empty) 
+                return;
+
+            TitlepicLayer titlepicLayer = new(m_layerManager, m_archiveCollection);
+            m_layerManager.Add(titlepicLayer);
         }
 
         private void LoadFiles()
@@ -106,7 +116,7 @@ namespace Helion.Client
             m_console.AddInput($"map {mapName}\n");
 
             // If the map is corrupt, go to the console.
-            if (!m_layerManager.Contains(typeof(WorldLayer)))
+            if (!m_layerManager.Contains<WorldLayer>())
             {
                 ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
                 m_layerManager.Add(consoleLayer);

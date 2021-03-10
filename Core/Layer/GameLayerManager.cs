@@ -36,27 +36,29 @@ namespace Helion.Layer
         {
             base.Add(layer);
             
-            if (layer is SinglePlayerWorldLayer singlePlayerWorldLayer)
-                if (Contains<ConsoleLayer>() || Contains<MenuLayer>())
-                    singlePlayerWorldLayer.World.Pause();
+            if (layer is SinglePlayerWorldLayer)
+                foreach (GameLayer existingLayer in Layers.Values)
+                    Remove(existingLayer.GetType());    
         }
 
         public override void HandleInput(InputEvent input)
         {
             base.HandleInput(input);
             
-            if (Empty && input.HasAnyKeyPressed())
+            if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
             {
                 input.ConsumeAll();
-
+                
                 MainMenu mainMenu = new();
-                MenuLayer menuLayer = new(mainMenu, m_archiveCollection);
+                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection);
                 Add(menuLayer);
             }
 
             if (input.ConsumeTypedKey(m_config.Controls.Console))
                 HandleConsoleToggle(input);
         }
+
+        private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
 
         private void HandleConsoleToggle(InputEvent input)
         {

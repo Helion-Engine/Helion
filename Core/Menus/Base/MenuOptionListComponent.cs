@@ -2,7 +2,7 @@
 
 namespace Helion.Menus.Base
 {
-    public class OptionListMenuComponent : IMenuComponent
+    public class MenuOptionListComponent : IMenuComponent
     {
         public Func<Menu?>? Action => null;
 

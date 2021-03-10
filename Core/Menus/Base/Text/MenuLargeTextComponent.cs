@@ -11,7 +11,7 @@ namespace Helion.Menus.Base.Text
         }
         
         public MenuLargeTextComponent(ColoredString text) : 
-            base(text, 32, "BIGFONT")
+            base(text, 24, "BigFont")
         {
         }
     }

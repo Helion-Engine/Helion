@@ -98,7 +98,7 @@ namespace Helion.Client
             // For now, we will only have one world layer present. If someone
             // wants to `map mapXX` offline then it will kill their connection
             // and go offline to some world.
-            m_layerManager.RemoveByType(typeof(WorldLayer));
+            m_layerManager.Remove<WorldLayer>();
 
             string mapName = args[0];
             IMap? map = m_archiveCollection.FindMap(mapName);

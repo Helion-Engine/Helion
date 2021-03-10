@@ -84,7 +84,7 @@ namespace Helion.Client
             Dimension windowDimension = m_window.Dimension;
             IRenderer renderer = m_window.Renderer;
             RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
-
+            
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();
             m_layerManager.Render(renderCommands);

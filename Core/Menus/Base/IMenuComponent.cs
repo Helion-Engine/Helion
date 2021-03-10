@@ -12,5 +12,10 @@ namespace Helion.Menus.Base
         /// is generated, it will return null.
         /// </summary>
         Func<Menu?>? Action { get; }
+
+        /// <summary>
+        /// True if this has an action, false if not.
+        /// </summary>
+        bool HasAction => Action != null;
     }
 }

@@ -5,6 +5,7 @@ using Helion.Menus.Base;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Extensions;
 
 namespace Helion.Layer
 {
@@ -18,8 +19,9 @@ namespace Helion.Layer
 
         protected override double Priority => 0.7;
 
-        public MenuLayer(Menu menu, ArchiveCollection archiveCollection)
+        public MenuLayer(GameLayer parent, Menu menu, ArchiveCollection archiveCollection)
         {
+            Parent = parent;
             m_menuDrawer = new MenuDrawer(archiveCollection);
             
             m_menus.Push(menu);
@@ -31,7 +33,7 @@ namespace Helion.Layer
 
             Menu menu = m_menus.Peek();
 
-            if (menu.CurrentComponent is OptionListMenuComponent options)
+            if (menu.CurrentComponent is MenuOptionListComponent options)
             {
                 if (input.ConsumeKeyPressed(Key.Left))
                     options.MoveToPrevious();
@@ -50,13 +52,14 @@ namespace Helion.Layer
             {
                 if (m_menus.Count > 1)
                     m_menus.Pop();
-                // TODO: Else, mark this for destruction and pruning.
+                else
+                    Dispose();
             }
         }
 
         public override void Render(RenderCommands renderCommands)
         {
-            if (!Empty)
+            if (!m_menus.Empty())
                 m_menuDrawer.Draw(m_menus.Peek(), renderCommands);
             
             base.Render(renderCommands);

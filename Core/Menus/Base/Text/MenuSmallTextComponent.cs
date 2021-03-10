@@ -11,7 +11,7 @@ namespace Helion.Menus.Base.Text
         }
         
         public MenuSmallTextComponent(ColoredString text) : 
-            base(text, 16, "SMALLFONT")
+            base(text, 16, "SmallFont")
         {
         }
     }
