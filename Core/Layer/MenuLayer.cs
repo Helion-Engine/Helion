@@ -5,7 +5,6 @@ using Helion.Menus.Base;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 
 namespace Helion.Layer
 {
@@ -17,7 +16,6 @@ namespace Helion.Layer
         private readonly Stack<Menu> m_menus = new();
         private readonly MenuDrawer m_menuDrawer;
 
-        protected override CIString Name => "Menu";
         protected override double Priority => 0.7;
 
         public MenuLayer(Menu menu, ArchiveCollection archiveCollection)

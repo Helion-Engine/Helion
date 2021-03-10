@@ -2,7 +2,6 @@ using Helion.Input;
 using Helion.Layer.WorldLayers;
 using Helion.Menus.Impl;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 
@@ -24,7 +23,6 @@ namespace Helion.Layer
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HelionConsole m_console;
 
-        protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
         public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console)
@@ -38,8 +36,9 @@ namespace Helion.Layer
         {
             base.Add(layer);
             
-            if (layer is SinglePlayerWorldLayer singlePlayerWorldLayer && Contains(ConsoleLayer.LayerName))
-                singlePlayerWorldLayer.World.Pause();
+            if (layer is SinglePlayerWorldLayer singlePlayerWorldLayer)
+                if (Contains<ConsoleLayer>() || Contains<MenuLayer>())
+                    singlePlayerWorldLayer.World.Pause();
         }
 
         public override void HandleInput(InputEvent input)
@@ -65,9 +64,9 @@ namespace Helion.Layer
             // anyone else's visibility.
             input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
 
-            if (Contains(ConsoleLayer.LayerName))
+            if (Contains<ConsoleLayer>())
             {
-                RemoveByName(ConsoleLayer.LayerName);
+                Remove<ConsoleLayer>();
 
                 if (TryGetLayer(out SinglePlayerWorldLayer? layer))
                     layer.World.Resume();

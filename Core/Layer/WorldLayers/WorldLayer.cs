@@ -1,6 +1,5 @@
 using Helion.Audio;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.World;
@@ -13,7 +12,6 @@ namespace Helion.Layer.WorldLayers
     /// </summary>
     public abstract class WorldLayer : GameLayer
     {
-        protected override CIString Name { get; } = "WORLD";
         protected override double Priority { get; } = 0.25f;
         protected readonly Config Config;
         protected readonly HelionConsole Console;
