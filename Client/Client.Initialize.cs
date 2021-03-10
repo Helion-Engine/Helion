@@ -49,51 +49,35 @@ namespace Helion.Client
         {
             if (m_commandLineArgs.Map != null)
             {
-                Loadmap(m_commandLineArgs.Map);
+                LoadMap(m_commandLineArgs.Map);
             }
             else if (m_commandLineArgs.Warp != null)
             {
                 if (MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
                     out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-                    Loadmap(mapInfoDef.MapName);
-            }
-            else
-            {
-                MapInfoDef? mapInfoDef = GetDefaultMap();
-                if (mapInfoDef == null)
-                {
-                    Log.Error("Unable to find start map.");
-                    return;
-                }
-                Loadmap(mapInfoDef.MapName);
+                    LoadMap(mapInfoDef.MapName);
             }
         }
 
         private string? GetIwad()
         {
-            if (m_commandLineArgs != null && m_commandLineArgs.Iwad != null)
+            if (m_commandLineArgs.Iwad != null)
                 return m_commandLineArgs.Iwad;
 
             string? iwad = LocateIwad();
-            if (iwad == null)
-            {
-                Log.Error("No IWAD found!");
-                return null;
-            }
-            else
-            {
+            if (iwad != null) 
                 return iwad;
-            }
+            
+            Log.Error("No IWAD found!");
+            return null;
+
         }
 
         private static string? LocateIwad()
         {
             IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
             List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
-            if (iwadData.Count > 0)
-                return iwadData[0].Item1;
-
-            return null;
+            return iwadData.Count > 0 ? iwadData[0].Item1 : null;
         }
 
         private MapInfoDef? GetDefaultMap()
@@ -117,7 +101,7 @@ namespace Helion.Client
                 Log.Info($"Invalid skill level: {value}");
         }
 
-        private void Loadmap(string mapName)
+        private void LoadMap(string mapName)
         {
             m_console.AddInput($"map {mapName}\n");
 

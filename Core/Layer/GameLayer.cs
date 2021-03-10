@@ -25,7 +25,7 @@ namespace Helion.Layer
     /// </remarks>
     public abstract class GameLayer : IDisposable, IComparable<GameLayer>
     {
-        private readonly List<GameLayer> m_layers = new List<GameLayer>();
+        private readonly List<GameLayer> m_layers = new();
 
         /// <summary>
         /// How many child layers there are under this.
@@ -88,12 +88,21 @@ namespace Helion.Layer
             List<GameLayer> layersToRemove = m_layers.Where(layer => layer.Name == name).ToList();
             RemoveLayers(layersToRemove);
         }
+        
+        /// <summary>
+        /// Removes by type.
+        /// </summary>
+        /// <typeparam name="T">The type to remove.</typeparam>
+        public void Remove<T>() where T : GameLayer
+        {
+            Remove(typeof(T));
+        }
 
         /// <summary>
         /// Removes all types that match the type provided.
         /// </summary>
         /// <param name="type">The type to remove.</param>
-        public void RemoveByType(Type type)
+        public void Remove(Type type)
         {
             List<GameLayer> layersToRemove = m_layers
                 .Where(layer => layer.GetType().IsSubclassOf(type) || layer.GetType() == type)
@@ -108,7 +117,7 @@ namespace Helion.Layer
         /// <param name="layer">The layer to add.</param>
         public virtual void Add(GameLayer layer)
         {
-            RemoveByType(layer.GetType());
+            Remove(layer.GetType());
 
             m_layers.Add(layer);
             m_layers.Sort();

@@ -3,19 +3,27 @@ using Helion.Input;
 using Helion.Menus;
 using Helion.Menus.Base;
 using Helion.Render.Commands;
+using Helion.Render.Shared.Drawers;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 
 namespace Helion.Layer
 {
+    /// <summary>
+    /// A layer for handling menus.
+    /// </summary>
     public class MenuLayer : GameLayer
     {
         private readonly Stack<Menu> m_menus = new();
+        private readonly MenuDrawer m_menuDrawer;
 
         protected override CIString Name => "Menu";
         protected override double Priority => 0.7;
 
-        public MenuLayer(Menu menu)
+        public MenuLayer(Menu menu, ArchiveCollection archiveCollection)
         {
+            m_menuDrawer = new MenuDrawer(archiveCollection);
+            
             m_menus.Push(menu);
         }
         
@@ -50,7 +58,9 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands renderCommands)
         {
-            // TODO: Pass off to custom renderer?
+            if (!Empty)
+                m_menuDrawer.Draw(m_menus.Peek(), renderCommands);
+            
             base.Render(renderCommands);
         }
     }

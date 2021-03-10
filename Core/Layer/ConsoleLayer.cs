@@ -28,7 +28,7 @@ namespace Helion.Layer
         public ConsoleLayer(ArchiveCollection archiveCollection, HelionConsole console)
         {
             m_console = console;
-            m_consoleDrawer = new(archiveCollection);
+            m_consoleDrawer = new ConsoleDrawer(archiveCollection);
 
             console.ClearInputText();
         }

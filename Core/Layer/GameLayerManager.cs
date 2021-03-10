@@ -51,7 +51,7 @@ namespace Helion.Layer
                 input.ConsumeAll();
 
                 MainMenu mainMenu = new();
-                MenuLayer menuLayer = new(mainMenu);
+                MenuLayer menuLayer = new(mainMenu, m_archiveCollection);
                 Add(menuLayer);
             }
 
