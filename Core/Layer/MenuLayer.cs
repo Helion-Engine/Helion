@@ -29,8 +29,6 @@ namespace Helion.Layer
         
         public override void HandleInput(InputEvent input)
         {
-            base.HandleInput(input);
-
             Menu menu = m_menus.Peek();
 
             if (input.ConsumeKeyPressed(Key.Up))
@@ -55,11 +53,19 @@ namespace Helion.Layer
 
             if (input.ConsumeKeyPressed(Key.Escape))
             {
-                if (m_menus.Count > 1)
+                switch (m_menus.Count)
+                {
+                case > 1:
                     m_menus.Pop();
-                else
+                    break;
+                case 1:
+                    m_menus.Pop();
                     Parent?.Remove<MenuLayer>();
+                    break;
+                }
             }
+            
+            base.HandleInput(input);
         }
 
         public override void Render(RenderCommands renderCommands)
