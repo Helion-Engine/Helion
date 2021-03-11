@@ -27,7 +27,7 @@ namespace Helion.Layer
     {
         public bool Disposed { get; protected set; }
         protected GameLayer? Parent;
-        protected readonly SortedList<double, GameLayer> Layers = new();
+        protected readonly List<GameLayer> Layers = new();
 
         /// <summary>
         /// A value that indicates the priority relative to other layers (see
@@ -51,7 +51,7 @@ namespace Helion.Layer
         /// <returns>The layer with the type.</returns>
         public GameLayer? Get<T>() where T : GameLayer
         {
-            foreach (var (_, value) in Layers)
+            foreach (GameLayer value in Layers)
                 if (value.GetType() == typeof(T))
                     return value;
             return null;
@@ -61,9 +61,9 @@ namespace Helion.Layer
         /// Checks if any layers exist with the type provided.
         /// </summary>
         /// <returns>True if so, false otherwise.</returns>
-        public bool Contains<T>() => Layers.Any(pair =>
+        public bool Contains<T>() => Layers.Any(layer =>
         {
-            Type type = pair.Value.GetType();
+            Type type = layer.GetType();
             return type == typeof(T) || type.IsSubclassOf(typeof(T));
         });
 
@@ -82,10 +82,14 @@ namespace Helion.Layer
         /// <param name="type">The type to remove.</param>
         public void Remove(Type type)
         {
-            List<GameLayer> layersToRemove = Layers.Values
-                .Where(layer => layer.GetType().IsSubclassOf(type) || layer.GetType() == type || layer.Disposed)
-                .ToList();
-            RemoveLayers(layersToRemove);
+            Layers.Where(ShouldBeRemoved).ForEach(layer => layer.Dispose());
+
+            bool ShouldBeRemoved(GameLayer layer)
+            {
+                return layer.GetType().IsSubclassOf(type) || 
+                       layer.GetType() == type || 
+                       layer.Disposed;
+            }
         }
 
         /// <summary>
@@ -97,7 +101,7 @@ namespace Helion.Layer
         {
             Remove(layer.GetType());
 
-            Layers.Add(layer.Priority, layer);
+            Layers.Add(layer);
         }
 
         /// <summary>
@@ -129,7 +133,8 @@ namespace Helion.Layer
         /// <param name="input">The input.</param>
         public virtual void HandleInput(InputEvent input)
         {
-            Layers.Values.ForEachReverse(layer => layer.HandleInput(input));
+            Layers.ForEachReverse(layer => layer.HandleInput(input));
+            OrderLayers();
         }
 
         /// <summary>
@@ -140,9 +145,10 @@ namespace Helion.Layer
         /// </remarks>
         public virtual void RunLogic()
         {
-            Layers.Values.ForEachReverse(layer => layer.RunLogic());
+            Layers.ForEachReverse(layer => layer.RunLogic());
+            OrderLayers();
         }
-
+        
         /// <summary>
         /// Renders the layer.
         /// </summary>
@@ -153,9 +159,18 @@ namespace Helion.Layer
         /// commands to.</param>
         public virtual void Render(RenderCommands renderCommands)
         {
-            foreach (GameLayer layer in Layers.Values)
+            OrderLayers();
+            foreach (GameLayer layer in Layers)
                 layer.Render(renderCommands);
         }
+
+        /// <summary>
+        /// Checks if the provided layer is at the top (has the highest priority
+        /// out of any layer).
+        /// </summary>
+        /// <param name="layer">The layer to check.</param>
+        /// <returns>True if so, false if not.</returns>
+        public bool IsTopLayer(GameLayer layer) => !Layers.Empty() && ReferenceEquals(Layers.Last(), layer);
 
         public void Dispose()
         {
@@ -163,27 +178,27 @@ namespace Helion.Layer
             PerformDispose();
         }
 
+        public void PruneDisposed()
+        {
+            var keysToRemove = Layers.Where(layer => layer.Disposed).ToList();
+            foreach (GameLayer layer in keysToRemove)
+                Layers.Remove(layer);
+        }
+
         protected virtual void PerformDispose()
         {
             if (Disposed)
                 return;
             
-            Layers.ForEach(pair => pair.Value.Dispose());
+            Layers.ForEach(layer => layer.Dispose());
             Layers.Clear();
 
             Disposed = true;
         }
 
-        private void RemoveLayers(IEnumerable<GameLayer> layersToRemove)
+        protected void OrderLayers()
         {
-            // Though we extracted the list so we could invoke .Any(), it must
-            // also be noted that we can't call this as part of the query or it
-            // may (will?) mutate while handling iteration, which is bad.
-            foreach (GameLayer layer in layersToRemove)
-            {
-                layer.Dispose();
-                Layers.Remove(layer.Priority);
-            }
+            Layers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
         }
     }
 }

@@ -34,11 +34,13 @@ namespace Helion.Layer
 
         public override void Add(GameLayer layer)
         {
-            base.Add(layer);
-            
             if (layer is SinglePlayerWorldLayer)
-                foreach (GameLayer existingLayer in Layers.Values)
-                    Remove(existingLayer.GetType());    
+            {
+                Layers.ForEach(l => l.Dispose());
+                OrderLayers();
+            }
+            
+            base.Add(layer);
         }
 
         public override void HandleInput(InputEvent input)
@@ -49,13 +51,20 @@ namespace Helion.Layer
             if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
             {
                 input.ConsumeAll();
-                
+                CreateAndAddMenu();
+            }
+
+            if (!Contains<MenuLayer>() && input.ConsumeKeyPressed(Key.Escape))
+                CreateAndAddMenu();
+
+            base.HandleInput(input);
+
+            void CreateAndAddMenu()
+            {
                 MainMenu mainMenu = new();
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection);
                 Add(menuLayer);
             }
-
-            base.HandleInput(input);
         }
 
         private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
@@ -69,23 +78,15 @@ namespace Helion.Layer
             if (Contains<ConsoleLayer>())
             {
                 Remove<ConsoleLayer>();
-                
-                // TODO: Only resume if the world layer is the top layer now after removing the above.
-                if (TryGetLayer(out SinglePlayerWorldLayer? layer))
-                    layer.World.Resume();
+                return;
             }
-            else
-            {
-                // Don't want input that opened the console to be something
-                // added to the console, so first we clear all characters.
-                input.ConsumeTypedCharacters();
+            
+            // Don't want input that opened the console to be something
+            // added to the console, so first we clear all characters.
+            input.ConsumeTypedCharacters();
 
-                ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
-                Add(consoleLayer);
-
-                if (TryGetLayer(out SinglePlayerWorldLayer? layer))
-                    layer.World.Pause();
-            }
+            ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
+            Add(consoleLayer);
         }
     }
 }

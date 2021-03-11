@@ -112,6 +112,8 @@ namespace Helion.Client
             HandleInput();
             RunLogic();
             Render();
+            
+            m_layerManager.PruneDisposed();
         }
 
         /// <summary>

@@ -116,8 +116,8 @@ namespace Helion.Client
             }
 
             MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_config, m_console, m_audioSystem,
-                m_archiveCollection, mapInfoDef, skillDef, map);
+            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console, 
+                m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map);
             if (newLayer == null)
                 return;
 

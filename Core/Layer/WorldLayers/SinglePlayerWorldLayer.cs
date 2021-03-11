@@ -43,9 +43,9 @@ namespace Helion.Layer.WorldLayers
         public override WorldBase World => m_world;
         public MapInfoDef CurrentMap { get; set; }
 
-        private SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
+        private SinglePlayerWorldLayer(GameLayer parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
             IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
-            : base(config, console, archiveCollection, audioSystem)
+            : base(parent, config, console, archiveCollection, audioSystem)
         {
             CurrentMap = mapInfoDef;
             m_world = world;
@@ -86,8 +86,9 @@ namespace Helion.Layer.WorldLayers
             PerformDispose();
         }
 
-        public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
+        public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
+            IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
+            SkillDef skillDef, IMap map)
         {
             string displayName = mapInfoDef.NiceName;
             if (mapInfoDef.LookupName.Length > 0)
@@ -102,7 +103,7 @@ namespace Helion.Layer.WorldLayers
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world, mapInfoDef);
+            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
@@ -171,6 +172,8 @@ namespace Helion.Layer.WorldLayers
                 ChangeHudSize(false);
             else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
+            
+            base.HandleInput(input);
         }
 
         public override void RunLogic()
@@ -195,6 +198,8 @@ namespace Helion.Layer.WorldLayers
                 m_world.Tick();
                 ticksToRun--;
             }
+            
+            base.RunLogic();
         }
 
         public override void Render(RenderCommands renderCommands)
@@ -206,6 +211,8 @@ namespace Helion.Layer.WorldLayers
             // TODO: Should not be passing the window dimension as the viewport.
             m_worldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,
                 Config, renderCommands);
+            
+            base.Render(renderCommands);
         }
 
         protected override void PerformDispose()
