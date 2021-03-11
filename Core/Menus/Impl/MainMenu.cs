@@ -5,23 +5,26 @@ namespace Helion.Menus.Impl
 {
     public class MainMenu : Menu
     {
-        private const string ActiveImage = "M_SKULL1";
-        private const string InactiveImage = "M_SKULL2";
-        private static readonly Func<Menu?>? TodoAction = () => null;
+        private static readonly Func<Menu?> TodoAction = () => null;
         
-        public MainMenu() : base(16)
+        public MainMenu() : base(8)
         {
-            Components = Components.AddRange(new IMenuComponent[] 
+            Components = Components.AddRange(new[] 
             {
-                new MenuImageComponent("M_DOOM", paddingY: 4),
-                new MenuImageComponent("M_NGAME", -6, 1, ActiveImage, InactiveImage, TodoAction),
-                new MenuImageComponent("M_OPTION", -15, 1, ActiveImage, InactiveImage, TodoAction),
-                new MenuImageComponent("M_LOADG", 1, 1, ActiveImage, InactiveImage, TodoAction),
-                new MenuImageComponent("M_SAVEG", 1, 1, ActiveImage, InactiveImage, TodoAction),
-                new MenuImageComponent("M_QUITG", -3, 0, ActiveImage, InactiveImage, TodoAction)
+                new MenuImageComponent("M_DOOM", paddingY: 8),
+                CreateMenuOption("M_NGAME", -6, 2, () => new NewGameMenu()),
+                CreateMenuOption("M_OPTION", -15, 2, TodoAction),
+                CreateMenuOption("M_LOADG", 1, 2, TodoAction),
+                CreateMenuOption("M_SAVEG", 1, 2, TodoAction),
+                CreateMenuOption("M_QUITG", -3, 2, TodoAction)
             });
 
             SetToFirstActiveComponent();
+
+            IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?> action)
+            {
+                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
+            }
         }
     }
 }
