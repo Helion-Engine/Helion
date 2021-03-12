@@ -26,14 +26,9 @@ namespace Helion.World.Special.Specials
 
             m_front = front;
             if (m_front)
-            {
                 m_line.Front.ScrollData = new Maps.Specials.SideScrollData();
-                m_line.Front.ScrollData.Offset[SideScrollData.MiddlePosition].X = 1000000;
-            }
             else if (m_line.Back != null)
                 m_line.Back.ScrollData = new Maps.Specials.SideScrollData();
-
-            line.Front.Sector.DataChanged = true;
         }
 
         public SpecialTickStatus Tick()
@@ -77,6 +72,14 @@ namespace Helion.World.Special.Specials
                 scrollData.LastOffset[SideScrollData.LowerPosition] = scrollData.Offset[SideScrollData.LowerPosition];
                 scrollData.Offset[SideScrollData.LowerPosition].X += m_speedX;
                 scrollData.Offset[SideScrollData.LowerPosition].Y += m_speedY;
+            }
+
+            if (m_speedX != 0 || m_speedY != 0)
+            {
+                if (m_front)
+                    m_line.Front.OffsetChanged = true;
+                else if (m_line.Back != null)
+                    m_line.Back.OffsetChanged = true;
             }
         }
 

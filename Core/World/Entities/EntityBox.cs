@@ -1,3 +1,4 @@
+using Helion.Models;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
@@ -243,6 +244,16 @@ namespace Helion.World.Entities
 
             intersect = p1 + ((p2 - p1) * (-dist1 / (dist2 - dist1)));
             return true;
+        }
+
+        public EntityBoxModel ToEntityBoxModel()
+        {
+            return new EntityBoxModel()
+            {
+                Center = m_centerBottom,
+                Radius = m_radius,
+                Height = Height
+            };
         }
     }
 }

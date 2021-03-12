@@ -1,5 +1,3 @@
-using Helion.Util;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Planes;
 
 namespace Helion.World.Geometry.Sectors
@@ -12,7 +10,7 @@ namespace Helion.World.Geometry.Sectors
         public Sector Sector { get; internal set; }
         public double Z;
         public double PrevZ;
-        public int TextureHandle;
+        public int TextureHandle { get; private set; }
         public short LightLevel;
 
         public bool Sloped => Plane != null;
@@ -34,6 +32,12 @@ namespace Helion.World.Geometry.Sectors
             // to a parent object, it will add itself for us. If this can be
             // fixed in the future with non-messy code, go for it.
             Sector = null !;
+        }
+
+        public void SetTexture(int texture)
+        {
+            TextureHandle = texture;
+            Sector.PlaneTextureChange(this);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Helion.Models;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World
@@ -6,6 +7,7 @@ namespace Helion.World
     {
         public readonly LevelChangeType ChangeType;
         public readonly int LevelNumber = 1;
+        public readonly WorldModel? WorldModel;
 
         public LevelChangeEvent(LevelChangeType levelChangeType)
         {
@@ -21,6 +23,12 @@ namespace Helion.World
             ChangeType = LevelChangeType.SpecificLevel;
             LevelNumber = levelNumber;
         }
+
+        public LevelChangeEvent(WorldModel worldModel)
+        {
+            WorldModel = worldModel;
+            ChangeType = LevelChangeType.LoadWorldModel;
+        }
     }
 
     public enum LevelChangeType
@@ -28,6 +36,7 @@ namespace Helion.World
         Next,
         SecretNext,
         SpecificLevel,
-        Reset
+        Reset,
+        LoadWorldModel
     }
 }

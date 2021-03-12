@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
@@ -50,7 +51,8 @@ namespace Helion.World.Entities
         public Vec3D Velocity = Vec3D.Zero;
         public int Health;
         public int Armor;
-        public EntityProperties? ArmorProperties;
+        public EntityProperties? ArmorProperties => ArmorDefinition?.Properties;
+        public EntityDefinition? ArmorDefinition;
         public int FrozenTics;
         public int MoveCount;
         public Sector Sector;
@@ -89,8 +91,6 @@ namespace Helion.World.Entities
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
         protected internal LinkableNode<Entity>? SubsectorNode;
-        protected int FrameIndex;
-        protected int TicksInFrame;
         internal bool IsDisposed { get; private set; }
 
         // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -136,6 +136,9 @@ namespace Helion.World.Entities
             Properties = new EntityProperties(definition.Properties);
             FrameState = new FrameState(this, definition, entityManager);
             World = world;
+            EntityManager = entityManager;
+            SoundManager = soundManager;
+
             AngleRadians = angleRadians;
             Box = new EntityBox(position, Radius, definition.Properties.Height);
             PrevPosition = Box.Position;
@@ -147,10 +150,80 @@ namespace Helion.World.Entities
             LowestCeilingSector = sector;
             LowestCeilingObject = sector;
             CheckOnGround();
+
+            Properties.Threshold = 0;
+        }
+
+        public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager, 
+            SoundManager soundManager, IWorld world)
+        {
+            Id = entityModel.Id;
+            ThingId = entityModel.ThingId;
+            Definition = definition;
+            Flags = new EntityFlags(entityModel.Flags);
+            Properties = new EntityProperties(definition.Properties);
+            Health = entityModel.Health;
+            Armor = entityModel.Armor;
+
+            FrameState = new FrameState(this, definition, entityManager, entityModel.Frame);
+            World = world;
             EntityManager = entityManager;
             SoundManager = soundManager;
 
-            Properties.Threshold = 0;
+            AngleRadians = entityModel.AngleRadians;
+            Box = new EntityBox(entityModel.Box.Center, entityModel.Box.Radius, entityModel.Box.Height);
+            PrevPosition = entityModel.Box.Center;
+            Velocity = entityModel.Velocity;
+            SpawnPoint = entityModel.SpawnPoint;
+            Sector = world.Sectors[entityModel.Sector];
+
+            Refire = entityModel.Refire;
+            MoveLinked = entityModel.MoveLinked;
+            Respawn = entityModel.Respawn;
+
+            m_direction = (MoveDir)entityModel.MoveDir;
+            BlockFloating = entityModel.BlockFloat;
+            MoveCount = entityModel.MoveCount;
+            FrozenTics = entityModel.FrozenTics;
+
+            if (entityModel.ArmorDefinition != null)
+                ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
+
+            Properties.ApplyEntityPropertiesModel(entityModel.Properties);
+        }
+
+        public EntityModel ToEntityModel(EntityModel entityModel)
+        {
+            if (ThingId > 0)
+            {
+                int lol = 1;
+            }
+
+            entityModel.Name = Definition.Name.ToString();
+            entityModel.Id = Id;
+            entityModel.ThingId = ThingId;
+            entityModel.AngleRadians = AngleRadians;
+            entityModel.SpawnPoint = SpawnPoint;
+            entityModel.Box = Box.ToEntityBoxModel();
+            entityModel.Velocity = Velocity;
+            entityModel.Health = Health;
+            entityModel.Armor = Armor;
+            entityModel.FrozenTics = FrozenTics;
+            entityModel.MoveCount = MoveCount;
+            entityModel.Owner = Owner?.Id;
+            entityModel.Target = Target?.Id;
+            entityModel.Tracer = Tracer?.Id;
+            entityModel.Refire = Refire;
+            entityModel.MoveLinked = MoveLinked;
+            entityModel.Respawn = Respawn;
+            entityModel.Sector = Sector.Id;
+            entityModel.MoveDir = (int)m_direction;
+            entityModel.BlockFloat = BlockFloating;
+            entityModel.ArmorDefinition = ArmorDefinition?.Name.ToString();
+            entityModel.Frame = FrameState.ToFrameStateModel();
+            entityModel.Flags = Flags.ToEntityFlagsModel();
+            entityModel.Properties = Properties.ToEntityPropertiesModel();
+            return entityModel;
         }
 
         public virtual void CopyProperties(Entity entity)
@@ -159,7 +232,7 @@ namespace Helion.World.Entities
             Flags = entity.Flags;
             Health = entity.Health;
             Armor = entity.Armor;
-            ArmorProperties = entity.ArmorProperties;
+            ArmorDefinition = entity.ArmorDefinition;
         }
 
         public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.To2D().Distance(entity.Position.To2D()));

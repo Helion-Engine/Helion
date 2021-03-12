@@ -1,3 +1,4 @@
+using Helion.Models;
 using System;
 using System.Collections;
 
@@ -5,6 +6,8 @@ namespace Helion.World.Entities.Definition.Flags
 {
     public class EntityFlags
     {
+        private const int Bits = 32;
+        private const uint ShiftBit = 1;
         private static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
         
         private readonly BitArray m_bits = new BitArray(NumFlags);
@@ -318,6 +321,56 @@ namespace Helion.World.Entities.Definition.Flags
         public EntityFlags(EntityFlags flags)
         {
             m_bits = new BitArray(flags.m_bits);
+        }
+
+        public EntityFlags(EntityFlagsModel model)
+        {
+            int flagIndex = 0;
+
+            for (int i = 0; i < model.Bits.Length; i++)
+            {
+                for (int j = 0; j < Bits; j++, flagIndex++)
+                {
+                    if (m_bits.Length <= flagIndex)
+                        break;
+
+                    uint currentValue = ShiftBit << j;
+                    m_bits[flagIndex] = (model.Bits[i] & currentValue) > 0;
+                }
+            }
+        }
+
+        public EntityFlagsModel ToEntityFlagsModel()
+        {
+            int bitLength = m_bits.Length / Bits;
+            if (m_bits.Length % Bits != 0)
+                bitLength++;
+
+            EntityFlagsModel entityFlagsModel = new EntityFlagsModel()
+            {
+                Bits = new uint[bitLength]
+            };
+
+            uint currentFlags = 0;
+            int flagCount = 0;
+
+            for (int i = 0; i < m_bits.Length; i++)
+            {
+                if (m_bits[i])
+                {
+                    uint currentValue = ShiftBit << i;
+                    currentFlags |= currentValue;
+                }
+
+                if (i % Bits == 0 && i != 0)
+                {
+                    entityFlagsModel.Bits[flagCount] = currentFlags;
+                    currentFlags = 0;
+                    flagCount++;
+                }
+            }
+
+            return entityFlagsModel;
         }
 
         public bool this[EntityFlag flag]

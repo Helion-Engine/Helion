@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
+using Helion.Models;
 using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.World.Entities.Definition.Properties
@@ -193,6 +194,21 @@ namespace Helion.World.Entities.Definition.Properties
             WoundHealth = properties.WoundHealth;
             YScale = properties.YScale;
             Speed = properties.Speed;
+        }
+
+        public EntityPropertiesModel ToEntityPropertiesModel()
+        {
+            return new EntityPropertiesModel()
+            {
+                ReactionTime = ReactionTime,
+                Threshold = Threshold
+            };
+        }
+
+        public void ApplyEntityPropertiesModel(EntityPropertiesModel entityPropertiesModel)
+        {
+            ReactionTime = entityPropertiesModel.ReactionTime;
+            Threshold = entityPropertiesModel.Threshold;
         }
     }
 }

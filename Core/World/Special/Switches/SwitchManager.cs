@@ -29,19 +29,19 @@ namespace Helion.World.Special.Switches
                     switch (switchSet.Item2)
                     {
                         case WallLocation.Upper:
-                            twoSided.Upper.TextureHandle = switchSet.Item1;
+                            twoSided.Upper.SetTexture(switchSet.Item1, SideDataTypes.UpperTexture);
                             break;
                         case WallLocation.Middle:
-                            twoSided.Middle.TextureHandle = switchSet.Item1;
+                            twoSided.Middle.SetTexture(switchSet.Item1, SideDataTypes.MiddleTexture);
                             break;
                         case WallLocation.Lower:
-                            twoSided.Lower.TextureHandle = switchSet.Item1;
+                            twoSided.Lower.SetTexture(switchSet.Item1, SideDataTypes.UpperTexture);
                             break;
                     }
                 }
                 else
                 {
-                    line.Front.Middle.TextureHandle = switchSet.Item1;
+                    line.Front.Middle.SetTexture(switchSet.Item1, SideDataTypes.MiddleTexture);
                 }
             }
         }

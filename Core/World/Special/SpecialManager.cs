@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Definitions;
 using Helion.Util;
@@ -48,8 +49,18 @@ namespace Helion.World.Special
             m_world = world;
             m_switchManager = new SwitchManager(definition);
             m_random = random;
+        }
 
-            StartInitSpecials();
+        public List<object> GetSpecialModels()
+        {
+            List<object> specials = new List<object>();
+            foreach (var special in m_specials)
+            {
+                if (special is SectorMoveSpecial sectorMoveSpecial)
+                    specials.Add(sectorMoveSpecial.ToSectorMoveSpecialModel());
+            }
+
+            return specials;
         }
 
         public void ResetInterpolation()
@@ -79,7 +90,7 @@ namespace Helion.World.Special
                         GetSwitchType(args.ActivateLineSpecial.Special)));
                 }
 
-                args.ActivateLineSpecial.Activated = true;
+                args.ActivateLineSpecial.SetActivated(true);
             }
 
             return specialActivateSuccess;
@@ -102,7 +113,7 @@ namespace Helion.World.Special
 
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
         {
-            sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
+            sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
                 new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
@@ -157,6 +168,16 @@ namespace Helion.World.Special
         public void AddSpecial(ISpecial special)
         {
             m_specials.AddLast(special);
+        }
+
+        public void AddSpecialModels(IList<ISpecialModel> specialModels)
+        {
+            for (int i = 0; i < specialModels.Count; i++)
+            {
+                ISpecial? special = specialModels[i].ToWorldSpecial(m_world);
+                if (special != null)
+                    m_specials.AddLast(special);
+            }
         }
 
         public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay)
@@ -287,7 +308,7 @@ namespace Helion.World.Special
             return new StairSpecial(m_world, sector, speed, height, delay, crush);
         }
 
-        private void StartInitSpecials()
+        public void StartInitSpecials()
         {
             var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.ActivationType == ActivationType.LevelStart);
             foreach (var line in lines)
@@ -713,7 +734,7 @@ namespace Helion.World.Special
         private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, byte lockout)
         {
             double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
-            sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
+            sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
             sector.SectorDamageSpecial = null;
 
             SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);

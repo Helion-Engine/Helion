@@ -43,6 +43,17 @@ namespace Helion.Resources.Definitions.MapInfo
             return m_skills[iSkill];
         }
 
+        public SkillLevel GetSkillLevel(SkillDef skillDef)
+        {
+            for (int i = 0; i < m_skills.Count; i++)
+            {
+                if (m_skills[i].Key == skillDef.Key)
+                    return (SkillLevel)(i + 1);
+            }
+
+            return SkillLevel.None;
+        }
+
         private static void AddOrReplace<T>(List<T> items, T newItem)
         {
             if (newItem == null)

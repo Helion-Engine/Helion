@@ -1,3 +1,4 @@
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 
 namespace Helion.World.Geometry.Walls
@@ -7,7 +8,7 @@ namespace Helion.World.Geometry.Walls
         public readonly int Id;
         public readonly WallLocation Location;
         public Side Side { get; internal set; }
-        public int TextureHandle;
+        public int TextureHandle { get; private set; }
 
         public Wall(int id, int textureHandle, WallLocation location)
         {
@@ -22,6 +23,13 @@ namespace Helion.World.Geometry.Walls
             // to a parent object, it will add itself for us. If this can be
             // fixed in the future with non-messy code, go for it.
             Side = null !;
+        }
+
+        public void SetTexture(int texture, SideDataTypes type)
+        {
+            TextureHandle = texture;
+            Side.Line.DataChanges |= LineDataTypes.Texture;
+            Side.DataChanges |= type;
         }
     }
 }

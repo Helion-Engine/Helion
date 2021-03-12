@@ -3,6 +3,7 @@ using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container.Linkable;
 using Helion.Util.Extensions;
@@ -15,6 +16,7 @@ using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Geometry.Sectors
 {
@@ -89,7 +91,8 @@ namespace Helion.World.Geometry.Sectors
         
         public bool IsMoving => ActiveMoveSpecial != null;
         public bool Has3DFloors => !Floors3D.Empty();
-        public bool DataChanged;
+        public SectorDataTypes DataChanges;
+        public bool DataChanged => DataChanges > 0;
         public bool LightingChanged;
 
         public int SoundValidationCount;
@@ -109,6 +112,80 @@ namespace Helion.World.Geometry.Sectors
             floor.Sector = this;
             ceiling.Sector = this;
         }
+
+        public void PlaneTextureChange(SectorPlane sectorPlane)
+        {
+            if (sectorPlane == Floor)
+                DataChanges |= SectorDataTypes.FloorTexture;
+            else
+                DataChanges |= SectorDataTypes.CeilingTexture;
+        }
+
+        public SectorModel ToSectorModel()
+        {
+            SectorModel sectorModel = new SectorModel()
+            {
+                Id = Id,
+                SoundValidationCount = SoundValidationCount,
+                SoundBlock = SoundBlock,
+                SoundTarget = SoundTarget?.Id,
+                SectorDataChanges = (int)DataChanges
+            };
+
+            if (DataChanged)
+            {
+                if (DataChanges.HasFlag(SectorDataTypes.FloorZ))
+                    sectorModel.FloorZ = Floor.Z;
+                if (DataChanges.HasFlag(SectorDataTypes.CeilingZ))
+                    sectorModel.CeilingZ = Ceiling.Z;
+                if (DataChanges.HasFlag(SectorDataTypes.Light))
+                    sectorModel.LightLevel = LightLevel;
+                if (DataChanges.HasFlag(SectorDataTypes.FloorTexture))
+                    sectorModel.FloorTexture = Floor.TextureHandle;
+                if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
+                    sectorModel.CeilingTexture = Ceiling.TextureHandle;
+            }
+
+            return sectorModel;
+        }
+
+        public void ApplySectorModel(SectorModel sectorModel, WorldModelPopulateResult result)
+        {
+            SoundValidationCount = sectorModel.SoundValidationCount;
+            SoundBlock = sectorModel.SoundBlock;
+            if (sectorModel.SoundTarget.HasValue)
+                result.Entities.TryGetValue(sectorModel.SoundTarget.Value, out SoundTarget);
+
+            if (sectorModel.SectorDataChanges > 0)
+            {
+                DataChanges = (SectorDataTypes)sectorModel.SectorDataChanges;
+
+                if (DataChanges.HasFlag(SectorDataTypes.FloorZ) && sectorModel.FloorZ.HasValue)
+                {
+                    double amount =  sectorModel.FloorZ.Value - Floor.Z;
+                    Floor.Z = sectorModel.FloorZ.Value;
+                    Floor.PrevZ = Floor.Z;
+                    Floor.Plane.MoveZ(amount);
+                }
+
+                if (DataChanges.HasFlag(SectorDataTypes.CeilingZ) && sectorModel.CeilingZ.HasValue)
+                {
+                    double amount = sectorModel.CeilingZ.Value - Ceiling.Z;
+                    Ceiling.Z = sectorModel.CeilingZ.Value;
+                    Ceiling.PrevZ = Ceiling.Z;
+                    Ceiling.Plane.MoveZ(amount);
+                }
+
+                if (DataChanges.HasFlag(SectorDataTypes.Light) && sectorModel.LightLevel.HasValue)
+                    SetLightLevel(sectorModel.LightLevel.Value);
+
+                if (DataChanges.HasFlag(SectorDataTypes.FloorTexture) && sectorModel.FloorTexture.HasValue)
+                    Floor.SetTexture(sectorModel.FloorTexture.Value);
+
+                if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture) && sectorModel.CeilingTexture.HasValue)
+                    Floor.SetTexture(sectorModel.CeilingTexture.Value);
+            }
+        }
         
         public LinkableNode<Entity> Link(Entity entity)
         {
@@ -121,6 +198,7 @@ namespace Helion.World.Geometry.Sectors
 
         public void SetLightLevel(short lightLevel)
         {
+            DataChanges |= SectorDataTypes.Light;
             LightLevel = lightLevel;
             Floor.LightLevel = lightLevel;
             Ceiling.LightLevel = lightLevel;

@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
@@ -33,7 +34,6 @@ namespace Helion.World.Entities.Players
 
         public readonly int PlayerNumber;
         public double PitchRadians;
-        public int LastPickupGametick = int.MinValue / 2;
         public int DamageCount;
         public int BonusCount;
         public TickCommand TickCommand = new();
@@ -97,6 +97,83 @@ namespace Helion.World.Entities.Players
             m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
 
             StatusBar = new PlayerStatusBar(this);
+        }
+
+        public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition,
+            EntityManager entityManager, SoundManager soundManager, IWorld world)
+            : base(playerModel, definition,entityManager, soundManager, world)
+        {
+            Precondition(playerModel.Number >= 0, "Player number should not be negative");
+
+            PlayerNumber = playerModel.Number;
+            AngleRadians = playerModel.AngleRadians;
+            PitchRadians = playerModel.PitchRadians;
+            DamageCount = playerModel.DamageCount;
+            BonusCount = playerModel.BonusCount;
+            ExtraLight = playerModel.ExtraLight;
+            m_isJumping = playerModel.IsJumping;
+            m_jumpTics = playerModel.JumpTics;
+            m_deathTics = playerModel.DeathTics;
+            m_viewHeight = playerModel.ViewHeight;
+            m_viewZ = playerModel.ViewZ;
+            m_deltaViewHeight = playerModel.DeltaViewHeight;
+            m_bob = playerModel.Bob;
+            WeaponOffset = playerModel.WeaponOffset;
+            WeaponSlot = playerModel.WeaponSlot;
+            WeaponSubSlot = playerModel.WeaponSubSlot;
+            
+            Inventory = new Inventory(playerModel, this, entityManager.DefinitionComposer);
+
+            if (playerModel.Weapon != null)
+                Weapon = Inventory.Weapons.GetWeapon(playerModel.Weapon);
+            if (playerModel.PendingWeapon != null)
+                PendingWeapon = Inventory.Weapons.GetWeapon(playerModel.PendingWeapon);
+            if (playerModel.AnimationWeapon != null)
+                AnimationWeapon = Inventory.Weapons.GetWeapon(playerModel.AnimationWeapon);
+
+            if (playerModel.Attacker.HasValue && entities.TryGetValue(playerModel.Attacker.Value, out Entity? attacker))
+                Attacker = attacker;
+            if (playerModel.Killer.HasValue)
+                entities.TryGetValue(playerModel.Killer.Value, out m_killer);
+
+            m_prevAngle = AngleRadians;
+            m_prevPitch = PitchRadians;
+            m_prevViewZ = m_viewZ;
+
+            StatusBar = new PlayerStatusBar(this);
+        }
+
+        public PlayerModel ToPlayerModel()
+        {
+            PlayerModel playerModel = new PlayerModel()
+            {
+                Number = PlayerNumber,
+                PitchRadians = PitchRadians,
+                DamageCount = DamageCount,
+                BonusCount = BonusCount,
+                ExtraLight = ExtraLight,
+                IsJumping = m_isJumping,
+                JumpTics = m_jumpTics,
+                DeathTics = m_deathTics,
+                ViewHeight = m_viewHeight,
+                ViewZ = ViewZ,
+                DeltaViewHeight = m_deltaViewHeight,
+                Bob = m_bob,
+                Killer = m_killer?.Id,
+                Attacker = Attacker?.Id,
+                Weapon = Weapon?.Definition.Name.ToString(),
+                PendingWeapon = PendingWeapon?.Definition.Name.ToString(),
+                AnimationWeapon = AnimationWeapon?.Definition.Name.ToString(),
+                WeaponOffset = WeaponOffset,
+                WeaponSlot = WeaponSlot,
+                WeaponSubSlot = WeaponSubSlot,
+                Inventory = Inventory.ToInventoryModel(),
+                AnimationWeaponFrame = AnimationWeapon?.FrameState.ToFrameStateModel(),
+                WeaponFlashFrame = AnimationWeapon?.FlashState.ToFrameStateModel()
+            };
+
+            ToEntityModel(playerModel);
+            return playerModel;
         }
 
         public override void CopyProperties(Entity entity)
@@ -363,7 +440,6 @@ namespace Helion.World.Entities.Players
             if (success && pickupFlash)
             {
                 BonusCount = 6;
-                LastPickupGametick = World.Gametick;
                 return true;
             }
 
@@ -385,7 +461,7 @@ namespace Helion.World.Entities.Players
             {
                 bool success = AddHealthOrArmor(definition, flags, ref Armor, definition.Properties.Armor.SaveAmount);
                 if (success)
-                    ArmorProperties = GetArmorProperties(definition);
+                    ArmorDefinition = GetArmorDefinition(definition);
                 return success;
             }
 
@@ -429,26 +505,26 @@ namespace Helion.World.Entities.Players
                 GiveItem(armor.First(), null, pickupFlash: false);
         }
 
-        private EntityProperties? GetArmorProperties(EntityDefinition definition)
+        private EntityDefinition? GetArmorDefinition(EntityDefinition definition)
         {
             bool isArmorBonus = definition.IsType(Inventory.BasicArmorBonusClassName);
 
             // Armor bonus keeps current property
-            if (ArmorProperties != null && isArmorBonus)
-                return ArmorProperties;
+            if (ArmorDefinition != null && isArmorBonus)
+                return ArmorDefinition;
 
             // Find matching armor definition when picking up armor bonus with no armor
-            if (ArmorProperties == null && isArmorBonus)
+            if (ArmorDefinition == null && isArmorBonus)
             {
                 IList<EntityDefinition> definitions = World.EntityManager.DefinitionComposer.GetEntityDefinitions();
                 EntityDefinition? armorDef = definitions.FirstOrDefault(x => x.Properties.Armor.SavePercent == definition.Properties.Armor.SavePercent &&
                     x.IsType(Inventory.BasicArmorPickupClassName));
 
                 if (armorDef != null)
-                    return armorDef.Properties;
+                    return armorDef;
             }
 
-            return definition.Properties;
+            return definition;
         }
 
         private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount)

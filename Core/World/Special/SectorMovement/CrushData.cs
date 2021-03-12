@@ -1,4 +1,5 @@
 ﻿using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
 
 namespace Helion.World.Special.SectorMovement
 {
@@ -13,6 +14,23 @@ namespace Helion.World.Special.SectorMovement
             CrushMode = crushMode;
             Damage = damage;
             ReturnFactor = returnFactor;
+        }
+
+        public CrushData(CrushDataModel model)
+        {
+            CrushMode = (ZDoomCrushMode)model.CrushMode;
+            Damage = model.Damage;
+            ReturnFactor = model.ReturnFactor;
+        }
+
+        public CrushDataModel ToCrushDataModel()
+        {
+            return new CrushDataModel()
+            {
+                CrushMode = (int)CrushMode,
+                Damage = Damage,
+                ReturnFactor = ReturnFactor
+            };
         }
     }
 }

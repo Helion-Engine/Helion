@@ -55,7 +55,7 @@ namespace Helion.World.Special.Specials
 
             if (m_line.Flags.Repeat)
             {
-                m_line.Activated = false;
+                m_line.SetActivated(false);
                 PlaySwitchSound(m_soundManager, m_line);
             }
 

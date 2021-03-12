@@ -1,4 +1,5 @@
 using System;
+using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
@@ -56,14 +57,23 @@ namespace Helion.World.Entities.Inventories
         private bool m_tryingToFire;
         private double m_raiseFraction;
 
-        public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager) :
+        public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager,
+            FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null) :
             base(definition, 1)
         {
             Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
 
             Owner = owner;
-            FrameState = new FrameState(owner, definition, entityManager, false);
-            FlashState = new FrameState(owner, definition, entityManager, false);
+
+            if (frameStateModel == null)
+                FrameState = new FrameState(owner, definition, entityManager, false);
+            else
+                FrameState = new FrameState(owner, definition, entityManager, frameStateModel);
+
+            if (flashStateModel == null)
+                FlashState = new FrameState(owner, definition, entityManager, false);
+            else
+                FlashState = new FrameState(owner, definition, entityManager, flashStateModel);
 
             AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
             if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
@@ -71,7 +81,7 @@ namespace Helion.World.Entities.Inventories
             else
                 AmmoSprite = string.Empty;
 
-            if (!FrameState.SetState(FrameStateLabel.Ready))
+            if (frameStateModel == null && !FrameState.SetState(FrameStateLabel.Ready))
                 Log.Warn("Unable to find Ready state for weapon {0}", definition.Name);
         }
 

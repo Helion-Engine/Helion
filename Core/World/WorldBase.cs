@@ -37,10 +37,11 @@ using NLog;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities.Definition;
+using Helion.Models;
 
 namespace Helion.World
 {
-    public abstract class WorldBase : IWorld
+    public abstract partial class WorldBase : IWorld
     {
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
         private const double MinPitch = -80.0 * Math.PI / 180.0;
@@ -54,7 +55,7 @@ namespace Helion.World
         public event EventHandler<LevelChangeEvent>? LevelExit;
 
         public readonly long CreationTimeNanos;
-        public readonly CIString MapName;
+        public CIString MapName { get; protected set; }
         public readonly BlockMap Blockmap;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
@@ -94,7 +95,7 @@ namespace Helion.World
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
+            MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
@@ -110,6 +111,20 @@ namespace Helion.World
             EntityManager = new EntityManager(this, archiveCollection, SoundManager);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
+
+            if (worldModel == null)
+            {
+                SpecialManager.StartInitSpecials();
+            }
+            else
+            {
+                WorldState = worldModel.WorldState;
+                Gametick = worldModel.Gametick;
+                LevelTime = worldModel.LevelTime;
+                m_soundCount = worldModel.SoundCount;
+                Gravity = worldModel.Gravity;
+                ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+            }
         }
 
         ~WorldBase()

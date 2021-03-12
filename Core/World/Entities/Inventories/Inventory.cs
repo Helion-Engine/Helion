@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -45,6 +46,52 @@ namespace Helion.World.Entities.Inventories
         {
             Owner = owner;
             EntityDefinitionComposer = composer;
+        }
+
+        public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
+        {
+            Owner = owner;
+            EntityDefinitionComposer = composer;
+
+            foreach (InventoryItemModel item in playerModel.Inventory.Items)
+            {
+                EntityDefinition? definition = EntityDefinitionComposer.GetByName(item.Name);
+                if (definition != null)
+                    Items.Add(definition.Name, new InventoryItem(definition, item.Amount));
+            }
+
+            foreach (string weaponName in playerModel.Inventory.Weapons)
+            {
+                EntityDefinition? definition = EntityDefinitionComposer.GetByName(weaponName);
+                if (definition != null)
+                {
+                    if (weaponName == playerModel.AnimationWeapon)
+                        Weapons.Add(definition, owner, owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
+                    else
+                        Weapons.Add(definition, owner, owner.World.EntityManager);
+                }
+            }
+
+            SortKeys();
+        }
+
+        public InventoryModel ToInventoryModel()
+        {
+            List<InventoryItemModel> inventoryItems = new List<InventoryItemModel>();
+            foreach (var item in Items)
+            {
+                inventoryItems.Add(new InventoryItemModel()
+                {
+                    Name = item.Value.Definition.Name.ToString(),
+                    Amount = item.Value.Amount
+                });
+            }
+
+            return new InventoryModel()
+            {
+                Items = inventoryItems,
+                Weapons = Weapons.GetOwnedWeaponNames()
+            };
         }
 
         public static CIString GetBaseInventoryName(EntityDefinition definition)
@@ -136,7 +183,11 @@ namespace Helion.World.Entities.Inventories
             }
             else
             {
-                InventoryItem inventoryItem = new InventoryItem(definition, isKey ? 1 : amount);
+                EntityDefinition? findDefinition = EntityDefinitionComposer.GetByName(name);
+                if (findDefinition == null)
+                    return false;
+
+                InventoryItem inventoryItem = new InventoryItem(findDefinition, isKey ? 1 : amount);
                 Items[name] = inventoryItem;
 
                 if (isKey)
