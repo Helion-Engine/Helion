@@ -13,7 +13,7 @@ namespace Helion.Menus.Impl
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public NewGameEpisodeMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
-            base(config, console, soundManager, archiveCollection, 40)
+            base(config, console, soundManager, archiveCollection, 40, true)
         {
             var episodes = archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;
             if (episodes.Count == 0)
@@ -22,7 +22,7 @@ namespace Helion.Menus.Impl
                 return;
             }
             
-            Components = Components.Add(new MenuImageComponent("M_EPISOD", 0, 8));
+            Components = Components.Add(new MenuImageComponent("M_EPISOD", 12, 12));
             
             foreach (EpisodeDef episode in episodes)
             {
