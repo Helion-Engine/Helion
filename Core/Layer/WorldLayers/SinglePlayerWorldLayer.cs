@@ -39,6 +39,7 @@ namespace Helion.Layer.WorldLayers
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
         private SinglePlayerWorld m_world;
+        private bool m_disposed;
 
         public override WorldBase World => m_world;
         public MapInfoDef CurrentMap { get; set; }
@@ -217,9 +218,13 @@ namespace Helion.Layer.WorldLayers
 
         protected override void PerformDispose()
         {
+            if (m_disposed)
+                return;
+            
             RemoveWorldEventListeners(m_world);
-
             m_world.Dispose();
+
+            m_disposed = true;
 
             base.PerformDispose();
         }

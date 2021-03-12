@@ -98,7 +98,7 @@ namespace Helion.Client
             // For now, we will only have one world layer present. If someone
             // wants to `map mapXX` offline then it will kill their connection
             // and go offline to some world.
-            m_layerManager.Remove<WorldLayer>();
+            // m_layerManager.Remove<WorldLayer>();
 
             string mapName = args[0];
             IMap? map = m_archiveCollection.FindMap(mapName);
@@ -116,13 +116,20 @@ namespace Helion.Client
             }
 
             MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console, 
-                m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map);
-            if (newLayer == null)
-                return;
+            
+            // TODO: Fix me later (we should always create a new layer, and never branch like this)
+            if (m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? worldLayer))
+                worldLayer.LoadMap(mapInfoDef, false);
+            else
+            {
+                SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console, 
+                    m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map);
+                if (newLayer == null)
+                    return;
 
-            m_layerManager.Add(newLayer);
-            newLayer.World.Start();
+                m_layerManager.Add(newLayer);
+                newLayer.World.Start();
+            }
         }
     }
 }
