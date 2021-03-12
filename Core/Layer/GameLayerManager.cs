@@ -1,3 +1,4 @@
+using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Layer.WorldLayers;
 using Helion.Menus.Impl;
@@ -22,14 +23,17 @@ namespace Helion.Layer
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HelionConsole m_console;
+        private readonly SoundManager m_soundManager;
 
         protected override double Priority => 0.5;
 
-        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console)
+        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console,
+            SoundManager soundManager)
         {
             m_config = config;
             m_console = console;
             m_archiveCollection = archiveCollection;
+            m_soundManager = soundManager;
         }
 
         public override void Add(GameLayer layer)
@@ -61,8 +65,10 @@ namespace Helion.Layer
 
             void CreateAndAddMenu()
             {
-                MainMenu mainMenu = new(m_config, m_console);
-                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection);
+                m_soundManager.PlayStaticSound("switches/exitbutn");
+                
+                MainMenu mainMenu = new(m_config, m_console, m_soundManager);
+                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Add(menuLayer);
             }
         }

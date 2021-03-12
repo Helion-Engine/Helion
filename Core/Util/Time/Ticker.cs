@@ -13,7 +13,7 @@ namespace Helion.Util.Time
 
         public long GameTic;
         private readonly long m_stopwatchTicksPerGametick;
-        private readonly Stopwatch m_stopwatch = new Stopwatch();
+        private readonly Stopwatch m_stopwatch = new();
         private long m_lastTickSeen;
         private long m_tickAccumulation;
 

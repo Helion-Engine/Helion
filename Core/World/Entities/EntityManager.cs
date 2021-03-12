@@ -30,7 +30,7 @@ namespace Helion.World.Entities
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public readonly SpawnLocations SpawnLocations = new SpawnLocations();
         public readonly WorldBase World;
-        private readonly SoundManager m_soundManager;
+        private readonly WorldSoundManager m_soundManager;
         private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
 
@@ -38,7 +38,7 @@ namespace Helion.World.Entities
 
         public readonly List<Player> Players = new List<Player>();
 
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, SoundManager soundManager)
+        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
         {
             World = world;
             m_soundManager = soundManager;

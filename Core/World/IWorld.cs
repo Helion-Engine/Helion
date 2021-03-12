@@ -38,7 +38,7 @@ namespace Helion.World
         Entity ListenerEntity { get; }
         IRandom Random { get; }
         EntityManager EntityManager { get; }
-        SoundManager SoundManager { get; }
+        WorldSoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
         Config Config { get; }
         SkillDef SkillDefinition { get; }

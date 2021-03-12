@@ -3,10 +3,12 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Audio.Impl;
+using Helion.Audio.Sounds;
 using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Input;
 using Helion.Layer;
+using Helion.Layer.WorldLayers;
 using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
@@ -32,6 +34,7 @@ namespace Helion.Client
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
         private readonly NativeWinMouse? m_nativeWinMouse;
+        private readonly SoundManager m_soundManager;
         private readonly Window m_window;
         private bool m_disposed;
 
@@ -43,9 +46,10 @@ namespace Helion.Client
             m_console = console;
             m_audioSystem = audioSystem;
             m_archiveCollection = archiveCollection;
-            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console);
+            m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
+            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager);
             m_window = new Window(config, m_archiveCollection);
-
+            
             m_console.OnConsoleCommandEvent += Console_OnCommand;
             m_window.RenderFrame += Window_MainLoop;
 
@@ -113,6 +117,7 @@ namespace Helion.Client
             RunLogic();
             Render();
             
+            m_soundManager.Update();
             m_layerManager.PruneDisposed();
         }
 
@@ -145,6 +150,7 @@ namespace Helion.Client
             m_console.OnConsoleCommandEvent -= Console_OnCommand;
             m_window.RenderFrame -= Window_MainLoop;
 
+            m_soundManager.Dispose();
             m_layerManager.Dispose();
             m_window.Dispose();
 

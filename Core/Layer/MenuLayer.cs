@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus;
 using Helion.Menus.Base;
@@ -16,14 +17,16 @@ namespace Helion.Layer
     {
         private readonly Stack<Menu> m_menus = new();
         private readonly MenuDrawer m_menuDrawer;
+        private readonly SoundManager m_soundManager;
 
         protected override double Priority => 0.7;
 
-        public MenuLayer(GameLayer parent, Menu menu, ArchiveCollection archiveCollection)
+        public MenuLayer(GameLayer parent, Menu menu, ArchiveCollection archiveCollection, SoundManager soundManager)
         {
             Parent = parent;
+            m_soundManager = soundManager;
             m_menuDrawer = new MenuDrawer(archiveCollection);
-            
+
             m_menus.Push(menu);
         }
         
@@ -48,21 +51,22 @@ namespace Helion.Layer
             {
                 Menu? subMenu = menu.CurrentComponent.Action();
                 if (subMenu != null)
+                {
+                    m_soundManager.PlayStaticSound("weapons/pistol");
                     m_menus.Push(subMenu);
+                }
             }
 
             if (input.ConsumeKeyPressed(Key.Escape))
             {
-                switch (m_menus.Count)
+                if (m_menus.Count >= 1)
                 {
-                case > 1:
+                    m_soundManager.PlayStaticSound("switches/exitbutn");
                     m_menus.Pop();
-                    break;
-                case 1:
-                    m_menus.Pop();
-                    Parent?.Remove<MenuLayer>();
-                    break;
                 }
+                
+                if (m_menus.Empty())
+                    Parent?.Remove<MenuLayer>();
             }
             
             base.HandleInput(input);

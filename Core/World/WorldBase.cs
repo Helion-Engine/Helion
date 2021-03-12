@@ -69,7 +69,7 @@ namespace Helion.World
         public BspTree BspTree => Geometry.BspTree;
         public LinkableList<Entity> Entities => EntityManager.Entities;
         public EntityManager EntityManager { get; }
-        public SoundManager SoundManager { get; }
+        public WorldSoundManager SoundManager { get; }
         public abstract Vec3D ListenerPosition { get; }
         public abstract double ListenerAngle { get; }
         public abstract double ListenerPitch { get; }
@@ -85,7 +85,7 @@ namespace Helion.World
         protected readonly SpecialManager SpecialManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly IMap Map;
-        private readonly DoomRandom m_random = new DoomRandom();
+        private readonly DoomRandom m_random = new();
 
         private int m_exitTicks;
         private int m_easyBossBrain;
@@ -106,7 +106,7 @@ namespace Helion.World
             Geometry = geometry;
             Map = map;
             Blockmap = new BlockMap(Lines);
-            SoundManager = new SoundManager(this, audioSystem, archiveCollection.Definitions.SoundInfo);
+            SoundManager = new WorldSoundManager(this, audioSystem, archiveCollection);
             EntityManager = new EntityManager(this, archiveCollection, SoundManager);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);

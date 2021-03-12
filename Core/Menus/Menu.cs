@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Helion.Audio;
+using Helion.Audio.Sounds;
 using Helion.Menus.Base;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
@@ -13,19 +13,31 @@ namespace Helion.Menus
     {
         public readonly int TopPixelPadding;
         protected readonly Config Config;
+        protected readonly SoundManager SoundManager;
         protected readonly HelionConsole Console;
         protected ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
         protected int? ComponentIndex;
 
         public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
-        protected Menu(Config config, HelionConsole console, int topPixelPadding)
+        protected Menu(Config config, HelionConsole console, SoundManager soundManager, int topPixelPadding)
         {
             Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
 
             Config = config;
             Console = console;
+            SoundManager = soundManager;
             TopPixelPadding = topPixelPadding;
+        }
+
+        protected void PlayNextOptionSound()
+        {
+            SoundManager.PlayStaticSound("plats/pt1_stop");
+        }
+
+        protected void PlaySelectedSound()
+        {
+            SoundManager.PlayStaticSound("weapons/pistol");
         }
 
         public void MoveToNextComponent()
@@ -41,6 +53,9 @@ namespace Helion.Menus
                 int index = (currentIndex + iter) % Components.Count;
                 if (Components[index].HasAction)
                 {
+                    if (ComponentIndex == null || ComponentIndex != index)
+                        PlayNextOptionSound();
+                    
                     ComponentIndex = index;
                     return;
                 }
@@ -63,6 +78,9 @@ namespace Helion.Menus
                 
                 if (Components[index].HasAction)
                 {
+                    if (ComponentIndex == null || ComponentIndex != index)
+                        PlayNextOptionSound();
+                    
                     ComponentIndex = index;
                     return;
                 }

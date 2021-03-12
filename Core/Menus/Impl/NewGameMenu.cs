@@ -1,4 +1,5 @@
 ﻿using System;
+using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
 using Helion.Util.Configs;
@@ -8,8 +9,8 @@ namespace Helion.Menus.Impl
 {
     public class NewGameMenu : Menu
     {
-        public NewGameMenu(Config config, HelionConsole console) : 
-            base(config, console, 16)
+        public NewGameMenu(Config config, HelionConsole console, SoundManager soundManager) : 
+            base(config, console, soundManager, 16)
         {
             Components = Components.AddRange(new[] 
             {
@@ -31,13 +32,16 @@ namespace Helion.Menus.Impl
 
             Func<Menu?> CreateWorld(SkillLevel skillLevel)
             {
-                config.Game.Skill.Set(skillLevel);
-                
                 return () =>
                 {
+                    PlaySelectedSound();
+
+                    config.Game.Skill.Set(skillLevel);
+                    
                     console.ClearInputText();
                     console.AddInput("STARTGAME");
                     console.SubmitInputText();
+                    
                     return null;
                 };
             }

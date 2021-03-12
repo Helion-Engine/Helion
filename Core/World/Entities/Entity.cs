@@ -38,7 +38,7 @@ namespace Helion.World.Entities
         public readonly EntityManager EntityManager;
         public readonly FrameState FrameState;
         public readonly IWorld World;
-        public readonly SoundManager SoundManager;
+        public readonly WorldSoundManager SoundManager;
         public double AngleRadians;
         public EntityBox Box;
         public Vec3D PrevPosition;
@@ -124,7 +124,7 @@ namespace Helion.World.Entities
         /// any sounds with.</param>
         /// /// <param name="world">The world this entity belongs to.</param>
         public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-            Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world)
+            Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
         {
             Health = definition.Properties.Health;
 
