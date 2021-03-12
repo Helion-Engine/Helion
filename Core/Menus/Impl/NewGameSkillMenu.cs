@@ -5,6 +5,7 @@ using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using MoreLinq;
 
 namespace Helion.Menus.Impl
 {
@@ -12,17 +13,20 @@ namespace Helion.Menus.Impl
     {
         public NewGameSkillMenu(Config config, HelionConsole console, SoundManager soundManager, 
                 ArchiveCollection archiveCollection, string? episode) : 
-            base(config, console, soundManager, archiveCollection, 16)
+            base(config, console, soundManager, archiveCollection, 16, true)
         {
             Components = Components.AddRange(new[] 
             {
-                CreateMenuOption("M_NEWG", 0, 10),
-                CreateMenuOption("M_SKILL", 0, 10),
-                CreateMenuOption("M_JKILL", -1, 2, CreateWorld(SkillLevel.VeryEasy)),
-                CreateMenuOption("M_ROUGH", 0, 2, CreateWorld(SkillLevel.Easy)),
-                CreateMenuOption("M_HURT", -32, 2, CreateWorld(SkillLevel.Medium)),
-                CreateMenuOption("M_ULTRA", -25, 2, CreateWorld(SkillLevel.Hard)),
-                CreateMenuOption("M_NMARE", -61, 2, CreateWorld(SkillLevel.Nightmare))
+                // TODO: X offsets are hardcoded for now (and are probably not even right).
+                CreateMenuOption("M_NEWG", 24, 10),
+                CreateMenuOption("M_SKILL", 8, 10),
+            });
+            
+            archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
+            {
+                SkillLevel skillLevel = (SkillLevel)index;
+                IMenuComponent component = CreateMenuOption(skill.PicName, 0, 2, CreateWorld(skillLevel));
+                Components = Components.Add(component);
             });
 
             SetToFirstActiveComponent();
