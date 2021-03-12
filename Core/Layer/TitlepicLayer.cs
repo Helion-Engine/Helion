@@ -34,7 +34,7 @@ namespace Helion.Layer
 
             if (input.HasAnyKeyPressed() && Parent?.Count == 1)
             {
-                MainMenu mainMenu = new(m_config, m_console, m_soundManager);
+                MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Parent.Add(menuLayer);
             }

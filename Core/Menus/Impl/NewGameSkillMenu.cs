@@ -2,15 +2,17 @@
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 
 namespace Helion.Menus.Impl
 {
-    public class NewGameMenu : Menu
+    public class NewGameSkillMenu : Menu
     {
-        public NewGameMenu(Config config, HelionConsole console, SoundManager soundManager) : 
-            base(config, console, soundManager, 16)
+        public NewGameSkillMenu(Config config, HelionConsole console, SoundManager soundManager, 
+                ArchiveCollection archiveCollection, string? episode) : 
+            base(config, console, soundManager, archiveCollection, 16)
         {
             Components = Components.AddRange(new[] 
             {
@@ -37,9 +39,9 @@ namespace Helion.Menus.Impl
                     PlaySelectedSound();
 
                     config.Game.Skill.Set(skillLevel);
-                    
+
                     console.ClearInputText();
-                    console.AddInput("STARTGAME");
+                    console.AddInput($"map {episode ?? "MAP01"}");
                     console.SubmitInputText();
                     
                     return null;

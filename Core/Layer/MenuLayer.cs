@@ -33,8 +33,22 @@ namespace Helion.Layer
         
         public override void HandleInput(InputEvent input)
         {
-            Menu menu = m_menus.Peek();
+            if (!m_menus.Empty())
+            {
+                Menu menu = m_menus.Peek();
+                menu.HandleInput(input);
 
+                if (MenuNotChanged(menu))
+                    HandleInputForMenu(menu, input);
+            }
+
+            base.HandleInput(input);
+
+            bool MenuNotChanged(Menu menu) => !m_menus.Empty() && ReferenceEquals(menu, m_menus.Peek());
+        }
+
+        private void HandleInputForMenu(Menu menu, InputEvent input)
+        {
             if (input.ConsumeKeyPressed(Key.Up))
                 menu.MoveToPreviousComponent();
             if (input.ConsumeKeyPressed(Key.Down))
@@ -65,12 +79,10 @@ namespace Helion.Layer
                     m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
                     m_menus.Pop();
                 }
-                
+                    
                 if (m_menus.Empty())
                     Parent?.Remove<MenuLayer>();
             }
-            
-            base.HandleInput(input);
         }
 
         public override void Render(RenderCommands renderCommands)

@@ -68,7 +68,7 @@ namespace Helion.Layer
             {
                 m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
                 
-                MainMenu mainMenu = new(m_config, m_console, m_soundManager);
+                MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Add(menuLayer);
             }

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Helion.Audio.Sounds;
+using Helion.Input;
 using Helion.Menus.Base;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using static Helion.Util.Assertion.Assert;
@@ -12,6 +14,7 @@ namespace Helion.Menus
     public abstract class Menu : IEnumerable<IMenuComponent>
     {
         public readonly int TopPixelPadding;
+        protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly SoundManager SoundManager;
         protected readonly HelionConsole Console;
@@ -20,14 +23,21 @@ namespace Helion.Menus
 
         public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
-        protected Menu(Config config, HelionConsole console, SoundManager soundManager, int topPixelPadding)
+        protected Menu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+            int topPixelPadding)
         {
             Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
 
             Config = config;
             Console = console;
             SoundManager = soundManager;
+            ArchiveCollection = archiveCollection;
             TopPixelPadding = topPixelPadding;
+        }
+
+        public virtual void HandleInput(InputEvent input)
+        {
+            // Up to any children to handle input if they want.
         }
 
         protected void PlayNextOptionSound()

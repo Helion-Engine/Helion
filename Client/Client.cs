@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Helion.Audio;
 using Helion.Audio.Impl;
@@ -10,6 +11,7 @@ using Helion.Input;
 using Helion.Layer;
 using Helion.Render;
 using Helion.Render.Commands;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -201,6 +203,18 @@ namespace Helion.Client
             Log.Error("Bad command line arguments detected:");
             commandLineArgs.Errors.ForEach(Log.Error);
         }
+        
+        private static IwadType FindIwadType(CommandLineArgs cmdArgs)
+        {
+            string[] fileNames = { cmdArgs.Iwad ?? "" };
+
+            foreach (string fileName in fileNames.Concat(fileNames))
+                foreach (string iwadName in new[] { "DOOM.WAD", "DOOM1.WAD" })
+                    if (fileName.Equals(iwadName, StringComparison.OrdinalIgnoreCase))
+                        return IwadType.Doom;
+            
+            return IwadType.Doom2;
+        }
 
         public static void Main(string[] args)
         {
@@ -208,11 +222,12 @@ namespace Helion.Client
             Logging.Initialize(commandLineArgs);
             LogClientInfo();
             LogAnyCommandLineErrors(commandLineArgs);
+            IwadType iwadType = FindIwadType(commandLineArgs);
 
             try
             {
                 using Config config = new();
-                ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config));
+                ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), iwadType);
                 using HelionConsole console = new(config);
                 using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
                 using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
