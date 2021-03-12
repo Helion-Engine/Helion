@@ -6,6 +6,7 @@ using Helion.Menus.Base;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Extensions;
 
 namespace Helion.Layer
@@ -61,7 +62,7 @@ namespace Helion.Layer
             {
                 if (m_menus.Count >= 1)
                 {
-                    m_soundManager.PlayStaticSound("switches/exitbutn");
+                    m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
                     m_menus.Pop();
                 }
                 

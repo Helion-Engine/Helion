@@ -3,6 +3,7 @@ using Helion.Input;
 using Helion.Layer.WorldLayers;
 using Helion.Menus.Impl;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 
@@ -65,7 +66,7 @@ namespace Helion.Layer
 
             void CreateAndAddMenu()
             {
-                m_soundManager.PlayStaticSound("switches/exitbutn");
+                m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
                 
                 MainMenu mainMenu = new(m_config, m_console, m_soundManager);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
