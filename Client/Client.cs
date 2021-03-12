@@ -8,7 +8,6 @@ using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Input;
 using Helion.Layer;
-using Helion.Layer.WorldLayers;
 using Helion.Render;
 using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
