@@ -38,6 +38,11 @@ namespace Helion.Menus
         protected void PlaySelectedSound()
         {
             SoundManager.PlayStaticSound("weapons/pistol");
+            
+            // The update call is needed for when we make a call that does a
+            // bulky operation like world loading. This makes it so the menu
+            // selection plays the above sound before the world is loaded.
+            SoundManager.Update();
         }
 
         public void MoveToNextComponent()

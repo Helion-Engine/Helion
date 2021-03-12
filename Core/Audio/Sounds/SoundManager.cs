@@ -223,8 +223,7 @@ namespace Helion.Audio.Sounds
         {
             ISoundSource soundSource = DefaultSoundSource.Default;
             SoundParams soundParams = new(soundSource, attenuation: Attenuation.None);
-            IAudioSource? audioSource = CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound, SoundChannelType.Auto, soundParams);
-            audioSource?.Play();
+            CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound, SoundChannelType.Auto, soundParams);
         }
 
         protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, string sound, 
