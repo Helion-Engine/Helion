@@ -154,8 +154,8 @@ namespace Helion.World.Entities
             Properties.Threshold = 0;
         }
 
-        public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager, 
-            SoundManager soundManager, IWorld world)
+        public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager,
+            WorldSoundManager soundManager, IWorld world)
         {
             Id = entityModel.Id;
             ThingId = entityModel.ThingId;

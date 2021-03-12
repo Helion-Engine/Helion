@@ -100,8 +100,8 @@ namespace Helion.World.Entities.Players
         }
 
         public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition,
-            EntityManager entityManager, SoundManager soundManager, IWorld world)
-            : base(playerModel, definition,entityManager, soundManager, world)
+            EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
+            : base(playerModel, definition, entityManager, soundManager, world)
         {
             Precondition(playerModel.Number >= 0, "Player number should not be negative");
 
