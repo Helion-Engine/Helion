@@ -5,7 +5,6 @@ using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Util.Extensions;
-using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
@@ -82,13 +81,23 @@ namespace Helion.Layer
         /// <param name="type">The type to remove.</param>
         public void Remove(Type type)
         {
-            Layers.Where(ShouldBeRemoved).ForEach(layer => layer.Dispose());
-
-            bool ShouldBeRemoved(GameLayer layer)
+            foreach (GameLayer gameLayer in Layers.Where(layer => ShouldBeRemoved(layer, type)))
+                gameLayer.Dispose();
+            
+            static bool ShouldBeRemoved(GameLayer layer, Type type)
             {
-                return layer.GetType().IsSubclassOf(type) || 
-                       layer.GetType() == type || 
-                       layer.Disposed;
+                return layer.GetType().IsSubclassOf(type) || layer.GetType() == type || layer.Disposed;
+            }
+        }
+        
+        public void RemoveAllBut<T>() where T : GameLayer
+        {
+            foreach (GameLayer layer in Layers.Where(layer => ShouldBeRemovedAll(layer, typeof(T))))
+                Remove(layer.GetType());
+            
+            static bool ShouldBeRemovedAll(GameLayer layer, Type type)
+            {
+                return (!layer.GetType().IsSubclassOf(type) && layer.GetType() != type) || layer.Disposed;
             }
         }
 

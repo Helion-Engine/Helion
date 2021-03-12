@@ -1,12 +1,15 @@
 ﻿using System;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
 
 namespace Helion.Menus.Impl
 {
     public class NewGameMenu : Menu
     {
-        public NewGameMenu() : base(16)
+        public NewGameMenu(Config config, HelionConsole console) : 
+            base(config, console, 16)
         {
             Components = Components.AddRange(new[] 
             {
@@ -28,8 +31,15 @@ namespace Helion.Menus.Impl
 
             Func<Menu?> CreateWorld(SkillLevel skillLevel)
             {
-                // TODO
-                return () => null;
+                config.Game.Skill.Set(skillLevel);
+                
+                return () =>
+                {
+                    console.ClearInputText();
+                    console.AddInput("STARTGAME");
+                    console.SubmitInputText();
+                    return null;
+                };
             }
         }
     }

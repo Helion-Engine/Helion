@@ -22,6 +22,10 @@ namespace Helion.Client
                 case "MAP":
                     HandleMap(ccmdArgs.Args);
                     break;
+                
+                case "STARTGAME":
+                    StartNewGame();
+                    break;
 
                 case "VOLUME":
                     SetVolume(ccmdArgs.Args);
@@ -40,6 +44,18 @@ namespace Helion.Client
                         Log.Info($"Unknown command: {ccmdArgs.Command}");
                     break;
             }
+        }
+
+        private void StartNewGame()
+        {
+            MapInfoDef? mapInfoDef = GetDefaultMap();
+            if (mapInfoDef == null)
+            {
+                Log.Error("Unable to find default map for game to start on");
+                return;
+            }
+            
+            LoadMap(mapInfoDef.MapName);
         }
 
         private void PrintAudioDevices()
@@ -130,6 +146,8 @@ namespace Helion.Client
                 m_layerManager.Add(newLayer);
                 newLayer.World.Start();
             }
+            
+            m_layerManager.RemoveAllBut<WorldLayer>();
         }
     }
 }

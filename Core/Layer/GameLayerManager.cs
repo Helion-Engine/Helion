@@ -61,7 +61,7 @@ namespace Helion.Layer
 
             void CreateAndAddMenu()
             {
-                MainMenu mainMenu = new();
+                MainMenu mainMenu = new(m_config, m_console);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection);
                 Add(menuLayer);
             }

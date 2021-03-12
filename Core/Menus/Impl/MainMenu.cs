@@ -1,5 +1,7 @@
 ﻿using System;
 using Helion.Menus.Base;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
 
 namespace Helion.Menus.Impl
 {
@@ -7,12 +9,13 @@ namespace Helion.Menus.Impl
     {
         private static readonly Func<Menu?> TodoAction = () => null;
         
-        public MainMenu() : base(8)
+        public MainMenu(Config config, HelionConsole console) : 
+            base(config, console, 8)
         {
             Components = Components.AddRange(new[] 
             {
                 new MenuImageComponent("M_DOOM", paddingY: 8),
-                CreateMenuOption("M_NGAME", -6, 2, () => new NewGameMenu()),
+                CreateMenuOption("M_NGAME", -6, 2, () => new NewGameMenu(config, Console)),
                 CreateMenuOption("M_OPTION", -15, 2, TodoAction),
                 CreateMenuOption("M_LOADG", 1, 2, TodoAction),
                 CreateMenuOption("M_SAVEG", 1, 2, TodoAction),

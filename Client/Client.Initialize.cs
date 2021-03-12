@@ -45,7 +45,7 @@ namespace Helion.Client
             if (!m_layerManager.Empty) 
                 return;
 
-            TitlepicLayer titlepicLayer = new(m_layerManager, m_archiveCollection);
+            TitlepicLayer titlepicLayer = new(m_layerManager, m_config, m_console, m_archiveCollection);
             m_layerManager.Add(titlepicLayer);
         }
 
@@ -113,6 +113,7 @@ namespace Helion.Client
 
         private void LoadMap(string mapName)
         {
+            m_console.ClearInputText();
             m_console.AddInput($"map {mapName}\n");
 
             // If the map is corrupt, go to the console.

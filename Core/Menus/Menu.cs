@@ -1,7 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Helion.Audio;
 using Helion.Menus.Base;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Menus
@@ -9,15 +12,19 @@ namespace Helion.Menus
     public abstract class Menu : IEnumerable<IMenuComponent>
     {
         public readonly int TopPixelPadding;
+        protected readonly Config Config;
+        protected readonly HelionConsole Console;
         protected ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
         protected int? ComponentIndex;
 
         public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
-        protected Menu(int topPixelPadding)
+        protected Menu(Config config, HelionConsole console, int topPixelPadding)
         {
             Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
-            
+
+            Config = config;
+            Console = console;
             TopPixelPadding = topPixelPadding;
         }
 
