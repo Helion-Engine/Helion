@@ -10,6 +10,7 @@ namespace Helion.Resources.Definitions.MapInfo
         public IReadOnlyList<EpisodeDef> Episodes => m_episodes.AsReadOnly();
         public IReadOnlyList<MapInfoDef> Maps => m_maps.AsReadOnly();
         public IReadOnlyList<ClusterDef> Clusters => m_clusters.AsReadOnly();
+        public IReadOnlyList<SkillDef> Skills => m_skills.AsReadOnly();
         public MapInfoDef DefaultMap { get; private set; } = new();
 
         private readonly List<EpisodeDef> m_episodes = new List<EpisodeDef>();

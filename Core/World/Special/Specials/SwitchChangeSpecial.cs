@@ -11,12 +11,12 @@ namespace Helion.World.Special.Specials
     public class SwitchChangeSpecial : ISpecial
     {
         private readonly SwitchManager m_manager;
-        private readonly SoundManager m_soundManager;
+        private readonly WorldSoundManager m_soundManager;
         private readonly Line m_line;
         private bool m_repeat;
         private int m_switchDelayTics;
 
-        public SwitchChangeSpecial(SwitchManager manager, SoundManager soundManager, Line line, SwitchType type)
+        public SwitchChangeSpecial(SwitchManager manager, WorldSoundManager soundManager, Line line, SwitchType type)
         {
             m_manager = manager;
             m_soundManager = soundManager;
@@ -66,7 +66,7 @@ namespace Helion.World.Special.Specials
         {
         }
 
-        private static void PlaySwitchSound(SoundManager soundManager, Line line)
+        private static void PlaySwitchSound(WorldSoundManager soundManager, Line line)
         {
             Vec2D pos = line.Segment.FromTime(0.5);
             DefaultSoundSource soundSource = new DefaultSoundSource(pos.To3D(line.Front.Sector.ToFloorZ(pos)));

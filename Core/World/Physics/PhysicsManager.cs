@@ -48,7 +48,7 @@ namespace Helion.World.Physics
         private readonly BspTree m_bspTree;
         private readonly BlockMap m_blockmap;
         private readonly EntityManager m_entityManager;
-        private readonly SoundManager m_soundManager;
+        private readonly WorldSoundManager m_soundManager;
         private readonly IRandom m_random;
         private readonly LineOpening m_lineOpening = new LineOpening();
         private readonly TryMoveData m_tryMoveData = new TryMoveData();
@@ -63,7 +63,7 @@ namespace Helion.World.Physics
         /// <param name="soundManager">The sound manager to play sounds from.</param>
         /// <param name="entityManager">entity manager.</param>
         /// <param name="random">Random number generator to use.</param>
-        public PhysicsManager(IWorld world, BspTree bspTree, BlockMap blockmap, SoundManager soundManager, EntityManager entityManager, IRandom random)
+        public PhysicsManager(IWorld world, BspTree bspTree, BlockMap blockmap, WorldSoundManager soundManager, EntityManager entityManager, IRandom random)
         {
             m_world = world;
             m_bspTree = bspTree;

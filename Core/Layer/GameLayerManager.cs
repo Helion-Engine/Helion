@@ -1,5 +1,7 @@
+using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Layer.WorldLayers;
+using Helion.Menus.Impl;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -22,54 +24,76 @@ namespace Helion.Layer
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HelionConsole m_console;
+        private readonly SoundManager m_soundManager;
 
-        protected override CIString Name => string.Empty;
         protected override double Priority => 0.5;
 
-        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console)
+        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console,
+            SoundManager soundManager)
         {
             m_config = config;
             m_console = console;
             m_archiveCollection = archiveCollection;
+            m_soundManager = soundManager;
         }
 
         public override void Add(GameLayer layer)
         {
+            if (layer is SinglePlayerWorldLayer)
+            {
+                Layers.ForEach(l => l.Dispose());
+                OrderLayers();
+            }
+            
             base.Add(layer);
-            if (layer is SinglePlayerWorldLayer singlePlayerWorldLayer && Contains(ConsoleLayer.LayerName))
-                singlePlayerWorldLayer.World.Pause();
         }
 
         public override void HandleInput(InputEvent input)
         {
             if (input.ConsumeTypedKey(m_config.Controls.Console))
+                HandleConsoleToggle(input);
+            
+            if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
             {
-                // Due to the workaround above, we also want to prune it from
-                // anyone else's visibility.
-                input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
-
-                if (Contains(ConsoleLayer.LayerName))
-                {
-                    RemoveByName(ConsoleLayer.LayerName);
-
-                    if (TryGetLayer(out SinglePlayerWorldLayer? layer))
-                        layer.World.Resume();
-                }
-                else
-                {
-                    // Don't want input that opened the console to be something
-                    // added to the console, so first we clear all characters.
-                    input.ConsumeTypedCharacters();
-
-                    ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
-                    Add(consoleLayer);
-
-                    if (TryGetLayer(out SinglePlayerWorldLayer? layer))
-                        layer.World.Pause();
-                }
+                input.ConsumeAll();
+                CreateAndAddMenu();
             }
 
+            if (!Contains<MenuLayer>() && input.ConsumeKeyPressed(Key.Escape))
+                CreateAndAddMenu();
+
             base.HandleInput(input);
+
+            void CreateAndAddMenu()
+            {
+                m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
+                
+                MainMenu mainMenu = new(m_config, m_console, m_soundManager);
+                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
+                Add(menuLayer);
+            }
+        }
+
+        private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
+
+        private void HandleConsoleToggle(InputEvent input)
+        {
+            // Due to the workaround above, we also want to prune it from
+            // anyone else's visibility.
+            input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
+
+            if (Contains<ConsoleLayer>())
+            {
+                Remove<ConsoleLayer>();
+                return;
+            }
+            
+            // Don't want input that opened the console to be something
+            // added to the console, so first we clear all characters.
+            input.ConsumeTypedCharacters();
+
+            ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
+            Add(consoleLayer);
         }
     }
 }

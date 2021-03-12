@@ -81,7 +81,7 @@ namespace Helion.World.Entities.Players
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
 
         public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-            Sector sector, EntityManager entityManager, SoundManager soundManager, IWorld world, int playerNumber)
+            Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world, int playerNumber)
             : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
         {
             Precondition(playerNumber >= 0, "Player number should not be negative");

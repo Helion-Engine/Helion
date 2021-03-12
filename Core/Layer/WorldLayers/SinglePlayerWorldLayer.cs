@@ -42,13 +42,14 @@ namespace Helion.Layer.WorldLayers
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
         private SinglePlayerWorld m_world;
+        private bool m_disposed;
 
         public override WorldBase World => m_world;
         public MapInfoDef CurrentMap { get; set; }
 
-        private SinglePlayerWorldLayer(Config config, HelionConsole console, ArchiveCollection archiveCollection,
+        private SinglePlayerWorldLayer(GameLayer parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
             IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
-            : base(config, console, archiveCollection, audioSystem)
+            : base(parent, config, console, archiveCollection, audioSystem)
         {
             CurrentMap = mapInfoDef;
             m_world = world;
@@ -89,8 +90,9 @@ namespace Helion.Layer.WorldLayers
             PerformDispose();
         }
 
-        public static SinglePlayerWorldLayer? Create(Config config, HelionConsole console, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
+        public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
+            IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
+            SkillDef skillDef, IMap map)
         {
             string displayName = mapInfoDef.NiceName;
             if (mapInfoDef.LookupName.Length > 0)
@@ -105,7 +107,7 @@ namespace Helion.Layer.WorldLayers
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(config, console, archiveCollection, audioSystem, world, mapInfoDef);
+            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
@@ -190,6 +192,8 @@ namespace Helion.Layer.WorldLayers
                 SaveGame();
             else if (input.ConsumeTypedKey(Config.Controls.Load))
                 LoadGame();
+			
+			base.HandleInput(input);
         }
 
         private void LoadGame()
@@ -228,6 +232,8 @@ namespace Helion.Layer.WorldLayers
                 m_world.Tick();
                 ticksToRun--;
             }
+            
+            base.RunLogic();
         }
 
         public override void Render(RenderCommands renderCommands)
@@ -239,13 +245,19 @@ namespace Helion.Layer.WorldLayers
             // TODO: Should not be passing the window dimension as the viewport.
             m_worldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,
                 Config, renderCommands);
+            
+            base.Render(renderCommands);
         }
 
         protected override void PerformDispose()
         {
+            if (m_disposed)
+                return;
+            
             RemoveWorldEventListeners(m_world);
-
             m_world.Dispose();
+
+            m_disposed = true;
 
             base.PerformDispose();
         }

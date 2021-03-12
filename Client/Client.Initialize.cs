@@ -37,6 +37,16 @@ namespace Helion.Client
             m_config.Game.SV_FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
 
             CheckLoadMap();
+            AddTitlepicIfNoMap();
+        }
+
+        private void AddTitlepicIfNoMap()
+        {
+            if (!m_layerManager.Empty) 
+                return;
+
+            TitlepicLayer layer = new(m_layerManager, m_config, m_console, m_soundManager, m_archiveCollection);
+            m_layerManager.Add(layer);
         }
 
         private void LoadFiles()
@@ -49,51 +59,35 @@ namespace Helion.Client
         {
             if (m_commandLineArgs.Map != null)
             {
-                Loadmap(m_commandLineArgs.Map);
+                LoadMap(m_commandLineArgs.Map);
             }
             else if (m_commandLineArgs.Warp != null)
             {
                 if (MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
                     out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-                    Loadmap(mapInfoDef.MapName);
-            }
-            else
-            {
-                MapInfoDef? mapInfoDef = GetDefaultMap();
-                if (mapInfoDef == null)
-                {
-                    Log.Error("Unable to find start map.");
-                    return;
-                }
-                Loadmap(mapInfoDef.MapName);
+                    LoadMap(mapInfoDef.MapName);
             }
         }
 
         private string? GetIwad()
         {
-            if (m_commandLineArgs != null && m_commandLineArgs.Iwad != null)
+            if (m_commandLineArgs.Iwad != null)
                 return m_commandLineArgs.Iwad;
 
             string? iwad = LocateIwad();
-            if (iwad == null)
-            {
-                Log.Error("No IWAD found!");
-                return null;
-            }
-            else
-            {
+            if (iwad != null) 
                 return iwad;
-            }
+            
+            Log.Error("No IWAD found!");
+            return null;
+
         }
 
         private static string? LocateIwad()
         {
             IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
             List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
-            if (iwadData.Count > 0)
-                return iwadData[0].Item1;
-
-            return null;
+            return iwadData.Count > 0 ? iwadData[0].Item1 : null;
         }
 
         private MapInfoDef? GetDefaultMap()
@@ -117,12 +111,13 @@ namespace Helion.Client
                 Log.Info($"Invalid skill level: {value}");
         }
 
-        private void Loadmap(string mapName)
+        private void LoadMap(string mapName)
         {
+            m_console.ClearInputText();
             m_console.AddInput($"map {mapName}\n");
 
             // If the map is corrupt, go to the console.
-            if (!m_layerManager.Contains(typeof(WorldLayer)))
+            if (!m_layerManager.Contains<WorldLayer>())
             {
                 ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
                 m_layerManager.Add(consoleLayer);

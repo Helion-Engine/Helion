@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Input;
 using Helion.Render.Commands;
-using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -23,14 +22,11 @@ namespace Helion.Layer
     /// priority layers to be read by lower layers. The logic will be handled
     /// in a top down way, but this could be either direction.
     /// </remarks>
-    public abstract class GameLayer : IDisposable, IComparable<GameLayer>
+    public abstract class GameLayer : IDisposable
     {
-        private readonly List<GameLayer> m_layers = new List<GameLayer>();
-
-        /// <summary>
-        /// The unique name of the layer.
-        /// </summary>
-        protected abstract CIString Name { get; }
+        public bool Disposed { get; protected set; }
+        protected GameLayer? Parent;
+        protected readonly List<GameLayer> Layers = new();
 
         /// <summary>
         /// A value that indicates the priority relative to other layers (see
@@ -38,6 +34,9 @@ namespace Helion.Layer
         /// layer stack than a lower priority one.
         /// </summary>
         protected abstract double Priority { get; }
+
+        public int Count => Layers.Count;
+        public bool Empty => Layers.Empty();
 
         ~GameLayer()
         {
@@ -48,47 +47,58 @@ namespace Helion.Layer
         /// <summary>
         /// Gets the first game layer with the type provided.
         /// </summary>
-        /// <param name="type">The type to get.</param>
         /// <returns>The layer with the type.</returns>
-        public GameLayer? Get(Type type)
+        public GameLayer? Get<T>() where T : GameLayer
         {
-            return m_layers.FirstOrDefault(x => x.GetType() == type);
+            foreach (GameLayer value in Layers)
+                if (value.GetType() == typeof(T))
+                    return value;
+            return null;
         }
-
-        /// <summary>
-        /// Checks if any layers exist with the name provided.
-        /// </summary>
-        /// <param name="name">The layer name.</param>
-        /// <returns>True if so, false otherwise.</returns>
-        public bool Contains(CIString name) => m_layers.Any(layer => layer.Name == name);
 
         /// <summary>
         /// Checks if any layers exist with the type provided.
         /// </summary>
-        /// <param name="type">The layer type.</param>
         /// <returns>True if so, false otherwise.</returns>
-        public bool Contains(Type type) => m_layers.Any(layer => layer.GetType() == type || layer.GetType().IsSubclassOf(type));
+        public bool Contains<T>() => Layers.Any(layer =>
+        {
+            Type type = layer.GetType();
+            return type == typeof(T) || type.IsSubclassOf(typeof(T));
+        });
 
         /// <summary>
-        /// Removes all layers with a matching name.
+        /// Removes by type.
         /// </summary>
-        /// <param name="name">The layer name.</param>
-        public void RemoveByName(CIString name)
+        /// <typeparam name="T">The type to remove.</typeparam>
+        public void Remove<T>() where T : GameLayer
         {
-            List<GameLayer> layersToRemove = m_layers.Where(layer => layer.Name == name).ToList();
-            RemoveLayers(layersToRemove);
+            Remove(typeof(T));
         }
 
         /// <summary>
         /// Removes all types that match the type provided.
         /// </summary>
         /// <param name="type">The type to remove.</param>
-        public void RemoveByType(Type type)
+        public void Remove(Type type)
         {
-            List<GameLayer> layersToRemove = m_layers
-                .Where(layer => layer.GetType().IsSubclassOf(type) || layer.GetType() == type)
-                .ToList();
-            RemoveLayers(layersToRemove);
+            foreach (GameLayer gameLayer in Layers.Where(layer => ShouldBeRemoved(layer, type)))
+                gameLayer.Dispose();
+            
+            static bool ShouldBeRemoved(GameLayer layer, Type type)
+            {
+                return layer.GetType().IsSubclassOf(type) || layer.GetType() == type || layer.Disposed;
+            }
+        }
+        
+        public void RemoveAllBut<T>() where T : GameLayer
+        {
+            foreach (GameLayer layer in Layers.Where(layer => ShouldBeRemovedAll(layer, typeof(T))))
+                Remove(layer.GetType());
+            
+            static bool ShouldBeRemovedAll(GameLayer layer, Type type)
+            {
+                return (!layer.GetType().IsSubclassOf(type) && layer.GetType() != type) || layer.Disposed;
+            }
         }
 
         /// <summary>
@@ -98,10 +108,9 @@ namespace Helion.Layer
         /// <param name="layer">The layer to add.</param>
         public virtual void Add(GameLayer layer)
         {
-            RemoveByType(layer.GetType());
+            Remove(layer.GetType());
 
-            m_layers.Add(layer);
-            m_layers.Sort();
+            Layers.Add(layer);
         }
 
         /// <summary>
@@ -113,7 +122,7 @@ namespace Helion.Layer
         /// <returns>True on success, false otherwise.</returns>
         public bool TryGetLayer<T>([NotNullWhen(true)] out T? layer) where T : GameLayer
         {
-            GameLayer? gameLayer = Get(typeof(T));
+            GameLayer? gameLayer = Get<T>();
             if (gameLayer != null)
             {
                 layer = (T)gameLayer;
@@ -133,7 +142,8 @@ namespace Helion.Layer
         /// <param name="input">The input.</param>
         public virtual void HandleInput(InputEvent input)
         {
-            m_layers.ForEachReverse(layer => layer.HandleInput(input));
+            Layers.ForEachReverse(layer => layer.HandleInput(input));
+            OrderLayers();
         }
 
         /// <summary>
@@ -144,9 +154,10 @@ namespace Helion.Layer
         /// </remarks>
         public virtual void RunLogic()
         {
-            m_layers.ForEachReverse(layer => layer.RunLogic());
+            Layers.ForEachReverse(layer => layer.RunLogic());
+            OrderLayers();
         }
-
+        
         /// <summary>
         /// Renders the layer.
         /// </summary>
@@ -157,11 +168,18 @@ namespace Helion.Layer
         /// commands to.</param>
         public virtual void Render(RenderCommands renderCommands)
         {
-            m_layers.ForEach(layer => layer.Render(renderCommands));
+            OrderLayers();
+            foreach (GameLayer layer in Layers)
+                layer.Render(renderCommands);
         }
 
-        // TODO: Temporary, probably will remove this.
-        public int CompareTo(GameLayer? other) => Priority.CompareTo(other?.Priority);
+        /// <summary>
+        /// Checks if the provided layer is at the top (has the highest priority
+        /// out of any layer).
+        /// </summary>
+        /// <param name="layer">The layer to check.</param>
+        /// <returns>True if so, false if not.</returns>
+        public bool IsTopLayer(GameLayer layer) => !Layers.Empty() && ReferenceEquals(Layers.Last(), layer);
 
         public void Dispose()
         {
@@ -169,22 +187,27 @@ namespace Helion.Layer
             PerformDispose();
         }
 
-        protected virtual void PerformDispose()
+        public void PruneDisposed()
         {
-            m_layers.ForEach(layer => layer.Dispose());
-            m_layers.Clear();
+            var keysToRemove = Layers.Where(layer => layer.Disposed).ToList();
+            foreach (GameLayer layer in keysToRemove)
+                Layers.Remove(layer);
         }
 
-        private void RemoveLayers(List<GameLayer> layersToRemove)
+        protected virtual void PerformDispose()
         {
-            // Though we extracted the list so we could invoke .Any(), it must
-            // also be noted that we can't call this as part of the query or it
-            // may (will?) mutate while handling iteration, which is bad.
-            layersToRemove.ForEach(layer =>
-            {
-                layer.Dispose();
-                m_layers.Remove(layer);
-            });
+            if (Disposed)
+                return;
+            
+            Layers.ForEach(layer => layer.Dispose());
+            Layers.Clear();
+
+            Disposed = true;
+        }
+
+        protected void OrderLayers()
+        {
+            Layers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
         }
     }
 }
