@@ -24,7 +24,7 @@ namespace Helion.Menus.Impl
             
             archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
             {
-                SkillLevel skillLevel = (SkillLevel)index;
+                SkillLevel skillLevel = (SkillLevel)(index + 1);
                 IMenuComponent component = CreateMenuOption(skill.PicName, 0, 2, CreateWorld(skillLevel));
                 Components = Components.Add(component);
             });
