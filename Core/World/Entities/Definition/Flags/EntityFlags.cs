@@ -370,6 +370,9 @@ namespace Helion.World.Entities.Definition.Flags
                 }
             }
 
+            if (m_bits.Length % Bits != 0)
+                entityFlagsModel.Bits[flagCount] = currentFlags;
+
             return entityFlagsModel;
         }
 
