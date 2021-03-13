@@ -196,16 +196,15 @@ namespace Helion.Layer.WorldLayers
 
         private void LoadGame()
         {
-            StreamReader sr = new StreamReader("savegame0.hsg");
-            m_world.Deserialize(sr);
-            sr.Close();
+            using (StreamReader sr = new StreamReader("savegame0.hsg"))
+                m_world.Deserialize(sr);
         }
 
         private void SaveGame()
         {
-            StreamWriter sw = new StreamWriter("savegame0.hsg");
-            m_world.Serialize(sw);
-            sw.Close();
+            using (StreamWriter sw = new StreamWriter("savegame0.hsg"))
+                m_world.Serialize(sw);
+            m_world.DisplayMessage(World.EntityManager.Players[0], null, "Game saved.", LanguageMessageType.None);
         }
 
         public override void RunLogic()

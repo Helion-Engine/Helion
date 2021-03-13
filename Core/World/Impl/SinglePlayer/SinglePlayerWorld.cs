@@ -65,6 +65,7 @@ namespace Helion.World.Impl.SinglePlayer
 
                 ApplySectorModels(worldModel, result);
                 ApplyLineModels(worldModel);
+                CreateDamageSpecials(worldModel);
 
                 EntityManager.Entities.ForEach(entity => Link(entity));
 
@@ -73,6 +74,18 @@ namespace Helion.World.Impl.SinglePlayer
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+        }
+
+        private void CreateDamageSpecials(WorldModel worldModel)
+        {
+            for (int i = 0; i < worldModel.DamageSpecials.Count; i++)
+            {
+                SectorDamageSpecialModel model = worldModel.DamageSpecials[i];
+                if (!((IWorld)this).IsSectorIdValid(model.SectorId))
+                    continue;
+
+                Sectors[model.SectorId].SectorDamageSpecial = model.ToWorldSpecial(this);
+            }
         }
 
         private void ApplyLineModels(WorldModel worldModel)
