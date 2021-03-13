@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util
+namespace Helion.Util.Bytes
 {
     /// <summary>
     /// A convenience class for reading from bytes. It also has support for

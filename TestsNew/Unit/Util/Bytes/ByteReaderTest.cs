@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using FluentAssertions;
-using Helion.Util;
+using Helion.Util.Bytes;
 using Xunit;
 
-namespace Helion.TestsNew.Unit.Util
+namespace Helion.TestsNew.Unit.Util.Bytes
 {
     public class ByteReaderTest
     {

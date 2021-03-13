@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Helion.Util;
+using Helion.Util.Bytes;
 
 namespace Helion.Audio
 {

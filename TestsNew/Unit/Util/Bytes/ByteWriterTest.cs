@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using FluentAssertions;
 using Helion.Util;
+using Helion.Util.Bytes;
 using Xunit;
 
-namespace Helion.TestsNew.Unit.Util
+namespace Helion.TestsNew.Unit.Util.Bytes
 {
     public class ByteWriterTest
     {

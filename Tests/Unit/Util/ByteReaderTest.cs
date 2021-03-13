@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ByteReader = Helion.Util.ByteReader;
+using ByteReader = Helion.Util.Bytes.ByteReader;
 
 namespace Helion.Test.Unit.Util
 {

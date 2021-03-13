@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Helion.Util
+namespace Helion.Util.Bytes
 {
     /// <summary>
     /// A helper class for writing bytes.
