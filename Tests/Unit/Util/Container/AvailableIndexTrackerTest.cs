@@ -6,7 +6,7 @@ namespace Helion.Tests.Unit.Util.Container
 {
     public class AvailableIndexTrackerTest
     {
-        [Fact]
+        [Fact(DisplayName = "Get indices from tracker")]
         public void GetIndices()
         {
             AvailableIndexTracker tracker = new();
@@ -15,7 +15,7 @@ namespace Helion.Tests.Unit.Util.Container
                 tracker.Next().Should().Be(i);
         }
         
-        [Fact]
+        [Fact(DisplayName = "Check indices from tracker")]
         public void CheckIfTracked()
         {
             AvailableIndexTracker tracker = new();
@@ -30,7 +30,7 @@ namespace Helion.Tests.Unit.Util.Container
                 tracker.IsTracked(i).Should().BeTrue();
         }
         
-        [Fact]
+        [Fact(DisplayName = "Makes indices from tracker available")]
         public void MakeIndexAvailable()
         {
             AvailableIndexTracker tracker = new();
