@@ -36,19 +36,23 @@ namespace Helion.Util.Container
         }
 
         /// <summary>
-        /// Adds a new element to the list.
+        /// Adds a new element to the list. It is placed at the front.
         /// </summary>
         /// <remarks>
-        /// It's placement in the list is undefined. You are only guaranteed
-        /// that it is inserted into the list somewhere.
+        /// It's placement in the list could be anywhere. You are only
+        /// guaranteed that it is inserted into the list somewhere.
         /// </remarks>
         /// <param name="value">The value to add to the list.</param>
         /// <returns>The node created that contains the value.</returns>
         public LinkableNode<T> Add(T value)
         {
-            return new LinkableNode<T>(value, m_dummyHead);
+            return new(value, m_dummyHead);
         }
 
+        /// <summary>
+        /// Adds a node to the front of the list.
+        /// </summary>
+        /// <param name="node">The node to add.</param>
         public void Add(LinkableNode<T> node)
         {
             var previous = m_dummyHead;
@@ -79,7 +83,6 @@ namespace Helion.Util.Container
             return false;
         }
 
-        /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()
         {
             LinkableNode<T>? node = Head;
@@ -90,7 +93,6 @@ namespace Helion.Util.Container
             }
         }
 
-        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
     
@@ -127,9 +129,9 @@ namespace Helion.Util.Container
             // Due to how we implemented a linkable list, we need to have some
             // dummy node at the front to emulated a 'pointer to a pointer'
             // which you get in C.
-            Previous = null !;
-            Next = null !;
-            Value = default !;
+            Previous = null!;
+            Next = null;
+            Value = default!;
         }
 
         /// <summary>
