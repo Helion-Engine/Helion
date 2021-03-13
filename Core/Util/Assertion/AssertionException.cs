@@ -12,8 +12,7 @@ namespace Helion.Util.Assertion
         /// Initializes a new instance of the <see cref="AssertionException"/> class.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public AssertionException(string message) :
-            base(message)
+        public AssertionException(string message) :  base(message)
         {
         }
     }
