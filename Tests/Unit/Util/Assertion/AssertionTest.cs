@@ -4,7 +4,7 @@ using Helion.Util.Assertion;
 using Xunit;
 using HelionAssert = Helion.Util.Assertion;
 
-namespace Helion.TestsNew.Unit.Util.Assertion
+namespace Helion.Tests.Unit.Util.Assertion
 {
     public class AssertionTest
     {

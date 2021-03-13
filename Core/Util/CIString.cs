@@ -12,11 +12,7 @@ namespace Helion.Util
     {
         private readonly string str;
 
-        /// <summary>
-        /// How many characters are in this string.
-        /// </summary>
         public int Length => str.Length;
-
         public bool Empty => str.Empty();
 
         public CIString(string s)
@@ -56,8 +52,16 @@ namespace Helion.Util
             return !(self == other);
         }
 
-        public override bool Equals(object? obj) => obj is CIString s && str.Equals(s.str, StringComparison.OrdinalIgnoreCase);
-        
+        public override bool Equals(object? obj)
+        {
+            return obj switch
+            {
+                CIString otherCIStr => str.Equals(otherCIStr.str, StringComparison.OrdinalIgnoreCase),
+                string otherStr => str.Equals(otherStr, StringComparison.OrdinalIgnoreCase),
+                _ => false
+            };
+        }
+
         public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(str);
 
         public override string ToString() => str;

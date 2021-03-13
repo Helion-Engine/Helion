@@ -8,6 +8,8 @@
         <RootNamespace>Helion.Tests</RootNamespace>
 
         <AssemblyName>Tests</AssemblyName>
+
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

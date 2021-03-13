@@ -3,7 +3,7 @@ using FluentAssertions;
 using Helion.Util.Bytes;
 using Xunit;
 
-namespace Helion.TestsNew.Unit.Util.Bytes
+namespace Helion.Tests.Unit.Util.Bytes
 {
     public class ByteReaderTest
     {
