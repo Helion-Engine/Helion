@@ -1,43 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
 
-    <IsPackable>false</IsPackable>
+        <IsPackable>false</IsPackable>
 
-    <LangVersion>preview</LangVersion>
-    <Nullable>enable</Nullable>
-    <NullableContextOptions>enable</NullableContextOptions>
-    <NullableReferenceTypes>true</NullableReferenceTypes>
-    <RootNamespace>Helion.Test</RootNamespace>
-  </PropertyGroup>
+        <RootNamespace>Helion.Tests</RootNamespace>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <WarningsAsErrors>NU1605</WarningsAsErrors>
-    <NoWarn>1701;1702;CS8602</NoWarn>
-  </PropertyGroup>
+        <AssemblyName>Tests</AssemblyName>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <WarningsAsErrors>NU1605</WarningsAsErrors>
-    <NoWarn>1701;1702;CS8602</NoWarn>
-  </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="FluentAssertions" Version="6.0.0-alpha0002" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="coverlet.collector" Version="1.3.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Include="Moq" Version="4.13.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-  </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Helpers" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\duel2020zc.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Core\Core.csproj" />
+    </ItemGroup>
 
 </Project>
