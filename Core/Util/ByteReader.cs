@@ -79,7 +79,7 @@ namespace Helion.Util
         /// <returns>The string.</returns>
         public string ReadEightByteString()
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
 
             for (int i = 0; i < 8; i++)
             {
@@ -92,8 +92,8 @@ namespace Helion.Util
                     Advance(7 - i);
                     break;
                 }
-                else
-                    stringBuilder.Append(c);
+
+                stringBuilder.Append(c);
             }
 
             return stringBuilder.ToString();
@@ -107,7 +107,7 @@ namespace Helion.Util
         /// <returns>The string that was read.</returns>
         public string ReadStringLength(int length)
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             for (int i = 0; i < length; i++)
                 builder.Append((char)ReadByte());
