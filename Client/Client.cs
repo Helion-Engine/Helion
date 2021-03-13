@@ -50,7 +50,7 @@ namespace Helion.Client
             m_audioSystem = audioSystem;
             m_archiveCollection = archiveCollection;
             m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
-            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager);
+            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager, m_audioSystem);
             m_window = new Window(config, m_archiveCollection);
             
             m_console.OnConsoleCommandEvent += Console_OnCommand;

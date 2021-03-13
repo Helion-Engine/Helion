@@ -1,3 +1,4 @@
+using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Layer.WorldLayers;
@@ -24,21 +25,26 @@ namespace Helion.Layer
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HelionConsole m_console;
+        private readonly IAudioSystem m_audioSystem;
         private readonly SoundManager m_soundManager;
 
         protected override double Priority => 0.5;
 
         public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console,
-            SoundManager soundManager)
+            SoundManager soundManager, IAudioSystem audioSystem)
         {
             m_config = config;
             m_console = console;
             m_archiveCollection = archiveCollection;
             m_soundManager = soundManager;
+            m_audioSystem = audioSystem;
         }
 
         public override void Add(GameLayer layer)
         {
+            if (layer is TitlepicLayer titlepicLayer)
+                titlepicLayer.PlayMusic(m_archiveCollection.IwadType, m_audioSystem);
+            
             if (layer is SinglePlayerWorldLayer)
             {
                 Layers.ForEach(l => l.Dispose());

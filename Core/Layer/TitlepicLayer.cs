@@ -1,11 +1,15 @@
 ﻿using System.Drawing;
+using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus.Impl;
 using Helion.Render.Commands;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Sounds.Mus;
 
 namespace Helion.Layer
 {
@@ -49,6 +53,21 @@ namespace Helion.Layer
                 commands.FillRect(new(0, 0, width, height), Color.Black, 0.5f);
             
             base.Render(commands);
+        }
+
+        public void PlayMusic(IwadType iwadType, IAudioSystem audioSystem)
+        {
+            string entryName = iwadType == IwadType.Doom2 ? "D_DM2TTL" : "D_INTRO";
+            Entry? entry = m_archiveCollection.Entries.FindByName(entryName);
+            if (entry == null) 
+                return;
+            
+            byte[] data = entry.ReadData();
+            byte[]? convertedData = MusToMidi.Convert(data);
+            if (convertedData == null) 
+                return;
+            
+            audioSystem.Music.Play(convertedData);
         }
 
         private bool ShouldDarken() => Parent != null && Parent.Contains<MenuLayer>();

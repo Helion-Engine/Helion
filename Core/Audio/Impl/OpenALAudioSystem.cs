@@ -26,7 +26,6 @@ namespace Helion.Audio.Impl
         private OpenALDevice m_alDevice;
         private OpenALContext m_alContext;
 
-
         public OpenALAudioSystem(Config config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
         {
             m_config = config;
