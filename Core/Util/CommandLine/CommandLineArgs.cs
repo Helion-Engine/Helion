@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Helion.Util
+namespace Helion.Util.CommandLine
 {
     /// <summary>
     /// A collection of all the command line arguments we support, which have
@@ -10,11 +10,8 @@ namespace Helion.Util
     /// </summary>
     public class CommandLineArgs
     {
-        public bool ErrorWhileParsing { get; set; }
-        public bool NoWriteToConsole { get; set; }
-        public bool TimestampLogFile { get; set; }
-
-        public List<string> Files { get; set; } = new List<string>();
+        public readonly List<string> Errors = new();
+        public readonly List<string> Files = new();
         public string? Iwad { get; set; }
         public string? Map { get; set; }
         public string? LogPath { get; set; }
@@ -22,8 +19,6 @@ namespace Helion.Util
         public int? Skill { get; set; }
         public bool NoMonsters { get; set; }
         public bool SV_FastMonsters { get; set; }
-
-        public List<string> Errors { get; set; } = new List<string>();
 
         /// <summary>
         /// Parses the command line arguments and returns an object with the
@@ -33,8 +28,8 @@ namespace Helion.Util
         /// <returns>The command line argument results.</returns>
         public static CommandLineArgs Parse(string[] args)
         {
-            CommandLineArgs commandLineArgs = new CommandLineArgs();
-            CommandParser parser = new CommandParser(new[] { "-", "+" });
+            CommandLineArgs commandLineArgs = new();
+            CommandParser parser = new(new[] { "-", "+" });
             List<CommandArg> parsedArgs = parser.Parse(args);
 
             foreach (var parsedArg in parsedArgs)

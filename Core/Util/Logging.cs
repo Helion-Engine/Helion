@@ -1,4 +1,5 @@
 ﻿using System;
+using Helion.Util.CommandLine;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -16,20 +17,17 @@ namespace Helion.Util
         /// <param name="commandLineArgs">The command line arguments.</param>
         public static void Initialize(CommandLineArgs commandLineArgs)
         {
-            LoggingConfiguration config = new LoggingConfiguration();
-            SetupConsole(config, commandLineArgs);
+            LoggingConfiguration config = new();
+            SetupConsole(config);
             SetupDebugger(config);
             SetupFileLogger(config, commandLineArgs);
 
             LogManager.Configuration = config;
         }
         
-        private static void SetupConsole(LoggingConfiguration config, CommandLineArgs commandLineArgs)
+        private static void SetupConsole(LoggingConfiguration config)
         {
-            if (commandLineArgs.NoWriteToConsole)
-                return;
-
-            ConsoleTarget consoleTarget = new ConsoleTarget("console")
+            ConsoleTarget consoleTarget = new("console")
             {
                 Layout = @"${message} ${exception}",
             };
@@ -39,7 +37,7 @@ namespace Helion.Util
 
         private static void SetupDebugger(LoggingConfiguration config)
         {
-            DebuggerTarget debuggerTarget = new DebuggerTarget("debugger")
+            DebuggerTarget debuggerTarget = new("debugger")
             {
                 Layout = "${message} ${exception}",
             };
@@ -52,13 +50,9 @@ namespace Helion.Util
             if (string.IsNullOrEmpty(commandLineArgs.LogPath))
                 return;
 
-            string logFile = commandLineArgs.LogPath;
-            if (commandLineArgs.TimestampLogFile)
-                logFile = $"helion_{DateTime.Now:o}_{logFile}";
-
-            FileTarget fileTarget = new FileTarget("file")
+            FileTarget fileTarget = new("file")
             {
-                FileName = logFile,
+                FileName = $"helion_{DateTime.Now:o}_{commandLineArgs.LogPath}",
                 Layout = "${longdate} ${level:uppercase=true} ${logger}: ${message} ${exception}",
             };
             config.AddTarget(fileTarget);

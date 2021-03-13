@@ -15,8 +15,10 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
+using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using NLog;
 using OpenTK.Windowing.Common;
@@ -197,7 +199,7 @@ namespace Helion.Client
 
         private static void LogAnyCommandLineErrors(CommandLineArgs commandLineArgs)
         {
-            if (!commandLineArgs.ErrorWhileParsing)
+            if (commandLineArgs.Errors.Empty())
                 return;
 
             Log.Error("Bad command line arguments detected:");

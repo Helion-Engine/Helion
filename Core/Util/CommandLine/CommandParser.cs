@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.CommandLine;
 
-namespace Helion.Util
+namespace Helion.Util.CommandLine
 {
     public class CommandParser
     {
