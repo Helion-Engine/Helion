@@ -31,13 +31,13 @@ namespace Helion.World.Special.Specials
         private bool m_playedReturnSound;
         private bool m_playedStartSound;
 
-        public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
+        public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
             SectorMoveData specialData)
             : this(world, sector, start, dest, specialData, new SectorSoundData())
         {
         }
 
-        public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
+        public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
             SectorMoveData specialData, SectorSoundData soundData)
         {
             Sector = sector;
@@ -63,7 +63,7 @@ namespace Helion.World.Special.Specials
             m_world = world;
             MoveData = new SectorMoveData((SectorPlaneType)model.MoveType, (MoveDirection)model.StartDirection, 
                 (MoveRepetition)model.Repetion, model.Speed, model.Delay, FromCrushDataModel(model.Crush), model.FloorChange, 
-                FromSectorDamageSpecialModel(model.DamageSpecial));
+                model.DamageSpecial?.ToWorldSpecial(world));
             SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
             SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = model.StartZ;
@@ -81,7 +81,7 @@ namespace Helion.World.Special.Specials
             Sector.ActiveMoveSpecial = this;
         }
 
-        public SectorMoveSpecialModel ToSectorMoveSpecialModel()
+        public virtual ISpecialModel ToSpecialModel()
         {
             return new SectorMoveSpecialModel()
             {
@@ -112,20 +112,14 @@ namespace Helion.World.Special.Specials
             };
         }
 
+        public void SetDelayTics(int delayTics) => DelayTics = delayTics;
+
         private static CrushData? FromCrushDataModel(CrushDataModel? model)
         {
             if (model == null)
                 return null;
 
             return new CrushData(model);
-        }
-
-        private SectorDamageSpecial? FromSectorDamageSpecialModel(SectorDamageSpecialModel? model)
-        {
-            if (model == null)
-                return null;
-
-            return new SectorDamageSpecial(m_world, Sector, model);
         }
 
         private CrushDataModel? CreateCrushDataModel()

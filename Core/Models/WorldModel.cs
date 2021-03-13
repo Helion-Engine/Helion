@@ -25,6 +25,7 @@ namespace Helion.Models
         public IList<SectorModel> Sectors { get; set; } = Array.Empty<SectorModel>();
         public IList<LineModel> Lines { get; set; } = Array.Empty<LineModel>();
         public IList<object> Specials { get; set; } = Array.Empty<object>();
+        public IList<SectorDamageSpecialModel> DamageSpecials { get; set; } = Array.Empty<SectorDamageSpecialModel>();
 
         public IList<ISpecialModel> GetSpecials() => Specials.Cast<ISpecialModel>().ToList();
     }

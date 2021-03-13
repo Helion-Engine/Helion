@@ -19,6 +19,7 @@ using Helion.World.Special.SectorMovement;
 using Helion.Resources.Definitions.MapInfo;
 using System.IO;
 using Helion.Util;
+using Helion.Resources.Archives.Collection;
 
 namespace Helion.World
 {
@@ -45,6 +46,7 @@ namespace Helion.World
         BlockmapTraverser BlockmapTraverser { get; }
         Config Config { get; }
         SkillDef SkillDefinition { get; }
+        ArchiveCollection ArchiveCollection { get; }
         bool Paused { get; }
 
         void Link(Entity entity);
@@ -76,6 +78,8 @@ namespace Helion.World
         // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
         bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
         void CreateTeleportFog(in Vec3D pos, bool playSound = true);
+        bool IsSectorIdValid(int sectorId) => sectorId > 0 && sectorId < Sectors.Count;
+        bool IsLineIdValid(int lineId) => lineId > 0 && lineId < Lines.Count;
 
         void Serialize(StreamWriter stream);
         void Deserialize(StreamReader stream);

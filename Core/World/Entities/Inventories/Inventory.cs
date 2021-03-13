@@ -57,7 +57,12 @@ namespace Helion.World.Entities.Inventories
             {
                 EntityDefinition? definition = EntityDefinitionComposer.GetByName(item.Name);
                 if (definition != null)
-                    Items.Add(definition.Name, new InventoryItem(definition, item.Amount));
+                {
+                    InventoryItem inventoryItem = new InventoryItem(definition, item.Amount);
+                    Items.Add(definition.Name, inventoryItem);
+                    if (definition.IsType(KeyClassName))
+                        Keys.Add(inventoryItem);
+                }
             }
 
             foreach (string weaponName in playerModel.Inventory.Weapons)

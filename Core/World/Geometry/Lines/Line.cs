@@ -107,7 +107,7 @@ namespace Helion.World.Geometry.Lines
                 if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture) && sideModel.UpperTexture.HasValue)
                     twoSided.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
                 if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture) && sideModel.LowerTexture.HasValue)
-                    twoSided.Upper.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
+                    twoSided.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
             }
 
             if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture) && sideModel.MiddleTexture.HasValue)
@@ -122,7 +122,7 @@ namespace Helion.World.Geometry.Lines
                 if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
                     sideModel.UpperTexture = twoSided.Upper.TextureHandle;
                 if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
-                    sideModel.MiddleTexture = twoSided.Lower.TextureHandle;
+                    sideModel.LowerTexture = twoSided.Lower.TextureHandle;
             }
 
             if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))

@@ -7,37 +7,37 @@ namespace Helion.Models
 {
     public class SectorMoveSpecialModel : ISpecialModel
     {
-        public int SectorId;
-        public int MoveType;
-        public int Repetion;
-        public double Speed;
-        public int Delay;
+        public int SectorId { get; set; }
+        public int MoveType { get; set; }
+        public int Repetion { get; set; }
+        public double Speed { get; set; }
+        public int Delay { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public int? FloorChange;
+        public int? FloorChange { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public SectorDamageSpecialModel? DamageSpecial;
-        public int StartDirection;
+        public SectorDamageSpecialModel? DamageSpecial { get; set; }
+        public int StartDirection { get; set; }
 
-        public CrushDataModel? Crush;
+        public CrushDataModel? Crush { get; set; }
 
-        public string? StartSound;
-        public string? ReturnSound;
-        public string? StopSound;
-        public string? MovementSound;
+        public string? StartSound { get; set; }
+        public string? ReturnSound { get; set; }
+        public string? StopSound { get; set; }
+        public string? MovementSound { get; set; }
 
-        public double DestZ;
-        public double StartZ;
-        public double MinZ;
-        public double MaxZ;
-        public double CurrentSpeed;
-        public int DelayTics;
-        public int Direction;
-        public bool Crushing;
-        public bool PlayedReturnSound;
-        public bool PlayedStartSound;
-        public bool Paused;
+        public double DestZ { get; set; }
+        public double StartZ { get; set; }
+        public double MinZ { get; set; }
+        public double MaxZ { get; set; }
+        public double CurrentSpeed { get; set; }
+        public int DelayTics { get; set; }
+        public int Direction { get; set; }
+        public bool Crushing { get; set; }
+        public bool PlayedReturnSound { get; set; }
+        public bool PlayedStartSound { get; set; }
+        public bool Paused { get; set; }
 
-        public ISpecial? ToWorldSpecial(IWorld world)
+        public virtual ISpecial? ToWorldSpecial(IWorld world)
         {
             if (SectorId < 0 || SectorId >= world.Sectors.Count)
                 return null;

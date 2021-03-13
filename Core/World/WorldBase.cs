@@ -79,8 +79,8 @@ namespace Helion.World
         public Config Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
         public SkillDef SkillDefinition { get; private set; }
+        public ArchiveCollection ArchiveCollection { get; protected set; }
 
-        protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
         protected readonly MapGeometry Geometry;
         protected readonly SpecialManager SpecialManager;

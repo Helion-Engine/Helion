@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities;
+﻿using Helion.Models;
+using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
@@ -9,12 +10,18 @@ namespace Helion.World.Special.Specials
     {
         public int Key { get; private set; }
 
-        public DoorOpenCloseSpecial(WorldBase world, Sector sector, double dest, double speed, int delay, int key = -1)
+        public DoorOpenCloseSpecial(IWorld world, Sector sector, double dest, double speed, int delay, int key = -1)
             : base(world, sector, sector.Floor.Z, dest, 
                   new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), 
                   SpecialManager.GetDoorSound(speed))
         {
             Key = key;
+        }
+
+        public DoorOpenCloseSpecial(IWorld world, Sector sector, DoorOpenCloseSpecialModel model)
+            : base (world, sector, model)
+        {
+            Key = model.Key;
         }
 
         public override void Use(Entity entity)

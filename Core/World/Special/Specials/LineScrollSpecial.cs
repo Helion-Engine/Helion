@@ -1,5 +1,6 @@
 ﻿using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 
@@ -26,9 +27,44 @@ namespace Helion.World.Special.Specials
 
             m_front = front;
             if (m_front)
-                m_line.Front.ScrollData = new Maps.Specials.SideScrollData();
+                m_line.Front.ScrollData = new SideScrollData();
             else if (m_line.Back != null)
-                m_line.Back.ScrollData = new Maps.Specials.SideScrollData();
+                m_line.Back.ScrollData = new SideScrollData();
+        }
+
+        public LineScrollSpecial(Line line, LineScrollSpecialModel model)
+            : this (line, model.SpeedX, model.SpeedY, (ZDoomLineScroll)model.Scroll, model.Front)
+        {
+            if (m_front && m_line.Front.ScrollData != null && model.OffsetFront != null)
+            {
+                m_line.Front.ScrollData.Offset = model.OffsetFront;
+                m_line.Front.ScrollData.LastOffset = model.OffsetFront;
+            }
+
+            if (!m_front && m_line.Back != null && m_line.Back.ScrollData != null && model.OffsetBack != null)
+            {
+                m_line.Back.ScrollData.Offset = model.OffsetBack;
+                m_line.Back.ScrollData.LastOffset = model.OffsetBack;
+            }
+        }
+
+        public ISpecialModel ToSpecialModel()
+        {
+            LineScrollSpecialModel model =  new LineScrollSpecialModel()
+            {
+                LineId = m_line.Id,
+                Scroll = (int)m_scroll,
+                SpeedX = m_speedX,
+                SpeedY = m_speedY,
+                Front = m_front
+            };
+
+            if (m_front && m_line.Front.ScrollData != null)
+                model.OffsetFront = m_line.Front.ScrollData.Offset;
+            if (!m_front && m_line.Back != null && m_line.Back.ScrollData != null)
+                model.OffsetBack = m_line.Back.ScrollData.Offset;
+
+            return model;
         }
 
         public SpecialTickStatus Tick()
@@ -85,6 +121,7 @@ namespace Helion.World.Special.Specials
 
         public void Use(Entity entity)
         {
+            // Not used
         }
     }
 }

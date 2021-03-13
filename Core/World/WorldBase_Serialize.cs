@@ -23,6 +23,10 @@ namespace Helion.World
 
         public void Serialize(StreamWriter stream)
         {
+            List<SectorModel> sectorModels = new List<SectorModel>();
+            List<SectorDamageSpecialModel> sectorDamageSpecialModels = new List<SectorDamageSpecialModel>();
+            SetSectorModels(sectorModels, sectorDamageSpecialModels);
+
             WorldModel worldModel = new WorldModel()
             {
                 MapName = MapName.ToString(),
@@ -36,7 +40,8 @@ namespace Helion.World
 
                 Player = EntityManager.Players[0].ToPlayerModel(),
                 Entities = GetEntityModels(),
-                Sectors = GetSectorModels(),
+                Sectors = sectorModels,
+                DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
                 Specials = SpecialManager.GetSpecialModels()
             };
@@ -55,19 +60,16 @@ namespace Helion.World
             return entityModels;
         }
 
-        private List<SectorModel> GetSectorModels()
+        private void SetSectorModels(List<SectorModel> sectorModels, List<SectorDamageSpecialModel> sectorDamageSpecialModels)
         {
-            List<SectorModel> sectorModels = new List<SectorModel>();
             for (int i = 0; i < Sectors.Count; i++)
             {
                 Sector sector = Sectors[i];
-                if (sector.SoundTarget == null && !sector.DataChanged)
-                    continue;
-
-                sectorModels.Add(sector.ToSectorModel());
+                if (sector.SoundTarget != null || sector.DataChanged)
+                    sectorModels.Add(sector.ToSectorModel());
+                if (sector.SectorDamageSpecial != null)
+                    sectorDamageSpecialModels.Add(sector.SectorDamageSpecial.ToSectorDamageSpecialModel());
             }
-
-            return sectorModels;
         }
 
         private List<LineModel> GetLineModels()
