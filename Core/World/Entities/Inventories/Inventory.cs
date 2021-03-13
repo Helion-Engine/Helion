@@ -77,7 +77,17 @@ namespace Helion.World.Entities.Inventories
                 }
             }
 
+            foreach (var powerupModel in playerModel.Inventory.Powerups)
+            {
+                EntityDefinition? definition = EntityDefinitionComposer.GetByName(powerupModel.Name);
+                if (definition == null)
+                    continue;
+
+                Powerups.Add(new PowerupBase(owner, definition, powerupModel));
+            }
+
             SortKeys();
+            SetPriorityPowerupEffects();
         }
 
         public InventoryModel ToInventoryModel()
@@ -92,10 +102,15 @@ namespace Helion.World.Entities.Inventories
                 });
             }
 
+            List<PowerupModel> powerupModels = new List<PowerupModel>();
+            foreach (var powerup in Powerups)
+                powerupModels.Add(powerup.ToPowerupModel());
+
             return new InventoryModel()
             {
                 Items = inventoryItems,
-                Weapons = Weapons.GetOwnedWeaponNames()
+                Weapons = Weapons.GetOwnedWeaponNames(),
+                Powerups = powerupModels,
             };
         }
 

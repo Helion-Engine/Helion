@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities.Definition;
+﻿using Helion.Models;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using System.Drawing;
 
@@ -15,5 +16,6 @@ namespace Helion.World.Entities.Inventories.Powerups
         PowerupEffectType EffectType { get; }
         InventoryTickStatus Tick(Player player);
         void Reset();
+        PowerupModel ToPowerupModel();
     }
 }

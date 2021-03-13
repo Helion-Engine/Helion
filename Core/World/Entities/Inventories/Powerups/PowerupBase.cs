@@ -1,4 +1,5 @@
-﻿using Helion.Util;
+﻿using Helion.Models;
+using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
@@ -43,6 +44,38 @@ namespace Helion.World.Entities.Inventories.Powerups
                 EffectType = PowerupEffectType.ColorMap;
             else if (DrawColor.HasValue)
                 EffectType = PowerupEffectType.Color;
+        }
+
+        public PowerupBase(Player player, EntityDefinition definition, PowerupModel model)
+        {
+            m_player = player;
+            EntityDefinition = definition;
+            PowerupType = (PowerupType)model.PowerupType;
+            m_drawColor = model.DrawColor;
+            DrawAlpha = model.DrawAlpha;
+            DrawPowerupEffect = model.DrawPowerupEffect;
+            DrawEffectActive = model.DrawEffectActive;
+            EffectType = (PowerupEffectType)model.EffectType;
+            m_tics = model.Tics;
+            m_effectTics = model.EffectTics;
+            m_subAlpha = model.SubAlpha;
+        }
+
+        public PowerupModel ToPowerupModel()
+        {
+            return new PowerupModel()
+            {
+                Name = EntityDefinition.Name.ToString(),
+                PowerupType = (int)PowerupType,
+                DrawColor = DrawColor,
+                DrawAlpha = DrawAlpha,
+                DrawPowerupEffect = DrawPowerupEffect,
+                DrawEffectActive = DrawEffectActive,
+                EffectType = (int)EffectType,
+                Tics = m_tics,
+                EffectTics = m_effectTics,
+                SubAlpha = m_subAlpha
+            };
         }
 
         private void SetTics()
