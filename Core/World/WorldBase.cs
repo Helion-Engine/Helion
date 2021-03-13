@@ -719,8 +719,7 @@ namespace Helion.World
                 thrustVelocity.Multiply(thrustAmount);
             }
 
-            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) ||
-                (target is Player player && (target.Flags.Invulnerable || player.Inventory.IsPowerupActive(PowerupType.Invulnerable))))
+            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || target.IsInvulnerable)
                 target.Velocity += thrustVelocity;
 
             return true;

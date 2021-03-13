@@ -103,6 +103,7 @@ namespace Helion.World.Entities
         public EntityFrame Frame => FrameState.Frame;
         public virtual double ViewZ => 8.0;
         public bool IsDeathStateFinished => IsDead && Frame.Ticks == -1;
+        public virtual bool IsInvulnerable => Flags.Invulnerable;
 
         private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
 

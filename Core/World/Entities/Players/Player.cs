@@ -10,7 +10,6 @@ using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
-using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
@@ -79,6 +78,7 @@ namespace Helion.World.Entities.Players
 
         public override double ViewZ => m_viewZ;
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
+        public override bool IsInvulnerable => Flags.Invulnerable || Inventory.IsPowerupActive(PowerupType.Invulnerable);
 
         public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world, int playerNumber)
