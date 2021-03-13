@@ -69,7 +69,10 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("The key for decreasing hud size")]
         public readonly ConfigValueEnum<Key> HudDecrease = new(Key.Minus);
 
-        public readonly ConfigValueEnum<Key> Save = new(Key.F1);
-        public readonly ConfigValueEnum<Key> Load = new(Key.F2);
+        [ConfigInfo("The key for saving the game")]
+        public readonly ConfigValueEnum<Key> Save = new(Key.F2);
+
+        [ConfigInfo("The key for loading the game")]
+        public readonly ConfigValueEnum<Key> Load = new(Key.F3);
     }
 }
