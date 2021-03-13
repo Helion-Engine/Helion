@@ -106,20 +106,22 @@ namespace Helion.Util.Container
 
             Length += elements.Length;
         }
-        
-        /// <inheritdoc/>
+
+        /// <summary>
+        /// Removes the last element, if any.
+        /// </summary>
+        public void RemoveLast()
+        {
+            if (Length > 0)
+                Length--;
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             for (int i = 0; i < Length; i++)
                 yield return Data[i];
         }
 
-        public void RemoveLast()
-        {
-            Length--;
-        }
-
-        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         
         private void EnsureCapacity(int desiredCapacity)

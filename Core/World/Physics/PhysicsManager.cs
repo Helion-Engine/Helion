@@ -5,7 +5,7 @@ using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.Language;
 using Helion.Util;
-using Helion.Util.Container.Linkable;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
