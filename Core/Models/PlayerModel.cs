@@ -1,5 +1,6 @@
 ﻿using Helion.Util.Geometry.Vectors;
-using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace Helion.Models
 {
@@ -17,25 +18,18 @@ namespace Helion.Models
         public double ViewZ { get; set; }
         public double DeltaViewHeight { get; set; }
         public double Bob { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Killer { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Attacker { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Weapon { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? PendingWeapon { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? AnimationWeapon { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Vec2D WeaponOffset { get; set; }
         public int WeaponSlot { get; set; }
         public int WeaponSubSlot { get; set; }
         public InventoryModel Inventory { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public FrameStateModel? AnimationWeaponFrame { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public FrameStateModel? WeaponFlashFrame { get; set; }
+        public IList<int> Cheats { get; set; } = Array.Empty<int>();
     }
 }

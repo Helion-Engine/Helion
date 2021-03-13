@@ -17,6 +17,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using Helion.World.StatusBar;
 using static Helion.Util.Assertion.Assert;
+using Helion.World.Cheats;
 
 namespace Helion.World.Entities.Players
 {
@@ -61,6 +62,7 @@ namespace Helion.World.Entities.Players
         public Vec2D WeaponOffset;
         public Entity? Attacker { get; private set; }
         public PlayerStatusBar StatusBar { get; private set; }
+        public PlayerCheats Cheats { get; } = new PlayerCheats();
 
         public bool DrawFullBright()
         {
@@ -119,6 +121,7 @@ namespace Helion.World.Entities.Players
             m_deltaViewHeight = playerModel.DeltaViewHeight;
             m_bob = playerModel.Bob;
             WeaponOffset = playerModel.WeaponOffset;
+            PrevWeaponOffset = playerModel.WeaponOffset;
             WeaponSlot = playerModel.WeaponSlot;
             WeaponSubSlot = playerModel.WeaponSubSlot;
             
@@ -141,6 +144,9 @@ namespace Helion.World.Entities.Players
             m_prevViewZ = m_viewZ;
 
             StatusBar = new PlayerStatusBar(this);
+
+            foreach (CheatType cheat in playerModel.Cheats)
+                Cheats.SetCheatActive(cheat);
         }
 
         public PlayerModel ToPlayerModel()
@@ -169,12 +175,15 @@ namespace Helion.World.Entities.Players
                 WeaponSubSlot = WeaponSubSlot,
                 Inventory = Inventory.ToInventoryModel(),
                 AnimationWeaponFrame = AnimationWeapon?.FrameState.ToFrameStateModel(),
-                WeaponFlashFrame = AnimationWeapon?.FlashState.ToFrameStateModel()
+                WeaponFlashFrame = AnimationWeapon?.FlashState.ToFrameStateModel(),
+                Cheats = Cheats.GetActiveCheats().Cast<int>().ToList()
             };
 
             ToEntityModel(playerModel);
             return playerModel;
         }
+
+
 
         public override void CopyProperties(Entity entity)
         {

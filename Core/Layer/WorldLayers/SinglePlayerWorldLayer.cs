@@ -103,7 +103,6 @@ namespace Helion.Layer.WorldLayers
 
             Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
-            CheatManager.Instance.Clear();
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
@@ -139,8 +138,6 @@ namespace Helion.Layer.WorldLayers
             {
                 if (keepPlayer && !m_world.Player.IsDead)
                     existingPlayer = m_world.Player;
-                else
-                    CheatManager.Instance.Clear();
 
                 skillLevel = Config.Game.Skill;
             }

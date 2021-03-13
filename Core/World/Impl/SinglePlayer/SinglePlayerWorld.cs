@@ -22,7 +22,7 @@ using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
-using System.Collections.Generic;
+using Helion.Resources.Definitions.Language;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -143,7 +143,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleFrameInput(InputEvent input)
         {
-            CheatManager.Instance.HandleInput(input);
+            CheatManager.Instance.HandleInput(Player, input);
             HandleMouseLook(input);
         }
 
@@ -308,28 +308,28 @@ namespace Helion.World.Impl.SinglePlayer
             return new Vec3D(x, y, 0);
         }
 
-        private void Instance_CheatActivationChanged(object? sender, ICheat cheatEvent)
+        private void Instance_CheatActivationChanged(object? sender, CheatEventArgs e)
         {
-            if (cheatEvent is ChangeLevelCheat changeLevel)
+            if (e.Cheat is ChangeLevelCheat changeLevel)
             {
                 ChangeToLevel(changeLevel.LevelNumber);
                 return;
             }
 
-            switch (cheatEvent.CheatType)
+            switch (e.Cheat.CheatType)
             {
                 case CheatType.NoClip:
-                    Player.Flags.NoClip = cheatEvent.Activated;
+                    Player.Flags.NoClip = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
                     break;
                 case CheatType.Fly:
-                    Player.Flags.NoGravity = cheatEvent.Activated;
+                    Player.Flags.NoGravity = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
                     break;
                 case CheatType.Ressurect:
                     if (Player.IsDead)
                         Player.SetRaiseState();
                     break;
                 case CheatType.God:
-                    Player.Flags.Invulnerable = cheatEvent.Activated;
+                    Player.Flags.Invulnerable = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
                     break;
                 case CheatType.GiveAllNoKeys:
                     GiveAllWeapons();
@@ -343,6 +343,14 @@ namespace Helion.World.Impl.SinglePlayer
                     Player.GiveBestArmor(EntityManager.DefinitionComposer);
                     break;
             }
+
+            string msg;
+            if (e.Cheat.IsToggleCheat)
+                msg = string.Format("{0} cheat: {1}", Player.Cheats.IsCheatActive(e.Cheat.CheatType) ? "Activated" : "Deactivated", e.Cheat.CheatName);
+            else
+                msg = e.Cheat.CheatName;
+
+            DisplayMessage(Player, null, msg, LanguageMessageType.None);
         }
 
         private void GiveAllWeapons()

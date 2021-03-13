@@ -1,5 +1,4 @@
 ﻿using Helion.Util.Geometry.Vectors;
-using Newtonsoft.Json;
 
 namespace Helion.Models
 {
@@ -15,16 +14,12 @@ namespace Helion.Models
         public Vec3D Velocity { get; set; }
         public int Health { get; set; }
         public int Armor { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ArmorDefinition { get; set; }
         public int FrozenTics { get; set; }
         public int MoveCount { get; set; }
         public int Sector { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Owner { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Target { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Tracer { get; set; }
 
         public bool Refire { get; set; }
