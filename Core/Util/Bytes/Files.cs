@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace Helion.Util
+namespace Helion.Util.Bytes
 {
     /// <summary>
     /// A collection of helper functions for operating on/with files.
@@ -11,8 +11,9 @@ namespace Helion.Util
         /// <summary>
         /// Calculates the MD5 hash of some file.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>The MD5 hash. Can be null if the file is not able to be
+        /// opened. Will be lower case.</returns>
         public static string? CalculateMD5(string path)
         {
             try
