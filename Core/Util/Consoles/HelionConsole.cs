@@ -150,7 +150,7 @@ namespace Helion.Util.Consoles
 
         private void HandleConfigValueQuery(string inputText)
         {
-            if (m_config != null)
+            if (m_config == null)
                 return;
             
             string[] tokens = inputText.Split(" ");
@@ -255,7 +255,7 @@ namespace Helion.Util.Consoles
         /// </summary>
         public void ApplyAutocomplete()
         {
-            if (m_config != null)
+            if (m_config == null)
                 return;
             
             string lowerInput = Input.Empty() ? "*" : Input.ToLower();
@@ -351,9 +351,9 @@ namespace Helion.Util.Consoles
 
         public new void Dispose()
         {
-            GC.SuppressFinalize(this);
             base.Dispose();
             PerformDispose();
+            GC.SuppressFinalize(this);
         }
 
         private void PerformDispose()
@@ -372,7 +372,6 @@ namespace Helion.Util.Consoles
                 // this object, but I'd like to make sure that it's foolproof.
                 RemoveLogger(); 
             }
-
 
             m_disposed = true;
         }
