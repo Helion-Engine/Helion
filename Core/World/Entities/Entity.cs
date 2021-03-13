@@ -195,11 +195,6 @@ namespace Helion.World.Entities
 
         public EntityModel ToEntityModel(EntityModel entityModel)
         {
-            if (ThingId > 0)
-            {
-                int lol = 1;
-            }
-
             entityModel.Name = Definition.Name.ToString();
             entityModel.Id = Id;
             entityModel.ThingId = ThingId;
