@@ -18,9 +18,10 @@ namespace Helion.Audio
         /// The data to play.
         /// </summary>
         /// <param name="data">The data.</param>
+        /// <param name="loop">True if it should loop, false if not.</param>
         /// <returns>True if it succeeded and is playing, false if there was an
         /// error loading or playing the track.</returns>
-        bool Play(byte[] data);
+        bool Play(byte[] data, bool loop = true);
 
         /// <summary>
         /// Stops playing the music.

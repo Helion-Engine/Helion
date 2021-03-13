@@ -67,7 +67,7 @@ namespace Helion.Layer
             if (convertedData == null) 
                 return;
             
-            audioSystem.Music.Play(convertedData);
+            audioSystem.Music.Play(convertedData, false);
         }
 
         private bool ShouldDarken() => Parent != null && Parent.Contains<MenuLayer>();

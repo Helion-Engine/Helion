@@ -58,7 +58,7 @@ namespace Helion.Client.Music
             return Math.Clamp(volume, 0.0f, 1.0f);
         }
 
-        public bool Play(byte[] data)
+        public bool Play(byte[] data, bool loop = true)
         {
             if (m_isDisposed)
                 return false;
@@ -83,7 +83,7 @@ namespace Helion.Client.Music
 
                 m_playback = newPlayback;
                 newPlayback.InterruptNotesOnStop = true;
-                newPlayback.Loop = true;
+                newPlayback.Loop = loop;
                 newPlayback.Start();
 
                 // This sucks, but this has to come here because the MIDI APIs
