@@ -2,7 +2,7 @@
 
 namespace Helion.Util.Consoles
 {
-    public readonly struct ConsoleMessage
+    public record ConsoleMessage
     {
         public readonly ColoredString Message;
         public readonly long TimeNanos;

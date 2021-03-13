@@ -31,8 +31,6 @@ namespace Helion.Util.Consoles
         /// </param>
         public ConsoleCommandEventArgs(string text)
         {
-            Precondition(!text.Empty(), "Should not be getting an empty console command");
-
             string[] tokens = text.Split(' ');
             if (tokens.Length == 0)
                 return;
