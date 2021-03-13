@@ -68,7 +68,7 @@ namespace Helion.World.Impl.SinglePlayer
 
                 EntityManager.Entities.ForEach(entity => Link(entity));
 
-                SpecialManager.AddSpecialModels(worldModel.GetSpecials());
+                SpecialManager.AddSpecialModels(worldModel.Specials);
             }
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;

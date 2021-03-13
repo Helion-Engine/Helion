@@ -29,6 +29,8 @@ namespace Helion.World
 
             WorldModel worldModel = new WorldModel()
             {
+                IWad = GetIWadFileModel(),
+                Files = GetFileModels(),
                 MapName = MapName.ToString(),
                 WorldState = WorldState,
                 Gametick = Gametick,
@@ -47,6 +49,25 @@ namespace Helion.World
             };
 
             stream.Write(JsonConvert.SerializeObject(worldModel, DefaultSerializerSettings));
+        }
+
+        private FileModel GetIWadFileModel()
+        {
+            var archive = ArchiveCollection.GetIWad();
+            if (archive != null)
+                return archive.ToFileModel();
+
+            return new FileModel();
+        }
+
+        private IList<FileModel> GetFileModels()
+        {
+            List<FileModel> fileModels = new List<FileModel>();
+            var archives = ArchiveCollection.GetFiles();
+            foreach (var archive in archives)
+                fileModels.Add(archive.ToFileModel());
+
+            return fileModels;
         }
 
         private List<EntityModel> GetEntityModels()

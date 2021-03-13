@@ -2,16 +2,15 @@
 using Helion.World;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.Models
 {
     public class WorldModel
     {
-        public string IWad;
-        public List<string> Files;
+        public FileModel IWad { get; set; } = FileModel.Default;
+        public IList<FileModel> Files { get; set; } = Array.Empty<FileModel>();
 
-        public string MapName { get; set; }
+        public string MapName { get; set; } = string.Empty;
         public WorldState WorldState { get; set; }
         public int Gametick { get; set; }
         public int LevelTime { get; set; }
@@ -24,9 +23,7 @@ namespace Helion.Models
         public IList<EntityModel> Entities { get; set; } = Array.Empty<EntityModel>();
         public IList<SectorModel> Sectors { get; set; } = Array.Empty<SectorModel>();
         public IList<LineModel> Lines { get; set; } = Array.Empty<LineModel>();
-        public IList<object> Specials { get; set; } = Array.Empty<object>();
+        public IList<ISpecialModel> Specials { get; set; } = Array.Empty<ISpecialModel>();
         public IList<SectorDamageSpecialModel> DamageSpecials { get; set; } = Array.Empty<SectorDamageSpecialModel>();
-
-        public IList<ISpecialModel> GetSpecials() => Specials.Cast<ISpecialModel>().ToList();
     }
 }

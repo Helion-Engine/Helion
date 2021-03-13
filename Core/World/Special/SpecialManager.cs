@@ -49,9 +49,9 @@ namespace Helion.World.Special
             m_random = random;
         }
 
-        public List<object> GetSpecialModels()
+        public List<ISpecialModel> GetSpecialModels()
         {
-            List<object> specials = new List<object>();
+            List<ISpecialModel> specials = new List<ISpecialModel>();
             foreach (var special in m_specials)
             {
                 ISpecialModel? specialModel = special.ToSpecialModel();

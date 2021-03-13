@@ -20,7 +20,6 @@ using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition.Properties.Components;
-using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Lines;

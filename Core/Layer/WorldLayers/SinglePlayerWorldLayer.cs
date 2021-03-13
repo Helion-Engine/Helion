@@ -27,6 +27,7 @@ using NLog;
 using System;
 using System.IO;
 using static Helion.Util.Assertion.Assert;
+using System.Linq;
 
 namespace Helion.Layer.WorldLayers
 {
@@ -311,6 +312,9 @@ namespace Helion.Layer.WorldLayers
                 return;
             }
 
+            if (!VerifyWorldModelFiles(e.WorldModel))
+                return;
+
             MapInfoDef? loadMap = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(e.WorldModel.MapName);
             if (loadMap == null)
             {
@@ -319,6 +323,48 @@ namespace Helion.Layer.WorldLayers
             }
 
             LoadMap(loadMap, false, e.WorldModel);
+        }
+
+        private bool VerifyWorldModelFiles(WorldModel worldModel)
+        {
+            if (!VerifyFileModel(worldModel.IWad))
+                return false;
+
+            if (worldModel.Files.Any(x => !VerifyFileModel(x)))
+                return false;
+
+            return true;
+        }
+
+        private bool VerifyFileModel(FileModel fileModel)
+        {
+            if (fileModel.FileName == null)
+            {
+                Log.Warn("File in save game was null.");
+                return true;
+            }
+
+            var archive = ArchiveCollection.GetArchiveByFileName(fileModel.FileName);
+            if (archive == null)
+            {
+                Log.Error($"Required archive  {fileModel.FileName} for this save game is not loaded.");
+                return false;
+            }
+
+            if (fileModel.MD5 == null)
+            {
+                Log.Warn("MD5 for file in save game was null.");
+                return true;
+            }
+
+            if (!fileModel.MD5.Equals(archive.MD5))
+            {
+                Log.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
+                Log.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");
+                return false;
+            }
+
+            return true;
         }
 
         private void ChangeLevel(LevelChangeEvent e)
