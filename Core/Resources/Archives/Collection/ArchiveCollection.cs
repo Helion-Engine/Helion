@@ -14,6 +14,7 @@ using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Extensions;
 using NLog;
 
@@ -27,6 +28,7 @@ namespace Helion.Resources.Archives.Collection
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public readonly IwadType IwadType;
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
@@ -34,16 +36,17 @@ namespace Helion.Resources.Archives.Collection
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Font?> m_fonts = new();
 
-        public ArchiveCollection(IArchiveLocator archiveLocator)
+        public ArchiveCollection(IArchiveLocator archiveLocator, IwadType iwadType)
         {
+            IwadType = iwadType;
             m_archiveLocator = archiveLocator;
             Definitions = new DefinitionEntries(this);
         }
 
         public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true)
         {
-            List<Archive> loadedArchives = new List<Archive>();
-            List<string> filePaths = new List<string>();
+            List<Archive> loadedArchives = new();
+            List<string> filePaths = new();
 
             Archive? assetsArchive = null;
             Archive? iwadArchive = null;

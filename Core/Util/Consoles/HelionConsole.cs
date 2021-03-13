@@ -46,9 +46,6 @@ namespace Helion.Util.Consoles
         /// get the commands we've sent in the past. The front of the list is
         /// the most recent command.
         /// </summary>
-        /// <remarks>
-        /// This will never grow beyond <see cref="m_capacity"/> in length.
-        /// </remarks>
         public readonly LinkedList<string> SubmittedInput = new();
 
         /// <summary>
@@ -76,20 +73,22 @@ namespace Helion.Util.Consoles
         /// </summary>
         public event EventHandler<ConsoleCommandEventArgs>? OnConsoleCommandEvent;
 
-        private readonly Config m_config;
+        private readonly Config? m_config;
         private readonly StringBuilder m_input = new();
         private int m_capacity;
         private bool m_disposed;
 
-        public HelionConsole(Config cfg)
+        public HelionConsole(Config? cfg = null)
         {
             Name = TargetName;
             m_config = cfg;
-            m_capacity = m_config.Console.MaxMessages;
+            m_capacity = m_config?.Console.MaxMessages ?? 128;
 
-            m_config.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
-
-            AddToLogger();
+            if (m_config != null)
+            {
+                m_config.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
+                AddToLogger();
+            }
         }
 
         ~HelionConsole()
@@ -145,15 +144,18 @@ namespace Helion.Util.Consoles
             // it, or doing "window.height 123", and in either case, we want
             // the first part only.
             string lowerPath = inputText.Split(" ")[0].ToLower();
-            object? configValue = m_config.GetConfigValue(lowerPath);
+            object? configValue = m_config?.GetConfigValue(lowerPath);
             return configValue != null;
         }
 
         private void HandleConfigValueQuery(string inputText)
         {
+            if (m_config == null)
+                return;
+            
             string[] tokens = inputText.Split(" ");
             string lowerPath = tokens[0].ToLower();
-            dynamic? configValue = m_config.GetConfigValue(lowerPath);
+            dynamic? configValue = m_config?.GetConfigValue(lowerPath);
             if (configValue == null)
             {
                 Fail($"IsConfigValueQuery said {inputText} existed, when it did not");
@@ -244,7 +246,8 @@ namespace Helion.Util.Consoles
         /// <param name="text">The text to add.</param>
         public void AddInput(string text)
         {
-            Array.ForEach(text.ToCharArray(), AddInput);
+            foreach (var c in text.ToCharArray())
+                AddInput(c);
         }
 
         /// <summary>
@@ -252,6 +255,9 @@ namespace Helion.Util.Consoles
         /// </summary>
         public void ApplyAutocomplete()
         {
+            if (m_config == null)
+                return;
+            
             string lowerInput = Input.Empty() ? "*" : Input.ToLower();
 
             var matches = m_config.GetConfigValueWildcard(lowerInput).ToList();
@@ -345,9 +351,9 @@ namespace Helion.Util.Consoles
 
         public new void Dispose()
         {
-            GC.SuppressFinalize(this);
             base.Dispose();
             PerformDispose();
+            GC.SuppressFinalize(this);
         }
 
         private void PerformDispose()
@@ -355,14 +361,17 @@ namespace Helion.Util.Consoles
             if (m_disposed)
                 return;
 
-            m_config.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
+            if (m_config != null)
+            {
+                m_config.Console.MaxMessages.OnChanged -= OnMaxMessagesChanged;
 
-            // TODO: Investigate whether this is correct or not, the logger
-            // documentation isn't clear and stack overflow has some unusual
-            // results for how to properly remove the logger.
-            // The logger stops logging to this target after we dispose of
-            // this object, but I'd like to make sure that it's foolproof.
-            RemoveLogger();
+                // TODO: Investigate whether this is correct or not, the logger
+                // documentation isn't clear and stack overflow has some unusual
+                // results for how to properly remove the logger.
+                // The logger stops logging to this target after we dispose of
+                // this object, but I'd like to make sure that it's foolproof.
+                RemoveLogger(); 
+            }
 
             m_disposed = true;
         }

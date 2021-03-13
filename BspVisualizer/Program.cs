@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using Helion.Bsp;
 using Helion.Maps;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 
@@ -52,7 +53,7 @@ namespace BspVisualizer
             if (HandledInvalidArguments(args))
                 return;
 
-            ArchiveCollection archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator());
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), IwadType.Doom2);
             if (!archiveCollection.Load(new List<string> { args[0] }))
             {
                 MessageBox.Show($@"Error loading file at path: {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);

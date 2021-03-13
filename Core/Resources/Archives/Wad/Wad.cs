@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
+using Helion.Util.Bytes;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Archives

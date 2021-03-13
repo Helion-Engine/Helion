@@ -33,6 +33,7 @@ namespace Helion.Render.Shared.Drawers
             helper.AtResolution(DoomHudHelper.DoomResolution, () =>
             {
                 int offsetY = menu.TopPixelPadding;
+                int? maxWidth = CalculateMaxWidth(helper, menu);
                 
                 foreach (IMenuComponent component in menu)
                 {
@@ -41,7 +42,7 @@ namespace Helion.Render.Shared.Drawers
                     switch (component)
                     {
                     case MenuImageComponent imageComponent:
-                        DrawImage(helper, imageComponent, isSelected, ref offsetY);
+                        DrawImage(helper, imageComponent, isSelected, maxWidth, ref offsetY);
                         break;
                     case MenuPaddingComponent paddingComponent:
                         offsetY += paddingComponent.PixelAmount;
@@ -59,6 +60,26 @@ namespace Helion.Render.Shared.Drawers
             });
         }
 
+        private static int? CalculateMaxWidth(DrawHelper helper, Menu menu)
+        {
+            if (!menu.LeftAlign)
+                return null;
+
+            int maxWidth = 0;
+
+            foreach (IMenuComponent menuComponent in menu)
+            {
+                // Right now we only care about images to keep the UI simple.
+                if (menuComponent is not MenuImageComponent imageComponent) 
+                    continue;
+                
+                int width = helper.DrawInfoProvider.GetImageDimension(imageComponent.ImageName.ToString()).Width;
+                maxWidth = Math.Max(maxWidth, width);
+            }
+
+            return maxWidth;
+        }
+
         private void DrawText(DrawHelper helper, MenuTextComponent text, bool isSelected, ref int offsetY)
         {
             Font? font = m_archiveCollection.GetFont(text.FontName);
@@ -69,10 +90,12 @@ namespace Helion.Render.Shared.Drawers
             offsetY += area.Height;
         }
 
-        private void DrawImage(DrawHelper helper, MenuImageComponent image, bool isSelected, ref int offsetY)
+        private void DrawImage(DrawHelper helper, MenuImageComponent image, bool isSelected, int? maxWidth,
+            ref int offsetY)
         {
             string name = image.ImageName.ToString();
-            int offsetX = image.OffsetX;
+            int imageWidth = helper.DrawInfoProvider.GetImageDimension(image.ImageName.ToString()).Width;
+            int offsetX = -((maxWidth - imageWidth) / 2 ?? 0) + image.OffsetX;
             
             helper.Image(name, offsetX, offsetY, out Dimension area, both: Align.TopMiddle);
 

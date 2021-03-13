@@ -1,108 +1,111 @@
-using System.Collections.Generic;
-using System.Linq;
+﻿using FluentAssertions;
 using Helion.Util.Container;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
-namespace Helion.Test.Unit.Util.Container
+namespace Helion.Tests.Unit.Util.Container
 {
-    [TestClass]
     public class HashTableTest
     {
-        [TestMethod]
-        public void CanInsertAndGetByBracketNotationOrMethod()
+        private static HashTable<int, string, string> Create()
         {
-            HashTable<int, string, string> table = new HashTable<int, string, string>();
-            
-            Assert.IsNull(table[5, "hi"]);
-            table[5, "hi"] = "hi";
-            Assert.IsNotNull(table[5, "hi"]);
-            Assert.AreEqual("hi", table.Get(5, "hi"));
-            
-            // Different first key.
-            Assert.IsNull(table[4, "hi"]);
-            table[4, "hi"] = "hi";
-            Assert.IsNotNull(table[4, "hi"]);
-            Assert.AreEqual("hi", table[4, "hi"]);
-            
-            // Same first key.
-            Assert.IsNull(table[5, "heh"]);
-            table.Insert(5, "heh", "yes");
-            Assert.IsNotNull(table[5, "heh"]);
-            Assert.AreEqual("yes", table[5, "heh"]);
-        }
-
-        [TestMethod]
-        public void AbleToTryGet()
-        {
-            HashTable<int, string, string> table = new HashTable<int, string, string>();
-            
-            table[5, "hi"] = "yes";
-
-            string? value = null;
-            bool found = table.TryGet(5, "hi", ref value);
-            Assert.IsTrue(found);
-            Assert.AreEqual("yes", value);
-            
-            value = null;
-            found = table.TryGet(5, "heh", ref value);
-            Assert.IsFalse(found);
-            Assert.IsNull(value);
-            
-            value = null;
-            found = table.TryGet(4, "hi", ref value);
-            Assert.IsFalse(found);
-            Assert.IsNull(value);
-        }
-
-        [TestMethod]
-        public void CanClear()
-        {
-            HashTable<int, string, string> table = new HashTable<int, string, string>();
-            
-            table[5, "hi"] = "hi";
-            Assert.IsNotNull(table[5, "hi"]);
-            
-            table.Clear();
-            Assert.IsNull(table[5, "hi"]);
-        }
-
-        [TestMethod]
-        public void RemoveKeyPair()
-        {
-            HashTable<int, string, string> table = new HashTable<int, string, string>();
-            
-            table[5, "hi"] = "hi";
-            table[5, "yes"] = "yes";
-            Assert.IsNotNull(table[5, "hi"]);
-            Assert.IsNotNull(table[5, "yes"]);
-            
-            bool removed = table.Remove(5, "hi");
-            Assert.IsNull(table[5, "hi"]);
-            Assert.IsTrue(removed);
-            
-            // Removing a value that doesn't exist should neither crash, nor
-            // should it touch anything else in the process of failing.
-            removed = table.Remove(5, "hi");
-            Assert.IsNull(table[5, "hi"]);
-            Assert.IsNotNull(table[5, "yes"]);
-            Assert.IsFalse(removed);
+            HashTable<int, string, string> table = new();
+            table.Insert(1, "hi", "1hi");
+            table.Insert(1, "yes", "1yes");
+            table.Insert(2, "stuff", "2stuff");
+            table.Insert(4, "four", "4four");
+            return table;
         }
         
-        [TestMethod]
+        [Fact(DisplayName = "Look up key pair by index")]
+        public void LookUpKeyPair()
+        {
+            HashTable<int, string, string> table = Create();
+
+            table[1, "yes"].Should().Be("1yes");
+        }
+        
+        [Fact(DisplayName = "Look up value by trying")]
+        public void TryGetValue()
+        {
+            HashTable<int, string, string> table = Create();
+
+            string? result = null;
+            table.TryGet(1, "yes", ref result).Should().BeTrue();
+            result.Should().Be("1yes");
+            
+            table.TryGet(1234, "yes123123", ref result).Should().BeFalse();
+            result.Should().BeNull();
+        }
+        
+        [Fact(DisplayName = "Can insert into hash table")]
+        public void InsertValue()
+        {
+            HashTable<int, string, string> table = new();
+
+            string? output = null;
+            table.TryGet(1, "1", ref output).Should().BeFalse();
+            
+            table.Insert(1, "1", "stuff");
+            table.TryGet(1, "1", ref output).Should().BeTrue();
+            output.Should().Be("stuff");
+        }
+        
+        [Fact(DisplayName = "Can clear table")]
+        public void CanClear()
+        {
+            HashTable<int, string, string> table = new();
+            table.Insert(1, "1", "stuff");
+            table.Insert(1, "2", "stuff!");
+            table.CountAll().Should().Be(2);
+            
+            table.Clear();
+            table.CountAll().Should().Be(0);
+        }
+        
+        [Fact(DisplayName = "Can remove value from the table")]
+        public void CanRemove()
+        {
+            HashTable<int, string, string> table = new();
+            table.Insert(1, "1", "stuff");
+            table.Insert(1, "2", "stuff!");
+            
+            string? value = null;
+            table.TryGet(1, "1", ref value).Should().BeTrue();
+            
+            table.Remove(1, "1");
+            table.TryGet(1, "1", ref value).Should().BeFalse();
+        }
+        
+        [Fact(DisplayName = "Can get the first set of keys in the table")]
         public void GetFirstKeys()
         {
-            HashTable<int, string, string> table = new HashTable<int, string, string>();
-            
-            table[5, "hi"] = "hi";
-            table[5, "a"] = "a";
-            table[3, ""] = "test";
+            HashTable<int, string, string> table = Create();
 
-            IEnumerable<int> keys = table.GetFirstKeys();
-            Assert.AreEqual(2, keys.Count());
+            table.GetFirstKeys().Should().Equal(1, 2, 4);
+        }
+        
+        [Fact(DisplayName = "Count all of the values")]
+        public void CountAllValues()
+        {
+            HashTable<int, string, string> table = Create();
 
-            HashSet<int> keySet = keys.ToHashSet();
-            Assert.IsTrue(keySet.Contains(3));
-            Assert.IsTrue(keySet.Contains(5));
+            table.CountAll().Should().Be(4);
+        }
+        
+        [Fact(DisplayName = "Get all values in the table")]
+        public void GetAllValues()
+        {
+            HashTable<int, string, string> table = Create();
+
+            table.GetValues().Should().Equal("1hi", "1yes", "2stuff", "4four");
+        }
+        
+        [Fact(DisplayName = "Get all values in the table from the first key")]
+        public void GetAllValuesByFirstKey()
+        {
+            HashTable<int, string, string> table = Create();
+
+            table.GetValues(1).Should().Equal("1hi", "1yes");
         }
     }
 }

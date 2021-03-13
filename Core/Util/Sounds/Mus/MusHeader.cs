@@ -1,4 +1,6 @@
-﻿namespace Helion.Util.Sounds.Mus
+﻿using Helion.Util.Bytes;
+
+namespace Helion.Util.Sounds.Mus
 {
     public record MusHeader
     {

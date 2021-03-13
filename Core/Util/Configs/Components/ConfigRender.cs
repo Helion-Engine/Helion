@@ -1,7 +1,6 @@
 ﻿using Helion.Render.Shared;
 using Helion.Util.Configs.Components.Renderer;
 using Helion.Util.Configs.Values;
-using Helion.Window;
 
 namespace Helion.Util.Configs.Components
 {

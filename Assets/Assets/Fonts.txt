@@ -1,6 +1,6 @@
 font SmallFont
 {
-    space = 8;
+    space = 4;
     grayscale = true;
     characters
     {

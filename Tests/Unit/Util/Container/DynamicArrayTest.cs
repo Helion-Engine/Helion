@@ -1,110 +1,92 @@
+﻿using System.Linq;
+using FluentAssertions;
 using Helion.Util.Container;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
-namespace Helion.Test.Unit.Util.Container
+namespace Helion.Tests.Unit.Util.Container
 {
-    [TestClass]
     public class DynamicArrayTest
     {
-        [TestMethod]
-        public void CreateDynamicArray()
+        [Fact(DisplayName = "Add element to dynamic array")]
+        public void CanAdd()
         {
-            DynamicArray<int> array = new DynamicArray<int>();
-            Assert.AreEqual(0, array.Length);
-        }
-        
-        [TestMethod]
-        public void CanAddElements()
-        {
-            DynamicArray<int> array = new DynamicArray<int>(4);
-            Assert.AreEqual(4, array.Capacity);
+            DynamicArray<int> array = new();
             
             array.Add(5);
-            Assert.AreEqual(4, array.Capacity);
-            Assert.AreEqual(1, array.Length);
-            Assert.AreEqual(5, array[0]);
-            Assert.AreEqual(5, array.Data[0]);
-            
-            array.Add(4, -3);
-            Assert.AreEqual(4, array.Capacity);
-            Assert.AreEqual(3, array.Length);
-            Assert.AreEqual(5, array[0]);
-            Assert.AreEqual(5, array.Data[0]);
-            Assert.AreEqual(4, array[1]);
-            Assert.AreEqual(4, array.Data[1]);
-            Assert.AreEqual(-3, array[2]);
-            Assert.AreEqual(-3, array.Data[2]);
-            
-            array.Add(42);
-            Assert.AreEqual(4, array.Capacity);
-            Assert.AreEqual(4, array.Length);
-            Assert.AreEqual(5, array[0]);
-            Assert.AreEqual(5, array.Data[0]);
-            Assert.AreEqual(4, array[1]);
-            Assert.AreEqual(4, array.Data[1]);
-            Assert.AreEqual(-3, array[2]);
-            Assert.AreEqual(-3, array.Data[2]);
-            Assert.AreEqual(42, array[3]);
-            Assert.AreEqual(42, array.Data[3]);
-            
-            array.Add(12345);
-            Assert.AreEqual(8, array.Capacity);
-            Assert.AreEqual(5, array.Length);
-            Assert.AreEqual(5, array[0]);
-            Assert.AreEqual(5, array.Data[0]);
-            Assert.AreEqual(4, array[1]);
-            Assert.AreEqual(4, array.Data[1]);
-            Assert.AreEqual(-3, array[2]);
-            Assert.AreEqual(-3, array.Data[2]);
-            Assert.AreEqual(42, array[3]);
-            Assert.AreEqual(42, array.Data[3]);
-            Assert.AreEqual(12345, array[4]);
-            Assert.AreEqual(12345, array.Data[4]);
-        }
 
-        [TestMethod]
-        public void CanGetAndSetViaIndexer()
+            array.Length.Should().Be(1);
+            array.Data.First().Should().Be(5);
+        }
+        
+        [Fact(DisplayName = "Add multiple element to dynamic array")]
+        public void CanAddMultiple()
         {
-            DynamicArray<int> array = new DynamicArray<int>();
-            array.Add(1, 2, 3);
-
-            for (int i = 0; i < array.Length; i++)
-                Assert.AreEqual(i + 1, array[i]);
-
-            for (int i = 0; i < array.Length; i++)
-                array[i] = array[i] - 1;
+            DynamicArray<int> array = new(2);
             
-            for (int i = 0; i < array.Length; i++)
-                Assert.AreEqual(i, array[i]);
+            array.Add(5, 7);
+            array.Length.Should().Be(2);
+            array.Data.Should().Equal(5, 7);
+            array.Capacity.Should().Be(2);
+            
+            array.Add(1);
+            array.Length.Should().Be(3);
+            array.Data.Should().Equal(5, 7, 1, default(int)); // Capacity is doubled, so add a default.
+            array.Capacity.Should().BeGreaterThan(2);
         }
-
-        [TestMethod]
-        public void PerformsIteration()
+        
+        [Fact(DisplayName = "Can index into a dynamic array")]
+        public void CanIndex()
         {
-            int[] numbers = { 1, 2, 3, 4, 5 };
+            DynamicArray<int> array = new();
             
-            DynamicArray<int> array = new DynamicArray<int>();
-            array.Add(numbers);
+            array.Add(1, -5, 4);
 
-            int currentIndex = 0;
-            foreach (int val in array)
-                Assert.AreEqual(numbers[currentIndex++], val);
-            Assert.AreEqual(array.Length, currentIndex);
+            array.Data[0].Should().Be(1);
+            array.Data[1].Should().Be(-5);
+            array.Data[2].Should().Be(4);
         }
-
-        [TestMethod]
+        
+        [Fact(DisplayName = "Can clear a dynamic array")]
         public void CanClear()
         {
-            DynamicArray<int> array = new DynamicArray<int>(4);
-            array.Add(1, 2, 3, 4, 5);
-
-            Assert.AreEqual(5, array.Length);
+            DynamicArray<int> array = new(2);
+            
+            array.Add(1, -5, 4);
+            array.Data.Should().Equal(1, -5, 4, default(int));
+            
+            int capacity = array.Capacity;
             array.Clear();
-            Assert.AreEqual(0, array.Length);
 
-            // The data should not be cleared though.
-            for (int i = 0; i < 5; i++)
-                Assert.AreEqual(i + 1, array[i]);
+            array.Data.Should().Equal(1, -5, 4, default(int));
+            array.Length.Should().Be(0);
+            array.Capacity.Should().Be(capacity);
+        }
+        
+        [Fact(DisplayName = "Remove last dynamic array element")]
+        public void CanRemoveLast()
+        {
+            DynamicArray<int> array = new(2);
+            
+            array.Add(1, -5, 4);
+            array.Data.Should().Equal(1, -5, 4, default(int));
+            int capacity = array.Capacity;
+            
+            array.RemoveLast();
+            array.Data.Should().Equal(1, -5, 4, default(int));
+            array.Capacity.Should().Be(capacity);
+            array.Length.Should().Be(2);
+            
+            array.RemoveLast();
+            array.RemoveLast();
+            array.Data.Should().Equal(1, -5, 4, default(int));
+            array.Capacity.Should().Be(capacity);
+            array.Length.Should().Be(0);
+            
+            // Last remove should not do anything.
+            array.RemoveLast();
+            array.Data.Should().Equal(1, -5, 4, default(int));
+            array.Capacity.Should().Be(capacity);
+            array.Length.Should().Be(0);
         }
     }
 }

@@ -73,13 +73,7 @@ namespace Helion.Util.Container
         /// all of the keys in that list and return that.
         /// </summary>
         /// <returns>A new list of all the first keys.</returns>
-        public IEnumerable<K1> GetFirstKeys()
-        {
-            List<K1> keys = new List<K1>();
-            foreach (K1 key in m_table.Keys)
-                keys.Add(key);
-            return keys;
-        }
+        public IEnumerable<K1> GetFirstKeys() => m_table.Keys.ToList();
 
         /// <summary>
         /// Gets the value in the map.
@@ -110,6 +104,8 @@ namespace Helion.Util.Container
             if (m_table.TryGetValue(firstKey, out var map))
                 if (map.TryGetValue(secondKey, out value))
                     return true;
+
+            value = default;
             return false;
         }
 
@@ -129,10 +125,7 @@ namespace Helion.Util.Container
         /// </summary>
         public List<V> GetValues()
         {
-            List<V> values = new List<V>();
-            foreach (var key in m_table.Keys)
-                values.AddRange(m_table[key].Values);
-            return values;
+            return m_table.Values.SelectMany(pair => pair.Values).ToList();
         }
 
         /// <summary>
@@ -140,10 +133,7 @@ namespace Helion.Util.Container
         /// </summary>
         public List<V> GetValues(K1 key)
         {
-            if (m_table.TryGetValue(key, out var data))
-                return data.Values.ToList();
-
-            return new List<V>();
+            return m_table.TryGetValue(key, out var data) ? data.Values.ToList() : new List<V>();
         }
     }
 }

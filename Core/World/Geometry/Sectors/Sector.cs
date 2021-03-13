@@ -5,7 +5,7 @@ using Helion.Resources;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Models;
 using Helion.Util;
-using Helion.Util.Container.Linkable;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;

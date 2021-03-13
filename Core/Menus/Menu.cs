@@ -2,16 +2,32 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Helion.Audio.Sounds;
+using Helion.Input;
 using Helion.Menus.Base;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Menus
 {
+    /// <summary>
+    /// A menu that can be interacted with.
+    /// </summary>
     public abstract class Menu : IEnumerable<IMenuComponent>
     {
+        /// <summary>
+        /// How many pixels are padded from the top.
+        /// </summary>
         public readonly int TopPixelPadding;
+        
+        /// <summary>
+        /// If true, all the contents are evaluated by their width, and then
+        /// aligned to the leftmost largest one.
+        /// </summary>
+        public readonly bool LeftAlign;
+        
+        protected readonly ArchiveCollection ArchiveCollection;
         protected readonly Config Config;
         protected readonly SoundManager SoundManager;
         protected readonly HelionConsole Console;
@@ -20,14 +36,22 @@ namespace Helion.Menus
 
         public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
-        protected Menu(Config config, HelionConsole console, SoundManager soundManager, int topPixelPadding)
+        protected Menu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+            int topPixelPadding = 0, bool leftAlign = false)
         {
             Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
 
             Config = config;
             Console = console;
             SoundManager = soundManager;
+            ArchiveCollection = archiveCollection;
             TopPixelPadding = topPixelPadding;
+            LeftAlign = leftAlign;
+        }
+
+        public virtual void HandleInput(InputEvent input)
+        {
+            // Up to any children to handle input if they want.
         }
 
         protected void PlayNextOptionSound()
@@ -45,6 +69,10 @@ namespace Helion.Menus
             SoundManager.Update();
         }
 
+        /// <summary>
+        /// Moves to the next component that has an action. Wraps around if at
+        /// the end of the list.
+        /// </summary>
         public void MoveToNextComponent()
         {
             // We want to searching at the element after the current one, but
@@ -67,6 +95,10 @@ namespace Helion.Menus
             }
         }
         
+        /// <summary>
+        /// Moves to the previous component that has an action. Wraps around if
+        /// it is at the end of the list.
+        /// </summary>
         public void MoveToPreviousComponent()
         {
             if (ComponentIndex == null)
@@ -92,7 +124,7 @@ namespace Helion.Menus
             }
         }
         
-        public void SetToFirstActiveComponent()
+        protected void SetToFirstActiveComponent()
         {
             ComponentIndex = null;
 

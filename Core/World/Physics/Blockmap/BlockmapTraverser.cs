@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.Util;
-using Helion.Util.Container.Linkable;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;

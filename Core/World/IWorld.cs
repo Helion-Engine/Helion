@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion.Util.Configs;
 using Helion.Resources.Definitions.Language;
-using Helion.Util.Container.Linkable;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
@@ -20,6 +19,7 @@ using Helion.Resources.Definitions.MapInfo;
 using System.IO;
 using Helion.Util;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Container;
 
 namespace Helion.World
 {

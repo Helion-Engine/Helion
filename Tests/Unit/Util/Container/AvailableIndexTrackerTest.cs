@@ -1,66 +1,51 @@
+﻿using FluentAssertions;
 using Helion.Util.Container;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
-namespace Helion.Test.Unit.Util.Container
+namespace Helion.Tests.Unit.Util.Container
 {
-    [TestClass]
     public class AvailableIndexTrackerTest
     {
-        [TestMethod]
-        public void GetNextIndexFromNewObject()
+        [Fact(DisplayName = "Get indices from tracker")]
+        public void GetIndices()
         {
-            AvailableIndexTracker tracker = new AvailableIndexTracker();
+            AvailableIndexTracker tracker = new();
 
-            Assert.AreEqual(0, tracker.Length);
-            
-            Assert.AreEqual(0, tracker.Next());
-            
-            Assert.AreEqual(1, tracker.Length);
+            for (int i = 0; i < 100; i++)
+                tracker.Next().Should().Be(i);
         }
         
-        [TestMethod]
-        public void GetMultipleNextIndexFromNewObject()
+        [Fact(DisplayName = "Check indices from tracker")]
+        public void CheckIfTracked()
         {
-            AvailableIndexTracker tracker = new AvailableIndexTracker();
-
-            for (int i = 0; i < 1000; i++)
-                Assert.AreEqual(i, tracker.Next());
-            Assert.AreEqual(1000, tracker.Length);
-        }
-
-        [TestMethod]
-        public void ReturnValuesAndGetThemAgain()
-        {
-            AvailableIndexTracker tracker = new AvailableIndexTracker();
-
+            AvailableIndexTracker tracker = new();
+            
             for (int i = 0; i < 10; i++)
-                Assert.AreEqual(i, tracker.Next());
-            
-            tracker.MakeAvailable(3);
-            Assert.AreEqual(3, tracker.Next());
-            Assert.AreEqual(10, tracker.Next());
-            Assert.AreEqual(11, tracker.Next());
+                tracker.Next();
+
+            tracker.IsTracked(-1).Should().BeFalse();
+            tracker.IsTracked(10).Should().BeFalse();
+            tracker.IsTracked(12345).Should().BeFalse();
+            for (int i = 0; i < 10; i++)
+                tracker.IsTracked(i).Should().BeTrue();
         }
-
-        [TestMethod]
-        public void ReturnEndpointsAndGetThemAgain()
+        
+        [Fact(DisplayName = "Makes indices from tracker available")]
+        public void MakeIndexAvailable()
         {
-            AvailableIndexTracker tracker = new AvailableIndexTracker();
+            AvailableIndexTracker tracker = new();
+            
+            for (int i = 0; i < 10; i++)
+                tracker.Next();
 
-            for (int i = 0; i < 5; i++)
-                Assert.AreEqual(i, tracker.Next());
-            Assert.AreEqual(5, tracker.Length);
-            
             tracker.MakeAvailable(4);
-            Assert.AreEqual(4, tracker.Length);
-            
-            tracker.MakeAvailable(3);
-            Assert.AreEqual(3, tracker.Length);
-            
-            Assert.AreEqual(3, tracker.Next());
-            Assert.AreEqual(4, tracker.Next());
-            Assert.AreEqual(5, tracker.Next());
-            Assert.AreEqual(6, tracker.Length);
+            tracker.MakeAvailable(6);
+            tracker.IsTracked(4).Should().BeFalse();
+            tracker.IsTracked(6).Should().BeFalse();
+
+            tracker.Next().Should().Be(4);
+            tracker.Next().Should().Be(6);
+            tracker.Next().Should().Be(10);
         }
     }
 }

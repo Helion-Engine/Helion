@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;

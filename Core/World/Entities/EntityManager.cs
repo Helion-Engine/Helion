@@ -7,7 +7,7 @@ using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Models;
 using Helion.Util;
-using Helion.Util.Container.Linkable;
+using Helion.Util.Container;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;

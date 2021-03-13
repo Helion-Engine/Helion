@@ -1,16 +1,17 @@
 using System.Drawing;
 using System.Text;
+using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.String
 {
     public class ColoredStringBuilder
     {
-        private readonly StringBuilder m_builder = new StringBuilder();
+        private readonly StringBuilder m_builder = new();
 
         public static ColoredString From(params object[] objects)
         {
-            ColoredStringBuilder builder = new ColoredStringBuilder();
+            ColoredStringBuilder builder = new();
             builder.Append(objects);
             return builder.Build();
         }
@@ -27,8 +28,11 @@ namespace Helion.Graphics.String
                 case string str:
                     m_builder.Append(str);
                     break;
+                case CIString str:
+                    m_builder.Append(str);
+                    break;
                 default:
-                    Fail($"Passed unexpected object type into colored string builder: {obj}");
+                    Fail($"Passed unexpected object type into colored string builder: {obj.GetType()}");
                     break;
                 }
             }
