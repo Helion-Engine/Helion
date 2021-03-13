@@ -19,12 +19,12 @@ namespace Helion.Util
 
         public bool Empty => str.Empty();
 
-        private CIString(string s)
+        public CIString(string s)
         {
             str = s;
         }
 
-        public static implicit operator CIString(string s) => new CIString(s);
+        public static implicit operator CIString(string s) => new(s);
 
         public char this[int index] => str[index];
         
