@@ -15,7 +15,7 @@ namespace Helion.Util.Container
         /// <summary>
         /// Contains numbers that have been returned to the available pool.
         /// </summary>
-        private readonly SortedSet<int> m_availableIndices = new SortedSet<int>();
+        private readonly SortedSet<int> m_availableIndices = new();
         
         /// <summary>
         /// The highest available index.
@@ -58,7 +58,9 @@ namespace Helion.Util.Container
         {
             Precondition(index >= 0, "No support for negative available indices");
             Precondition(!m_availableIndices.Contains(index), "Trying to return index that is available");
-            Precondition(index != m_nextAvailableIndex, "Trying to return index leading avaiable index");
+
+            if (index < 0)
+                return;
             
             // Note that this function means we can run into the case where
             // there are indices that are available adjacently to the next
@@ -68,7 +70,7 @@ namespace Helion.Util.Container
             // not gain us any extra performance because we have to remove it
             // anyways at some point. Therefore we leave the code in the simple
             // state that it is instead of complicating it for no real gain.
-            
+
             if (index == m_nextAvailableIndex - 1 && m_nextAvailableIndex > 0)
                 m_nextAvailableIndex--;
             else
