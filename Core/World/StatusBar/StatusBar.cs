@@ -1,4 +1,5 @@
 ﻿using Helion.Util;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using System.Collections.Generic;
 
@@ -88,7 +89,7 @@ namespace Helion.World.StatusBar
             if (m_priority < 6)
                 AttackHoldFace();
 
-            if (m_priority < 5 && m_player.Flags.Invulnerable)
+            if (m_priority < 5 && m_player.IsInvulnerable)
                 InvulnerableFace();
 
             if (m_faceCount == 0)

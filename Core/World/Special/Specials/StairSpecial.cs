@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.Audio;
+using Helion.Models;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -10,12 +11,12 @@ namespace Helion.World.Special.Specials
 {
     public class StairSpecial : SectorMoveSpecial
     {
-        private readonly int m_stairHeight;
         private readonly int m_stairDelay;
         private readonly double m_startZ;
         private readonly List<StairMove> m_stairs = new List<StairMove>();
         private int m_destroyCount;
         private int m_stairDelayTics;
+        private bool m_crush;
 
         private class StairMove
         {
@@ -29,32 +30,84 @@ namespace Helion.World.Special.Specials
             public int Height { get; private set; }
         }
 
-        public StairSpecial(WorldBase world, Sector sector, double speed, int height, int delay, bool crush) : 
+        public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) : 
             base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), 
                 new SectorSoundData(null, null, Constants.PlatStopSound, null))
         {
-            m_stairHeight = height;
-            m_stairDelay = delay; 
+            m_stairDelay = delay;
             m_startZ = Sector.Floor.Z;
+            m_crush = crush;
 
-            StairMove? stairMove = new StairMove(sector, m_stairHeight);
+            StairMove? stairMove = new StairMove(sector, height);
 
             do
             {
                 stairMove.Sector.ActiveMoveSpecial = this;
+                CreateMovementSound(stairMove.Sector);
                 m_stairs.Add(stairMove);
-                stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle);
+                stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height);
             }
             while (stairMove != null);
+        }
+
+        public StairSpecial(IWorld world, Sector sector, StairSpecialModel model)  :
+            base(world, sector, model.MoveSpecial)
+        {
+            m_stairDelay = model.Delay;
+            m_startZ = model.StartZ;
+            m_destroyCount = model.Destroy;
+            m_stairDelayTics = model.DelayTics;
+            m_crush = model.Crush;
+
+            for (int i = 0; i < model.SectorIds.Count && i < model.Heights.Count; i++)
+            {
+                if (!world.IsSectorIdValid(model.SectorIds[i]))
+                    continue;
+
+                m_stairs.Add(new StairMove(world.Sectors[model.SectorIds[i]], model.Heights[i]));
+
+                if (i >= m_destroyCount)
+                {
+                    m_stairs[i].Sector.ActiveMoveSpecial = this;
+                    CreateMovementSound(m_stairs[i].Sector);
+                }
+            }
+        }
+
+        public override ISpecialModel ToSpecialModel()
+        {
+            StairSpecialModel model = new StairSpecialModel()
+            {
+                Delay = m_stairDelay,
+                StartZ = m_startZ,
+                Destroy = m_destroyCount,
+                DelayTics = m_stairDelayTics,
+                Crush = m_crush,
+                MoveSpecial = (SectorMoveSpecialModel)base.ToSpecialModel()
+            };
+
+            List<int> sectors = new List<int>(m_stairs.Count);
+            List<int> heights = new List<int>(m_stairs.Count);
 
             for (int i = 0; i < m_stairs.Count; i++)
-                m_world.SoundManager.CreateSoundOn(m_stairs[i].Sector, Constants.PlatMoveSound, SoundChannelType.Auto, new SoundParams(m_stairs[i].Sector, true));
+            {
+                sectors.Add(m_stairs[i].Sector.Id);
+                heights.Add(m_stairs[i].Height);
+            }
+
+            model.SectorIds = sectors;
+            model.Heights = heights;
+
+            return model;
         }
 
         public override SpecialTickStatus Tick()
         {
             if (m_stairDelayTics > 0)
             {
+                for (int i = m_destroyCount - 1; i < m_stairs.Count; i++)
+                    m_stairs[i].Sector.Floor.PrevZ = m_stairs[i].Sector.Floor.Z;
+
                 m_stairDelayTics--;
                 return SpecialTickStatus.Continue;
             }
@@ -95,7 +148,7 @@ namespace Helion.World.Special.Specials
             }
         }
 
-        private StairMove? GetNextStair(StairMove start, int floorpic)
+        private static StairMove? GetNextStair(StairMove start, int floorpic, int stairHeight)
         {
             int height = 0;
             for (int i = 0; i < start.Sector.Lines.Count; i++)
@@ -104,7 +157,7 @@ namespace Helion.World.Special.Specials
                 if (line.Back != null && line.Front.Sector == start.Sector && line.Back.Sector.Floor.TextureHandle == floorpic)
                 {
                     // The original game had this bug where it would increment height before checking if th sector was already in motion
-                    height += m_stairHeight;
+                    height += stairHeight;
                     if (line.Back.Sector.ActiveMoveSpecial == null)
                         return new StairMove(line.Back.Sector, height);
                 }
@@ -112,5 +165,8 @@ namespace Helion.World.Special.Specials
 
             return null;
         }
+
+        private void CreateMovementSound(Sector sector) =>
+            m_world.SoundManager.CreateSoundOn(sector, Constants.PlatMoveSound, SoundChannelType.Auto, new SoundParams(sector, true));
     }
 }

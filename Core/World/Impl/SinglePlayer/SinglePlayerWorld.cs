@@ -7,6 +7,7 @@ using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Geometry.Vectors;
@@ -17,8 +18,11 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Physics;
+using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
+using Helion.Resources.Definitions.Language;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -32,32 +36,80 @@ namespace Helion.World.Impl.SinglePlayer
         public override double ListenerPitch => Player.PitchRadians;
         public override Entity ListenerEntity => Player;
 
-        public readonly Player Player;
-
-        private readonly IAudioSystem m_audioSystem;
+        public Player Player { get; private set; }
 
         public SinglePlayerWorld(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef, IMap map, Player? existingPlayer = null)
-            : base(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map)
+            MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef, IMap map, 
+            Player? existingPlayer = null, WorldModel? worldModel = null)
+            : base(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, worldModel)
         {
-            EntityManager.PopulateFrom(map);
-
-            Player = EntityManager.CreatePlayer(0);
-
-            if (existingPlayer != null)
+            if (worldModel == null)
             {
-                Player.CopyProperties(existingPlayer);
-                Player.Inventory.ClearKeys();
+                EntityManager.PopulateFrom(map);
+
+                Player = EntityManager.CreatePlayer(0);
+                if (existingPlayer != null)
+                {
+                    Player.CopyProperties(existingPlayer);
+                    Player.Inventory.ClearKeys();
+                }
+                else
+                {
+                    Player.SetDefaultInventory();
+                }
             }
             else
             {
-                Player.SetDefaultInventory();
+                WorldModelPopulateResult result = EntityManager.PopulateFrom(worldModel);
+                Player = result.Player;
+
+                ApplySectorModels(worldModel, result);
+                ApplyLineModels(worldModel);
+                CreateDamageSpecials(worldModel);
+
+                EntityManager.Entities.ForEach(entity => Link(entity));
+
+                SpecialManager.AddSpecialModels(worldModel.Specials);
             }
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+        }
 
-            m_audioSystem = audioSystem;
+        private void CreateDamageSpecials(WorldModel worldModel)
+        {
+            for (int i = 0; i < worldModel.DamageSpecials.Count; i++)
+            {
+                SectorDamageSpecialModel model = worldModel.DamageSpecials[i];
+                if (!((IWorld)this).IsSectorIdValid(model.SectorId))
+                    continue;
+
+                Sectors[model.SectorId].SectorDamageSpecial = model.ToWorldSpecial(this);
+            }
+        }
+
+        private void ApplyLineModels(WorldModel worldModel)
+        {
+            for (int i = 0; i < worldModel.Lines.Count; i++)
+            {
+                LineModel lineModel = worldModel.Lines[i];
+                if (lineModel.Id < 0 || lineModel.Id >= Lines.Count)
+                    continue;
+
+                Lines[lineModel.Id].ApplyLineModel(lineModel);
+            }
+        }
+
+        private void ApplySectorModels(WorldModel worldModel, WorldModelPopulateResult result)
+        {
+            for (int i = 0; i < worldModel.Sectors.Count; i++)
+            {
+                SectorModel sectorModel = worldModel.Sectors[i];
+                if (sectorModel.Id < 0 || sectorModel.Id >= Sectors.Count)
+                    continue;
+
+                Sectors[sectorModel.Id].ApplySectorModel(sectorModel, result);
+            }
         }
 
         ~SinglePlayerWorld()
@@ -104,7 +156,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         public void HandleFrameInput(InputEvent input)
         {
-            CheatManager.Instance.HandleInput(input);
+            CheatManager.Instance.HandleInput(Player, input);
             HandleMouseLook(input);
         }
 
@@ -269,28 +321,28 @@ namespace Helion.World.Impl.SinglePlayer
             return new Vec3D(x, y, 0);
         }
 
-        private void Instance_CheatActivationChanged(object? sender, ICheat cheatEvent)
+        private void Instance_CheatActivationChanged(object? sender, CheatEventArgs e)
         {
-            if (cheatEvent is ChangeLevelCheat changeLevel)
+            if (e.Cheat is ChangeLevelCheat changeLevel)
             {
                 ChangeToLevel(changeLevel.LevelNumber);
                 return;
             }
 
-            switch (cheatEvent.CheatType)
+            switch (e.Cheat.CheatType)
             {
                 case CheatType.NoClip:
-                    Player.Flags.NoClip = cheatEvent.Activated;
+                    Player.Flags.NoClip = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
                     break;
                 case CheatType.Fly:
-                    Player.Flags.NoGravity = cheatEvent.Activated;
+                    Player.Flags.NoGravity = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
                     break;
                 case CheatType.Ressurect:
                     if (Player.IsDead)
                         Player.SetRaiseState();
                     break;
                 case CheatType.God:
-                    Player.Flags.Invulnerable = cheatEvent.Activated;
+                    Player.Flags.Invulnerable = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
                     break;
                 case CheatType.GiveAllNoKeys:
                     GiveAllWeapons();
@@ -304,6 +356,14 @@ namespace Helion.World.Impl.SinglePlayer
                     Player.GiveBestArmor(EntityManager.DefinitionComposer);
                     break;
             }
+
+            string msg;
+            if (e.Cheat.IsToggleCheat)
+                msg = string.Format("{0} cheat: {1}", Player.Cheats.IsCheatActive(e.Cheat.CheatType) ? "Activated" : "Deactivated", e.Cheat.CheatName);
+            else
+                msg = e.Cheat.CheatName;
+
+            DisplayMessage(Player, null, msg, LanguageMessageType.None);
         }
 
         private void GiveAllWeapons()

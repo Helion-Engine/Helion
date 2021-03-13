@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
@@ -40,10 +41,18 @@ namespace Helion.Client
                     break;
 
                 default:
-                    if (!CheatManager.Instance.HandleCommand(ccmdArgs.Command))
-                        Log.Info($"Unknown command: {ccmdArgs.Command}");
+                    HandleDefault(ccmdArgs);
                     break;
             }
+        }
+
+        private void HandleDefault(ConsoleCommandEventArgs ccmdArgs)
+        {
+            if (!m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? layer) || layer.World.EntityManager.Players.Count == 0)
+                return;
+            
+            if (!CheatManager.Instance.HandleCommand(layer.World.EntityManager.Players[0], ccmdArgs.Command))
+                Log.Info($"Unknown command: {ccmdArgs.Command}");
         }
 
         private void StartNewGame()

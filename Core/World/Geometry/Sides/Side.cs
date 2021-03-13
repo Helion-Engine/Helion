@@ -14,6 +14,10 @@ namespace Helion.World.Geometry.Sides
         public Vec2I Offset;
         public Line Line { get; internal set; }
         public Wall[] Walls { get; protected set; }
+        public SideDataTypes DataChanges { get; set; }
+        public bool DataChanged => DataChanges > 0;
+        // This is currently just for the renderer to know for scrolling lines to not cache
+        public bool OffsetChanged { get; set; }
 
         public bool IsFront => ReferenceEquals(this, Line.Front);
 

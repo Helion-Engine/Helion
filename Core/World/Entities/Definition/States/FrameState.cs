@@ -1,4 +1,5 @@
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Models;
 using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -17,9 +18,9 @@ namespace Helion.World.Entities.Definition.States
         private readonly Entity m_entity;
         private readonly EntityDefinition m_definition;
         private readonly EntityManager m_entityManager;
+        private readonly bool m_destroyOnStop;
         private int m_frameIndex;
         private int m_tics;
-        private bool m_destroyOnStop;
 
         public int CurrentTick => m_tics;
 
@@ -29,6 +30,17 @@ namespace Helion.World.Entities.Definition.States
             m_definition = definition;
             m_entityManager = entityManager;
             m_destroyOnStop = destroyOnStop;
+        }
+
+        public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager, 
+            FrameStateModel frameStateModel)
+        {
+            m_entity = entity;
+            m_definition = definition;
+            m_entityManager = entityManager;
+            m_frameIndex = frameStateModel.FrameIndex;
+            m_tics = frameStateModel.Tics;
+            m_destroyOnStop = frameStateModel.Destroy;
         }
 
         public bool SetState(FrameStateLabel label) => SetState(label.ToString());
@@ -124,6 +136,16 @@ namespace Helion.World.Entities.Definition.States
                 Log.Warn("Infinite loop detected in actor {0}, removing actor", m_definition.Name);
                 m_entityManager.Destroy(m_entity);
             }
+        }
+
+        public FrameStateModel ToFrameStateModel()
+        {
+            return new FrameStateModel()
+            {
+                FrameIndex = m_frameIndex,
+                Tics = m_tics,
+                Destroy = m_destroyOnStop
+            };
         }
     }
 }

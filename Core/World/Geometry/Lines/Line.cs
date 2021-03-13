@@ -1,12 +1,14 @@
 using Helion.Bsp.Geometry;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
+using System;
 
 namespace Helion.World.Geometry.Lines
 {
@@ -21,7 +23,9 @@ namespace Helion.World.Geometry.Lines
         public readonly SpecialArgs Args;
         public readonly LineFlags Flags;
         public readonly LineSpecial Special;
-        public bool Activated;
+        public bool Activated { get; private set; }
+        public LineDataTypes DataChanges { get; set; }
+        public bool DataChanged => DataChanges > 0;
         // Rendering hax...
         public bool Sky;
 
@@ -61,6 +65,76 @@ namespace Helion.World.Geometry.Lines
                 back.Line = this;
                 back.Sector.Lines.Add(this);
             }
+        }
+
+        public LineModel ToLineModel()
+        {
+            LineModel lineModel = new LineModel() { Id = Id, DataChanges = (int)DataChanges };
+            if (DataChanges.HasFlag(LineDataTypes.Activated))
+                lineModel.Activated = Activated;
+
+            if (DataChanges.HasFlag(LineDataTypes.Texture))
+            {
+                if (Front.DataChanged)
+                    lineModel.Front = ToSideModel(Front);
+                if (Back != null && Back.DataChanged)
+                    lineModel.Back = ToSideModel(Back);
+            }
+
+            return lineModel;
+        }
+
+        public void ApplyLineModel(LineModel lineModel)
+        {
+            DataChanges = (LineDataTypes)lineModel.DataChanges;
+            if (DataChanges.HasFlag(LineDataTypes.Activated) && lineModel.Activated.HasValue)
+                Activated = lineModel.Activated.Value;
+
+            if (DataChanges.HasFlag(LineDataTypes.Texture))
+            {
+                if (lineModel.Front != null && lineModel.Front.DataChanges > 0)
+                    ApplySideModel(Front, lineModel.Front);
+                if (Back != null && lineModel.Back != null && lineModel.Back.DataChanges > 0)
+                    ApplySideModel(Back, lineModel.Back);
+            }
+        }
+
+        private static void ApplySideModel(Side side, SideModel sideModel)
+        {
+            side.DataChanges = (SideDataTypes)sideModel.DataChanges;
+            if (side is TwoSided twoSided)
+            {
+                if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture) && sideModel.UpperTexture.HasValue)
+                    twoSided.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
+                if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture) && sideModel.LowerTexture.HasValue)
+                    twoSided.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
+            }
+
+            if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture) && sideModel.MiddleTexture.HasValue)
+                side.Middle.SetTexture(sideModel.MiddleTexture.Value, SideDataTypes.MiddleTexture);
+        }
+
+        private SideModel ToSideModel(Side side)
+        {
+            SideModel sideModel = new SideModel() { DataChanges = (int)side.DataChanges };
+            if (side is TwoSided twoSided)
+            {
+                if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
+                    sideModel.UpperTexture = twoSided.Upper.TextureHandle;
+                if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
+                    sideModel.LowerTexture = twoSided.Lower.TextureHandle;
+            }
+
+            if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))
+                sideModel.MiddleTexture = side.Middle.TextureHandle;
+
+            return sideModel;
+        }
+
+        public void SetActivated(bool set)
+        {
+            Activated = set;
+            DataChanges |= LineDataTypes.Activated;
         }
 
         /// <summary>

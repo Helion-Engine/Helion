@@ -3,7 +3,6 @@ using System.IO;
 using Helion.Bsp.External;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Locator;
-using Helion.Util;
 using Helion.Util.Bytes;
 using NLog;
 

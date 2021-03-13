@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
@@ -55,6 +56,18 @@ namespace Helion.World.Entities.Inventories
                 "PLASMARIFLE",
                 "BFG9000"
             };
+        }
+
+        public List<string> GetOwnedWeaponNames()
+        {
+            List<string> weapons = new List<string>();
+            foreach (var item in m_weaponSlots)
+            {
+                foreach (var subItem in item.Value)
+                    weapons.Add(subItem.Value.Definition.Name.ToString());
+            }
+
+            return weapons;
         }
 
         public (int, int) GetNextSlot(Player player) => CycleSlot(player, true);
@@ -124,14 +137,15 @@ namespace Helion.World.Entities.Inventories
         /// <param name="owner">The player that owns this weapon.</param>
         /// <param name="entityManager">The entity manager that the weapon will
         /// use when being fired.</param>
-        public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager)
+        public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,
+            FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null)
         {
             if (OwnsWeapon(definition.Name))
                 return null;
 
             var (slot, subslot) = GetWeaponSlot(definition);
 
-            Weapon weapon = new Weapon(definition, owner, entityManager);
+            Weapon weapon = new Weapon(definition, owner, entityManager, frameStateModel, flashStateModel);
             if (!m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons))
             {
                 m_weaponSlots[slot] = new Dictionary<int, Weapon>();

@@ -1,4 +1,5 @@
-﻿using Helion.Util;
+﻿using Helion.Models;
+using Helion.Util;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
@@ -30,6 +31,27 @@ namespace Helion.World.Special.Specials
                 m_min = sector.LightLevel;
                 m_max = m_lightLevel;
             }
+        }
+
+        public LightChangeSpecial(Sector sector, LightChangeSpecialModel model)
+        {
+            Sector = sector;
+            m_lightLevel = model.Light;
+            m_step = model.Step;
+            m_min = model.Min;
+            m_max = model.Max;
+        }
+
+        public override ISpecialModel? ToSpecialModel()
+        {
+            return new LightChangeSpecialModel()
+            {
+                SectorId = Sector.Id,
+                Light = m_lightLevel,
+                Step = m_step,
+                Min = m_min,
+                Max = m_max,
+            };
         }
 
         public override SpecialTickStatus Tick()

@@ -14,6 +14,7 @@ using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Extensions;
 using NLog;
 
@@ -108,6 +109,10 @@ namespace Helion.Resources.Archives.Collection
             }
 
             archive.OriginalFilePath = filePath;
+            string? md5 = Files.CalculateMD5(filePath);
+            if (md5 != null)
+                archive.MD5 = md5;
+
             Log.Info("Loaded {0}", filePath);
             return archive;
         }
@@ -184,9 +189,24 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
+        public Archive? GetIWad() => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);
+
+        public IEnumerable<Archive> GetFiles() => m_archives.Where(x => x.ArchiveType == ArchiveType.None);
+
+        public Archive? GetArchiveByFileName(string fileName)
+        {
+            foreach (var archive in m_archives)
+            {
+                if (Path.GetFileName(archive.OriginalFilePath).Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                    return archive;
+            }
+
+            return null;
+        }
+
         public IWadInfo GetIWadInfo()
         {
-            Archive? iwad = m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);
+            Archive? iwad = GetIWad();
             if (iwad != null)
                 return iwad.IWadInfo;
             return IWadInfo.DefaultIWadInfo;

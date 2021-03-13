@@ -5,6 +5,7 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Geometry;
@@ -29,13 +30,14 @@ namespace Helion.World.Entities
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public readonly SpawnLocations SpawnLocations = new SpawnLocations();
         public readonly WorldBase World;
+
         private readonly WorldSoundManager m_soundManager;
-        private readonly AvailableIndexTracker m_entityIdTracker = new AvailableIndexTracker();
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
 
         public readonly EntityDefinitionComposer DefinitionComposer;
-
         public readonly List<Player> Players = new List<Player>();
+
+        private int m_id;
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
         {
@@ -64,7 +66,7 @@ namespace Helion.World.Entities
 
         public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
         {
-            int id = m_entityIdTracker.Next();
+            int id = m_id++;
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, in position, zHeight);
             Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
@@ -159,6 +161,74 @@ namespace Helion.World.Entities
             }
         }
 
+        public class WorldModelPopulateResult
+        {
+            public WorldModelPopulateResult(Player player, Dictionary<int, Entity> entities)
+            {
+                Player = player;
+                Entities = entities;
+            }
+
+            public readonly Player Player;
+            public readonly Dictionary<int, Entity> Entities;
+        }
+
+        public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
+        {
+            Dictionary<int, Entity> entities = new Dictionary<int, Entity>();
+            for (int i = 0; i < worldModel.Entities.Count; i++)
+            {
+                var entityModel = worldModel.Entities[i];
+                var definition = DefinitionComposer.GetByName(entityModel.Name);
+                if (definition != null)
+                {
+                    var entity = new Entity(entityModel, definition, this, m_soundManager, World);
+                    var node = Entities.Add(entity);
+                    entity.EntityListNode = node;
+
+                    entities.Add(entity.Id, entity);
+                }
+            }
+
+            Player player = CreatePlayerFromWorldModel(worldModel, entities);
+            m_id = entities.Keys.Max() + 1;
+
+            for (int i = 0; i < worldModel.Entities.Count; i++)
+            {
+                var entityModel = worldModel.Entities[i];
+                var entity = entities[entityModel.Id];
+
+                if (entityModel.Owner.HasValue)
+                    entities.TryGetValue(entityModel.Owner.Value, out entity.Owner);
+                if (entityModel.Target.HasValue)
+                    entities.TryGetValue(entityModel.Target.Value, out entity.Target);
+                if (entityModel.Tracer.HasValue)
+                    entities.TryGetValue(entityModel.Tracer.Value, out entity.Tracer);
+            }
+
+            return new WorldModelPopulateResult(player, entities);
+        }
+
+        private Player CreatePlayerFromWorldModel(WorldModel worldModel, Dictionary<int, Entity> entities)
+        {
+            Player player;
+            var playerDefinition = DefinitionComposer.GetByName(worldModel.Player.Name);
+            if (playerDefinition != null)
+            {
+                player = new Player(worldModel.Player, entities, playerDefinition, this, m_soundManager, World);
+                Players.Add(player);
+                var node = Entities.Add(player);
+                player.EntityListNode = node;
+            }
+            else
+            {
+                player = CreatePlayer(0);
+            }
+
+            entities.Add(player.Id, player);
+            return player;
+        }
+
         private bool ShouldSpawn(IThing mapThing)
         {
             // TODO: These should be offloaded into SinglePlayerWorld...
@@ -221,7 +291,7 @@ namespace Helion.World.Entities
         
         private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)
         {
-            int id = m_entityIdTracker.Next();
+            int id = m_id++;
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, position, zHeight);
             Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);

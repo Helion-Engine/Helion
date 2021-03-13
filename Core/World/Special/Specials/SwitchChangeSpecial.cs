@@ -1,4 +1,5 @@
 ﻿using Helion.Audio;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
@@ -10,16 +11,14 @@ namespace Helion.World.Special.Specials
 {
     public class SwitchChangeSpecial : ISpecial
     {
-        private readonly SwitchManager m_manager;
-        private readonly WorldSoundManager m_soundManager;
+        private readonly IWorld m_world;
         private readonly Line m_line;
         private bool m_repeat;
         private int m_switchDelayTics;
 
-        public SwitchChangeSpecial(SwitchManager manager, WorldSoundManager soundManager, Line line, SwitchType type)
+        public SwitchChangeSpecial(IWorld world, Line line, SwitchType type)
         {
-            m_manager = manager;
-            m_soundManager = soundManager;
+            m_world = world;
             m_line = line;
             m_repeat = line.Flags.Repeat;
 
@@ -27,13 +26,31 @@ namespace Helion.World.Special.Specials
             {
                 // The level is about to exit so everything will be stopped
                 // Force play the switch exit sound and Tick to switch the line texture
-                soundManager.PlayStaticSound(Constants.SwitchExitSound);
+                world.SoundManager.PlayStaticSound(Constants.SwitchExitSound);
                 Tick();
             }
             else
             {
-                PlaySwitchSound(soundManager, line);
+                PlaySwitchSound(world.SoundManager, line);
             }
+        }
+
+        public SwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
+        {
+            m_world = world;
+            m_line = line;
+            m_repeat = model.Repeat;
+            m_switchDelayTics = model.Tics;
+        }
+
+        public ISpecialModel ToSpecialModel()
+        {
+            return new SwitchChangeSpecialModel()
+            {
+                LineId = m_line.Id,
+                Repeat = m_repeat,
+                Tics = m_switchDelayTics
+            };
         }
 
         public SpecialTickStatus Tick()
@@ -44,7 +61,7 @@ namespace Helion.World.Special.Specials
                 return SpecialTickStatus.Continue;
             }
 
-            m_manager.SetLineSwitch(m_line);
+            SwitchManager.SetLineSwitch(m_world.ArchiveCollection.Definitions, m_line);
 
             if (m_repeat)
             {
@@ -55,8 +72,8 @@ namespace Helion.World.Special.Specials
 
             if (m_line.Flags.Repeat)
             {
-                m_line.Activated = false;
-                PlaySwitchSound(m_soundManager, m_line);
+                m_line.SetActivated(false);
+                PlaySwitchSound(m_world.SoundManager, m_line);
             }
 
             return SpecialTickStatus.Destroy;

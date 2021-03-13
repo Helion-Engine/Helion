@@ -1,4 +1,5 @@
-﻿using Helion.Util;
+﻿using Helion.Models;
+using Helion.Util;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
@@ -18,6 +19,25 @@ namespace Helion.World.Special.Specials
             m_minBright = minLightLevel;
 
             m_inc = -DoomPulsateValue;
+        }
+
+        public LightPulsateSpecial(Sector sector, LightPulsateSpecialModel model)
+        {
+            Sector = sector;
+            m_maxBright = model.Max;
+            m_minBright = model.Min;
+            m_inc = model.Inc;
+        }
+
+        public override ISpecialModel? ToSpecialModel()
+        {
+            return new LightPulsateSpecialModel()
+            {
+                SectorId = Sector.Id,
+                Max = m_maxBright,
+                Min = m_minBright,
+                Inc = m_inc
+            };
         }
 
         public override SpecialTickStatus Tick()

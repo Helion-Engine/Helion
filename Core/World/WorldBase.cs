@@ -19,7 +19,6 @@ using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition.Properties.Components;
-using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Lines;
@@ -37,10 +36,11 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Container;
 using Helion.World.Entities.Definition;
+using Helion.Models;
 
 namespace Helion.World
 {
-    public abstract class WorldBase : IWorld
+    public abstract partial class WorldBase : IWorld
     {
         private const double MaxPitch = 80.0 * Math.PI / 180.0;
         private const double MinPitch = -80.0 * Math.PI / 180.0;
@@ -54,7 +54,7 @@ namespace Helion.World
         public event EventHandler<LevelChangeEvent>? LevelExit;
 
         public readonly long CreationTimeNanos;
-        public readonly CIString MapName;
+        public CIString MapName { get; protected set; }
         public readonly BlockMap Blockmap;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
@@ -78,8 +78,8 @@ namespace Helion.World
         public Config Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
         public SkillDef SkillDefinition { get; private set; }
+        public ArchiveCollection ArchiveCollection { get; protected set; }
 
-        protected readonly ArchiveCollection ArchiveCollection;
         protected readonly IAudioSystem AudioSystem;
         protected readonly MapGeometry Geometry;
         protected readonly SpecialManager SpecialManager;
@@ -94,7 +94,7 @@ namespace Helion.World
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
 
         protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map)
+            MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             CreationTimeNanos = Ticker.NanoTime();
             ArchiveCollection = archiveCollection;
@@ -110,6 +110,20 @@ namespace Helion.World
             EntityManager = new EntityManager(this, archiveCollection, SoundManager);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
             SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
+
+            if (worldModel == null)
+            {
+                SpecialManager.StartInitSpecials();
+            }
+            else
+            {
+                WorldState = worldModel.WorldState;
+                Gametick = worldModel.Gametick;
+                LevelTime = worldModel.LevelTime;
+                m_soundCount = worldModel.SoundCount;
+                Gravity = worldModel.Gravity;
+                ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+            }
         }
 
         ~WorldBase()
@@ -704,8 +718,7 @@ namespace Helion.World
                 thrustVelocity.Multiply(thrustAmount);
             }
 
-            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) ||
-                (target is Player player && (target.Flags.Invulnerable || player.Inventory.IsPowerupActive(PowerupType.Invulnerable))))
+            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || target.IsInvulnerable)
                 target.Velocity += thrustVelocity;
 
             return true;

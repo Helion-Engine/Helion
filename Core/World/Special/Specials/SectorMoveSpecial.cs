@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -17,7 +18,7 @@ namespace Helion.World.Special.Specials
         public SectorPlane SectorPlane { get; protected set; }
         public bool IsPaused { get; private set; }
 
-        protected readonly WorldBase m_world;
+        protected readonly IWorld m_world;
         protected double DestZ;
         protected int DelayTics;
 
@@ -30,13 +31,13 @@ namespace Helion.World.Special.Specials
         private bool m_playedReturnSound;
         private bool m_playedStartSound;
 
-        public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
+        public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
             SectorMoveData specialData)
             : this(world, sector, start, dest, specialData, new SectorSoundData())
         {
         }
 
-        public SectorMoveSpecial(WorldBase world, Sector sector, double start, double dest,
+        public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
             SectorMoveData specialData, SectorSoundData soundData)
         {
             Sector = sector;
@@ -54,6 +55,87 @@ namespace Helion.World.Special.Specials
             m_maxZ = Math.Max(m_startZ, DestZ);
 
             Sector.ActiveMoveSpecial = this;
+        }
+
+        public SectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
+        {
+            Sector = sector;
+            m_world = world;
+            MoveData = new SectorMoveData((SectorPlaneType)model.MoveType, (MoveDirection)model.StartDirection, 
+                (MoveRepetition)model.Repetion, model.Speed, model.Delay, FromCrushDataModel(model.Crush), model.FloorChange, 
+                model.DamageSpecial?.ToWorldSpecial(world));
+            SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
+            SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
+            m_startZ = model.StartZ;
+            DestZ = model.DestZ;
+            m_minZ = model.MinZ;
+            m_maxZ = model.MaxZ;
+            m_speed = model.CurrentSpeed;
+            DelayTics = model.DelayTics;
+            m_direction = (MoveDirection)model.Direction;
+            m_crushing = model.Crushing;
+            m_playedStartSound = model.PlayedStartSound;
+            m_playedReturnSound = model.PlayedReturnSound;
+            IsPaused = model.Paused;
+
+            Sector.ActiveMoveSpecial = this;
+        }
+
+        public virtual ISpecialModel ToSpecialModel()
+        {
+            return new SectorMoveSpecialModel()
+            {
+                SectorId = Sector.Id,
+                MoveType = (int)MoveData.SectorMoveType,
+                Repetion = (int)MoveData.MoveRepetition,
+                Speed = MoveData.Speed,
+                Delay = MoveData.Delay,
+                FloorChange = MoveData.FloorChangeTextureHandle,
+                StartDirection = (int)MoveData.StartDirection,
+                StartSound = SoundData.StartSound,
+                ReturnSound = SoundData.ReturnSound,
+                StopSound = SoundData.StopSound,
+                MovementSound = SoundData.MovementSound,
+                CurrentSpeed = m_speed,
+                DestZ = DestZ,
+                StartZ = m_startZ,
+                MinZ = m_minZ,
+                MaxZ = m_maxZ,
+                DelayTics = DelayTics,
+                Direction = (int)m_direction,
+                Crushing = m_crushing,
+                PlayedReturnSound = m_playedReturnSound,
+                PlayedStartSound = m_playedStartSound,
+                Paused = IsPaused,
+                DamageSpecial = CreateSectorDamageSpecialModel(),
+                Crush = CreateCrushDataModel()
+            };
+        }
+
+        public void SetDelayTics(int delayTics) => DelayTics = delayTics;
+
+        private static CrushData? FromCrushDataModel(CrushDataModel? model)
+        {
+            if (model == null)
+                return null;
+
+            return new CrushData(model);
+        }
+
+        private CrushDataModel? CreateCrushDataModel()
+        {
+            if (MoveData.Crush == null)
+                return null;
+
+            return MoveData.Crush.ToCrushDataModel();
+        }
+
+        private SectorDamageSpecialModel? CreateSectorDamageSpecialModel()
+        {
+            if (MoveData.DamageSpecial == null)
+                return null;
+
+            return MoveData.DamageSpecial.ToSectorDamageSpecialModel();
         }
 
         public virtual SpecialTickStatus Tick()
@@ -78,7 +160,7 @@ namespace Helion.World.Special.Specials
                 if (MoveData.FloorChangeTextureHandle != null)
                 {
                     Sector.SectorDamageSpecial = null;
-                    Sector.Floor.TextureHandle = MoveData.FloorChangeTextureHandle.Value;
+                    Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value);
                 }
 
                 if (MoveData.DamageSpecial != null)
@@ -210,27 +292,36 @@ namespace Helion.World.Special.Specials
 
             switch (status)
             {
-            case SectorMoveStatus.Blocked:
-                if (MoveData.MoveRepetition != MoveRepetition.None)
-                    FlipMovementDirection(true);
-                break;
-            case SectorMoveStatus.Crush when IsInitCrush:
-                Sector.DataChanged = true;
-                // TODO: Can we maybe make this into its own class to avoid the null issue?
-                if (MoveData.Crush == null)
-                    throw new NullReferenceException("Should never have a null crush component when having a crushing sector");
-                m_crushing = true;
-                if (MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
-                    m_speed = m_speed < 0 ? -0.1 : 0.1;
-                break;
+                case SectorMoveStatus.Blocked:
+                    if (MoveData.MoveRepetition != MoveRepetition.None)
+                        FlipMovementDirection(true);
+                    break;
 
-            case SectorMoveStatus.Success:
-                Sector.DataChanged = true;
-                break;
+                case SectorMoveStatus.Crush when IsInitCrush:
+                    SetSectorDataChange();
+                    // TODO: Can we maybe make this into its own class to avoid the null issue?
+                    if (MoveData.Crush == null)
+                        throw new NullReferenceException("Should never have a null crush component when having a crushing sector");
+                    m_crushing = true;
+                    if (MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
+                        m_speed = m_speed < 0 ? -0.1 : 0.1;
+                    break;
+
+                case SectorMoveStatus.Success:
+                    SetSectorDataChange();
+                    break;
             }
 
             if (m_crushing && status == SectorMoveStatus.Success)
                 m_crushing = false;
+        }
+
+        private void SetSectorDataChange()
+        {
+            if (MoveData.SectorMoveType == SectorPlaneType.Floor)
+                Sector.DataChanges |= SectorDataTypes.FloorZ;
+            else
+                Sector.DataChanges |= SectorDataTypes.CeilingZ;
         }
 
         private bool IsNonRepeat => MoveData.MoveRepetition == MoveRepetition.None || MoveData.MoveRepetition == MoveRepetition.ReturnOnBlock;

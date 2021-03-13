@@ -1,4 +1,5 @@
-﻿using Helion.Util.RandomGenerators;
+﻿using Helion.Models;
+using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
@@ -24,6 +25,29 @@ namespace Helion.World.Special.Specials
 
             if (!sync)
                 m_delay = random.NextByte() & 0x07;
+        }
+
+        public LightStrobeSpecial(Sector sector, LightStrobeSpecialModel model)
+        {
+            Sector = sector;
+            m_brightTics = model.BrightTics;
+            m_darkTics = model.DarkTics;
+            m_maxBright = model.Max;
+            m_minBright = model.Min;
+            m_delay = model.Delay;
+        }
+
+        public override ISpecialModel? ToSpecialModel()
+        {
+            return new LightStrobeSpecialModel()
+            {
+                SectorId = Sector.Id,
+                Max = m_maxBright,
+                Min = m_minBright,
+                BrightTics = m_brightTics,
+                DarkTics = m_darkTics,
+                Delay = m_delay
+            };
         }
 
         public override SpecialTickStatus Tick()

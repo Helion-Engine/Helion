@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helion.Models;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.IWad;
 
@@ -39,6 +40,15 @@ namespace Helion.Resources.Archives
         protected Archive(IEntryPath path)
         {
             Path = path;
+        }
+
+        public FileModel ToFileModel()
+        {
+            return new FileModel()
+            {
+                FileName = System.IO.Path.GetFileName(OriginalFilePath),
+                MD5 = MD5
+            };
         }
     }
 }

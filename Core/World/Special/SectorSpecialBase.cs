@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities;
+﻿using Helion.Models;
+using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special
@@ -28,6 +29,8 @@ namespace Helion.World.Special
         {
             // Unused
         }
+
+        public virtual ISpecialModel? ToSpecialModel() => null;
 
         public virtual bool IsPaused { get; }
     }

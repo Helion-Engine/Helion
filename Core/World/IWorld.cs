@@ -16,12 +16,16 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.Resources.Definitions.MapInfo;
+using System.IO;
+using Helion.Util;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
 
 namespace Helion.World
 {
     public interface IWorld : IDisposable
     {
+        CIString MapName { get; }
         int Gametick { get; }
         int LevelTime { get; }
         double Gravity { get; }
@@ -42,6 +46,7 @@ namespace Helion.World
         BlockmapTraverser BlockmapTraverser { get; }
         Config Config { get; }
         SkillDef SkillDefinition { get; }
+        ArchiveCollection ArchiveCollection { get; }
         bool Paused { get; }
 
         void Link(Entity entity);
@@ -71,7 +76,12 @@ namespace Helion.World
         void HandleEntityDeath(Entity deathEntity, Entity? deathSource);
         void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
         // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
-        public bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
+        bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
         void CreateTeleportFog(in Vec3D pos, bool playSound = true);
+        bool IsSectorIdValid(int sectorId) => sectorId > 0 && sectorId < Sectors.Count;
+        bool IsLineIdValid(int lineId) => lineId > 0 && lineId < Lines.Count;
+
+        void Serialize(StreamWriter stream);
+        void Deserialize(StreamReader stream);
     }
 }

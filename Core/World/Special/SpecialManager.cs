@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Definitions;
 using Helion.Util;
@@ -24,7 +25,6 @@ namespace Helion.World.Special
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
         private readonly IRandom m_random;
-        private readonly SwitchManager m_switchManager;
         private readonly WorldBase m_world;
 
         public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
@@ -46,10 +46,20 @@ namespace Helion.World.Special
         public SpecialManager(WorldBase world, DefinitionEntries definition, IRandom random)
         {
             m_world = world;
-            m_switchManager = new SwitchManager(definition);
             m_random = random;
+        }
 
-            StartInitSpecials();
+        public List<ISpecialModel> GetSpecialModels()
+        {
+            List<ISpecialModel> specials = new List<ISpecialModel>();
+            foreach (var special in m_specials)
+            {
+                ISpecialModel? specialModel = special.ToSpecialModel();
+                if (specialModel != null)
+                    specials.Add(specialModel);
+            }
+
+            return specials;
         }
 
         public void ResetInterpolation()
@@ -75,11 +85,11 @@ namespace Helion.World.Special
             {
                 if (ShouldCreateSwitchSpecial(args))
                 {
-                    AddSpecial(new SwitchChangeSpecial(m_switchManager, m_world.SoundManager, args.ActivateLineSpecial,
+                    AddSpecial(new SwitchChangeSpecial(m_world, args.ActivateLineSpecial,
                         GetSwitchType(args.ActivateLineSpecial.Special)));
                 }
 
-                args.ActivateLineSpecial.Activated = true;
+                args.ActivateLineSpecial.SetActivated(true);
             }
 
             return specialActivateSuccess;
@@ -90,7 +100,7 @@ namespace Helion.World.Special
             if (args.ActivationContext == ActivationContext.CrossLine)
                 return false;
 
-            return !args.ActivateLineSpecial.Activated && m_switchManager.IsLineSwitch(args.ActivateLineSpecial);
+            return !args.ActivateLineSpecial.Activated && SwitchManager.IsLineSwitch(m_world.ArchiveCollection.Definitions, args.ActivateLineSpecial);
         }
 
         private static SwitchType GetSwitchType(LineSpecial lineSpecial)
@@ -102,7 +112,7 @@ namespace Helion.World.Special
 
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
         {
-            sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
+            sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
                 new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
         }
@@ -154,9 +164,25 @@ namespace Helion.World.Special
             }
         }
 
+        public void AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
+        {
+            special.SetDelayTics(delayTics);
+            m_specials.AddLast(special);
+        }
+
         public void AddSpecial(ISpecial special)
         {
             m_specials.AddLast(special);
+        }
+
+        public void AddSpecialModels(IList<ISpecialModel> specialModels)
+        {
+            for (int i = 0; i < specialModels.Count; i++)
+            {
+                ISpecial? special = specialModels[i].ToWorldSpecial(m_world);
+                if (special != null)
+                    m_specials.AddLast(special);
+            }
         }
 
         public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay)
@@ -185,13 +211,13 @@ namespace Helion.World.Special
             return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, key);
         }
 
-        public ISpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
+        public SectorMoveSpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
             return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, 0);
         }
 
-        public ISpecial CreateDoorCloseSpecial(Sector sector, double speed)
+        public SectorMoveSpecial CreateDoorCloseSpecial(Sector sector, double speed)
         {
             double destZ = GetDestZ(sector, SectorDest.Floor);
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
@@ -287,7 +313,7 @@ namespace Helion.World.Special
             return new StairSpecial(m_world, sector, speed, height, delay, crush);
         }
 
-        private void StartInitSpecials()
+        public void StartInitSpecials()
         {
             var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.ActivationType == ActivationType.LevelStart);
             foreach (var line in lines)
@@ -341,10 +367,6 @@ namespace Helion.World.Special
                     AddSpecial(new LightPulsateSpecial(sector, sector.GetMinLightLevelNeighbor()));
                     break;
 
-                case ZDoomSectorSpecialType.SectorDoorClose30Seconds:
-                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorCloseSpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 30));
-                    break;
-
                 case ZDoomSectorSpecialType.LightStrobeSlowSync:
                     AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, true));
                     break;
@@ -353,8 +375,12 @@ namespace Helion.World.Special
                     AddSpecial(new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, true));
                     break;
 
+                case ZDoomSectorSpecialType.SectorDoorClose30Seconds:
+                    AddDelayedSpecial(CreateDoorCloseSpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 30);
+                    break;
+
                 case ZDoomSectorSpecialType.DoorRaiseIn5Minutes:
-                    AddSpecial(new DelayedExecuteSpecial(this, CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5));
+                    AddDelayedSpecial(CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5);
                     break;
 
                 case ZDoomSectorSpecialType.LightFireFlicker:
@@ -713,7 +739,7 @@ namespace Helion.World.Special
         private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, byte lockout)
         {
             double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
-            sector.Floor.TextureHandle = line.Front.Sector.Floor.TextureHandle;
+            sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
             sector.SectorDamageSpecial = null;
 
             SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
@@ -745,8 +771,8 @@ namespace Helion.World.Special
 
         private void HandleFloorDonut(Line line, Sector sector)
         {
-            List<Sector>? donutSectors = DonutSpecial.GetDonutSectors(sector);
-            if (donutSectors == null) 
+            IList<Sector> donutSectors = DonutSpecial.GetDonutSectors(sector);
+            if (donutSectors.Count < 3) 
                 return;
             
             var lowerSector = donutSectors[0];

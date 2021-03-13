@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities.Players;
+﻿using Helion.Models;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
@@ -8,6 +9,18 @@ namespace Helion.World.Special.Specials
         public SectorDamageEndSpecial(WorldBase world, Sector sector, int damage)
             : base(world, sector, damage)
         {
+        }
+
+        public SectorDamageEndSpecial(IWorld world, Sector sector, SectorDamageSpecialModel model)
+            : base(world, sector, model)
+        {
+        }
+
+        public override SectorDamageSpecialModel ToSectorDamageSpecialModel()
+        {
+            SectorDamageSpecialModel model = base.ToSectorDamageSpecialModel();
+            model.End = true;
+            return model;
         }
 
         public override void Tick(Player player)

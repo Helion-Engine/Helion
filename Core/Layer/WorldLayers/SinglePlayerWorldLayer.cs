@@ -1,6 +1,7 @@
 using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
+using Helion.Maps.Shared;
 using Helion.Render.Commands;
 using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
@@ -8,13 +9,13 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Models;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Time;
 using Helion.World;
-using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
@@ -23,7 +24,9 @@ using Helion.World.StatusBar;
 using Helion.World.Util;
 using NLog;
 using System;
+using System.IO;
 using static Helion.Util.Assertion.Assert;
+using System.Linq;
 
 namespace Helion.Layer.WorldLayers
 {
@@ -100,7 +103,6 @@ namespace Helion.Layer.WorldLayers
 
             Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
-            CheatManager.Instance.Clear();
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
@@ -108,16 +110,18 @@ namespace Helion.Layer.WorldLayers
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map, Player? existingPlayer = null)
+            ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map, 
+            Player? existingPlayer = null, WorldModel? worldModel = null)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
             if (geometry == null)
                 return null;
 
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, existingPlayer);
+            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, 
+                existingPlayer, worldModel);
         }
 
-        public void LoadMap(MapInfoDef mapDef, bool keepPlayer)
+        public void LoadMap(MapInfoDef mapDef, bool keepPlayer, WorldModel? worldModel = null)
         {
             IMap? map = ArchiveCollection.FindMap(mapDef.MapName);
             if (map == null)
@@ -129,22 +133,30 @@ namespace Helion.Layer.WorldLayers
             CurrentMap = mapDef;
 
             Player? existingPlayer = null;
-            if (keepPlayer && !m_world.Player.IsDead)
-                existingPlayer = m_world.Player;
-            else
-                CheatManager.Instance.Clear();
+            SkillLevel skillLevel;
+            if (worldModel == null)
+            {
+                if (keepPlayer && !m_world.Player.IsDead)
+                    existingPlayer = m_world.Player;
 
-            SkillDef? skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(Config.Game.Skill);
+                skillLevel = Config.Game.Skill;
+            }
+            else
+            {
+                skillLevel = worldModel.Skill;
+            }
+
+            SkillDef?  skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);
             if (skillDef == null)
             {
-                Log.Warn($"Could not find skill definition for {Config.Game.Skill}");
+                Log.Warn($"Could not find skill definition for {skillLevel}");
                 return;
             }
 
             // TODO there is some duplication with the static Create call and it's kind of messy
             // Should probably make this all work without the same Create so this function can be shared
             TextureManager.Init(ArchiveCollection, mapDef);
-            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, skillDef, map, existingPlayer);
+            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, skillDef, map, existingPlayer, worldModel);
             if (world == null)
             {
                 Log.Error("Unable to load map {0}", map.Name);
@@ -173,8 +185,25 @@ namespace Helion.Layer.WorldLayers
                 ChangeHudSize(false);
             else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
-            
-            base.HandleInput(input);
+            else if (input.ConsumeTypedKey(Config.Controls.Save))
+                SaveGame();
+            else if (input.ConsumeTypedKey(Config.Controls.Load))
+                LoadGame();
+			
+			base.HandleInput(input);
+        }
+
+        private void LoadGame()
+        {
+            using (StreamReader sr = new StreamReader("savegame0.hsg"))
+                m_world.Deserialize(sr);
+        }
+
+        private void SaveGame()
+        {
+            using (StreamWriter sw = new StreamWriter("savegame0.hsg"))
+                m_world.Serialize(sw);
+            m_world.DisplayMessage(World.EntityManager.Players[0], null, "Game saved.", LanguageMessageType.None);
         }
 
         public override void RunLogic()
@@ -265,7 +294,75 @@ namespace Helion.Layer.WorldLayers
                 case LevelChangeType.Reset:
                     LoadMap(CurrentMap, false);
                     break;
+
+                case LevelChangeType.LoadWorldModel:
+                    LoadWorldModel(e);
+                    break;
+
             }
+        }
+
+        private void LoadWorldModel(LevelChangeEvent e)
+        {
+            if (e.WorldModel == null)
+            {
+                Log.Error("Failed to load corrupt world.");
+                return;
+            }
+
+            if (!VerifyWorldModelFiles(e.WorldModel))
+                return;
+
+            MapInfoDef? loadMap = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(e.WorldModel.MapName);
+            if (loadMap == null)
+            {
+                Log.Error($"Unable to find map {e.WorldModel.MapName}");
+                return;
+            }
+
+            LoadMap(loadMap, false, e.WorldModel);
+        }
+
+        private bool VerifyWorldModelFiles(WorldModel worldModel)
+        {
+            if (!VerifyFileModel(worldModel.IWad))
+                return false;
+
+            if (worldModel.Files.Any(x => !VerifyFileModel(x)))
+                return false;
+
+            return true;
+        }
+
+        private bool VerifyFileModel(FileModel fileModel)
+        {
+            if (fileModel.FileName == null)
+            {
+                Log.Warn("File in save game was null.");
+                return true;
+            }
+
+            var archive = ArchiveCollection.GetArchiveByFileName(fileModel.FileName);
+            if (archive == null)
+            {
+                Log.Error($"Required archive  {fileModel.FileName} for this save game is not loaded.");
+                return false;
+            }
+
+            if (fileModel.MD5 == null)
+            {
+                Log.Warn("MD5 for file in save game was null.");
+                return true;
+            }
+
+            if (!fileModel.MD5.Equals(archive.MD5))
+            {
+                Log.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
+                Log.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");
+                return false;
+            }
+
+            return true;
         }
 
         private void ChangeLevel(LevelChangeEvent e)

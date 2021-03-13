@@ -23,16 +23,16 @@ namespace Helion.Util.RandomGenerators
             37, 216, 165, 212, 106, 197, 242, 98, 43, 39, 175, 254, 145, 190,
             84, 118, 222, 187, 136, 120, 163, 236, 249,
         };
-        
-        private byte m_randomIndex;
 
         public DoomRandom(byte index = 0)
         {
-            m_randomIndex = index;
+            RandomIndex = index;
         }
 
-        public byte NextByte() => Random[++m_randomIndex];
+        public byte NextByte() => Random[++RandomIndex];
 
         public int NextDiff() => NextByte() - NextByte();
+
+        public byte RandomIndex { get; set; }
     }
 }

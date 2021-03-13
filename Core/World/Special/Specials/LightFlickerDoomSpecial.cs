@@ -1,4 +1,5 @@
-﻿using Helion.Util.RandomGenerators;
+﻿using Helion.Models;
+using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials
@@ -16,6 +17,26 @@ namespace Helion.World.Special.Specials
             m_random = random;
             m_maxBright = sector.LightLevel;
             m_minBright = minLightLevel;
+        }
+
+        public LightFlickerDoomSpecial(Sector sector, IRandom random, LightFlickerDoomSpecialModel model)
+        {
+            Sector = sector;
+            m_random = random;
+            m_maxBright = model.Max;
+            m_minBright = model.Min;
+            m_delay = model.Delay;
+        }
+
+        public override ISpecialModel? ToSpecialModel()
+        {
+            return new LightFlickerDoomSpecialModel()
+            {
+                SectorId = Sector.Id,
+                Max = m_maxBright,
+                Min = m_minBright,
+                Delay = m_delay
+            };
         }
 
         public override SpecialTickStatus Tick()
