@@ -1,5 +1,8 @@
 namespace Helion.Util.RandomGenerators
 {
+    /// <summary>
+    /// Uses the Doom RNG table.
+    /// </summary>
     public class DoomRandom : IRandom
     {
         private static readonly byte[] Random = 
@@ -21,8 +24,10 @@ namespace Helion.Util.RandomGenerators
             70, 194, 253, 54, 14, 109, 226, 71, 17, 161, 93, 186, 87, 244, 138,
             20, 52, 123, 251, 26, 36, 17, 46, 52, 231, 232, 76, 31, 221, 84, 
             37, 216, 165, 212, 106, 197, 242, 98, 43, 39, 175, 254, 145, 190,
-            84, 118, 222, 187, 136, 120, 163, 236, 249,
+            84, 118, 222, 187, 136, 120, 163, 236, 249
         };
+
+        public byte RandomIndex { get; set; }
 
         public DoomRandom(byte index = 0)
         {
@@ -32,7 +37,5 @@ namespace Helion.Util.RandomGenerators
         public byte NextByte() => Random[++RandomIndex];
 
         public int NextDiff() => NextByte() - NextByte();
-
-        public byte RandomIndex { get; set; }
     }
 }
