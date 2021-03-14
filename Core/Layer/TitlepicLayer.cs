@@ -10,6 +10,7 @@ using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
+using Helion.World.Save;
 
 namespace Helion.Layer
 {
@@ -19,16 +20,18 @@ namespace Helion.Layer
         private readonly Config m_config;
         private readonly HelionConsole m_console;
         private readonly SoundManager m_soundManager;
+        private readonly SaveGameManager m_saveGameManager;
         
         protected override double Priority => 0.1;
 
         public TitlepicLayer(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
-            ArchiveCollection archiveCollection)
+            ArchiveCollection archiveCollection, SaveGameManager saveGameManager)
         {
             m_archiveCollection = archiveCollection;
             m_config = config;
             m_console = console;
             m_soundManager = soundManager;
+            m_saveGameManager = saveGameManager;
             Parent = parent;
         }
         
@@ -38,7 +41,7 @@ namespace Helion.Layer
 
             if (input.HasAnyKeyPressed() && Parent?.Count == 1)
             {
-                MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection);
+                MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Parent.Add(menuLayer);
             }

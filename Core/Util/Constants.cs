@@ -104,5 +104,8 @@ namespace Helion.Util
         public const int ExtraLightFactor = 32;
 
         public const double MaxSoundDistance = 2048.0;
+        
+        public const string MenuSelectIconActive = "M_SKULL1";
+        public const string MenuSelectIconInactive = "M_SKULL2";
     }
 }

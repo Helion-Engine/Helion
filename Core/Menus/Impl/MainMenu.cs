@@ -6,23 +6,23 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.World.Save;
 
 namespace Helion.Menus.Impl
 {
     public class MainMenu : Menu
     {
-        private static readonly Func<Menu?> TodoAction = () => null;
-        
-        public MainMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
+        public MainMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+            SaveGameManager saveManager) : 
             base(config, console, soundManager, archiveCollection, 8)
         {
             Components = Components.AddRange(new[] 
             {
                 new MenuImageComponent("M_DOOM", paddingY: 8),
                 CreateMenuOption("M_NGAME", -6, 2, CreateNewGameMenu()),
-                CreateMenuOption("M_OPTION", -15, 2, TodoAction),
-                CreateMenuOption("M_LOADG", 1, 2, TodoAction),
-                CreateMenuOption("M_SAVEG", 1, 2, TodoAction),
+                CreateMenuOption("M_OPTION", -15, 2, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
+                CreateMenuOption("M_LOADG", 1, 2, () => null),
+                CreateMenuOption("M_SAVEG", 1, 2, () => new SaveMenu(config, Console, soundManager, ArchiveCollection, saveManager)),
                 CreateMenuOption("M_QUITG", -3, 2, () => new QuitGameMenu(config, Console, soundManager, ArchiveCollection))
             });
 

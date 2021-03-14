@@ -18,6 +18,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
+using Helion.World.Save;
 using NLog;
 using OpenTK.Windowing.Common;
 using static Helion.Util.Assertion.Assert;
@@ -36,6 +37,7 @@ namespace Helion.Client
         private readonly GameLayerManager m_layerManager;
         private readonly NativeWinMouse? m_nativeWinMouse;
         private readonly SoundManager m_soundManager;
+        private readonly SaveGameManager m_saveGameManager;
         private readonly Window m_window;
         private bool m_disposed;
 
@@ -47,8 +49,9 @@ namespace Helion.Client
             m_console = console;
             m_audioSystem = audioSystem;
             m_archiveCollection = archiveCollection;
+            m_saveGameManager = new(config);
             m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
-            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager, m_audioSystem);
+            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager, m_audioSystem, m_saveGameManager);
             m_window = new Window(config, m_archiveCollection);
             
             m_console.OnConsoleCommandEvent += Console_OnCommand;

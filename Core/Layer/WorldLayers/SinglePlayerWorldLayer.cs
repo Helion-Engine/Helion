@@ -59,12 +59,12 @@ namespace Helion.Layer.WorldLayers
         public MapInfoDef CurrentMap { get; set; }
 
         private SinglePlayerWorldLayer(GameLayer parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
+            IAudioSystem audioSystem, SaveGameManager saveGameManager, SinglePlayerWorld world, MapInfoDef mapInfoDef)
             : base(parent, config, console, archiveCollection, audioSystem)
         {
             CurrentMap = mapInfoDef;
             m_world = world;
-            SaveManager = new SaveGameManager(Config);
+            SaveManager = saveGameManager;
             m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
 
@@ -104,7 +104,7 @@ namespace Helion.Layer.WorldLayers
 
         public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
-            SkillDef skillDef, IMap map)
+            SaveGameManager saveGameManager, SkillDef skillDef, IMap map)
         {
             string displayName = mapInfoDef.NiceName;
             if (mapInfoDef.LookupName.Length > 0)
@@ -118,7 +118,7 @@ namespace Helion.Layer.WorldLayers
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
+            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, saveGameManager, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
@@ -236,12 +236,7 @@ namespace Helion.Layer.WorldLayers
                 success = false;
             }
 
-            string msg;
-            if (success)
-                msg = "Game saved.";
-            else
-                msg = "Failed to save game.";
-
+            string msg = success ? "Game saved." : "Failed to save game.";
             m_world.DisplayMessage(World.EntityManager.Players[0], null, msg, LanguageMessageType.None);
         }
 
