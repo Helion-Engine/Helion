@@ -21,6 +21,13 @@ namespace Helion.Tests.Unit.Util.Extensions
             SomeEnumerable e = new(1);
             e.Empty().Should().BeFalse();
         }
+        
+        [Fact(DisplayName = "Filters nulls")]
+        public void CheckNotNull()
+        {
+            string?[] strings = { "", null, "hi" };
+            strings.WhereNotNull().Should().Equal("", "hi");
+        }
 
         private class SomeEnumerable : IEnumerable<int>
         {

@@ -207,7 +207,7 @@ namespace Helion.Layer.WorldLayers
 
         private void LoadGame()
         {
-            IList<SaveGame> saveGames = SaveManager.GetSaveGames();
+            List<SaveGame> saveGames = SaveManager.GetSaveGames();
 
             if (saveGames.Count > 0)
             {
