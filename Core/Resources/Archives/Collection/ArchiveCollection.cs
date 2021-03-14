@@ -31,7 +31,7 @@ namespace Helion.Resources.Archives.Collection
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
-        public IWadType IWadType { get; set; } = IWadType.None;
+        public IWadType IWadType { get; private set; } = IWadType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Font?> m_fonts = new();
