@@ -67,6 +67,14 @@ namespace Helion.Layer
         });
 
         /// <summary>
+        /// Checks if either menu types.
+        /// </summary>
+        /// <typeparam name="T1">The first menu type.</typeparam>
+        /// <typeparam name="T2">The second menu type.</typeparam>
+        /// <returns>If it contains either T1 or T2.</returns>
+        public bool ContainsEither<T1, T2>() => Contains<T1>() || Contains<T2>();
+
+        /// <summary>
         /// Removes by type.
         /// </summary>
         /// <typeparam name="T">The type to remove.</typeparam>
