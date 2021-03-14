@@ -20,6 +20,7 @@ using System.IO;
 using Helion.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
+using Helion.Models;
 
 namespace Helion.World
 {
@@ -47,6 +48,7 @@ namespace Helion.World
         Config Config { get; }
         SkillDef SkillDefinition { get; }
         ArchiveCollection ArchiveCollection { get; }
+        MapInfoDef MapInfo { get; }
         bool Paused { get; }
 
         void Link(Entity entity);
@@ -81,7 +83,6 @@ namespace Helion.World
         bool IsSectorIdValid(int sectorId) => sectorId > 0 && sectorId < Sectors.Count;
         bool IsLineIdValid(int lineId) => lineId > 0 && lineId < Lines.Count;
 
-        void Serialize(StreamWriter stream);
-        void Deserialize(StreamReader stream);
+        WorldModel ToWorldModel();
     }
 }

@@ -24,9 +24,11 @@ using Helion.World.StatusBar;
 using Helion.World.Util;
 using NLog;
 using System;
-using System.IO;
 using static Helion.Util.Assertion.Assert;
 using System.Linq;
+using Newtonsoft.Json;
+using Helion.World.Save;
+using System.Collections.Generic;
 
 namespace Helion.Layer.WorldLayers
 {
@@ -34,6 +36,14 @@ namespace Helion.Layer.WorldLayers
     {
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        private static readonly JsonSerializerSettings DefaultSerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            TypeNameHandling = TypeNameHandling.Auto,
+            DefaultValueHandling = DefaultValueHandling.Ignore
+        };
 
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
@@ -195,15 +205,44 @@ namespace Helion.Layer.WorldLayers
 
         private void LoadGame()
         {
-            using (StreamReader sr = new StreamReader("savegame0.hsg"))
-                m_world.Deserialize(sr);
+            SaveGameManager manager = new SaveGameManager(Config);
+            IList<SaveGame> saveGames = manager.GetSaveGames();
+
+            if (saveGames.Count > 0)
+            {
+                WorldModel? worldModel = saveGames[0].ReadWorldModel();
+                if (worldModel == null)
+                    Log.Error("Failed to load corrupt world.");
+                else
+                    LoadWorldModel(worldModel);
+            }
         }
 
         private void SaveGame()
         {
-            using (StreamWriter sw = new StreamWriter("savegame0.hsg"))
-                m_world.Serialize(sw);
-            m_world.DisplayMessage(World.EntityManager.Players[0], null, "Game saved.", LanguageMessageType.None);
+            const string SaveTitle = "Save";
+            bool success = true;
+            try
+            {
+                SaveGameManager manager = new SaveGameManager(Config);
+                IList<SaveGame> saveGames = manager.GetSaveGames();
+                if (saveGames.Count > 0)
+                    manager.WriteSaveGame(World, SaveTitle, saveGames[0]);
+                else
+                    manager.WriteNewSaveGame(World, SaveTitle);
+            }
+            catch
+            {
+                success = false;
+            }
+
+            string msg;
+            if (success)
+                msg = "Game saved.";
+            else
+                msg = "Failed to save game.";
+
+            m_world.DisplayMessage(World.EntityManager.Players[0], null, msg, LanguageMessageType.None);
         }
 
         public override void RunLogic()
@@ -294,33 +333,22 @@ namespace Helion.Layer.WorldLayers
                 case LevelChangeType.Reset:
                     LoadMap(CurrentMap, false);
                     break;
-
-                case LevelChangeType.LoadWorldModel:
-                    LoadWorldModel(e);
-                    break;
-
             }
         }
 
-        private void LoadWorldModel(LevelChangeEvent e)
+        private void LoadWorldModel(WorldModel worldModel)
         {
-            if (e.WorldModel == null)
-            {
-                Log.Error("Failed to load corrupt world.");
-                return;
-            }
-
-            if (!VerifyWorldModelFiles(e.WorldModel))
+            if (!VerifyWorldModelFiles(worldModel))
                 return;
 
-            MapInfoDef? loadMap = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(e.WorldModel.MapName);
+            MapInfoDef? loadMap = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(worldModel.MapName);
             if (loadMap == null)
             {
-                Log.Error($"Unable to find map {e.WorldModel.MapName}");
+                Log.Error($"Unable to find map {worldModel.MapName}");
                 return;
             }
 
-            LoadMap(loadMap, false, e.WorldModel);
+            LoadMap(loadMap, false, worldModel);
         }
 
         private bool VerifyWorldModelFiles(WorldModel worldModel)
