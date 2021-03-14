@@ -10,4 +10,12 @@
         DoomShareware,
         ChexQuest
     }
+    
+    public static class IWadTypeExtensions 
+    {
+        public static bool IsDoom1(this IWadType iwadType)
+        {
+            return iwadType == IWadType.UltimateDoom || iwadType == IWadType.DoomShareware;
+        }
+    }
 }

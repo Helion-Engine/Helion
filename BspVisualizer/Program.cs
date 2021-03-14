@@ -53,7 +53,7 @@ namespace BspVisualizer
             if (HandledInvalidArguments(args))
                 return;
 
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), IwadType.Doom2);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator());
             if (!archiveCollection.Load(new List<string> { args[0] }))
             {
                 MessageBox.Show($@"Error loading file at path: {args[0]}", @"BspVisualizer Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);

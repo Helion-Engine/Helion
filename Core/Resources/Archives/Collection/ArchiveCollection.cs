@@ -28,17 +28,16 @@ namespace Helion.Resources.Archives.Collection
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly IwadType IwadType;
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
+        public IWadType IWadType { get; set; } = IWadType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Font?> m_fonts = new();
 
-        public ArchiveCollection(IArchiveLocator archiveLocator, IwadType iwadType)
+        public ArchiveCollection(IArchiveLocator archiveLocator)
         {
-            IwadType = iwadType;
             m_archiveLocator = archiveLocator;
             Definitions = new DefinitionEntries(this);
         }
@@ -47,8 +46,6 @@ namespace Helion.Resources.Archives.Collection
         {
             List<Archive> loadedArchives = new();
             List<string> filePaths = new();
-
-            Archive? assetsArchive = null;
             Archive? iwadArchive = null;
 
             // If we have nothing loaded, we want to make sure assets.pk3 is
@@ -56,7 +53,7 @@ namespace Helion.Resources.Archives.Collection
             // if we have already loaded it.
             if (loadDefaultAssets && m_archives.Empty())
             {
-                assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets);
+                Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets);
                 if (assetsArchive == null)
                     return false;
 
@@ -85,6 +82,7 @@ namespace Helion.Resources.Archives.Collection
 
             ProcessAndIndexEntries(iwadArchive, loadedArchives);
             m_archives.AddRange(loadedArchives);
+            IWadType = GetIWadInfo().IWadType;
 
             return true;
         }

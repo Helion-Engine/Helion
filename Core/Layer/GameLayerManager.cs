@@ -43,7 +43,7 @@ namespace Helion.Layer
         public override void Add(GameLayer layer)
         {
             if (layer is TitlepicLayer titlepicLayer)
-                titlepicLayer.PlayMusic(m_archiveCollection.IwadType, m_audioSystem);
+                titlepicLayer.PlayMusic(m_archiveCollection.IWadType, m_audioSystem);
             
             if (layer is SinglePlayerWorldLayer)
             {

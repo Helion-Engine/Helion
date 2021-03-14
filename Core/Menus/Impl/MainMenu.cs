@@ -1,8 +1,8 @@
 ﻿using System;
 using Helion.Audio.Sounds;
 using Helion.Menus.Base;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 
@@ -35,7 +35,8 @@ namespace Helion.Menus.Impl
 
         private Func<Menu?> CreateNewGameMenu()
         {
-            return ArchiveCollection.IwadType == IwadType.Doom ?
+            IWadType iwad = ArchiveCollection.IWadType;
+            return iwad == IWadType.UltimateDoom || iwad == IWadType.DoomShareware ?
                 () => new NewGameEpisodeMenu(Config, Console, SoundManager, ArchiveCollection) :
                 () => new NewGameSkillMenu(Config, Console, SoundManager, ArchiveCollection, null);
         }

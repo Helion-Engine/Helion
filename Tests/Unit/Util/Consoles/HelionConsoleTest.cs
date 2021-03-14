@@ -9,7 +9,7 @@ namespace Helion.Tests.Unit.Util.Consoles
         [Fact(DisplayName = "Can add messages to the console")]
         public void AddMessages()
         {
-            HelionConsole console = new();
+            using HelionConsole console = new();
             
             console.AddMessage("hello!");
             
@@ -20,7 +20,7 @@ namespace Helion.Tests.Unit.Util.Consoles
         [Fact(DisplayName = "Add input to console")]
         public void AddInput()
         {
-            HelionConsole console = new();
+            using HelionConsole console = new();
             
             console.AddInput("yes hi");
             
@@ -30,7 +30,7 @@ namespace Helion.Tests.Unit.Util.Consoles
         [Fact(DisplayName = "Submit console input with new lines")]
         public void SubmitInputWithNewlines()
         {
-            HelionConsole console = new();
+            using HelionConsole console = new();
             using var monitor = console.Monitor();
             
             console.AddInput("stuff a b\n");
@@ -49,7 +49,7 @@ namespace Helion.Tests.Unit.Util.Consoles
         [Fact(DisplayName = "Submit console input manually")]
         public void SubmitInput()
         {
-            HelionConsole console = new();
+            using HelionConsole console = new();
             using var monitor = console.Monitor();
             
             console.AddInput("stuff a b");
@@ -69,7 +69,7 @@ namespace Helion.Tests.Unit.Util.Consoles
         [Fact(DisplayName = "Clear console input")]
         public void ClearInput()
         {
-            HelionConsole console = new();
+            using HelionConsole console = new();
             using var monitor = console.Monitor();
             
             console.AddInput("stuff a b");

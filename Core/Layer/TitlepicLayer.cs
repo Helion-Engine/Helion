@@ -4,9 +4,9 @@ using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus.Impl;
 using Helion.Render.Commands;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
@@ -55,9 +55,9 @@ namespace Helion.Layer
             base.Render(commands);
         }
 
-        public void PlayMusic(IwadType iwadType, IAudioSystem audioSystem)
+        public void PlayMusic(IWadType iwadType, IAudioSystem audioSystem)
         {
-            string entryName = iwadType == IwadType.Doom2 ? "D_DM2TTL" : "D_INTRO";
+            string entryName = iwadType.IsDoom1() ? "D_INTRO" : "D_DM2TTL";
             Entry? entry = m_archiveCollection.Entries.FindByName(entryName);
             if (entry == null) 
                 return;
