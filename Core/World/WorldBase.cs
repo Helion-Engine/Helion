@@ -214,9 +214,13 @@ namespace Helion.World
 
             if (WorldState == WorldState.Exit)
             {
+                SoundManager.Tick();
                 m_exitTicks--;
                 if (m_exitTicks == 0)
+                {
                     LevelExit?.Invoke(this, new LevelChangeEvent(m_levelChangeType));
+                    WorldState = WorldState.Exited;
+                }
             }
             else if (WorldState == WorldState.Normal)
             {
@@ -243,11 +247,10 @@ namespace Helion.World
 
                 SpecialManager.Tick();
                 TextureManager.Instance.Tick();
+                SoundManager.Tick();
 
                 LevelTime++;
             }
-
-            SoundManager.Tick();
 
             Gametick++;
         }

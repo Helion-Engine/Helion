@@ -3,6 +3,7 @@
     public enum WorldState
     {
         Normal,
-        Exit
+        Exit,
+        Exited
     }
 }
