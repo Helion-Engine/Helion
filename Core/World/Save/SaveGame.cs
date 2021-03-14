@@ -29,12 +29,19 @@ namespace Helion.World.Save
         {
             FileName = filename;
 
-            using ZipArchive zipArchive = ZipFile.Open(FileName, ZipArchiveMode.Read);
-            ZipArchiveEntry? saveDataEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(SaveDataFile));
-            if (saveDataEntry == null)
-                return;
+            try
+            {
+                using ZipArchive zipArchive = ZipFile.Open(FileName, ZipArchiveMode.Read);
+                ZipArchiveEntry? saveDataEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(SaveDataFile));
+                if (saveDataEntry == null)
+                    return;
 
-            Model = JsonConvert.DeserializeObject<SaveGameModel>(GetEntryString(saveDataEntry), DefaultSerializerSettings);
+                Model = JsonConvert.DeserializeObject<SaveGameModel>(GetEntryString(saveDataEntry), DefaultSerializerSettings);
+            }
+            catch
+            {
+                // Corrupt zip or bad serialize
+            }
         }
 
         public WorldModel? ReadWorldModel()
