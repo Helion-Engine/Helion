@@ -11,7 +11,7 @@ namespace Helion.Audio.Impl
 {
     public class OpenALAudioSource : IAudioSource
     {
-    private const float DefaultRolloff = 2.5f;
+        private const float DefaultRolloff = 2.5f;
         private const float DefaultReference = 296.0f;
         private const float DefaultMaxDistance = (float)Constants.MaxSoundDistance;
         private const float DefaultRadius = 32.0f;
