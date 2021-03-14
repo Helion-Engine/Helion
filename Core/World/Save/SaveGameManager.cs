@@ -27,7 +27,7 @@ namespace Helion.World.Save
         public IList<SaveGame> GetSaveGames()
         {
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.hsg");
-            List<SaveGame> saveGames = new List<SaveGame>(files.Length);
+            List<SaveGame> saveGames = new(files.Length);
 
             foreach (string file in files)
                 saveGames.Add(new SaveGame(file));

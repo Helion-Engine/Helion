@@ -20,15 +20,15 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Save;
 using Helion.World.StatusBar;
 using Helion.World.Util;
+using Newtonsoft.Json;
 using NLog;
 using System;
-using static Helion.Util.Assertion.Assert;
 using System.Linq;
-using Newtonsoft.Json;
-using Helion.World.Save;
 using System.Collections.Generic;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers
 {
@@ -45,6 +45,7 @@ namespace Helion.Layer.WorldLayers
             DefaultValueHandling = DefaultValueHandling.Ignore
         };
 
+        public readonly SaveGameManager SaveManager;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys;
@@ -63,6 +64,7 @@ namespace Helion.Layer.WorldLayers
         {
             CurrentMap = mapInfoDef;
             m_world = world;
+            SaveManager = new SaveGameManager(Config);
             m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
 
@@ -205,8 +207,7 @@ namespace Helion.Layer.WorldLayers
 
         private void LoadGame()
         {
-            SaveGameManager manager = new SaveGameManager(Config);
-            IList<SaveGame> saveGames = manager.GetSaveGames();
+            IList<SaveGame> saveGames = SaveManager.GetSaveGames();
 
             if (saveGames.Count > 0)
             {
@@ -224,12 +225,11 @@ namespace Helion.Layer.WorldLayers
             bool success = true;
             try
             {
-                SaveGameManager manager = new SaveGameManager(Config);
-                IList<SaveGame> saveGames = manager.GetSaveGames();
+                IList<SaveGame> saveGames = SaveManager.GetSaveGames();
                 if (saveGames.Count > 0)
-                    manager.WriteSaveGame(World, SaveTitle, saveGames[0]);
+                    SaveManager.WriteSaveGame(World, SaveTitle, saveGames[0]);
                 else
-                    manager.WriteNewSaveGame(World, SaveTitle);
+                    SaveManager.WriteNewSaveGame(World, SaveTitle);
             }
             catch
             {
