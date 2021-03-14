@@ -438,7 +438,7 @@ namespace Helion.Layer.WorldLayers
             if ((int)Config.Hud.StatusBarSize.Value != size)
             {
                 Config.Hud.StatusBarSize.Set((StatusBarSizeType)size);
-                m_world.SoundManager.PlayStaticSound(Constants.PlatMoveSound);
+                m_world.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
             }
         }
     }

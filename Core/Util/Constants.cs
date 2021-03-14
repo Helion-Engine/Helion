@@ -82,6 +82,19 @@ namespace Helion.Util
 
         public static readonly string TeleportSound = "misc/teleport";
 
+        public static class MenuSounds
+        {
+            public static readonly string Activate = "menu/activate";
+            public static readonly string Backup = "menu/backup";
+            public static readonly string Prompt = "menu/prompt";
+            public static readonly string Cursor = "menu/cursor";
+            public static readonly string Change = "menu/change";
+            public static readonly string Invalid = "menu/invalid";
+            public static readonly string Dismiss = "menu/dismiss";
+            public static readonly string Choose = "menu/choose";
+            public static readonly string Clear = "menu/clear";
+        }
+
         public const double EntityShootDistance = 8192.0;
         public const double EntityMeleeDistance = 64.0;
         public const double DefaultSpreadAngle = 5.6 * Math.PI / 180.0;

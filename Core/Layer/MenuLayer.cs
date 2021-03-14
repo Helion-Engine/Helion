@@ -67,7 +67,7 @@ namespace Helion.Layer
                 Menu? subMenu = menu.CurrentComponent.Action();
                 if (subMenu != null)
                 {
-                    m_soundManager.PlayStaticSound("weapons/pistol");
+                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                     m_menus.Push(subMenu);
                 }
             }
@@ -75,13 +75,17 @@ namespace Helion.Layer
             if (input.ConsumeKeyPressed(Key.Escape))
             {
                 if (m_menus.Count >= 1)
-                {
-                    m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
                     m_menus.Pop();
-                }
-                    
+
                 if (m_menus.Empty())
+                {
                     Parent?.Remove<MenuLayer>();
+                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
+                }
+                else
+                {
+                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
+                }
             }
         }
 

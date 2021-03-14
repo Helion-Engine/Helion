@@ -70,7 +70,7 @@ namespace Helion.Layer
 
             if (Contains<HelpLayer>() && input.ConsumeKeyPressed(Key.Escape))
             {
-                m_soundManager.PlayStaticSound("menu/clear");
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
                 Remove<HelpLayer>();
             }
 
@@ -81,7 +81,7 @@ namespace Helion.Layer
 
             void CreateAndAddMenu()
             {
-                m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
                 
                 MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
@@ -93,7 +93,7 @@ namespace Helion.Layer
 
         private void CreateAndAddHelp()
         {
-            m_soundManager.PlayStaticSound("menu/prompt");
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Prompt);
 
             HelpLayer helpLayer = new(m_archiveCollection);
             Add(helpLayer);
