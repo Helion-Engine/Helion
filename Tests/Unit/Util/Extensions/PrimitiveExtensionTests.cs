@@ -44,5 +44,16 @@ namespace Helion.Tests.Unit.Util.Extensions
             if (Math.Abs(d) > 0.0001)
                 ((float)d).ApproxZero().Should().Be(isZero);
         }
+
+        [Theory(DisplayName = "Interpolate between primitives")]
+        [InlineData(0, 1, 0.64, 0.64)]
+        [InlineData(1, 0, 0.2, 0.8)]
+        [InlineData(2, 4, 2, 6)]
+        [InlineData(5, 6, -2, 3)]
+        public void CanInterpolate(double first, double second, double t, double expected)
+        {
+            first.Interpolate(second, t).Should().Be(expected);
+            ((float)first).Interpolate((float)second, (float)t).Should().Be((float)expected);
+        }
     }
 }

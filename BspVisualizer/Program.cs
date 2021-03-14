@@ -44,9 +44,6 @@ namespace BspVisualizer
             return NotEnoughArguments(args) || FileDoesNotExist(args[0]) || BadMapName(args[1]);
         }
 
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         public static void Main(string[] args)
         {
