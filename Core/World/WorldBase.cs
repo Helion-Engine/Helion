@@ -1132,5 +1132,90 @@ namespace Helion.World
                 }
             }
         }
+
+        public WorldModel ToWorldModel()
+        {
+            List<SectorModel> sectorModels = new List<SectorModel>();
+            List<SectorDamageSpecialModel> sectorDamageSpecialModels = new List<SectorDamageSpecialModel>();
+            SetSectorModels(sectorModels, sectorDamageSpecialModels);
+
+            return new WorldModel()
+            {
+                IWad = GetIWadFileModel(),
+                Files = GetFileModels(),
+                MapName = MapName.ToString(),
+                WorldState = WorldState,
+                Gametick = Gametick,
+                LevelTime = LevelTime,
+                SoundCount = m_soundCount,
+                Gravity = Gravity,
+                RandomIndex = ((DoomRandom)Random).RandomIndex,
+                Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
+
+                Player = EntityManager.Players[0].ToPlayerModel(),
+                Entities = GetEntityModels(),
+                Sectors = sectorModels,
+                DamageSpecials = sectorDamageSpecialModels,
+                Lines = GetLineModels(),
+                Specials = SpecialManager.GetSpecialModels()
+            };
+        }
+
+        private FileModel GetIWadFileModel()
+        {
+            var archive = ArchiveCollection.GetIWad();
+            if (archive != null)
+                return archive.ToFileModel();
+
+            return new FileModel();
+        }
+
+        private IList<FileModel> GetFileModels()
+        {
+            List<FileModel> fileModels = new List<FileModel>();
+            var archives = ArchiveCollection.GetFiles();
+            foreach (var archive in archives)
+                fileModels.Add(archive.ToFileModel());
+
+            return fileModels;
+        }
+
+        private List<EntityModel> GetEntityModels()
+        {
+            List<EntityModel> entityModels = new List<EntityModel>();
+            EntityManager.Entities.ForEach(entity =>
+            {
+                if (entity is not Player)
+                    entityModels.Add(entity.ToEntityModel(new EntityModel()));
+            });
+            return entityModels;
+        }
+
+        private void SetSectorModels(List<SectorModel> sectorModels, List<SectorDamageSpecialModel> sectorDamageSpecialModels)
+        {
+            for (int i = 0; i < Sectors.Count; i++)
+            {
+                Sector sector = Sectors[i];
+                if (sector.SoundTarget != null || sector.DataChanged)
+                    sectorModels.Add(sector.ToSectorModel());
+                if (sector.SectorDamageSpecial != null)
+                    sectorDamageSpecialModels.Add(sector.SectorDamageSpecial.ToSectorDamageSpecialModel());
+            }
+        }
+
+        private List<LineModel> GetLineModels()
+        {
+            List<LineModel> lineModels = new List<LineModel>();
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                Line line = Lines[i];
+                if (!line.DataChanged)
+                    continue;
+
+                lineModels.Add(line.ToLineModel());
+            }
+
+            return lineModels;
+        }
     }
 }

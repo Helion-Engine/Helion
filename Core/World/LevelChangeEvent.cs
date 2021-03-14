@@ -23,12 +23,6 @@ namespace Helion.World
             ChangeType = LevelChangeType.SpecificLevel;
             LevelNumber = levelNumber;
         }
-
-        public LevelChangeEvent(WorldModel worldModel)
-        {
-            WorldModel = worldModel;
-            ChangeType = LevelChangeType.LoadWorldModel;
-        }
     }
 
     public enum LevelChangeType
@@ -36,7 +30,6 @@ namespace Helion.World
         Next,
         SecretNext,
         SpecificLevel,
-        Reset,
-        LoadWorldModel
+        Reset
     }
 }
