@@ -68,6 +68,12 @@ namespace Helion.World.Impl.SinglePlayer
                 CreateDamageSpecials(worldModel);
 
                 EntityManager.Entities.ForEach(entity => Link(entity));
+                // Need to link again for clipping/stacked physics to be set correctly
+                EntityManager.Entities.ForEach(entity =>
+                {
+                    entity.UnlinkFromWorld();
+                    Link(entity);
+                });
 
                 SpecialManager.AddSpecialModels(worldModel.Specials);
             }
