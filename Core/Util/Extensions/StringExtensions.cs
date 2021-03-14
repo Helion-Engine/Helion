@@ -7,7 +7,7 @@ namespace Helion.Util.Extensions
     /// </summary>
     public static class StringExtensions
     {
-        private static readonly Regex MD5Regex = new Regex(@"[0-9a-zA-Z]{32}", RegexOptions.Compiled);
+        private static readonly Regex MD5Regex = new(@"[0-9a-fA-F]{32}", RegexOptions.Compiled);
         
         /// <summary>
         /// Checks if the string has no characters.

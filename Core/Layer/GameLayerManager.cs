@@ -65,6 +65,15 @@ namespace Helion.Layer
                 CreateAndAddMenu();
             }
 
+            if (!ContainsEither<ConsoleLayer, HelpLayer>() && input.ConsumeKeyPressed(Key.F1))
+                CreateAndAddHelp();
+
+            if (Contains<HelpLayer>() && input.ConsumeKeyPressed(Key.Escape))
+            {
+                m_soundManager.PlayStaticSound("menu/clear");
+                Remove<HelpLayer>();
+            }
+
             if (!Contains<MenuLayer>() && input.ConsumeKeyPressed(Key.Escape))
                 CreateAndAddMenu();
 
@@ -81,6 +90,14 @@ namespace Helion.Layer
         }
 
         private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
+
+        private void CreateAndAddHelp()
+        {
+            m_soundManager.PlayStaticSound("menu/prompt");
+
+            HelpLayer helpLayer = new(m_archiveCollection);
+            Add(helpLayer);
+        }
 
         private void HandleConsoleToggle(InputEvent input)
         {
