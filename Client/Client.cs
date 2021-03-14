@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -211,30 +213,42 @@ namespace Helion.Client
             LogClientInfo();
             LogAnyCommandLineErrors(commandLineArgs);
 
+#if DEBUG
+            Run(commandLineArgs);
+#else
+            RunRelease(commandLineArgs);
+#endif
+
+            ForceFinalizersIfDebugMode();
+            LogManager.Shutdown();
+        }
+
+        private static void RunRelease(CommandLineArgs commandLineArgs)
+        {
             try
             {
-                using Config config = new();
-                ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config));
-                using HelionConsole console = new(config);
-                using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
-                using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
-                using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
-                client.Run();
+                Run(commandLineArgs);
             }
             catch (Exception e)
             {
-                Log.Error("Unexpected error: {0}", e.Message);
-#if DEBUG
-                throw;
-#else
-                // TODO: Maybe make a Win32 popup saying "Oops" so it doesn't just vanish
-#endif
+                string msg = e.ToString();
+                Log.Error(msg);
+                File.WriteAllText("errorlog.txt", msg);
+                // TODO verify this doesn't prevent from loading on other platforms...
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            finally
-            {
-                ForceFinalizersIfDebugMode();
-                LogManager.Shutdown();
-            }
+        }
+
+        private static void Run(CommandLineArgs commandLineArgs)
+        {
+            using Config config = new();
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config));
+            using HelionConsole console = new(config);
+            using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
+            using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
+            using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
+            client.Run();
         }
     }
 }
