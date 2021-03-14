@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Extensions;
 
 namespace Helion.Menus.Impl
 {
@@ -35,8 +36,8 @@ namespace Helion.Menus.Impl
 
         private Func<Menu?> CreateNewGameMenu()
         {
-            IWadType iwad = ArchiveCollection.IWadType;
-            return iwad == IWadType.UltimateDoom || iwad == IWadType.DoomShareware ?
+            bool hasEpisodes = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Any(e => !e.PicName.Empty());
+            return hasEpisodes ?
                 () => new NewGameEpisodeMenu(Config, Console, SoundManager, ArchiveCollection) :
                 () => new NewGameSkillMenu(Config, Console, SoundManager, ArchiveCollection, null);
         }
