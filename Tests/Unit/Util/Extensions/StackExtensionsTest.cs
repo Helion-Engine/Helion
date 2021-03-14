@@ -5,15 +5,15 @@ using Xunit;
 
 namespace Helion.Tests.Unit.Util.Extensions
 {
-    public class ListExtensionsTest
+    public class StackExtensionsTest
     {
-        [Fact(DisplayName = "Check if a list is empty")]
-        public void CheckEmptyList()
+        [Fact(DisplayName = "Check if a stack is empty")]
+        public void CheckEmptyStack()
         {
-            List<int> list = new();
+            Stack<int> list = new();
             list.Empty().Should().BeTrue();
 
-            list.Add(1);
+            list.Push(1);
             list.Empty().Should().BeFalse();
         }
     }
