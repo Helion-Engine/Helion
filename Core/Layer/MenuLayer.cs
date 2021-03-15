@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus;
@@ -65,11 +66,9 @@ namespace Helion.Layer
             if (input.ConsumeKeyPressed(Key.Enter) && menu.CurrentComponent?.Action != null)
             {
                 Menu? subMenu = menu.CurrentComponent.Action();
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                 if (subMenu != null)
-                {
-                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                     m_menus.Push(subMenu);
-                }
             }
 
             if (input.ConsumeKeyPressed(Key.Escape))

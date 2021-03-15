@@ -43,7 +43,7 @@ namespace Helion.Layer
         public override void Add(GameLayer layer)
         {
             if (layer is TitlepicLayer titlepicLayer)
-                titlepicLayer.PlayMusic(m_archiveCollection.IWadType, m_audioSystem);
+                titlepicLayer.PlayMusic(m_audioSystem);
             
             if (layer is SinglePlayerWorldLayer)
             {
@@ -65,13 +65,13 @@ namespace Helion.Layer
                 CreateAndAddMenu();
             }
 
-            if (!ContainsEither<ConsoleLayer, HelpLayer>() && input.ConsumeKeyPressed(Key.F1))
+            if (!ContainsEither<ConsoleLayer, ImageLayer>() && input.ConsumeKeyPressed(Key.F1))
                 CreateAndAddHelp();
 
-            if (Contains<HelpLayer>() && input.ConsumeKeyPressed(Key.Escape))
+            if (Contains<ImageLayer>() && input.ConsumeKeyPressed(Key.Escape))
             {
                 m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
-                Remove<HelpLayer>();
+                Remove<ImageLayer>();
             }
 
             if (!Contains<MenuLayer>() && input.ConsumeKeyPressed(Key.Escape))
@@ -83,7 +83,7 @@ namespace Helion.Layer
             {
                 m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
                 
-                MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection);
+                MainMenu mainMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Add(menuLayer);
             }
@@ -93,9 +93,12 @@ namespace Helion.Layer
 
         private void CreateAndAddHelp()
         {
+            if (m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages.Count == 0)
+                return;
+
             m_soundManager.PlayStaticSound(Constants.MenuSounds.Prompt);
 
-            HelpLayer helpLayer = new(m_archiveCollection);
+            CycleImageLayer helpLayer = new(this, m_soundManager, m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages);
             Add(helpLayer);
         }
 

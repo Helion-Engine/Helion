@@ -1,3 +1,34 @@
+gameinfo
+{
+	titlepage = "TITLEPIC"
+	creditpage = "CREDIT"
+	titlemusic = "D_DM2TTL"
+	titletime = 11
+	advisorytime = 0
+	pagetime = 5
+	chatsound = "misc/chat"
+	finalemusic = "$MUSIC_READ_M"
+	finaleflat = "SLIME16"
+	finalepage = "CREDIT"
+	infopage = "HELP", "CREDIT"
+	quitsound = "menu/quit2"
+	borderflat = "GRNROCK"
+	telefogheight = 0
+	defkickback = 100
+	skyflatname = "F_SKY1"
+	intermissionmusic = "$MUSIC_DM2INT"
+	intermissioncounter = true
+	weaponslot = 1, "Fist", "Chainsaw"
+	weaponslot = 2, "Pistol"
+	weaponslot = 3, "Shotgun", "SuperShotgun"
+	weaponslot = 4, "Chaingun"
+	weaponslot = 5, "RocketLauncher"
+	weaponslot = 6, "PlasmaRifle"
+	weaponslot = 7, "BFG9000"
+	quitmessages = "$QUITMSG", "$QUITMSG1", "$QUITMSG2", "$QUITMSG3", "$QUITMSG4", "$QUITMSG5", "$QUITMSG6", "$QUITMSG7",
+				   "$QUITMSG8", "$QUITMSG9", "$QUITMSG10", "$QUITMSG11", "$QUITMSG12", "$QUITMSG13", "$QUITMSG14"				  
+}
+
 skill baby
 {
 	AutoUseHealth

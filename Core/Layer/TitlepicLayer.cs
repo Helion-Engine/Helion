@@ -38,7 +38,7 @@ namespace Helion.Layer
 
             if (input.HasAnyKeyPressed() && Parent?.Count == 1)
             {
-                MainMenu mainMenu = new(m_config, m_console, m_soundManager, m_archiveCollection);
+                MainMenu mainMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Parent.Add(menuLayer);
             }
@@ -55,9 +55,9 @@ namespace Helion.Layer
             base.Render(commands);
         }
 
-        public void PlayMusic(IWadType iwadType, IAudioSystem audioSystem)
+        public void PlayMusic(IAudioSystem audioSystem)
         {
-            string entryName = iwadType.IsDoom1() ? "D_INTRO" : "D_DM2TTL";
+            string entryName = m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.TitleMusic;
             Entry? entry = m_archiveCollection.Entries.FindByName(entryName);
             if (entry == null) 
                 return;
