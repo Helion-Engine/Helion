@@ -38,14 +38,18 @@ namespace Helion.World.Save
                 .Select(Path.GetFileName)
                 .WhereNotNull()
                 .ToList();
-            
+
             int number = 0;
             while (true)
             {
-                if (files.Any(x => x.Equals(files[number], StringComparison.OrdinalIgnoreCase)))
-                    return $"savegame{number}.hsg";
-                number++;
+                string name = GetSaveName(number);
+                if (files.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                    number++;
+                else
+                    return name;
             }
         }
+
+        private static string GetSaveName(int number) => $"savegame{number}.hsg";
     }
 }
