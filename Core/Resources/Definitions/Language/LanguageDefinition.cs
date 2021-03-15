@@ -12,7 +12,7 @@ namespace Helion.Resources.Definitions.Language
     {
         private static readonly HashSet<string> TypeNames = new HashSet<string>(new string[] { "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" });
         private static readonly HashSet<string> IWadMessageTypeNames = new HashSet<string>(new string[] { "Level names" });
-        private static readonly HashSet<string> IWadTypeNames = new HashSet<string>(new string[] { "Doom 1", "Doom 2", "Plutonia", "TNT: Evilution" });
+        private static readonly HashSet<string> IWadTypeNames = new HashSet<string>(new string[] { "Doom 1", "Doom 2", "Plutonia", "TNT: Evilution", "Chex" });
 
         private static readonly Dictionary<CIString, LanguageMessageType> MessageTypeLookup = new()
         {
@@ -24,16 +24,17 @@ namespace Helion.Resources.Definitions.Language
         {
             { "Level names", IWadLanguageMessageType.LevelName },
         };
-        private static readonly Dictionary<CIString, IWadType> IWadTypeLookup = new()
+        private static readonly Dictionary<CIString, IWadBaseType> IWadTypeLookup = new()
         {
-            { "Doom 1", IWadType.UltimateDoom },
-            { "Doom 2", IWadType.Doom2 },
-            { "Plutonia", IWadType.Plutonia },
-            { "TNT: Evilution", IWadType.TNT }
+            { "Doom 1", IWadBaseType.Doom1 },
+            { "Doom 2", IWadBaseType.Doom2 },
+            { "Plutonia", IWadBaseType.Plutonia },
+            { "TNT: Evilution", IWadBaseType.TNT },
+            { "Chex", IWadBaseType.ChexQuest }
         };
 
         private readonly Dictionary<CIString, string>[] m_lookups;
-        private readonly Dictionary<IWadType, Dictionary<CIString, string>[]> m_iwadLookups = new();
+        private readonly Dictionary<IWadBaseType, Dictionary<CIString, string>[]> m_iwadLookups = new();
 
         public LanguageDefinition()
         {
@@ -41,8 +42,8 @@ namespace Helion.Resources.Definitions.Language
             for (int i = 0; i < m_lookups.Length; i++)
                 m_lookups[i] = new();
 
-            var iwads = Enum.GetValues(typeof(IWadType));
-            foreach (IWadType iwad in iwads)
+            var iwads = Enum.GetValues(typeof(IWadBaseType));
+            foreach (IWadBaseType iwad in iwads)
             {
                 var lookup = new Dictionary<CIString, string>[Enum.GetValues(typeof(IWadLanguageMessageType)).Length];
                 for (int i = 0; i < lookup.Length; i++)
@@ -60,7 +61,7 @@ namespace Helion.Resources.Definitions.Language
 
             LanguageMessageType parseType = LanguageMessageType.Pickup;
             IWadLanguageMessageType iwadParseType = IWadLanguageMessageType.None;
-            IWadType iwadType;
+            IWadBaseType iwadType;
 
             while (!parser.IsDone())
             {
@@ -104,7 +105,7 @@ namespace Helion.Resources.Definitions.Language
         {
             SimpleParser parser = new SimpleParser();
             parser.Parse(data);
-            var lookup = GetIWadLookup(IWadType.None, IWadLanguageMessageType.None);
+            var lookup = GetIWadLookup(IWadBaseType.None, IWadLanguageMessageType.None);
             bool consumeLanguage = false;
             StringBuilder sb = new StringBuilder();
 
@@ -159,11 +160,8 @@ namespace Helion.Resources.Definitions.Language
             return message;
         }
 
-        public string GetIWadMessage(string message, IWadType iwad, IWadLanguageMessageType type)
+        public string GetIWadMessage(string message, IWadBaseType iwad, IWadLanguageMessageType type)
         {
-            if (iwad == IWadType.DoomShareware)
-                iwad = IWadType.UltimateDoom;
-
             if (message.Length > 0 && message[0] == '$')
                 return LookupIWadMessage(message[1..], iwad, type);
 
@@ -196,12 +194,12 @@ namespace Helion.Resources.Definitions.Language
             return string.Empty;
         }
 
-        private string LookupIWadMessage(string message, IWadType iwad, IWadLanguageMessageType type)
+        private string LookupIWadMessage(string message, IWadBaseType iwad, IWadLanguageMessageType type)
         {
             if (GetIWadLookup(iwad, type).TryGetValue(message, out string? translatedMessage))
                 return translatedMessage;
 
-            if (GetIWadLookup(IWadType.None, IWadLanguageMessageType.None).TryGetValue(message, out string? translatedMessage2))
+            if (GetIWadLookup(IWadBaseType.None, IWadLanguageMessageType.None).TryGetValue(message, out string? translatedMessage2))
                 return translatedMessage2;
 
             return string.Empty;
@@ -223,12 +221,12 @@ namespace Helion.Resources.Definitions.Language
             return IWadLanguageMessageType.None;
         }
 
-        private IWadType GetIWadType(string item)
+        private IWadBaseType GetIWadType(string item)
         {
-            if (IWadTypeLookup.TryGetValue(item, out IWadType type))
+            if (IWadTypeLookup.TryGetValue(item, out IWadBaseType type))
                 return type;
 
-            return IWadType.None;
+            return IWadBaseType.None;
         }
 
         private Dictionary<CIString, string> GetLookup(LanguageMessageType type)
@@ -236,7 +234,7 @@ namespace Helion.Resources.Definitions.Language
             return m_lookups[(int)type];
         }
 
-        private Dictionary<CIString, string> GetIWadLookup(IWadType iwadType, IWadLanguageMessageType type)
+        private Dictionary<CIString, string> GetIWadLookup(IWadBaseType iwadType, IWadLanguageMessageType type)
         {
             return m_iwadLookups[iwadType][(int)type];
         }

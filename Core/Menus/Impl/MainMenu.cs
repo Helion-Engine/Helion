@@ -49,7 +49,15 @@ namespace Helion.Menus.Impl
             bool hasEpisodes = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Any(e => !e.PicName.Empty());
             return hasEpisodes ?
                 () => new NewGameEpisodeMenu(Config, Console, SoundManager, ArchiveCollection) :
-                () => new NewGameSkillMenu(Config, Console, SoundManager, ArchiveCollection, null);
+                () => new NewGameSkillMenu(Config, Console, SoundManager, ArchiveCollection, GetDefaultEpisode());
+        }
+
+        private string? GetDefaultEpisode()
+        {
+            if (ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Count > 0)
+                return ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes[0].StartMap;
+
+            return null;
         }
 
         private Func<Menu?> ShowReadThis()

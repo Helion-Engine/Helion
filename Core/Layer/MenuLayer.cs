@@ -4,6 +4,7 @@ using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus;
 using Helion.Menus.Base;
+using Helion.Menus.Impl;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
@@ -37,6 +38,9 @@ namespace Helion.Layer
             if (!m_menus.Empty())
             {
                 Menu menu = m_menus.Peek();
+                if (input.HasAnyKeyPressed() && menu is MessageMenu)
+                    ClearMenu();
+
                 menu.HandleInput(input);
 
                 if (MenuNotChanged(menu))
@@ -77,15 +81,16 @@ namespace Helion.Layer
                     m_menus.Pop();
 
                 if (m_menus.Empty())
-                {
-                    Parent?.Remove<MenuLayer>();
-                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
-                }
+                    ClearMenu();
                 else
-                {
                     m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
-                }
             }
+        }
+
+        private void ClearMenu()
+        {
+            Parent?.Remove<MenuLayer>();
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
         }
 
         public override void Render(RenderCommands renderCommands)

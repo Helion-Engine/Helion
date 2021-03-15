@@ -300,3 +300,9 @@ THUSTR_29,River Styx
 THUSTR_30,Last Call
 THUSTR_31,Pharaoh
 THUSTR_32,Caribbean
+Chex
+CHUSTR_E1M1,Landing Zone
+CHUSTR_E1M2,Storage Facility
+CHUSTR_E1M3,Laboratory
+CHUSTR_E1M4,Arboretum
+CHUSTR_E1M5,Caverns of Bazoik

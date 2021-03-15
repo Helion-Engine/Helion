@@ -7,7 +7,11 @@
         Plutonia,
         TNT,
         UltimateDoom,
+        ChexQuest,
+
+        // ZDoom lanauage stuff doesn't distinguish between doom 1 iwads
         DoomShareware,
-        ChexQuest
+        DoomRegistered,
+        NoRestForTheLiving
     }
 }

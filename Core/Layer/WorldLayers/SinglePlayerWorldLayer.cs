@@ -110,7 +110,7 @@ namespace Helion.Layer.WorldLayers
             if (mapInfoDef.LookupName.Length > 0)
             {
                 displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfoDef.LookupName,
-                    archiveCollection.GetIWadInfo().IWadType, IWadLanguageMessageType.LevelName);
+                    archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
             }
 
             Log.Info($"{mapInfoDef.MapName}: {displayName}");

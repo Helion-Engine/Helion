@@ -6,7 +6,6 @@ using Helion.Menus.Impl;
 using Helion.Render.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
