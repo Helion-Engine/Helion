@@ -5,6 +5,7 @@ using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using static Helion.Util.Assertion.Assert;
@@ -56,12 +57,12 @@ namespace Helion.Menus
 
         protected void PlayNextOptionSound()
         {
-            SoundManager.PlayStaticSound("plats/pt1_stop");
+            SoundManager.PlayStaticSound(Constants.MenuSounds.Cursor);
         }
 
         protected void PlaySelectedSound()
         {
-            SoundManager.PlayStaticSound("weapons/pistol");
+            SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
             
             // The update call is needed for when we make a call that does a
             // bulky operation like world loading. This makes it so the menu

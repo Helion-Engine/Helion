@@ -7,23 +7,11 @@
         Plutonia,
         TNT,
         UltimateDoom,
+        ChexQuest,
+
+        // ZDoom lanauage stuff doesn't distinguish between doom 1 iwads
         DoomShareware,
-        ChexQuest
-    }
-    
-    public static class IWadTypeExtensions 
-    {
-        /// <summary>
-        /// Checks if this is a Doom 1 styled wad.
-        /// </summary>
-        /// <param name="iwadType">The IWad type.</param>
-        /// <returns>If it is like Doom 1 (episodes, same lump names), or not.
-        /// </returns>
-        public static bool IsDoom1(this IWadType iwadType)
-        {
-            return iwadType == IWadType.UltimateDoom || 
-                   iwadType == IWadType.DoomShareware ||
-                   iwadType == IWadType.ChexQuest;
-        }
+        DoomRegistered,
+        NoRestForTheLiving
     }
 }

@@ -110,7 +110,7 @@ namespace Helion.Layer.WorldLayers
             if (mapInfoDef.LookupName.Length > 0)
             {
                 displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfoDef.LookupName,
-                    archiveCollection.GetIWadInfo().IWadType, IWadLanguageMessageType.LevelName);
+                    archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
             }
 
             Log.Info($"{mapInfoDef.MapName}: {displayName}");
@@ -433,7 +433,7 @@ namespace Helion.Layer.WorldLayers
             if ((int)Config.Hud.StatusBarSize.Value != size)
             {
                 Config.Hud.StatusBarSize.Set((StatusBarSizeType)size);
-                m_world.SoundManager.PlayStaticSound(Constants.PlatMoveSound);
+                m_world.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
             }
         }
     }

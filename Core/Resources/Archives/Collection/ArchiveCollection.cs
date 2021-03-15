@@ -31,7 +31,7 @@ namespace Helion.Resources.Archives.Collection
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
-        public IWadType IWadType { get; private set; } = IWadType.None;
+        public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<CIString, Font?> m_fonts = new();
@@ -82,7 +82,7 @@ namespace Helion.Resources.Archives.Collection
 
             ProcessAndIndexEntries(iwadArchive, loadedArchives);
             m_archives.AddRange(loadedArchives);
-            IWadType = GetIWadInfo().IWadType;
+            IWadType = GetIWadInfo().IWadBaseType;
 
             return true;
         }

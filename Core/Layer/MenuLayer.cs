@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus;
 using Helion.Menus.Base;
+using Helion.Menus.Impl;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
@@ -36,6 +38,9 @@ namespace Helion.Layer
             if (!m_menus.Empty())
             {
                 Menu menu = m_menus.Peek();
+                if (input.HasAnyKeyPressed() && menu is MessageMenu)
+                    ClearMenu();
+
                 menu.HandleInput(input);
 
                 if (MenuNotChanged(menu))
@@ -65,24 +70,27 @@ namespace Helion.Layer
             if (input.ConsumeKeyPressed(Key.Enter) && menu.CurrentComponent?.Action != null)
             {
                 Menu? subMenu = menu.CurrentComponent.Action();
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                 if (subMenu != null)
-                {
-                    m_soundManager.PlayStaticSound("weapons/pistol");
                     m_menus.Push(subMenu);
-                }
             }
 
             if (input.ConsumeKeyPressed(Key.Escape))
             {
                 if (m_menus.Count >= 1)
-                {
-                    m_soundManager.PlayStaticSound(Constants.SwitchNormSound);
                     m_menus.Pop();
-                }
-                    
+
                 if (m_menus.Empty())
-                    Parent?.Remove<MenuLayer>();
+                    ClearMenu();
+                else
+                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
             }
+        }
+
+        private void ClearMenu()
+        {
+            Parent?.Remove<MenuLayer>();
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
         }
 
         public override void Render(RenderCommands renderCommands)

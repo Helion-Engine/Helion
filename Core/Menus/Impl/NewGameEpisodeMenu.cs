@@ -1,10 +1,13 @@
 ﻿using Helion.Audio.Sounds;
+using Helion.Layer;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using NLog;
+using System;
 
 namespace Helion.Menus.Impl
 {
@@ -26,6 +29,9 @@ namespace Helion.Menus.Impl
             
             foreach (EpisodeDef episode in episodes)
             {
+                if (episode.Optional && ArchiveCollection.Entries.FindByName(episode.PicName) == null)
+                    continue;
+
                 MenuImageComponent component = MakeMenuComponent(episode);
                 Components = Components.Add(component);
             }
@@ -34,6 +40,14 @@ namespace Helion.Menus.Impl
 
             MenuImageComponent MakeMenuComponent(EpisodeDef episode)
             {
+                if (ArchiveCollection.GetIWadInfo().IWadType == IWadType.DoomShareware && 
+                    !episode.StartMap.Equals("e1m1", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2",
+                        () => new MessageMenu(config, Console, soundManager, ArchiveCollection, 
+                            new string[] { "This is the shareware version of doom.", "You need to order the entire trilogy.", "Press a key." }));
+                }
+
                 return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2", 
                         () => new NewGameSkillMenu(config, console, soundManager, archiveCollection, episode.StartMap));
             }
