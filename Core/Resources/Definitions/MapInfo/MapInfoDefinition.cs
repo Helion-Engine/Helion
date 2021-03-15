@@ -771,10 +771,13 @@ namespace Helion.Resources.Definitions.MapInfo
             parser.ConsumeString("=");
         }
 
-        private List<string> GetStringList(SimpleParser parser)
+        private IList<string> GetStringList(SimpleParser parser)
         {
             string data = parser.ConsumeLine();
-            return data.Split(new char[] { ',' }).ToList();
+            string[] items = data.Split(new char[] { ',' });
+            for (int i = 0; i < items.Length; i++)
+                items[i] = items[i].Trim().TrimStart('"').TrimEnd('"');
+            return items;
         }
 
         private void ParseInclude(ArchiveCollection archiveCollection, SimpleParser parser)

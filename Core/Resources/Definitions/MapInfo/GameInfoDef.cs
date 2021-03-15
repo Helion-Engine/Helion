@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Helion.Resources.Definitions.MapInfo
 {
     public class GameInfoDef
     {
-        public List<string> CreditPages = new List<string>();
-        public List<string> QuitMessages = new List<string>();
-        public List<string> FinalePages = new List<string>();
-        public List<string> InfoPages = new List<string>();
+        public IList<string> CreditPages { get; set; } = Array.Empty<string>();
+        public IList<string> QuitMessages { get; set; } = Array.Empty<string>();
+        public IList<string> FinalePages { get; set; } = Array.Empty<string>();
+        public IList<string> InfoPages { get; set; } = Array.Empty<string>();
         public string TitleMusic { get; set; } = string.Empty;
         public string FinaleMusic { get; set; } = string.Empty;
         public string FinaleFlat { get; set; } = string.Empty;
