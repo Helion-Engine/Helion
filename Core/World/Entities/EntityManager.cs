@@ -163,18 +163,19 @@ namespace Helion.World.Entities
 
         public class WorldModelPopulateResult
         {
-            public WorldModelPopulateResult(Player player, Dictionary<int, Entity> entities)
+            public WorldModelPopulateResult(IList<Player> players, Dictionary<int, Entity> entities)
             {
-                Player = player;
+                Players = players;
                 Entities = entities;
             }
 
-            public readonly Player Player;
+            public readonly IList<Player> Players;
             public readonly Dictionary<int, Entity> Entities;
         }
 
         public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
         {
+            List<Player> players = new List<Player>();
             Dictionary<int, Entity> entities = new Dictionary<int, Entity>();
             for (int i = 0; i < worldModel.Entities.Count; i++)
             {
@@ -190,7 +191,15 @@ namespace Helion.World.Entities
                 }
             }
 
-            Player player = CreatePlayerFromWorldModel(worldModel, entities);
+            for (int i = 0; i < worldModel.Players.Count; i++)
+            {
+                Player? player = CreatePlayerFromModel(worldModel.Players[i], entities);
+                if (player == null)
+                    Log.Error($"Failed to create player {worldModel.Players[i].Name}.");
+                else
+                    players.Add(player);
+            }
+
             m_id = entities.Keys.Max() + 1;
 
             for (int i = 0; i < worldModel.Entities.Count; i++)
@@ -206,27 +215,24 @@ namespace Helion.World.Entities
                     entities.TryGetValue(entityModel.Tracer.Value, out entity.Tracer);
             }
 
-            return new WorldModelPopulateResult(player, entities);
+            return new WorldModelPopulateResult(players, entities);
         }
 
-        private Player CreatePlayerFromWorldModel(WorldModel worldModel, Dictionary<int, Entity> entities)
+        private Player? CreatePlayerFromModel(PlayerModel playerModel, Dictionary<int, Entity> entities)
         {
-            Player player;
-            var playerDefinition = DefinitionComposer.GetByName(worldModel.Player.Name);
+            var playerDefinition = DefinitionComposer.GetByName(playerModel.Name);
             if (playerDefinition != null)
             {
-                player = new Player(worldModel.Player, entities, playerDefinition, this, m_soundManager, World);
+                Player player = new Player(playerModel, entities, playerDefinition, this, m_soundManager, World);
                 Players.Add(player);
                 var node = Entities.Add(player);
                 player.EntityListNode = node;
-            }
-            else
-            {
-                player = CreatePlayer(0);
+                entities.Add(player.Id, player);
+
+                return player;
             }
 
-            entities.Add(player.Id, player);
-            return player;
+            return null;
         }
 
         private bool ShouldSpawn(IThing mapThing)

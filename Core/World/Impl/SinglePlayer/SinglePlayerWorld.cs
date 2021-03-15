@@ -61,7 +61,19 @@ namespace Helion.World.Impl.SinglePlayer
             else
             {
                 WorldModelPopulateResult result = EntityManager.PopulateFrom(worldModel);
-                Player = result.Player;
+                if (result.Players.Count == 0)
+                {
+                    Log.Error("No players found in world, creating default player.");
+                    Player = EntityManager.CreatePlayer(0);
+                    Player.SetDefaultInventory();
+                }
+                else
+                {
+                    if (result.Players.Count > 1)
+                        Log.Warn("Multiple players found in world for single player game.");
+
+                    Player = result.Players[0];
+                }
 
                 ApplySectorModels(worldModel, result);
                 ApplyLineModels(worldModel);

@@ -1144,8 +1144,7 @@ namespace Helion.World
 
             return new WorldModel()
             {
-                IWad = GetIWadFileModel(),
-                Files = GetFileModels(),
+                Files = GetGameFilesModel(),
                 MapName = MapName.ToString(),
                 WorldState = WorldState,
                 Gametick = Gametick,
@@ -1155,13 +1154,29 @@ namespace Helion.World
                 RandomIndex = ((DoomRandom)Random).RandomIndex,
                 Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
 
-                Player = EntityManager.Players[0].ToPlayerModel(),
+                Players = GetPlayerModels(),
                 Entities = GetEntityModels(),
                 Sectors = sectorModels,
                 DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
                 Specials = SpecialManager.GetSpecialModels()
             };
+        }
+
+        private GameFilesModel GetGameFilesModel()
+        {
+            return new GameFilesModel()
+            {
+                IWad = GetIWadFileModel(),
+                Files = GetFileModels(),
+            };
+        }
+
+        private IList<PlayerModel> GetPlayerModels()
+        {
+            List<PlayerModel> playerModels = new List<PlayerModel>(EntityManager.Players.Count);
+            EntityManager.Players.ForEach(player => playerModels.Add(player.ToPlayerModel()));
+            return playerModels;
         }
 
         private FileModel GetIWadFileModel()
