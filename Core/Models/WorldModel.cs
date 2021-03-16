@@ -7,8 +7,7 @@ namespace Helion.Models
 {
     public class WorldModel
     {
-        public FileModel IWad { get; set; } = FileModel.Default;
-        public IList<FileModel> Files { get; set; } = Array.Empty<FileModel>();
+        public GameFilesModel Files { get; set; } = GameFilesModel.Default;
 
         public string MapName { get; set; } = string.Empty;
         public WorldState WorldState { get; set; }
@@ -19,7 +18,7 @@ namespace Helion.Models
         public double Gravity { get; set; }
         public SkillLevel Skill { get; set; }
 
-        public PlayerModel Player { get; set; }
+        public IList<PlayerModel> Players { get; set; } = Array.Empty<PlayerModel>();
         public IList<EntityModel> Entities { get; set; } = Array.Empty<EntityModel>();
         public IList<SectorModel> Sectors { get; set; } = Array.Empty<SectorModel>();
         public IList<LineModel> Lines { get; set; } = Array.Empty<LineModel>();

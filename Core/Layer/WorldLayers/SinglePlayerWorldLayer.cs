@@ -348,10 +348,10 @@ namespace Helion.Layer.WorldLayers
 
         private bool VerifyWorldModelFiles(WorldModel worldModel)
         {
-            if (!VerifyFileModel(worldModel.IWad))
+            if (!VerifyFileModel(worldModel.Files.IWad))
                 return false;
 
-            if (worldModel.Files.Any(x => !VerifyFileModel(x)))
+            if (worldModel.Files.Files.Any(x => !VerifyFileModel(x)))
                 return false;
 
             return true;
@@ -368,7 +368,7 @@ namespace Helion.Layer.WorldLayers
             var archive = ArchiveCollection.GetArchiveByFileName(fileModel.FileName);
             if (archive == null)
             {
-                Log.Error($"Required archive  {fileModel.FileName} for this save game is not loaded.");
+                Log.Error($"Required archive {fileModel.FileName} for this save game is not loaded.");
                 return false;
             }
 

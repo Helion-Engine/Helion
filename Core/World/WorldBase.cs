@@ -929,6 +929,17 @@ namespace Helion.World
             return success;
         }
 
+        public bool IsPositionBlocked(Entity entity)
+        {
+            if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
+                return true;
+
+            if (PhysicsManager.IsPositionValid(entity, entity.Position.To2D(), new TryMoveData()))
+                return true;
+
+            return false;
+        }
+
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
         {
             double distance;
@@ -1144,8 +1155,7 @@ namespace Helion.World
 
             return new WorldModel()
             {
-                IWad = GetIWadFileModel(),
-                Files = GetFileModels(),
+                Files = GetGameFilesModel(),
                 MapName = MapName.ToString(),
                 WorldState = WorldState,
                 Gametick = Gametick,
@@ -1155,13 +1165,29 @@ namespace Helion.World
                 RandomIndex = ((DoomRandom)Random).RandomIndex,
                 Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
 
-                Player = EntityManager.Players[0].ToPlayerModel(),
+                Players = GetPlayerModels(),
                 Entities = GetEntityModels(),
                 Sectors = sectorModels,
                 DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
                 Specials = SpecialManager.GetSpecialModels()
             };
+        }
+
+        private GameFilesModel GetGameFilesModel()
+        {
+            return new GameFilesModel()
+            {
+                IWad = GetIWadFileModel(),
+                Files = GetFileModels(),
+            };
+        }
+
+        private IList<PlayerModel> GetPlayerModels()
+        {
+            List<PlayerModel> playerModels = new List<PlayerModel>(EntityManager.Players.Count);
+            EntityManager.Players.ForEach(player => playerModels.Add(player.ToPlayerModel()));
+            return playerModels;
         }
 
         private FileModel GetIWadFileModel()

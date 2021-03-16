@@ -1,3 +1,5 @@
+using Helion.World.Entities.Players;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Helion.Util.Assertion.Assert;
@@ -9,9 +11,16 @@ namespace Helion.World.Entities.Spawn
     /// </summary>
     public class SpawnLocations
     {
-        private readonly IDictionary<int, IList<Entity>> m_playerStarts = new Dictionary<int, IList<Entity>>();
+        private IWorld m_world;
+
+        private readonly Dictionary<int, IList<Entity>> m_playerStarts = new Dictionary<int, IList<Entity>>();
         private readonly IList<Entity> m_deathmatchStarts = new List<Entity>();
         private readonly IList<Entity> m_cooperativeStarts = new List<Entity>();
+
+        public SpawnLocations(IWorld world)
+        {
+            m_world = world;
+        }
 
         /// <summary>
         /// Reads the entity and determines if it is a spawn location or not.
@@ -46,14 +55,39 @@ namespace Helion.World.Entities.Spawn
         /// Gets the spawn for the provided player index. The index starts at
         /// zero, so the first player is 0, second player is 1, etc.
         /// </summary>
-        /// <param name="playerIndex">The index of the player, zero based.
-        /// </param>
+        /// <param name="playerIndex">The index of the player, zero based.</param>
+        /// <param name="mapInit">If the map is being initialized. Doom had different checks based on init.
+        /// The init check would only check against other spawning players.</param>
         /// <returns>The spawn location that was last added, or null if it is
         /// unable to be found (implying no spawn locations present).</returns>
-        public Entity? GetPlayerSpawn(int playerIndex)
+        public Entity? GetPlayerSpawn(int playerIndex, bool mapInit)
         {
-            return m_playerStarts.TryGetValue(playerIndex, out IList<Entity>? spawns) ? spawns.LastOrDefault() : null;
+            if (m_playerStarts.TryGetValue(playerIndex, out IList<Entity>? spawns))
+            {
+                Entity? spawn = spawns.LastOrDefault();
+                if (spawn != null)
+                {
+                    if (mapInit && !PlayerBlock(spawn))
+                        return spawn;
+
+                    if (!mapInit && !m_world.IsPositionBlocked(spawn))
+                        return spawn;
+                }
+            }
+
+            foreach (var item in m_playerStarts)
+            {
+                if (item.Value.Count == 0 || m_world.IsPositionBlocked(item.Value.Last()))
+                    continue;
+
+                return item.Value.Last();
+            }
+
+            return null;
         }
+
+        private static bool PlayerBlock(Entity spawn) =>
+            spawn.GetIntersectingEntities2D(Physics.Blockmap.BlockmapTraverseEntityFlags.Solid).Any(x => x is Player);
 
         private void AddPlayerSpawn(Entity entity, int playerIndex)
         {

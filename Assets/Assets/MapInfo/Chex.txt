@@ -1,5 +1,11 @@
 include "MapInfo/Doom1.txt"
 
+gameinfo
+{
+	infopage = "HELP1", "CREDIT"
+	drawreadthis = true
+}
+
 clearepisodes
 episode e1m1
 {

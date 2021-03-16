@@ -49,12 +49,19 @@ namespace Helion.World.Save
             if (Model == null)
                 return null;
 
-            using ZipArchive zipArchive = ZipFile.Open(FileName, ZipArchiveMode.Read);
-            ZipArchiveEntry? entry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(Model.WorldFile));
-            if (entry == null)
-                return null;
+            try
+            {
+                using ZipArchive zipArchive = ZipFile.Open(FileName, ZipArchiveMode.Read);
+                ZipArchiveEntry? entry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(Model.WorldFile));
+                if (entry == null)
+                    return null;
 
-            return JsonConvert.DeserializeObject<WorldModel>(GetEntryString(entry), DefaultSerializerSettings);
+                return JsonConvert.DeserializeObject<WorldModel>(GetEntryString(entry), DefaultSerializerSettings);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static string GetEntryString(ZipArchiveEntry entry)
