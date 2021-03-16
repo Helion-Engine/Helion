@@ -929,6 +929,17 @@ namespace Helion.World
             return success;
         }
 
+        public bool IsPositionBlocked(Entity entity)
+        {
+            if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
+                return true;
+
+            if (PhysicsManager.IsPositionValid(entity, entity.Position.To2D(), new TryMoveData()))
+                return true;
+
+            return false;
+        }
+
         private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
         {
             double distance;

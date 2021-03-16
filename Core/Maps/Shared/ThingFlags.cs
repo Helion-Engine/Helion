@@ -8,7 +8,7 @@ namespace Helion.Maps.Shared
             public const ushort MediumFlag = 0x0002;
             public const ushort HardFlag = 0x0004;
             public const ushort AmbushFlag = 0x0008;
-            public const ushort NotSinglePlayerFlag = 0x0010;
+            public const ushort MultiPlayerFlag = 0x0010;
             public const ushort NotDeathmatchFlag = 0x0020;
             public const ushort NotCooperativeFlag = 0x0040;   
         }
@@ -36,10 +36,13 @@ namespace Helion.Maps.Shared
         {
         }
 
+        // Doom
         public bool Easy;
         public bool Medium;
         public bool Hard;
         public bool Ambush;
+        public bool MultiPlayer;
+        // ZDoom/Hexen
         public bool SinglePlayer;
         public bool Deathmatch;
         public bool Cooperative;
@@ -51,7 +54,6 @@ namespace Helion.Maps.Shared
         public bool AltShadow;
         public bool Friendly;
         public bool StandStill;
-        public bool BadEditorCheck;
 
         public ThingFlags()
         {
@@ -65,7 +67,7 @@ namespace Helion.Maps.Shared
                 Medium = (flags & DoomFlags.MediumFlag) == DoomFlags.MediumFlag,
                 Hard = (flags & DoomFlags.HardFlag) == DoomFlags.HardFlag,
                 Ambush = (flags & DoomFlags.AmbushFlag) == DoomFlags.AmbushFlag,
-                SinglePlayer = (flags & DoomFlags.NotSinglePlayerFlag) != DoomFlags.NotSinglePlayerFlag,
+                MultiPlayer = (flags & DoomFlags.MultiPlayerFlag) == DoomFlags.MultiPlayerFlag,
                 Deathmatch = (flags & DoomFlags.NotDeathmatchFlag) != DoomFlags.NotDeathmatchFlag,
                 Cooperative = (flags & DoomFlags.NotCooperativeFlag) != DoomFlags.NotCooperativeFlag,
             };

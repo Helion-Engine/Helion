@@ -28,7 +28,7 @@ namespace Helion.World.Entities
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-        public readonly SpawnLocations SpawnLocations = new SpawnLocations();
+        public readonly SpawnLocations SpawnLocations;
         public readonly WorldBase World;
 
         private readonly WorldSoundManager m_soundManager;
@@ -43,6 +43,7 @@ namespace Helion.World.Entities
         {
             World = world;
             m_soundManager = soundManager;
+            SpawnLocations = new SpawnLocations(world);
             DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
         }
 
@@ -102,6 +103,7 @@ namespace Helion.World.Entities
 
         public Player CreatePlayer(int playerIndex)
         {
+            Player player;
             EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
             if (playerDefinition == null)
             {
@@ -109,14 +111,16 @@ namespace Helion.World.Entities
                 throw new HelionException("Missing the default player class, should never happen");
             }
 
-            Entity? spawnSpot = SpawnLocations.GetPlayerSpawn(playerIndex);
+            Entity? spawnSpot = SpawnLocations.GetPlayerSpawn(playerIndex, true);
             if (spawnSpot == null)
             {
                 Log.Warn("No player {0} spawns found, creating player at origin", playerIndex);
-                return CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0, 0.0);
+                player = CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0, 0.0);
+                Players.Add(player);
+                return player;
             }
 
-            Player player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
+            player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
             Players.Add(player);
             return player;
         }
@@ -237,8 +241,12 @@ namespace Helion.World.Entities
 
         private bool ShouldSpawn(IThing mapThing)
         {
+            // Ignore difficulty on spawns...
+            if ((mapThing.EditorNumber > 0 && mapThing.EditorNumber < 5) || mapThing.EditorNumber == 1)
+                return true;
+
             // TODO: These should be offloaded into SinglePlayerWorld...
-            if (!mapThing.Flags.SinglePlayer)
+            if (mapThing.Flags.MultiPlayer)
                 return false;
 
             switch ((SkillLevel)World.SkillDefinition.SpawnFilter)

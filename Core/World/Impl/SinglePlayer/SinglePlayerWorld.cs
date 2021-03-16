@@ -47,6 +47,9 @@ namespace Helion.World.Impl.SinglePlayer
             {
                 EntityManager.PopulateFrom(map);
 
+                // TODO This functionality needs to change
+                // Doom would create player spawns as it iterated through map things (voodoo dolls etc..)
+                // This works ok for now... but no voodoo doll support
                 Player = EntityManager.CreatePlayer(0);
                 if (existingPlayer != null)
                 {
