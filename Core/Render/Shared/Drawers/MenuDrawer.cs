@@ -133,6 +133,8 @@ namespace Helion.Render.Shared.Drawers
             ref int offsetY)
         {
             const int LeftOffset = 64;
+            const int RowVerticalPadding = 8;
+            const int SelectionOffsetX = 4;
             
             Font? font = m_archiveCollection.GetFont("SmallFont");
             if (font == null)
@@ -143,12 +145,12 @@ namespace Helion.Render.Shared.Drawers
                 string selectedName = ShouldDrawActive() ? Constants.MenuSelectIconActive : Constants.MenuSelectIconInactive;
                 var (w, _) = helper.DrawInfoProvider.GetImageDimension(selectedName);
                 
-                helper.Image(selectedName, LeftOffset - (w / 2), offsetY, both: Align.TopMiddle);
+                helper.Image(selectedName, LeftOffset - w - SelectionOffsetX, offsetY);
             }
 
-            int leftWidth = helper.DrawInfoProvider.GetImageDimension("M_LSLEFT").Width;
-            int middleWidth = helper.DrawInfoProvider.GetImageDimension("M_LSCNTR").Width;
-            int rightWidth = helper.DrawInfoProvider.GetImageDimension("M_LSRGHT").Width;
+            var (leftWidth, leftHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSLEFT");
+            var (middleWidth, middleHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSCNTR");
+            var (rightWidth, rightHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSRGHT");
             int offsetX = LeftOffset;
 
             helper.Image("M_LSLEFT", offsetX, offsetY);
@@ -165,7 +167,8 @@ namespace Helion.Render.Shared.Drawers
 
             ColoredString text = ColoredStringBuilder.From(Color.Red, saveRowComponent.Text);
             helper.Text(text, font, 8, out Dimension area, LeftOffset + leftWidth + 4, offsetY + 3);
-            offsetY += area.Height;
+
+            offsetY += MathHelper.Max(area.Height, leftHeight, middleHeight, rightHeight) + RowVerticalPadding;
         }
     }
 }
