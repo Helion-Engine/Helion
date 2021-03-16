@@ -8,7 +8,7 @@ namespace Helion.World.Entities.Definition.Flags
     {
         private const int Bits = 32;
         private const uint ShiftBit = 1;
-        private static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
+        public static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
         
         private readonly BitArray m_bits = new BitArray(NumFlags);
 
@@ -353,19 +353,21 @@ namespace Helion.World.Entities.Definition.Flags
 
             uint currentFlags = 0;
             int flagCount = 0;
+            int shifter = 0;
 
-            for (int i = 0; i < m_bits.Length; i++)
+            for (int i = 0; i < m_bits.Length; i++, shifter++)
             {
                 if (m_bits[i])
                 {
-                    uint currentValue = ShiftBit << i;
+                    uint currentValue = ShiftBit << shifter;
                     currentFlags |= currentValue;
                 }
 
-                if (i % Bits == 0 && i != 0)
+                if (shifter == Bits - 1)
                 {
                     entityFlagsModel.Bits[flagCount] = currentFlags;
                     currentFlags = 0;
+                    shifter = -1;
                     flagCount++;
                 }
             }
@@ -387,6 +389,25 @@ namespace Helion.World.Entities.Definition.Flags
             int numFlags = Enum.GetValues(typeof(EntityFlag)).Length;
             for (int i = 0; i < numFlags; i++)
                 this[(EntityFlag)i] = false;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is EntityFlags entityFlags)
+            {
+                if (m_bits.Count != entityFlags.m_bits.Count)
+                    return false;
+
+                for (int i = 0; i < m_bits.Count; i++)
+                {
+                    if (m_bits[i] != entityFlags.m_bits[i])
+                        return false;
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }
