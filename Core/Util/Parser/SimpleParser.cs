@@ -96,9 +96,14 @@ namespace Helion.Util.Parser
                         quotedString = true;
                         isQuote = !isQuote;
                         if (isQuote)
-                            saveStartIndex = startIndex;
+                        {
+                            AddToken(startIndex, i, lineCount, false);
+                            saveStartIndex = i;
+                        }
                         else
+                        {
                             split = true;
+                        }
                     }
 
                     if (!isQuote)
