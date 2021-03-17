@@ -40,13 +40,13 @@ namespace Helion.Layer
 
             input.ConsumeTypedCharacters().ForEach(m_console.AddInput);
 
-            if (input.ConsumeTypedKey(Key.Backspace))
+            if (input.ConsumeKeyPressed(Key.Backspace))
                 m_console.RemoveInputCharacter();
-            if (input.ConsumeTypedKey(Key.Up))
+            if (input.ConsumeKeyPressed(Key.Up))
                 SetToLessRecentInput();
-            if (input.ConsumeTypedKey(Key.Down))
+            if (input.ConsumeKeyPressed(Key.Down))
                 SetToMoreRecentInput();
-            if (input.ConsumeTypedKey(Key.Tab))
+            if (input.ConsumeKeyPressed(Key.Tab))
                 m_console.ApplyAutocomplete();
 
             if (input.ConsumeKeyPressed(Key.Enter))

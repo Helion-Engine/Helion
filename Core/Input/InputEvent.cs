@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry.Vectors;
 
@@ -26,20 +25,18 @@ namespace Helion.Input
 
         private readonly HashSet<Key> m_keysDown;
         private readonly HashSet<Key> m_keysPressed;
-        private HashSet<Key> m_typedKeys;
         private string m_typedCharacters;
         private Vec2I m_mouseDelta;
         private int m_mouseScroll;
 
-        internal InputEvent(InputManager manager, ISet<Key> down, ISet<Key> prevDown)
+        internal InputEvent(InputManager manager, IEnumerable<Key> down, IEnumerable<Key> pressed)
         {
             Manager = manager;
             m_typedCharacters = manager.TypedCharacters;
-            m_typedKeys = manager.TypedKeys.ToHashSet();
             m_mouseDelta = manager.MouseMove;
             m_mouseScroll = manager.MouseScroll;
             m_keysDown = new HashSet<Key>(down);
-            m_keysPressed = down.Where(k => !prevDown.Contains(k)).ToHashSet();
+            m_keysPressed = new HashSet<Key>(pressed);
         }
 
         /// <summary>
@@ -50,7 +47,6 @@ namespace Helion.Input
             m_keysDown.Clear();
             m_keysPressed.Clear();
             m_typedCharacters = "";
-            m_typedKeys.Clear();
             m_mouseDelta = Vec2I.Zero;
             m_mouseScroll = 0;
         }
@@ -126,17 +122,6 @@ namespace Helion.Input
         public string GetTypedCharacters() =>  m_typedCharacters;
 
         /// <summary>
-        /// Consumes all of the typed keys.
-        /// </summary>
-        /// <returns>All of the keys that were typed.</returns>
-        public IEnumerable<Key> ConsumeTypedKeys()
-        {
-            IEnumerable<Key> typedKeys = m_typedKeys;
-            m_typedKeys = new HashSet<Key>();
-            return typedKeys;
-        }
-
-        /// <summary>
         /// Consumes all letters provided. Intended so that capitals can be
         /// consumed as well (ex: Consume('a', 'A')).
         /// </summary>
@@ -157,21 +142,6 @@ namespace Helion.Input
             }
 
             return found;
-        }
-
-        /// <summary>
-        /// Consumes a typed key if it exists.
-        /// </summary>
-        /// <param name="key">The key to consume.</param>
-        /// <returns>True if it exists to be consumed, false if it was either
-        /// not pressed or consumed already.</returns>
-        public bool ConsumeTypedKey(Key key)
-        {
-            if (!m_typedKeys.Contains(key))
-                return false;
-
-            m_typedKeys.Remove(key);
-            return true;
         }
 
         /// <summary>

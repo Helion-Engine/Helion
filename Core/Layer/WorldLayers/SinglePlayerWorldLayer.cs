@@ -193,13 +193,13 @@ namespace Helion.Layer.WorldLayers
                 m_world.HandleFrameInput(input);
             }
 
-            if (input.ConsumeTypedKey(Config.Controls.HudDecrease))
+            if (input.ConsumeKeyPressed(Config.Controls.HudDecrease))
                 ChangeHudSize(false);
-            else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
+            else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
-            else if (input.ConsumeTypedKey(Config.Controls.Save))
+            else if (input.ConsumeKeyPressed(Config.Controls.Save))
                 SaveGame();
-            else if (input.ConsumeTypedKey(Config.Controls.Load))
+            else if (input.ConsumeKeyPressed(Config.Controls.Load))
                 LoadGame();
 			
 			base.HandleInput(input);

@@ -12,9 +12,9 @@ namespace Helion.Input
     public class InputManager
     {
         private readonly StringBuilder m_typedCharacters = new();
-        private readonly HashSet<Key> m_typedKeys = new();
         private HashSet<Key> m_inputDown = new();
         private HashSet<Key> m_inputPrevDown = new();
+        private HashSet<Key> m_inputPressed = new();
         private Vec2D m_mouseMove = Vec2D.Zero;
         private double m_mouseScroll;
 
@@ -32,17 +32,6 @@ namespace Helion.Input
         /// The characters typed on the keyboard since the last update.
         /// </summary>
         public string TypedCharacters => m_typedCharacters.ToString();
-
-        /// <summary>
-        /// The keys that were typed. This is a workaround which respects the
-        /// "repetition" that comes from the OS. We can implement reasonable
-        /// handling of backspaces, arrow keys, etc, to make it feel like the
-        /// normal operating system using this for non-characters.
-        /// </summary>
-        /// <remarks>
-        /// There will be characters in this set, but they can be ignored.
-        /// </remarks>
-        public IEnumerable<Key> TypedKeys => m_typedKeys;
 
         /// <summary>
         /// Gets a read-only view of all the keys that are down.
@@ -73,7 +62,7 @@ namespace Helion.Input
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns>True if so, false if not.</returns>
-        public bool IsKeyPressed(Key key) => IsKeyDown(key) && !m_inputPrevDown.Contains(key);
+        public bool IsKeyPressed(Key key) => m_inputPressed.Contains(key);
 
         /// <summary>
         /// Checks if a key was just released.
@@ -85,22 +74,21 @@ namespace Helion.Input
         private void ClearStates()
         {
             m_typedCharacters.Clear();
-            m_typedKeys.Clear();
+            m_inputPressed.Clear();
             m_inputPrevDown = m_inputDown;
             m_inputDown = new HashSet<Key>(m_inputDown);
             m_mouseMove = Vec2D.Zero;
             m_mouseScroll = 0;
         }
 
-        private void HandleTypedKey(Key key, bool repeat)
-        {
-            if (IsKeyPressed(key) || repeat)
-                m_typedKeys.Add(key);
-        }
-
+        private bool JustPressed(Key key) => m_inputDown.Contains(key) && !m_inputPrevDown.Contains(key);
+        
         private void AddLetter(Key key, char c, bool repeat)
         {
-            if (IsKeyPressed(key) || repeat)
+            // NOTE: We could avoid allocations from ToString() (since we can't
+            // reach inside StringBuilder to check it's contents), but I am not
+            // sure if this is called so infrequently that we do not care.
+            if (!m_typedCharacters.ToString().Contains(c) || repeat)
                 m_typedCharacters.Append(c);
         }
 
@@ -337,7 +325,9 @@ namespace Helion.Input
         {
             m_inputDown.Add(key);
             HandleTypedCharacter(key, shift, repeat);
-            HandleTypedKey(key, repeat);
+
+            if (JustPressed(key) || repeat)
+                m_inputPressed.Add(key);
         }
 
         /// <summary>
@@ -365,7 +355,7 @@ namespace Helion.Input
         /// <returns>The event to be consumed.</returns>
         public InputEvent PollInput()
         {
-            InputEvent inputEvent = new(this, m_inputDown, m_inputPrevDown);
+            InputEvent inputEvent = new(this, m_inputDown, m_inputPressed);
             ClearStates();
             return inputEvent;
         }
