@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Helion.Util.Time
+namespace Helion.Util.Timing
 {
+    /// <summary>
+    /// A helper class that allows tracking of how many frames have elapsed.
+    /// </summary>
+    /// <remarks>
+    /// Starts tracking as soon as construction finishes.
+    /// </remarks>
     public class FpsTracker
     {
         private const long RefreshRateMs = 1000;
@@ -10,7 +16,7 @@ namespace Helion.Util.Time
         public double AverageFramesPerSecond { get; private set; }
         public double MaxFramesPerSecond { get; private set; }
         public double MinFramesPerSecond { get; private set; }
-        private readonly Stopwatch m_stopwatch = new Stopwatch();
+        private readonly Stopwatch m_stopwatch = new();
         private double tickSum;
         private double minTicksSeen = long.MaxValue;
         private double maxTicksSeen;

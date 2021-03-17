@@ -8,7 +8,7 @@ using Helion.Graphics.String;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
-using Helion.Util.Time;
+using Helion.Util.Timing;
 using NLog;
 using NLog.Targets;
 using static Helion.Util.Assertion.Assert;

@@ -13,7 +13,7 @@ using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
-using Helion.Util.Time;
+using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;

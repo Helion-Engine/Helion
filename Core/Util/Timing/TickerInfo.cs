@@ -1,4 +1,4 @@
-namespace Helion.Util.Time
+namespace Helion.Util.Timing
 {
     /// <summary>
     /// A wrapper around tick results from the <see cref="Ticker"/>.
@@ -15,13 +15,7 @@ namespace Helion.Util.Time
         /// range of [0.0, 1.0).
         /// </summary>
         public readonly float Fraction;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TickerInfo"/> struct.
-        /// </summary>
-        /// <param name="ticks">How many ticks have elapsed.</param>
-        /// <param name="fraction">The fraction from [0.0, 1.0) along the way
-        /// to the next tick.</param>
+        
         public TickerInfo(int ticks, float fraction)
         {
             Ticks = ticks;

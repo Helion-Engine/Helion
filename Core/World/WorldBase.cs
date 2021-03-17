@@ -14,7 +14,6 @@ using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
-using Helion.Util.Time;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -37,6 +36,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Container;
 using Helion.World.Entities.Definition;
 using Helion.Models;
+using Helion.Util.Timing;
 
 namespace Helion.World
 {
