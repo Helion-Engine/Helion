@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer;
+using Helion.Layer.WorldLayers;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
@@ -27,8 +28,8 @@ namespace Helion.Menus.Impl
                 new MenuImageComponent("M_DOOM", paddingY: 8),
                 CreateMenuOption("M_NGAME", -6, 2, CreateNewGameMenu()),
                 CreateMenuOption("M_OPTION", -15, 2, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
-                CreateMenuOption("M_LOADG", 1, 2, () => null),
-                CreateMenuOption("M_SAVEG", 1, 2, () => new SaveMenu(config, Console, soundManager, ArchiveCollection, saveManager)),
+                CreateMenuOption("M_LOADG", 1, 2, () => new LoadMenu(config, Console, soundManager, ArchiveCollection, saveManager)),
+                CreateMenuOption("M_SAVEG", 1, 2, CreateSaveMenu(saveManager)),
             };
 
             if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
@@ -43,6 +44,15 @@ namespace Helion.Menus.Impl
             {
                 return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
             }
+        }
+
+        private Func<Menu?> CreateSaveMenu(SaveGameManager saveManager)
+        {
+            return () =>
+            {
+                bool hasWorld = m_parent.Contains<WorldLayer>();
+                return new SaveMenu(Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld);
+            };
         }
 
         private Func<Menu?> CreateNewGameMenu()

@@ -12,49 +12,36 @@ using Helion.World.Save;
 
 namespace Helion.Menus.Impl
 {
-    public class SaveMenu : Menu
+    public class LoadMenu : Menu
     {
         private const int MaxRows = 6;
-        private const string HeaderImage = "M_SGTTL";
-
-        public bool IsTypingName { get; private set; }
-
-        public SaveMenu(Config config, HelionConsole console, SoundManager soundManager, 
-            ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld,
+        private const string HeaderImage = "M_LGTTL";
+        
+        public LoadMenu(Config config, HelionConsole console, SoundManager soundManager, 
+            ArchiveCollection archiveCollection, SaveGameManager saveManager, 
             int topPixelPadding = 16, bool leftAlign = true) 
             : base(config, console, soundManager, archiveCollection, topPixelPadding, leftAlign)
         {
             Components = Components.Add(new MenuImageComponent(HeaderImage, paddingY: 16));
 
-            if (!hasWorld)
-            {
-                Components = Components.Add(new MenuSmallTextComponent("No game active to save."));
-                return;
-            }
-
             List<SaveGame> savedGames = saveManager.GetSaveGames();
-            if (!savedGames.Empty())
+            if (savedGames.Empty())
+                Components = Components.Add(new MenuSmallTextComponent("There are no saved games."));
+            else
             {
                 IEnumerable<IMenuComponent> saveRowComponents = CreateSaveRowComponents(savedGames);
                 Components = Components.AddRange(saveRowComponents);
+                SetToFirstActiveComponent();
             }
-
-            if (savedGames.Count < MaxRows)
-            {
-                MenuSaveRowComponent saveRowComponent = new("Empty slot", CreateConsoleCommand("savegame"));
-                Components = Components.Add(saveRowComponent);
-            }
-            
-            SetToFirstActiveComponent();
         }
-
+        
         private IEnumerable<IMenuComponent> CreateSaveRowComponents(IEnumerable<SaveGame> savedGames)
         {
             return savedGames.Take(MaxRows)
                 .Select(save =>
                 {
                     string name = System.IO.Path.GetFileName(save.FileName);
-                    return new MenuSaveRowComponent(name, CreateConsoleCommand($"savegame {name}"));
+                    return new MenuSaveRowComponent(name, CreateConsoleCommand($"loadgame {name}"));
                 });
         }
 

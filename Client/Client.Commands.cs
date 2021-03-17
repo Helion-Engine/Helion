@@ -18,9 +18,17 @@ namespace Helion.Client
                 case "EXIT":
                     m_window.Close();
                     break;
+                
+                case "LOADGAME":
+                    HandleLoadGame(ccmdArgs.Args);
+                    break;
 
                 case "MAP":
                     HandleMap(ccmdArgs.Args);
+                    break;
+                
+                case "SAVEGAME":
+                    HandleSaveGame(ccmdArgs.Args);
                     break;
                 
                 case "STARTGAME":
@@ -52,6 +60,18 @@ namespace Helion.Client
             
             if (!CheatManager.Instance.HandleCommand(layer.World.EntityManager.Players[0], ccmdArgs.Command))
                 Log.Info($"Unknown command: {ccmdArgs.Command}");
+        }
+        
+        private void HandleLoadGame(List<string> args)
+        {
+            Log.Info("TODO: Load game");
+            // TODO
+        }
+
+        private void HandleSaveGame(List<string> args)
+        {
+            Log.Info("TODO: Load game");
+            // TODO
         }
 
         private void StartNewGame()
