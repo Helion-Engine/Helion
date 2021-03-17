@@ -14,7 +14,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
-using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
@@ -28,6 +27,7 @@ using NLog;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers
@@ -193,13 +193,13 @@ namespace Helion.Layer.WorldLayers
                 m_world.HandleFrameInput(input);
             }
 
-            if (input.ConsumeTypedKey(Config.Controls.HudDecrease))
+            if (input.ConsumeKeyPressed(Config.Controls.HudDecrease))
                 ChangeHudSize(false);
-            else if (input.ConsumeTypedKey(Config.Controls.HudIncrease))
+            else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
-            else if (input.ConsumeTypedKey(Config.Controls.Save))
+            else if (input.ConsumeKeyPressed(Config.Controls.Save))
                 SaveGame();
-            else if (input.ConsumeTypedKey(Config.Controls.Load))
+            else if (input.ConsumeKeyPressed(Config.Controls.Load))
                 LoadGame();
 			
 			base.HandleInput(input);

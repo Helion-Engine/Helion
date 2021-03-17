@@ -5,7 +5,7 @@ using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
-using Helion.Util.Time;
+using Helion.Util.Timing;
 using Helion.World.Util;
 
 namespace Helion.Client

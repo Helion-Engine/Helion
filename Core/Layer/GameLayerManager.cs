@@ -59,7 +59,7 @@ namespace Helion.Layer
 
         public override void HandleInput(InputEvent input)
         {
-            if (input.ConsumeTypedKey(m_config.Controls.Console))
+            if (input.ConsumeKeyPressed(m_config.Controls.Console))
                 HandleConsoleToggle(input);
             
             if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())

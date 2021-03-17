@@ -3,6 +3,7 @@
     public enum LanguageMessageType
     {
         None,
+        Default,
         Pickup,
         Lock,
         Obituary,

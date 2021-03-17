@@ -4,6 +4,7 @@ gameinfo
 {
 	infopage = "HELP1", "CREDIT"
 	drawreadthis = true
+	quitmessages = "$QUITMSG23", "$QUITMSG24", "$QUITMSG25", "$QUITMSG26", "$QUITMSG27", "$QUITMSG28", "$QUITMSG29"
 }
 
 clearepisodes

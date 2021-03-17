@@ -43,9 +43,9 @@ namespace Helion.Menus.Impl
                 if (ArchiveCollection.GetIWadInfo().IWadType == IWadType.DoomShareware && 
                     !episode.StartMap.Equals("e1m1", StringComparison.OrdinalIgnoreCase))
                 {
+                    string[] lines = archiveCollection.Definitions.Language.GetDefaultMessage("$SWSTRING").Split(new char[] { '\n' });
                     return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2",
-                        () => new MessageMenu(config, Console, soundManager, ArchiveCollection, 
-                            new string[] { "This is the shareware version of doom.", "You need to order the entire trilogy.", "Press a key." }));
+                        () => new MessageMenu(config, Console, soundManager, ArchiveCollection, lines));
                 }
 
                 return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2", 

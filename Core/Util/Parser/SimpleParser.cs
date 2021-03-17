@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Helion.Util.Parser
 {
@@ -7,16 +8,21 @@ namespace Helion.Util.Parser
     {
         private class ParserToken
         {
-            public ParserToken(int line, int index, int length)
+            public ParserToken(int line, int index, int length,
+                int endLine = -1, int endIndex = -1)
             {
                 Line = line;
                 Index = index;
                 Length = length;
+                EndLine = endLine;
+                EndIndex = endIndex;
             }
 
             public int Index { get; private set; }
             public int Line { get; private set; }
             public int Length { get; private set; }
+            public int EndLine { get; private set; }
+            public int EndIndex { get; private set; }
         }
 
         private readonly List<ParserToken> m_tokens = new List<ParserToken>();
@@ -36,13 +42,25 @@ namespace Helion.Util.Parser
             m_lines = data.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
             bool multiLineComment = false;
             int lineCount = 0;
+            int startLine = 0;
+
+            bool isQuote = false;
+            bool quotedString = false;
+            bool split = false;
+            int startIndex;
+            int saveStartIndex = 0;
 
             foreach (string line in m_lines)
             {
-                bool isQuote = false;
-                bool quotedString = false;
-                bool split = false;
-                int startIndex = 0;
+                if (!isQuote)
+                {
+                    isQuote = false;
+                    quotedString = false;
+                    split = false;
+                    startLine = lineCount;
+                }
+
+                startIndex = 0;
 
                 for (int i = 0; i < line.Length; i++)
                 {
@@ -77,8 +95,15 @@ namespace Helion.Util.Parser
                     {
                         quotedString = true;
                         isQuote = !isQuote;
-                        if (!isQuote)
+                        if (isQuote)
+                        {
+                            AddToken(startIndex, i, lineCount, false);
+                            saveStartIndex = i;
+                        }
+                        else
+                        {
                             split = true;
+                        }
                     }
 
                     if (!isQuote)
@@ -86,7 +111,10 @@ namespace Helion.Util.Parser
                         bool special = CheckSpecial(line[i]);
                         if (split || special || CheckSplit(line[i]))
                         {
-                            AddToken(startIndex, i, lineCount, quotedString);
+                            if (startLine == lineCount)
+                                AddToken(startIndex, i, lineCount, quotedString);
+                            else
+                                AddToken(saveStartIndex, startLine, lineCount, i, quotedString);
                             startIndex = i + 1;
                             split = false;
                             quotedString = false;
@@ -98,11 +126,13 @@ namespace Helion.Util.Parser
                     }
                 }
 
-                if (isQuote)
-                    throw new ParserException(lineCount, startIndex, 0, "Quote string was not ended.");
-
-                if (!multiLineComment)
-                    AddToken(startIndex, line.Length, lineCount, quotedString);
+                if (!isQuote && !multiLineComment)
+                {
+                    if (startLine == lineCount)
+                        AddToken(startIndex, line.Length, lineCount, quotedString);
+                    else if (line.Length != startIndex)
+                        AddToken(saveStartIndex, startLine, lineCount, startIndex, quotedString);
+                }
 
                 lineCount++;
             }
@@ -140,6 +170,14 @@ namespace Helion.Util.Parser
 
             if (startIndex != currentIndex)
                 m_tokens.Add(new ParserToken(lineCount, startIndex, currentIndex - startIndex));
+        }
+
+        private void AddToken(int startIndex, int startLine, int endLine, int endIndex, bool quotedString)
+        {
+            if (quotedString)
+                startIndex++;
+
+            m_tokens.Add(new ParserToken(startLine, startIndex, endIndex, endLine, endIndex));
         }
 
         private static bool CheckNext(string str, int i, char c) => i + 1 < str.Length && str[i + 1] == c;
@@ -283,7 +321,33 @@ namespace Helion.Util.Parser
         private string GetData(int index)
         {
             ParserToken token = m_tokens[index];
-            return m_lines[token.Line].Substring(token.Index, token.Length);
+
+            if (token.EndLine == -1)
+            {
+                return m_lines[token.Line].Substring(token.Index, token.Length);
+            }
+            else
+            {
+                StringBuilder sb = new StringBuilder();
+                for (int i = token.Line; i < token.EndLine + 1; i++)
+                {
+                    if (i == token.EndLine)
+                    {
+                        sb.Append(m_lines[i].Substring(0, token.EndIndex));
+                    }
+                    else
+                    {
+                        if (i == token.Line)
+                            sb.Append(m_lines[i].Substring(token.Index));
+                        else
+                            sb.Append(m_lines[i]);
+
+                        sb.Append('\n');
+                    }
+                }
+
+                return sb.ToString();
+            }
         }
 
         private char GetCharData(int index)

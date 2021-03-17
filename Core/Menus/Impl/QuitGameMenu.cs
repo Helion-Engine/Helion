@@ -6,6 +6,7 @@ using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.RandomGenerators;
 
 namespace Helion.Menus.Impl
 {
@@ -23,13 +24,25 @@ namespace Helion.Menus.Impl
                 Console.SubmitInputText();
                 return null;
             };
-            
-            Components = Components.AddRange(new IMenuComponent[]
+
+            var quitMessages = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.QuitMessages;
+            if (quitMessages.Count > 0)
             {
-                new MenuSmallTextComponent("This is unacceptable."),
-                new MenuPaddingComponent(8),
-                new MenuSmallTextComponent("Press Enter to quit.", m_quitAction)
-            });
+                TrueRandom random = new TrueRandom();
+                string msg = archiveCollection.Definitions.Language.GetDefaultMessage(quitMessages[random.NextByte() % quitMessages.Count]);
+                string[] lines = msg.Split(new char[] { '\n' });
+                foreach (string line in lines)
+                {
+                    Components = Components.Add(new MenuSmallTextComponent(line));
+                    Components = Components.Add(new MenuPaddingComponent(8));
+                }
+
+                Components = Components.Add(new MenuSmallTextComponent(archiveCollection.Definitions.Language.GetDefaultMessage("$DOSY")));
+            }
+            else
+            {
+                m_quitAction();
+            }
 
             SetToFirstActiveComponent();
         }
