@@ -1,3 +1,52 @@
+Default
+QUITMSG,"Are you sure you want to
+quit this great game?"
+QUITMSG1,"Please don't leave, there's more
+demons to toast!"
+QUITMSG2,"Let's beat it -- this is turning
+into a bloodbath!"
+QUITMSG3,"I wouldn't leave if I were you.
+DOS is much worse."
+QUITMSG4,"You're trying to say you like DOS
+better than me, right?"
+QUITMSG5,"Don't leave yet -- there's a
+demon around that corner!"
+QUITMSG6,"Ya know, next time you come in here
+I'm gonna toast ya."
+QUITMSG7,"Go ahead and leave. see if I care."
+QUITMSG8,"Then, thou hast lost an eighth!"
+QUITMSG9,"Don't go now, there's a 
+dimensional shambler waiting
+at the DOS prompt!"
+QUITMSG10,"Get outta here and go back
+to your boring programs."
+QUITMSG11,"If I were your boss, I'd 
+deathmatch ya in a minute!"
+QUITMSG12,"Look, bud. you leave now
+and you forfeit your body count!"
+QUITMSG13,"Just leave. when you come
+back, I'll be waiting with a bat."
+QUITMSG14,"You're lucky I don't smack
+you for thinking about leaving."
+QUITMSG23,"Don't quit now, there are still
+flemoids on the loose!"
+QUITMSG24,"Don't give up -- the flemoids will
+get the upper hand!"
+QUITMSG25,"Don't leave now.
+We need your help!"
+QUITMSG26,"I hope you're just taking a
+break for Chex(R) party mix."
+QUITMSG27,"Don't quit now!
+We need your help!"
+QUITMSG28,"Don't abandon the
+Intergalactic Federation of Cereals!"
+QUITMSG29,"The real Chex(R) Warrior
+wouldn't give up so fast!"
+SWSTRING,"This is the shareware version of Doom.
+
+You need to order the entire trilogy.
+
+Press a key."
 Pickup
 GOTARMOR,Picked up the armor.
 GOTMEGA,Picked up the MegaArmor!
