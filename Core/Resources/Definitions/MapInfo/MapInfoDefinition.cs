@@ -6,7 +6,6 @@ using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo
 {
@@ -226,7 +225,7 @@ namespace Helion.Resources.Definitions.MapInfo
                 if (item == "include")
                     ParseInclude(archiveCollection, parser);
                 else if (item == GameInfoName)
-                    GameDefinition = ParseGameInfo(parser);
+                    ParseGameInfo(parser, GameDefinition);
                 else if (item == ClearEpisodesName)
                     MapInfo.ClearEpisodes();
                 else if (item == EpisodeName)
@@ -530,9 +529,8 @@ namespace Helion.Resources.Definitions.MapInfo
             MapInfo.AddEpisode(episodeDef);
         }
 
-        private GameInfoDef ParseGameInfo(SimpleParser parser)
+        private GameInfoDef ParseGameInfo(SimpleParser parser, GameInfoDef gameDef)
         {
-            GameInfoDef gameDef = new();
             ConsumeBrace(parser, true);
 
             while (!IsBlockComplete(parser))
