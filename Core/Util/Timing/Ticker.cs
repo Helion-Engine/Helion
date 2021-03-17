@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using NLog;
 
-namespace Helion.Util.Time
+namespace Helion.Util.Timing
 {
     /// <summary>
     /// Responsible for tracking tick pulses based on time elapsed.
@@ -11,7 +11,6 @@ namespace Helion.Util.Time
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public long GameTic;
         private readonly long m_stopwatchTicksPerGametick;
         private readonly Stopwatch m_stopwatch = new();
         private long m_lastTickSeen;
@@ -66,7 +65,6 @@ namespace Helion.Util.Time
         public void Restart()
         {
             m_stopwatch.Restart();
-            GameTic = 0;
             m_lastTickSeen = 0;
             m_tickAccumulation = 0;
         }
@@ -91,8 +89,6 @@ namespace Helion.Util.Time
             float fraction = (float)(tickFractionUnit - ticks);
 
             RemoveExcessTicks(ticks);
-
-            GameTic += ticks;
 
             return new TickerInfo(ticks, fraction);
         }

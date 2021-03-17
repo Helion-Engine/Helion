@@ -6,7 +6,7 @@ using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
-using Helion.Util.Time;
+using Helion.Util.Timing;
 using MoreLinq.Extensions;
 using TextCopy;
 

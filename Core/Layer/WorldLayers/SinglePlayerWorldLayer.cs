@@ -14,7 +14,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
-using Helion.Util.Time;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
@@ -28,6 +27,7 @@ using NLog;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.WorldLayers

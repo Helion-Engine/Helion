@@ -9,7 +9,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
-using Helion.Util.Time;
+using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
 
