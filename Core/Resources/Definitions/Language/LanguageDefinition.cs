@@ -10,12 +10,13 @@ namespace Helion.Resources.Definitions.Language
 {
     public class LanguageDefinition
     {
-        private static readonly HashSet<string> TypeNames = new HashSet<string>(new string[] { "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" });
+        private static readonly HashSet<string> TypeNames = new HashSet<string>(new string[] { "Default", "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" });
         private static readonly HashSet<string> IWadMessageTypeNames = new HashSet<string>(new string[] { "Level names" });
         private static readonly HashSet<string> IWadTypeNames = new HashSet<string>(new string[] { "Doom 1", "Doom 2", "Plutonia", "TNT: Evilution", "Chex" });
 
         private static readonly Dictionary<CIString, LanguageMessageType> MessageTypeLookup = new()
         {
+            { "Default", LanguageMessageType.Default },
             { "Pickup", LanguageMessageType.Pickup },
             { "Locks", LanguageMessageType.Lock },
             { "Obituaries", LanguageMessageType.Obituary }
@@ -141,12 +142,12 @@ namespace Helion.Resources.Definitions.Language
             }
         }
 
-        public string GetString(string str)
+        public string GetDefaultMessage(string message)
         {
-            if (GetLookup(LanguageMessageType.None).TryGetValue(str, out string? value))
-                return value;
+            if (message.Length > 0 && message[0] == '$')
+                return LookupMessage(message[1..], LanguageMessageType.Default);
 
-            return str;
+            return message;
         }
 
         public string GetMessage(Player player, Player? other, string message, LanguageMessageType type)
