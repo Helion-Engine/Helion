@@ -97,34 +97,34 @@ namespace Helion.Input
             switch (key)
             {
             case Key.Zero:
-                AddLetter(key, '0', repeat);
+                AddLetter(key, shift ? '0' : ')', repeat);
                 break;
             case Key.One:
-                AddLetter(key, '1', repeat);
+                AddLetter(key, shift ? '1' : '!', repeat);
                 break;
             case Key.Two:
-                AddLetter(key, '2', repeat);
+                AddLetter(key, shift ? '2' : '@', repeat);
                 break;
             case Key.Three:
-                AddLetter(key, '3', repeat);
+                AddLetter(key, shift ? '3' : '#', repeat);
                 break;
             case Key.Four:
-                AddLetter(key, '4', repeat);
+                AddLetter(key, shift ? '4' : '$', repeat);
                 break;
             case Key.Five:
-                AddLetter(key, '5', repeat);
+                AddLetter(key, shift ? '5' : '%', repeat);
                 break;
             case Key.Six:
-                AddLetter(key, '6', repeat);
+                AddLetter(key, shift ? '6' : '^', repeat);
                 break;
             case Key.Seven:
-                AddLetter(key, '7', repeat);
+                AddLetter(key, shift ? '7' : '&', repeat);
                 break;
             case Key.Eight:
-                AddLetter(key, '8', repeat);
+                AddLetter(key, shift ? '8' : '*', repeat);
                 break;
             case Key.Nine:
-                AddLetter(key, '9', repeat);
+                AddLetter(key, shift ? '9' : '(', repeat);
                 break;
             case Key.A:
                 AddLetter(key, shift ? 'A' : 'a', repeat);
