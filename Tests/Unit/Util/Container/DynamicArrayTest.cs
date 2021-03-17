@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Helion.Util.Container;
 using Xunit;
 
@@ -15,7 +14,7 @@ namespace Helion.Tests.Unit.Util.Container
             array.Add(5);
 
             array.Length.Should().Be(1);
-            array.Data.First().Should().Be(5);
+            array.Data[0].Should().Be(5);
         }
         
         [Fact(DisplayName = "Add multiple element to dynamic array")]
