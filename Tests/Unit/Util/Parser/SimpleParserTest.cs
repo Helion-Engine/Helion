@@ -273,7 +273,7 @@ Line2 Data2";
         [Fact(DisplayName = "Consume special tokens with strings and integers over multiple lines")]
         public void TestBrace2()
         {
-            string data = @"item
+            const string data = @"item
             {
                 thing = 1
             }";
@@ -281,6 +281,19 @@ Line2 Data2";
             parser.Parse(data);
 
             foreach (string s in new[] { "item", "{", "thing", "=", "1", "}" })
+                parser.ConsumeString().Should().Be(s);
+        }
+        
+        [Fact(DisplayName = "Consume multiline string if not terminated with quotes in the same line")]
+        public void TestMultilineString()
+        {
+            const string data = @"YES1,""Did_you_like
+_the_new
+_ssg?""";
+            SimpleParser parser = new();
+            parser.Parse(data);
+
+            foreach (string s in new[] { "YES1", ",", "Did_you_like_the_new_ssg?" })
                 parser.ConsumeString().Should().Be(s);
         }
     }
