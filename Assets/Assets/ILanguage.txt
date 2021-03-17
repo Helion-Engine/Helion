@@ -42,6 +42,7 @@ QUITMSG28,"Don't abandon the
 Intergalactic Federation of Cereals!"
 QUITMSG29,"The real Chex(R) Warrior
 wouldn't give up so fast!"
+DOSY,(Press Y to quit)
 SWSTRING,"This is the shareware version of Doom.
 
 You need to order the entire trilogy.
