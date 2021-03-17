@@ -198,14 +198,27 @@ namespace Helion.Layer.WorldLayers
             else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
             else if (input.ConsumeKeyPressed(Config.Controls.Save))
-                SaveGame();
+                OpenSaveGameMenu();
             else if (input.ConsumeKeyPressed(Config.Controls.Load))
-                LoadGame();
+                OpenLoadGameMenu();
 			
 			base.HandleInput(input);
         }
 
-        private void LoadGame()
+        private void OpenSaveGameMenu()
+        {
+            // TODO
+            // SaveMenu saveMenu = new();
+            // MenuLayer menuLayer = new(Parent, saveMenu);
+            // Parent.Add(menuLayer);
+        }
+
+        private void OpenLoadGameMenu()
+        {
+            // TODO
+        }
+
+        public void LoadGame()
         {
             List<SaveGame> saveGames = SaveManager.GetSaveGames();
 
@@ -219,17 +232,16 @@ namespace Helion.Layer.WorldLayers
             }
         }
 
-        private void SaveGame()
+        public void SaveGame(string fileName, string title)
         {
-            const string SaveTitle = "Save";
             bool success = true;
             try
             {
                 IList<SaveGame> saveGames = SaveManager.GetSaveGames();
                 if (saveGames.Count > 0)
-                    SaveManager.WriteSaveGame(World, SaveTitle, saveGames[0]);
+                    SaveManager.WriteSaveGame(World, fileName, saveGames[0]);
                 else
-                    SaveManager.WriteNewSaveGame(World, SaveTitle);
+                    SaveManager.WriteNewSaveGame(World, fileName);
             }
             catch
             {

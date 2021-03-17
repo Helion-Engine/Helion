@@ -40,8 +40,9 @@ namespace Helion.Menus.Impl
             return savedGames.Take(MaxRows)
                 .Select(save =>
                 {
-                    string name = System.IO.Path.GetFileName(save.FileName);
-                    return new MenuSaveRowComponent(name, CreateConsoleCommand($"loadgame {name}"));
+                    string displayName = save.Model?.Text ?? "Unknown";
+                    string fileName = System.IO.Path.GetFileName(save.FileName);
+                    return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"loadgame {fileName}"));
                 });
         }
 
@@ -49,9 +50,7 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                Console.ClearInputText();
-                Console.AddInput(command);
-                Console.SubmitInputText();
+                Console.SubmitInputText(command);
                 return null;
             };
         }

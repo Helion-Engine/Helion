@@ -41,13 +41,8 @@ namespace Helion.Menus.Impl
                 return () =>
                 {
                     PlaySelectedSound();
-
                     config.Game.Skill.Set(skillLevel);
-
-                    console.ClearInputText();
-                    console.AddInput($"map {episode ?? "MAP01"}");
-                    console.SubmitInputText();
-                    
+                    console.SubmitInputText($"map {episode ?? "MAP01"}");
                     return null;
                 };
             }

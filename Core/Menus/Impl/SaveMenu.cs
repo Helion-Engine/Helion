@@ -20,9 +20,8 @@ namespace Helion.Menus.Impl
         public bool IsTypingName { get; private set; }
 
         public SaveMenu(Config config, HelionConsole console, SoundManager soundManager, 
-            ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld,
-            int topPixelPadding = 16, bool leftAlign = true) 
-            : base(config, console, soundManager, archiveCollection, topPixelPadding, leftAlign)
+            ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld) 
+            : base(config, console, soundManager, archiveCollection, 16, true)
         {
             Components = Components.Add(new MenuImageComponent(HeaderImage, paddingY: 16));
 
@@ -53,8 +52,9 @@ namespace Helion.Menus.Impl
             return savedGames.Take(MaxRows)
                 .Select(save =>
                 {
-                    string name = System.IO.Path.GetFileName(save.FileName);
-                    return new MenuSaveRowComponent(name, CreateConsoleCommand($"savegame {name}"));
+                    string displayName = save.Model?.Text ?? "Unknown";
+                    string saveName = System.IO.Path.GetFileName(save.FileName);
+                    return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"savegame {saveName}"));
                 });
         }
 
@@ -62,9 +62,7 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                Console.ClearInputText();
-                Console.AddInput(command);
-                Console.SubmitInputText();
+                Console.SubmitInputText(command);
                 return null;
             };
         }
