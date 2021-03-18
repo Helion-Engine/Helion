@@ -37,14 +37,6 @@ namespace Helion.Layer.WorldLayers
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private static readonly JsonSerializerSettings DefaultSerializerSettings = new JsonSerializerSettings
-        {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore,
-            TypeNameHandling = TypeNameHandling.Auto,
-            DefaultValueHandling = DefaultValueHandling.Ignore
-        };
-
         public readonly SaveGameManager SaveManager;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
@@ -104,18 +96,14 @@ namespace Helion.Layer.WorldLayers
 
         public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
-            SaveGameManager saveGameManager, SkillDef skillDef, IMap map)
+            SaveGameManager saveGameManager, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
-            string displayName = mapInfoDef.NiceName;
-            if (mapInfoDef.LookupName.Length > 0)
-            {
-                displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfoDef.LookupName,
-                    archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
-            }
+            string displayName = mapInfoDef.GetNiceNameOrLookup(archiveCollection);
 
             Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
-            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
+            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map,
+                null, worldModel);
             if (world == null)
                 return null;
             return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, saveGameManager, world, mapInfoDef);
@@ -216,40 +204,6 @@ namespace Helion.Layer.WorldLayers
         private void OpenLoadGameMenu()
         {
             // TODO
-        }
-
-        public void LoadGame()
-        {
-            List<SaveGame> saveGames = SaveManager.GetSaveGames();
-
-            if (saveGames.Count > 0)
-            {
-                WorldModel? worldModel = saveGames[0].ReadWorldModel();
-                if (worldModel == null)
-                    Log.Error("Failed to load corrupt world.");
-                else
-                    LoadWorldModel(worldModel);
-            }
-        }
-
-        public void SaveGame(string fileName, string title)
-        {
-            bool success = true;
-            try
-            {
-                IList<SaveGame> saveGames = SaveManager.GetSaveGames();
-                if (saveGames.Count > 0)
-                    SaveManager.WriteSaveGame(World, fileName, saveGames[0]);
-                else
-                    SaveManager.WriteNewSaveGame(World, fileName);
-            }
-            catch
-            {
-                success = false;
-            }
-
-            string msg = success ? "Game saved." : "Failed to save game.";
-            m_world.DisplayMessage(World.EntityManager.Players[0], null, msg, LanguageMessageType.None);
         }
 
         public override void RunLogic()
