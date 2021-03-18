@@ -12,7 +12,7 @@ namespace Helion.World.Entities.Definition
         public readonly int Id;
         public readonly int? EditorId;
         public readonly CIString Name;
-        public readonly EntityFlags Flags;
+        public EntityFlags Flags;
         public readonly EntityProperties Properties;
         public readonly EntityStates States;
         public readonly List<CIString> ParentClassNames;
@@ -25,8 +25,6 @@ namespace Helion.World.Entities.Definition
             Id = id;
             Name = name;
             EditorId = editorId;
-
-            Flags = new EntityFlags();
             Properties = new EntityProperties();
             States = new EntityStates();
             ParentClassNames = parentClassNames;

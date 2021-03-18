@@ -34,7 +34,7 @@ namespace Helion.World.Entities
         public readonly int Id;
         public readonly int ThingId;
         public readonly EntityDefinition Definition;
-        public EntityFlags Flags { get; protected set; }
+        public EntityFlags Flags;
         public EntityProperties Properties;
         public readonly EntityManager EntityManager;
         public readonly FrameState FrameState;
@@ -132,7 +132,7 @@ namespace Helion.World.Entities
             Id = id;
             ThingId = thingId;
             Definition = definition;
-            Flags = new EntityFlags(definition.Flags);
+            Flags = definition.Flags;
             // TODO there was a reason for Definition.Properties and Properties being different...
             Properties = new EntityProperties(definition.Properties);
             FrameState = new FrameState(this, definition, entityManager);
@@ -445,7 +445,7 @@ namespace Helion.World.Entities
             {
                 Health = Definition.Properties.Health;
                 SetHeight(Definition.Properties.Height);
-                Flags = new EntityFlags(Definition.Flags);
+                Flags = Definition.Flags;
             }
         }
 

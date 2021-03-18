@@ -191,7 +191,7 @@ namespace Helion.World.Entities.Inventories
             if (Items.TryGetValue(name, out InventoryItem? item))
             {
                 // If the player is maxed on this item, return true if AlwaysPickup is set to remove from the world
-                bool alwaysPickup = flags != null && flags.InventoryAlwaysPickup;
+                bool alwaysPickup = flags != null && flags.Value.InventoryAlwaysPickup;
                 if (isKey || item.Amount >= maxAmount)
                     return alwaysPickup;
 

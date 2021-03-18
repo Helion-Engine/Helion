@@ -43,7 +43,7 @@ namespace Helion.Resources.Definitions.MapInfo
 
         public int GetAmmoAmount(int amount, EntityFlags? flags)
         {
-            if (flags != null && flags.Dropped)
+            if (flags != null && flags.Value.Dropped)
                 return (int)(amount * DropAmmoFactor);
 
             return (int)(amount * AmmoFactor);

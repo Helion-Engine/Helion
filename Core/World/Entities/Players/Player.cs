@@ -539,7 +539,7 @@ namespace Helion.World.Entities.Players
         private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount)
         {
             int max = GetMaxAmount(definition);
-            if (flags != null && !flags.InventoryAlwaysPickup && value >= max)
+            if (flags != null && !flags.Value.InventoryAlwaysPickup && value >= max)
                 return false;
 
             value = MathHelper.Clamp(value + amount, 0, max);

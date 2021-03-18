@@ -1,16 +1,27 @@
 using Helion.Models;
 using System;
-using System.Collections;
 
 namespace Helion.World.Entities.Definition.Flags
 {
-    public class EntityFlags
+    public struct EntityFlags
     {
+
         private const int Bits = 32;
-        private const uint ShiftBit = 1;
+        private const int ShiftBit = 1;
+
         public static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
-        
-        private readonly BitArray m_bits = new BitArray(NumFlags);
+
+        private int Flags1;
+        private int Flags2;
+        private int Flags3;
+        private int Flags4;
+        private int Flags5;
+        private int Flags6;
+        private int Flags7;
+        private int Flags8;
+        private int Flags9;
+        private int Flags10;
+        private int Flags11;
 
         public bool AbsMaskAngle { get => this[EntityFlag.AbsMaskAngle]; set => this[EntityFlag.AbsMaskAngle] = value; }
         public bool AbsMaskPitch { get => this[EntityFlag.AbsMaskPitch]; set => this[EntityFlag.AbsMaskPitch] = value; }
@@ -259,7 +270,7 @@ namespace Helion.World.Entities.Definition.Flags
         public bool Skullfly { get => this[EntityFlag.Skullfly]; set => this[EntityFlag.Skullfly] = value; }
         public bool SkyExplode { get => this[EntityFlag.SkyExplode]; set => this[EntityFlag.SkyExplode] = value; }
         public bool SlidesOnWalls { get => this[EntityFlag.SlidesOnWalls]; set => this[EntityFlag.SlidesOnWalls] = value; }
-        public bool Solid { get => this[EntityFlag.Solid]; set => this[EntityFlag.Solid] = value; }
+        public bool Solid {  get => this[EntityFlag.Solid]; set => this[EntityFlag.Solid] = value; }
         public bool SpawnCeiling { get => this[EntityFlag.SpawnCeiling]; set => this[EntityFlag.SpawnCeiling] = value; }
         public bool SpawnFloat { get => this[EntityFlag.SpawnFloat]; set => this[EntityFlag.SpawnFloat] = value; }
         public bool SpawnSoundSource { get => this[EntityFlag.SpawnSoundSource]; set => this[EntityFlag.SpawnSoundSource] = value; }
@@ -314,95 +325,221 @@ namespace Helion.World.Entities.Definition.Flags
         public bool WindThrust { get => this[EntityFlag.WindThrust]; set => this[EntityFlag.WindThrust] = value; }
         public bool ZdoomTrans { get => this[EntityFlag.ZdoomTrans]; set => this[EntityFlag.ZdoomTrans] = value; }
 
-        public EntityFlags()
-        {
-        }
-
-        public EntityFlags(EntityFlags flags)
-        {
-            m_bits = new BitArray(flags.m_bits);
-        }
-
         public EntityFlags(EntityFlagsModel model)
         {
-            int flagIndex = 0;
-
-            for (int i = 0; i < model.Bits.Length; i++)
-            {
-                for (int j = 0; j < Bits; j++, flagIndex++)
-                {
-                    if (m_bits.Length <= flagIndex)
-                        break;
-
-                    uint currentValue = ShiftBit << j;
-                    m_bits[flagIndex] = (model.Bits[i] & currentValue) > 0;
-                }
-            }
+            Flags1 = model.Bits[0];
+            Flags2 = model.Bits[1];
+            Flags3 = model.Bits[2];
+            Flags4 = model.Bits[3];
+            Flags5 = model.Bits[4];
+            Flags6 = model.Bits[5];
+            Flags7 = model.Bits[6];
+            Flags8 = model.Bits[7];
+            Flags9 = model.Bits[8];
+            Flags10 = model.Bits[9];
+            Flags11 = model.Bits[10];
         }
 
         public EntityFlagsModel ToEntityFlagsModel()
         {
-            int bitLength = m_bits.Length / Bits;
-            if (m_bits.Length % Bits != 0)
-                bitLength++;
-
             EntityFlagsModel entityFlagsModel = new EntityFlagsModel()
             {
-                Bits = new uint[bitLength]
+                Bits = new int[NumFlags]
             };
 
-            uint currentFlags = 0;
-            int flagCount = 0;
-            int shifter = 0;
-
-            for (int i = 0; i < m_bits.Length; i++, shifter++)
-            {
-                if (m_bits[i])
-                {
-                    uint currentValue = ShiftBit << shifter;
-                    currentFlags |= currentValue;
-                }
-
-                if (shifter == Bits - 1)
-                {
-                    entityFlagsModel.Bits[flagCount] = currentFlags;
-                    currentFlags = 0;
-                    shifter = -1;
-                    flagCount++;
-                }
-            }
-
-            if (m_bits.Length % Bits != 0)
-                entityFlagsModel.Bits[flagCount] = currentFlags;
+            entityFlagsModel.Bits[0] = Flags1;
+            entityFlagsModel.Bits[1] = Flags2;
+            entityFlagsModel.Bits[2] = Flags3;
+            entityFlagsModel.Bits[3] = Flags4;
+            entityFlagsModel.Bits[4] = Flags5;
+            entityFlagsModel.Bits[5] = Flags6;
+            entityFlagsModel.Bits[6] = Flags7;
+            entityFlagsModel.Bits[7] = Flags8;
+            entityFlagsModel.Bits[8] = Flags9;
+            entityFlagsModel.Bits[9] = Flags10;
+            entityFlagsModel.Bits[10] = Flags11;
 
             return entityFlagsModel;
         }
 
         public bool this[EntityFlag flag]
         {
-            get => m_bits[(int)flag];
-            set => m_bits.Set((int)flag, value);
+            get
+            {
+                int iFlag = (int)flag;
+                int index = iFlag / Bits;
+
+                return GetValue(index, ShiftBit << (iFlag - (index * Bits)));
+                //return (Flags[index] & (ShiftBit << (iFlag - (index * Bits)))) != 0;
+            }
+
+            set
+            {
+                int iFlag = (int)flag;
+                int index = iFlag / Bits;
+
+                if (value)
+                    SetTrue(index, (ShiftBit << (iFlag - (index * Bits))));
+                else
+                    SetFalse(index, (ShiftBit << (iFlag - (index * Bits))));
+                //    Flags[index] |= (ShiftBit << (iFlag - (index * Bits)));
+                //else
+                //    Flags[index] &= ~(ShiftBit << (iFlag - (index * Bits)));
+            }
+        }
+
+        private void SetTrue(int index, int value)
+        {
+            switch (index)
+            {
+                case 0:
+                    Flags1 |= value;
+                    break;
+                case 1:
+                    Flags2 |= value;
+                    break;
+                case 2:
+                    Flags3 |= value;
+                    break;
+                case 3:
+                    Flags4 |= value;
+                    break;
+                case 4:
+                    Flags5 |= value;
+                    break;
+                case 5:
+                    Flags6 |= value;
+                    break;
+                case 6:
+                    Flags7 |= value;
+                    break;
+                case 7:
+                    Flags8 |= value;
+                    break;
+                case 8:
+                    Flags9 |= value;
+                    break;
+                case 9:
+                    Flags10 |= value;
+                    break;
+                case 10:
+                    Flags11 |= value;
+                    break;
+            }
+        }
+
+        private void SetFalse(int index, int value)
+        {
+            switch (index)
+            {
+                case 0:
+                    Flags1 &= ~value;
+                    break;
+                case 1:
+                    Flags2 &= ~value;
+                    break;
+                case 2:
+                    Flags3 &= ~value;
+                    break;
+                case 3:
+                    Flags4 &= ~value;
+                    break;
+                case 4:
+                    Flags5 &= ~value;
+                    break;
+                case 5:
+                    Flags6 &= ~value;
+                    break;
+                case 6:
+                    Flags7 &= ~value;
+                    break;
+                case 7:
+                    Flags8 &= ~value;
+                    break;
+                case 8:
+                    Flags9 &= ~value;
+                    break;
+                case 9:
+                    Flags10 &= ~value;
+                    break;
+                case 10:
+                    Flags11 &= ~value;
+                    break;
+            }
+        }
+
+        private bool GetValue(int index, int value)
+        {
+            switch (index)
+            {
+                case 0:
+                    return (Flags1 & value) != 0;
+                case 1:
+                    return (Flags2 & value) != 0;
+                case 2:
+                    return (Flags3 & value) != 0;
+                case 3:
+                    return (Flags4 & value) != 0;
+                case 4:
+                    return (Flags5 & value) != 0;
+                case 5:
+                    return (Flags6 & value) != 0;
+                case 6:
+                    return (Flags7 & value) != 0;
+                case 7:
+                    return (Flags8 & value) != 0;
+                case 8:
+                    return (Flags9 & value) != 0;
+                case 9:
+                    return (Flags10 & value) != 0;
+                case 10:
+                    return (Flags11 & value) != 0;
+            }
+
+            return false;
         }
 
         public void ClearAll()
         {
-            int numFlags = Enum.GetValues(typeof(EntityFlag)).Length;
-            for (int i = 0; i < numFlags; i++)
-                this[(EntityFlag)i] = false;
+            Flags1 = 0;
+            Flags2 = 0;
+            Flags3 = 0;
+            Flags4 = 0;
+            Flags5 = 0;
+            Flags6 = 0;
+            Flags7 = 0;
+            Flags8 = 0;
+            Flags9 = 0;
+            Flags10 = 0;
+            Flags11 = 0;
         }
 
         public override bool Equals(object? obj)
         {
             if (obj is EntityFlags entityFlags)
             {
-                if (m_bits.Count != entityFlags.m_bits.Count)
+                if (Flags1 != entityFlags.Flags1)
                     return false;
-
-                for (int i = 0; i < m_bits.Count; i++)
-                {
-                    if (m_bits[i] != entityFlags.m_bits[i])
-                        return false;
-                }
+                if (Flags2 != entityFlags.Flags2)
+                    return false;
+                if (Flags3 != entityFlags.Flags3)
+                    return false;
+                if (Flags4 != entityFlags.Flags4)
+                    return false;
+                if (Flags5 != entityFlags.Flags5)
+                    return false;
+                if (Flags6 != entityFlags.Flags6)
+                    return false;
+                if (Flags7 != entityFlags.Flags7)
+                    return false;
+                if (Flags8 != entityFlags.Flags8)
+                    return false;
+                if (Flags9 != entityFlags.Flags9)
+                    return false;
+                if (Flags10 != entityFlags.Flags10)
+                    return false;
+                if (Flags11 != entityFlags.Flags11)
+                    return false;
 
                 return true;
             }
