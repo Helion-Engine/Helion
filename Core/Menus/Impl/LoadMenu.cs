@@ -40,7 +40,7 @@ namespace Helion.Menus.Impl
             return savedGames.Take(MaxRows)
                 .Select(save =>
                 {
-                    string displayName = save.Model?.Text ?? "Unknown";
+                    string displayName = save.Model?.MapName ?? "Unknown";
                     string fileName = System.IO.Path.GetFileName(save.FileName);
                     return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"loadgame {fileName}"));
                 });

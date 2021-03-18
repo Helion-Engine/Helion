@@ -1,4 +1,5 @@
 ﻿using Helion.Models;
+using Helion.Resources.Definitions.MapInfo;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -10,8 +11,8 @@ namespace Helion.World.Save
 {
     public class SaveGame
     {
-        private static string SaveDataFile = "save.json";
-        private static string WorldDataFile = "world.json";
+        private static readonly string SaveDataFile = "save.json";
+        private static readonly string WorldDataFile = "world.json";
 
         private static readonly JsonSerializerSettings DefaultSerializerSettings = new JsonSerializerSettings
         {
@@ -74,10 +75,15 @@ namespace Helion.World.Save
 
         public static void WriteSaveGame(IWorld world, string title, string filename)
         {
+            string mapName = world.MapName.ToString();
+            string niceName = world.MapInfo.GetNiceNameOrLookup(world.ArchiveCollection);
+            if (!string.IsNullOrEmpty(niceName))
+                mapName += $": {niceName}";
+
             SaveGameModel saveGameModel = new SaveGameModel()
             {
                 Text = title,
-                MapName = world.MapInfo.NiceName,
+                MapName = mapName,
                 Date = DateTime.Now,
                 WorldFile = "world.json"
             };

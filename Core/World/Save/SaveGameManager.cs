@@ -16,19 +16,21 @@ namespace Helion.World.Save
             m_config = config;
         }
 
-        public void WriteNewSaveGame(IWorld world, string title) =>
+        public string WriteNewSaveGame(IWorld world, string title) =>
             WriteSaveGame(world, title, null);
 
-        public void WriteSaveGame(IWorld world, string title, SaveGame? existingSave)
+        public string WriteSaveGame(IWorld world, string title, SaveGame? existingSave)
         {
             string filename = existingSave?.FileName ?? GetNewSaveName();
             SaveGame.WriteSaveGame(world, title, filename);
+            return filename;
         }
 
         public List<SaveGame> GetSaveGames()
         {
             return Directory.GetFiles(Directory.GetCurrentDirectory(), "*.hsg")
                 .Select(f => new SaveGame(f))
+                .OrderByDescending(f => f.Model?.Date)
                 .ToList();
         }
 

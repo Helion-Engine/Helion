@@ -51,7 +51,7 @@ namespace Helion.Menus.Impl
             return () =>
             {
                 bool hasWorld = m_parent.Contains<WorldLayer>();
-                return new SaveMenu(Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld);
+                return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld);
             };
         }
 
