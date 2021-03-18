@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Util.Geometry;
+using MoreLinq.Extensions;
 
 namespace Helion.Util
 {
@@ -152,6 +153,21 @@ namespace Helion.Util
         /// <returns>The maximum value of both.</returns>
         public static Fixed Max(Fixed first, Fixed second) => first.Bits < second.Bits ? second : first;
 
+        /// <summary>
+        /// Gets the max of a list of integers. Avoids any allocations.
+        /// </summary>
+        /// <param name="ints">The integers to get the maximum value from.
+        /// </param>
+        /// <returns>Returns the max, or -MaxInt if the list is empty.
+        /// </returns>
+        public static int Max(params int[] ints)
+        {
+            int max = int.MinValue;
+            for (int i = 0; i < ints.Length; i++)
+                max = Math.Max(max, ints[i]);
+            return max;
+        }
+        
         /// <summary>
         /// Converts the degrees into radians.
         /// </summary>

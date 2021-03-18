@@ -59,12 +59,12 @@ namespace Helion.Layer.WorldLayers
         public MapInfoDef CurrentMap { get; set; }
 
         private SinglePlayerWorldLayer(GameLayer parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
+            IAudioSystem audioSystem, SaveGameManager saveGameManager, SinglePlayerWorld world, MapInfoDef mapInfoDef)
             : base(parent, config, console, archiveCollection, audioSystem)
         {
             CurrentMap = mapInfoDef;
             m_world = world;
-            SaveManager = new SaveGameManager(Config);
+            SaveManager = saveGameManager;
             m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
 
@@ -104,7 +104,7 @@ namespace Helion.Layer.WorldLayers
 
         public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
-            SkillDef skillDef, IMap map)
+            SaveGameManager saveGameManager, SkillDef skillDef, IMap map)
         {
             string displayName = mapInfoDef.NiceName;
             if (mapInfoDef.LookupName.Length > 0)
@@ -118,7 +118,7 @@ namespace Helion.Layer.WorldLayers
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
+            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, saveGameManager, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
@@ -198,14 +198,27 @@ namespace Helion.Layer.WorldLayers
             else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
             else if (input.ConsumeKeyPressed(Config.Controls.Save))
-                SaveGame();
+                OpenSaveGameMenu();
             else if (input.ConsumeKeyPressed(Config.Controls.Load))
-                LoadGame();
+                OpenLoadGameMenu();
 			
 			base.HandleInput(input);
         }
 
-        private void LoadGame()
+        private void OpenSaveGameMenu()
+        {
+            // TODO
+            // SaveMenu saveMenu = new();
+            // MenuLayer menuLayer = new(Parent, saveMenu);
+            // Parent.Add(menuLayer);
+        }
+
+        private void OpenLoadGameMenu()
+        {
+            // TODO
+        }
+
+        public void LoadGame()
         {
             List<SaveGame> saveGames = SaveManager.GetSaveGames();
 
@@ -219,29 +232,23 @@ namespace Helion.Layer.WorldLayers
             }
         }
 
-        private void SaveGame()
+        public void SaveGame(string fileName, string title)
         {
-            const string SaveTitle = "Save";
             bool success = true;
             try
             {
                 IList<SaveGame> saveGames = SaveManager.GetSaveGames();
                 if (saveGames.Count > 0)
-                    SaveManager.WriteSaveGame(World, SaveTitle, saveGames[0]);
+                    SaveManager.WriteSaveGame(World, fileName, saveGames[0]);
                 else
-                    SaveManager.WriteNewSaveGame(World, SaveTitle);
+                    SaveManager.WriteNewSaveGame(World, fileName);
             }
             catch
             {
                 success = false;
             }
 
-            string msg;
-            if (success)
-                msg = "Game saved.";
-            else
-                msg = "Failed to save game.";
-
+            string msg = success ? "Game saved." : "Failed to save game.";
             m_world.DisplayMessage(World.EntityManager.Players[0], null, msg, LanguageMessageType.None);
         }
 

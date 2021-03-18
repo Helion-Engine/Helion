@@ -3,31 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer;
+using Helion.Layer.WorldLayers;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.World.Save;
 
 namespace Helion.Menus.Impl
 {
     public class MainMenu : Menu
     {
-        private static readonly Func<Menu?> TodoAction = () => null;
         private readonly GameLayer m_parent;
         
-        public MainMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
-            base(config, console, soundManager, archiveCollection, 8)
+        public MainMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
+            ArchiveCollection archiveCollection, SaveGameManager saveManager)
+            : base(config, console, soundManager, archiveCollection, 8)
         {
             m_parent = parent;
 
-            List<IMenuComponent> components = new List<IMenuComponent>
+            List<IMenuComponent> components = new()
             {
                 new MenuImageComponent("M_DOOM", paddingY: 8),
                 CreateMenuOption("M_NGAME", -6, 2, CreateNewGameMenu()),
-                CreateMenuOption("M_OPTION", -15, 2, TodoAction),
-                CreateMenuOption("M_LOADG", 1, 2, TodoAction),
-                CreateMenuOption("M_SAVEG", 1, 2, TodoAction)
+                CreateMenuOption("M_OPTION", -15, 2, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
+                CreateMenuOption("M_LOADG", 1, 2, () => new LoadMenu(config, Console, soundManager, ArchiveCollection, saveManager)),
+                CreateMenuOption("M_SAVEG", 1, 2, CreateSaveMenu(saveManager)),
             };
 
             if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
@@ -42,6 +44,15 @@ namespace Helion.Menus.Impl
             {
                 return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
             }
+        }
+
+        private Func<Menu?> CreateSaveMenu(SaveGameManager saveManager)
+        {
+            return () =>
+            {
+                bool hasWorld = m_parent.Contains<WorldLayer>();
+                return new SaveMenu(Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld);
+            };
         }
 
         private Func<Menu?> CreateNewGameMenu()

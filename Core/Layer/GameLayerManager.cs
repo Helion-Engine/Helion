@@ -7,6 +7,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.World.Save;
 
 namespace Helion.Layer
 {
@@ -27,17 +28,19 @@ namespace Helion.Layer
         private readonly HelionConsole m_console;
         private readonly IAudioSystem m_audioSystem;
         private readonly SoundManager m_soundManager;
+        private readonly SaveGameManager m_saveGameManager;
 
         protected override double Priority => 0.5;
 
         public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console,
-            SoundManager soundManager, IAudioSystem audioSystem)
+            SoundManager soundManager, IAudioSystem audioSystem, SaveGameManager saveGameManager)
         {
             m_config = config;
             m_console = console;
             m_archiveCollection = archiveCollection;
             m_soundManager = soundManager;
             m_audioSystem = audioSystem;
+            m_saveGameManager = saveGameManager;
         }
 
         public override void Add(GameLayer layer)
@@ -83,7 +86,7 @@ namespace Helion.Layer
             {
                 m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
                 
-                MainMenu mainMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection);
+                MainMenu mainMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Add(menuLayer);
             }

@@ -19,9 +19,7 @@ namespace Helion.Menus.Impl
         {
             m_quitAction = () =>
             {
-                Console.ClearInputText();
-                Console.AddInput("exit");
-                Console.SubmitInputText();
+                Console.SubmitInputText("exit");
                 return null;
             };
 

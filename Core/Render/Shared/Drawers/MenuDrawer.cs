@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using Helion.Graphics.Fonts;
+using System.Drawing;
+using Helion.Graphics.String;
 using Helion.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
@@ -8,7 +9,9 @@ using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Geometry;
+using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
 {
@@ -53,13 +56,16 @@ namespace Helion.Render.Shared.Drawers
                     case MenuLargeTextComponent largeTextComponent:
                         DrawText(helper, largeTextComponent, isSelected, ref offsetY);
                         break;
+                    case MenuSaveRowComponent saveRowComponent:
+                        DrawSaveRow(helper, saveRowComponent, isSelected, ref offsetY);
+                        break;
                     default:
                         throw new Exception($"Unexpected menu component type for drawing: {component.GetType().FullName}");
                     }
                 }
             });
         }
-
+        
         private static int? CalculateMaxWidth(DrawHelper helper, Menu menu)
         {
             if (!menu.LeftAlign)
@@ -69,12 +75,22 @@ namespace Helion.Render.Shared.Drawers
 
             foreach (IMenuComponent menuComponent in menu)
             {
-                // Right now we only care about images to keep the UI simple.
-                if (menuComponent is not MenuImageComponent imageComponent) 
-                    continue;
-                
-                int width = helper.DrawInfoProvider.GetImageDimension(imageComponent.ImageName.ToString()).Width;
-                maxWidth = Math.Max(maxWidth, width);
+                // This is done this way to keep the logic simple, as we will
+                // eventually replace this UI with something better.
+                switch (menuComponent)
+                {
+                    case MenuImageComponent imageComponent:
+                    {
+                        int width = helper.DrawInfoProvider.GetImageDimension(imageComponent.ImageName.ToString()).Width;
+                        maxWidth = Math.Max(maxWidth, width);
+                        break;
+                    }
+                    case MenuSaveRowComponent:
+                    {
+                        maxWidth = Math.Max(maxWidth, MenuSaveRowComponent.PixelWidth);
+                        break;
+                    }
+                }
             }
 
             return maxWidth;
@@ -112,5 +128,47 @@ namespace Helion.Render.Shared.Drawers
         }
 
         private bool ShouldDrawActive() => (m_stopwatch.ElapsedMilliseconds % ActiveMillis) <= ActiveMillis / 2;
+        
+        private void DrawSaveRow(DrawHelper helper, MenuSaveRowComponent saveRowComponent, bool isSelected, 
+            ref int offsetY)
+        {
+            const int LeftOffset = 64;
+            const int RowVerticalPadding = 8;
+            const int SelectionOffsetX = 4;
+            
+            Font? font = m_archiveCollection.GetFont("SmallFont");
+            if (font == null)
+                return;
+            
+            if (isSelected)
+            {
+                string selectedName = ShouldDrawActive() ? Constants.MenuSelectIconActive : Constants.MenuSelectIconInactive;
+                var (w, _) = helper.DrawInfoProvider.GetImageDimension(selectedName);
+                
+                helper.Image(selectedName, LeftOffset - w - SelectionOffsetX, offsetY);
+            }
+
+            var (leftWidth, leftHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSLEFT");
+            var (middleWidth, middleHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSCNTR");
+            var (rightWidth, rightHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSRGHT");
+            int offsetX = LeftOffset;
+
+            helper.Image("M_LSLEFT", offsetX, offsetY);
+            offsetX += leftWidth;
+
+            int blocks = (int)Math.Ceiling((MenuSaveRowComponent.PixelWidth - leftWidth - rightWidth) / (double)middleWidth); 
+            for (int i = 0; i < blocks; i++)
+            {
+                helper.Image("M_LSCNTR", offsetX, offsetY);
+                offsetX += middleWidth;
+            }
+            
+            helper.Image("M_LSRGHT", offsetX, offsetY);
+
+            ColoredString text = ColoredStringBuilder.From(Color.Red, saveRowComponent.Text);
+            helper.Text(text, font, 8, out Dimension area, LeftOffset + leftWidth + 4, offsetY + 3);
+
+            offsetY += MathHelper.Max(area.Height, leftHeight, middleHeight, rightHeight) + RowVerticalPadding;
+        }
     }
 }

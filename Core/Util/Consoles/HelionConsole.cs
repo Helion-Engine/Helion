@@ -137,6 +137,20 @@ namespace Helion.Util.Consoles
             Log.Info(inputText);
             OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(inputText));
         }
+        
+        /// <summary>
+        /// Submits a new set of input without touching the existing input. The
+        /// input is not cached.
+        /// </summary>
+        /// <param name="command">The standalone command to execute.</param>
+        public void SubmitInputText(string command)
+        {
+            if (command.Empty())
+                return;
+
+            Log.Info(command);
+            OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(command));
+        }
 
         private bool IsConfigValueQuery(string inputText)
         {

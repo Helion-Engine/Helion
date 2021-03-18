@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
@@ -19,9 +18,17 @@ namespace Helion.Client
                 case "EXIT":
                     m_window.Close();
                     break;
+                
+                case "LOADGAME":
+                    HandleLoadGame(ccmdArgs.Args);
+                    break;
 
                 case "MAP":
                     HandleMap(ccmdArgs.Args);
+                    break;
+                
+                case "SAVEGAME":
+                    HandleSaveGame(ccmdArgs.Args);
                     break;
                 
                 case "STARTGAME":
@@ -53,6 +60,37 @@ namespace Helion.Client
             
             if (!CheatManager.Instance.HandleCommand(layer.World.EntityManager.Players[0], ccmdArgs.Command))
                 Log.Info($"Unknown command: {ccmdArgs.Command}");
+        }
+        
+        private void HandleLoadGame(IReadOnlyList<string> args)
+        {
+            if (args.Empty())
+            {
+                Log.Info("Usage: loadfile <filename>");
+                Log.Info("Example: loadfile savegame2");
+                return;
+            }
+            
+            string fileName = args[0];
+
+            // TODO
+            Log.Info("TODO: Load game");
+        }
+
+        private void HandleSaveGame(IReadOnlyList<string> args)
+        {
+            if (args.Count < 3)
+            {
+                Log.Info("Usage: savefile <filename>");
+                Log.Info("Example: savefile savegame2 Your Save Name Here");
+                return;
+            }
+
+            string fileName = args[1];
+            string saveName = string.Join(" ", args.Skip(2));
+
+            // TODO
+            
         }
 
         private void StartNewGame()
@@ -120,11 +158,6 @@ namespace Helion.Client
                 return;
             }
 
-            // For now, we will only have one world layer present. If someone
-            // wants to `map mapXX` offline then it will kill their connection
-            // and go offline to some world.
-            // m_layerManager.Remove<WorldLayer>();
-
             string mapName = args[0];
             IMap? map = m_archiveCollection.FindMap(mapName);
             if (map == null)
@@ -148,7 +181,7 @@ namespace Helion.Client
             else
             {
                 SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console, 
-                    m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map);
+                    m_audioSystem, m_archiveCollection, mapInfoDef, m_saveGameManager, skillDef, map);
                 if (newLayer == null)
                     return;
 
