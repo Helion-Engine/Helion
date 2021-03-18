@@ -53,7 +53,7 @@ namespace Helion.Layer
             var (width, height) = commands.ResolutionInfo.VirtualDimensions;
             DrawHelper helper = new(commands);
             var area = helper.DrawInfoProvider.GetImageDimension(titlepic);
-            helper.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
+            helper.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
             {
                 commands.DrawImage(titlepic, 0, 0, area.Width, area.Height, Color.White);
             });
