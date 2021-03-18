@@ -30,7 +30,7 @@ namespace Helion.Render.Shared.Drawers
         {
             DrawHelper helper = new(renderCommands);
             
-            helper.AtResolution(DoomHudHelper.DoomResolution, () =>
+            helper.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
             {
                 int offsetY = menu.TopPixelPadding;
                 int? maxWidth = CalculateMaxWidth(helper, menu);

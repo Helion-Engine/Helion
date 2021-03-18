@@ -47,32 +47,6 @@ namespace Helion.Render.Shared.Drawers.Helper
         public bool ImageExists(string name) => DrawInfoProvider.ImageExists(name);
 
         /// <summary>
-        /// See <see cref="AtResolution(int,int,System.Action)"/>. Does not
-        /// handle widescreen stretching/centering.
-        /// </summary>
-        /// <param name="width">The virtual width.</param>
-        /// <param name="height">The virtual height.</param>
-        /// <param name="action">The actions to call while at the width and
-        /// height provided.</param>
-        public void AtResolution(int width, int height, Action action)
-        {
-            AtResolution(new Dimension(width, height), action);
-        }
-
-        /// <summary>
-        /// See <see cref="AtResolution(int,int,System.Action)"/>. Does not
-        /// handle widescreen stretching/centering.
-        /// </summary>
-        /// <param name="dimension">The virtual dimensions.</param>
-        /// <param name="action">The actions to call while at the width and
-        /// height provided.</param>
-        public void AtResolution(Dimension dimension, Action action)
-        {
-            ResolutionInfo tempInfo = new() {VirtualDimensions = dimension};
-            AtResolution(tempInfo, action);
-        }
-
-        /// <summary>
         /// Performs a series of commands at some resolution. This allows you
         /// to make some calls without mutating the virtual resolution state
         /// in the case that you want to preserve whatever resolution is being

@@ -18,7 +18,8 @@ namespace Helion.Render.Shared.Drawers.Helper
         public static readonly ResolutionInfo DoomResolutionInfo = new()
         {
             VirtualDimensions = DoomResolution,
-            Scale = ResolutionScale.Center
+            Scale = ResolutionScale.Center,
+            AspectRatio = DoomViewAspectRatio
         };
 
         public static void ScaleImageDimensions(Dimension viewport, ref int width, ref int height)

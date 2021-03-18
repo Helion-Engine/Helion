@@ -4,6 +4,7 @@ using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus.Impl;
 using Helion.Render.Commands;
+using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
@@ -45,8 +46,14 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands commands)
         {
+            const string titlepic = "TITLEPIC";
             var (width, height) = commands.ResolutionInfo.VirtualDimensions;
-            commands.DrawImage("TITLEPIC", 0, 0, width, height, Color.White);
+            DrawHelper helper = new(commands);
+            var area = helper.DrawInfoProvider.GetImageDimension(titlepic);
+            helper.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
+            {
+                commands.DrawImage(titlepic, 0, 0, area.Width, area.Height, Color.White);
+            });
 
             if (ShouldDarken())
                 commands.FillRect(new(0, 0, width, height), Color.Black, 0.5f);

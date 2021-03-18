@@ -19,5 +19,10 @@ namespace Helion.Render.Commands
         /// this will have no effect).
         /// </summary>
         public ResolutionScale Scale;
+
+        /// <summary>
+        /// The aspect ratio to use. Note that this is the aspect ratio used
+        /// and not the aspect ratio of VirtualDimensions
+        public float AspectRatio;
     }
 }
