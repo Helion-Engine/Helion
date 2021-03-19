@@ -5,9 +5,6 @@ namespace Helion.World.Entities.Definition.Flags
 {
     public struct EntityFlags
     {
-        private const int Bits = 32;
-        private const int ShiftBit = 1;
-
         public static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
 
         private int Flags1;
