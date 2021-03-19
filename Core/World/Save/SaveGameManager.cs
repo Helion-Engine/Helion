@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Helion.Util.Extensions;
-using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.World.Util;
 
