@@ -1,6 +1,8 @@
 ﻿using Helion.Models;
+using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using NLog;
+using System.IO;
 using System.Linq;
 
 namespace Helion.World.Util
@@ -12,11 +14,23 @@ namespace Helion.World.Util
             if (!VerifyFileModel(archiveCollection, filesModel.IWad, log))
                 return false;
 
+            var fileArchives = archiveCollection.GetFiles();
+            if (fileArchives.Count() != filesModel.Files.Count)
+            {
+                var extraArchive = fileArchives.FirstOrDefault(x => ContainsFileModel(x, filesModel));
+                if (log != null && extraArchive != null)
+                    log.Error($"Loaded {Path.GetFileName(extraArchive.OriginalFilePath)} file that was not loaded with this save.");
+                return false;
+            }
+
             if (filesModel.Files.Any(x => !VerifyFileModel(archiveCollection, x, log)))
                 return false;
 
             return true;
         }
+
+        private static bool ContainsFileModel(Archive archive, GameFilesModel filesModel) =>
+            filesModel.Files.Any(x => archive.MD5.Equals(x.MD5));
 
         private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, Logger? log)
         {
