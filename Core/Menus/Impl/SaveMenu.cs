@@ -64,9 +64,10 @@ namespace Helion.Menus.Impl
         {
             base.HandleInput(input);
 
-            if (input.ConsumeKeyPressed(Key.Enter) && ComponentIndex.HasValue)
+            if (input.ConsumeKeyPressed(Key.Enter) && ComponentIndex.HasValue &&
+                Components[ComponentIndex.Value].Action != null)
             {
-                Components[ComponentIndex.Value]?.Action();
+                Components[ComponentIndex.Value].Action();
             }
         }
 

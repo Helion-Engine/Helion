@@ -529,7 +529,7 @@ namespace Helion.Resources.Definitions.MapInfo
             MapInfo.AddEpisode(episodeDef);
         }
 
-        private GameInfoDef ParseGameInfo(SimpleParser parser, GameInfoDef gameDef)
+        private void ParseGameInfo(SimpleParser parser, GameInfoDef gameDef)
         {
             ConsumeBrace(parser, true);
 
@@ -574,7 +574,6 @@ namespace Helion.Resources.Definitions.MapInfo
             }
 
             ConsumeBrace(parser, false);
-            return gameDef;
         }
 
         private SkillDef ParseSkillDef(SimpleParser parser)

@@ -348,7 +348,7 @@ namespace Helion.Render.Shared.Drawers.Helper
         /// <param name="yOffset">The Y offset (positive is down).</param>
         /// <param name="width">The width of the drawing object. If this is an
         /// image, then it's the image width.</param>
-        /// <param name="height">See <see cref="width"/>, but for height.
+        /// <param name="height">See 'width', but for height.
         /// </param>
         /// <param name="windowAlign">The alignment relative to a window point.
         /// </param>

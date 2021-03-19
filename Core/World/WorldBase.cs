@@ -570,8 +570,6 @@ namespace Helion.World
 
             if (bi != null)
             {
-                Line? line = bi.Value.Line;
-
                 if (damage > 0)
                 {
                     // Only move closer on a line hit

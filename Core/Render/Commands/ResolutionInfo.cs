@@ -23,6 +23,7 @@ namespace Helion.Render.Commands
         /// <summary>
         /// The aspect ratio to use. Note that this is the aspect ratio used
         /// and not the aspect ratio of VirtualDimensions
+        /// </summary>
         public float AspectRatio;
     }
 }

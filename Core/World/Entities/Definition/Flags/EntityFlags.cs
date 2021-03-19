@@ -409,5 +409,7 @@ namespace Helion.World.Entities.Definition.Flags
 
             return false;
         }
+
+        public override int GetHashCode() => m_bits.GetHashCode();
     }
 }

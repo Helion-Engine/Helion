@@ -187,6 +187,11 @@ namespace Helion.World.Entities
             MoveCount = entityModel.MoveCount;
             FrozenTics = entityModel.FrozenTics;
 
+            HighestFloorSector = Sector;
+            LowestCeilingSector = Sector;
+            HighestFloorObject = Sector;
+            LowestCeilingObject = Sector;
+
             if (entityModel.ArmorDefinition != null)
                 ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
