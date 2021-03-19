@@ -7,7 +7,6 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Models;
 using Helion.Util;
@@ -19,14 +18,10 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
-using Helion.World.Save;
 using Helion.World.StatusBar;
 using Helion.World.Util;
-using Newtonsoft.Json;
 using NLog;
 using System;
-using System.Linq;
-using System.Collections.Generic;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 
@@ -37,15 +32,6 @@ namespace Helion.Layer.WorldLayers
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private static readonly JsonSerializerSettings DefaultSerializerSettings = new JsonSerializerSettings
-        {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore,
-            TypeNameHandling = TypeNameHandling.Auto,
-            DefaultValueHandling = DefaultValueHandling.Ignore
-        };
-
-        public readonly SaveGameManager SaveManager;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys;
@@ -59,12 +45,11 @@ namespace Helion.Layer.WorldLayers
         public MapInfoDef CurrentMap { get; set; }
 
         private SinglePlayerWorldLayer(GameLayer parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SaveGameManager saveGameManager, SinglePlayerWorld world, MapInfoDef mapInfoDef)
+            IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
             : base(parent, config, console, archiveCollection, audioSystem)
         {
             CurrentMap = mapInfoDef;
             m_world = world;
-            SaveManager = saveGameManager;
             m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
 
@@ -104,21 +89,17 @@ namespace Helion.Layer.WorldLayers
 
         public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
-            SaveGameManager saveGameManager, SkillDef skillDef, IMap map)
+            SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
-            string displayName = mapInfoDef.NiceName;
-            if (mapInfoDef.LookupName.Length > 0)
-            {
-                displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfoDef.LookupName,
-                    archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
-            }
+            string displayName = mapInfoDef.GetNiceNameOrLookup(archiveCollection);
 
             Log.Info($"{mapInfoDef.MapName}: {displayName}");
             TextureManager.Init(archiveCollection, mapInfoDef);
-            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map);
+            SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map,
+                null, worldModel);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, saveGameManager, world, mapInfoDef);
+            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
@@ -218,40 +199,6 @@ namespace Helion.Layer.WorldLayers
             // TODO
         }
 
-        public void LoadGame()
-        {
-            List<SaveGame> saveGames = SaveManager.GetSaveGames();
-
-            if (saveGames.Count > 0)
-            {
-                WorldModel? worldModel = saveGames[0].ReadWorldModel();
-                if (worldModel == null)
-                    Log.Error("Failed to load corrupt world.");
-                else
-                    LoadWorldModel(worldModel);
-            }
-        }
-
-        public void SaveGame(string fileName, string title)
-        {
-            bool success = true;
-            try
-            {
-                IList<SaveGame> saveGames = SaveManager.GetSaveGames();
-                if (saveGames.Count > 0)
-                    SaveManager.WriteSaveGame(World, fileName, saveGames[0]);
-                else
-                    SaveManager.WriteNewSaveGame(World, fileName);
-            }
-            catch
-            {
-                success = false;
-            }
-
-            string msg = success ? "Game saved." : "Failed to save game.";
-            m_world.DisplayMessage(World.EntityManager.Players[0], null, msg, LanguageMessageType.None);
-        }
-
         public override void RunLogic()
         {
             m_lastTickInfo = m_ticker.GetTickerInfo();
@@ -341,63 +288,6 @@ namespace Helion.Layer.WorldLayers
                     LoadMap(CurrentMap, false);
                     break;
             }
-        }
-
-        private void LoadWorldModel(WorldModel worldModel)
-        {
-            if (!VerifyWorldModelFiles(worldModel))
-                return;
-
-            MapInfoDef? loadMap = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(worldModel.MapName);
-            if (loadMap == null)
-            {
-                Log.Error($"Unable to find map {worldModel.MapName}");
-                return;
-            }
-
-            LoadMap(loadMap, false, worldModel);
-        }
-
-        private bool VerifyWorldModelFiles(WorldModel worldModel)
-        {
-            if (!VerifyFileModel(worldModel.Files.IWad))
-                return false;
-
-            if (worldModel.Files.Files.Any(x => !VerifyFileModel(x)))
-                return false;
-
-            return true;
-        }
-
-        private bool VerifyFileModel(FileModel fileModel)
-        {
-            if (fileModel.FileName == null)
-            {
-                Log.Warn("File in save game was null.");
-                return true;
-            }
-
-            var archive = ArchiveCollection.GetArchiveByFileName(fileModel.FileName);
-            if (archive == null)
-            {
-                Log.Error($"Required archive {fileModel.FileName} for this save game is not loaded.");
-                return false;
-            }
-
-            if (fileModel.MD5 == null)
-            {
-                Log.Warn("MD5 for file in save game was null.");
-                return true;
-            }
-
-            if (!fileModel.MD5.Equals(archive.MD5))
-            {
-                Log.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
-                Log.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");
-                return false;
-            }
-
-            return true;
         }
 
         private void ChangeLevel(LevelChangeEvent e)

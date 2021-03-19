@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
+using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.World.Cheats;
+using Helion.World.Save;
+using Helion.World.Util;
 
 namespace Helion.Client
 {
@@ -25,10 +29,6 @@ namespace Helion.Client
 
                 case "MAP":
                     HandleMap(ccmdArgs.Args);
-                    break;
-                
-                case "SAVEGAME":
-                    HandleSaveGame(ccmdArgs.Args);
                     break;
                 
                 case "STARTGAME":
@@ -60,8 +60,8 @@ namespace Helion.Client
             
             if (!CheatManager.Instance.HandleCommand(layer.World.EntityManager.Players[0], ccmdArgs.Command))
                 Log.Info($"Unknown command: {ccmdArgs.Command}");
-        }
-        
+        }   
+
         private void HandleLoadGame(IReadOnlyList<string> args)
         {
             if (args.Empty())
@@ -72,25 +72,30 @@ namespace Helion.Client
             }
             
             string fileName = args[0];
+            SaveGame saveGame = new SaveGame(fileName);
 
-            // TODO
-            Log.Info("TODO: Load game");
-        }
-
-        private void HandleSaveGame(IReadOnlyList<string> args)
-        {
-            if (args.Count < 3)
+            if (saveGame.Model == null)
             {
-                Log.Info("Usage: savefile <filename>");
-                Log.Info("Example: savefile savegame2 Your Save Name Here");
+                Log.Error("Corrupt save game.");
+                ShowConsole();
                 return;
             }
 
-            string fileName = args[1];
-            string saveName = string.Join(" ", args.Skip(2));
+            WorldModel? worldModel = saveGame.ReadWorldModel();
+            if (worldModel == null)
+            {
+                Log.Error("Corrupt world.");
+                ShowConsole();
+                return;
+            }
 
-            // TODO
-            
+            if (!ModelVerification.VerifyModelFiles(worldModel.Files, m_archiveCollection, Log))
+            {
+                ShowConsole();
+                return;
+            }
+
+            LoadMapByName(worldModel.MapName, worldModel);
         }
 
         private void StartNewGame()
@@ -158,7 +163,11 @@ namespace Helion.Client
                 return;
             }
 
-            string mapName = args[0];
+            LoadMapByName(args[0], null);    
+        }
+
+        private void LoadMapByName(string mapName, WorldModel? worldModel)
+        {
             IMap? map = m_archiveCollection.FindMap(mapName);
             if (map == null)
             {
@@ -174,22 +183,30 @@ namespace Helion.Client
             }
 
             MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
-            
+
             // TODO: Fix me later (we should always create a new layer, and never branch like this)
             if (m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? worldLayer))
-                worldLayer.LoadMap(mapInfoDef, false);
+            {
+                worldLayer.LoadMap(mapInfoDef, false, worldModel);
+            }
             else
             {
-                SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console, 
-                    m_audioSystem, m_archiveCollection, mapInfoDef, m_saveGameManager, skillDef, map);
+                SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console,
+                    m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, worldModel);
                 if (newLayer == null)
                     return;
 
                 m_layerManager.Add(newLayer);
                 newLayer.World.Start();
             }
-            
+
             m_layerManager.RemoveAllBut<WorldLayer>();
+        }
+
+        private void ShowConsole()
+        {
+            if (m_layerManager.Get<ConsoleLayer>() == null)
+                m_layerManager.Add(new ConsoleLayer(m_archiveCollection, m_console));
         }
     }
 }

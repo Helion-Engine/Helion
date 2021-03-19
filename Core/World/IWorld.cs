@@ -16,7 +16,6 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.Resources.Definitions.MapInfo;
-using System.IO;
 using Helion.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
@@ -85,5 +84,6 @@ namespace Helion.World
         bool IsLineIdValid(int lineId) => lineId > 0 && lineId < Lines.Count;
 
         WorldModel ToWorldModel();
+        GameFilesModel GetGameFilesModel();
     }
 }

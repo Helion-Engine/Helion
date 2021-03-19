@@ -61,7 +61,7 @@ namespace Helion.World.Physics
 
             // Closed door check. This check isn't really correct, but is required for some old rendering tricks to work.
             // E.g. TNT Map02 - see through window that opens as a door
-            if (line.Back.Sector.Ceiling.Z <= line.Front.Sector.Floor.Z || line.Back.Sector.Floor.Z >=  line.Front.Sector.Ceiling.Z)
+            if (line.Back!.Sector.Ceiling.Z <= line.Front.Sector.Floor.Z || line.Back.Sector.Floor.Z >=  line.Front.Sector.Ceiling.Z)
                 return true;
 
             return false;

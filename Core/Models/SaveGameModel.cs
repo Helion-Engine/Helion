@@ -4,7 +4,7 @@ namespace Helion.Models
 {
     public class SaveGameModel
     {
-        public GameFilesModel Files { get; set; } = GameFilesModel.Default;
+        public GameFilesModel Files { get; set; }
 
         public string Text { get; set; } = string.Empty;
         public string MapName { get; set; } = string.Empty;

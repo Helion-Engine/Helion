@@ -39,6 +39,7 @@ namespace Helion.Audio
         /// memory.
         /// </remarks>
         /// <param name="sound">The name of the sound.</param>
+        /// <param name="audioData">The audio data for this sound.</param>
         /// <param name="soundParams">Information for this sound.</param>
         /// <returns>null if it could not be created.</returns>
         IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams);

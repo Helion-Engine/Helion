@@ -61,11 +61,11 @@ namespace Helion.Client
             {
                 LoadMap(m_commandLineArgs.Map);
             }
-            else if (m_commandLineArgs.Warp != null)
-            {
-                if (MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
+            else if (m_commandLineArgs.Warp != null &&
+                MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
                     out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-                    LoadMap(mapInfoDef.MapName);
+            {
+                LoadMap(mapInfoDef.MapName);
             }
         }
 

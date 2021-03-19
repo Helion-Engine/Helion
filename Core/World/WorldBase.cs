@@ -570,8 +570,6 @@ namespace Helion.World
 
             if (bi != null)
             {
-                Line? line = bi.Value.Line;
-
                 if (damage > 0)
                 {
                     // Only move closer on a line hit
@@ -905,7 +903,7 @@ namespace Helion.World
 
                 newEntity.SetSpawnState();
                 newEntity.AngleRadians = entity.AngleRadians;
-                newEntity.Properties.ReactionTime = 18;
+                newEntity.ReactionTime = 18;
 
                 entity.Dispose();
             }
@@ -1174,7 +1172,7 @@ namespace Helion.World
             };
         }
 
-        private GameFilesModel GetGameFilesModel()
+        public GameFilesModel GetGameFilesModel()
         {
             return new GameFilesModel()
             {

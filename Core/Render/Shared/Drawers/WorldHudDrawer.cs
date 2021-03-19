@@ -85,9 +85,9 @@ namespace Helion.Render.Shared.Drawers
             {
                 // Doom pushes the gun sprite up when the status bar is showing
                 int yOffset = config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
-                DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, viewport, draw, yOffset);
+                DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, draw, yOffset);
                 if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, viewport, draw, yOffset);
+                    DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, draw, yOffset);
             }
 
             DrawHudCrosshair(viewport, draw);
@@ -96,7 +96,7 @@ namespace Helion.Render.Shared.Drawers
             switch(config.Hud.StatusBarSize.Value)
             {
                 case StatusBarSizeType.Full:
-                    DrawFullStatusBar(player, largeFont, draw, viewport);
+                    DrawFullStatusBar(player, largeFont, draw);
                     break;
                 case StatusBarSizeType.Minimal:
                     DrawMinimalStatusBar(player, topRightY, largeFont, draw);
@@ -106,24 +106,26 @@ namespace Helion.Render.Shared.Drawers
             }            
         }
      
-        private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw, Dimension viewport)
+        private void DrawFullStatusBar(Player player, Font? largeFont, DrawHelper draw)
         {
             const string StatusBar = "STBAR";
             const string StatusBackground = "W94_1";
-            Dimension barArea = draw.DrawInfoProvider.GetImageDimension(StatusBar);
-            Dimension backgroundArea = draw.DrawInfoProvider.GetImageDimension(StatusBackground);
-            DoomHudHelper.ScaleImageDimensions(viewport, ref barArea.Width, ref barArea.Height);
-            DoomHudHelper.ScaleImageDimensions(viewport, ref backgroundArea.Width, ref backgroundArea.Height);
-
-            int yOffset = backgroundArea.Height - barArea.Height;
-            int xOffset = 0;
-            while (xOffset < viewport.Width)
-            {
-                draw.Image(StatusBackground, xOffset, yOffset, backgroundArea.Width, backgroundArea.Height, both: Align.BottomLeft);
-                xOffset += backgroundArea.Width;
-            }
 
             draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
+            {
+                Dimension barArea = draw.DrawInfoProvider.GetImageDimension(StatusBar);
+                Dimension backgroundArea = draw.DrawInfoProvider.GetImageDimension(StatusBackground);
+
+                int yOffset = backgroundArea.Height - barArea.Height;
+                int xOffset = 0;
+                while (xOffset < DoomHudHelper.DoomResolutionWidth)
+                {
+                    draw.Image(StatusBackground, xOffset, yOffset, both: Align.BottomLeft);
+                    xOffset += backgroundArea.Width;
+                }
+            });
+
+            draw.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
             {
                 draw.Image(StatusBar, window: Align.BottomLeft, image: Align.BottomLeft);
                 DrawFullHudHealthArmorAmmo(player, largeFont, draw);
@@ -310,7 +312,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState, Dimension viewport,
+        private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState,
             DrawHelper draw, int yOffset)
         {
             int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
@@ -321,25 +323,25 @@ namespace Helion.Render.Shared.Drawers
 
             if (draw.ImageExists(sprite))
             {
-                (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
-                Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
-                offset.Y += yOffset;
-                Vec2D interpolateOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction);
-                Vec2I weaponOffset = DoomHudHelper.ScaleWorldOffset(viewport, interpolateOffset);
-                DoomHudHelper.ScaleImageDimensions(viewport, ref width, ref height);
-                DoomHudHelper.ScaleImageOffset(viewport, ref offset.X, ref offset.Y);
+                draw.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
+                {
+                    (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
+                    Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
+                    offset.Y += yOffset;
+                    Vec2I weaponOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction).ToInt();
 
-                float alpha = 1.0f;
-                IPowerup? powerup = player.Inventory.GetPowerup(PowerupType.Invisibility);
-                if (powerup != null && powerup.DrawPowerupEffect)
-                    alpha = 0.3f;
+                    float alpha = 1.0f;
+                    IPowerup? powerup = player.Inventory.GetPowerup(PowerupType.Invisibility);
+                    if (powerup != null && powerup.DrawPowerupEffect)
+                        alpha = 0.3f;
 
-                bool drawInvul = player.DrawInvulnerableColorMap();
+                    bool drawInvul = player.DrawInvulnerableColorMap();
 
-                // Translate doom image offset to OpenGL coordinates
-                int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
-                int y = -offset.Y - height + weaponOffset.Y;
-                draw.Image(sprite, x, y, width, height, color: lightLevelColor, alpha: alpha, drawInvul: drawInvul);
+                    // Translate doom image offset to OpenGL coordinates
+                    int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
+                    int y = -offset.Y - height + weaponOffset.Y;
+                    draw.Image(sprite, x, y, color: lightLevelColor, alpha: alpha, drawInvul: drawInvul);
+                });
             }
         }
 

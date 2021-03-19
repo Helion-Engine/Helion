@@ -24,7 +24,7 @@ namespace Helion.Menus.Impl
         {
             Components = Components.Add(new MenuImageComponent(HeaderImage, paddingY: 16));
 
-            List<SaveGame> savedGames = saveManager.GetSaveGames();
+            List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
             if (savedGames.Empty())
                 Components = Components.Add(new MenuSmallTextComponent("There are no saved games."));
             else
@@ -40,7 +40,7 @@ namespace Helion.Menus.Impl
             return savedGames.Take(MaxRows)
                 .Select(save =>
                 {
-                    string displayName = save.Model?.Text ?? "Unknown";
+                    string displayName = save.Model?.MapName ?? "Unknown";
                     string fileName = System.IO.Path.GetFileName(save.FileName);
                     return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"loadgame {fileName}"));
                 });

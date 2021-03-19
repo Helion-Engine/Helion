@@ -116,7 +116,7 @@ namespace Helion.Menus
                 
                 if (Components[index].HasAction)
                 {
-                    if (ComponentIndex == null || ComponentIndex != index)
+                    if (ComponentIndex != index)
                         PlayNextOptionSound();
                     
                     ComponentIndex = index;

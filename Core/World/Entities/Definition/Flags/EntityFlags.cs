@@ -5,7 +5,6 @@ namespace Helion.World.Entities.Definition.Flags
 {
     public struct EntityFlags
     {
-
         private const int Bits = 32;
         private const int ShiftBit = 1;
 
@@ -21,309 +20,309 @@ namespace Helion.World.Entities.Definition.Flags
         private int Flags8;
         private int Flags9;
         private int Flags10;
-        private int Flags11;
 
-        public bool AbsMaskAngle { get => this[EntityFlag.AbsMaskAngle]; set => this[EntityFlag.AbsMaskAngle] = value; }
-        public bool AbsMaskPitch { get => this[EntityFlag.AbsMaskPitch]; set => this[EntityFlag.AbsMaskPitch] = value; }
-        public bool ActivateImpact { get => this[EntityFlag.ActivateImpact]; set => this[EntityFlag.ActivateImpact] = value; }
-        public bool ActivateMCross { get => this[EntityFlag.ActivateMCross]; set => this[EntityFlag.ActivateMCross] = value; }
-        public bool ActivatePCross { get => this[EntityFlag.ActivatePCross]; set => this[EntityFlag.ActivatePCross] = value; }
-        public bool ActLikeBridge { get => this[EntityFlag.ActLikeBridge]; set => this[EntityFlag.ActLikeBridge] = value; }
-        public bool AdditivePoisonDamage { get => this[EntityFlag.AdditivePoisonDamage]; set => this[EntityFlag.AdditivePoisonDamage] = value; }
-        public bool AdditivePoisonDuration { get => this[EntityFlag.AdditivePoisonDuration]; set => this[EntityFlag.AdditivePoisonDuration] = value; }
-        public bool AimReflect { get => this[EntityFlag.AimReflect]; set => this[EntityFlag.AimReflect] = value; }
-        public bool AllowBounceOnActors { get => this[EntityFlag.AllowBounceOnActors]; set => this[EntityFlag.AllowBounceOnActors] = value; }
-        public bool AllowPain { get => this[EntityFlag.AllowPain]; set => this[EntityFlag.AllowPain] = value; }
-        public bool AllowParticles { get => this[EntityFlag.AllowParticles]; set => this[EntityFlag.AllowParticles] = value; }
-        public bool AllowThruFlags { get => this[EntityFlag.AllowThruFlags]; set => this[EntityFlag.AllowThruFlags] = value; }
-        public bool AlwaysFast { get => this[EntityFlag.AlwaysFast]; set => this[EntityFlag.AlwaysFast] = value; }
-        public bool AlwaysPuff { get => this[EntityFlag.AlwaysPuff]; set => this[EntityFlag.AlwaysPuff] = value; }
-        public bool AlwaysRespawn { get => this[EntityFlag.AlwaysRespawn]; set => this[EntityFlag.AlwaysRespawn] = value; }
-        public bool AlwaysTelefrag { get => this[EntityFlag.AlwaysTelefrag]; set => this[EntityFlag.AlwaysTelefrag] = value; }
-        public bool Ambush { get => this[EntityFlag.Ambush]; set => this[EntityFlag.Ambush] = value; }
-        public bool AvoidMelee { get => this[EntityFlag.AvoidMelee]; set => this[EntityFlag.AvoidMelee] = value; }
-        public bool Blasted { get => this[EntityFlag.Blasted]; set => this[EntityFlag.Blasted] = value; }
-        public bool BlockAsPlayer { get => this[EntityFlag.BlockAsPlayer]; set => this[EntityFlag.BlockAsPlayer] = value; }
-        public bool BlockedBySolidActors { get => this[EntityFlag.BlockedBySolidActors]; set => this[EntityFlag.BlockedBySolidActors] = value; }
-        public bool BloodlessImpact { get => this[EntityFlag.BloodlessImpact]; set => this[EntityFlag.BloodlessImpact] = value; }
-        public bool BloodSplatter { get => this[EntityFlag.BloodSplatter]; set => this[EntityFlag.BloodSplatter] = value; }
-        public bool Boss { get => this[EntityFlag.Boss]; set => this[EntityFlag.Boss] = value; }
-        public bool BossDeath { get => this[EntityFlag.BossDeath]; set => this[EntityFlag.BossDeath] = value; }
-        public bool BounceAutoOff { get => this[EntityFlag.BounceAutoOff]; set => this[EntityFlag.BounceAutoOff] = value; }
-        public bool BounceAutoOffFloorOnly { get => this[EntityFlag.BounceAutoOffFloorOnly]; set => this[EntityFlag.BounceAutoOffFloorOnly] = value; }
-        public bool BounceLikeHeretic { get => this[EntityFlag.BounceLikeHeretic]; set => this[EntityFlag.BounceLikeHeretic] = value; }
-        public bool BounceOnActors { get => this[EntityFlag.BounceOnActors]; set => this[EntityFlag.BounceOnActors] = value; }
-        public bool BounceOnCeilings { get => this[EntityFlag.BounceOnCeilings]; set => this[EntityFlag.BounceOnCeilings] = value; }
-        public bool BounceOnFloors { get => this[EntityFlag.BounceOnFloors]; set => this[EntityFlag.BounceOnFloors] = value; }
-        public bool BounceOnUnrippables { get => this[EntityFlag.BounceOnUnrippables]; set => this[EntityFlag.BounceOnUnrippables] = value; }
-        public bool BounceOnWalls { get => this[EntityFlag.BounceOnWalls]; set => this[EntityFlag.BounceOnWalls] = value; }
-        public bool Bright { get => this[EntityFlag.Bright]; set => this[EntityFlag.Bright] = value; }
-        public bool Buddha { get => this[EntityFlag.Buddha]; set => this[EntityFlag.Buddha] = value; }
-        public bool BumpSpecial { get => this[EntityFlag.BumpSpecial]; set => this[EntityFlag.BumpSpecial] = value; }
-        public bool CanBlast { get => this[EntityFlag.CanBlast]; set => this[EntityFlag.CanBlast] = value; }
-        public bool CanBounceWater { get => this[EntityFlag.CanBounceWater]; set => this[EntityFlag.CanBounceWater] = value; }
-        public bool CannotPush { get => this[EntityFlag.CannotPush]; set => this[EntityFlag.CannotPush] = value; }
-        public bool CanPass { get => this[EntityFlag.CanPass]; set => this[EntityFlag.CanPass] = value; }
-        public bool CanPushWalls { get => this[EntityFlag.CanPushWalls]; set => this[EntityFlag.CanPushWalls] = value; }
-        public bool CantLeaveFloorPic { get => this[EntityFlag.CantLeaveFloorPic]; set => this[EntityFlag.CantLeaveFloorPic] = value; }
-        public bool CantSeek { get => this[EntityFlag.CantSeek]; set => this[EntityFlag.CantSeek] = value; }
-        public bool CanUseWalls { get => this[EntityFlag.CanUseWalls]; set => this[EntityFlag.CanUseWalls] = value; }
-        public bool CausePain { get => this[EntityFlag.CausePain]; set => this[EntityFlag.CausePain] = value; }
-        public bool CeilingHugger { get => this[EntityFlag.CeilingHugger]; set => this[EntityFlag.CeilingHugger] = value; }
-        public bool Corpse { get => this[EntityFlag.Corpse]; set => this[EntityFlag.Corpse] = value; }
-        public bool CountItem { get => this[EntityFlag.CountItem]; set => this[EntityFlag.CountItem] = value; }
-        public bool CountKill { get => this[EntityFlag.CountKill]; set => this[EntityFlag.CountKill] = value; }
-        public bool CountSecret { get => this[EntityFlag.CountSecret]; set => this[EntityFlag.CountSecret] = value; }
-        public bool Deflect { get => this[EntityFlag.Deflect]; set => this[EntityFlag.Deflect] = value; }
-        public bool DehExplosion { get => this[EntityFlag.DehExplosion]; set => this[EntityFlag.DehExplosion] = value; }
-        public bool DoHarmSpecies { get => this[EntityFlag.DoHarmSpecies]; set => this[EntityFlag.DoHarmSpecies] = value; }
-        public bool DontBlast { get => this[EntityFlag.DontBlast]; set => this[EntityFlag.DontBlast] = value; }
-        public bool DontBounceOnShootables { get => this[EntityFlag.DontBounceOnShootables]; set => this[EntityFlag.DontBounceOnShootables] = value; }
-        public bool DontBounceOnSky { get => this[EntityFlag.DontBounceOnSky]; set => this[EntityFlag.DontBounceOnSky] = value; }
-        public bool DontCorpse { get => this[EntityFlag.DontCorpse]; set => this[EntityFlag.DontCorpse] = value; }
-        public bool DontDrain { get => this[EntityFlag.DontDrain]; set => this[EntityFlag.DontDrain] = value; }
-        public bool DontFaceTalker { get => this[EntityFlag.DontFaceTalker]; set => this[EntityFlag.DontFaceTalker] = value; }
-        public bool DontFall { get => this[EntityFlag.DontFall]; set => this[EntityFlag.DontFall] = value; }
-        public bool DontGib { get => this[EntityFlag.DontGib]; set => this[EntityFlag.DontGib] = value; }
-        public bool DontHarmClass { get => this[EntityFlag.DontHarmClass]; set => this[EntityFlag.DontHarmClass] = value; }
-        public bool DontHarmSpecies { get => this[EntityFlag.DontHarmSpecies]; set => this[EntityFlag.DontHarmSpecies] = value; }
-        public bool DontHurtSpecies { get => this[EntityFlag.DontHurtSpecies]; set => this[EntityFlag.DontHurtSpecies] = value; }
-        public bool DontInterpolate { get => this[EntityFlag.DontInterpolate]; set => this[EntityFlag.DontInterpolate] = value; }
-        public bool DontMorph { get => this[EntityFlag.DontMorph]; set => this[EntityFlag.DontMorph] = value; }
-        public bool DontOverlap { get => this[EntityFlag.DontOverlap]; set => this[EntityFlag.DontOverlap] = value; }
-        public bool DontReflect { get => this[EntityFlag.DontReflect]; set => this[EntityFlag.DontReflect] = value; }
-        public bool DontRip { get => this[EntityFlag.DontRip]; set => this[EntityFlag.DontRip] = value; }
-        public bool DontSeekInvisible { get => this[EntityFlag.DontSeekInvisible]; set => this[EntityFlag.DontSeekInvisible] = value; }
-        public bool DontSplash { get => this[EntityFlag.DontSplash]; set => this[EntityFlag.DontSplash] = value; }
-        public bool DontSquash { get => this[EntityFlag.DontSquash]; set => this[EntityFlag.DontSquash] = value; }
-        public bool DontThrust { get => this[EntityFlag.DontThrust]; set => this[EntityFlag.DontThrust] = value; }
-        public bool DontTranslate { get => this[EntityFlag.DontTranslate]; set => this[EntityFlag.DontTranslate] = value; }
-        public bool DoomBounce { get => this[EntityFlag.DoomBounce]; set => this[EntityFlag.DoomBounce] = value; }
-        public bool Dormant { get => this[EntityFlag.Dormant]; set => this[EntityFlag.Dormant] = value; }
-        public bool Dropoff { get => this[EntityFlag.Dropoff]; set => this[EntityFlag.Dropoff] = value; }
-        public bool Dropped { get => this[EntityFlag.Dropped]; set => this[EntityFlag.Dropped] = value; }
-        public bool ExploCount { get => this[EntityFlag.ExploCount]; set => this[EntityFlag.ExploCount] = value; }
-        public bool ExplodeOnWater { get => this[EntityFlag.ExplodeOnWater]; set => this[EntityFlag.ExplodeOnWater] = value; }
-        public bool ExtremeDeath { get => this[EntityFlag.ExtremeDeath]; set => this[EntityFlag.ExtremeDeath] = value; }
-        public bool Faster { get => this[EntityFlag.Faster]; set => this[EntityFlag.Faster] = value; }
-        public bool FastMelee { get => this[EntityFlag.FastMelee]; set => this[EntityFlag.FastMelee] = value; }
-        public bool FireDamage { get => this[EntityFlag.FireDamage]; set => this[EntityFlag.FireDamage] = value; }
-        public bool FireResist { get => this[EntityFlag.FireResist]; set => this[EntityFlag.FireResist] = value; }
-        public bool FixMapThingPos { get => this[EntityFlag.FixMapThingPos]; set => this[EntityFlag.FixMapThingPos] = value; }
-        public bool FlatSprite { get => this[EntityFlag.FlatSprite]; set => this[EntityFlag.FlatSprite] = value; }
-        public bool Float { get => this[EntityFlag.Float]; set => this[EntityFlag.Float] = value; }
-        public bool FloatBob { get => this[EntityFlag.FloatBob]; set => this[EntityFlag.FloatBob] = value; }
-        public bool FloorClip { get => this[EntityFlag.FloorClip]; set => this[EntityFlag.FloorClip] = value; }
-        public bool FloorHugger { get => this[EntityFlag.FloorHugger]; set => this[EntityFlag.FloorHugger] = value; }
-        public bool FoilBuddha { get => this[EntityFlag.FoilBuddha]; set => this[EntityFlag.FoilBuddha] = value; }
-        public bool FoilInvul { get => this[EntityFlag.FoilInvul]; set => this[EntityFlag.FoilInvul] = value; }
-        public bool ForceDecal { get => this[EntityFlag.ForceDecal]; set => this[EntityFlag.ForceDecal] = value; }
-        public bool ForceInFighting { get => this[EntityFlag.ForceInFighting]; set => this[EntityFlag.ForceInFighting] = value; }
-        public bool ForcePain { get => this[EntityFlag.ForcePain]; set => this[EntityFlag.ForcePain] = value; }
-        public bool ForceRadiusDmg { get => this[EntityFlag.ForceRadiusDmg]; set => this[EntityFlag.ForceRadiusDmg] = value; }
-        public bool ForceXYBillboard { get => this[EntityFlag.ForceXYBillboard]; set => this[EntityFlag.ForceXYBillboard] = value; }
-        public bool ForceYBillboard { get => this[EntityFlag.ForceYBillboard]; set => this[EntityFlag.ForceYBillboard] = value; }
-        public bool ForceZeroRadiusDmg { get => this[EntityFlag.ForceZeroRadiusDmg]; set => this[EntityFlag.ForceZeroRadiusDmg] = value; }
-        public bool Friendly { get => this[EntityFlag.Friendly]; set => this[EntityFlag.Friendly] = value; }
-        public bool Frightened { get => this[EntityFlag.Frightened]; set => this[EntityFlag.Frightened] = value; }
-        public bool Frightening { get => this[EntityFlag.Frightening]; set => this[EntityFlag.Frightening] = value; }
-        public bool FullVolActive { get => this[EntityFlag.FullVolActive]; set => this[EntityFlag.FullVolActive] = value; }
-        public bool FullVolDeath { get => this[EntityFlag.FullVolDeath]; set => this[EntityFlag.FullVolDeath] = value; }
-        public bool GetOwner { get => this[EntityFlag.GetOwner]; set => this[EntityFlag.GetOwner] = value; }
-        public bool Ghost { get => this[EntityFlag.Ghost]; set => this[EntityFlag.Ghost] = value; }
-        public bool GrenadeTrail { get => this[EntityFlag.GrenadeTrail]; set => this[EntityFlag.GrenadeTrail] = value; }
-        public bool HarmFriends { get => this[EntityFlag.HarmFriends]; set => this[EntityFlag.HarmFriends] = value; }
-        public bool HereticBounce { get => this[EntityFlag.HereticBounce]; set => this[EntityFlag.HereticBounce] = value; }
-        public bool HexenBounce { get => this[EntityFlag.HexenBounce]; set => this[EntityFlag.HexenBounce] = value; }
-        public bool HitMaster { get => this[EntityFlag.HitMaster]; set => this[EntityFlag.HitMaster] = value; }
-        public bool HitOwner { get => this[EntityFlag.HitOwner]; set => this[EntityFlag.HitOwner] = value; }
-        public bool HitTarget { get => this[EntityFlag.HitTarget]; set => this[EntityFlag.HitTarget] = value; }
-        public bool HitTracer { get => this[EntityFlag.HitTracer]; set => this[EntityFlag.HitTracer] = value; }
-        public bool IceCorpse { get => this[EntityFlag.IceCorpse]; set => this[EntityFlag.IceCorpse] = value; }
-        public bool IceDamage { get => this[EntityFlag.IceDamage]; set => this[EntityFlag.IceDamage] = value; }
-        public bool IceShatter { get => this[EntityFlag.IceShatter]; set => this[EntityFlag.IceShatter] = value; }
-        public bool InCombat { get => this[EntityFlag.InCombat]; set => this[EntityFlag.InCombat] = value; }
-        public bool InterpolateAngles { get => this[EntityFlag.InterpolateAngles]; set => this[EntityFlag.InterpolateAngles] = value; }
-        public bool InventoryAdditiveTime { get => this[EntityFlag.InventoryAdditiveTime]; set => this[EntityFlag.InventoryAdditiveTime] = value; }
-        public bool InventoryAlwaysPickup { get => this[EntityFlag.InventoryAlwaysPickup]; set => this[EntityFlag.InventoryAlwaysPickup] = value; }
-        public bool InventoryAlwaysRespawn { get => this[EntityFlag.InventoryAlwaysRespawn]; set => this[EntityFlag.InventoryAlwaysRespawn] = value; }
-        public bool InventoryAutoActivate { get => this[EntityFlag.InventoryAutoActivate]; set => this[EntityFlag.InventoryAutoActivate] = value; }
-        public bool InventoryBigPowerup { get => this[EntityFlag.InventoryBigPowerup]; set => this[EntityFlag.InventoryBigPowerup] = value; }
-        public bool InventoryFancyPickupSound { get => this[EntityFlag.InventoryFancyPickupSound]; set => this[EntityFlag.InventoryFancyPickupSound] = value; }
-        public bool InventoryHubPower { get => this[EntityFlag.InventoryHubPower]; set => this[EntityFlag.InventoryHubPower] = value; }
-        public bool InventoryIgnoreSkill { get => this[EntityFlag.InventoryIgnoreSkill]; set => this[EntityFlag.InventoryIgnoreSkill] = value; }
-        public bool InventoryInterHubStrip { get => this[EntityFlag.InventoryInterHubStrip]; set => this[EntityFlag.InventoryInterHubStrip] = value; }
-        public bool InventoryInvbar { get => this[EntityFlag.InventoryInvbar]; set => this[EntityFlag.InventoryInvbar] = value; }
-        public bool InventoryIsArmor { get => this[EntityFlag.InventoryIsArmor]; set => this[EntityFlag.InventoryIsArmor] = value; }
-        public bool InventoryIsHealth { get => this[EntityFlag.InventoryIsHealth]; set => this[EntityFlag.InventoryIsHealth] = value; }
-        public bool InventoryKeepDepleted { get => this[EntityFlag.InventoryKeepDepleted]; set => this[EntityFlag.InventoryKeepDepleted] = value; }
-        public bool InventoryNeverRespawn { get => this[EntityFlag.InventoryNeverRespawn]; set => this[EntityFlag.InventoryNeverRespawn] = value; }
-        public bool InventoryNoAttenPickupSound { get => this[EntityFlag.InventoryNoAttenPickupSound]; set => this[EntityFlag.InventoryNoAttenPickupSound] = value; }
-        public bool InventoryNoScreenBlink { get => this[EntityFlag.InventoryNoScreenBlink]; set => this[EntityFlag.InventoryNoScreenBlink] = value; }
-        public bool InventoryNoScreenFlash { get => this[EntityFlag.InventoryNoScreenFlash]; set => this[EntityFlag.InventoryNoScreenFlash] = value; }
-        public bool InventoryNoTeleportFreeze { get => this[EntityFlag.InventoryNoTeleportFreeze]; set => this[EntityFlag.InventoryNoTeleportFreeze] = value; }
-        public bool InventoryPersistentPower { get => this[EntityFlag.InventoryPersistentPower]; set => this[EntityFlag.InventoryPersistentPower] = value; }
-        public bool InventoryPickupFlash { get => this[EntityFlag.InventoryPickupFlash]; set => this[EntityFlag.InventoryPickupFlash] = value; }
-        public bool InventoryQuiet { get => this[EntityFlag.InventoryQuiet]; set => this[EntityFlag.InventoryQuiet] = value; }
-        public bool InventoryRestrictAbsolutely { get => this[EntityFlag.InventoryRestrictAbsolutely]; set => this[EntityFlag.InventoryRestrictAbsolutely] = value; }
-        public bool InventoryTossed { get => this[EntityFlag.InventoryTossed]; set => this[EntityFlag.InventoryTossed] = value; }
-        public bool InventoryTransfer { get => this[EntityFlag.InventoryTransfer]; set => this[EntityFlag.InventoryTransfer] = value; }
-        public bool InventoryUnclearable { get => this[EntityFlag.InventoryUnclearable]; set => this[EntityFlag.InventoryUnclearable] = value; }
-        public bool InventoryUndroppable { get => this[EntityFlag.InventoryUndroppable]; set => this[EntityFlag.InventoryUndroppable] = value; }
-        public bool InventoryUntossable { get => this[EntityFlag.InventoryUntossable]; set => this[EntityFlag.InventoryUntossable] = value; }
-        public bool Invisible { get => this[EntityFlag.Invisible]; set => this[EntityFlag.Invisible] = value; }
-        public bool Invulnerable { get => this[EntityFlag.Invulnerable]; set => this[EntityFlag.Invulnerable] = value; }
-        public bool IsMonster { get => this[EntityFlag.IsMonster]; set => this[EntityFlag.IsMonster] = value; }
-        public bool IsTeleportSpot { get => this[EntityFlag.IsTeleportSpot]; set => this[EntityFlag.IsTeleportSpot] = value; }
-        public bool JumpDown { get => this[EntityFlag.JumpDown]; set => this[EntityFlag.JumpDown] = value; }
-        public bool JustAttacked { get => this[EntityFlag.JustAttacked]; set => this[EntityFlag.JustAttacked] = value; }
-        public bool JustHit { get => this[EntityFlag.JustHit]; set => this[EntityFlag.JustHit] = value; }
-        public bool LaxTeleFragDmg { get => this[EntityFlag.LaxTeleFragDmg]; set => this[EntityFlag.LaxTeleFragDmg] = value; }
-        public bool LongMeleeRange { get => this[EntityFlag.LongMeleeRange]; set => this[EntityFlag.LongMeleeRange] = value; }
-        public bool LookAllAround { get => this[EntityFlag.LookAllAround]; set => this[EntityFlag.LookAllAround] = value; }
-        public bool LowGravity { get => this[EntityFlag.LowGravity]; set => this[EntityFlag.LowGravity] = value; }
-        public bool MaskRotation { get => this[EntityFlag.MaskRotation]; set => this[EntityFlag.MaskRotation] = value; }
-        public bool MbfBouncer { get => this[EntityFlag.MbfBouncer]; set => this[EntityFlag.MbfBouncer] = value; }
-        public bool MirrorReflect { get => this[EntityFlag.MirrorReflect]; set => this[EntityFlag.MirrorReflect] = value; }
-        public bool Missile { get => this[EntityFlag.Missile]; set => this[EntityFlag.Missile] = value; }
-        public bool MissileEvenMore { get => this[EntityFlag.MissileEvenMore]; set => this[EntityFlag.MissileEvenMore] = value; }
-        public bool MissileMore { get => this[EntityFlag.MissileMore]; set => this[EntityFlag.MissileMore] = value; }
-        public bool Monster { get => this[EntityFlag.Monster]; set => this[EntityFlag.Monster] = value; }
-        public bool MoveWithSector { get => this[EntityFlag.MoveWithSector]; set => this[EntityFlag.MoveWithSector] = value; }
-        public bool MThruSpecies { get => this[EntityFlag.MThruSpecies]; set => this[EntityFlag.MThruSpecies] = value; }
-        public bool NeverFast { get => this[EntityFlag.NeverFast]; set => this[EntityFlag.NeverFast] = value; }
-        public bool NeverRespawn { get => this[EntityFlag.NeverRespawn]; set => this[EntityFlag.NeverRespawn] = value; }
-        public bool NeverTarget { get => this[EntityFlag.NeverTarget]; set => this[EntityFlag.NeverTarget] = value; }
-        public bool NoBlockmap { get => this[EntityFlag.NoBlockmap]; set => this[EntityFlag.NoBlockmap] = value; }
-        public bool NoBlockMonst { get => this[EntityFlag.NoBlockMonst]; set => this[EntityFlag.NoBlockMonst] = value; }
-        public bool NoBlood { get => this[EntityFlag.NoBlood]; set => this[EntityFlag.NoBlood] = value; }
-        public bool NoBloodDecals { get => this[EntityFlag.NoBloodDecals]; set => this[EntityFlag.NoBloodDecals] = value; }
-        public bool NoBossRip { get => this[EntityFlag.NoBossRip]; set => this[EntityFlag.NoBossRip] = value; }
-        public bool NoBounceSound { get => this[EntityFlag.NoBounceSound]; set => this[EntityFlag.NoBounceSound] = value; }
-        public bool NoClip { get => this[EntityFlag.NoClip]; set => this[EntityFlag.NoClip] = value; }
-        public bool NoDamage { get => this[EntityFlag.NoDamage]; set => this[EntityFlag.NoDamage] = value; }
-        public bool NoDamageThrust { get => this[EntityFlag.NoDamageThrust]; set => this[EntityFlag.NoDamageThrust] = value; }
-        public bool NoDecal { get => this[EntityFlag.NoDecal]; set => this[EntityFlag.NoDecal] = value; }
-        public bool NoDropoff { get => this[EntityFlag.NoDropoff]; set => this[EntityFlag.NoDropoff] = value; }
-        public bool NoExplodeFloor { get => this[EntityFlag.NoExplodeFloor]; set => this[EntityFlag.NoExplodeFloor] = value; }
-        public bool NoExtremeDeath { get => this[EntityFlag.NoExtremeDeath]; set => this[EntityFlag.NoExtremeDeath] = value; }
-        public bool NoFear { get => this[EntityFlag.NoFear]; set => this[EntityFlag.NoFear] = value; }
-        public bool NoFriction { get => this[EntityFlag.NoFriction]; set => this[EntityFlag.NoFriction] = value; }
-        public bool NoFrictionBounce { get => this[EntityFlag.NoFrictionBounce]; set => this[EntityFlag.NoFrictionBounce] = value; }
-        public bool NoForwardFall { get => this[EntityFlag.NoForwardFall]; set => this[EntityFlag.NoForwardFall] = value; }
-        public bool NoGravity { get => this[EntityFlag.NoGravity]; set => this[EntityFlag.NoGravity] = value; }
-        public bool NoIceDeath { get => this[EntityFlag.NoIceDeath]; set => this[EntityFlag.NoIceDeath] = value; }
-        public bool NoInfighting { get => this[EntityFlag.NoInfighting]; set => this[EntityFlag.NoInfighting] = value; }
-        public bool NoInfightSpecies { get => this[EntityFlag.NoInfightSpecies]; set => this[EntityFlag.NoInfightSpecies] = value; }
-        public bool NoInteraction { get => this[EntityFlag.NoInteraction]; set => this[EntityFlag.NoInteraction] = value; }
-        public bool NoKillScripts { get => this[EntityFlag.NoKillScripts]; set => this[EntityFlag.NoKillScripts] = value; }
-        public bool NoLiftDrop { get => this[EntityFlag.NoLiftDrop]; set => this[EntityFlag.NoLiftDrop] = value; }
-        public bool NoMenu { get => this[EntityFlag.NoMenu]; set => this[EntityFlag.NoMenu] = value; }
-        public bool NonShootable { get => this[EntityFlag.NonShootable]; set => this[EntityFlag.NonShootable] = value; }
-        public bool NoPain { get => this[EntityFlag.NoPain]; set => this[EntityFlag.NoPain] = value; }
-        public bool NoRadiusDmg { get => this[EntityFlag.NoRadiusDmg]; set => this[EntityFlag.NoRadiusDmg] = value; }
-        public bool NoSector { get => this[EntityFlag.NoSector]; set => this[EntityFlag.NoSector] = value; }
-        public bool NoSkin { get => this[EntityFlag.NoSkin]; set => this[EntityFlag.NoSkin] = value; }
-        public bool NoSplashAlert { get => this[EntityFlag.NoSplashAlert]; set => this[EntityFlag.NoSplashAlert] = value; }
-        public bool NoTarget { get => this[EntityFlag.NoTarget]; set => this[EntityFlag.NoTarget] = value; }
-        public bool NoTargetSwitch { get => this[EntityFlag.NoTargetSwitch]; set => this[EntityFlag.NoTargetSwitch] = value; }
-        public bool NotAutoaimed { get => this[EntityFlag.NotAutoaimed]; set => this[EntityFlag.NotAutoaimed] = value; }
-        public bool NotDMatch { get => this[EntityFlag.NotDMatch]; set => this[EntityFlag.NotDMatch] = value; }
-        public bool NoTelefrag { get => this[EntityFlag.NoTelefrag]; set => this[EntityFlag.NoTelefrag] = value; }
-        public bool NoTeleOther { get => this[EntityFlag.NoTeleOther]; set => this[EntityFlag.NoTeleOther] = value; }
-        public bool NoTeleport { get => this[EntityFlag.NoTeleport]; set => this[EntityFlag.NoTeleport] = value; }
-        public bool NoTelestomp { get => this[EntityFlag.NoTelestomp]; set => this[EntityFlag.NoTelestomp] = value; }
-        public bool NoTimeFreeze { get => this[EntityFlag.NoTimeFreeze]; set => this[EntityFlag.NoTimeFreeze] = value; }
-        public bool NotOnAutomap { get => this[EntityFlag.NotOnAutomap]; set => this[EntityFlag.NotOnAutomap] = value; }
-        public bool NoTrigger { get => this[EntityFlag.NoTrigger]; set => this[EntityFlag.NoTrigger] = value; }
-        public bool NoVerticalMeleeRange { get => this[EntityFlag.NoVerticalMeleeRange]; set => this[EntityFlag.NoVerticalMeleeRange] = value; }
-        public bool NoWallBounceSnd { get => this[EntityFlag.NoWallBounceSnd]; set => this[EntityFlag.NoWallBounceSnd] = value; }
-        public bool OldRadiusDmg { get => this[EntityFlag.OldRadiusDmg]; set => this[EntityFlag.OldRadiusDmg] = value; }
-        public bool Painless { get => this[EntityFlag.Painless]; set => this[EntityFlag.Painless] = value; }
-        public bool Pickup { get => this[EntityFlag.Pickup]; set => this[EntityFlag.Pickup] = value; }
-        public bool PierceArmor { get => this[EntityFlag.PierceArmor]; set => this[EntityFlag.PierceArmor] = value; }
-        public bool PlayerPawnCanSuperMorph { get => this[EntityFlag.PlayerPawnCanSuperMorph]; set => this[EntityFlag.PlayerPawnCanSuperMorph] = value; }
-        public bool PlayerPawnCrouchableMorph { get => this[EntityFlag.PlayerPawnCrouchableMorph]; set => this[EntityFlag.PlayerPawnCrouchableMorph] = value; }
-        public bool PlayerPawnNoThrustWhenInvul { get => this[EntityFlag.PlayerPawnNoThrustWhenInvul]; set => this[EntityFlag.PlayerPawnNoThrustWhenInvul] = value; }
-        public bool PoisonAlways { get => this[EntityFlag.PoisonAlways]; set => this[EntityFlag.PoisonAlways] = value; }
-        public bool Projectile { get => this[EntityFlag.Projectile]; set => this[EntityFlag.Projectile] = value; }
-        public bool PuffGetsOwner { get => this[EntityFlag.PuffGetsOwner]; set => this[EntityFlag.PuffGetsOwner] = value; }
-        public bool PuffOnActors { get => this[EntityFlag.PuffOnActors]; set => this[EntityFlag.PuffOnActors] = value; }
-        public bool Pushable { get => this[EntityFlag.Pushable]; set => this[EntityFlag.Pushable] = value; }
-        public bool QuarterGravity { get => this[EntityFlag.QuarterGravity]; set => this[EntityFlag.QuarterGravity] = value; }
-        public bool QuickToRetaliate { get => this[EntityFlag.QuickToRetaliate]; set => this[EntityFlag.QuickToRetaliate] = value; }
-        public bool Randomize { get => this[EntityFlag.Randomize]; set => this[EntityFlag.Randomize] = value; }
-        public bool Reflective { get => this[EntityFlag.Reflective]; set => this[EntityFlag.Reflective] = value; }
-        public bool RelativeToFloor { get => this[EntityFlag.RelativeToFloor]; set => this[EntityFlag.RelativeToFloor] = value; }
-        public bool Ripper { get => this[EntityFlag.Ripper]; set => this[EntityFlag.Ripper] = value; }
-        public bool RocketTrail { get => this[EntityFlag.RocketTrail]; set => this[EntityFlag.RocketTrail] = value; }
-        public bool RollCenter { get => this[EntityFlag.RollCenter]; set => this[EntityFlag.RollCenter] = value; }
-        public bool RollSprite { get => this[EntityFlag.RollSprite]; set => this[EntityFlag.RollSprite] = value; }
-        public bool ScreenSeeker { get => this[EntityFlag.ScreenSeeker]; set => this[EntityFlag.ScreenSeeker] = value; }
-        public bool SeeInvisible { get => this[EntityFlag.SeeInvisible]; set => this[EntityFlag.SeeInvisible] = value; }
-        public bool SeekerMissile { get => this[EntityFlag.SeekerMissile]; set => this[EntityFlag.SeekerMissile] = value; }
-        public bool SeesDaggers { get => this[EntityFlag.SeesDaggers]; set => this[EntityFlag.SeesDaggers] = value; }
-        public bool Shadow { get => this[EntityFlag.Shadow]; set => this[EntityFlag.Shadow] = value; }
-        public bool ShieldReflect { get => this[EntityFlag.ShieldReflect]; set => this[EntityFlag.ShieldReflect] = value; }
-        public bool Shootable { get => this[EntityFlag.Shootable]; set => this[EntityFlag.Shootable] = value; }
-        public bool ShortMissileRange { get => this[EntityFlag.ShortMissileRange]; set => this[EntityFlag.ShortMissileRange] = value; }
-        public bool Skullfly { get => this[EntityFlag.Skullfly]; set => this[EntityFlag.Skullfly] = value; }
-        public bool SkyExplode { get => this[EntityFlag.SkyExplode]; set => this[EntityFlag.SkyExplode] = value; }
-        public bool SlidesOnWalls { get => this[EntityFlag.SlidesOnWalls]; set => this[EntityFlag.SlidesOnWalls] = value; }
-        public bool Solid {  get => this[EntityFlag.Solid]; set => this[EntityFlag.Solid] = value; }
-        public bool SpawnCeiling { get => this[EntityFlag.SpawnCeiling]; set => this[EntityFlag.SpawnCeiling] = value; }
-        public bool SpawnFloat { get => this[EntityFlag.SpawnFloat]; set => this[EntityFlag.SpawnFloat] = value; }
-        public bool SpawnSoundSource { get => this[EntityFlag.SpawnSoundSource]; set => this[EntityFlag.SpawnSoundSource] = value; }
-        public bool Special { get => this[EntityFlag.Special]; set => this[EntityFlag.Special] = value; }
-        public bool SpecialFireDamage { get => this[EntityFlag.SpecialFireDamage]; set => this[EntityFlag.SpecialFireDamage] = value; }
-        public bool SpecialFloorClip { get => this[EntityFlag.SpecialFloorClip]; set => this[EntityFlag.SpecialFloorClip] = value; }
-        public bool Spectral { get => this[EntityFlag.Spectral]; set => this[EntityFlag.Spectral] = value; }
-        public bool SpriteAngle { get => this[EntityFlag.SpriteAngle]; set => this[EntityFlag.SpriteAngle] = value; }
-        public bool SpriteFlip { get => this[EntityFlag.SpriteFlip]; set => this[EntityFlag.SpriteFlip] = value; }
-        public bool StandStill { get => this[EntityFlag.StandStill]; set => this[EntityFlag.StandStill] = value; }
-        public bool StayMorphed { get => this[EntityFlag.StayMorphed]; set => this[EntityFlag.StayMorphed] = value; }
-        public bool Stealth { get => this[EntityFlag.Stealth]; set => this[EntityFlag.Stealth] = value; }
-        public bool StepMissile { get => this[EntityFlag.StepMissile]; set => this[EntityFlag.StepMissile] = value; }
-        public bool StrifeDamage { get => this[EntityFlag.StrifeDamage]; set => this[EntityFlag.StrifeDamage] = value; }
-        public bool SummonedMonster { get => this[EntityFlag.SummonedMonster]; set => this[EntityFlag.SummonedMonster] = value; }
-        public bool Synchronized { get => this[EntityFlag.Synchronized]; set => this[EntityFlag.Synchronized] = value; }
-        public bool Teleport { get => this[EntityFlag.Teleport]; set => this[EntityFlag.Teleport] = value; }
-        public bool Telestomp { get => this[EntityFlag.Telestomp]; set => this[EntityFlag.Telestomp] = value; }
-        public bool ThruActors { get => this[EntityFlag.ThruActors]; set => this[EntityFlag.ThruActors] = value; }
-        public bool ThruGhost { get => this[EntityFlag.ThruGhost]; set => this[EntityFlag.ThruGhost] = value; }
-        public bool ThruReflect { get => this[EntityFlag.ThruReflect]; set => this[EntityFlag.ThruReflect] = value; }
-        public bool ThruSpecies { get => this[EntityFlag.ThruSpecies]; set => this[EntityFlag.ThruSpecies] = value; }
-        public bool Touchy { get => this[EntityFlag.Touchy]; set => this[EntityFlag.Touchy] = value; }
-        public bool UseBounceState { get => this[EntityFlag.UseBounceState]; set => this[EntityFlag.UseBounceState] = value; }
-        public bool UseKillScripts { get => this[EntityFlag.UseKillScripts]; set => this[EntityFlag.UseKillScripts] = value; }
-        public bool UseSpecial { get => this[EntityFlag.UseSpecial]; set => this[EntityFlag.UseSpecial] = value; }
-        public bool VisibilityPulse { get => this[EntityFlag.VisibilityPulse]; set => this[EntityFlag.VisibilityPulse] = value; }
-        public bool Vulnerable { get => this[EntityFlag.Vulnerable]; set => this[EntityFlag.Vulnerable] = value; }
-        public bool WallSprite { get => this[EntityFlag.WallSprite]; set => this[EntityFlag.WallSprite] = value; }
-        public bool WeaponAltAmmoOptional { get => this[EntityFlag.WeaponAltAmmoOptional]; set => this[EntityFlag.WeaponAltAmmoOptional] = value; }
-        public bool WeaponAltUsesBoth { get => this[EntityFlag.WeaponAltUsesBoth]; set => this[EntityFlag.WeaponAltUsesBoth] = value; }
-        public bool WeaponAmmoCheckBoth { get => this[EntityFlag.WeaponAmmoCheckBoth]; set => this[EntityFlag.WeaponAmmoCheckBoth] = value; }
-        public bool WeaponAmmoOptional { get => this[EntityFlag.WeaponAmmoOptional]; set => this[EntityFlag.WeaponAmmoOptional] = value; }
-        public bool WeaponAxeBlood { get => this[EntityFlag.WeaponAxeBlood]; set => this[EntityFlag.WeaponAxeBlood] = value; }
-        public bool WeaponBfg { get => this[EntityFlag.WeaponBfg]; set => this[EntityFlag.WeaponBfg] = value; }
-        public bool WeaponCheatNotWeapon { get => this[EntityFlag.WeaponCheatNotWeapon]; set => this[EntityFlag.WeaponCheatNotWeapon] = value; }
-        public bool WeaponDontBob { get => this[EntityFlag.WeaponDontBob]; set => this[EntityFlag.WeaponDontBob] = value; }
-        public bool WeaponExplosive { get => this[EntityFlag.WeaponExplosive]; set => this[EntityFlag.WeaponExplosive] = value; }
-        public bool WeaponMeleeWeapon { get => this[EntityFlag.WeaponMeleeWeapon]; set => this[EntityFlag.WeaponMeleeWeapon] = value; }
-        public bool WeaponNoAlert { get => this[EntityFlag.WeaponNoAlert]; set => this[EntityFlag.WeaponNoAlert] = value; }
-        public bool WeaponNoAutoaim { get => this[EntityFlag.WeaponNoAutoaim]; set => this[EntityFlag.WeaponNoAutoaim] = value; }
-        public bool WeaponNoAutofire { get => this[EntityFlag.WeaponNoAutofire]; set => this[EntityFlag.WeaponNoAutofire] = value; }
-        public bool WeaponNoDeathDeselect { get => this[EntityFlag.WeaponNoDeathDeselect]; set => this[EntityFlag.WeaponNoDeathDeselect] = value; }
-        public bool WeaponNoDeathInput { get => this[EntityFlag.WeaponNoDeathInput]; set => this[EntityFlag.WeaponNoDeathInput] = value; }
-        public bool WeaponNoAutoSwitch { get => this[EntityFlag.WeaponNoAutoSwitch]; set => this[EntityFlag.WeaponNoAutoSwitch] = value; }
-        public bool WeaponPoweredUp { get => this[EntityFlag.WeaponPoweredUp]; set => this[EntityFlag.WeaponPoweredUp] = value; }
-        public bool WeaponPrimaryUsesBoth { get => this[EntityFlag.WeaponPrimaryUsesBoth]; set => this[EntityFlag.WeaponPrimaryUsesBoth] = value; }
-        public bool WeaponReadySndHalf { get => this[EntityFlag.WeaponReadySndHalf]; set => this[EntityFlag.WeaponReadySndHalf] = value; }
-        public bool WeaponStaff2Kickback { get => this[EntityFlag.WeaponStaff2Kickback]; set => this[EntityFlag.WeaponStaff2Kickback] = value; }
-        public bool WeaponWimpyWeapon { get => this[EntityFlag.WeaponWimpyWeapon]; set => this[EntityFlag.WeaponWimpyWeapon] = value; }
-        public bool WeaponSpawn { get => this[EntityFlag.WeaponSpawn]; set => this[EntityFlag.WeaponSpawn] = value; }
-        public bool WindThrust { get => this[EntityFlag.WindThrust]; set => this[EntityFlag.WindThrust] = value; }
-        public bool ZdoomTrans { get => this[EntityFlag.ZdoomTrans]; set => this[EntityFlag.ZdoomTrans] = value; }
+        public bool AbsMaskAngle { get => (Flags1 & FlagValue.Flag1) != 0; set { if (value) Flags1 |= FlagValue.Flag1; else Flags1 &= FlagValue.InvFlag1; } }
+        public bool AbsMaskPitch { get => (Flags1 & FlagValue.Flag2) != 0; set { if (value) Flags1 |= FlagValue.Flag2; else Flags1 &= FlagValue.InvFlag2; } }
+        public bool ActivateImpact { get => (Flags1 & FlagValue.Flag3) != 0; set { if (value) Flags1 |= FlagValue.Flag3; else Flags1 &= FlagValue.InvFlag3; } }
+        public bool ActivateMCross { get => (Flags1 & FlagValue.Flag4) != 0; set { if (value) Flags1 |= FlagValue.Flag4; else Flags1 &= FlagValue.InvFlag4; } }
+        public bool ActivatePCross { get => (Flags1 & FlagValue.Flag5) != 0; set { if (value) Flags1 |= FlagValue.Flag5; else Flags1 &= FlagValue.InvFlag5; } }
+        public bool ActLikeBridge { get => (Flags1 & FlagValue.Flag6) != 0; set { if (value) Flags1 |= FlagValue.Flag6; else Flags1 &= FlagValue.InvFlag6; } }
+        public bool AdditivePoisonDamage { get => (Flags1 & FlagValue.Flag7) != 0; set { if (value) Flags1 |= FlagValue.Flag7; else Flags1 &= FlagValue.InvFlag7; } }
+        public bool AdditivePoisonDuration { get => (Flags1 & FlagValue.Flag8) != 0; set { if (value) Flags1 |= FlagValue.Flag8; else Flags1 &= FlagValue.InvFlag8; } }
+        public bool AimReflect { get => (Flags1 & FlagValue.Flag9) != 0; set { if (value) Flags1 |= FlagValue.Flag9; else Flags1 &= FlagValue.InvFlag9; } }
+        public bool AllowBounceOnActors { get => (Flags1 & FlagValue.Flag10) != 0; set { if (value) Flags1 |= FlagValue.Flag10; else Flags1 &= FlagValue.InvFlag10; } }
+        public bool AllowPain { get => (Flags1 & FlagValue.Flag11) != 0; set { if (value) Flags1 |= FlagValue.Flag11; else Flags1 &= FlagValue.InvFlag11; } }
+        public bool AllowParticles { get => (Flags1 & FlagValue.Flag12) != 0; set { if (value) Flags1 |= FlagValue.Flag12; else Flags1 &= FlagValue.InvFlag12; } }
+        public bool AllowThruFlags { get => (Flags1 & FlagValue.Flag13) != 0; set { if (value) Flags1 |= FlagValue.Flag13; else Flags1 &= FlagValue.InvFlag13; } }
+        public bool AlwaysFast { get => (Flags1 & FlagValue.Flag14) != 0; set { if (value) Flags1 |= FlagValue.Flag14; else Flags1 &= FlagValue.InvFlag14; } }
+        public bool AlwaysPuff { get => (Flags1 & FlagValue.Flag15) != 0; set { if (value) Flags1 |= FlagValue.Flag15; else Flags1 &= FlagValue.InvFlag15; } }
+        public bool AlwaysRespawn { get => (Flags1 & FlagValue.Flag16) != 0; set { if (value) Flags1 |= FlagValue.Flag16; else Flags1 &= FlagValue.InvFlag16; } }
+        public bool AlwaysTelefrag { get => (Flags1 & FlagValue.Flag17) != 0; set { if (value) Flags1 |= FlagValue.Flag17; else Flags1 &= FlagValue.InvFlag17; } }
+        public bool Ambush { get => (Flags1 & FlagValue.Flag18) != 0; set { if (value) Flags1 |= FlagValue.Flag18; else Flags1 &= FlagValue.InvFlag18; } }
+        public bool AvoidMelee { get => (Flags1 & FlagValue.Flag19) != 0; set { if (value) Flags1 |= FlagValue.Flag19; else Flags1 &= FlagValue.InvFlag19; } }
+        public bool Blasted { get => (Flags1 & FlagValue.Flag20) != 0; set { if (value) Flags1 |= FlagValue.Flag20; else Flags1 &= FlagValue.InvFlag20; } }
+        public bool BlockAsPlayer { get => (Flags1 & FlagValue.Flag21) != 0; set { if (value) Flags1 |= FlagValue.Flag21; else Flags1 &= FlagValue.InvFlag21; } }
+        public bool BlockedBySolidActors { get => (Flags1 & FlagValue.Flag22) != 0; set { if (value) Flags1 |= FlagValue.Flag22; else Flags1 &= FlagValue.InvFlag22; } }
+        public bool BloodlessImpact { get => (Flags1 & FlagValue.Flag23) != 0; set { if (value) Flags1 |= FlagValue.Flag23; else Flags1 &= FlagValue.InvFlag23; } }
+        public bool BloodSplatter { get => (Flags1 & FlagValue.Flag24) != 0; set { if (value) Flags1 |= FlagValue.Flag24; else Flags1 &= FlagValue.InvFlag24; } }
+        public bool Boss { get => (Flags1 & FlagValue.Flag25) != 0; set { if (value) Flags1 |= FlagValue.Flag25; else Flags1 &= FlagValue.InvFlag25; } }
+        public bool BossDeath { get => (Flags1 & FlagValue.Flag26) != 0; set { if (value) Flags1 |= FlagValue.Flag26; else Flags1 &= FlagValue.InvFlag26; } }
+        public bool BounceAutoOff { get => (Flags1 & FlagValue.Flag27) != 0; set { if (value) Flags1 |= FlagValue.Flag27; else Flags1 &= FlagValue.InvFlag27; } }
+        public bool BounceAutoOffFloorOnly { get => (Flags1 & FlagValue.Flag28) != 0; set { if (value) Flags1 |= FlagValue.Flag28; else Flags1 &= FlagValue.InvFlag28; } }
+        public bool BounceLikeHeretic { get => (Flags1 & FlagValue.Flag29) != 0; set { if (value) Flags1 |= FlagValue.Flag29; else Flags1 &= FlagValue.InvFlag29; } }
+        public bool BounceOnActors { get => (Flags1 & FlagValue.Flag30) != 0; set { if (value) Flags1 |= FlagValue.Flag30; else Flags1 &= FlagValue.InvFlag30; } }
+        public bool BounceOnCeilings { get => (Flags1 & FlagValue.Flag31) != 0; set { if (value) Flags1 |= FlagValue.Flag31; else Flags1 &= FlagValue.InvFlag31; } }
+        public bool BounceOnFloors { get => (Flags1 & FlagValue.Flag32) != 0; set { if (value) Flags1 |= FlagValue.Flag32; else Flags1 &= FlagValue.InvFlag32; } }
+        public bool BounceOnUnrippables { get => (Flags2 & FlagValue.Flag1) != 0; set { if (value) Flags2 |= FlagValue.Flag1; else Flags2 &= FlagValue.InvFlag1; } }
+        public bool BounceOnWalls { get => (Flags2 & FlagValue.Flag2) != 0; set { if (value) Flags2 |= FlagValue.Flag2; else Flags2 &= FlagValue.InvFlag2; } }
+        public bool Bright { get => (Flags2 & FlagValue.Flag3) != 0; set { if (value) Flags2 |= FlagValue.Flag3; else Flags2 &= FlagValue.InvFlag3; } }
+        public bool Buddha { get => (Flags2 & FlagValue.Flag4) != 0; set { if (value) Flags2 |= FlagValue.Flag4; else Flags2 &= FlagValue.InvFlag4; } }
+        public bool BumpSpecial { get => (Flags2 & FlagValue.Flag5) != 0; set { if (value) Flags2 |= FlagValue.Flag5; else Flags2 &= FlagValue.InvFlag5; } }
+        public bool CanBlast { get => (Flags2 & FlagValue.Flag6) != 0; set { if (value) Flags2 |= FlagValue.Flag6; else Flags2 &= FlagValue.InvFlag6; } }
+        public bool CanBounceWater { get => (Flags2 & FlagValue.Flag7) != 0; set { if (value) Flags2 |= FlagValue.Flag7; else Flags2 &= FlagValue.InvFlag7; } }
+        public bool CannotPush { get => (Flags2 & FlagValue.Flag8) != 0; set { if (value) Flags2 |= FlagValue.Flag8; else Flags2 &= FlagValue.InvFlag8; } }
+        public bool CanPass { get => (Flags2 & FlagValue.Flag9) != 0; set { if (value) Flags2 |= FlagValue.Flag9; else Flags2 &= FlagValue.InvFlag9; } }
+        public bool CanPushWalls { get => (Flags2 & FlagValue.Flag10) != 0; set { if (value) Flags2 |= FlagValue.Flag10; else Flags2 &= FlagValue.InvFlag10; } }
+        public bool CantLeaveFloorPic { get => (Flags2 & FlagValue.Flag11) != 0; set { if (value) Flags2 |= FlagValue.Flag11; else Flags2 &= FlagValue.InvFlag11; } }
+        public bool CantSeek { get => (Flags2 & FlagValue.Flag12) != 0; set { if (value) Flags2 |= FlagValue.Flag12; else Flags2 &= FlagValue.InvFlag12; } }
+        public bool CanUseWalls { get => (Flags2 & FlagValue.Flag13) != 0; set { if (value) Flags2 |= FlagValue.Flag13; else Flags2 &= FlagValue.InvFlag13; } }
+        public bool CausePain { get => (Flags2 & FlagValue.Flag14) != 0; set { if (value) Flags2 |= FlagValue.Flag14; else Flags2 &= FlagValue.InvFlag14; } }
+        public bool CeilingHugger { get => (Flags2 & FlagValue.Flag15) != 0; set { if (value) Flags2 |= FlagValue.Flag15; else Flags2 &= FlagValue.InvFlag15; } }
+        public bool Corpse { get => (Flags2 & FlagValue.Flag16) != 0; set { if (value) Flags2 |= FlagValue.Flag16; else Flags2 &= FlagValue.InvFlag16; } }
+        public bool CountItem { get => (Flags2 & FlagValue.Flag17) != 0; set { if (value) Flags2 |= FlagValue.Flag17; else Flags2 &= FlagValue.InvFlag17; } }
+        public bool CountKill { get => (Flags2 & FlagValue.Flag18) != 0; set { if (value) Flags2 |= FlagValue.Flag18; else Flags2 &= FlagValue.InvFlag18; } }
+        public bool CountSecret { get => (Flags2 & FlagValue.Flag19) != 0; set { if (value) Flags2 |= FlagValue.Flag19; else Flags2 &= FlagValue.InvFlag19; } }
+        public bool Deflect { get => (Flags2 & FlagValue.Flag20) != 0; set { if (value) Flags2 |= FlagValue.Flag20; else Flags2 &= FlagValue.InvFlag20; } }
+        public bool DehExplosion { get => (Flags2 & FlagValue.Flag21) != 0; set { if (value) Flags2 |= FlagValue.Flag21; else Flags2 &= FlagValue.InvFlag21; } }
+        public bool DoHarmSpecies { get => (Flags2 & FlagValue.Flag22) != 0; set { if (value) Flags2 |= FlagValue.Flag22; else Flags2 &= FlagValue.InvFlag22; } }
+        public bool DontBlast { get => (Flags2 & FlagValue.Flag23) != 0; set { if (value) Flags2 |= FlagValue.Flag23; else Flags2 &= FlagValue.InvFlag23; } }
+        public bool DontBounceOnShootables { get => (Flags2 & FlagValue.Flag24) != 0; set { if (value) Flags2 |= FlagValue.Flag24; else Flags2 &= FlagValue.InvFlag24; } }
+        public bool DontBounceOnSky { get => (Flags2 & FlagValue.Flag25) != 0; set { if (value) Flags2 |= FlagValue.Flag25; else Flags2 &= FlagValue.InvFlag25; } }
+        public bool DontCorpse { get => (Flags2 & FlagValue.Flag26) != 0; set { if (value) Flags2 |= FlagValue.Flag26; else Flags2 &= FlagValue.InvFlag26; } }
+        public bool DontDrain { get => (Flags2 & FlagValue.Flag27) != 0; set { if (value) Flags2 |= FlagValue.Flag27; else Flags2 &= FlagValue.InvFlag27; } }
+        public bool DontFaceTalker { get => (Flags2 & FlagValue.Flag28) != 0; set { if (value) Flags2 |= FlagValue.Flag28; else Flags2 &= FlagValue.InvFlag28; } }
+        public bool DontFall { get => (Flags2 & FlagValue.Flag29) != 0; set { if (value) Flags2 |= FlagValue.Flag29; else Flags2 &= FlagValue.InvFlag29; } }
+        public bool DontGib { get => (Flags2 & FlagValue.Flag30) != 0; set { if (value) Flags2 |= FlagValue.Flag30; else Flags2 &= FlagValue.InvFlag30; } }
+        public bool DontHarmClass { get => (Flags2 & FlagValue.Flag31) != 0; set { if (value) Flags2 |= FlagValue.Flag31; else Flags2 &= FlagValue.InvFlag31; } }
+        public bool DontHarmSpecies { get => (Flags2 & FlagValue.Flag32) != 0; set { if (value) Flags2 |= FlagValue.Flag32; else Flags2 &= FlagValue.InvFlag32; } }
+        public bool DontHurtSpecies { get => (Flags3 & FlagValue.Flag1) != 0; set { if (value) Flags3 |= FlagValue.Flag1; else Flags3 &= FlagValue.InvFlag1; } }
+        public bool DontInterpolate { get => (Flags3 & FlagValue.Flag2) != 0; set { if (value) Flags3 |= FlagValue.Flag2; else Flags3 &= FlagValue.InvFlag2; } }
+        public bool DontMorph { get => (Flags3 & FlagValue.Flag3) != 0; set { if (value) Flags3 |= FlagValue.Flag3; else Flags3 &= FlagValue.InvFlag3; } }
+        public bool DontOverlap { get => (Flags3 & FlagValue.Flag4) != 0; set { if (value) Flags3 |= FlagValue.Flag4; else Flags3 &= FlagValue.InvFlag4; } }
+        public bool DontReflect { get => (Flags3 & FlagValue.Flag5) != 0; set { if (value) Flags3 |= FlagValue.Flag5; else Flags3 &= FlagValue.InvFlag5; } }
+        public bool DontRip { get => (Flags3 & FlagValue.Flag6) != 0; set { if (value) Flags3 |= FlagValue.Flag6; else Flags3 &= FlagValue.InvFlag6; } }
+        public bool DontSeekInvisible { get => (Flags3 & FlagValue.Flag7) != 0; set { if (value) Flags3 |= FlagValue.Flag7; else Flags3 &= FlagValue.InvFlag7; } }
+        public bool DontSplash { get => (Flags3 & FlagValue.Flag8) != 0; set { if (value) Flags3 |= FlagValue.Flag8; else Flags3 &= FlagValue.InvFlag8; } }
+        public bool DontSquash { get => (Flags3 & FlagValue.Flag9) != 0; set { if (value) Flags3 |= FlagValue.Flag9; else Flags3 &= FlagValue.InvFlag9; } }
+        public bool DontThrust { get => (Flags3 & FlagValue.Flag10) != 0; set { if (value) Flags3 |= FlagValue.Flag10; else Flags3 &= FlagValue.InvFlag10; } }
+        public bool DontTranslate { get => (Flags3 & FlagValue.Flag11) != 0; set { if (value) Flags3 |= FlagValue.Flag11; else Flags3 &= FlagValue.InvFlag11; } }
+        public bool DoomBounce { get => (Flags3 & FlagValue.Flag12) != 0; set { if (value) Flags3 |= FlagValue.Flag12; else Flags3 &= FlagValue.InvFlag12; } }
+        public bool Dormant { get => (Flags3 & FlagValue.Flag13) != 0; set { if (value) Flags3 |= FlagValue.Flag13; else Flags3 &= FlagValue.InvFlag13; } }
+        public bool Dropoff { get => (Flags3 & FlagValue.Flag14) != 0; set { if (value) Flags3 |= FlagValue.Flag14; else Flags3 &= FlagValue.InvFlag14; } }
+        public bool Dropped { get => (Flags3 & FlagValue.Flag15) != 0; set { if (value) Flags3 |= FlagValue.Flag15; else Flags3 &= FlagValue.InvFlag15; } }
+        public bool ExploCount { get => (Flags3 & FlagValue.Flag16) != 0; set { if (value) Flags3 |= FlagValue.Flag16; else Flags3 &= FlagValue.InvFlag16; } }
+        public bool ExplodeOnWater { get => (Flags3 & FlagValue.Flag17) != 0; set { if (value) Flags3 |= FlagValue.Flag17; else Flags3 &= FlagValue.InvFlag17; } }
+        public bool ExtremeDeath { get => (Flags3 & FlagValue.Flag18) != 0; set { if (value) Flags3 |= FlagValue.Flag18; else Flags3 &= FlagValue.InvFlag18; } }
+        public bool Faster { get => (Flags3 & FlagValue.Flag19) != 0; set { if (value) Flags3 |= FlagValue.Flag19; else Flags3 &= FlagValue.InvFlag19; } }
+        public bool FastMelee { get => (Flags3 & FlagValue.Flag20) != 0; set { if (value) Flags3 |= FlagValue.Flag20; else Flags3 &= FlagValue.InvFlag20; } }
+        public bool FireDamage { get => (Flags3 & FlagValue.Flag21) != 0; set { if (value) Flags3 |= FlagValue.Flag21; else Flags3 &= FlagValue.InvFlag21; } }
+        public bool FireResist { get => (Flags3 & FlagValue.Flag22) != 0; set { if (value) Flags3 |= FlagValue.Flag22; else Flags3 &= FlagValue.InvFlag22; } }
+        public bool FixMapThingPos { get => (Flags3 & FlagValue.Flag23) != 0; set { if (value) Flags3 |= FlagValue.Flag23; else Flags3 &= FlagValue.InvFlag23; } }
+        public bool FlatSprite { get => (Flags3 & FlagValue.Flag24) != 0; set { if (value) Flags3 |= FlagValue.Flag24; else Flags3 &= FlagValue.InvFlag24; } }
+        public bool Float { get => (Flags3 & FlagValue.Flag25) != 0; set { if (value) Flags3 |= FlagValue.Flag25; else Flags3 &= FlagValue.InvFlag25; } }
+        public bool FloatBob { get => (Flags3 & FlagValue.Flag26) != 0; set { if (value) Flags3 |= FlagValue.Flag26; else Flags3 &= FlagValue.InvFlag26; } }
+        public bool FloorClip { get => (Flags3 & FlagValue.Flag27) != 0; set { if (value) Flags3 |= FlagValue.Flag27; else Flags3 &= FlagValue.InvFlag27; } }
+        public bool FloorHugger { get => (Flags3 & FlagValue.Flag28) != 0; set { if (value) Flags3 |= FlagValue.Flag28; else Flags3 &= FlagValue.InvFlag28; } }
+        public bool FoilBuddha { get => (Flags3 & FlagValue.Flag29) != 0; set { if (value) Flags3 |= FlagValue.Flag29; else Flags3 &= FlagValue.InvFlag29; } }
+        public bool FoilInvul { get => (Flags3 & FlagValue.Flag30) != 0; set { if (value) Flags3 |= FlagValue.Flag30; else Flags3 &= FlagValue.InvFlag30; } }
+        public bool ForceDecal { get => (Flags3 & FlagValue.Flag31) != 0; set { if (value) Flags3 |= FlagValue.Flag31; else Flags3 &= FlagValue.InvFlag31; } }
+        public bool ForceInFighting { get => (Flags3 & FlagValue.Flag32) != 0; set { if (value) Flags3 |= FlagValue.Flag32; else Flags3 &= FlagValue.InvFlag32; } }
+        public bool ForcePain { get => (Flags4 & FlagValue.Flag1) != 0; set { if (value) Flags4 |= FlagValue.Flag1; else Flags4 &= FlagValue.InvFlag1; } }
+        public bool ForceRadiusDmg { get => (Flags4 & FlagValue.Flag2) != 0; set { if (value) Flags4 |= FlagValue.Flag2; else Flags4 &= FlagValue.InvFlag2; } }
+        public bool ForceXYBillboard { get => (Flags4 & FlagValue.Flag3) != 0; set { if (value) Flags4 |= FlagValue.Flag3; else Flags4 &= FlagValue.InvFlag3; } }
+        public bool ForceYBillboard { get => (Flags4 & FlagValue.Flag4) != 0; set { if (value) Flags4 |= FlagValue.Flag4; else Flags4 &= FlagValue.InvFlag4; } }
+        public bool ForceZeroRadiusDmg { get => (Flags4 & FlagValue.Flag5) != 0; set { if (value) Flags4 |= FlagValue.Flag5; else Flags4 &= FlagValue.InvFlag5; } }
+        public bool Friendly { get => (Flags4 & FlagValue.Flag6) != 0; set { if (value) Flags4 |= FlagValue.Flag6; else Flags4 &= FlagValue.InvFlag6; } }
+        public bool Frightened { get => (Flags4 & FlagValue.Flag7) != 0; set { if (value) Flags4 |= FlagValue.Flag7; else Flags4 &= FlagValue.InvFlag7; } }
+        public bool Frightening { get => (Flags4 & FlagValue.Flag8) != 0; set { if (value) Flags4 |= FlagValue.Flag8; else Flags4 &= FlagValue.InvFlag8; } }
+        public bool FullVolActive { get => (Flags4 & FlagValue.Flag9) != 0; set { if (value) Flags4 |= FlagValue.Flag9; else Flags4 &= FlagValue.InvFlag9; } }
+        public bool FullVolDeath { get => (Flags4 & FlagValue.Flag10) != 0; set { if (value) Flags4 |= FlagValue.Flag10; else Flags4 &= FlagValue.InvFlag10; } }
+        public bool GetOwner { get => (Flags4 & FlagValue.Flag11) != 0; set { if (value) Flags4 |= FlagValue.Flag11; else Flags4 &= FlagValue.InvFlag11; } }
+        public bool Ghost { get => (Flags4 & FlagValue.Flag12) != 0; set { if (value) Flags4 |= FlagValue.Flag12; else Flags4 &= FlagValue.InvFlag12; } }
+        public bool GrenadeTrail { get => (Flags4 & FlagValue.Flag13) != 0; set { if (value) Flags4 |= FlagValue.Flag13; else Flags4 &= FlagValue.InvFlag13; } }
+        public bool HarmFriends { get => (Flags4 & FlagValue.Flag14) != 0; set { if (value) Flags4 |= FlagValue.Flag14; else Flags4 &= FlagValue.InvFlag14; } }
+        public bool HereticBounce { get => (Flags4 & FlagValue.Flag15) != 0; set { if (value) Flags4 |= FlagValue.Flag15; else Flags4 &= FlagValue.InvFlag15; } }
+        public bool HexenBounce { get => (Flags4 & FlagValue.Flag16) != 0; set { if (value) Flags4 |= FlagValue.Flag16; else Flags4 &= FlagValue.InvFlag16; } }
+        public bool HitMaster { get => (Flags4 & FlagValue.Flag17) != 0; set { if (value) Flags4 |= FlagValue.Flag17; else Flags4 &= FlagValue.InvFlag17; } }
+        public bool HitOwner { get => (Flags4 & FlagValue.Flag18) != 0; set { if (value) Flags4 |= FlagValue.Flag18; else Flags4 &= FlagValue.InvFlag18; } }
+        public bool HitTarget { get => (Flags4 & FlagValue.Flag19) != 0; set { if (value) Flags4 |= FlagValue.Flag19; else Flags4 &= FlagValue.InvFlag19; } }
+        public bool HitTracer { get => (Flags4 & FlagValue.Flag20) != 0; set { if (value) Flags4 |= FlagValue.Flag20; else Flags4 &= FlagValue.InvFlag20; } }
+        public bool IceCorpse { get => (Flags4 & FlagValue.Flag21) != 0; set { if (value) Flags4 |= FlagValue.Flag21; else Flags4 &= FlagValue.InvFlag21; } }
+        public bool IceDamage { get => (Flags4 & FlagValue.Flag22) != 0; set { if (value) Flags4 |= FlagValue.Flag22; else Flags4 &= FlagValue.InvFlag22; } }
+        public bool IceShatter { get => (Flags4 & FlagValue.Flag23) != 0; set { if (value) Flags4 |= FlagValue.Flag23; else Flags4 &= FlagValue.InvFlag23; } }
+        public bool InCombat { get => (Flags4 & FlagValue.Flag24) != 0; set { if (value) Flags4 |= FlagValue.Flag24; else Flags4 &= FlagValue.InvFlag24; } }
+        public bool InterpolateAngles { get => (Flags4 & FlagValue.Flag25) != 0; set { if (value) Flags4 |= FlagValue.Flag25; else Flags4 &= FlagValue.InvFlag25; } }
+        public bool InventoryAdditiveTime { get => (Flags4 & FlagValue.Flag26) != 0; set { if (value) Flags4 |= FlagValue.Flag26; else Flags4 &= FlagValue.InvFlag26; } }
+        public bool InventoryAlwaysPickup { get => (Flags4 & FlagValue.Flag27) != 0; set { if (value) Flags4 |= FlagValue.Flag27; else Flags4 &= FlagValue.InvFlag27; } }
+        public bool InventoryAlwaysRespawn { get => (Flags4 & FlagValue.Flag28) != 0; set { if (value) Flags4 |= FlagValue.Flag28; else Flags4 &= FlagValue.InvFlag28; } }
+        public bool InventoryAutoActivate { get => (Flags4 & FlagValue.Flag29) != 0; set { if (value) Flags4 |= FlagValue.Flag29; else Flags4 &= FlagValue.InvFlag29; } }
+        public bool InventoryBigPowerup { get => (Flags4 & FlagValue.Flag30) != 0; set { if (value) Flags4 |= FlagValue.Flag30; else Flags4 &= FlagValue.InvFlag30; } }
+        public bool InventoryFancyPickupSound { get => (Flags4 & FlagValue.Flag31) != 0; set { if (value) Flags4 |= FlagValue.Flag31; else Flags4 &= FlagValue.InvFlag31; } }
+        public bool InventoryHubPower { get => (Flags4 & FlagValue.Flag32) != 0; set { if (value) Flags4 |= FlagValue.Flag32; else Flags4 &= FlagValue.InvFlag32; } }
+        public bool InventoryIgnoreSkill { get => (Flags5 & FlagValue.Flag1) != 0; set { if (value) Flags5 |= FlagValue.Flag1; else Flags5 &= FlagValue.InvFlag1; } }
+        public bool InventoryInterHubStrip { get => (Flags5 & FlagValue.Flag2) != 0; set { if (value) Flags5 |= FlagValue.Flag2; else Flags5 &= FlagValue.InvFlag2; } }
+        public bool InventoryInvbar { get => (Flags5 & FlagValue.Flag3) != 0; set { if (value) Flags5 |= FlagValue.Flag3; else Flags5 &= FlagValue.InvFlag3; } }
+        public bool InventoryIsArmor { get => (Flags5 & FlagValue.Flag4) != 0; set { if (value) Flags5 |= FlagValue.Flag4; else Flags5 &= FlagValue.InvFlag4; } }
+        public bool InventoryIsHealth { get => (Flags5 & FlagValue.Flag5) != 0; set { if (value) Flags5 |= FlagValue.Flag5; else Flags5 &= FlagValue.InvFlag5; } }
+        public bool InventoryKeepDepleted { get => (Flags5 & FlagValue.Flag6) != 0; set { if (value) Flags5 |= FlagValue.Flag6; else Flags5 &= FlagValue.InvFlag6; } }
+        public bool InventoryNeverRespawn { get => (Flags5 & FlagValue.Flag7) != 0; set { if (value) Flags5 |= FlagValue.Flag7; else Flags5 &= FlagValue.InvFlag7; } }
+        public bool InventoryNoAttenPickupSound { get => (Flags5 & FlagValue.Flag8) != 0; set { if (value) Flags5 |= FlagValue.Flag8; else Flags5 &= FlagValue.InvFlag8; } }
+        public bool InventoryNoScreenBlink { get => (Flags5 & FlagValue.Flag9) != 0; set { if (value) Flags5 |= FlagValue.Flag9; else Flags5 &= FlagValue.InvFlag9; } }
+        public bool InventoryNoScreenFlash { get => (Flags5 & FlagValue.Flag10) != 0; set { if (value) Flags5 |= FlagValue.Flag10; else Flags5 &= FlagValue.InvFlag10; } }
+        public bool InventoryNoTeleportFreeze { get => (Flags5 & FlagValue.Flag11) != 0; set { if (value) Flags5 |= FlagValue.Flag11; else Flags5 &= FlagValue.InvFlag11; } }
+        public bool InventoryPersistentPower { get => (Flags5 & FlagValue.Flag12) != 0; set { if (value) Flags5 |= FlagValue.Flag12; else Flags5 &= FlagValue.InvFlag12; } }
+        public bool InventoryPickupFlash { get => (Flags5 & FlagValue.Flag13) != 0; set { if (value) Flags5 |= FlagValue.Flag13; else Flags5 &= FlagValue.InvFlag13; } }
+        public bool InventoryQuiet { get => (Flags5 & FlagValue.Flag14) != 0; set { if (value) Flags5 |= FlagValue.Flag14; else Flags5 &= FlagValue.InvFlag14; } }
+        public bool InventoryRestrictAbsolutely { get => (Flags5 & FlagValue.Flag15) != 0; set { if (value) Flags5 |= FlagValue.Flag15; else Flags5 &= FlagValue.InvFlag15; } }
+        public bool InventoryTossed { get => (Flags5 & FlagValue.Flag16) != 0; set { if (value) Flags5 |= FlagValue.Flag16; else Flags5 &= FlagValue.InvFlag16; } }
+        public bool InventoryTransfer { get => (Flags5 & FlagValue.Flag17) != 0; set { if (value) Flags5 |= FlagValue.Flag17; else Flags5 &= FlagValue.InvFlag17; } }
+        public bool InventoryUnclearable { get => (Flags5 & FlagValue.Flag18) != 0; set { if (value) Flags5 |= FlagValue.Flag18; else Flags5 &= FlagValue.InvFlag18; } }
+        public bool InventoryUndroppable { get => (Flags5 & FlagValue.Flag19) != 0; set { if (value) Flags5 |= FlagValue.Flag19; else Flags5 &= FlagValue.InvFlag19; } }
+        public bool InventoryUntossable { get => (Flags5 & FlagValue.Flag20) != 0; set { if (value) Flags5 |= FlagValue.Flag20; else Flags5 &= FlagValue.InvFlag20; } }
+        public bool Invisible { get => (Flags5 & FlagValue.Flag21) != 0; set { if (value) Flags5 |= FlagValue.Flag21; else Flags5 &= FlagValue.InvFlag21; } }
+        public bool Invulnerable { get => (Flags5 & FlagValue.Flag22) != 0; set { if (value) Flags5 |= FlagValue.Flag22; else Flags5 &= FlagValue.InvFlag22; } }
+        public bool IsMonster { get => (Flags5 & FlagValue.Flag23) != 0; set { if (value) Flags5 |= FlagValue.Flag23; else Flags5 &= FlagValue.InvFlag23; } }
+        public bool IsTeleportSpot { get => (Flags5 & FlagValue.Flag24) != 0; set { if (value) Flags5 |= FlagValue.Flag24; else Flags5 &= FlagValue.InvFlag24; } }
+        public bool JumpDown { get => (Flags5 & FlagValue.Flag25) != 0; set { if (value) Flags5 |= FlagValue.Flag25; else Flags5 &= FlagValue.InvFlag25; } }
+        public bool JustAttacked { get => (Flags5 & FlagValue.Flag26) != 0; set { if (value) Flags5 |= FlagValue.Flag26; else Flags5 &= FlagValue.InvFlag26; } }
+        public bool JustHit { get => (Flags5 & FlagValue.Flag27) != 0; set { if (value) Flags5 |= FlagValue.Flag27; else Flags5 &= FlagValue.InvFlag27; } }
+        public bool LaxTeleFragDmg { get => (Flags5 & FlagValue.Flag28) != 0; set { if (value) Flags5 |= FlagValue.Flag28; else Flags5 &= FlagValue.InvFlag28; } }
+        public bool LongMeleeRange { get => (Flags5 & FlagValue.Flag29) != 0; set { if (value) Flags5 |= FlagValue.Flag29; else Flags5 &= FlagValue.InvFlag29; } }
+        public bool LookAllAround { get => (Flags5 & FlagValue.Flag30) != 0; set { if (value) Flags5 |= FlagValue.Flag30; else Flags5 &= FlagValue.InvFlag30; } }
+        public bool LowGravity { get => (Flags5 & FlagValue.Flag31) != 0; set { if (value) Flags5 |= FlagValue.Flag31; else Flags5 &= FlagValue.InvFlag31; } }
+        public bool MaskRotation { get => (Flags5 & FlagValue.Flag32) != 0; set { if (value) Flags5 |= FlagValue.Flag32; else Flags5 &= FlagValue.InvFlag32; } }
+        public bool MbfBouncer { get => (Flags6 & FlagValue.Flag1) != 0; set { if (value) Flags6 |= FlagValue.Flag1; else Flags6 &= FlagValue.InvFlag1; } }
+        public bool MirrorReflect { get => (Flags6 & FlagValue.Flag2) != 0; set { if (value) Flags6 |= FlagValue.Flag2; else Flags6 &= FlagValue.InvFlag2; } }
+        public bool Missile { get => (Flags6 & FlagValue.Flag3) != 0; set { if (value) Flags6 |= FlagValue.Flag3; else Flags6 &= FlagValue.InvFlag3; } }
+        public bool MissileEvenMore { get => (Flags6 & FlagValue.Flag4) != 0; set { if (value) Flags6 |= FlagValue.Flag4; else Flags6 &= FlagValue.InvFlag4; } }
+        public bool MissileMore { get => (Flags6 & FlagValue.Flag5) != 0; set { if (value) Flags6 |= FlagValue.Flag5; else Flags6 &= FlagValue.InvFlag5; } }
+        public bool Monster { get => (Flags6 & FlagValue.Flag6) != 0; set { if (value) Flags6 |= FlagValue.Flag6; else Flags6 &= FlagValue.InvFlag6; } }
+        public bool MoveWithSector { get => (Flags6 & FlagValue.Flag7) != 0; set { if (value) Flags6 |= FlagValue.Flag7; else Flags6 &= FlagValue.InvFlag7; } }
+        public bool MThruSpecies { get => (Flags6 & FlagValue.Flag8) != 0; set { if (value) Flags6 |= FlagValue.Flag8; else Flags6 &= FlagValue.InvFlag8; } }
+        public bool NeverFast { get => (Flags6 & FlagValue.Flag9) != 0; set { if (value) Flags6 |= FlagValue.Flag9; else Flags6 &= FlagValue.InvFlag9; } }
+        public bool NeverRespawn { get => (Flags6 & FlagValue.Flag10) != 0; set { if (value) Flags6 |= FlagValue.Flag10; else Flags6 &= FlagValue.InvFlag10; } }
+        public bool NeverTarget { get => (Flags6 & FlagValue.Flag11) != 0; set { if (value) Flags6 |= FlagValue.Flag11; else Flags6 &= FlagValue.InvFlag11; } }
+        public bool NoBlockmap { get => (Flags6 & FlagValue.Flag12) != 0; set { if (value) Flags6 |= FlagValue.Flag12; else Flags6 &= FlagValue.InvFlag12; } }
+        public bool NoBlockMonst { get => (Flags6 & FlagValue.Flag13) != 0; set { if (value) Flags6 |= FlagValue.Flag13; else Flags6 &= FlagValue.InvFlag13; } }
+        public bool NoBlood { get => (Flags6 & FlagValue.Flag14) != 0; set { if (value) Flags6 |= FlagValue.Flag14; else Flags6 &= FlagValue.InvFlag14; } }
+        public bool NoBloodDecals { get => (Flags6 & FlagValue.Flag15) != 0; set { if (value) Flags6 |= FlagValue.Flag15; else Flags6 &= FlagValue.InvFlag15; } }
+        public bool NoBossRip { get => (Flags6 & FlagValue.Flag16) != 0; set { if (value) Flags6 |= FlagValue.Flag16; else Flags6 &= FlagValue.InvFlag16; } }
+        public bool NoBounceSound { get => (Flags6 & FlagValue.Flag17) != 0; set { if (value) Flags6 |= FlagValue.Flag17; else Flags6 &= FlagValue.InvFlag17; } }
+        public bool NoClip { get => (Flags6 & FlagValue.Flag18) != 0; set { if (value) Flags6 |= FlagValue.Flag18; else Flags6 &= FlagValue.InvFlag18; } }
+        public bool NoDamage { get => (Flags6 & FlagValue.Flag19) != 0; set { if (value) Flags6 |= FlagValue.Flag19; else Flags6 &= FlagValue.InvFlag19; } }
+        public bool NoDamageThrust { get => (Flags6 & FlagValue.Flag20) != 0; set { if (value) Flags6 |= FlagValue.Flag20; else Flags6 &= FlagValue.InvFlag20; } }
+        public bool NoDecal { get => (Flags6 & FlagValue.Flag21) != 0; set { if (value) Flags6 |= FlagValue.Flag21; else Flags6 &= FlagValue.InvFlag21; } }
+        public bool NoDropoff { get => (Flags6 & FlagValue.Flag22) != 0; set { if (value) Flags6 |= FlagValue.Flag22; else Flags6 &= FlagValue.InvFlag22; } }
+        public bool NoExplodeFloor { get => (Flags6 & FlagValue.Flag23) != 0; set { if (value) Flags6 |= FlagValue.Flag23; else Flags6 &= FlagValue.InvFlag23; } }
+        public bool NoExtremeDeath { get => (Flags6 & FlagValue.Flag24) != 0; set { if (value) Flags6 |= FlagValue.Flag24; else Flags6 &= FlagValue.InvFlag24; } }
+        public bool NoFear { get => (Flags6 & FlagValue.Flag25) != 0; set { if (value) Flags6 |= FlagValue.Flag25; else Flags6 &= FlagValue.InvFlag25; } }
+        public bool NoFriction { get => (Flags6 & FlagValue.Flag26) != 0; set { if (value) Flags6 |= FlagValue.Flag26; else Flags6 &= FlagValue.InvFlag26; } }
+        public bool NoFrictionBounce { get => (Flags6 & FlagValue.Flag27) != 0; set { if (value) Flags6 |= FlagValue.Flag27; else Flags6 &= FlagValue.InvFlag27; } }
+        public bool NoForwardFall { get => (Flags6 & FlagValue.Flag28) != 0; set { if (value) Flags6 |= FlagValue.Flag28; else Flags6 &= FlagValue.InvFlag28; } }
+        public bool NoGravity { get => (Flags6 & FlagValue.Flag29) != 0; set { if (value) Flags6 |= FlagValue.Flag29; else Flags6 &= FlagValue.InvFlag29; } }
+        public bool NoIceDeath { get => (Flags6 & FlagValue.Flag30) != 0; set { if (value) Flags6 |= FlagValue.Flag30; else Flags6 &= FlagValue.InvFlag30; } }
+        public bool NoInfighting { get => (Flags6 & FlagValue.Flag31) != 0; set { if (value) Flags6 |= FlagValue.Flag31; else Flags6 &= FlagValue.InvFlag31; } }
+        public bool NoInfightSpecies { get => (Flags6 & FlagValue.Flag32) != 0; set { if (value) Flags6 |= FlagValue.Flag32; else Flags6 &= FlagValue.InvFlag32; } }
+        public bool NoInteraction { get => (Flags7 & FlagValue.Flag1) != 0; set { if (value) Flags7 |= FlagValue.Flag1; else Flags7 &= FlagValue.InvFlag1; } }
+        public bool NoKillScripts { get => (Flags7 & FlagValue.Flag2) != 0; set { if (value) Flags7 |= FlagValue.Flag2; else Flags7 &= FlagValue.InvFlag2; } }
+        public bool NoLiftDrop { get => (Flags7 & FlagValue.Flag3) != 0; set { if (value) Flags7 |= FlagValue.Flag3; else Flags7 &= FlagValue.InvFlag3; } }
+        public bool NoMenu { get => (Flags7 & FlagValue.Flag4) != 0; set { if (value) Flags7 |= FlagValue.Flag4; else Flags7 &= FlagValue.InvFlag4; } }
+        public bool NonShootable { get => (Flags7 & FlagValue.Flag5) != 0; set { if (value) Flags7 |= FlagValue.Flag5; else Flags7 &= FlagValue.InvFlag5; } }
+        public bool NoPain { get => (Flags7 & FlagValue.Flag6) != 0; set { if (value) Flags7 |= FlagValue.Flag6; else Flags7 &= FlagValue.InvFlag6; } }
+        public bool NoRadiusDmg { get => (Flags7 & FlagValue.Flag7) != 0; set { if (value) Flags7 |= FlagValue.Flag7; else Flags7 &= FlagValue.InvFlag7; } }
+        public bool NoSector { get => (Flags7 & FlagValue.Flag8) != 0; set { if (value) Flags7 |= FlagValue.Flag8; else Flags7 &= FlagValue.InvFlag8; } }
+        public bool NoSkin { get => (Flags7 & FlagValue.Flag9) != 0; set { if (value) Flags7 |= FlagValue.Flag9; else Flags7 &= FlagValue.InvFlag9; } }
+        public bool NoSplashAlert { get => (Flags7 & FlagValue.Flag10) != 0; set { if (value) Flags7 |= FlagValue.Flag10; else Flags7 &= FlagValue.InvFlag10; } }
+        public bool NoTarget { get => (Flags7 & FlagValue.Flag11) != 0; set { if (value) Flags7 |= FlagValue.Flag11; else Flags7 &= FlagValue.InvFlag11; } }
+        public bool NoTargetSwitch { get => (Flags7 & FlagValue.Flag12) != 0; set { if (value) Flags7 |= FlagValue.Flag12; else Flags7 &= FlagValue.InvFlag12; } }
+        public bool NotAutoaimed { get => (Flags7 & FlagValue.Flag13) != 0; set { if (value) Flags7 |= FlagValue.Flag13; else Flags7 &= FlagValue.InvFlag13; } }
+        public bool NotDMatch { get => (Flags7 & FlagValue.Flag14) != 0; set { if (value) Flags7 |= FlagValue.Flag14; else Flags7 &= FlagValue.InvFlag14; } }
+        public bool NoTelefrag { get => (Flags7 & FlagValue.Flag15) != 0; set { if (value) Flags7 |= FlagValue.Flag15; else Flags7 &= FlagValue.InvFlag15; } }
+        public bool NoTeleOther { get => (Flags7 & FlagValue.Flag16) != 0; set { if (value) Flags7 |= FlagValue.Flag16; else Flags7 &= FlagValue.InvFlag16; } }
+        public bool NoTeleport { get => (Flags7 & FlagValue.Flag17) != 0; set { if (value) Flags7 |= FlagValue.Flag17; else Flags7 &= FlagValue.InvFlag17; } }
+        public bool NoTelestomp { get => (Flags7 & FlagValue.Flag18) != 0; set { if (value) Flags7 |= FlagValue.Flag18; else Flags7 &= FlagValue.InvFlag18; } }
+        public bool NoTimeFreeze { get => (Flags7 & FlagValue.Flag19) != 0; set { if (value) Flags7 |= FlagValue.Flag19; else Flags7 &= FlagValue.InvFlag19; } }
+        public bool NotOnAutomap { get => (Flags7 & FlagValue.Flag20) != 0; set { if (value) Flags7 |= FlagValue.Flag20; else Flags7 &= FlagValue.InvFlag20; } }
+        public bool NoTrigger { get => (Flags7 & FlagValue.Flag21) != 0; set { if (value) Flags7 |= FlagValue.Flag21; else Flags7 &= FlagValue.InvFlag21; } }
+        public bool NoVerticalMeleeRange { get => (Flags7 & FlagValue.Flag22) != 0; set { if (value) Flags7 |= FlagValue.Flag22; else Flags7 &= FlagValue.InvFlag22; } }
+        public bool NoWallBounceSnd { get => (Flags7 & FlagValue.Flag23) != 0; set { if (value) Flags7 |= FlagValue.Flag23; else Flags7 &= FlagValue.InvFlag23; } }
+        public bool OldRadiusDmg { get => (Flags7 & FlagValue.Flag24) != 0; set { if (value) Flags7 |= FlagValue.Flag24; else Flags7 &= FlagValue.InvFlag24; } }
+        public bool Painless { get => (Flags7 & FlagValue.Flag25) != 0; set { if (value) Flags7 |= FlagValue.Flag25; else Flags7 &= FlagValue.InvFlag25; } }
+        public bool Pickup { get => (Flags7 & FlagValue.Flag26) != 0; set { if (value) Flags7 |= FlagValue.Flag26; else Flags7 &= FlagValue.InvFlag26; } }
+        public bool PierceArmor { get => (Flags7 & FlagValue.Flag27) != 0; set { if (value) Flags7 |= FlagValue.Flag27; else Flags7 &= FlagValue.InvFlag27; } }
+        public bool PlayerPawnCanSuperMorph { get => (Flags7 & FlagValue.Flag28) != 0; set { if (value) Flags7 |= FlagValue.Flag28; else Flags7 &= FlagValue.InvFlag28; } }
+        public bool PlayerPawnCrouchableMorph { get => (Flags7 & FlagValue.Flag29) != 0; set { if (value) Flags7 |= FlagValue.Flag29; else Flags7 &= FlagValue.InvFlag29; } }
+        public bool PlayerPawnNoThrustWhenInvul { get => (Flags7 & FlagValue.Flag30) != 0; set { if (value) Flags7 |= FlagValue.Flag30; else Flags7 &= FlagValue.InvFlag30; } }
+        public bool PoisonAlways { get => (Flags7 & FlagValue.Flag31) != 0; set { if (value) Flags7 |= FlagValue.Flag31; else Flags7 &= FlagValue.InvFlag31; } }
+        public bool Projectile { get => (Flags7 & FlagValue.Flag32) != 0; set { if (value) Flags7 |= FlagValue.Flag32; else Flags7 &= FlagValue.InvFlag32; } }
+        public bool PuffGetsOwner { get => (Flags8 & FlagValue.Flag1) != 0; set { if (value) Flags8 |= FlagValue.Flag1; else Flags8 &= FlagValue.InvFlag1; } }
+        public bool PuffOnActors { get => (Flags8 & FlagValue.Flag2) != 0; set { if (value) Flags8 |= FlagValue.Flag2; else Flags8 &= FlagValue.InvFlag2; } }
+        public bool Pushable { get => (Flags8 & FlagValue.Flag3) != 0; set { if (value) Flags8 |= FlagValue.Flag3; else Flags8 &= FlagValue.InvFlag3; } }
+        public bool QuarterGravity { get => (Flags8 & FlagValue.Flag4) != 0; set { if (value) Flags8 |= FlagValue.Flag4; else Flags8 &= FlagValue.InvFlag4; } }
+        public bool QuickToRetaliate { get => (Flags8 & FlagValue.Flag5) != 0; set { if (value) Flags8 |= FlagValue.Flag5; else Flags8 &= FlagValue.InvFlag5; } }
+        public bool Randomize { get => (Flags8 & FlagValue.Flag6) != 0; set { if (value) Flags8 |= FlagValue.Flag6; else Flags8 &= FlagValue.InvFlag6; } }
+        public bool Reflective { get => (Flags8 & FlagValue.Flag7) != 0; set { if (value) Flags8 |= FlagValue.Flag7; else Flags8 &= FlagValue.InvFlag7; } }
+        public bool RelativeToFloor { get => (Flags8 & FlagValue.Flag8) != 0; set { if (value) Flags8 |= FlagValue.Flag8; else Flags8 &= FlagValue.InvFlag8; } }
+        public bool Ripper { get => (Flags8 & FlagValue.Flag9) != 0; set { if (value) Flags8 |= FlagValue.Flag9; else Flags8 &= FlagValue.InvFlag9; } }
+        public bool RocketTrail { get => (Flags8 & FlagValue.Flag10) != 0; set { if (value) Flags8 |= FlagValue.Flag10; else Flags8 &= FlagValue.InvFlag10; } }
+        public bool RollCenter { get => (Flags8 & FlagValue.Flag11) != 0; set { if (value) Flags8 |= FlagValue.Flag11; else Flags8 &= FlagValue.InvFlag11; } }
+        public bool RollSprite { get => (Flags8 & FlagValue.Flag12) != 0; set { if (value) Flags8 |= FlagValue.Flag12; else Flags8 &= FlagValue.InvFlag12; } }
+        public bool ScreenSeeker { get => (Flags8 & FlagValue.Flag13) != 0; set { if (value) Flags8 |= FlagValue.Flag13; else Flags8 &= FlagValue.InvFlag13; } }
+        public bool SeeInvisible { get => (Flags8 & FlagValue.Flag14) != 0; set { if (value) Flags8 |= FlagValue.Flag14; else Flags8 &= FlagValue.InvFlag14; } }
+        public bool SeekerMissile { get => (Flags8 & FlagValue.Flag15) != 0; set { if (value) Flags8 |= FlagValue.Flag15; else Flags8 &= FlagValue.InvFlag15; } }
+        public bool SeesDaggers { get => (Flags8 & FlagValue.Flag16) != 0; set { if (value) Flags8 |= FlagValue.Flag16; else Flags8 &= FlagValue.InvFlag16; } }
+        public bool Shadow { get => (Flags8 & FlagValue.Flag17) != 0; set { if (value) Flags8 |= FlagValue.Flag17; else Flags8 &= FlagValue.InvFlag17; } }
+        public bool ShieldReflect { get => (Flags8 & FlagValue.Flag18) != 0; set { if (value) Flags8 |= FlagValue.Flag18; else Flags8 &= FlagValue.InvFlag18; } }
+        public bool Shootable { get => (Flags8 & FlagValue.Flag19) != 0; set { if (value) Flags8 |= FlagValue.Flag19; else Flags8 &= FlagValue.InvFlag19; } }
+        public bool ShortMissileRange { get => (Flags8 & FlagValue.Flag20) != 0; set { if (value) Flags8 |= FlagValue.Flag20; else Flags8 &= FlagValue.InvFlag20; } }
+        public bool Skullfly { get => (Flags8 & FlagValue.Flag21) != 0; set { if (value) Flags8 |= FlagValue.Flag21; else Flags8 &= FlagValue.InvFlag21; } }
+        public bool SkyExplode { get => (Flags8 & FlagValue.Flag22) != 0; set { if (value) Flags8 |= FlagValue.Flag22; else Flags8 &= FlagValue.InvFlag22; } }
+        public bool SlidesOnWalls { get => (Flags8 & FlagValue.Flag23) != 0; set { if (value) Flags8 |= FlagValue.Flag23; else Flags8 &= FlagValue.InvFlag23; } }
+        public bool Solid { get => (Flags8 & FlagValue.Flag24) != 0; set { if (value) Flags8 |= FlagValue.Flag24; else Flags8 &= FlagValue.InvFlag24; } }
+        public bool SpawnCeiling { get => (Flags8 & FlagValue.Flag25) != 0; set { if (value) Flags8 |= FlagValue.Flag25; else Flags8 &= FlagValue.InvFlag25; } }
+        public bool SpawnFloat { get => (Flags8 & FlagValue.Flag26) != 0; set { if (value) Flags8 |= FlagValue.Flag26; else Flags8 &= FlagValue.InvFlag26; } }
+        public bool SpawnSoundSource { get => (Flags8 & FlagValue.Flag27) != 0; set { if (value) Flags8 |= FlagValue.Flag27; else Flags8 &= FlagValue.InvFlag27; } }
+        public bool Special { get => (Flags8 & FlagValue.Flag28) != 0; set { if (value) Flags8 |= FlagValue.Flag28; else Flags8 &= FlagValue.InvFlag28; } }
+        public bool SpecialFireDamage { get => (Flags8 & FlagValue.Flag29) != 0; set { if (value) Flags8 |= FlagValue.Flag29; else Flags8 &= FlagValue.InvFlag29; } }
+        public bool SpecialFloorClip { get => (Flags8 & FlagValue.Flag30) != 0; set { if (value) Flags8 |= FlagValue.Flag30; else Flags8 &= FlagValue.InvFlag30; } }
+        public bool Spectral { get => (Flags8 & FlagValue.Flag31) != 0; set { if (value) Flags8 |= FlagValue.Flag31; else Flags8 &= FlagValue.InvFlag31; } }
+        public bool SpriteAngle { get => (Flags8 & FlagValue.Flag32) != 0; set { if (value) Flags8 |= FlagValue.Flag32; else Flags8 &= FlagValue.InvFlag32; } }
+        public bool SpriteFlip { get => (Flags9 & FlagValue.Flag1) != 0; set { if (value) Flags9 |= FlagValue.Flag1; else Flags9 &= FlagValue.InvFlag1; } }
+        public bool StandStill { get => (Flags9 & FlagValue.Flag2) != 0; set { if (value) Flags9 |= FlagValue.Flag2; else Flags9 &= FlagValue.InvFlag2; } }
+        public bool StayMorphed { get => (Flags9 & FlagValue.Flag3) != 0; set { if (value) Flags9 |= FlagValue.Flag3; else Flags9 &= FlagValue.InvFlag3; } }
+        public bool Stealth { get => (Flags9 & FlagValue.Flag4) != 0; set { if (value) Flags9 |= FlagValue.Flag4; else Flags9 &= FlagValue.InvFlag4; } }
+        public bool StepMissile { get => (Flags9 & FlagValue.Flag5) != 0; set { if (value) Flags9 |= FlagValue.Flag5; else Flags9 &= FlagValue.InvFlag5; } }
+        public bool StrifeDamage { get => (Flags9 & FlagValue.Flag6) != 0; set { if (value) Flags9 |= FlagValue.Flag6; else Flags9 &= FlagValue.InvFlag6; } }
+        public bool SummonedMonster { get => (Flags9 & FlagValue.Flag7) != 0; set { if (value) Flags9 |= FlagValue.Flag7; else Flags9 &= FlagValue.InvFlag7; } }
+        public bool Synchronized { get => (Flags9 & FlagValue.Flag8) != 0; set { if (value) Flags9 |= FlagValue.Flag8; else Flags9 &= FlagValue.InvFlag8; } }
+        public bool Teleport { get => (Flags9 & FlagValue.Flag9) != 0; set { if (value) Flags9 |= FlagValue.Flag9; else Flags9 &= FlagValue.InvFlag9; } }
+        public bool Telestomp { get => (Flags9 & FlagValue.Flag10) != 0; set { if (value) Flags9 |= FlagValue.Flag10; else Flags9 &= FlagValue.InvFlag10; } }
+        public bool ThruActors { get => (Flags9 & FlagValue.Flag11) != 0; set { if (value) Flags9 |= FlagValue.Flag11; else Flags9 &= FlagValue.InvFlag11; } }
+        public bool ThruGhost { get => (Flags9 & FlagValue.Flag12) != 0; set { if (value) Flags9 |= FlagValue.Flag12; else Flags9 &= FlagValue.InvFlag12; } }
+        public bool ThruReflect { get => (Flags9 & FlagValue.Flag13) != 0; set { if (value) Flags9 |= FlagValue.Flag13; else Flags9 &= FlagValue.InvFlag13; } }
+        public bool ThruSpecies { get => (Flags9 & FlagValue.Flag14) != 0; set { if (value) Flags9 |= FlagValue.Flag14; else Flags9 &= FlagValue.InvFlag14; } }
+        public bool Touchy { get => (Flags9 & FlagValue.Flag15) != 0; set { if (value) Flags9 |= FlagValue.Flag15; else Flags9 &= FlagValue.InvFlag15; } }
+        public bool UseBounceState { get => (Flags9 & FlagValue.Flag16) != 0; set { if (value) Flags9 |= FlagValue.Flag16; else Flags9 &= FlagValue.InvFlag16; } }
+        public bool UseKillScripts { get => (Flags9 & FlagValue.Flag17) != 0; set { if (value) Flags9 |= FlagValue.Flag17; else Flags9 &= FlagValue.InvFlag17; } }
+        public bool UseSpecial { get => (Flags9 & FlagValue.Flag18) != 0; set { if (value) Flags9 |= FlagValue.Flag18; else Flags9 &= FlagValue.InvFlag18; } }
+        public bool VisibilityPulse { get => (Flags9 & FlagValue.Flag19) != 0; set { if (value) Flags9 |= FlagValue.Flag19; else Flags9 &= FlagValue.InvFlag19; } }
+        public bool Vulnerable { get => (Flags9 & FlagValue.Flag20) != 0; set { if (value) Flags9 |= FlagValue.Flag20; else Flags9 &= FlagValue.InvFlag20; } }
+        public bool WallSprite { get => (Flags9 & FlagValue.Flag21) != 0; set { if (value) Flags9 |= FlagValue.Flag21; else Flags9 &= FlagValue.InvFlag21; } }
+        public bool WeaponAltAmmoOptional { get => (Flags9 & FlagValue.Flag22) != 0; set { if (value) Flags9 |= FlagValue.Flag22; else Flags9 &= FlagValue.InvFlag22; } }
+        public bool WeaponAltUsesBoth { get => (Flags9 & FlagValue.Flag23) != 0; set { if (value) Flags9 |= FlagValue.Flag23; else Flags9 &= FlagValue.InvFlag23; } }
+        public bool WeaponAmmoCheckBoth { get => (Flags9 & FlagValue.Flag24) != 0; set { if (value) Flags9 |= FlagValue.Flag24; else Flags9 &= FlagValue.InvFlag24; } }
+        public bool WeaponAmmoOptional { get => (Flags9 & FlagValue.Flag25) != 0; set { if (value) Flags9 |= FlagValue.Flag25; else Flags9 &= FlagValue.InvFlag25; } }
+        public bool WeaponAxeBlood { get => (Flags9 & FlagValue.Flag26) != 0; set { if (value) Flags9 |= FlagValue.Flag26; else Flags9 &= FlagValue.InvFlag26; } }
+        public bool WeaponBfg { get => (Flags9 & FlagValue.Flag27) != 0; set { if (value) Flags9 |= FlagValue.Flag27; else Flags9 &= FlagValue.InvFlag27; } }
+        public bool WeaponCheatNotWeapon { get => (Flags9 & FlagValue.Flag28) != 0; set { if (value) Flags9 |= FlagValue.Flag28; else Flags9 &= FlagValue.InvFlag28; } }
+        public bool WeaponDontBob { get => (Flags9 & FlagValue.Flag29) != 0; set { if (value) Flags9 |= FlagValue.Flag29; else Flags9 &= FlagValue.InvFlag29; } }
+        public bool WeaponExplosive { get => (Flags9 & FlagValue.Flag30) != 0; set { if (value) Flags9 |= FlagValue.Flag30; else Flags9 &= FlagValue.InvFlag30; } }
+        public bool WeaponMeleeWeapon { get => (Flags9 & FlagValue.Flag31) != 0; set { if (value) Flags9 |= FlagValue.Flag31; else Flags9 &= FlagValue.InvFlag31; } }
+        public bool WeaponNoAlert { get => (Flags9 & FlagValue.Flag32) != 0; set { if (value) Flags9 |= FlagValue.Flag32; else Flags9 &= FlagValue.InvFlag32; } }
+        public bool WeaponNoAutoaim { get => (Flags10 & FlagValue.Flag1) != 0; set { if (value) Flags10 |= FlagValue.Flag1; else Flags10 &= FlagValue.InvFlag1; } }
+        public bool WeaponNoAutofire { get => (Flags10 & FlagValue.Flag2) != 0; set { if (value) Flags10 |= FlagValue.Flag2; else Flags10 &= FlagValue.InvFlag2; } }
+        public bool WeaponNoDeathDeselect { get => (Flags10 & FlagValue.Flag3) != 0; set { if (value) Flags10 |= FlagValue.Flag3; else Flags10 &= FlagValue.InvFlag3; } }
+        public bool WeaponNoDeathInput { get => (Flags10 & FlagValue.Flag4) != 0; set { if (value) Flags10 |= FlagValue.Flag4; else Flags10 &= FlagValue.InvFlag4; } }
+        public bool WeaponNoAutoSwitch { get => (Flags10 & FlagValue.Flag5) != 0; set { if (value) Flags10 |= FlagValue.Flag5; else Flags10 &= FlagValue.InvFlag5; } }
+        public bool WeaponPoweredUp { get => (Flags10 & FlagValue.Flag6) != 0; set { if (value) Flags10 |= FlagValue.Flag6; else Flags10 &= FlagValue.InvFlag6; } }
+        public bool WeaponPrimaryUsesBoth { get => (Flags10 & FlagValue.Flag7) != 0; set { if (value) Flags10 |= FlagValue.Flag7; else Flags10 &= FlagValue.InvFlag7; } }
+        public bool WeaponReadySndHalf { get => (Flags10 & FlagValue.Flag8) != 0; set { if (value) Flags10 |= FlagValue.Flag8; else Flags10 &= FlagValue.InvFlag8; } }
+        public bool WeaponStaff2Kickback { get => (Flags10 & FlagValue.Flag9) != 0; set { if (value) Flags10 |= FlagValue.Flag9; else Flags10 &= FlagValue.InvFlag9; } }
+        public bool WeaponWimpyWeapon { get => (Flags10 & FlagValue.Flag10) != 0; set { if (value) Flags10 |= FlagValue.Flag10; else Flags10 &= FlagValue.InvFlag10; } }
+        public bool WeaponSpawn { get => (Flags10 & FlagValue.Flag11) != 0; set { if (value) Flags10 |= FlagValue.Flag11; else Flags10 &= FlagValue.InvFlag11; } }
+        public bool WindThrust { get => (Flags10 & FlagValue.Flag12) != 0; set { if (value) Flags10 |= FlagValue.Flag12; else Flags10 &= FlagValue.InvFlag12; } }
+        public bool ZdoomTrans { get => (Flags10 & FlagValue.Flag13) != 0; set { if (value) Flags10 |= FlagValue.Flag13; else Flags10 &= FlagValue.InvFlag13; } }
+
 
         public EntityFlags(EntityFlagsModel model)
         {
@@ -337,15 +336,11 @@ namespace Helion.World.Entities.Definition.Flags
             Flags8 = model.Bits[7];
             Flags9 = model.Bits[8];
             Flags10 = model.Bits[9];
-            Flags11 = model.Bits[10];
         }
 
         public EntityFlagsModel ToEntityFlagsModel()
         {
-            EntityFlagsModel entityFlagsModel = new EntityFlagsModel()
-            {
-                Bits = new int[NumFlags]
-            };
+            EntityFlagsModel entityFlagsModel = new EntityFlagsModel() { Bits = new int[10] };
 
             entityFlagsModel.Bits[0] = Flags1;
             entityFlagsModel.Bits[1] = Flags2;
@@ -357,146 +352,8 @@ namespace Helion.World.Entities.Definition.Flags
             entityFlagsModel.Bits[7] = Flags8;
             entityFlagsModel.Bits[8] = Flags9;
             entityFlagsModel.Bits[9] = Flags10;
-            entityFlagsModel.Bits[10] = Flags11;
 
             return entityFlagsModel;
-        }
-
-        public bool this[EntityFlag flag]
-        {
-            get
-            {
-                int iFlag = (int)flag;
-                int index = iFlag / Bits;
-
-                return GetValue(index, ShiftBit << (iFlag - (index * Bits)));
-                //return (Flags[index] & (ShiftBit << (iFlag - (index * Bits)))) != 0;
-            }
-
-            set
-            {
-                int iFlag = (int)flag;
-                int index = iFlag / Bits;
-
-                if (value)
-                    SetTrue(index, (ShiftBit << (iFlag - (index * Bits))));
-                else
-                    SetFalse(index, (ShiftBit << (iFlag - (index * Bits))));
-                //    Flags[index] |= (ShiftBit << (iFlag - (index * Bits)));
-                //else
-                //    Flags[index] &= ~(ShiftBit << (iFlag - (index * Bits)));
-            }
-        }
-
-        private void SetTrue(int index, int value)
-        {
-            switch (index)
-            {
-                case 0:
-                    Flags1 |= value;
-                    break;
-                case 1:
-                    Flags2 |= value;
-                    break;
-                case 2:
-                    Flags3 |= value;
-                    break;
-                case 3:
-                    Flags4 |= value;
-                    break;
-                case 4:
-                    Flags5 |= value;
-                    break;
-                case 5:
-                    Flags6 |= value;
-                    break;
-                case 6:
-                    Flags7 |= value;
-                    break;
-                case 7:
-                    Flags8 |= value;
-                    break;
-                case 8:
-                    Flags9 |= value;
-                    break;
-                case 9:
-                    Flags10 |= value;
-                    break;
-                case 10:
-                    Flags11 |= value;
-                    break;
-            }
-        }
-
-        private void SetFalse(int index, int value)
-        {
-            switch (index)
-            {
-                case 0:
-                    Flags1 &= ~value;
-                    break;
-                case 1:
-                    Flags2 &= ~value;
-                    break;
-                case 2:
-                    Flags3 &= ~value;
-                    break;
-                case 3:
-                    Flags4 &= ~value;
-                    break;
-                case 4:
-                    Flags5 &= ~value;
-                    break;
-                case 5:
-                    Flags6 &= ~value;
-                    break;
-                case 6:
-                    Flags7 &= ~value;
-                    break;
-                case 7:
-                    Flags8 &= ~value;
-                    break;
-                case 8:
-                    Flags9 &= ~value;
-                    break;
-                case 9:
-                    Flags10 &= ~value;
-                    break;
-                case 10:
-                    Flags11 &= ~value;
-                    break;
-            }
-        }
-
-        private bool GetValue(int index, int value)
-        {
-            switch (index)
-            {
-                case 0:
-                    return (Flags1 & value) != 0;
-                case 1:
-                    return (Flags2 & value) != 0;
-                case 2:
-                    return (Flags3 & value) != 0;
-                case 3:
-                    return (Flags4 & value) != 0;
-                case 4:
-                    return (Flags5 & value) != 0;
-                case 5:
-                    return (Flags6 & value) != 0;
-                case 6:
-                    return (Flags7 & value) != 0;
-                case 7:
-                    return (Flags8 & value) != 0;
-                case 8:
-                    return (Flags9 & value) != 0;
-                case 9:
-                    return (Flags10 & value) != 0;
-                case 10:
-                    return (Flags11 & value) != 0;
-            }
-
-            return false;
         }
 
         public void ClearAll()
@@ -511,7 +368,6 @@ namespace Helion.World.Entities.Definition.Flags
             Flags8 = 0;
             Flags9 = 0;
             Flags10 = 0;
-            Flags11 = 0;
         }
 
         public override bool Equals(object? obj)
@@ -538,13 +394,14 @@ namespace Helion.World.Entities.Definition.Flags
                     return false;
                 if (Flags10 != entityFlags.Flags10)
                     return false;
-                if (Flags11 != entityFlags.Flags11)
-                    return false;
 
                 return true;
             }
 
             return false;
         }
+
+        public override int GetHashCode() => Flags1 ^ Flags2 ^ Flags3 ^ Flags4 ^ Flags5 ^ Flags6 ^ Flags7 ^
+            Flags8 ^ Flags9 ^ Flags10;
     }
 }
