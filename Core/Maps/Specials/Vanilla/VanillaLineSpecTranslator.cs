@@ -476,16 +476,11 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.DR_OpenDoorFastClose:
                 case VanillaLineSpecialType.DR_OpenRedKeyClose:
                 case VanillaLineSpecialType.DR_OpenYellowKeyClose:
-                case VanillaLineSpecialType.GR_OpenDoorStayOpen:
                 case VanillaLineSpecialType.SR_OpenDoorClose:
                 case VanillaLineSpecialType.SR_OpenDoorFastClose:
-                case VanillaLineSpecialType.SR_OpenDoorStay:
-                case VanillaLineSpecialType.SR_OpenRedKeyFastStay:
                 case VanillaLineSpecialType.S1_OpenDoorClose:
                 case VanillaLineSpecialType.S1_OpenDoorFastClose:
-                case VanillaLineSpecialType.S1_OpenDoorFastStay:
                 case VanillaLineSpecialType.W1_DoorOpenClose:
-                case VanillaLineSpecialType.W1_DoorOpenStay:
                 case VanillaLineSpecialType.W1_OpenDoorFastClose:
                 case VanillaLineSpecialType.WR_OpenDoorClose:
                 case VanillaLineSpecialType.WR_OpenDoorFastClose:
@@ -666,9 +661,9 @@ namespace Helion.Maps.Specials.Vanilla
 
             switch (type)
             {
-            case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
-            case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
-                return VanillaConstants.LiftDelay;
+                case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
+                    return VanillaConstants.LiftDelay;
             }
 
             return 0;
