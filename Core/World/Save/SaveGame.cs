@@ -85,7 +85,8 @@ namespace Helion.World.Save
                 Text = title,
                 MapName = mapName,
                 Date = DateTime.Now,
-                WorldFile = "world.json"
+                WorldFile = "world.json",
+                Files = world.GetGameFilesModel()
             };
 
             if (File.Exists(filename))

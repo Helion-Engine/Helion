@@ -1174,7 +1174,7 @@ namespace Helion.World
             };
         }
 
-        private GameFilesModel GetGameFilesModel()
+        public GameFilesModel GetGameFilesModel()
         {
             return new GameFilesModel()
             {

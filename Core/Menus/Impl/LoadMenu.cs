@@ -24,7 +24,7 @@ namespace Helion.Menus.Impl
         {
             Components = Components.Add(new MenuImageComponent(HeaderImage, paddingY: 16));
 
-            List<SaveGame> savedGames = saveManager.GetSaveGames();
+            List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
             if (savedGames.Empty())
                 Components = Components.Add(new MenuSmallTextComponent("There are no saved games."));
             else

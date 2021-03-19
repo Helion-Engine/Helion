@@ -7,7 +7,6 @@ using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Models;
 using Helion.Util;
@@ -22,11 +21,8 @@ using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.World.StatusBar;
 using Helion.World.Util;
-using Newtonsoft.Json;
 using NLog;
 using System;
-using System.Linq;
-using System.Collections.Generic;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 
@@ -295,63 +291,6 @@ namespace Helion.Layer.WorldLayers
                     LoadMap(CurrentMap, false);
                     break;
             }
-        }
-
-        private void LoadWorldModel(WorldModel worldModel)
-        {
-            if (!VerifyWorldModelFiles(worldModel))
-                return;
-
-            MapInfoDef? loadMap = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(worldModel.MapName);
-            if (loadMap == null)
-            {
-                Log.Error($"Unable to find map {worldModel.MapName}");
-                return;
-            }
-
-            LoadMap(loadMap, false, worldModel);
-        }
-
-        private bool VerifyWorldModelFiles(WorldModel worldModel)
-        {
-            if (!VerifyFileModel(worldModel.Files.IWad))
-                return false;
-
-            if (worldModel.Files.Files.Any(x => !VerifyFileModel(x)))
-                return false;
-
-            return true;
-        }
-
-        private bool VerifyFileModel(FileModel fileModel)
-        {
-            if (fileModel.FileName == null)
-            {
-                Log.Warn("File in save game was null.");
-                return true;
-            }
-
-            var archive = ArchiveCollection.GetArchiveByFileName(fileModel.FileName);
-            if (archive == null)
-            {
-                Log.Error($"Required archive {fileModel.FileName} for this save game is not loaded.");
-                return false;
-            }
-
-            if (fileModel.MD5 == null)
-            {
-                Log.Warn("MD5 for file in save game was null.");
-                return true;
-            }
-
-            if (!fileModel.MD5.Equals(archive.MD5))
-            {
-                Log.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
-                Log.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");
-                return false;
-            }
-
-            return true;
         }
 
         private void ChangeLevel(LevelChangeEvent e)

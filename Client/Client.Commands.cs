@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Models;
@@ -8,6 +9,7 @@ using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.World.Cheats;
 using Helion.World.Save;
+using Helion.World.Util;
 
 namespace Helion.Client
 {
@@ -58,8 +60,8 @@ namespace Helion.Client
             
             if (!CheatManager.Instance.HandleCommand(layer.World.EntityManager.Players[0], ccmdArgs.Command))
                 Log.Info($"Unknown command: {ccmdArgs.Command}");
-        }
-        
+        }   
+
         private void HandleLoadGame(IReadOnlyList<string> args)
         {
             if (args.Empty())
@@ -75,16 +77,25 @@ namespace Helion.Client
             if (saveGame.Model == null)
             {
                 Log.Error("Corrupt save game.");
+                ShowConsole();
+                return;
             }
-            else
-            {
-                WorldModel? worldModel = saveGame.ReadWorldModel();
 
-                if (worldModel == null)
-                    Log.Error("Corrupt world.");
-                else
-                    LoadMapByName(worldModel.MapName, worldModel);
+            WorldModel? worldModel = saveGame.ReadWorldModel();
+            if (worldModel == null)
+            {
+                Log.Error("Corrupt world.");
+                ShowConsole();
+                return;
             }
+
+            if (!ModelVerification.VerifyModelFiles(worldModel.Files, m_archiveCollection, Log))
+            {
+                ShowConsole();
+                return;
+            }
+
+            LoadMapByName(worldModel.MapName, worldModel);
         }
 
         private void StartNewGame()
@@ -190,6 +201,12 @@ namespace Helion.Client
             }
 
             m_layerManager.RemoveAllBut<WorldLayer>();
+        }
+
+        private void ShowConsole()
+        {
+            if (m_layerManager.Get<ConsoleLayer>() == null)
+                m_layerManager.Add(new ConsoleLayer(m_archiveCollection, m_console));
         }
     }
 }

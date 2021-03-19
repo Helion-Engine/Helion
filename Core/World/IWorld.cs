@@ -85,5 +85,6 @@ namespace Helion.World
         bool IsLineIdValid(int lineId) => lineId > 0 && lineId < Lines.Count;
 
         WorldModel ToWorldModel();
+        GameFilesModel GetGameFilesModel();
     }
 }

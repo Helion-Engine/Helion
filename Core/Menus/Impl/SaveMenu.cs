@@ -44,7 +44,7 @@ namespace Helion.Menus.Impl
                 return;
             }
 
-            List<SaveGame> savedGames = saveManager.GetSaveGames();
+            List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
             if (!savedGames.Empty())
             {
                 IEnumerable<IMenuComponent> saveRowComponents = CreateSaveRowComponents(savedGames);

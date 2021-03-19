@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Helion.Util.Extensions;
+using Helion.Models;
+using Helion.Resources.Archives.Collection;
+using Helion.World.Util;
 
 namespace Helion.World.Save
 {
@@ -24,6 +27,21 @@ namespace Helion.World.Save
             string filename = existingSave?.FileName ?? GetNewSaveName();
             SaveGame.WriteSaveGame(world, title, filename);
             return filename;
+        }
+
+        public List<SaveGame> GetSortedSaveGames(ArchiveCollection archiveCollection)
+        {
+            var saveGames = GetSaveGames();
+            var matchingGames = GetMatchingSaveGames(saveGames, archiveCollection);
+            var nonMatchingGames = saveGames.Except(matchingGames);
+            return matchingGames.Union(nonMatchingGames).ToList();
+        }
+
+        public IEnumerable<SaveGame> GetMatchingSaveGames(IEnumerable<SaveGame> saveGames, 
+            ArchiveCollection archiveCollection)
+        {
+            return saveGames.Where(x => x.Model != null &&
+                ModelVerification.VerifyModelFiles(x.Model.Files, archiveCollection, null));
         }
 
         public List<SaveGame> GetSaveGames()
