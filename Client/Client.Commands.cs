@@ -192,7 +192,7 @@ namespace Helion.Client
             else
             {
                 SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console,
-                    m_audioSystem, m_archiveCollection, mapInfoDef, m_saveGameManager, skillDef, map, worldModel);
+                    m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, worldModel);
                 if (newLayer == null)
                     return;
 

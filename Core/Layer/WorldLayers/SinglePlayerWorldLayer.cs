@@ -33,7 +33,6 @@ namespace Helion.Layer.WorldLayers
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly SaveGameManager SaveManager;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys;
@@ -47,12 +46,11 @@ namespace Helion.Layer.WorldLayers
         public MapInfoDef CurrentMap { get; set; }
 
         private SinglePlayerWorldLayer(GameLayer parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SaveGameManager saveGameManager, SinglePlayerWorld world, MapInfoDef mapInfoDef)
+            IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
             : base(parent, config, console, archiveCollection, audioSystem)
         {
             CurrentMap = mapInfoDef;
             m_world = world;
-            SaveManager = saveGameManager;
             m_worldHudDrawer = new(archiveCollection);
             AddWorldEventListeners(m_world);
 
@@ -92,7 +90,7 @@ namespace Helion.Layer.WorldLayers
 
         public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
-            SaveGameManager saveGameManager, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
+            SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             string displayName = mapInfoDef.GetNiceNameOrLookup(archiveCollection);
 
@@ -102,7 +100,7 @@ namespace Helion.Layer.WorldLayers
                 null, worldModel);
             if (world == null)
                 return null;
-            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, saveGameManager, world, mapInfoDef);
+            return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
