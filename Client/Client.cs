@@ -44,38 +44,9 @@ namespace Helion.Client
         private readonly Window m_window;
         private bool m_disposed;
 
-        private void UpdateFlags()
-        {
-            string text = File.ReadAllText(@"C:\Users\Nick-ASUS\Desktop\original.txt");
-            string[] lines = text.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-            StringBuilder sb = new StringBuilder();
-            int i = 1;
-            int f = 1;
-
-            foreach(var getString in lines)
-            {
-                string line = getString;
-                int index = line.IndexOf('{');
-                line = line.Substring(0, index);
-                line += $"{{ get => (Flags{i} & FlagValue.Flag{f}) != 0; set {{ if (value) Flags{i} |= FlagValue.Flag{f}; else Flags{i} &= FlagValue.InvFlag{f}; }} }}";
-                sb.AppendLine(line);
-
-                f++;
-
-                if (f % 33 == 0)
-                {
-                    i++;
-                    f = 1;
-                }
-            }
-
-            File.WriteAllText(@"C:\Users\Nick-ASUS\Desktop\new.txt", sb.ToString());
-        }
-
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection)
         {
-            UpdateFlags();
             m_commandLineArgs = commandLineArgs;
             m_config = config;
             m_console = console;
