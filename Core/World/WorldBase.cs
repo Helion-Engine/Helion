@@ -903,7 +903,7 @@ namespace Helion.World
 
                 newEntity.SetSpawnState();
                 newEntity.AngleRadians = entity.AngleRadians;
-                newEntity.Properties.ReactionTime = 18;
+                newEntity.ReactionTime = 18;
 
                 entity.Dispose();
             }

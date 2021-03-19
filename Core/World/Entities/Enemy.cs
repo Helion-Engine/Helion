@@ -302,7 +302,7 @@ namespace Helion.World.Entities
                 return true;
             }
 
-            if (Properties.ReactionTime > 0)
+            if (ReactionTime > 0)
                 return false;
 
             double distance = Position.ApproximateDistance2D(Target.Position);

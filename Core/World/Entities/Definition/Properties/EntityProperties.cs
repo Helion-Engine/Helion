@@ -204,11 +204,5 @@ namespace Helion.World.Entities.Definition.Properties
                 Threshold = Threshold
             };
         }
-
-        public void ApplyEntityPropertiesModel(EntityPropertiesModel entityPropertiesModel)
-        {
-            ReactionTime = entityPropertiesModel.ReactionTime;
-            Threshold = entityPropertiesModel.Threshold;
-        }
     }
 }

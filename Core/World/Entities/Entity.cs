@@ -75,6 +75,10 @@ namespace Helion.World.Entities
         public Entity? Target;
         public Entity? Tracer;
 
+        // Values that are modified from EntityProperties
+        public int Threshold;
+        public int ReactionTime;
+
         public bool OnGround;
         public bool Refire;
         // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
@@ -133,8 +137,10 @@ namespace Helion.World.Entities
             ThingId = thingId;
             Definition = definition;
             Flags = new EntityFlags(definition.Flags);
-            // TODO there was a reason for Definition.Properties and Properties being different...
-            Properties = new EntityProperties(definition.Properties);
+            Properties = definition.Properties;
+            Threshold = Properties.Threshold;
+            ReactionTime = Properties.ReactionTime;
+
             FrameState = new FrameState(this, definition, entityManager);
             World = world;
             EntityManager = entityManager;
@@ -162,7 +168,10 @@ namespace Helion.World.Entities
             ThingId = entityModel.ThingId;
             Definition = definition;
             Flags = new EntityFlags(entityModel.Flags);
-            Properties = new EntityProperties(definition.Properties);
+            Properties = definition.Properties;
+            Threshold = entityModel.Properties.Threshold;
+            ReactionTime = entityModel.Properties.ReactionTime;
+
             Health = entityModel.Health;
             Armor = entityModel.Armor;
 
@@ -195,7 +204,7 @@ namespace Helion.World.Entities
             if (entityModel.ArmorDefinition != null)
                 ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
-            Properties.ApplyEntityPropertiesModel(entityModel.Properties);
+            //Properties.ApplyEntityPropertiesModel(entityModel.Properties);
         }
 
         public EntityModel ToEntityModel(EntityModel entityModel)
@@ -513,10 +522,10 @@ namespace Helion.World.Entities
                 if (!CanDamage(source))
                     return false;
 
-                if (Properties.Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
+                if (Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
                 {
                     if (!Flags.QuickToRetaliate)
-                        Properties.Threshold = Properties.DefThreshold;
+                        Threshold = Properties.DefThreshold;
                     Target = damageSource;
                     if (HasSeeState() && FrameState.IsState(FrameStateLabel.Spawn))
                         SetSeeState();
@@ -526,7 +535,7 @@ namespace Helion.World.Entities
             damage = ApplyArmorDamage(damage);
 
             Health -= damage;
-            Properties.ReactionTime = 0;
+            ReactionTime = 0;
 
             if (Health <= 0)
             {
