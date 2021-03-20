@@ -33,7 +33,7 @@ namespace Helion.Menus
         protected readonly SoundManager SoundManager;
         protected readonly HelionConsole Console;
         protected ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
-        protected int? ComponentIndex;
+        protected int? ComponentIndex { get; set; }
 
         public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 

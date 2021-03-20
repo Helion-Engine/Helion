@@ -21,15 +21,23 @@ namespace Helion.Menus.Impl
                 CreateMenuOption("M_NEWG", 24, 10),
                 CreateMenuOption("M_SKILL", 8, 10),
             });
-            
+
+            var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
+            int indexOffset = 0;
+
             archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
             {
                 SkillLevel skillLevel = (SkillLevel)(index + 1);
                 IMenuComponent component = CreateMenuOption(skill.PicName, 0, 2, CreateWorld(skillLevel));
                 Components = Components.Add(component);
+                var currentSkill = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);
+                if (currentSkill != null && currentSkill == defaultSkillDef)
+                    indexOffset = index;
             });
 
+            // Menu title etc are menu components so offset by the index of the default difficulty
             SetToFirstActiveComponent();
+            ComponentIndex += indexOffset;
 
             IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null)
             {
