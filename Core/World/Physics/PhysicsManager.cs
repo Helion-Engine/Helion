@@ -530,7 +530,8 @@ namespace Helion.World.Physics
 
             Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
             Sector centerSector = centerSubsector.Sector;
-            HashSet<Sector> sectors = new HashSet<Sector> { centerSector };
+            HashSet<Sector> sectors = DataCache.Instance.GetSectorSet();
+            sectors.Add(centerSector);
 
             // TODO: Can we replace this by iterating over the blocks were already in?
             Box2D box = entity.Box.To2D();
@@ -547,6 +548,8 @@ namespace Helion.World.Physics
 
                 entity.SubsectorNode = centerSubsector.Link(entity);
             }
+
+            DataCache.Instance.FreeSectorSet(sectors);
 
             GridIterationStatus SectorOverlapFinder(Block block)
             {

@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Physics.Blockmap;
 using System.Collections.Generic;
 
@@ -14,8 +15,9 @@ namespace Helion.Util
 
         private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new DynamicArray<LinkableNode<Entity>>(1024);
         private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new DynamicArray<List<BlockmapIntersect>>();
+        private readonly DynamicArray<HashSet<Sector>> m_sectorSet = new DynamicArray<HashSet<Sector>>();
         private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>>();
-
+        
         public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
         {
             LinkableNode<Entity> node;
@@ -84,6 +86,24 @@ namespace Helion.Util
         {
             renderWorldData.Clear();
             m_alphaRender[renderWorldData.Texture].Add(renderWorldData);
+        }
+
+        public HashSet<Sector> GetSectorSet()
+        {
+            if (m_sectorSet.Length > 0)
+            {
+                HashSet<Sector> set = m_sectorSet.Data[m_sectorSet.Length - 1];
+                m_sectorSet.RemoveLast();
+                return set;
+            }
+
+            return new HashSet<Sector>();
+        }
+
+        public void FreeSectorSet(HashSet<Sector> set)
+        {
+            set.Clear();
+            m_sectorSet.Add(set);
         }
     }
 }
