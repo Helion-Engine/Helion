@@ -48,6 +48,10 @@ SWSTRING,"This is the shareware version of Doom.
 You need to order the entire trilogy.
 
 Press a key."
+NIGHTMARE,"Are you sure? This skill level
+isn't even remotely fair.
+
+Press Y or N."
 Pickup
 GOTARMOR,Picked up the armor.
 GOTMEGA,Picked up the MegaArmor!

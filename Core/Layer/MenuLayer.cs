@@ -37,7 +37,7 @@ namespace Helion.Layer
             if (!m_menus.Empty())
             {
                 Menu menu = m_menus.Peek();
-                if (input.HasAnyKeyPressed() && menu is MessageMenu)
+                if (input.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
                     ClearMenu();
 
                 menu.HandleInput(input);

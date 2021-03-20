@@ -11,10 +11,19 @@ namespace Helion.Menus.Impl
 {
     public class NewGameSkillMenu : Menu
     {
+        private SkillLevel m_confirmSkillLevel = SkillLevel.None;
+        private readonly Config m_config;
+        private readonly HelionConsole m_console;
+        private readonly string? m_episode;
+
         public NewGameSkillMenu(Config config, HelionConsole console, SoundManager soundManager, 
                 ArchiveCollection archiveCollection, string? episode) : 
             base(config, console, soundManager, archiveCollection, 16, true)
         {
+            m_config = config;
+            m_console = console;
+            m_episode = episode;
+
             Components = Components.AddRange(new[] 
             {
                 // TODO: X offsets are hardcoded for now (and are probably not even right).
@@ -28,11 +37,22 @@ namespace Helion.Menus.Impl
             archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
             {
                 SkillLevel skillLevel = (SkillLevel)(index + 1);
-                IMenuComponent component = CreateMenuOption(skill.PicName, 0, 2, CreateWorld(skillLevel));
-                Components = Components.Add(component);
-                var currentSkill = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);
-                if (currentSkill != null && currentSkill == defaultSkillDef)
+                if (skill == defaultSkillDef)
                     indexOffset = index;
+
+                IMenuComponent component;
+                if (skill.MustConfirm)
+                {
+                    m_confirmSkillLevel = skillLevel;
+                    component = CreateMenuOption(skill.PicName, 0, 2, Confirm());
+                }
+                else
+                {
+                    component = CreateMenuOption(skill.PicName, 0, 2, CreateWorld(skillLevel));
+                }
+
+                Components = Components.Add(component);
+ 
             });
 
             // Menu title etc are menu components so offset by the index of the default difficulty
@@ -44,16 +64,39 @@ namespace Helion.Menus.Impl
                 return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
             }
 
+            Func<Menu?> Confirm()
+            {
+                return () =>
+                {
+                    string[] confirm = ArchiveCollection.Definitions.Language.GetDefaultMessage("$NIGHTMARE").Split(new char[] { '\n' });
+                    var messageMenu = new MessageMenu(config, Console, soundManager, ArchiveCollection, confirm, true);
+                    messageMenu.Cleared += MessageMenu_Cleared;
+                    return messageMenu;
+                }; 
+            }
+
             Func<Menu?> CreateWorld(SkillLevel skillLevel)
             {
                 return () =>
                 {
-                    PlaySelectedSound();
-                    config.Game.Skill.Set(skillLevel);
-                    console.SubmitInputText($"map {episode ?? "MAP01"}");
+                    DoNewGame(skillLevel);
                     return null;
                 };
             }
         }
+
+        private void MessageMenu_Cleared(object? sender, bool confirmed)
+        {
+            if (confirmed)
+                DoNewGame(m_confirmSkillLevel);
+        }
+
+        private void DoNewGame(SkillLevel skillLevel)
+        {
+            PlaySelectedSound();
+            m_config.Game.Skill.Set(skillLevel);
+            m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
+        }
+
     }
 }
