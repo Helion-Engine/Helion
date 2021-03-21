@@ -169,8 +169,8 @@ namespace Helion.World.Entities
             Definition = definition;
             Flags = new EntityFlags(entityModel.Flags);
             Properties = definition.Properties;
-            Threshold = entityModel.Properties.Threshold;
-            ReactionTime = entityModel.Properties.ReactionTime;
+            Threshold = entityModel.Threshold;
+            ReactionTime = entityModel.ReactionTime;
 
             Health = entityModel.Health;
             Armor = entityModel.Armor;
@@ -230,7 +230,8 @@ namespace Helion.World.Entities
             entityModel.ArmorDefinition = ArmorDefinition?.Name.ToString();
             entityModel.Frame = FrameState.ToFrameStateModel();
             entityModel.Flags = Flags.ToEntityFlagsModel();
-            entityModel.Properties = Properties.ToEntityPropertiesModel();
+            entityModel.Threshold = Threshold;
+            entityModel.ReactionTime = ReactionTime;
             return entityModel;
         }
 

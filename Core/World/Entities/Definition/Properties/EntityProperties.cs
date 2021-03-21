@@ -195,14 +195,5 @@ namespace Helion.World.Entities.Definition.Properties
             YScale = properties.YScale;
             Speed = properties.Speed;
         }
-
-        public EntityPropertiesModel ToEntityPropertiesModel()
-        {
-            return new EntityPropertiesModel()
-            {
-                ReactionTime = ReactionTime,
-                Threshold = Threshold
-            };
-        }
     }
 }

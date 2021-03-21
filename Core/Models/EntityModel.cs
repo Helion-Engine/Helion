@@ -31,6 +31,7 @@ namespace Helion.Models
 
         public FrameStateModel Frame { get; set; }
         public EntityFlagsModel Flags { get; set; }
-        public EntityPropertiesModel Properties { get; set; }
+        public int Threshold { get; set; }
+        public int ReactionTime { get; set; }
     }
 }
