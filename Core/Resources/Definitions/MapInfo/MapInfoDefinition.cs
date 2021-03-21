@@ -51,6 +51,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly CIString GameBorderFlatName = "borderflat";
         private static readonly CIString GameDrawReadThisName = "drawreadthis";
         private static readonly CIString GameIntermissionMusicName = "intermissionmusic";
+        private static readonly CIString GameWeaponSlotName = "WeaponSlot";
 
         private static readonly HashSet<CIString> GameInfoNames = new HashSet<CIString>
         {
@@ -66,6 +67,7 @@ namespace Helion.Resources.Definitions.MapInfo
             GameBorderFlatName,
             GameDrawReadThisName,
             GameIntermissionMusicName,
+            GameWeaponSlotName
         };
 
         private static readonly CIString EpisodePicName = "picname";
@@ -477,9 +479,9 @@ namespace Helion.Resources.Definitions.MapInfo
             while (!ClusterNames.Contains(parser.PeekString()))
             {
                 string text = parser.ConsumeString();
-                bool hasComma = text.EndsWith(',');
-                if (text.EndsWith(','))
-                    text = text[..^1];
+                bool hasComma = parser.Peek(',');
+                if (hasComma)
+                    parser.Consume(',');
 
                 if (text.Equals("lookup", StringComparison.OrdinalIgnoreCase))
                 {
@@ -565,6 +567,8 @@ namespace Helion.Resources.Definitions.MapInfo
                         gameDef.DrawReadThis = parser.ConsumeBool();
                     else if (item == GameIntermissionMusicName)
                         gameDef.IntermissionMusic = parser.ConsumeString();
+                    else if (item == GameWeaponSlotName)
+                        ParseWeaponSlot(gameDef, parser);
                 }
                 else
                 {
@@ -574,6 +578,18 @@ namespace Helion.Resources.Definitions.MapInfo
             }
 
             ConsumeBrace(parser, false);
+        }
+
+        private void ParseWeaponSlot(GameInfoDef gameDef, SimpleParser parser)
+        {
+            int slot = parser.ConsumeInteger();
+            if (gameDef.WeaponSlots.ContainsKey(slot))
+                gameDef.WeaponSlots[slot].Clear();
+            else
+                gameDef.WeaponSlots.Add(slot, new List<string>());
+
+            parser.Consume(',');
+            gameDef.WeaponSlots[slot].AddRange(GetStringList(parser));
         }
 
         private SkillDef ParseSkillDef(SimpleParser parser)
@@ -770,10 +786,17 @@ namespace Helion.Resources.Definitions.MapInfo
 
         private IList<string> GetStringList(SimpleParser parser)
         {
-            string data = parser.ConsumeLine();
-            string[] items = data.Split(new char[] { ',' });
-            for (int i = 0; i < items.Length; i++)
-                items[i] = items[i].Trim().TrimStart('"').TrimEnd('"');
+            List<string> items = new List<string>();
+            
+            while (true)
+            {
+                items.Add(parser.ConsumeString());
+                if (parser.Peek(','))
+                    parser.Consume(',');
+                else
+                    break;
+            }
+
             return items;
         }
 

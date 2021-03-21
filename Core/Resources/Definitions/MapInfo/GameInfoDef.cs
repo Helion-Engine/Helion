@@ -9,6 +9,7 @@ namespace Helion.Resources.Definitions.MapInfo
         public IList<string> QuitMessages { get; set; } = Array.Empty<string>();
         public IList<string> FinalePages { get; set; } = Array.Empty<string>();
         public IList<string> InfoPages { get; set; } = Array.Empty<string>();
+        public Dictionary<int, List<string>> WeaponSlots { get; set; } = new Dictionary<int, List<string>>();
         public string TitleMusic { get; set; } = string.Empty;
         public string FinaleMusic { get; set; } = string.Empty;
         public string FinaleFlat { get; set; } = string.Empty;
