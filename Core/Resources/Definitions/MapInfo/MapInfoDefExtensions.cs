@@ -14,15 +14,18 @@ namespace Helion.Resources.Definitions.MapInfo
                     archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
             }
 
+            if (displayName.StartsWith(mapInfo.MapName))
+            {
+                displayName = displayName.Replace(mapInfo.MapName, string.Empty).Trim();
+                displayName = displayName.TrimStart(':').TrimStart('-').Trim();
+            }
+
             return displayName;
         }
 
         public static string GetMapNameWithPrefix(this MapInfoDef mapInfo, ArchiveCollection archiveCollection)
         {
             string displayName = GetNiceNameOrLookup(mapInfo, archiveCollection);
-            if (displayName.StartsWith(mapInfo.MapName))
-                return displayName;
-
             return $"{mapInfo.MapName}: {displayName}";
         }
     }
