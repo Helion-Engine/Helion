@@ -13,6 +13,7 @@ gameinfo
 	borderflat = "FLOOR7_2"
 	drawreadthis = true
 	intermissionmusic = "D_INTER"
+	weaponslot = 3, "Shotgun"
 	quitmessages = "$QUITMSG", "$QUITMSG1", "$QUITMSG2", "$QUITMSG3", "$QUITMSG4", "$QUITMSG5", "$QUITMSG6", "$QUITMSG7"
 }
 
