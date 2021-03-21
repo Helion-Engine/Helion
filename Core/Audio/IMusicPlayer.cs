@@ -21,7 +21,9 @@ namespace Helion.Audio
         /// <param name="loop">True if it should loop, false if not.</param>
         /// <returns>True if it succeeded and is playing, false if there was an
         /// error loading or playing the track.</returns>
-        bool Play(byte[] data, bool loop = true);
+        /// <param name="ignoreAlreadyPlaying">If true and the currently playing midi data
+        /// matches then this Play call will be ignored.</param>
+        bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true);
 
         /// <summary>
         /// Stops playing the music.

@@ -329,8 +329,6 @@ namespace Helion.World.Impl.SinglePlayer
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
             EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
 
-            AudioSystem.Music.Stop();
-
             base.PerformDispose();
         }
 

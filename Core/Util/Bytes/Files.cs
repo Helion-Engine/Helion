@@ -20,19 +20,23 @@ namespace Helion.Util.Bytes
             {
                 using FileStream fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 fileStream.Seek(0, SeekOrigin.Begin);
-
-                using var md5 = System.Security.Cryptography.MD5.Create();
-                byte[] data = md5.ComputeHash(fileStream);
-
-                StringBuilder hex = new(data.Length * 2);
-                foreach (byte b in data)
-                    hex.AppendFormat("{0:x2}", b);
-                return hex.ToString();
+                return CalculateMD5(fileStream);
             }
             catch
             {
                 return null;
             }
+        }
+
+        public static string CalculateMD5(Stream stream)
+        {
+            using var md5 = System.Security.Cryptography.MD5.Create();
+            byte[] data = md5.ComputeHash(stream);
+
+            StringBuilder hex = new(data.Length * 2);
+            foreach (byte b in data)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
         }
     }
 }

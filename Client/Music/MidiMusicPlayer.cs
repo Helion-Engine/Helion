@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Helion.Audio;
+using Helion.Util.Bytes;
 using Helion.Util.Configs;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Smf;
@@ -21,6 +22,7 @@ namespace Helion.Client.Music
         private OutputDevice? m_outputDevice;
         private Playback? m_playback;
         private bool m_isDisposed;
+        private string m_md5 = string.Empty;
 
         /// <summary>
         /// Creates a music player using the default MIDI device.
@@ -58,10 +60,17 @@ namespace Helion.Client.Music
             return Math.Clamp(volume, 0.0f, 1.0f);
         }
 
-        public bool Play(byte[] data, bool loop = true)
+        public bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true)
         {
             if (m_isDisposed)
                 return false;
+
+            using MemoryStream ms = new MemoryStream(data);
+            string md5 = Files.CalculateMD5(ms);
+            if (ignoreAlreadyPlaying && md5 == m_md5)
+                return true;
+
+            m_md5 = md5;
 
             if (m_outputDevice == null)
             {
