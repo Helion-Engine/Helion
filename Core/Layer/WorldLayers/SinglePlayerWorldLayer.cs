@@ -91,9 +91,8 @@ namespace Helion.Layer.WorldLayers
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
             SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
-            string displayName = mapInfoDef.GetNiceNameOrLookup(archiveCollection);
-
-            Log.Info($"{mapInfoDef.MapName}: {displayName}");
+            string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
+            Log.Info(displayName);
             TextureManager.Init(archiveCollection, mapInfoDef);
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map,
                 null, worldModel);

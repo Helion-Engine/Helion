@@ -16,5 +16,14 @@ namespace Helion.Resources.Definitions.MapInfo
 
             return displayName;
         }
+
+        public static string GetMapNameWithPrefix(this MapInfoDef mapInfo, ArchiveCollection archiveCollection)
+        {
+            string displayName = GetNiceNameOrLookup(mapInfo, archiveCollection);
+            if (displayName.StartsWith(mapInfo.MapName))
+                return displayName;
+
+            return $"{mapInfo.MapName}: {displayName}";
+        }
     }
 }

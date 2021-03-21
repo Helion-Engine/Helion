@@ -75,15 +75,10 @@ namespace Helion.World.Save
 
         public static void WriteSaveGame(IWorld world, string title, string filename)
         {
-            string mapName = world.MapName.ToString();
-            string niceName = world.MapInfo.GetNiceNameOrLookup(world.ArchiveCollection);
-            if (!string.IsNullOrEmpty(niceName))
-                mapName += $": {niceName}";
-
             SaveGameModel saveGameModel = new SaveGameModel()
             {
                 Text = title,
-                MapName = mapName,
+                MapName = world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection),
                 Date = DateTime.Now,
                 WorldFile = "world.json",
                 Files = world.GetGameFilesModel()
