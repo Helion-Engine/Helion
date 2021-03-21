@@ -78,6 +78,7 @@ namespace Helion.World.Impl.SinglePlayer
                     Player = result.Players[0];
                 }
 
+                ApplyCheats(worldModel);                
                 ApplySectorModels(worldModel, result);
                 ApplyLineModels(worldModel);
                 CreateDamageSpecials(worldModel);
@@ -95,6 +96,18 @@ namespace Helion.World.Impl.SinglePlayer
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+        }
+
+        private void ApplyCheats(WorldModel worldModel)
+        {
+            foreach (PlayerModel playerModel in worldModel.Players)
+            {
+                Player? player = EntityManager.Players.FirstOrDefault(x => x.Id == playerModel.Id);
+                if (player == null)
+                    continue;
+
+                playerModel.Cheats.ForEach(x => player.Cheats.SetCheatActive((CheatType)x));
+            }
         }
 
         private void CreateDamageSpecials(WorldModel worldModel)
