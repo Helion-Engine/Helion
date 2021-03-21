@@ -32,9 +32,9 @@ namespace Helion.World.Entities.Inventories
             }
         }
 
-        public (int, int) GetWeaponSlot(EntityDefinition definition)
+        public (int, int) GetWeaponSlot(CIString definitionName)
         {
-            if (m_weaponSlotLookup.TryGetValue(definition.Name, out (int, int) slot))
+            if (m_weaponSlotLookup.TryGetValue(definitionName, out (int, int) slot))
                 return slot;
 
             return DefaultSlot;
@@ -129,7 +129,7 @@ namespace Helion.World.Entities.Inventories
             if (OwnsWeapon(definition.Name))
                 return null;
 
-            var (slot, subslot) = GetWeaponSlot(definition);
+            var (slot, subslot) = GetWeaponSlot(definition.Name);
 
             Weapon weapon = new Weapon(definition, owner, entityManager, frameStateModel, flashStateModel);
             if (!m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons))

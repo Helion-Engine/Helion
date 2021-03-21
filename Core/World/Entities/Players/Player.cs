@@ -642,7 +642,7 @@ namespace Helion.World.Entities.Players
 
         public void ChangeWeapon(Weapon weapon)
         {
-            var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition);
+            var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition.Name);
             if (Inventory.Weapons.OwnsWeapon(weapon.Definition.Name))
             {
                 WeaponSlot = slot.Item1;
