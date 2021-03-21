@@ -160,7 +160,7 @@ namespace Helion.Util.Parser
             if (m_parseType != ParseType.Normal)
                 return false;
 
-            return c == '{' || c == '}' || c == '=' || c == ';';
+            return c == '{' || c == '}' || c == '=' || c == ';' || c == ',';
         }
 
         private void AddToken(int startIndex, int currentIndex, int lineCount, bool quotedString)
