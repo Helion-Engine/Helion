@@ -15,48 +15,32 @@ namespace Helion.World.Entities.Inventories
         private const int MinSlot = 1;
         private const int MaxSlot = 7;
         private static readonly (int, int) DefaultSlot = (-1, -1);
-        private readonly Dictionary<int, Dictionary<int, Weapon>> m_weaponSlots = new Dictionary<int, Dictionary<int, Weapon>>();
+        private readonly Dictionary<int, Dictionary<int, Weapon>> m_weaponSlots = new();
+        private readonly Dictionary<CIString, (int, int)> m_weaponSlotLookup = new();
+        private readonly List<CIString> m_weaponNames = new();
 
-        // TODO move and implement based on GameInfo
-        public static (int, int) GetWeaponSlot(EntityDefinition definition)
+        public Weapons(Dictionary<int, List<string>> weaponSlots)
         {
-            if (definition.Name == "CHAINSAW")
-                return (1, 1);
-            if (definition.Name == "FIST")
-                return (1, 0);
-            else if (definition.Name == "PISTOL")
-                return (2, 0);
-            else if (definition.Name == "SHOTGUN")
-                return (3, 0);
-            else if (definition.Name == "SUPERSHOTGUN")
-                return (3, 1);
-            else if (definition.Name == "CHAINGUN")
-                return (4, 0);
-            else if (definition.Name == "ROCKETLAUNCHER")
-                return (5, 0);
-            else if (definition.Name == "PLASMARIFLE")
-                return (6, 0);
-            else if (definition.Name == "BFG9000")
-                return (7, 0);
+            foreach (var item in weaponSlots)
+            {
+                int subslot = 0;
+                foreach (string weapon in item.Value)
+                {
+                    m_weaponNames.Add(weapon);
+                    m_weaponSlotLookup.Add(weapon, (item.Key, subslot++));
+                }
+            }
+        }
+
+        public (int, int) GetWeaponSlot(EntityDefinition definition)
+        {
+            if (m_weaponSlotLookup.TryGetValue(definition.Name, out (int, int) slot))
+                return slot;
 
             return DefaultSlot;
         }
 
-        public static CIString[] GetWeaponDefinitionNames()
-        {
-            return new CIString[]
-            {
-                "CHAINSAW",
-                "FIST",
-                "PISTOL",
-                "SHOTGUN",
-                "SUPERSHOTGUN",
-                "CHAINGUN",
-                "ROCKETLAUNCHER",
-                "PLASMARIFLE",
-                "BFG9000"
-            };
-        }
+        public IList<CIString> GetWeaponDefinitionNames() => m_weaponNames.AsReadOnly();
 
         public List<string> GetOwnedWeaponNames()
         {

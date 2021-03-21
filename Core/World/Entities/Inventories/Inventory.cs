@@ -35,7 +35,7 @@ namespace Helion.World.Entities.Inventories
         /// <summary>
         /// All of the weapons owned by the player.
         /// </summary>
-        public readonly Weapons Weapons = new();
+        public readonly Weapons Weapons;
 
         public readonly List<IPowerup> Powerups = new();
 
@@ -46,12 +46,14 @@ namespace Helion.World.Entities.Inventories
         {
             Owner = owner;
             EntityDefinitionComposer = composer;
+            Weapons = new Weapons(owner.World.ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.WeaponSlots);
         }
 
         public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
         {
             Owner = owner;
             EntityDefinitionComposer = composer;
+            Weapons = new Weapons(owner.World.ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.WeaponSlots);
 
             foreach (InventoryItemModel item in playerModel.Inventory.Items)
             {

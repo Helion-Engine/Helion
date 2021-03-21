@@ -400,7 +400,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         private void GiveAllWeapons()
         {
-            foreach (CIString name in Weapons.GetWeaponDefinitionNames())
+            foreach (CIString name in Player.Inventory.Weapons.GetWeaponDefinitionNames())
             {
                 var weapon = EntityManager.DefinitionComposer.GetByName(name);
                 if (weapon != null)
