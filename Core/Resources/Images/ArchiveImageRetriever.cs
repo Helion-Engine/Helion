@@ -1,8 +1,7 @@
-using System;
 using System.Drawing;
 using System.IO;
 using Helion.Graphics;
-using Helion.Graphics.Palette;
+using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;

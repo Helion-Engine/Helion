@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Fonts.TrueTypeFont;
-using Helion.Graphics.Palette;
+using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using NLog;
@@ -27,7 +27,7 @@ namespace Helion.Resources.Data
         /// and if none exist in the loaded archive then a default one will be
         /// returned.
         /// </summary>
-        public Palette Palette => m_latestPalette ?? Palettes.GetDefaultPalette();
+        public Palette Palette => m_latestPalette ?? Palette.GetDefaultPalette();
 
         /// <summary>
         /// Creates an empty data entry tracker.

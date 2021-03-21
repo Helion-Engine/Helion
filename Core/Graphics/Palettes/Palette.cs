@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Graphics.Palette
+namespace Helion.Graphics.Palettes
 {
     /// <summary>
     /// An encapsulation of a palette. Each palette is made up of one or more
@@ -13,26 +13,19 @@ namespace Helion.Graphics.Palette
     /// </summary>
     public class Palette
     {
-        /// <summary>
-        /// How many colors are in each palette layer.
-        /// </summary>
         public static readonly int NumColors = 256;
-
-        /// <summary>
-        /// How many components are for each color (in this case, 3 for RGB).
-        /// </summary>
         public static readonly int ColorComponents = 3;
-
-        private static readonly int BytesPerLayer = NumColors * ColorComponents;
-
-        /// <summary>
-        /// Gets how many layers there are.
-        /// </summary>
-        public int Count => layers.Count;
+        public static readonly int BytesPerLayer = NumColors * ColorComponents;
+        private static Palette? DefaultPalette;
 
         private readonly List<Color[]> layers;
 
-        private Palette(List<Color[]> paletteLayers) => layers = paletteLayers;
+        public int Count => layers.Count;
+
+        private Palette(List<Color[]> paletteLayers)
+        {
+            layers = paletteLayers;
+        }
 
         /// <summary>
         /// Attempts to create a palette from the provided data. If the data is
@@ -45,10 +38,10 @@ namespace Helion.Graphics.Palette
         /// </returns>
         public static Palette? From(byte[] data)
         {
-            if (data.Length != 0 && data.Length % BytesPerLayer != 0)
+            if (data.Length == 0 || data.Length % BytesPerLayer != 0)
                 return null;
 
-            List<Color[]> paletteLayers = new List<Color[]>();
+            List<Color[]> paletteLayers = new();
             for (int layer = 0; layer < data.Length / BytesPerLayer; layer++)
             {
                 int offset = layer * BytesPerLayer;
@@ -80,5 +73,31 @@ namespace Helion.Graphics.Palette
         /// range of [0, Count).</param>
         /// <returns>The palette layer.</returns>
         public Color[] this[int index] => layers[index];
+        
+        /// <summary>
+        /// Gets a default palette if one doesn't exist.
+        /// </summary>
+        /// <returns>The default palette.</returns>
+        public static Palette GetDefaultPalette()
+        {
+            if (DefaultPalette != null) 
+                return DefaultPalette;
+            
+            byte[] data = new byte[NumColors * ColorComponents];
+
+            for (int i = 0; i < NumColors; i++)
+            {
+                data[i] = (byte)i;
+                data[i + 1] = (byte)i;
+                data[i + 2] = (byte)i;
+            }
+
+            Palette? palette = From(data);
+            if (palette == null)
+                throw new NullReferenceException("Failed to create the default palette, shouldn't be possible");
+
+            DefaultPalette = palette;
+            return palette;
+        }
     }
 }

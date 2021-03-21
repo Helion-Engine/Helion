@@ -3,7 +3,7 @@ using System.Drawing;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Graphics.Palette
+namespace Helion.Graphics.Palettes
 {
     /// <summary>
     /// A 2-dimensional raster image of palette indices.
