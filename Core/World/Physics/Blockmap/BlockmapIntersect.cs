@@ -1,7 +1,6 @@
 ﻿using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Physics.Blockmap
 {
@@ -9,7 +8,6 @@ namespace Helion.World.Physics.Blockmap
     {
         public Entity? Entity;
         public Line? Line;
-        public Sector? Sector;
         public Vec2D Intersection;
         public double Distance2D;
 
@@ -17,7 +15,6 @@ namespace Helion.World.Physics.Blockmap
         {
             Entity = entity;
             Line = null;
-            Sector = null;
             Intersection = intersection;
             Distance2D = distance2D;
         }
@@ -26,7 +23,6 @@ namespace Helion.World.Physics.Blockmap
         {
             Entity = null;
             Line = line;
-            Sector = null;
             Intersection = intersection;
             Distance2D = distance2D;
         }

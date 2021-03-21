@@ -566,14 +566,14 @@ namespace Helion.World
             Vec3D end = start + Vec3D.UnitTimesValue(angle, pitch, distance);
             Vec3D intersect = new Vec3D(0, 0, 0);
 
-            BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect);
+            BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect, out Sector? hitSector);
 
             if (bi != null)
             {
                 if (damage > 0)
                 {
                     // Only move closer on a line hit
-                    if (bi.Value.Entity == null && bi.Value.Sector == null)
+                    if (bi.Value.Entity == null && hitSector == null)
                         MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
                     DebugHitscanTest(bi.Value, intersect);
                 }
@@ -588,8 +588,10 @@ namespace Helion.World
             return null;
         }
 
-        public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, ref Vec3D intersect)
+        public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, ref Vec3D intersect,
+            out Sector? hitSector)
         {
+            hitSector = null;
             BlockmapIntersect? returnValue = null;
             double floorZ, ceilingZ;
             Seg2D seg = new Seg2D(start.To2D(), end.To2D());
@@ -626,7 +628,7 @@ namespace Helion.World
                             break;
 
                         GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
-                        bi.Sector = bi.Line.Front.Sector;
+                        hitSector = bi.Line.Front.Sector;
                         return bi;
                     }
 
@@ -640,7 +642,7 @@ namespace Helion.World
                     if (intersect.Z < floorZ || intersect.Z > ceilingZ)
                     {
                         GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, ref intersect);
-                        bi.Sector = front;
+                        hitSector = front;
                         returnValue = bi;
                         break;
                     }
