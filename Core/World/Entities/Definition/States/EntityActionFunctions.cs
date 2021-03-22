@@ -1728,7 +1728,7 @@ namespace Helion.World.Entities.Definition.States
                     player.LowerWeapon();
 
                 if (player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
-                    player.Weapon.FrameState.IsState(FrameStateLabel.Ready))
+                    player.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
                 {
                     player.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
                         SoundChannelType.Auto, new SoundParams(entity));

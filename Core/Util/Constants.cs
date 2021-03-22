@@ -95,6 +95,29 @@ namespace Helion.Util
             public static readonly string Clear = "menu/clear";
         }
 
+        public static class FrameStates
+        {
+            public static readonly string Spawn = "Spawn";
+            public static readonly string Idle = "Idle";
+            public static readonly string See = "See";
+            public static readonly string Melee = "Melee";
+            public static readonly string Missile = "Missile";
+            public static readonly string Pain = "Pain";
+            public static readonly string Death = "Death";
+            public static readonly string XDeath = "XDeath";
+            public static readonly string Raise = "Raise";
+            public static readonly string Heal = "Heal";
+            public static readonly string Crash = "Crash";
+            public static readonly string Crush = "Crush";
+            public static readonly string Wound = "Wound";
+            public static readonly string Bounce = "Bounce";
+            public static readonly string Ready = "Ready";
+            public static readonly string Deselect = "Deselect";
+            public static readonly string Select = "Select";
+            public static readonly string Fire = "Fire";
+            public static readonly string Flash = "Flash";
+        }
+
         public const double EntityShootDistance = 8192.0;
         public const double EntityMeleeDistance = 64.0;
         public const double DefaultSpreadAngle = 5.6 * Math.PI / 180.0;

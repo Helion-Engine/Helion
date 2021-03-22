@@ -407,41 +407,33 @@ namespace Helion.World.Entities
             SetHeight(Definition.Properties.Height / 4.0);
         }
 
-        public void SetSpawnState()
-        {
-            FrameState.SetState(FrameStateLabel.Spawn);
-        }
+        public void SetSpawnState() =>
+            FrameState.SetState(Constants.FrameStates.Spawn);
 
-        public void SetSeeState()
-        {
-            FrameState.SetState(FrameStateLabel.See);
-        }
+        public void SetSeeState() =>
+            FrameState.SetState(Constants.FrameStates.See);
 
-        public void SetMissileState()
-        {
-            FrameState.SetState(FrameStateLabel.Missile);
-        }
+        public void SetMissileState() =>
+            FrameState.SetState(Constants.FrameStates.Missile);
 
-        public void SetMeleeState()
-        {
-            FrameState.SetState(FrameStateLabel.Melee);
-        }
+        public void SetMeleeState() =>
+            FrameState.SetState(Constants.FrameStates.Melee);
 
         public void SetDeathState(Entity? source)
         {
-            if (FrameState.SetState(FrameStateLabel.Death))
+            if (FrameState.SetState(Constants.FrameStates.Death))
                 SetDeath(source, false);
         }
 
         public void SetXDeathState(Entity? source)
         {
-            if (FrameState.SetState(FrameStateLabel.XDeath))
+            if (FrameState.SetState(Constants.FrameStates.XDeath))
                 SetDeath(source, true);
         }
 
         public bool SetCrushState()
         {
-            if (FrameState.SetState(FrameStateLabel.Crush))
+            if (FrameState.SetState(Constants.FrameStates.Crush))
             {
                 Flags.DontGib = true;
                 Flags.Solid = false;
@@ -454,7 +446,7 @@ namespace Helion.World.Entities
 
         public virtual void SetRaiseState()
         {
-            if (FrameState.SetState(FrameStateLabel.Raise))
+            if (FrameState.SetState(Constants.FrameStates.Raise))
             {
                 Health = Definition.Properties.Health;
                 SetHeight(Definition.Properties.Height);
@@ -462,10 +454,8 @@ namespace Helion.World.Entities
             }
         }
 
-        public void SetHealState()
-        {
-            FrameState.SetState(FrameStateLabel.Heal);
-        }
+        public void SetHealState() =>
+            FrameState.SetState(Constants.FrameStates.Heal);
 
         public void PlaySeeSound()
         {
@@ -526,7 +516,7 @@ namespace Helion.World.Entities
                     if (!Flags.QuickToRetaliate)
                         Threshold = Properties.DefThreshold;
                     Target = damageSource;
-                    if (HasSeeState() && FrameState.IsState(FrameStateLabel.Spawn))
+                    if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
                         SetSeeState();
                 }
             }
@@ -543,7 +533,7 @@ namespace Helion.World.Entities
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {
                 Flags.JustHit = true;
-                FrameState.SetState(FrameStateLabel.Pain);
+                FrameState.SetState(Constants.FrameStates.Pain);
                 if (Definition.Properties.PainSound.Length > 0)
                     SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, new SoundParams(this));
             }

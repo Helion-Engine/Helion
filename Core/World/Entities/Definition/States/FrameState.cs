@@ -43,8 +43,6 @@ namespace Helion.World.Entities.Definition.States
             m_destroyOnStop = frameStateModel.Destroy;
         }
 
-        public bool SetState(FrameStateLabel label) => SetState(label.ToString());
-
         public EntityFrame? GetStateFrame(string label)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
@@ -69,9 +67,9 @@ namespace Helion.World.Entities.Definition.States
             return false;
         }
 
-        public bool IsState(FrameStateLabel label)
+        public bool IsState(string label)
         {
-            if (m_definition.States.Labels.TryGetValue(label.ToString(), out int index))
+            if (m_definition.States.Labels.TryGetValue(label, out int index))
                 return m_frameIndex == index;
 
             return false;

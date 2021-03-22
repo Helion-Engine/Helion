@@ -81,7 +81,7 @@ namespace Helion.World.Entities.Inventories
             else
                 AmmoSprite = string.Empty;
 
-            if (frameStateModel == null && !FrameState.SetState(FrameStateLabel.Ready))
+            if (frameStateModel == null && !FrameState.SetState(Constants.FrameStates.Ready))
                 Log.Warn("Unable to find Ready state for weapon {0}", definition.Name);
         }
 
@@ -129,7 +129,7 @@ namespace Helion.World.Entities.Inventories
         
         private void SetToFireState()
         {
-            if (!FrameState.SetState(FrameStateLabel.Fire))
+            if (!FrameState.SetState(Constants.FrameStates.Fire))
                 Log.Warn("Unable to find Fire state for weapon {0}", Definition.Name);
         }
     }
