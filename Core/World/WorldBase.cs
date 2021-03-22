@@ -575,7 +575,7 @@ namespace Helion.World
                     // Only move closer on a line hit
                     if (bi.Value.Entity == null && hitSector == null)
                         MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-                    DebugHitscanTest(bi.Value, intersect);
+                    HitscanHit(bi.Value, intersect, distance);
                 }
 
                 if (bi.Value.Entity != null)
@@ -982,10 +982,34 @@ namespace Helion.World
             SoundManager.Dispose();
         }
 
-        private void DebugHitscanTest(in BlockmapIntersect bi, Vec3D intersect)
+        private void HitscanHit(in BlockmapIntersect bi, Vec3D intersect, double distance)
         {
-            string className = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood ? "BulletPuff" : bi.Entity.GetBloodType();
-            EntityManager.Create(className, intersect);
+            bool bulletPuff = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood;
+            string className;
+            if (bulletPuff)
+            {
+                className = "BulletPuff";
+                intersect.Z += Random.NextDiff() * Constants.PuffRandZ;
+            }
+            else
+            {
+                className = bi.Entity!.GetBloodType();
+            }
+            
+            Entity? entity = EntityManager.Create(className, intersect);
+            if (entity == null)
+                return;
+
+            if (bulletPuff)
+            {
+                entity.Velocity.Z = 1;
+                entity.FrameState.SetTics(entity.FrameState.CurrentTick - (Random.NextByte() & 3));
+
+                // Doom would skip the initial sparking state of the bullet puff for punches
+                // Bulletpuff decorate has a MELEESTATE for this
+                if (distance == Constants.EntityMeleeDistance)
+                    entity.SetMeleeState();
+            }
         }
 
         private void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)

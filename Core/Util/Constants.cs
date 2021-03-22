@@ -107,6 +107,7 @@ namespace Helion.Util
         public const double MancSpread = Math.PI / 16;
         public const double TracerAngle = 16.0 * Math.PI / 180;
         public const double MeleeAngle = 5 * Math.PI / 180;
+        public const double PuffRandZ = (1 << 10) / 65536.0;
         public const int TeleportOffsetDist = 16;
 
         public const int WeaponLowerSpeed = 6;

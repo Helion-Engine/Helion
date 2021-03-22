@@ -1860,7 +1860,8 @@ namespace Helion.World.Entities.Definition.States
             {
                 int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
                 double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
-                Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance, damage);
+                // Doom added + 1 so the bulletpuff would include the spark state
+                Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance + 1, damage);
                 if (hitEntity == null)
                 {
                     player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, new SoundParams(entity));
@@ -2335,8 +2336,6 @@ namespace Helion.World.Entities.Definition.States
                 entity.Velocity.Z += 0.125;
         }
 
-        private const double TracerPuffRandZ = (1 << 10) / 65536.0;
-
         private static void SpawnTracerPuff(Entity entity)
         {
             entity.EntityManager.Create("RevenantTracerSmoke", entity.Position);
@@ -2344,7 +2343,7 @@ namespace Helion.World.Entities.Definition.States
             Entity? puff = entity.EntityManager.Create("BulletPuff", entity.Position);
             if (puff != null)
             {
-                puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * TracerPuffRandZ), false);
+                puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * Constants.PuffRandZ), false);
                 puff.FrameState.SetTics(entity.World.Random.NextByte() & 3);
                 puff.Velocity.Z = 1;
             }
