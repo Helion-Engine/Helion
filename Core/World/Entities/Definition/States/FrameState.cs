@@ -57,8 +57,11 @@ namespace Helion.World.Entities.Definition.States
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
             {
-                Precondition(index + offset >= 0 && index + offset < m_definition.States.Frames.Count, $"Bad frame index[{index}] offset[{offset}]");
-                SetFrameIndex(index + offset);
+                if (index + offset >= 0 && index + offset < m_definition.States.Frames.Count)
+                    SetFrameIndex(index + offset);
+                else
+                    SetFrameIndex(index);
+
                 return true;
             }
             

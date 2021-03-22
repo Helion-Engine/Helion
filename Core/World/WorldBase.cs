@@ -575,7 +575,7 @@ namespace Helion.World
                     // Only move closer on a line hit
                     if (bi.Value.Entity == null && hitSector == null)
                         MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-                    HitscanHit(bi.Value, intersect, distance);
+                    HitscanHit(bi.Value, intersect, distance, damage);
                 }
 
                 if (bi.Value.Entity != null)
@@ -982,7 +982,7 @@ namespace Helion.World
             SoundManager.Dispose();
         }
 
-        private void HitscanHit(in BlockmapIntersect bi, Vec3D intersect, double distance)
+        private void HitscanHit(in BlockmapIntersect bi, Vec3D intersect, double distance, int damage)
         {
             bool bulletPuff = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood;
             string className;
@@ -1009,6 +1009,19 @@ namespace Helion.World
                 // Bulletpuff decorate has a MELEESTATE for this
                 if (distance == Constants.EntityMeleeDistance)
                     entity.SetMeleeState();
+            }
+            else
+            {
+                entity.Velocity.Z = 2;
+                entity.FrameState.SetTics(Random.NextByte() & 3);
+
+                int offset = 0;
+                if (damage <= 12 && damage >= 9)
+                    offset = 1;
+                else if (damage < 9)
+                    offset = 2;
+
+                entity.FrameState.SetState("SPAWN", offset);
             }
         }
 
