@@ -922,11 +922,11 @@ namespace Helion.World
 
             // This is original functionality, the original game only checked against other things
             // It didn't check if it would clip into map geometry
-            bool success = entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count == 0;
+            bool blocked = entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count > 0;
             entity.Flags.Solid = false;
             entity.SetHeight(oldHeight);
 
-            return success;
+            return blocked;
         }
 
         public bool IsPositionBlocked(Entity entity)
