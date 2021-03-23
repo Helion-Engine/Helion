@@ -184,21 +184,16 @@ namespace Helion.Client
 
             MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
 
-            // TODO: Fix me later (we should always create a new layer, and never branch like this)
-            if (m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? worldLayer))
-            {
-                worldLayer.LoadMap(mapInfoDef, false, worldModel);
-            }
-            else
-            {
-                SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console,
-                    m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, worldModel);
-                if (newLayer == null)
-                    return;
+            m_layerManager.Remove<SinglePlayerWorldLayer>();
+            m_layerManager.PruneDisposed();
 
-                m_layerManager.Add(newLayer);
-                newLayer.World.Start();
-            }
+            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console,
+                m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, worldModel);
+            if (newLayer == null)
+                return;
+
+            m_layerManager.Add(newLayer);
+            newLayer.World.Start();
 
             m_layerManager.RemoveAllBut<WorldLayer>();
         }
