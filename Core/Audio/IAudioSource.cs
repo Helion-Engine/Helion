@@ -15,6 +15,8 @@ namespace Helion.Audio
     /// </remarks>
     public interface IAudioSource : IDisposable
     {
+        public event EventHandler? Completed;
+
         /// <summary>
         /// The location this audio source is to be played it. This is in world
         /// coordinates.

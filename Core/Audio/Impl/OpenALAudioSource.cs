@@ -18,6 +18,8 @@ namespace Helion.Audio.Impl
         private const ALSourcef SourceRadius = (ALSourcef)0x1031;
         private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
 
+        public event EventHandler? Completed;
+
         public Vector3 Velocity { get; set; }
         public AudioData AudioData { get; set; }
         private readonly OpenALAudioSourceManager m_owner;
@@ -184,6 +186,8 @@ namespace Helion.Audio.Impl
         {
             if (m_disposed)
                 return;
+
+            Completed?.Invoke(this, EventArgs.Empty);
 
             PerformDispose();
             GC.SuppressFinalize(this);

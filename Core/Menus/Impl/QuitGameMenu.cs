@@ -4,6 +4,7 @@ using Helion.Input;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.RandomGenerators;
@@ -19,7 +20,23 @@ namespace Helion.Menus.Impl
         {
             m_quitAction = () =>
             {
-                Console.SubmitInputText("exit");
+                string soundLookup = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.QuitSound;
+                var soundInfo = archiveCollection.Definitions.SoundInfo.Lookup(soundLookup, new TrueRandom());
+                if (soundInfo != null)
+                {
+                    var audioSource = soundManager.PlayStaticSound(soundInfo.Name);
+                    if (audioSource != null)
+                    {
+                        audioSource.Completed += AudioSource_Completed;
+                        soundManager.Update();
+                        return null;
+                    }
+                }
+                else
+                {
+                    Exit();
+                }
+
                 return null;
             };
 
@@ -44,6 +61,12 @@ namespace Helion.Menus.Impl
 
             SetToFirstActiveComponent();
         }
+
+        private void AudioSource_Completed(object? sender, EventArgs e) =>
+            Exit();
+
+        private void Exit() =>
+            Console.SubmitInputText("exit");
 
         public override void HandleInput(InputEvent input)
         {
