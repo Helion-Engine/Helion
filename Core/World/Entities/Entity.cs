@@ -686,7 +686,7 @@ namespace Helion.World.Entities
         // Allow drop off when monsters have momentum
         public bool CheckDropOff(TryMoveData tryMove)
         {
-            if (!ShouldCheckDropOff() || !m_enemyMove)
+            if (!ShouldCheckDropOff())
                 return true;
 
             if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge)
