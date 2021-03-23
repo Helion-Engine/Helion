@@ -14,7 +14,7 @@ namespace Helion.Resources.Definitions.MapInfo
                     archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
             }
 
-            if (displayName.StartsWith(mapInfo.MapName))
+            if (mapInfo.MapName.Length > 0 && displayName.StartsWith(mapInfo.MapName))
             {
                 displayName = displayName.Replace(mapInfo.MapName, string.Empty).Trim();
                 displayName = displayName.TrimStart(':').TrimStart('-').Trim();
