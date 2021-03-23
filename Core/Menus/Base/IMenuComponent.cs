@@ -17,5 +17,7 @@ namespace Helion.Menus.Base
         /// True if this has an action, false if not.
         /// </summary>
         bool HasAction => Action != null;
+
+        bool PlaySelectedSound { get { return true; } }
     }
 }

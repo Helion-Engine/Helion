@@ -28,12 +28,11 @@ namespace Helion.World.Sound
             return soundSource.GetDistanceFrom(m_world.ListenerEntity);
         }
         
-        public override void PlayStaticSound(string sound)
+        public override IAudioSource? PlayStaticSound(string sound)
         {
             ISoundSource soundSource = DefaultSoundSource.Default;
-            IAudioSource? audioSource = m_world.SoundManager.CreateSoundOn(DefaultSoundSource.Default, sound,
+            return m_world.SoundManager.CreateSoundOn(DefaultSoundSource.Default, sound,
                 SoundChannelType.Auto, new SoundParams(soundSource));
-            audioSource?.Play();
         }
         
         public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundChannelType channel, SoundParams soundParams)
