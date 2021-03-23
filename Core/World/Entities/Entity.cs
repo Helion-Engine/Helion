@@ -652,7 +652,10 @@ namespace Helion.World.Entities
                 ClippedWithEntity = false;
             }
 
-            return !OnGround;
+            // Applying gravity if we are on another entity.
+            // This prevents issues with this entity floating
+            // when the entity beneath is no longer blocking.
+            return OnEntity != null || !OnGround;
         }
 
         public bool ShouldApplyFriction()
