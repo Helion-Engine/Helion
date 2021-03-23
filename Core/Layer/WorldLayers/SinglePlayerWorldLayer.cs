@@ -1,7 +1,6 @@
 using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Maps.Shared;
 using Helion.Render.Commands;
 using Helion.Render.Shared;
 using Helion.Render.Shared.Drawers;
@@ -19,7 +18,6 @@ using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.StatusBar;
-using Helion.World.Util;
 using NLog;
 using System;
 using Helion.Util.Timing;
@@ -36,9 +34,9 @@ namespace Helion.Layer.WorldLayers
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys;
         private readonly (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys;
         private readonly WorldHudDrawer m_worldHudDrawer;
+        private readonly SinglePlayerWorld m_world;
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
-        private SinglePlayerWorld m_world;
         private bool m_disposed;
 
         public override WorldBase World => m_world;
@@ -51,7 +49,6 @@ namespace Helion.Layer.WorldLayers
             CurrentMap = mapInfoDef;
             m_world = world;
             m_worldHudDrawer = new(archiveCollection);
-            AddWorldEventListeners(m_world);
 
             m_ticker.Start();
 
@@ -89,21 +86,21 @@ namespace Helion.Layer.WorldLayers
 
         public static SinglePlayerWorldLayer? Create(GameLayer parent, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
-            SkillDef skillDef, IMap map, WorldModel? worldModel = null)
+            SkillDef skillDef, IMap map, Player? existingPlayer, WorldModel? worldModel)
         {
             string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
             Log.Info(displayName);
             TextureManager.Init(archiveCollection, mapInfoDef);
             SinglePlayerWorld? world = CreateWorldGeometry(config, audioSystem, archiveCollection, mapInfoDef, skillDef, map,
-                null, worldModel);
+                existingPlayer, worldModel);
             if (world == null)
                 return null;
             return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(Config config, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map, 
-            Player? existingPlayer = null, WorldModel? worldModel = null)
+            ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map,
+                Player? existingPlayer, WorldModel? worldModel)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
             if (geometry == null)
@@ -111,58 +108,6 @@ namespace Helion.Layer.WorldLayers
 
             return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, 
                 existingPlayer, worldModel);
-        }
-
-        public void LoadMap(MapInfoDef mapDef, bool keepPlayer, WorldModel? worldModel = null)
-        {
-            IMap? map = ArchiveCollection.FindMap(mapDef.MapName);
-            if (map == null)
-            {
-                Log.Warn("Unable to find map {0}", mapDef.MapName);
-                return;
-            }
-
-            CurrentMap = mapDef;
-
-            Player? existingPlayer = null;
-            SkillLevel skillLevel;
-            if (worldModel == null)
-            {
-                if (keepPlayer && !m_world.Player.IsDead)
-                    existingPlayer = m_world.Player;
-
-                skillLevel = Config.Game.Skill;
-            }
-            else
-            {
-                skillLevel = worldModel.Skill;
-            }
-
-            SkillDef?  skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);
-            if (skillDef == null)
-            {
-                Log.Warn($"Could not find skill definition for {skillLevel}");
-                return;
-            }
-
-            // TODO there is some duplication with the static Create call and it's kind of messy
-            // Should probably make this all work without the same Create so this function can be shared
-            TextureManager.Init(ArchiveCollection, mapDef);
-            SinglePlayerWorld? world = CreateWorldGeometry(Config, AudioSystem, ArchiveCollection, mapDef, skillDef, map, existingPlayer, worldModel);
-            if (world == null)
-            {
-                Log.Error("Unable to load map {0}", map.Name);
-                return;
-            }
-
-            m_ticker.Stop();
-            RemoveWorldEventListeners(m_world);
-            m_world.Dispose();
-
-            m_world = world;
-            AddWorldEventListeners(world);
-            m_world.Start();
-            m_ticker.Restart();
         }
 
         public override void HandleInput(InputEvent input)
@@ -241,73 +186,12 @@ namespace Helion.Layer.WorldLayers
         {
             if (m_disposed)
                 return;
-            
-            RemoveWorldEventListeners(m_world);
+
             m_world.Dispose();
 
             m_disposed = true;
 
             base.PerformDispose();
-        }
-
-        private void World_LevelExit(object? sender, LevelChangeEvent e)
-        {
-            switch (e.ChangeType)
-            {
-                case LevelChangeType.Next:
-                    {
-                        MapInfoDef? nextMap = GetNextLevel(CurrentMap);
-                        // TODO implement endgame, this also stupidly assumes endgame
-                        if (nextMap == null)
-                        {
-                            Log.Info("Your did it!!!");
-                            return;
-                        }
-                        LoadMap(nextMap, true);
-                    }
-                    break;
-
-                case LevelChangeType.SecretNext:
-                    {
-                        MapInfoDef? nextMap = GetNextSecretLevel(CurrentMap);
-                        if (nextMap == null)
-                        {
-                            Log.Error($"Unable to find map {CurrentMap.SecretNext}");
-                            return;
-                        }
-                        LoadMap(nextMap, true);
-                    }
-                    break;
-
-                case LevelChangeType.SpecificLevel:
-                    ChangeLevel(e);
-                    break;
-
-                case LevelChangeType.Reset:
-                    LoadMap(CurrentMap, false);
-                    break;
-            }
-        }
-
-        private void ChangeLevel(LevelChangeEvent e)
-        {
-            if (MapWarp.GetMap(e.LevelNumber, ArchiveCollection.Definitions.MapInfoDefinition.MapInfo, 
-                out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-                LoadMap(mapInfoDef, false);
-        }
-
-        private MapInfoDef? GetNextLevel(MapInfoDef mapDef) => ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
-
-        private MapInfoDef? GetNextSecretLevel(MapInfoDef mapDef) => ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
-
-        private void AddWorldEventListeners(WorldBase world)
-        {
-            world.LevelExit += World_LevelExit;
-        }
-
-        private void RemoveWorldEventListeners(WorldBase world)
-        {
-            world.LevelExit -= World_LevelExit;
         }
 
         private void HandleMovementInput(InputEvent input)

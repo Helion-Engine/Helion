@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Helion.Layer;
 using Helion.Layer.WorldLayers;
@@ -7,7 +8,9 @@ using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.World;
 using Helion.World.Cheats;
+using Helion.World.Entities.Players;
 using Helion.World.Save;
 using Helion.World.Util;
 
@@ -15,6 +18,8 @@ namespace Helion.Client
 {
     public partial class Client
     {
+        private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
+
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
         {
             switch (ccmdArgs.Command.ToUpper())
@@ -76,16 +81,14 @@ namespace Helion.Client
 
             if (saveGame.Model == null)
             {
-                Log.Error("Corrupt save game.");
-                ShowConsole();
+                LogError("Corrupt save game.");
                 return;
             }
 
             WorldModel? worldModel = saveGame.ReadWorldModel();
             if (worldModel == null)
             {
-                Log.Error("Corrupt world.");
-                ShowConsole();
+                LogError("Corrupt world.");
                 return;
             }
 
@@ -95,7 +98,7 @@ namespace Helion.Client
                 return;
             }
 
-            LoadMapByName(worldModel.MapName, worldModel);
+            LoadMap(GetMapInfo(worldModel.MapName), worldModel, NoPlayers);
         }
 
         private void StartNewGame()
@@ -103,7 +106,7 @@ namespace Helion.Client
             MapInfoDef? mapInfoDef = GetDefaultMap();
             if (mapInfoDef == null)
             {
-                Log.Error("Unable to find default map for game to start on");
+                LogError("Unable to find default map for game to start on");
                 return;
             }
             
@@ -163,45 +166,108 @@ namespace Helion.Client
                 return;
             }
 
-            LoadMapByName(args[0], null);    
+            LoadMap(GetMapInfo(args[0]), null, NoPlayers);    
         }
 
-        private void LoadMapByName(string mapName, WorldModel? worldModel)
+        private MapInfoDef GetMapInfo(string mapName) =>
+            m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
+
+        private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
         {
-            IMap? map = m_archiveCollection.FindMap(mapName);
+            IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
             if (map == null)
             {
-                Log.Warn("Cannot load map '{0}', it cannot be found or is corrupt", mapName);
+                LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
                 return;
             }
 
             SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(m_config.Game.Skill);
             if (skillDef == null)
             {
-                Log.Warn($"Could not find skill definition for {m_config.Game.Skill}");
+                LogError($"Could not find skill definition for {m_config.Game.Skill}");
                 return;
             }
-
-            MapInfoDef mapInfoDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(map.Name);
 
             m_layerManager.Remove<SinglePlayerWorldLayer>();
             m_layerManager.PruneDisposed();
 
             SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console,
-                m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, worldModel);
+                m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, players.FirstOrDefault(), worldModel);
             if (newLayer == null)
                 return;
 
+            newLayer.World.LevelExit += World_LevelExit;
             m_layerManager.Add(newLayer);
             newLayer.World.Start();
 
             m_layerManager.RemoveAllBut<WorldLayer>();
         }
 
+        private void World_LevelExit(object? sender, LevelChangeEvent e)
+        {
+            if (sender is not IWorld world)
+                return;
+
+            switch (e.ChangeType)
+            {
+                case LevelChangeType.Next:
+                    {
+                        MapInfoDef? nextMap = GetNextLevel(world.MapInfo);
+                        // TODO implement endgame, this also stupidly assumes endgame
+                        if (nextMap == null)
+                        {
+                            Log.Info("Your did it!!!");
+                            return;
+                        }
+                        LoadMap(nextMap, null, world.EntityManager.Players);
+                    }
+                    break;
+
+                case LevelChangeType.SecretNext:
+                    {
+                        MapInfoDef? nextMap = GetNextSecretLevel(world.MapInfo);
+                        if (nextMap == null)
+                        {
+                            LogError($"Unable to find map {world.MapInfo}");
+                            return;
+                        }
+                        LoadMap(nextMap, null, world.EntityManager.Players);
+                    }
+                    break;
+
+                case LevelChangeType.SpecificLevel:
+                    ChangeLevel(e);
+                    break;
+
+                case LevelChangeType.Reset:
+                    LoadMap(world.MapInfo, null, NoPlayers);
+                    break;
+            }
+        }
+
+        private void ChangeLevel(LevelChangeEvent e)
+        {
+            if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
+                out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+                LoadMap(mapInfoDef, null, NoPlayers);
+        }
+
+        private MapInfoDef? GetNextLevel(MapInfoDef mapDef) => 
+            m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
+
+        private MapInfoDef? GetNextSecretLevel(MapInfoDef mapDef) => 
+            m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
+
         private void ShowConsole()
         {
             if (m_layerManager.Get<ConsoleLayer>() == null)
                 m_layerManager.Add(new ConsoleLayer(m_archiveCollection, m_console));
+        }
+
+        private void LogError(string error)
+        {
+            Log.Error(error);
+            ShowConsole();
         }
     }
 }
