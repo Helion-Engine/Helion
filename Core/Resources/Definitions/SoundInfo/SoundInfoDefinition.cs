@@ -9,6 +9,7 @@ namespace Helion.Resources.Definitions.SoundInfo
     {
         private readonly Dictionary<string, SoundInfo> m_lookup = new Dictionary<string, SoundInfo>();
         private readonly Dictionary<string, List<string>> m_randomLookup = new Dictionary<string, List<string>>();
+        private readonly Dictionary<string, string> m_playerCompatLookup = new Dictionary<string, string>();
 
         private int m_pitchShiftRange = 0;
 
@@ -29,6 +30,10 @@ namespace Helion.Resources.Definitions.SoundInfo
                 else
                     return null;
             }
+
+            if (name.StartsWith("player/", System.StringComparison.OrdinalIgnoreCase) && 
+                m_playerCompatLookup.TryGetValue(name, out string? playerCompat) && playerCompat != null)
+                name = playerCompat;
 
             if (m_lookup.TryGetValue(name, out SoundInfo? sndInfo))
                 return sndInfo;
@@ -107,10 +112,12 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         private void ParsePlayerCompat(SimpleParser parser)
         {
-            parser.ConsumeString();
-            parser.ConsumeString();
-            parser.ConsumeString();
-            parser.ConsumeString();
+            string player = parser.ConsumeString();
+            string gender = parser.ConsumeString();
+            string name = parser.ConsumeString();
+            string compat = parser.ConsumeString();
+
+            m_playerCompatLookup[compat] = $"{player}/{gender}/{name}";
         }
 
         private void ParsePlayerSoundDup(SimpleParser parser)
@@ -149,6 +156,9 @@ namespace Helion.Resources.Definitions.SoundInfo
 
         private void AddSound(string key, string entryName, bool playerEntry = false)
         {
+            if (playerEntry && m_playerCompatLookup.TryGetValue(key, out string? playerCompat))
+                key = playerCompat;
+
             m_lookup[key] = new SoundInfo(key, entryName, m_pitchShiftRange, playerEntry);
         }
     }
