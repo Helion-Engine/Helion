@@ -61,8 +61,7 @@ namespace Helion.Menus.Impl
 
             IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null)
             {
-                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, 
-                    playSelectedSound: false);
+                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
             }
 
             Func<Menu?> Confirm()
@@ -94,7 +93,6 @@ namespace Helion.Menus.Impl
 
         private void DoNewGame(SkillLevel skillLevel)
         {
-            PlaySelectedSound();
             m_config.Game.Skill.Set(skillLevel);
             m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
         }

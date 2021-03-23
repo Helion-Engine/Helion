@@ -11,11 +11,9 @@ namespace Helion.Menus.Base
         public readonly string? ActiveImage;
         public readonly string? InactiveImage;
         public Func<Menu?>? Action { get; }
-        public bool PlaySelectedSound { get; private set; }
 
         public MenuImageComponent(CIString imageName, int offsetX = 0, int paddingY = 0, 
-            string? activeImage = null, string? inactiveImage = null, Func<Menu?>? action = null,
-            bool playSelectedSound = true)
+            string? activeImage = null, string? inactiveImage = null, Func<Menu?>? action = null)
         {
             ImageName = imageName;
             OffsetX = offsetX;
@@ -23,7 +21,6 @@ namespace Helion.Menus.Base
             ActiveImage = activeImage;
             InactiveImage = inactiveImage;
             Action = action;
-            PlaySelectedSound = playSelectedSound;
         }
     }
 }

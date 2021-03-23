@@ -60,16 +60,6 @@ namespace Helion.Menus
             SoundManager.PlayStaticSound(Constants.MenuSounds.Cursor);
         }
 
-        protected void PlaySelectedSound()
-        {
-            SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
-            
-            // The update call is needed for when we make a call that does a
-            // bulky operation like world loading. This makes it so the menu
-            // selection plays the above sound before the world is loaded.
-            SoundManager.Update();
-        }
-
         /// <summary>
         /// Moves to the next component that has an action. Wraps around if at
         /// the end of the list.

@@ -69,7 +69,10 @@ namespace Helion.Layer
             if (input.ConsumeKeyPressed(Key.Enter) && menu.CurrentComponent?.Action != null)
             {
                 if (menu.CurrentComponent.PlaySelectedSound)
+                {
                     m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
+                    m_soundManager.Update();
+                }
 
                 Menu? subMenu = menu.CurrentComponent.Action();
                 if (subMenu != null)
