@@ -28,7 +28,7 @@ namespace Helion.Menus.Impl
                 new MenuImageComponent("M_DOOM", paddingY: 8),
                 CreateMenuOption("M_NGAME", -6, 2, CreateNewGameMenu()),
                 CreateMenuOption("M_OPTION", -15, 2, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
-                CreateMenuOption("M_LOADG", 1, 2, () => new LoadMenu(config, Console, soundManager, ArchiveCollection, saveManager)),
+                CreateMenuOption("M_LOADG", 1, 2, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false)),
                 CreateMenuOption("M_SAVEG", 1, 2, CreateSaveMenu(saveManager)),
             };
 
@@ -51,7 +51,7 @@ namespace Helion.Menus.Impl
             return () =>
             {
                 bool hasWorld = m_parent.Contains<WorldLayer>();
-                return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld);
+                return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld, true);
             };
         }
 
