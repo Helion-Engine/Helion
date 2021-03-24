@@ -106,8 +106,17 @@ namespace Helion.Layer.WorldLayers
             if (geometry == null)
                 return null;
 
-            return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, 
-                existingPlayer, worldModel);
+            try
+            {
+                return new SinglePlayerWorld(config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map,
+                    existingPlayer, worldModel);
+            }
+            catch(HelionException e)
+            {
+                Log.Error(e.Message);
+            }
+
+            return null;
         }
 
         public override void HandleInput(InputEvent input)

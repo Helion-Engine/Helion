@@ -222,6 +222,15 @@ namespace Helion.World.Entities.Inventories
             return true;
         }
 
+        public bool SetAmount(EntityDefinition definition, int amount)
+        {
+            if (!Items.TryGetValue(definition.Name, out InventoryItem? item))
+                return false;
+
+            item.Amount = amount;
+            return true;
+        }
+
         private void AddPowerup(EntityDefinition definition)
         {
             EntityDefinition? powerupDef = EntityDefinitionComposer.GetByName("Power" + definition.Properties.Powerup.Type);

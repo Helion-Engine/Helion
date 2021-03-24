@@ -44,7 +44,7 @@ namespace Helion.World.Special.Specials
                 return;
 
             if (!player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
-                m_world.DamageEntity(player, null, m_damage);
+                m_world.DamageEntity(player, null, m_damage, sectorSource: m_sector);
         }
     }
 }

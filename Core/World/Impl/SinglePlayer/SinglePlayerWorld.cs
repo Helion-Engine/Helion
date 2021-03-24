@@ -23,6 +23,7 @@ using NLog;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Resources.Definitions.Language;
+using System.Collections.Generic;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -47,10 +48,19 @@ namespace Helion.World.Impl.SinglePlayer
             {
                 EntityManager.PopulateFrom(map);
 
-                // TODO This functionality needs to change
-                // Doom would create player spawns as it iterated through map things (voodoo dolls etc..)
-                // This works ok for now... but no voodoo doll support
-                Player = EntityManager.CreatePlayer(0);
+                IList<Entity> spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
+                if (spawns.Count == 0)
+                    throw new HelionException("No player 1 starts.");
+
+                Player = EntityManager.CreatePlayer(0, spawns.Last(), false);
+                // Make voodoo dolls
+                for (int i = spawns.Count - 2; i >= 0; i--)
+                {
+                    Player player = EntityManager.CreatePlayer(0, spawns[i], true);
+                    player.IsVooDooDoll = true;
+                    player.SetDefaultInventory();
+                }
+
                 if (existingPlayer != null)
                 {
                     Player.CopyProperties(existingPlayer);
@@ -66,9 +76,7 @@ namespace Helion.World.Impl.SinglePlayer
                 WorldModelPopulateResult result = EntityManager.PopulateFrom(worldModel);
                 if (result.Players.Count == 0)
                 {
-                    Log.Error("No players found in world, creating default player.");
-                    Player = EntityManager.CreatePlayer(0);
-                    Player.SetDefaultInventory();
+                    throw new HelionException("No players found in world.");
                 }
                 else
                 {

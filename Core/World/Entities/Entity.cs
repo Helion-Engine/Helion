@@ -237,7 +237,6 @@ namespace Helion.World.Entities
 
         public virtual void CopyProperties(Entity entity)
         {
-            Properties = entity.Properties;
             Flags = entity.Flags;
             Health = entity.Health;
             Armor = entity.Armor;

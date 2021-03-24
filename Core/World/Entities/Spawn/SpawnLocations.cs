@@ -86,6 +86,14 @@ namespace Helion.World.Entities.Spawn
             return null;
         }
 
+        public IList<Entity> GetPlayerSpawns(int playerIndex)
+        {
+            if (m_playerStarts.TryGetValue(playerIndex, out IList<Entity>? spawns))
+                return spawns;
+
+            return Array.Empty<Entity>();
+        }
+
         private static bool PlayerBlock(Entity spawn) =>
             spawn.GetIntersectingEntities2D(Physics.Blockmap.BlockmapTraverseEntityFlags.Solid).Any(x => x is Player);
 

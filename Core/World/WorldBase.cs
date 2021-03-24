@@ -37,6 +37,7 @@ using Helion.Util.Container;
 using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Util.Timing;
+using Helion.World.Entities.Definition.Flags;
 
 namespace Helion.World
 {
@@ -241,6 +242,10 @@ namespace Helion.World
 
                 foreach (Player player in EntityManager.Players)
                 {
+                    // Doom did not apply sector damage to voodoo dolls
+                    if (player.IsVooDooDoll)
+                        continue;
+
                     if (player.Sector.SectorDamageSpecial != null)
                         player.Sector.SectorDamageSpecial.Tick(player);
                 }
@@ -374,7 +379,7 @@ namespace Helion.World
         {
             List<Entity> blockingEntities = entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
             for (int i = 0; i < blockingEntities.Count; i++)
-                blockingEntities[i].ForceGib();
+                KillEntity(blockingEntities[i], entity, true);
         }
 
         /// <summary>
@@ -665,7 +670,8 @@ namespace Helion.World
             return returnValue;
         }
 
-        public virtual bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical)
+        public virtual bool DamageEntity(Entity target, Entity? source, int damage, 
+            Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
         {
             if (!target.Flags.Shootable || damage == 0)
                 return false;
@@ -721,10 +727,38 @@ namespace Helion.World
                 thrustVelocity.Multiply(thrustAmount);
             }
 
-            if (target.Damage(source, damage, m_random.NextByte() < target.Properties.PainChance) || target.IsInvulnerable)
+            bool setPainState = m_random.NextByte() < target.Properties.PainChance;
+            if (target is Player player)
+            {
+                // Voodoo dolls did not take sector damage in the original
+                if (player.IsVooDooDoll && sectorSource != null)
+                    return false;
+                // Sector damage is applied to real players, but not their voodoo dolls
+                if (sectorSource == null)
+                    EntityManager.ApplyVooDooDamage(player, damage, setPainState);
+            }
+
+            if (target.Damage(source, damage, setPainState) || target.IsInvulnerable)
                 target.Velocity += thrustVelocity;
 
             return true;
+        }
+
+        public void KillEntity(Entity entity, Entity? source, bool forceGib = false)
+        {
+            if (entity is Player player)
+                EntityManager.ApplyVooDooKill(player, source, forceGib);
+
+            if (forceGib)
+                entity.ForceGib();
+            else
+                entity.Kill(source);
+        }
+
+        public virtual bool GiveItem(Player player, EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
+        {
+            EntityManager.GiveVooDooItem(player, definition, flags, pickupFlash);
+            return player.GiveItem(definition, flags, pickupFlash);
         }
 
         public virtual void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
@@ -934,7 +968,7 @@ namespace Helion.World
             if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
                 return true;
 
-            if (PhysicsManager.IsPositionValid(entity, entity.Position.To2D(), new TryMoveData()))
+            if (!PhysicsManager.IsPositionValid(entity, entity.Position.To2D(), new TryMoveData()))
                 return true;
 
             return false;

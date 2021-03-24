@@ -20,6 +20,8 @@ using Helion.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
 using Helion.Models;
+using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
 
 namespace Helion.World
 {
@@ -67,7 +69,9 @@ namespace Helion.World
         Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
-        bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical);
+        bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
+        void KillEntity(Entity entity, Entity? source, bool forceGib = false);
+        bool GiveItem(Player player, EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true);
         void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
         bool CheckLineOfSight(Entity from, Entity to);
         void RadiusExplosion(Entity source, int radius);

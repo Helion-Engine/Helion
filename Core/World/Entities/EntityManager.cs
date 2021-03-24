@@ -19,11 +19,25 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using MoreLinq.Extensions;
 using NLog;
+using Helion.World.Entities.Definition.Flags;
 
 namespace Helion.World.Entities
 {
     public class EntityManager : IDisposable
     {
+        public class WorldModelPopulateResult
+        {
+            public WorldModelPopulateResult(IList<Player> players, Dictionary<int, Entity> entities)
+            {
+                Players = players;
+                Entities = entities;
+            }
+
+            public readonly IList<Player> Players;
+            public readonly Dictionary<int, Entity> Entities;
+        }
+
+
         public const int NoTid = 0;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -33,6 +47,7 @@ namespace Helion.World.Entities
 
         private readonly WorldSoundManager m_soundManager;
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
+        private readonly List<Player> VoodooDolls = new List<Player>();
 
         public readonly EntityDefinitionComposer DefinitionComposer;
         public readonly List<Player> Players = new List<Player>();
@@ -101,7 +116,7 @@ namespace Helion.World.Entities
             entity.Dispose();
         }
 
-        public Player CreatePlayer(int playerIndex)
+        public Player CreatePlayer(int playerIndex, Entity spawnSpot, bool isVoodooDoll)
         {
             Player player;
             EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
@@ -111,17 +126,12 @@ namespace Helion.World.Entities
                 throw new HelionException("Missing the default player class, should never happen");
             }
 
-            Entity? spawnSpot = SpawnLocations.GetPlayerSpawn(playerIndex, true);
-            if (spawnSpot == null)
-            {
-                Log.Warn("No player {0} spawns found, creating player at origin", playerIndex);
-                player = CreatePlayerEntity(playerIndex, playerDefinition, Vec3D.Zero, 0.0, 0.0);
-                Players.Add(player);
-                return player;
-            }
-
             player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
             Players.Add(player);
+
+            if (playerIndex == 0 && isVoodooDoll)
+                VoodooDolls.Add(player);
+
             return player;
         }
 
@@ -163,18 +173,6 @@ namespace Helion.World.Entities
                 World.Link(relinkEntities[i]);
                 relinkEntities[i].PrevPosition = relinkEntities[i].Position;
             }
-        }
-
-        public class WorldModelPopulateResult
-        {
-            public WorldModelPopulateResult(IList<Player> players, Dictionary<int, Entity> entities)
-            {
-                Players = players;
-                Entities = entities;
-            }
-
-            public readonly IList<Player> Players;
-            public readonly Dictionary<int, Entity> Entities;
         }
 
         public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
@@ -323,5 +321,69 @@ namespace Helion.World.Entities
         {
             Entities.ForEach(entity => entity.Dispose());
         }
+
+        public void ApplyVooDooDamage(Player player, int damage, bool setPainState)
+        {
+            if (VoodooDolls.Count == 0)
+                return;
+
+            SyncVooDollsWithPlayer(player.PlayerNumber);
+
+            foreach (var updatePlayer in Players)
+            {
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                    continue;
+
+                updatePlayer.Damage(null, damage, setPainState);
+            }
+        }
+
+        public void ApplyVooDooKill(Player player, Entity? source, bool forceGib)
+        {
+            if (VoodooDolls.Count == 0)
+                return;
+
+            SyncVooDollsWithPlayer(player.PlayerNumber);
+
+            foreach (var updatePlayer in Players)
+            {
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                    continue;
+
+                if (forceGib)
+                    updatePlayer.ForceGib();
+                else
+                    updatePlayer.Kill(source);
+            }
+        }
+
+        public void GiveVooDooItem(Player player, EntityDefinition definition, EntityFlags? flags, bool pickupFlash)
+        {
+            if (VoodooDolls.Count == 0)
+                return;
+
+            SyncVooDollsWithPlayer(player.PlayerNumber);
+
+            foreach (var updatePlayer in Players)
+            {
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                    continue;
+
+                updatePlayer.GiveItem(definition, flags, pickupFlash);
+            }
+        }
+
+        private void SyncVooDollsWithPlayer(int playerNumber)
+        {
+            Player? realPlayer = GetRealPlayer(playerNumber);
+            if (realPlayer == null)
+                return;
+
+            foreach (var voodooDoll in VoodooDolls)
+                voodooDoll.VodooSync(realPlayer);
+        }
+
+        private Player? GetRealPlayer(int playerNumber)
+            => Players.FirstOrDefault(x => x.PlayerNumber == playerNumber && !x.IsVooDooDoll);
     }
 }

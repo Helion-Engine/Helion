@@ -63,6 +63,7 @@ namespace Helion.World.Entities.Players
         public Entity? Attacker { get; private set; }
         public PlayerStatusBar StatusBar { get; private set; }
         public PlayerCheats Cheats { get; } = new PlayerCheats();
+        public bool IsVooDooDoll { get; set; }
 
         public bool DrawFullBright()
         {
@@ -183,7 +184,18 @@ namespace Helion.World.Entities.Players
             return playerModel;
         }
 
+        public void VodooSync(Player player)
+        {
+            base.CopyProperties(player);
 
+            foreach (InventoryItem item in player.Inventory.GetInventoryItems())
+            {
+                if (!Inventory.HasItem(item.Definition.Name))
+                    Inventory.Add(item.Definition, item.Amount);
+                else
+                    Inventory.SetAmount(item.Definition, item.Amount);
+            }
+        }
 
         public override void CopyProperties(Entity entity)
         {
