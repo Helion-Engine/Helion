@@ -13,6 +13,8 @@ namespace Helion.Menus.Base
         /// </summary>
         Func<Menu?>? Action { get; }
 
+        Func<Menu?>? DeleteAction { get { return null; } }
+
         /// <summary>
         /// True if this has an action, false if not.
         /// </summary>

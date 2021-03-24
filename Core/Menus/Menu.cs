@@ -50,6 +50,19 @@ namespace Helion.Menus
             LeftAlign = leftAlign;
         }
 
+        public void RemoveComponent(IMenuComponent component)
+        {
+            if (ComponentIndex.HasValue && ComponentIndex.Value == Components.Count - 1 &&
+                Components[ComponentIndex.Value] == component)
+            {
+                ComponentIndex--;
+                if (ComponentIndex < 0)
+                    ComponentIndex = null;
+            }
+
+            Components = Components.Remove(component);
+        }
+
         public virtual void HandleInput(InputEvent input)
         {
             // Up to any children to handle input if they want.

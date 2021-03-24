@@ -51,6 +51,21 @@ namespace Helion.World.Save
                 .ToList();
         }
 
+        public bool DeleteSaveGame(SaveGame saveGame)
+        {
+            try
+            {
+                if (File.Exists(saveGame.FileName))
+                    File.Delete(saveGame.FileName);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private string GetNewSaveName()
         {
             List<string> files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.hsg")

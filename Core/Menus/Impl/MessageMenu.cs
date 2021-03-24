@@ -13,15 +13,17 @@ namespace Helion.Menus.Impl
     public class MessageMenu  : Menu
     {
         public readonly bool IsYesNoConfirm;
+        public readonly bool ClearMenus;
 
         // True if IsYesNoConfirm and Y was pressed
         public event EventHandler<bool>? Cleared;
 
         public MessageMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
-            IList<string> text, bool isYesNoConfirm = false)
+            IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true)
             : base(config, console, soundManager, archiveCollection, 90)
         {
             IsYesNoConfirm = isYesNoConfirm;
+            ClearMenus = clearMenus;
 
             for (int i = 0; i < text.Count; i++)
             {

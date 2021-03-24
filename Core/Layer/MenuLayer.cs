@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Menus;
@@ -38,7 +39,12 @@ namespace Helion.Layer
             {
                 Menu menu = m_menus.Peek();
                 if (input.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
-                    ClearMenu();
+                {
+                    if (messageMenu.ClearMenus)
+                        ClearMenu(false);
+                    else
+                        m_menus.Pop();
+                }
 
                 menu.HandleInput(input);
 
@@ -74,10 +80,11 @@ namespace Helion.Layer
                     m_soundManager.Update();
                 }
 
-                Menu? subMenu = menu.CurrentComponent.Action();
-                if (subMenu != null)
-                    m_menus.Push(subMenu);
+                InvokeAndPushMenu(menu.CurrentComponent.Action);
             }
+
+            if (input.ConsumeKeyPressed(Key.Delete) && menu.CurrentComponent?.DeleteAction != null)
+                InvokeAndPushMenu(menu.CurrentComponent.DeleteAction);
 
             if (input.ConsumeKeyPressed(Key.Escape))
             {
@@ -85,16 +92,24 @@ namespace Helion.Layer
                     m_menus.Pop();
 
                 if (m_menus.Empty())
-                    ClearMenu();
+                    ClearMenu(true);
                 else
                     m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
             }
         }
 
-        private void ClearMenu()
+        private void InvokeAndPushMenu(Func<Menu?> action)
+        {
+            Menu? subMenu = action();
+            if (subMenu != null)
+                m_menus.Push(subMenu);
+        }
+
+        private void ClearMenu(bool playSound)
         {
             Parent?.Remove<MenuLayer>();
-            m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
+            if (playSound)
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
         }
 
         public override void Render(RenderCommands renderCommands)
