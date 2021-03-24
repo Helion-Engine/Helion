@@ -16,7 +16,6 @@ using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -148,6 +147,9 @@ namespace Helion.World.Physics
             {
                 Entity entity = entities[i];
                 ClampBetweenFloorAndCeiling(entity);
+                // This allows the player to pickup items like the original
+                if (entity is Player)
+                    IsPositionValid(entity, entity.Position.To2D(), m_tryMoveData);
 
                 if ((moveType == SectorPlaneType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorPlaneType.Floor && direction == MoveDirection.Down))
                     continue;
@@ -756,11 +758,14 @@ namespace Helion.World.Physics
 
                 if (entity.Flags.Solid || entity.Flags.Missile)
                 {
-                    for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                    for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
                     {
                         Entity nextEntity = entityNode.Value;
                         if (ReferenceEquals(entity, nextEntity))
+                        {
+                            entityNode = entityNode.Next;
                             continue;
+                        }
 
                         if (nextEntity.Box.Overlaps2D(nextBox))
                         {
@@ -769,7 +774,10 @@ namespace Helion.World.Physics
 
                             if (overlapsZ && entity.Flags.Pickup && nextEntity.Definition.IsType(EntityDefinitionType.Inventory))
                             {
+                                // Set the next node - this pickup can be removed from the list
+                                entityNode = entityNode.Next;
                                 PerformItemPickup(entity, nextEntity);
+                                continue;
                             }
                             else if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
                             {
@@ -778,6 +786,8 @@ namespace Helion.World.Physics
                                 return GridIterationStatus.Stop;
                             }
                         }
+
+                        entityNode = entityNode.Next;
                     }
                 }
 
@@ -819,7 +829,7 @@ namespace Helion.World.Physics
                 return;
 
             int health = player.Health;
-            if (!player.GiveItem(item.Definition, item.Flags))
+            if (!player.World.GiveItem(player, item.Definition, item.Flags))
                 return;
 
             string message = item.Definition.Properties.Inventory.PickupMessage;
