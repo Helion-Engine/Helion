@@ -894,7 +894,7 @@ namespace Helion.World
         private void HandleRespawn(Entity entity)
         {
             entity.Respawn = false;
-            if (entity.Definition.Flags.Solid && !IsPositionBlockedByEntity(entity, entity.SpawnPoint))
+            if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
                 return;
 
             Entity? newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
