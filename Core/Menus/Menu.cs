@@ -58,6 +58,8 @@ namespace Helion.Menus
                 ComponentIndex--;
                 if (ComponentIndex < 0)
                     ComponentIndex = null;
+                if (ComponentIndex != null && Components[ComponentIndex.Value].Action == null)
+                    ComponentIndex = null;
             }
 
             Components = Components.Remove(component);

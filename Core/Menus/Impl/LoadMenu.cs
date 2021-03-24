@@ -33,13 +33,18 @@ namespace Helion.Menus.Impl
 
             List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
             if (savedGames.Empty())
-                Components = Components.Add(new MenuSmallTextComponent("There are no saved games."));
+                SetNoSaveGames();
             else
             {
                 IEnumerable<IMenuComponent> saveRowComponents = CreateSaveRowComponents(savedGames);
                 Components = Components.AddRange(saveRowComponents);
                 SetToFirstActiveComponent();
             }
+        }
+
+        private void SetNoSaveGames()
+        {
+            Components = Components.Add(new MenuSmallTextComponent("There are no saved games."));
         }
 
         private IEnumerable<IMenuComponent> CreateSaveRowComponents(IEnumerable<SaveGame> savedGames)
@@ -83,6 +88,9 @@ namespace Helion.Menus.Impl
                 m_saveGameManager.DeleteSaveGame(m_deleteSave);
                 if (ComponentIndex.HasValue)
                     RemoveComponent(Components[ComponentIndex.Value]);
+
+                if (!Components.Any(x => x is MenuSaveRowComponent))
+                    SetNoSaveGames();
 
                 SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);            
             }
