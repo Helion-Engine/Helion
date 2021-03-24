@@ -181,6 +181,9 @@ namespace Helion.Client
                 return;
             }
 
+            if (worldModel != null)
+                m_config.Game.Skill.Set(worldModel.Skill);
+
             SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(m_config.Game.Skill);
             if (skillDef == null)
             {
