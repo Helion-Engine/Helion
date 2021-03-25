@@ -46,11 +46,11 @@ namespace Helion.World.Entities
         public readonly WorldBase World;
 
         private readonly WorldSoundManager m_soundManager;
-        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
-        private readonly List<Player> VoodooDolls = new List<Player>();
+        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();      
 
         public readonly EntityDefinitionComposer DefinitionComposer;
         public readonly List<Player> Players = new List<Player>();
+        public readonly List<Player> VoodooDolls = new List<Player>();
 
         private int m_id;
 
@@ -127,10 +127,12 @@ namespace Helion.World.Entities
             }
 
             player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
-            Players.Add(player);
+            player.IsVooDooDoll = isVoodooDoll;
 
-            if (playerIndex == 0 && isVoodooDoll)
+            if (isVoodooDoll)
                 VoodooDolls.Add(player);
+            else
+                Players.Add(player);
 
             return player;
         }
@@ -195,7 +197,8 @@ namespace Helion.World.Entities
 
             for (int i = 0; i < worldModel.Players.Count; i++)
             {
-                Player? player = CreatePlayerFromModel(worldModel.Players[i], entities);
+                bool isVoodooDoll = players.Any(x => x.PlayerNumber == worldModel.Players[i].Number);
+                Player? player = CreatePlayerFromModel(worldModel.Players[i], entities, isVoodooDoll);
                 if (player == null)
                     Log.Error($"Failed to create player {worldModel.Players[i].Name}.");
                 else
@@ -220,16 +223,22 @@ namespace Helion.World.Entities
             return new WorldModelPopulateResult(players, entities);
         }
 
-        private Player? CreatePlayerFromModel(PlayerModel playerModel, Dictionary<int, Entity> entities)
+        private Player? CreatePlayerFromModel(PlayerModel playerModel, Dictionary<int, Entity> entities, bool isVoodooDoll)
         {
             var playerDefinition = DefinitionComposer.GetByName(playerModel.Name);
             if (playerDefinition != null)
             {
                 Player player = new Player(playerModel, entities, playerDefinition, this, m_soundManager, World);
-                Players.Add(player);
+                player.IsVooDooDoll = isVoodooDoll;
+
                 var node = Entities.Add(player);
                 player.EntityListNode = node;
                 entities.Add(player.Id, player);
+
+                if (isVoodooDoll)
+                    VoodooDolls.Add(player);
+                else
+                    Players.Add(player);
 
                 return player;
             }
@@ -329,7 +338,7 @@ namespace Helion.World.Entities
 
             SyncVooDollsWithPlayer(player.PlayerNumber);
 
-            foreach (var updatePlayer in Players)
+            foreach (var updatePlayer in Players.Union(VoodooDolls))
             {
                 if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                     continue;
@@ -345,7 +354,7 @@ namespace Helion.World.Entities
 
             SyncVooDollsWithPlayer(player.PlayerNumber);
 
-            foreach (var updatePlayer in Players)
+            foreach (var updatePlayer in Players.Union(VoodooDolls))
             {
                 if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                     continue;
@@ -364,7 +373,7 @@ namespace Helion.World.Entities
 
             SyncVooDollsWithPlayer(player.PlayerNumber);
 
-            foreach (var updatePlayer in Players)
+            foreach (var updatePlayer in Players.Union(VoodooDolls))
             {
                 if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                     continue;

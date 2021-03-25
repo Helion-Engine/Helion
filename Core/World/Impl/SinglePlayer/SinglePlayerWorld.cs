@@ -57,7 +57,6 @@ namespace Helion.World.Impl.SinglePlayer
                 for (int i = spawns.Count - 2; i >= 0; i--)
                 {
                     Player player = EntityManager.CreatePlayer(0, spawns[i], true);
-                    player.IsVooDooDoll = true;
                     player.SetDefaultInventory();
                 }
 

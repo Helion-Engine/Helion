@@ -1258,6 +1258,7 @@ namespace Helion.World
         {
             List<PlayerModel> playerModels = new List<PlayerModel>(EntityManager.Players.Count);
             EntityManager.Players.ForEach(player => playerModels.Add(player.ToPlayerModel()));
+            EntityManager.VoodooDolls.ForEach(player => playerModels.Add(player.ToPlayerModel()));
             return playerModels;
         }
 
