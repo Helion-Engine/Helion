@@ -776,7 +776,7 @@ namespace Helion.World.Physics
                             {
                                 // Set the next node - this pickup can be removed from the list
                                 entityNode = entityNode.Next;
-                                PerformItemPickup(entity, nextEntity);
+                                m_world.PerformItemPickup(entity, nextEntity);
                                 continue;
                             }
                             else if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
@@ -821,30 +821,6 @@ namespace Helion.World.Physics
                 return false;
 
             return !m_lineOpening.CanPassOrStepThrough(entity);
-        }
-
-        private void PerformItemPickup(Entity entity, Entity item)
-        {
-            if (entity is not Player player)
-                return;
-
-            int health = player.Health;
-            if (!player.World.GiveItem(player, item.Definition, item.Flags))
-                return;
-
-            string message = item.Definition.Properties.Inventory.PickupMessage;
-            var healthProperty = item.Definition.Properties.HealthProperty;
-            if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
-                message = healthProperty.Value.LowMessage;
-
-            m_world.DisplayMessage(player, null, message, LanguageMessageType.Pickup);
-            m_entityManager.Destroy(item);
-
-            if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
-            {
-                m_soundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                    new SoundParams(entity));
-            }
         }
 
         public void MoveTo(Entity entity, Vec2D nextPosition, TryMoveData tryMove)

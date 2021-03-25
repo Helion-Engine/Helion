@@ -71,7 +71,8 @@ namespace Helion.World
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
         bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
         void KillEntity(Entity entity, Entity? source, bool forceGib = false);
-        bool GiveItem(Player player, EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true);
+        bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true);
+        void PerformItemPickup(Entity entity, Entity item);
         void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
         bool CheckLineOfSight(Entity from, Entity to);
         void RadiusExplosion(Entity source, int radius);

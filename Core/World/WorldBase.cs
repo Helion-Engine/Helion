@@ -38,6 +38,7 @@ using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Util.Timing;
 using Helion.World.Entities.Definition.Flags;
+using System.Linq;
 
 namespace Helion.World
 {
@@ -735,7 +736,7 @@ namespace Helion.World
                     return false;
                 // Sector damage is applied to real players, but not their voodoo dolls
                 if (sectorSource == null)
-                    EntityManager.ApplyVooDooDamage(player, damage, setPainState);
+                    ApplyVooDooDamage(player, damage, setPainState);
             }
 
             if (target.Damage(source, damage, setPainState) || target.IsInvulnerable)
@@ -747,7 +748,7 @@ namespace Helion.World
         public void KillEntity(Entity entity, Entity? source, bool forceGib = false)
         {
             if (entity is Player player)
-                EntityManager.ApplyVooDooKill(player, source, forceGib);
+                ApplyVooDooKill(player, source, forceGib);
 
             if (forceGib)
                 entity.ForceGib();
@@ -755,10 +756,34 @@ namespace Helion.World
                 entity.Kill(source);
         }
 
-        public virtual bool GiveItem(Player player, EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
+        public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true)
         {
-            EntityManager.GiveVooDooItem(player, definition, flags, pickupFlash);
-            return player.GiveItem(definition, flags, pickupFlash);
+            GiveVooDooItem(player, item, flags, pickupFlash);
+            return player.GiveItem(item.Definition, flags, pickupFlash);
+        }
+
+        public virtual void PerformItemPickup(Entity entity, Entity item)
+        {
+            if (entity is not Player player)
+                return;
+
+            int health = player.Health;
+            if (!GiveItem(player, item, item.Flags))
+                return;
+
+            string message = item.Definition.Properties.Inventory.PickupMessage;
+            var healthProperty = item.Definition.Properties.HealthProperty;
+            if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
+                message = healthProperty.Value.LowMessage;
+
+            DisplayMessage(player, null, message, LanguageMessageType.Pickup);
+            EntityManager.Destroy(item);
+
+            if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+            {
+                SoundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
+                    new SoundParams(entity));
+            }
         }
 
         public virtual void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
@@ -1217,6 +1242,76 @@ namespace Helion.World
                 }
             }
         }
+
+        private void ApplyVooDooDamage(Player player, int damage, bool setPainState)
+        {
+            if (EntityManager.VoodooDolls.Count == 0)
+                return;
+
+            SyncVooDollsWithPlayer(player.PlayerNumber);
+
+            foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
+            {
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                    continue;
+
+                updatePlayer.Damage(null, damage, setPainState);
+            }
+        }
+
+        private void ApplyVooDooKill(Player player, Entity? source, bool forceGib)
+        {
+            if (EntityManager.VoodooDolls.Count == 0)
+                return;
+
+            SyncVooDollsWithPlayer(player.PlayerNumber);
+
+            foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
+            {
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                    continue;
+
+                if (forceGib)
+                    updatePlayer.ForceGib();
+                else
+                    updatePlayer.Kill(source);
+            }
+        }
+
+        private void GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
+        {
+            if (EntityManager.VoodooDolls.Count == 0)
+                return;
+
+            SyncVooDollsWithPlayer(player.PlayerNumber);
+
+            foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
+            {
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                    continue;
+
+                updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
+
+                if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+                {
+                    SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
+                        new SoundParams(updatePlayer));
+                }
+            }
+        }
+
+        private void SyncVooDollsWithPlayer(int playerNumber)
+        {
+            Player? realPlayer = GetRealPlayer(playerNumber);
+            if (realPlayer == null)
+                return;
+
+            foreach (var voodooDoll in EntityManager.VoodooDolls)
+                voodooDoll.VodooSync(realPlayer);
+        }
+
+        private Player? GetRealPlayer(int playerNumber)
+            => EntityManager.Players.FirstOrDefault(x => x.PlayerNumber == playerNumber && !x.IsVooDooDoll);
 
         public WorldModel ToWorldModel()
         {
