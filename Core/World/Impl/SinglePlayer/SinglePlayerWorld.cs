@@ -79,8 +79,8 @@ namespace Helion.World.Impl.SinglePlayer
                 }
                 else
                 {
-                    if (result.Players.Count > 1)
-                        Log.Warn("Multiple players found in world for single player game.");
+                    if (result.Players.Any(x => x.PlayerNumber != 0))
+                        Log.Warn("Other players found in world for single player game.");
 
                     Player = result.Players[0];
                 }
