@@ -99,8 +99,8 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
-            MoveDirection direction, double speed, double destZ, CrushData? crush)
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
+            double speed, double destZ, CrushData? crush)
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
@@ -120,13 +120,17 @@ namespace Helion.World.Physics
             {
                 Entity entity = entities[i];
                 entity.SaveZ = entity.Position.Z;
+                entity.PrevSaveZ = entity.PrevPosition.Z;
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (moveType == SectorPlaneType.Floor && direction == MoveDirection.Down && -speed < SetEntityToFloorSpeedMax &&
+                if (moveType == SectorPlaneType.Floor && startZ > destZ && -speed < SetEntityToFloorSpeedMax &&
                     entity.OnGround && !entity.Flags.NoGravity && entity.HighestFloorSector == sector)
                 {
                     entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
+                    // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
+                    // Otherwise this is a problem with the instant lift hack
+                    entity.PrevPosition.Z = entity.Position.Z;
                 }
 
                 ClampBetweenFloorAndCeiling(entity);
@@ -147,11 +151,13 @@ namespace Helion.World.Physics
             {
                 Entity entity = entities[i];
                 ClampBetweenFloorAndCeiling(entity);
+                entity.PrevPosition.Z = entity.PrevSaveZ;
                 // This allows the player to pickup items like the original
                 if (entity is Player)
                     IsPositionValid(entity, entity.Position.To2D(), m_tryMoveData);
 
-                if ((moveType == SectorPlaneType.Ceiling && direction == MoveDirection.Up) || (moveType == SectorPlaneType.Floor && direction == MoveDirection.Down))
+                if ((moveType == SectorPlaneType.Ceiling && startZ < destZ) || 
+                    (moveType == SectorPlaneType.Floor && startZ > destZ))
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;

@@ -77,8 +77,8 @@ namespace Helion.World
         bool CheckLineOfSight(Entity from, Entity to);
         void RadiusExplosion(Entity source, int radius);
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
-        SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
-            MoveDirection direction, double speed, double destZ, CrushData? crush);
+        SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
+            double speed, double destZ, CrushData? crush);
         void HandleEntityDeath(Entity deathEntity, Entity? deathSource);
         void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
         // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.

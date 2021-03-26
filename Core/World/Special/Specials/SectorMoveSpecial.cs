@@ -288,7 +288,7 @@ namespace Helion.World.Special.Specials
         private void PerformAndHandleMoveZ(double destZ)
         {
             SectorMoveStatus status = m_world.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
-                m_direction, m_speed, destZ, MoveData.Crush);
+                m_speed, destZ, MoveData.Crush);
 
             switch (status)
             {

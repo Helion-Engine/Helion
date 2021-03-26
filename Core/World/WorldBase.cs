@@ -888,8 +888,8 @@ namespace Helion.World
             => PhysicsManager.TryMoveXY(entity, position, stepMove);
 
         public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
-            MoveDirection direction, double speed, double destZ, CrushData? crush)
-             => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, direction, speed, destZ, crush);
+            double speed, double destZ, CrushData? crush)
+             => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush);
 
         public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource)
         {
