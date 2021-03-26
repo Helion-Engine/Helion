@@ -85,8 +85,8 @@ namespace Helion.World
         bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
         bool IsPositionBlocked(Entity entity);
         void CreateTeleportFog(in Vec3D pos, bool playSound = true);
-        bool IsSectorIdValid(int sectorId) => sectorId > 0 && sectorId < Sectors.Count;
-        bool IsLineIdValid(int lineId) => lineId > 0 && lineId < Lines.Count;
+        bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
+        bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
 
         WorldModel ToWorldModel();
         GameFilesModel GetGameFilesModel();
