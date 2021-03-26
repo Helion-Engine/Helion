@@ -755,6 +755,9 @@ namespace Helion.World
 
         public void KillEntity(Entity entity, Entity? source, bool forceGib = false)
         {
+            if (entity.IsDead)
+                return;
+
             if (entity is Player player)
                 ApplyVooDooKill(player, source, forceGib);
 
