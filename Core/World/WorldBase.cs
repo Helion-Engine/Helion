@@ -160,7 +160,7 @@ namespace Helion.World
                         continue;
                 }
 
-                if (distance <= Constants.EntityMeleeDistance || CheckLineOfSight(entity, player))
+                if (CheckLineOfSight(entity, player))
                     return player;
             }
 
