@@ -9,6 +9,7 @@ namespace Helion.World.Geometry.Sectors
         CeilingZ = 2,
         Light = 4,
         FloorTexture = 8,
-        CeilingTexture = 16
+        CeilingTexture = 16,
+        SectorSpecialType = 32
     }
 }

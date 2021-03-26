@@ -52,6 +52,7 @@ NIGHTMARE,"Are you sure? This skill level
 isn't even remotely fair.
 
 Press Y or N."
+SECRETMESSAGE,A secret is revealed!
 Pickup
 GOTARMOR,Picked up the armor.
 GOTMEGA,Picked up the MegaArmor!

@@ -105,6 +105,7 @@
     <Content Include="Assets\MapInfo\Tnt.txt" />
     <Content Include="Assets\MapInfo\DoomRegistered.txt" />
     <Content Include="Assets\SndInfo.txt" />
+    <None Include="Assets\Sounds\dssecret.lmp" />
     <Content Include="Assets\Weapons\Doom\Chainsaw.txt" />
     <Content Include="Assets\Weapons\Doom\DoomWeapon.txt" />
     <Content Include="Assets\Weapons\Doom\Pistol.txt" />

@@ -39,6 +39,7 @@ using Helion.Models;
 using Helion.Util.Timing;
 using Helion.World.Entities.Definition.Flags;
 using System.Linq;
+using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.World
 {
@@ -249,6 +250,13 @@ namespace Helion.World
 
                     if (player.Sector.SectorDamageSpecial != null)
                         player.Sector.SectorDamageSpecial.Tick(player);
+
+                    if (player.Sector.SectorSpecialType == ZDoomSectorSpecialType.Secret)
+                    {
+                        DisplayMessage(player, null, "$SECRETMESSAGE", LanguageMessageType.Default);
+                        SoundManager.PlayStaticSound("misc/secret");
+                        player.Sector.SetSectorSpecialType(ZDoomSectorSpecialType.None);
+                    }
                 }
 
                 SpecialManager.Tick();

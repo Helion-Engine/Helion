@@ -113,6 +113,12 @@ namespace Helion.World.Geometry.Sectors
             ceiling.Sector = this;
         }
 
+        public void SetSectorSpecialType(ZDoomSectorSpecialType type)
+        {
+            SectorSpecialType = type;
+            DataChanges |= SectorDataTypes.SectorSpecialType;
+        }
+
         public void PlaneTextureChange(SectorPlane sectorPlane)
         {
             if (sectorPlane == Floor)
@@ -144,6 +150,8 @@ namespace Helion.World.Geometry.Sectors
                     sectorModel.FloorTexture = Floor.TextureHandle;
                 if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
                     sectorModel.CeilingTexture = Ceiling.TextureHandle;
+                if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType))
+                    sectorModel.SectorSpecialType = (int)SectorSpecialType;
             }
 
             return sectorModel;
@@ -184,6 +192,9 @@ namespace Helion.World.Geometry.Sectors
 
                 if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture) && sectorModel.CeilingTexture.HasValue)
                     Floor.SetTexture(sectorModel.CeilingTexture.Value);
+
+                if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
+                    SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
             }
         }
         
