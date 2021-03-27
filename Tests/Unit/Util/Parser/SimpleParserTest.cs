@@ -295,7 +295,8 @@ Line2 Data2";
             SimpleParser parser = new();
             parser.Parse(data);
 
-            parser.ConsumeString().Should().Be("YES1,");
+            parser.ConsumeString().Should().Be("YES1");
+            parser.ConsumeString().Should().Be(",");
             parser.ConsumeString().Should().Be("Did you like\nthe new\nssg?");
         }
     }
