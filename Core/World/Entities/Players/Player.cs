@@ -217,6 +217,9 @@ namespace Helion.World.Entities.Players
                     if (setWeapon != null)
                         ChangeWeapon(setWeapon);
                 }
+
+                foreach (CheatType cheat in player.Cheats.GetActiveCheats())
+                    Cheats.SetCheatActive(cheat);
             }
 
             base.CopyProperties(entity);
