@@ -14,7 +14,24 @@ namespace Generators
     {
         public static bool IsFloatingPoint(this Types type)
         {
-            return type == Types.Float || type == Types.Double || type == Types.Fixed;
+            return IsFloatingPoint(type) || type == Types.Fixed;
+        }
+        
+        public static bool IsFloatingPointPrimitive(this Types type)
+        {
+            return type == Types.Float || type == Types.Double;
+        }
+
+        public static string PrimitiveType(this Types type)
+        {
+            return type switch
+            {
+                Types.Int => "int",
+                Types.Float => "float",
+                Types.Double => "double",
+                Types.Fixed => "Fixed",
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
         }
 
         public static string GetShorthand(this Types type)

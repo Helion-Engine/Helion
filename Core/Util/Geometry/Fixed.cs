@@ -97,6 +97,10 @@ namespace Helion.Util.Geometry
         /// <returns>The fixed point value for the integer.</returns>
         public static Fixed FromInt(int i) => new Fixed(i << UnitBits);
 
+        public static Fixed From(int i) => FromInt(i);
+        public static Fixed From(float f) => new(f);
+        public static Fixed From(double d) => new(d);
+        
         private static int BitsFromUpperAndLower(short upper, ushort lower)
         {
             uint bits = (uint)((ushort)upper << UnitBits);
