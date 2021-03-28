@@ -362,65 +362,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         private void Instance_CheatActivationChanged(object? sender, CheatEventArgs e)
         {
-            if (e.Cheat is ChangeLevelCheat changeLevel)
-            {
-                ChangeToLevel(changeLevel.LevelNumber);
-                return;
-            }
-
-            switch (e.Cheat.CheatType)
-            {
-                case CheatType.NoClip:
-                    Player.Flags.NoClip = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
-                    break;
-                case CheatType.Fly:
-                    Player.Flags.NoGravity = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
-                    break;
-                case CheatType.Ressurect:
-                    if (Player.IsDead)
-                        Player.SetRaiseState();
-                    break;
-                case CheatType.God:
-                    Player.Flags.Invulnerable = e.Player.Cheats.IsCheatActive(e.Cheat.CheatType);
-                    break;
-                case CheatType.GiveAllNoKeys:
-                    GiveAllWeapons();
-                    GiveMaxHealth();
-                    Player.GiveBestArmor(EntityManager.DefinitionComposer);
-                    break;
-                case CheatType.GiveAll:
-                    GiveAllWeapons();
-                    GiveMaxHealth();
-                    Player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
-                    Player.GiveBestArmor(EntityManager.DefinitionComposer);
-                    break;
-            }
-
-            string msg;
-            if (e.Cheat.IsToggleCheat)
-                msg = string.Format("{0} cheat: {1}", Player.Cheats.IsCheatActive(e.Cheat.CheatType) ? "Activated" : "Deactivated", e.Cheat.CheatName);
-            else
-                msg = e.Cheat.CheatName;
-
-            DisplayMessage(Player, null, msg, LanguageMessageType.None);
-        }
-
-        private void GiveAllWeapons()
-        {
-            foreach (CIString name in Player.Inventory.Weapons.GetWeaponDefinitionNames())
-            {
-                var weapon = EntityManager.DefinitionComposer.GetByName(name);
-                if (weapon != null)
-                    Player.GiveWeapon(weapon, autoSwitch: false);
-            }
-
-            Player.Inventory.GiveAllAmmo(EntityManager.DefinitionComposer);
-        }
-
-        private void GiveMaxHealth()
-        {
-            if (Player.Health < Player.Definition.Properties.Health)
-                Player.Health = Player.Definition.Properties.Health;
+            ActivateCheat(e.Player, e.Cheat);
         }
 
         private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)

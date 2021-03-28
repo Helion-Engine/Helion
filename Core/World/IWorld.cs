@@ -20,8 +20,8 @@ using Helion.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
 using Helion.Models;
-using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Cheats;
 
 namespace Helion.World
 {
@@ -85,6 +85,7 @@ namespace Helion.World
         bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
         bool IsPositionBlocked(Entity entity);
         void CreateTeleportFog(in Vec3D pos, bool playSound = true);
+        void ActivateCheat(Player player, ICheat cheat);
         bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
         bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
 
