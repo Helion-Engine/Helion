@@ -4,7 +4,13 @@ namespace Generators
 {
     public enum Types
     {
+        Byte,
+        Short,
+        UShort,
         Int,
+        UInt,
+        Long,
+        ULong,
         Float,
         Double,
         Fixed
@@ -12,14 +18,23 @@ namespace Generators
 
     public static class TypesExtensions
     {
-        public static bool IsFloatingPoint(this Types type)
-        {
-            return IsFloatingPoint(type) || type == Types.Fixed;
-        }
-        
         public static bool IsFloatingPointPrimitive(this Types type)
         {
             return type == Types.Float || type == Types.Double;
+        }
+
+        public static bool IsUnsigned(this Types type)
+        {
+            switch (type)
+            {
+            case Types.Byte:
+            case Types.UShort:
+            case Types.UInt:
+            case Types.ULong:
+                return true;
+            default:
+                return false;
+            }
         }
 
         public static string PrimitiveType(this Types type)
@@ -30,6 +45,12 @@ namespace Generators
                 Types.Float => "float",
                 Types.Double => "double",
                 Types.Fixed => "Fixed",
+                Types.Byte => "Byte",
+                Types.Short => "Short",
+                Types.UShort => "UShort",
+                Types.UInt => "UInt",
+                Types.Long => "Long",
+                Types.ULong => "ULong",
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }

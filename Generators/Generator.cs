@@ -5,6 +5,7 @@
         public static void Main(string[] args)
         { 
             VectorGenerator.Generate();
+            PrimitiveExtensionsGenerator.Generate();
         }
     }
 }

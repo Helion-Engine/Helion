@@ -17,6 +17,7 @@ namespace Generators
         public string StructType => GetStructDim(m_dimension);
         public string InstanceType => GetInstanceDim(m_dimension);
         private string ClassName => m_isStruct ? StructType : InstanceType;
+        private string MathClass => m_type == Types.Float ? "MathF" : "Math";
 
         private VectorGenerator(Types type, int dimension, bool isStruct)
         {
@@ -89,8 +90,17 @@ namespace Generators
 
         private void WriteStaticReadonly(CodegenTextWriter w)
         {
-            w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat(0, m_dimension)});");
-            w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat(1, m_dimension)});");
+            if (m_type == Types.Fixed)
+            {
+                w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat("Fixed.Zero()", m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat("Fixed.One()", m_dimension)});");
+            }
+            else
+            {
+                w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat(0, m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat(1, m_dimension)});");   
+            }
+            
             w.WriteLine();
         }
 
@@ -112,20 +122,28 @@ namespace Generators
             }
             if (m_dimension >= 4)
                 w.WriteLine($"public {GetStructDim(3)} XYZ => new(X, Y, Z);");
-            
-            if (m_type != Types.Int)
-                w.WriteLine($"public {GetStructDimType(m_dimension, Types.Int)} Int => new({CommaSeparatePrefix("(int)", m_fields)});");
-            if (m_type != Types.Float)
-                w.WriteLine($"public {GetStructDimType(m_dimension, Types.Float)} Float => new({CommaSeparatePrefix("(float)", m_fields)});");
-            if (m_type != Types.Double)
-                w.WriteLine($"public {GetStructDimType(m_dimension, Types.Double)} Double => new({CommaSeparatePrefix("(double)", m_fields)});");
-            if (m_type != Types.Fixed)
+
+            if (m_type == Types.Fixed)
+            {
+                w.WriteLine($"public {GetStructDimType(m_dimension, Types.Int)} Int => new({CommaSeparateSuffix(".ToInt()", m_fields)});");
+                w.WriteLine($"public {GetStructDimType(m_dimension, Types.Float)} Float => new({CommaSeparateSuffix(".ToFloat()", m_fields)});");
+                w.WriteLine($"public {GetStructDimType(m_dimension, Types.Double)} Double => new({CommaSeparateSuffix(".ToDouble()", m_fields)});");
+            }
+            else
+            {
+                if (m_type != Types.Int)
+                    w.WriteLine($"public {GetStructDimType(m_dimension, Types.Int)} Int => new({CommaSeparatePrefix("(int)", m_fields)});");
+                if (m_type != Types.Float)
+                    w.WriteLine($"public {GetStructDimType(m_dimension, Types.Float)} Float => new({CommaSeparatePrefix("(float)", m_fields)});");
+                if (m_type != Types.Double)
+                    w.WriteLine($"public {GetStructDimType(m_dimension, Types.Double)} Double => new({CommaSeparatePrefix("(double)", m_fields)});");
                 w.WriteLine($"public {GetStructDimType(m_dimension, Types.Fixed)} FixedPoint => new({CommaSeparateWrap("Fixed.From(", ")", m_fields)});");
-            
+            }
+
             if (!m_isStruct)
                 w.WriteLine($"public {StructType} Struct => new({CommaSeparate(m_fields)});");
             
-            w.WriteLine("public IEnumerable<double> Values => GetEnumerableValues();");
+            w.WriteLine($"public IEnumerable<{m_type.PrimitiveType()}> Values => GetEnumerableValues();");
             
             w.WriteLine();
         }
@@ -254,12 +272,15 @@ namespace Generators
                 string[] fieldsCopy = m_fields.ToArray();
                 fieldsCopy[i] = lowerField;
 
-                w.WriteLine($"public {StructType} With{field}(double {lowerField}) => new({CommaSeparate(fieldsCopy)});");
+                w.WriteLine($"public {StructType} With{field}({m_type.PrimitiveType()} {lowerField}) => new({CommaSeparate(fieldsCopy)});");
             }
         }
 
         private void WriteApproxMethod(CodegenTextWriter w)
         {
+            if (!m_type.IsFloatingPointPrimitive())
+                return;
+            
             var approxEqualStrs = m_fields.Select(f => $"{f}.ApproxEquals(other.{f})");
             w.WriteLine($"public bool IsApprox({StructType} other) => {string.Join(" && ", approxEqualStrs)};");
             w.WriteLine($"public bool IsApprox({InstanceType} other) => {string.Join(" && ", approxEqualStrs)};");
@@ -275,11 +296,13 @@ namespace Generators
 
         private void WriteMathMethods(CodegenTextWriter w)
         {
-            foreach (string operation in new[] { "Floor", "Ceiling", "Abs" })
-                w.WriteLine($"public {StructType} {operation}() => new({CommaSeparateSuffix($".{operation}()", m_fields)});");
+            w.WriteLine($"public {StructType} Abs() => new({CommaSeparateSuffix($".Abs()", m_fields)});");
 
             if (m_type.IsFloatingPointPrimitive())
             {
+                foreach (string operation in new[] { "Floor", "Ceiling" })
+                    w.WriteLine($"public {StructType} {operation}() => new({CommaSeparateSuffix($".{operation}()", m_fields)});");
+
                 w.WriteLine($"public {StructType} Unit() => this / Length();");
                 
                 if (m_isStruct)
@@ -297,13 +320,13 @@ namespace Generators
                 string len = string.Join(" + ", m_fields.Select(f => $"({f} * {f})"));
                 w.WriteLine($"public {m_type.PrimitiveType()} LengthSquared() => {len};");
                 
-                w.WriteLine($"public {m_type.PrimitiveType()} Length() => Math.Sqrt(LengthSquared());");
+                w.WriteLine($"public {m_type.PrimitiveType()} Length() => {MathClass}.Sqrt(LengthSquared());");
                 w.WriteLine($"public {m_type.PrimitiveType()} DistanceSquared({StructType} other) => (this - other).LengthSquared();");
                 w.WriteLine($"public {m_type.PrimitiveType()} DistanceSquared({InstanceType} other) => (this - other).LengthSquared();");
                 w.WriteLine($"public {m_type.PrimitiveType()} Distance({StructType} other) => (this - other).Length();");
                 w.WriteLine($"public {m_type.PrimitiveType()} Distance({InstanceType} other) => (this - other).Length();");
-                w.WriteLine($"public {StructType} Interpolate({StructType} end, double t) => this + (t * (end - this));");
-                w.WriteLine($"public {StructType} Interpolate({InstanceType} end, double t) => this + (t * (end - this));");
+                w.WriteLine($"public {StructType} Interpolate({StructType} end, {m_type.PrimitiveType()} t) => this + (t * (end - this));");
+                w.WriteLine($"public {StructType} Interpolate({InstanceType} end, {m_type.PrimitiveType()} t) => this + (t * (end - this));");
             }
             
             string dot = string.Join(" + ", m_fields.Select(f => $"({f} * other.{f})"));
@@ -320,27 +343,27 @@ namespace Generators
                     w.WriteLine($"public {StructType} Projection({InstanceType} onto) => Dot(onto) / onto.LengthSquared() * onto;");
                     w.WriteLine($"public {StructType} RotateRight90() => new(Y, -X);");
                     w.WriteLine($"public {StructType} RotateLeft90() => new(-Y, X);");
-                    w.WriteLine($"public static {StructType} UnitCircle({m_type.PrimitiveType()} radians) => new(Math.Cos(radians), Math.Sin(radians));");
+                    w.WriteLine($"public static {StructType} UnitCircle({m_type.PrimitiveType()} radians) => new({MathClass}.Cos(radians), {MathClass}.Sin(radians));");
                 }
 
                 if (m_dimension == 3)
                 {
                     w.WithCBlock($"public static {StructType} UnitSphere({m_type.PrimitiveType()} angle, {m_type.PrimitiveType()} pitch)", () =>
                     {
-                        w.WriteLine($"{m_type.PrimitiveType()} sinAngle = Math.Sin(angle);");
-                        w.WriteLine($"{m_type.PrimitiveType()} cosAngle = Math.Cos(angle);");
-                        w.WriteLine($"{m_type.PrimitiveType()} sinPitch = Math.Sin(pitch);");
-                        w.WriteLine($"{m_type.PrimitiveType()} cosPitch = Math.Cos(pitch);");
+                        w.WriteLine($"{m_type.PrimitiveType()} sinAngle = {MathClass}.Sin(angle);");
+                        w.WriteLine($"{m_type.PrimitiveType()} cosAngle = {MathClass}.Cos(angle);");
+                        w.WriteLine($"{m_type.PrimitiveType()} sinPitch = {MathClass}.Sin(pitch);");
+                        w.WriteLine($"{m_type.PrimitiveType()} cosPitch = {MathClass}.Cos(pitch);");
                         w.WriteLine("return new(cosAngle * cosPitch, sinAngle * cosPitch, sinPitch);");
                     });
                     
-                    w.WriteLine($"public {m_type.PrimitiveType()} Pitch(in {StructType} other, {m_type.PrimitiveType()} length) => Math.Atan2(other.Z - Z, length);");
-                    w.WriteLine($"public {m_type.PrimitiveType()} Pitch({InstanceType} other, {m_type.PrimitiveType()} length) => Math.Atan2(other.Z - Z, length);");
-                    w.WriteLine($"public {m_type.PrimitiveType()} Pitch({m_type.PrimitiveType()} z, {m_type.PrimitiveType()} length) => Math.Atan2(z - Z, length);");
-                    w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {StructType} other) => Math.Atan2(other.Y - Y, other.X - X);");
-                    w.WriteLine($"public {m_type.PrimitiveType()} Angle({InstanceType} other) => Math.Atan2(other.Y - Y, other.X - X);");
-                    w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {GetStructDim(2)} other) => Math.Atan2(other.Y - Y, other.X - X);");
-                    w.WriteLine($"public {m_type.PrimitiveType()} Angle({GetInstanceDim(2)} other) => Math.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Pitch(in {StructType} other, {m_type.PrimitiveType()} length) => {MathClass}.Atan2(other.Z - Z, length);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Pitch({InstanceType} other, {m_type.PrimitiveType()} length) => {MathClass}.Atan2(other.Z - Z, length);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Pitch({m_type.PrimitiveType()} z, {m_type.PrimitiveType()} length) => {MathClass}.Atan2(z - Z, length);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {StructType} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle({InstanceType} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {GetStructDim(2)} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle({GetInstanceDim(2)} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
                     WriteApproxDistance($"in {StructType}");
                     WriteApproxDistance(InstanceType);
                     
@@ -348,8 +371,8 @@ namespace Generators
                     {
                         w.WithCBlock($"public {m_type.PrimitiveType()} ApproximateDistance2D({param} other)", () =>
                         {
-                            w.WriteLine($"{m_type.PrimitiveType()} dx = Math.Abs(X - other.X);");
-                            w.WriteLine($"{m_type.PrimitiveType()} dy = Math.Abs(Y - other.Y);");
+                            w.WriteLine($"{m_type.PrimitiveType()} dx = {MathClass}.Abs(X - other.X);");
+                            w.WriteLine($"{m_type.PrimitiveType()} dy = {MathClass}.Abs(Y - other.Y);");
                             w.WriteLine($"if (dx < dy)");
                             w.WriteLine($"    return dx + dy - (dx / 2);");
                             w.WriteLine($"return dx + dy - (dy / 2);");
