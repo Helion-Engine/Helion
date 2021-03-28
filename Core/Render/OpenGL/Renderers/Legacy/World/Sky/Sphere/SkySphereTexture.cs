@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
-using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 using Image = Helion.Graphics.Image;
 

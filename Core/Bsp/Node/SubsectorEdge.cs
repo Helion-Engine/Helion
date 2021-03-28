@@ -2,8 +2,8 @@
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
+using Helion.Geometry.Segments.Enums;
 using Helion.Geometry.Vectors;
-using Helion.Util.Geometry.Segments.Enums;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Node

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Helion.Audio;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Geometry.Boxes;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;

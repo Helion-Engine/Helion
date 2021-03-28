@@ -59,12 +59,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Geometry\Boxes" />
     <Folder Include="Geometry\Circles" />
     <Folder Include="Geometry\Lines" />
-    <Folder Include="Geometry\Planes" />
     <Folder Include="Geometry\Rays" />
-    <Folder Include="Geometry\Segments" />
     <Folder Include="Geometry\Spheres" />
     <Folder Include="Geometry\Triangles" />
   </ItemGroup>

@@ -1,6 +1,5 @@
 ﻿using Helion.Geometry;
 using Helion.Render.Commands;
-using Helion.Util.Geometry;
 
 namespace Helion.Render.Shared.Drawers.Helper
 {

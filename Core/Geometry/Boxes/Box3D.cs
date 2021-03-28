@@ -2,7 +2,7 @@ using System;
 using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Geometry.Boxes
+namespace Helion.Geometry.Boxes
 {
    /// <summary>
     /// A two dimensional box, which follows the cartesian coordinate system.

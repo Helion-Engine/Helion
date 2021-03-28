@@ -1,7 +1,7 @@
 ﻿using System;
 using CodegenCS;
 
-namespace Generators
+namespace Generators.Generators
 {
     public class PrimitiveExtensionsGenerator
     {

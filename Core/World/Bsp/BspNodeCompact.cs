@@ -1,5 +1,5 @@
-﻿using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
+﻿using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 
 namespace Helion.World.Bsp
 {

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using GlmSharp;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 
 namespace Helion.Geometry.Vectors
 {

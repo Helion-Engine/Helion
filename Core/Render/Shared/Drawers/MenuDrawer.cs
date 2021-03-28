@@ -11,7 +11,6 @@ using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Util.Geometry.Segments;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Geometry.Boxes
+namespace Helion.Geometry.Boxes
 {
     /// <summary>
     /// A two dimensional box, which follows the cartesian coordinate system.

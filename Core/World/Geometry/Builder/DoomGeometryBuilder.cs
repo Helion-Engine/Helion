@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Bsp;
+using Helion.Geometry.Segments;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
@@ -7,7 +8,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Util.Geometry.Segments;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;

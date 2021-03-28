@@ -66,7 +66,6 @@ namespace Generators.Generators
             w.WriteLine("using System.Collections.Generic;");
             w.WriteLine("using GlmSharp;");
             w.WriteLine("using Helion.Util.Extensions;");
-            w.WriteLine("using Helion.Util.Geometry;");
             w.WriteLine();
             w.WriteNamespaceBlock("Geometry.Vectors", () =>
             {

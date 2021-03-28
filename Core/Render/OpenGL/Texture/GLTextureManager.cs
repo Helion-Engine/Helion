@@ -10,7 +10,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 

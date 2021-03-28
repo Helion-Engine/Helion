@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Helion.Util.Geometry.Graphs
+namespace Helion.Geometry.Graphs
 {
     public interface IGraphVertex
     {

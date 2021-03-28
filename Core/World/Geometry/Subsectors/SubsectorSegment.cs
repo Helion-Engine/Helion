@@ -1,5 +1,5 @@
-﻿using Helion.Geometry.Vectors;
-using Helion.Util.Geometry.Segments;
+﻿using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 

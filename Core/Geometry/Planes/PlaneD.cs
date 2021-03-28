@@ -1,7 +1,8 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Geometry.Planes
+namespace Helion.Geometry.Planes
 {
     public class PlaneD
     {

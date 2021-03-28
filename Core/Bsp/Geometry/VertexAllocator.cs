@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
-using Helion.Util.Geometry.Boxes;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry

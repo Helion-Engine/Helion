@@ -1,4 +1,4 @@
-using Helion.Util.Geometry.Planes;
+using Helion.Geometry.Planes;
 
 namespace Helion.World.Geometry.Sectors
 {

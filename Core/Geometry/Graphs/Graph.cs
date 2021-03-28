@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.Extensions;
 
-namespace Helion.Util.Geometry.Graphs
+namespace Helion.Geometry.Graphs
 {
     public abstract class Graph<V, E> where V : IGraphVertex where E : IGraphEdge
     {

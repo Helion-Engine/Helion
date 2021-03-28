@@ -1,4 +1,4 @@
-namespace Helion.Util.Geometry.Graphs
+namespace Helion.Geometry.Graphs
 {
     public interface IGraphEdge
     {

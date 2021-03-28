@@ -10,8 +10,6 @@ using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -38,6 +36,8 @@ using Helion.Models;
 using Helion.Util.Timing;
 using Helion.World.Entities.Definition.Flags;
 using System.Linq;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 

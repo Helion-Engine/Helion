@@ -1,4 +1,5 @@
 using System;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
@@ -14,7 +15,6 @@ using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry.Boxes;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities.Players;

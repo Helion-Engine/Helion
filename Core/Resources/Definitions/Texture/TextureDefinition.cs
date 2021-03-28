@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Util;
-using Helion.Util.Geometry;
 
 namespace Helion.Resources.Definitions.Texture
 {

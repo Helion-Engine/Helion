@@ -1,4 +1,4 @@
-using Helion.Util.Geometry.Boxes;
+using Helion.Geometry.Boxes;
 
 namespace Helion.Util.Atlas
 {

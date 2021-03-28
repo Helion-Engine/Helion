@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;

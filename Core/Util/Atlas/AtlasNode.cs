@@ -1,7 +1,7 @@
 using System;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using Helion.Util.Geometry.Boxes;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Atlas

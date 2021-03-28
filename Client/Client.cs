@@ -21,7 +21,6 @@ using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 using Helion.World.Save;
 using NLog;
 using OpenTK.Windowing.Common;
