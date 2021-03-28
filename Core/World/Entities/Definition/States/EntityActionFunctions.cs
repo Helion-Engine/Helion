@@ -445,7 +445,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BarrelDestroy(Entity entity)
         {
-             // TODO
+            entity.Flags.Solid = false;
         }
 
         private static void A_BasicAttack(Entity entity)
@@ -999,7 +999,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Fall(Entity entity)
         {
-             // TODO
+            A_NoBlocking(entity);
         }
 
         private static void A_FastChase(Entity entity)
@@ -1493,7 +1493,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_NoBlocking(Entity entity)
         {
-             // TODO
+            entity.Flags.Solid = false;
         }
 
         private static void A_NoGravity(Entity entity)
