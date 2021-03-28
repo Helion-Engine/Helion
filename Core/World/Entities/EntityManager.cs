@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
@@ -9,8 +10,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
@@ -20,7 +19,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using MoreLinq.Extensions;
 using NLog;
-using Helion.World.Entities.Definition.Flags;
 
 namespace Helion.World.Entities
 {
@@ -150,7 +148,7 @@ namespace Helion.World.Entities
                 EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
                 if (definition == null)
                 {
-                    Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.To2D());
+                    Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
                     continue;
                 }
 
@@ -158,7 +156,7 @@ namespace Helion.World.Entities
                     continue;
 
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-                Vec3D position = mapThing.Position.ToDouble();
+                Vec3D position = mapThing.Position.Double;
                 // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
                 Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
                 if (mapThing.Flags.Ambush)

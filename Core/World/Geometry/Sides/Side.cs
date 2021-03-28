@@ -1,5 +1,5 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;

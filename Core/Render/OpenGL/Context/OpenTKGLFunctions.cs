@@ -2,9 +2,8 @@
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context.Types;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Context

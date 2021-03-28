@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
@@ -16,7 +17,6 @@ using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud

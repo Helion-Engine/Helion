@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using GlmSharp;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;
@@ -17,8 +18,6 @@ using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -280,7 +279,7 @@ namespace Helion.Render.OpenGL
         {
             if (cmd.AreaIsTextureDimension)
             {
-                Vec2I topLeft = new Vec2I(cmd.DrawArea.Top, cmd.DrawArea.Left);
+                Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
                 m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability);
             }
             else

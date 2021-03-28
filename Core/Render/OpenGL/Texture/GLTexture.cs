@@ -1,10 +1,9 @@
 using System;
-using System.Numerics;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
-using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture
@@ -24,7 +23,7 @@ namespace Helion.Render.OpenGL.Texture
         /// <summary>
         /// A precalculated inverse of the UV coordinates.
         /// </summary>
-        public readonly Vector2 UVInverse;
+        public readonly Vec2F UVInverse;
         
         /// <summary>
         /// The dimension of this texture.
@@ -50,7 +49,7 @@ namespace Helion.Render.OpenGL.Texture
             Name = name;
             Dimension = dimension;
             Metadata = metadata;
-            UVInverse = Vector2.One / dimension.Vector.ToFloat();
+            UVInverse = Vec2F.One / dimension.Vector.Float;
             gl = functions;
             TextureType = textureType;
         }

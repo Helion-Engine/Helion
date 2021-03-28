@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
@@ -15,7 +16,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;

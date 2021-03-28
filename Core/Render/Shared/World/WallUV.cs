@@ -1,13 +1,13 @@
-using System.Numerics;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Render.Shared.World
 {
     public struct WallUV
     {
-        public readonly Vector2 TopLeft;
-        public readonly Vector2 BottomRight;
+        public readonly Vec2F TopLeft;
+        public readonly Vec2F BottomRight;
 
-        public WallUV(Vector2 topLeft, Vector2 bottomRight)
+        public WallUV(Vec2F topLeft, Vec2F bottomRight)
         {
             TopLeft = topLeft;
             BottomRight = bottomRight;

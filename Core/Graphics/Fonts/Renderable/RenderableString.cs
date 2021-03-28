@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Commands.Alignment;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Graphics.Fonts.Renderable
 {
@@ -112,10 +111,11 @@ namespace Helion.Graphics.Fonts.Renderable
                 return default;
 
             // We want to pick the largest X, but sum up the Y.
-            return Sentences
+            Vec2I point = Sentences
                 .Select(s => s.DrawArea.Vector)
-                .Aggregate((acc, area) => new Vec2I(Math.Max(acc.X, area.X), acc.Y + area.Y))
-                .ToDimension();
+                .Aggregate((acc, area) => new Vec2I(Math.Max(acc.X, area.X), acc.Y + area.Y));
+
+            return new(point.X, point.Y);
         }
 
         private void AlignTo(TextAlign align)
@@ -180,8 +180,8 @@ namespace Helion.Graphics.Fonts.Renderable
                     RenderableGlyph glyph = sentence.Glyphs[i];
 
                     ImageBox2I coordinates = glyph.Coordinates;
-                    Vec2D topLeft = coordinates.Min.ToDouble() * inverse;
-                    Vec2D bottomRight = coordinates.Max.ToDouble() * inverse;
+                    Vec2D topLeft = coordinates.Min.Double * inverse;
+                    Vec2D bottomRight = coordinates.Max.Double * inverse;
                     ImageBox2D location = new ImageBox2D(topLeft, bottomRight);
 
                     sentence.Glyphs[i] = new RenderableGlyph(glyph, location);

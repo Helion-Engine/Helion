@@ -1,5 +1,5 @@
 using System;
-using System.Numerics;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Audio
 {
@@ -21,14 +21,14 @@ namespace Helion.Audio
         /// The location this audio source is to be played it. This is in world
         /// coordinates.
         /// </summary>
-        void SetPosition(Vector3 pos);
+        void SetPosition(Vec3F pos);
 
-        Vector3 GetPosition();
+        Vec3F GetPosition();
 
         /// <summary>
         /// The velocity (in map units) of the audio source.
         /// </summary>
-        void SetVelocity(Vector3 velocity);
+        void SetVelocity(Vec3F velocity);
 
         AudioData AudioData { get; set; }
 

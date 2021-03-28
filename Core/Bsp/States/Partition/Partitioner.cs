@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Miniseg;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Geometry.Segments.Enums;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

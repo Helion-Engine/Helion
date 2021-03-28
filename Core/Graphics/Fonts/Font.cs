@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Fonts

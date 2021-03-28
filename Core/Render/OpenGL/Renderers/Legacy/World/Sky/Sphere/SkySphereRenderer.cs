@@ -1,6 +1,6 @@
 using System;
-using System.Numerics;
 using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
@@ -90,7 +90,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere
             // the OpenGL coordinate transformation system. We will also move
             // our body upwards by 20% (so 0.1 units since r = 0.5) so prevent
             // the horizon from appearing.
-            Vector3 direction = renderInfo.Camera.Direction;
+            Vec3F direction = renderInfo.Camera.Direction;
             vec3 pos = new vec3(0.0f, 0.1f, 0.0f);
             vec3 eye = new vec3(direction.X, direction.Z, -direction.Y);
             mat4 view = mat4.LookAt(pos, pos + eye, UpOpenGL);

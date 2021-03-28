@@ -1,4 +1,4 @@
-﻿using Helion.Util.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Planes

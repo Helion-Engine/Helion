@@ -1,6 +1,5 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Doom.Components
 {
@@ -13,7 +12,7 @@ namespace Helion.Maps.Doom.Components
         public DoomVertex(int id, Vec2Fixed positionFixed)
         {
             Id = id;
-            Position = positionFixed.ToDouble();
+            Position = positionFixed.Double;
             PositionFixed = positionFixed;
         }
     }

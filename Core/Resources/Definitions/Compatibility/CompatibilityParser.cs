@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.Parser;
 using NLog;
 
@@ -138,7 +138,7 @@ namespace Helion.Resources.Definitions.Compatibility
                 int x = ConsumeSignedInteger();
                 Consume(',');
                 int y = ConsumeSignedInteger();
-                sideSetDefinition.Offset = new Vec2I(x, y);
+                sideSetDefinition.Offset = (x, y);
             }
             
             m_mapDefinition.Sides.Add(sideSetDefinition);

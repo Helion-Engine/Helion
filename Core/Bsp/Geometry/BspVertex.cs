@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Graphs;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Bsp.Geometry
 {
@@ -8,7 +8,7 @@ namespace Helion.Bsp.Geometry
     {
         public readonly Vec2D Position;
         public readonly int Index;
-        public readonly List<BspSegment> Edges = new List<BspSegment>();
+        public readonly List<BspSegment> Edges = new();
 
         public BspVertex(Vec2D position, int index)
         {

@@ -1,5 +1,5 @@
 using System;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Boxes
@@ -139,9 +139,8 @@ namespace Helion.Util.Geometry.Boxes
         /// Gets a 2-dimensional box by dropping the Z axis.
         /// </summary>
         /// <returns>The two dimensional representation of this box.</returns>
-        public Box2D To2D() => new Box2D(Min.To2D(), Max.To2D());
+        public Box2D To2D() => new(Min.XY, Max.XY);
 
-        /// <inheritdoc/>
         public override string ToString() => $"({Min}), ({Max})";
     }
 }

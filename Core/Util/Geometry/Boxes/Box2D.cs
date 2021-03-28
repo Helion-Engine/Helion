@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 

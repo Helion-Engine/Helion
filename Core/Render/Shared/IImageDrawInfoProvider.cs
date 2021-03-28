@@ -1,8 +1,7 @@
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
 using Helion.Resources;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Render.Shared
 {

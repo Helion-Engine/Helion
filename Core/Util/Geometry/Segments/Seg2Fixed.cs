@@ -1,15 +1,16 @@
 using System;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Vectors;
+using Helion.Util.Geometry.Segments.Enums;
 
-namespace Helion.Util.Geometry.Segments.Enums
+namespace Helion.Util.Geometry.Segments
 {
     /// <summary>
     /// The full class of a 2D segment for the type provided.
     /// </summary>
     /// <remarks>
-    /// Contains more members for when we expect to reuse certainl values that
+    /// Contains more members for when we expect to reuse certain values that
     /// have a computational cost of calculating. This should be the first one
     /// to use instead of the 'base' version it inherits from, unless there is
     /// proof in the profiler that this has some bottleneck.
@@ -124,27 +125,12 @@ namespace Helion.Util.Geometry.Segments.Enums
                 throw new InvalidOperationException("Invalid box intersection direction enumeration");
             }
         }
-
-        /// <summary>
-        /// Checks if the segments are collinear to each other.
-        /// </summary>
-        /// <param name="seg">The segment to check.</param>
-        /// <returns>True if collinear, false if not.</returns>
-        public bool Collinear(Seg2FixedBase seg)
-        {
-            // If the midpoint of the provided segment is on the current segment
-            // line, it's reasonably collinear.
-            Vec2Fixed midpoint = (seg.Start + seg.End) / 2;
-            Vec2Fixed expectedMidpoint = FromTime(ToTime(midpoint));
-            return midpoint.EqualTo(expectedMidpoint);
-        }
         
-        /// <inheritdoc/>
         public override string ToString() => $"({Start}), ({End})";
         
         private static Box2Fixed MakeBox(Vec2Fixed start, Vec2Fixed end)
         {
-            return new Box2Fixed(
+            return new(
                 new Vec2Fixed(new Fixed(Math.Min(start.X.Bits, end.X.Bits)), 
                     new Fixed(Math.Min(start.Y.Bits, end.Y.Bits))),
                 new Vec2Fixed(new Fixed(Math.Max(start.X.Bits, end.X.Bits)), 

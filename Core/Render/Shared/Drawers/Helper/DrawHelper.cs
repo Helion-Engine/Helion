@@ -1,13 +1,12 @@
 using System;
 using System.Drawing;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers.Helper

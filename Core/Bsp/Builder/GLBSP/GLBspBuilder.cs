@@ -4,14 +4,13 @@ using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using GLBspNode = Helion.Maps.Components.GL.GLNode;
 

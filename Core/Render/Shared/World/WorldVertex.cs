@@ -1,4 +1,4 @@
-using System.Numerics;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Render.Shared.World
 {
@@ -24,7 +24,7 @@ namespace Helion.Render.Shared.World
         {
         }
 
-        public WorldVertex(Vector3 position, Vector2 uv) :
+        public WorldVertex(Vec3F position, Vec2F uv) :
             this(position.X, position.Y, position.Z, uv.X, uv.Y)
         {
         }

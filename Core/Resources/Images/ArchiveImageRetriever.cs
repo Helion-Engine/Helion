@@ -1,12 +1,12 @@
 using System.Drawing;
 using System.IO;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using Image = Helion.Graphics.Image;
 
@@ -125,7 +125,7 @@ namespace Helion.Resources.Images
             {
                 try
                 {
-                    image = new Image(new Bitmap(new MemoryStream(data), true), new ImageMetadata(new Vec2I(0, 0), entry.Namespace));
+                    image = new Image(new Bitmap(new MemoryStream(data), true), new ImageMetadata(Vec2I.Zero, entry.Namespace));
                 }
                 catch
                 {

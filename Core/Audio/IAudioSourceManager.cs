@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Audio
 {

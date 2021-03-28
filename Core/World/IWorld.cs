@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Util.Configs;
 using Helion.Resources.Definitions.Language;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -20,7 +20,6 @@ using Helion.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
 using Helion.Models;
-using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 
 namespace Helion.World

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Input
 {
@@ -26,7 +26,7 @@ namespace Helion.Input
         /// <summary>
         /// The mouse movement since the last update.
         /// </summary>
-        public Vec2I MouseMove => m_mouseMove.ToInt();
+        public Vec2I MouseMove => m_mouseMove.Int;
 
         /// <summary>
         /// The characters typed on the keyboard since the last update.

@@ -2,8 +2,8 @@
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Segments.Enums;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Node
@@ -87,7 +87,7 @@ namespace Helion.Bsp.Node
             List<ConvexTraversalPoint> traversal = convexTraversal.Traversal;
             Precondition(traversal.Count >= 3, "Traversal must yield at least a triangle in size");
             
-            List<SubsectorEdge> subsectorEdges = new List<SubsectorEdge>();
+            List<SubsectorEdge> subsectorEdges = new();
 
             ConvexTraversalPoint firstTraversal = traversal.First();
             Vec2D startPoint = firstTraversal.Vertex;

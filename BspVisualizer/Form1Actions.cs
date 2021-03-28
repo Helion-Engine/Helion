@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
 namespace BspVisualizer
 {

@@ -3,8 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using Helion.Geometry;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

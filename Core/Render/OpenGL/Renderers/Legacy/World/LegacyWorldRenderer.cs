@@ -1,4 +1,5 @@
 using System;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -14,7 +15,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities.Players;
@@ -94,8 +94,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
         {
-            Vec2D position = renderInfo.Camera.Position.To2D().ToDouble();
-            Vec2D viewDirection = renderInfo.Camera.Direction.To2D().ToDouble();
+            Vec2D position = renderInfo.Camera.Position.XY.Double;
+            Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
 
             m_viewClipper.Center = position;
             RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);

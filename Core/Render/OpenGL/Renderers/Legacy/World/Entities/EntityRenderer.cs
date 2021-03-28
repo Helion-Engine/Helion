@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Numerics;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Shared.World.ViewClipping;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Subsectors;
@@ -80,7 +78,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
                 if (entity.Definition.Properties.Alpha < 1)
                 {
-                    entity.RenderDistance = entity.Position.To2D().Distance(position);
+                    entity.RenderDistance = entity.Position.XY.Distance(position);
                     m_alphaEntities.Add(entity);
                     continue;
                 }
@@ -143,16 +141,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         {
             // We need to find the perpendicular vector from the entity so we
             // know where to place the quad vertices.
-            Vector2 rightNormal = viewDirection.OriginRightRotate90().Unit().ToFloat();
-            Vector2 entityCenterXY = entityCenterBottom.To2D().ToFloat();
+            Vec2F rightNormal = viewDirection.RotateRight90().Unit().Float;
+            Vec2F entityCenterXY = entityCenterBottom.XY.Float;
 
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
             entityCenterXY.X += rightNormal.X * texture.Metadata.Offset.X;
             entityCenterXY.Y += rightNormal.Y * texture.Metadata.Offset.X;
 
-            Vector2 halfWidth = rightNormal * texture.Dimension.Width / 2;
-            Vector2 left = entityCenterXY - halfWidth;
-            Vector2 right = entityCenterXY + halfWidth;
+            Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
+            Vec2F left = entityCenterXY - halfWidth;
+            Vec2F right = entityCenterXY + halfWidth;
 
             float bottomZ = (float)entityCenterBottom.Z + texture.Metadata.Offset.Y;
             float topZ = bottomZ + texture.Height;
@@ -180,8 +178,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private void AddSpriteDebugBox(Entity entity)
         {
             Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
-            Vector3 min = new Vec3D(centerBottom.X - entity.Radius, centerBottom.Y - entity.Radius, centerBottom.Z).ToFloat();
-            Vector3 max = new Vec3D(centerBottom.X + entity.Radius, centerBottom.Y + entity.Radius, centerBottom.Z + entity.Height).ToFloat();
+            Vec3F min = new Vec3D(centerBottom.X - entity.Radius, centerBottom.Y - entity.Radius, centerBottom.Z).Float;
+            Vec3F max = new Vec3D(centerBottom.X + entity.Radius, centerBottom.Y + entity.Radius, centerBottom.Z + entity.Height).Float;
 
             // These are the indices for the corners on the ASCII art further
             // down in the image.
@@ -242,7 +240,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
         private void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
         {
             Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
-            Vec2D entityPos = centerBottom.To2D();
+            Vec2D entityPos = centerBottom.XY;
 
             var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.Sprite);
             uint rotation;

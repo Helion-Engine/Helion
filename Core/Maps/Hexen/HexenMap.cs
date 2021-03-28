@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Doom;
@@ -12,11 +13,8 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
-using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Container;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -288,7 +286,7 @@ namespace Helion.Maps.Hexen
                 Fixed x = new Fixed(reader.ReadInt16(), 0);
                 Fixed y = new Fixed(reader.ReadInt16(), 0);
                 Fixed z = new Fixed(reader.ReadInt16(), 0);
-                Vec3Fixed position = new Vec3Fixed(x, y, z);
+                Vec3Fixed position = (x, y, z);
                 ushort angle = reader.ReadUInt16();
                 ushort editorNumber = reader.ReadUInt16();
                 ThingFlags flags = ThingFlags.ZDoom(reader.ReadUInt16());

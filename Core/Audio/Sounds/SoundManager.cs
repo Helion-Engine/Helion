@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Sound;
@@ -259,9 +259,9 @@ namespace Helion.Audio.Sounds
             if (soundParams.Attenuation != Attenuation.None)
             {
                 if (pos != null)
-                    audioSource.SetPosition(pos.Value.ToFloat());
+                    audioSource.SetPosition(pos.Value.Float);
                 if (velocity != null)
-                    audioSource.SetVelocity(velocity.Value.ToFloat());
+                    audioSource.SetVelocity(velocity.Value.Float);
             }
 
             if (waitLoopSound)

@@ -1,26 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Helion.Bsp;
-using Helion.Bsp.Builder.GLBSP;
-using Helion.Bsp.External;
 using Helion.Bsp.Node;
+using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
-using Helion.Resources.Archives;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Locator;
 using Helion.Util;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using MoreLinq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -208,7 +201,7 @@ namespace Helion.World.Bsp
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
 
             Sector sector = GetSectorFrom(node, builder);
-            Subsector subsector = new Subsector((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
+            Subsector subsector = new((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
             Subsectors[m_nextSubsectorIndex] = subsector;
 
             return BspCreateResult.Subsector(m_nextSubsectorIndex++);
@@ -216,7 +209,7 @@ namespace Helion.World.Bsp
 
         private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
         {
-            List<SubsectorSegment> returnSegments = new List<SubsectorSegment>();
+            List<SubsectorSegment> returnSegments = new();
 
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {

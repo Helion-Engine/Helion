@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Bytes;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 
 namespace Helion.Resources.Definitions.Texture
@@ -54,10 +54,10 @@ namespace Helion.Resources.Definitions.Texture
                     reader.Advance(4); // Skip columndirectory, so no Strife.
                     int numPatches = reader.ReadInt16();
 
-                    List<TextureXPatch> patches = new List<TextureXPatch>();
+                    List<TextureXPatch> patches = new();
                     for (int patchIndex = 0; patchIndex < numPatches; patchIndex++)
                     {
-                        Vec2I patchOffset = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
+                        Vec2I patchOffset = (reader.ReadInt16(), reader.ReadInt16());
                         short index = reader.ReadInt16();
                         reader.Advance(4); // Skip stepdir/colormap
 

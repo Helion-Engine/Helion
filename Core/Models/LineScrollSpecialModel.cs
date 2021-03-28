@@ -1,4 +1,4 @@
-﻿using Helion.Util.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Special;
 using Helion.World.Special.Specials;

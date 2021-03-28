@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
 using Helion.Models;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
-using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
@@ -349,14 +348,14 @@ namespace Helion.World.Entities.Players
                 float yaw = (float)(m_prevAngle + t * (AngleRadians - m_prevAngle));
                 float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
 
-                return new Camera(position.ToFloat(), yaw, pitch);
+                return new Camera(position.Float, yaw, pitch);
             }
             else
             {
                 float yaw = (float)AngleRadians;
                 float pitch = (float)PitchRadians;
 
-                return new Camera(position.ToFloat(), yaw, pitch);
+                return new Camera(position.Float, yaw, pitch);
             }
         }
 

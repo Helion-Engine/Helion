@@ -6,7 +6,6 @@ using Helion.Resources;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Fonts
@@ -118,7 +117,7 @@ namespace Helion.Graphics.Fonts
                 image = image.ToBrightnessCopy();
 
             Image glyphImage = new Image(image.Width, maxHeight, Color.Transparent);
-            image.DrawOnTopOf(glyphImage, new Vec2I(0, startY));
+            image.DrawOnTopOf(glyphImage, (0, startY));
 
             return new Glyph(c, glyphImage);
         }

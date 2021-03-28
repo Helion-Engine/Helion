@@ -1,12 +1,10 @@
 using System;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments.Enums;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Util.Geometry.Segments
 {
-    //  TODO: Convert to a struct?
-    
     /// <summary>
     /// The full class of a 2D segment for the type provided.
     /// </summary>

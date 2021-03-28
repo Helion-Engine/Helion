@@ -1,6 +1,5 @@
 using Helion.Geometry;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Bsp.Builder.GLBSP
 {
@@ -17,6 +16,6 @@ namespace Helion.Bsp.Builder.GLBSP
             Y = y;
         }
 
-        public Vec2D ToDouble() => new Vec2D(X.ToDouble(), Y.ToDouble());
+        public Vec2D ToDouble() => new(X.ToDouble(), Y.ToDouble());
     }
 }

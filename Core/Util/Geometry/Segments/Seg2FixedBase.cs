@@ -1,7 +1,7 @@
 ﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments.Enums;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Segments
@@ -193,24 +193,6 @@ namespace Helion.Util.Geometry.Segments
         }
 
         /// <summary>
-        /// Gets the closest distance from the point provided to this segment.
-        /// </summary>
-        /// <param name="point">The point to evaluate.</param>
-        /// <returns>The closest distance.</returns>
-        public Fixed ClosestDistance(Vec2Fixed point)
-        {
-            // Source: https://math.stackexchange.com/questions/2193720/find-a-point-on-a-line-segment-which-is-the-closest-to-other-point-not-on-the-li
-            Vec2Fixed pointToStartDelta = Start - point;
-            Fixed t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
-
-            if (t <= 0)
-                return point.Distance(Start);
-            else if (t >= 1)
-                return point.Distance(End);
-            return point.Distance(FromTime(t));
-        }
-
-        /// <summary>
         /// Checks if an intersection exists. This treats both of the segments
         /// as segments, not as infinite lines.
         /// </summary>
@@ -302,24 +284,5 @@ namespace Helion.Util.Geometry.Segments
             tOther = ((-Delta.Y * startDelta.X) + (Delta.X * startDelta.Y)) * inverseDeterminant;
             return true;
         }
-
-        /// <summary>
-        /// Gets the length of the segment.
-        /// </summary>
-        /// <returns>The length of the segment.</returns>
-        public Fixed Length() => Delta.Length();
-
-        /// <summary>
-        /// Gets the squared length of the segment.
-        /// </summary>
-        /// <returns>The squared length of the segment.</returns>
-        public Fixed LengthSquared() => Delta.LengthSquared();
-        
-        /// <summary>
-        /// Gets the normal for this segment, which is equal to rotating the
-        /// delta to the right by 90 degrees.
-        /// </summary>
-        /// <returns>The 90 degree right angle rotation of the delta.</returns>
-        public Vec2Fixed RightNormal() => Delta.OriginRightRotate90();
     }
 }

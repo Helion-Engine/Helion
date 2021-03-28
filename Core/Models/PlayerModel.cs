@@ -1,6 +1,6 @@
-﻿using Helion.Util.Geometry.Vectors;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Models
 {

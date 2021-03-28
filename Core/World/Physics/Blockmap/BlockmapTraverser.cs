@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using Helion.Geometry.Grids;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -115,7 +114,7 @@ namespace Helion.World.Physics.Blockmap
                         else if (box != null && box.Value.Overlaps(entity.Box))
                         {
                             m_entityMap.Add(entity.Id);
-                            Vec2D pos = entity.Position.To2D();
+                            Vec2D pos = entity.Position.XY;
                             intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
                         }
                     }

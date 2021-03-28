@@ -1,6 +1,6 @@
 ﻿using Helion.Audio;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.SoundInfo;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 
 namespace Helion.World.Sound

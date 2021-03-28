@@ -1,7 +1,6 @@
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments.Enums;
-using Helion.Util.Geometry.Vectors;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Segments
 {
@@ -352,7 +351,7 @@ namespace Helion.Util.Geometry.Segments
         /// delta to the right by 90 degrees.
         /// </summary>
         /// <returns>The 90 degree right angle rotation of the delta.</returns>
-        public Vec2D RightNormal() => Delta.OriginRightRotate90();
+        public Vec2D RightNormal() => Delta.RotateRight90();
 
         /// <inheritdoc/>
         public override string ToString() => $"({Start}), ({End})";

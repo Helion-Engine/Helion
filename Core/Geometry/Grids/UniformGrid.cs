@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Geometry.Grids
 {
@@ -139,7 +139,7 @@ namespace Helion.Geometry.Grids
             // are assuming it is inside the grid, so when we subtract the
             // origin, it'll always be positive. Positive values when cast to
             // integers are equivalent to flooring.
-            Vec2I startingBlock = blockUnitStart.ToInt();
+            Vec2I startingBlock = blockUnitStart.Int;
             int blockIndex = IndexFromBlockCoordinate(startingBlock);
             
             // This contains the steps that we will add to the block index. As
@@ -247,8 +247,8 @@ namespace Helion.Geometry.Grids
         public bool Iterate(Box2D box, Func<T, GridIterationStatus> func)
         {           
             // See the Iterate() function for why we don't need to floor here.
-            Vec2I blockUnitStart = ((box.Min - Origin) / Dimension).ToInt();
-            Vec2I blockUnitEnd = ((box.Max - Origin) / Dimension).Ceil().ToInt();
+            Vec2I blockUnitStart = ((box.Min - Origin) / Dimension).Int;
+            Vec2I blockUnitEnd = ((box.Max - Origin) / Dimension).Ceiling().Int;
 
             // It's less computationally expensive to do row-major iterations
             // than to calculate each cell with `index = y*w + x`, since that

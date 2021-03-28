@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
 
@@ -110,7 +110,7 @@ namespace Helion.World.Sound
                     {
                         Vec3D? position = node.Value.AudioData.SoundSource.GetSoundPosition(m_world.ListenerEntity);
                         if (position != null)
-                            node.Value.SetPosition(position.Value.ToFloat());
+                            node.Value.SetPosition(position.Value.Float);
                     }
                 }
 

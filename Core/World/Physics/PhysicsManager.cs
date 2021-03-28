@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Audio;
 using Helion.Geometry;
 using Helion.Geometry.Grids;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -156,7 +153,7 @@ namespace Helion.World.Physics
                 entity.PrevPosition.Z = entity.PrevSaveZ;
                 // This allows the player to pickup items like the original
                 if (entity is Player)
-                    IsPositionValid(entity, entity.Position.To2D(), m_tryMoveData);
+                    IsPositionValid(entity, entity.Position.XY, m_tryMoveData);
 
                 if ((moveType == SectorPlaneType.Ceiling && startZ < destZ) || 
                     (moveType == SectorPlaneType.Floor && startZ > destZ))
@@ -620,7 +617,7 @@ namespace Helion.World.Physics
                 // the actor so we don't skip over any lines or things due to fast
                 // entity speed.
                 int slidesLeft = MaxSlides;
-                Vec2D velocity = position - entity.Position.To2D();
+                Vec2D velocity = position - entity.Position.XY;
                 int numMoves = CalculateSteps(velocity, entity.Radius);
                 Vec2D stepDelta = velocity / numMoves;
 
@@ -629,7 +626,7 @@ namespace Helion.World.Physics
                     if (stepDelta == Vec2D.Zero || m_world.WorldState == WorldState.Exit)
                         break;
 
-                    Vec2D nextPosition = entity.Position.To2D() + stepDelta;
+                    Vec2D nextPosition = entity.Position.XY + stepDelta;
 
                     if (IsPositionValid(entity, nextPosition, m_tryMoveData))
                     {
@@ -835,7 +832,7 @@ namespace Helion.World.Physics
         {
             entity.UnlinkFromWorld();
 
-            Vec2D previousPosition = entity.Position.To2D();
+            Vec2D previousPosition = entity.Position.XY;
             entity.SetXY(nextPosition);
 
             LinkToWorld(entity, tryMove);
@@ -850,7 +847,7 @@ namespace Helion.World.Physics
                 return;
 
             bool fromFront = line.Segment.OnRight(previousPosition);
-            if (fromFront != line.Segment.OnRight(entity.Position.To2D()))
+            if (fromFront != line.Segment.OnRight(entity.Position.XY))
             {
                 if (line.Special.IsTeleport() && !fromFront)
                     return;
@@ -909,7 +906,7 @@ namespace Helion.World.Physics
             bool hit = false;
             double hitTime = double.MaxValue;
             Line? blockingLine = null;
-            Vec2D position = entity.Position.To2D();
+            Vec2D position = entity.Position.XY;
             m_blockmap.Iterate(cornerTracer, CheckForTracerHit);
 
             if (hit && hitTime < moveInfo.LineIntersectionTime)
@@ -978,7 +975,7 @@ namespace Helion.World.Physics
             Vec2D usedStepDelta = stepDelta * t;
             residualStep = stepDelta - usedStepDelta;
 
-            Vec2D closeToLinePosition = entity.Position.To2D() + usedStepDelta;
+            Vec2D closeToLinePosition = entity.Position.XY + usedStepDelta;
             if (IsPositionValid(entity, closeToLinePosition, tryMove))
             {
                 MoveTo(entity, closeToLinePosition, tryMove);
@@ -1034,7 +1031,7 @@ namespace Helion.World.Physics
         {
             if (axis == Axis2D.X)
             {
-                Vec2D nextPosition = entity.Position.To2D() + new Vec2D(stepDelta.X, 0);
+                Vec2D nextPosition = entity.Position.XY + new Vec2D(stepDelta.X, 0);
                 if (IsPositionValid(entity, nextPosition, tryMove))
                 {
                     MoveTo(entity, nextPosition, tryMove);
@@ -1045,7 +1042,7 @@ namespace Helion.World.Physics
             }
             else
             {
-                Vec2D nextPosition = entity.Position.To2D() + new Vec2D(0, stepDelta.Y);
+                Vec2D nextPosition = entity.Position.XY + new Vec2D(0, stepDelta.Y);
                 if (IsPositionValid(entity, nextPosition, tryMove))
                 {
                     MoveTo(entity, nextPosition, tryMove);
@@ -1060,10 +1057,10 @@ namespace Helion.World.Physics
 
         private void MoveXY(Entity entity)
         {
-            if (entity.Velocity.To2D() == Vec2D.Zero)
+            if (entity.Velocity.XY == Vec2D.Zero)
                 return;
 
-            TryMoveData tryMove = TryMoveXY(entity, (entity.Position + entity.Velocity).To2D());
+            TryMoveData tryMove = TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
             if (!tryMove.Success)
                 m_world.HandleEntityHit(entity, entity.Velocity, tryMove);
             if (entity.ShouldApplyFriction())

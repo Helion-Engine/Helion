@@ -1,5 +1,5 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Bsp.Geometry
 {

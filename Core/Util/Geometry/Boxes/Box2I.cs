@@ -1,6 +1,6 @@
 using System.Diagnostics.Contracts;
 using Helion.Geometry;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Geometry.Boxes
@@ -75,7 +75,7 @@ namespace Helion.Util.Geometry.Boxes
         /// <summary>
         /// A property that calculates the dimension of the box.
         /// </summary>
-        public Dimension Dimension => new Dimension(Width, Height);
+        public Dimension Dimension => new(Width, Height);
 
         /// <summary>
         /// Creates a box from a bottom left and top right point. It is an 

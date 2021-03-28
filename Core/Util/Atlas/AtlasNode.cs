@@ -1,8 +1,7 @@
 using System;
 using Helion.Geometry;
-using Helion.Util.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Atlas
@@ -73,7 +72,7 @@ namespace Helion.Util.Atlas
         /// </param>
         public AtlasNode(Dimension atlasDimension)
         {
-            Location = new Box2I(new Vec2I(0, 0), atlasDimension.Vector);
+            Location = new Box2I(new(0, 0), atlasDimension.Vector);
             m_maxAvailableDimensions = atlasDimension;
         }
 
@@ -168,7 +167,7 @@ namespace Helion.Util.Atlas
         internal void EmplaceExistingTree(AtlasNode treeRoot)
         {
             Precondition(!HasChildren, "Trying to fuse a child atlas tree into to a non-empty node");
-            Precondition(Location.BottomLeft.IsOrigin, "All the locations of the child nodes will be wrong");
+            Precondition(Location.BottomLeft == Vec2I.Zero, "All the locations of the child nodes will be wrong");
             
             m_left = treeRoot.m_left;
             m_right = treeRoot.m_right;
