@@ -338,14 +338,10 @@ namespace Helion.World
 
         private void InitBossBrainTargets()
         {
-            List<Entity> targets = new List<Entity>();
-            EntityManager.Entities.ForEach(entity =>
-            {
-                if (entity.Definition.Name == "BOSSTARGET")
-                    targets.Add(entity);
-            });
-
-            m_bossBrainTargets = targets.ToArray();
+            // Doom chose for some reason to iterate in reverse order.
+            m_bossBrainTargets = EntityManager.Entities.Where(e => e.Definition.Name == "BOSSTARGET")
+                .Reverse()
+                .ToArray();
         }
 
         public IEnumerable<Sector> FindBySectorTag(int tag)

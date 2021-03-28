@@ -522,14 +522,18 @@ namespace Helion.World.Entities.Definition.States
 
             double pitch = entity.PitchTo(target);
             Entity? spawnShot = entity.World.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
-            if (spawnShot != null)
-            {
-                spawnShot.Flags.NoClip = true;
-                spawnShot.AngleRadians = entity.Position.Angle(target.Position);
-                spawnShot.Velocity = Vec3D.UnitTimesValue(spawnShot.AngleRadians, pitch, spawnShot.Definition.Properties.Speed);
-                spawnShot.Target = target;
-                spawnShot.ReactionTime = (int)(entity.Position.Distance(target.Position) / spawnShot.Definition.Properties.Speed / (spawnShot.Frame.Ticks*2));
-            }
+            if (spawnShot == null)
+                return;
+
+            double distance = entity.Position.Distance(target.Position);
+            double speed = spawnShot.Definition.Properties.Speed;
+            double reactionTime = distance / speed;
+
+            spawnShot.Flags.NoClip = true;
+            spawnShot.AngleRadians = entity.Position.Angle(target.Position);
+            spawnShot.Velocity = Vec3D.UnitTimesValue(spawnShot.AngleRadians, pitch, speed);
+            spawnShot.Target = target;
+            spawnShot.ReactionTime = (int)reactionTime;
 
             entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
@@ -541,10 +545,10 @@ namespace Helion.World.Entities.Definition.States
                 entity.EntityManager.Destroy(entity);
                 return;
             }
-
+            
             if (--entity.ReactionTime > 0)
                 return;
-
+                
             entity.EntityManager.Create("ArchvileFire", entity.Target.Position);
             entity.SoundManager.CreateSoundOn(entity.Target, "misc/teleport", SoundChannelType.Auto, new SoundParams(entity));
 
