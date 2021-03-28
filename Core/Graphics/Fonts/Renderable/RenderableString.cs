@@ -112,7 +112,7 @@ namespace Helion.Graphics.Fonts.Renderable
 
             // We want to pick the largest X, but sum up the Y.
             return Sentences
-                .Select(s => s.DrawArea.ToVector())
+                .Select(s => s.DrawArea.Vector)
                 .Aggregate((acc, area) => new Vec2I(Math.Max(acc.X, area.X), acc.Y + area.Y))
                 .ToDimension();
         }

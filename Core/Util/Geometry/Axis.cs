@@ -5,4 +5,11 @@ namespace Helion.Util.Geometry
         X,
         Y,
     }
+    
+    public enum Axis3D
+    {
+        X,
+        Y,
+        Z
+    }
 }

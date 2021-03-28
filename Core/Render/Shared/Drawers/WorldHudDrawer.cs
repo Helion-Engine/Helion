@@ -369,7 +369,7 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
         {
-            Vec2I center = viewport.ToVector() / 2;
+            Vec2I center = viewport.Vector / 2;
             Vec2I horizontalStart = center - new Vec2I(CrosshairLength, CrosshairHalfWidth);
             Vec2I verticalStart = center - new Vec2I(CrosshairHalfWidth, CrosshairLength);
 

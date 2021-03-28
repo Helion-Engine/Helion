@@ -27,29 +27,10 @@ namespace Helion.Util.Geometry
         /// </summary>
         public static Fixed Epsilon() => new Fixed(0x00000008);
 
-        /// <summary>
-        /// A representation of 0.0.
-        /// </summary>
-        public static Fixed Zero() => FromInt(0);
-
-        /// <summary>
-        /// A representation of 1.0.
-        /// </summary>
-        public static Fixed One() => FromInt(1);
-
-        /// <summary>
-        /// A representation of -1.0.
-        /// </summary>
-        public static Fixed NegativeOne() => FromInt(-1);
-
-        /// <summary>
-        /// The most negative fixed point value.
-        /// </summary>
+        public static Fixed Zero() => From(0);
+        public static Fixed One() => From(1);
+        public static Fixed NegativeOne() => From(-1);
         public static Fixed Lowest() => new Fixed(0x80000000);
-
-        /// <summary>
-        /// The largest fixed point value.
-        /// </summary>
         public static Fixed Max() => new Fixed(0x7FFFFFFF);
 
         /// <summary>
@@ -63,18 +44,10 @@ namespace Helion.Util.Geometry
         /// <param name="bits">The bits to make up the number.</param>
         public Fixed(int bits) => Bits = bits;
 
-        /// <summary>
-        /// Creates a fixed point value from the number provided.
-        /// </summary>
-        /// <param name="f">The floating point value to convert.</param>
         public Fixed(float f) : this((int)(f * 65536.0f)) 
         {
         }
 
-        /// <summary>
-        /// Creates a fixed point value from the number provided.
-        /// </summary>
-        /// <param name="d">The double to convert.</param>
         public Fixed(double d) : this((int)(d * 65536.0)) 
         { 
         }
@@ -89,15 +62,7 @@ namespace Helion.Util.Geometry
         {
         }
 
-        /// <summary>
-        /// Takes an integer and turns it into fixed point. This means a value
-        /// of 24 would become 24.0 in fixed point, not 24/65536.
-        /// </summary>
-        /// <param name="i">The integer to make into fixed point.</param>
-        /// <returns>The fixed point value for the integer.</returns>
-        public static Fixed FromInt(int i) => new Fixed(i << UnitBits);
-
-        public static Fixed From(int i) => FromInt(i);
+        public static Fixed From(int i) => new(i << UnitBits);
         public static Fixed From(float f) => new(f);
         public static Fixed From(double d) => new(d);
         
@@ -137,20 +102,18 @@ namespace Helion.Util.Geometry
             // that are really far apart from overflowing or becoming zero.
             if ((Math.Abs(numerator.Bits) >> 14) >= Math.Abs(denominator.Bits))
                 return new Fixed((numerator.Bits ^ denominator.Bits) < 0 ? 0x80000000 : 0x7FFFFFFF);
-            else
-                return new Fixed((((ulong)numerator.Bits) << UnitBits) / (ulong)denominator.Bits);
+            return new Fixed((((ulong)numerator.Bits) << UnitBits) / (ulong)denominator.Bits);
         }
 
         public Fixed Floor()
         {
             if (Bits < 0)
-                return new Fixed(((Bits - FractionalMask) & IntegralMask) + 1); 
-            else
-                return new Fixed(Bits & IntegralMask);
+                return new Fixed(((Bits - FractionalMask) & IntegralMask) + 1);
+            return new Fixed(Bits & IntegralMask);
         }
 
-        public Fixed Abs() => new Fixed(Math.Abs(Bits));
-        public Fixed Sqrt() => new Fixed(Math.Sqrt(ToDouble()));
+        public Fixed Abs() => new(Math.Abs(Bits));
+        public Fixed Sqrt() => new(Math.Sqrt(ToDouble()));
         public Fixed Inverse() => One() / this;
         public int ToInt() => Bits >> UnitBits;
         public float ToFloat() => Bits / 65536.0f;

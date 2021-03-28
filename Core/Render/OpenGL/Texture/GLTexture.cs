@@ -49,7 +49,7 @@ namespace Helion.Render.OpenGL.Texture
             Name = name;
             Dimension = dimension;
             Metadata = metadata;
-            UVInverse = Vector2.One / dimension.ToVector().ToFloat();
+            UVInverse = Vector2.One / dimension.Vector.ToFloat();
             gl = functions;
             TextureType = textureType;
         }

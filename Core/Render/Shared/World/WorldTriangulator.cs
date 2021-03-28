@@ -347,7 +347,7 @@ namespace Helion.Render.Shared.World
         private static Vector2 CalculateFlatUV(in Vec2D vertex, in Dimension textureDimension)
         {
             // TODO: Sector offsets will go here eventually.
-            Vector2 uv = vertex.ToFloat() / textureDimension.ToVector().ToFloat();
+            Vector2 uv = vertex.ToFloat() / textureDimension.Vector.ToFloat();
             
             // When we map coordinates to their texture coordinates, because
             // we do division above, a coordinate with Y values of 16 to 32
