@@ -1,4 +1,5 @@
 using System.Diagnostics.Contracts;
+using Helion.Geometry;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 

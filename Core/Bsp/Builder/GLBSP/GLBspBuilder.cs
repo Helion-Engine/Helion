@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.Node;
+using Helion.Geometry;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;

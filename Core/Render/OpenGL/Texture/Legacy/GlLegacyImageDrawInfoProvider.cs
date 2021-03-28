@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using Helion.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Shared;
 using Helion.Resources;

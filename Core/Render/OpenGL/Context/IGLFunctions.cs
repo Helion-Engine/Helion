@@ -1,5 +1,6 @@
 using System;
 using GlmSharp;
+using Helion.Geometry;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;

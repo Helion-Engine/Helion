@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Util;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments;
 using Helion.Util.Geometry.Vectors;
 
-namespace Helion.Util.Geometry
+namespace Helion.Geometry.Grids
 {
     /// <summary>
     /// A callback return value for grid iteration.

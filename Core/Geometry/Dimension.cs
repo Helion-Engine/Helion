@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.Geometry
+namespace Helion.Geometry
 {
     /// <summary>
     /// A simple dimension wrapper around a width and height.
@@ -13,7 +12,7 @@ namespace Helion.Util.Geometry
         public int Width;
         public int Height;
         
-        public float AspectRatio => ((float)Width) / Height;
+        public float AspectRatio => (float)Width / Height;
         public Vec2I Vector => new(Width, Height);
 
         public Dimension(int width, int height)

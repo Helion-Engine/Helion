@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using GlmSharp;
+using Helion.Geometry;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Types;
 using Helion.Render.OpenGL.Context;

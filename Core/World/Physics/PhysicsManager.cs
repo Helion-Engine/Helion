@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
+using Helion.Geometry;
+using Helion.Geometry.Grids;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.Language;
 using Helion.Util;

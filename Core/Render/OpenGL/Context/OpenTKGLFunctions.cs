@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using GlmSharp;
+using Helion.Geometry;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;

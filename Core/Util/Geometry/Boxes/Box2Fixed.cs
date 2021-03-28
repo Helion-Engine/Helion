@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Helion.Geometry;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Doom.Components;

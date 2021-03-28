@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CodegenCS;
 
-namespace Generators
+namespace Generators.Generators
 {
     public class VectorGenerator
     {
@@ -64,6 +64,7 @@ namespace Generators
             w.WriteCommentHeader();
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
+            w.WriteLine("using GlmSharp;");
             w.WriteLine("using Helion.Util.Extensions;");
             w.WriteLine("using Helion.Util.Geometry;");
             w.WriteLine();
@@ -139,6 +140,9 @@ namespace Generators
                     w.WriteLine($"public {GetStructDimType(m_dimension, Types.Double)} Double => new({CommaSeparatePrefix("(double)", m_fields)});");
                 w.WriteLine($"public {GetStructDimType(m_dimension, Types.Fixed)} FixedPoint => new({CommaSeparateWrap("Fixed.From(", ")", m_fields)});");
             }
+
+            if (m_dimension == 3 && m_type == Types.Float)
+                w.WriteLine($"public vec3 GlmVector => new(X, Y, Z);");
 
             if (!m_isStruct)
                 w.WriteLine($"public {StructType} Struct => new({CommaSeparate(m_fields)});");
@@ -366,7 +370,7 @@ namespace Generators
                     w.WriteLine($"public {m_type.PrimitiveType()} Angle({GetInstanceDim(2)} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
                     WriteApproxDistance($"in {StructType}");
                     WriteApproxDistance(InstanceType);
-                    
+
                     void WriteApproxDistance(string param)
                     {
                         w.WithCBlock($"public {m_type.PrimitiveType()} ApproximateDistance2D({param} other)", () =>

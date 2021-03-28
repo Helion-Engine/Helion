@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Helion.Geometry;
 using Helion.Maps.Specials;
 using Helion.Resources;
 using Helion.Util;

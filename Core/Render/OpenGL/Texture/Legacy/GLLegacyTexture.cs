@@ -1,3 +1,4 @@
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;

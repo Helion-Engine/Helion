@@ -1,3 +1,4 @@
+using Helion.Geometry;
 using Helion.Graphics.String;
 using Helion.Resources;
 using Helion.Util.Geometry;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Helion.Geometry;
 
 namespace Helion.Util.Geometry.Vectors
 {

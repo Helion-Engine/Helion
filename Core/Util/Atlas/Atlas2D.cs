@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 

@@ -1,4 +1,5 @@
-﻿using Helion.Util.Geometry.Boxes;
+﻿using Helion.Geometry;
+using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Segments.Enums;
 using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;

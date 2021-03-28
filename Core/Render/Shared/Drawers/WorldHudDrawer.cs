@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Helion.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;

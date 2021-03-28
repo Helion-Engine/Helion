@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Geometry.Grids;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Boxes;
 using Helion.Util.Geometry.Vectors;

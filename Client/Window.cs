@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Client.Input;
+using Helion.Geometry;
 using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;

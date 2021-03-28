@@ -1,4 +1,5 @@
-﻿using Helion.Util.Geometry;
+﻿using Helion.Geometry;
+using Helion.Util.Geometry;
 
 namespace Helion.Render.Commands
 {

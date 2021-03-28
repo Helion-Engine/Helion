@@ -1,4 +1,6 @@
-﻿namespace Generators
+﻿using Generators.Generators;
+
+namespace Generators
 {
     public static class Start
     {

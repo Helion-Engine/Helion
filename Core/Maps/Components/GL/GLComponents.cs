@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Geometry;

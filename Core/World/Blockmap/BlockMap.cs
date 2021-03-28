@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Geometry.Grids;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;

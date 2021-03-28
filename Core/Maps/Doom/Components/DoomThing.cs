@@ -1,3 +1,4 @@
+using Helion.Geometry;
 using Helion.Maps.Components;
 using Helion.Maps.Doom.Components.Types;
 using Helion.Maps.Shared;

@@ -9,6 +9,7 @@ using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
 using Helion.Client.Input;
 using Helion.Client.Music;
+using Helion.Geometry;
 using Helion.Input;
 using Helion.Layer;
 using Helion.Render;

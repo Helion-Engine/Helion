@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;

@@ -1,4 +1,4 @@
-namespace Helion.Util.Geometry
+namespace Helion.Geometry
 {
     public enum Axis2D
     {
