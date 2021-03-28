@@ -1,6 +1,6 @@
 ﻿namespace Generators
 {
-    public static class Generator
+    public static class Start
     {
         public static void Main(string[] args)
         { 
