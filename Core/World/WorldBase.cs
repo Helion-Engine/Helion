@@ -40,6 +40,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
+using Helion.World.Cheats;
 
 namespace Helion.World
 {
@@ -1252,6 +1253,62 @@ namespace Helion.World
                     SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
                 }
             }
+        }
+
+        public void ActivateCheat(Player player, ICheat cheat)
+        {
+            if (cheat is ChangeLevelCheat changeLevel)
+            {
+                ChangeToLevel(changeLevel.LevelNumber);
+                return;
+            }
+
+            switch (cheat.CheatType)
+            {
+                case CheatType.NoClip:
+                    player.Flags.NoClip = player.Cheats.IsCheatActive(cheat.CheatType);
+                    break;
+                case CheatType.Fly:
+                    player.Flags.NoGravity = player.Cheats.IsCheatActive(cheat.CheatType);
+                    break;
+                case CheatType.Ressurect:
+                    if (player.IsDead)
+                        player.SetRaiseState();
+                    break;
+                case CheatType.God:
+                    player.Health = player.Definition.Properties.Player.MaxHealth;
+                    player.Flags.Invulnerable = player.Cheats.IsCheatActive(cheat.CheatType);
+                    break;
+                case CheatType.GiveAllNoKeys:
+                    GiveAllWeapons(player);
+                    player.GiveBestArmor(EntityManager.DefinitionComposer);
+                    break;
+                case CheatType.GiveAll:
+                    GiveAllWeapons(player);
+                    player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
+                    player.GiveBestArmor(EntityManager.DefinitionComposer);
+                    break;
+            }
+
+            string msg;
+            if (cheat.IsToggleCheat)
+                msg = string.Format("{0} cheat: {1}", player.Cheats.IsCheatActive(cheat.CheatType) ? "Activated" : "Deactivated", cheat.CheatName);
+            else
+                msg = cheat.CheatName;
+
+            DisplayMessage(player, null, msg, LanguageMessageType.None);
+        }
+
+        private void GiveAllWeapons(Player player)
+        {
+            foreach (CIString name in player.Inventory.Weapons.GetWeaponDefinitionNames())
+            {
+                var weapon = EntityManager.DefinitionComposer.GetByName(name);
+                if (weapon != null)
+                    player.GiveWeapon(weapon, autoSwitch: false);
+            }
+
+            player.Inventory.GiveAllAmmo(EntityManager.DefinitionComposer);
         }
 
         private void ApplyVooDooDamage(Player player, int damage, bool setPainState)
