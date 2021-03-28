@@ -101,6 +101,8 @@ namespace Helion.World.Physics.Blockmap
                                 continue;
                             if ((entityFlags & BlockmapTraverseEntityFlags.Corpse) != 0 && !entity.Flags.Corpse)
                                 continue;
+                            if ((entityFlags & BlockmapTraverseEntityFlags.NotCorpse) != 0 && entity.Flags.Corpse)
+                                continue;
                         }
 
                         if (m_entityMap.Contains(entity.Id))

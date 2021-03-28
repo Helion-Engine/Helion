@@ -759,7 +759,6 @@ namespace Helion.World.Entities
             {
                 Flags.Corpse = true;
                 Flags.Skullfly = false;
-                Flags.Solid = false;
                 Flags.Shootable = false;
                 if (!Flags.DontFall)
                     Flags.NoGravity = false;

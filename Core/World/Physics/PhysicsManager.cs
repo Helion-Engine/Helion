@@ -460,7 +460,7 @@ namespace Helion.World.Physics
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(),
-                    BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid);
+                    BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.NotCorpse);
 
                 for (int i = 0; i < intersections.Count; i++)
                 {
