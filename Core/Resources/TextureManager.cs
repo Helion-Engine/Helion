@@ -207,13 +207,70 @@ namespace Helion.Resources
 
         private void InitAnimations()
         {
+            InitBoomAnimations();
+            InitAnimDefs();
+        }
+
+        private void InitAnimDefs()
+        {
             foreach (var animTexture in m_archiveCollection.Definitions.Animdefs.AnimatedTextures)
             {
+                if (animTexture.Components.Count == 0)
+                    continue;
+
                 foreach (var component in animTexture.Components)
-                {
                     component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
-                    if (component.TextureIndex != Constants.NoTextureIndex)
-                        m_animations.Add(new Animation(animTexture, component.TextureIndex));
+
+                Animation animation = new Animation(animTexture, animTexture.Components[0].TextureIndex);
+                m_animations.Add(animation);
+                CreateComponentAnimations(animation);
+            }
+        }
+
+        private void InitBoomAnimations()
+        {
+            foreach (var animTexture in m_archiveCollection.Definitions.BoomAnimated.AnimatedTextures)
+            {
+                ResourceNamespace resNamespace = animTexture.IsTexture ? ResourceNamespace.Textures : ResourceNamespace.Flats;
+                int startIndex = GetTexture(animTexture.StartTexture, resNamespace).Index;
+                if (startIndex == Constants.NoTextureIndex)
+                    continue;
+                int endIndex = GetTexture(animTexture.EndTexture, resNamespace).Index;
+                if (endIndex == Constants.NoTextureIndex)
+                    continue;
+
+                if (endIndex <= startIndex)
+                    continue;
+
+                Animation animation = new Animation(new AnimatedTexture(GetTexture(startIndex).Name.ToString(), false, resNamespace), startIndex);
+                m_animations.Add(animation);
+
+                for (int i = startIndex + 1; i <= endIndex; i++)
+                {
+                    Texture texture = GetTexture(i);
+                    var component = new AnimatedTextureComponent(texture.Name.ToString(),
+                        animTexture.Tics, animTexture.Tics, textureIndex: i);
+                    animation.AnimatedTexture.Components.Add(component);
+                }
+
+                CreateComponentAnimations(animation);
+            }
+        }
+
+        private void CreateComponentAnimations(Animation animation)
+        {
+            for (int i = 0; i < animation.AnimatedTexture.Components.Count; i++)
+            {
+                int nextAnimIndex = animation.AnimatedTexture.Components[i].TextureIndex;
+                Animation nextAnim = new Animation(new AnimatedTexture(GetTexture(nextAnimIndex).Name.ToString(), false, 
+                    animation.AnimatedTexture.Namespace), nextAnimIndex);
+                m_animations.Add(nextAnim);
+
+                for (int j = 0; j < animation.AnimatedTexture.Components.Count; j++)
+                {
+                    int index = (i + j + 1) % animation.AnimatedTexture.Components.Count;
+                    var component = animation.AnimatedTexture.Components[index];
+                    nextAnim.AnimatedTexture.Components.Add(component);
                 }
             }
         }
