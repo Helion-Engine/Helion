@@ -1,12 +1,3 @@
-flat BLOOD1 range BLOOD3 tics 8
-flat FWATER1 range FWATER4 tics 8
-flat LAVA1 range LAVA4 tics 8
-flat NUKAGE1 range NUKAGE3 tics 8
-flat SLIME01 range SLIME04 tics 8
-flat SLIME05 range SLIME08 tics 8
-flat SLIME09 range SLIME12 tics 8
-flat SWATER1 range SWATER4 tics 8
-
 switch SW1BLUE on pic SW2BLUE tics 0
 switch SW1BRCOM on pic SW2BRCOM tics 0
 switch SW1BRIK on pic SW2BRIK tics 0
@@ -47,14 +38,3 @@ switch SW1VINE on pic SW2VINE tics 0
 switch SW1WDMET on pic SW2WDMET tics 0
 switch SW1WOOD on pic SW2WOOD tics 0
 switch SW1ZIM on pic SW2ZIM tics 0
-
-texture BFALL1 range BFALL4 tics 8
-texture FIREBLU1 range FIREBLU2 tics 8
-texture SFALL1 range SFALL4 tics 8
-texture WFALL1 range WFALL4 tics 8
-texture SLADRIP1 range SLADRIP3 tics 8
-texture BLODGR1 range BLODGR1 tics 8
-texture BLODRIP1 range BLODRIP4 tics 8
-texture GSTFONT1 range GSTFONT3 tics 8
-texture ROCKRED1 range ROCKRED3 tics 8
-texture FIREMAG1 range FIREMAG3 tics 8
