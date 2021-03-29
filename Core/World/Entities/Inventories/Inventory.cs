@@ -171,13 +171,12 @@ namespace Helion.World.Entities.Inventories
             bool overridehack = false;
             if (definition.Name == "BERSERK")
             {
-                definition.Properties.Powerup.Type = "Strength";
                 overridehack = true;
-                Weapon? fist = Owner.Inventory.Weapons.GetWeapon("FIST");
-                if (fist != null)
-                    Owner.ChangeWeapon(fist);
-                if (Owner.Health < 100)
-                    Owner.Health = 100;
+                GiveBerserk(definition);
+            }
+            else if (definition.Name == "MEGASPHERE")
+            {
+                GiveMegasphere();
             }
 
             if (definition.IsType(PowerupClassName) || overridehack)
@@ -220,6 +219,26 @@ namespace Helion.World.Entities.Inventories
             }
 
             return true;
+        }
+
+        private void GiveMegasphere()
+        {
+            EntityDefinition? definition = EntityDefinitionComposer.GetByName("BlueArmorForMegasphere");
+            if (definition != null)
+                Owner.GiveItem(definition, null);
+            definition = EntityDefinitionComposer.GetByName("MegasphereHealth");
+            if (definition != null)
+                Owner.GiveItem(definition, null);
+        }
+
+        private void GiveBerserk(EntityDefinition definition)
+        {
+            definition.Properties.Powerup.Type = "Strength";
+            Weapon? fist = Owner.Inventory.Weapons.GetWeapon("FIST");
+            if (fist != null)
+                Owner.ChangeWeapon(fist);
+            if (Owner.Health < 100)
+                Owner.Health = 100;
         }
 
         public bool SetAmount(EntityDefinition definition, int amount)
