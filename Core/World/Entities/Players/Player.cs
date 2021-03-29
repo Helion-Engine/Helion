@@ -455,6 +455,9 @@ namespace Helion.World.Entities.Players
 
         public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
         {
+            if (IsDead)
+                return false;
+
             bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
             if (success)
