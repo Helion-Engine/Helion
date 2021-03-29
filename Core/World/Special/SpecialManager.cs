@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Specials;
@@ -17,7 +18,7 @@ using Helion.World.Special.Switches;
 
 namespace Helion.World.Special
 {
-    public class SpecialManager : ITickable
+    public class SpecialManager : ITickable, IDisposable
     {
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         public const double SpeedFactor = 0.125;
@@ -47,6 +48,13 @@ namespace Helion.World.Special
         {
             m_world = world;
             m_random = random;
+        }
+
+        public void Dispose()
+        {
+            m_specials.Clear();
+            m_destroyedMoveSpecials.Clear();
+            GC.SuppressFinalize(this);
         }
 
         public List<ISpecialModel> GetSpecialModels()
