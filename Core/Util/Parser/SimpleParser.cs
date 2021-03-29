@@ -237,6 +237,31 @@ namespace Helion.Util.Parser
             m_index++;
         }
 
+        public bool ConsumeIf(string str)
+        {
+            if (IsDone())
+                return false;
+
+            if (str.Equals(PeekString(), StringComparison.OrdinalIgnoreCase))
+            {
+                ConsumeString();
+                return true;
+            }
+
+            return false;
+        }
+
+        public int? ConsumeIfInt()
+        {
+            if (IsDone())
+                return null;
+
+            if (PeekInteger(out int i))
+                return i;
+
+            return null;
+        }
+
         public int ConsumeInteger()
         {
             AssertData();
@@ -308,6 +333,17 @@ namespace Helion.Util.Parser
 
             return m_lines[token.Line][token.Index..];
         }
+
+        public ParserException MakeException(string reason)
+        {
+            ParserToken token;
+            if (m_index < m_tokens.Count)
+                token = m_tokens[m_index];
+            else
+                token = m_tokens[^1];
+
+            return new ParserException(token.Line, token.Index, 0, reason);
+    }
 
         private void AssertData()
         {

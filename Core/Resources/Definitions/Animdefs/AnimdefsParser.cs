@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -8,68 +9,71 @@ using MoreLinq.Extensions;
 
 namespace Helion.Resources.Definitions.Animdefs
 {
-    public class AnimdefsParser : ParserBase
+    public class AnimdefsParser
     {
         public readonly IList<AnimatedTexture> AnimatedTextures = new List<AnimatedTexture>();
         public readonly IList<AnimatedSwitch> AnimatedSwitches = new List<AnimatedSwitch>();
         public readonly IList<AnimatedWarpTexture> WarpTextures = new List<AnimatedWarpTexture>();
         public readonly IList<AnimatedCameraTexture> CameraTextures = new List<AnimatedCameraTexture>();
 
-        protected override void PerformParsing()
+        public void Parse(Entry entry)
         {
-            while (!Done)
-                ConsumeDefinition();
+            SimpleParser parser = new SimpleParser();
+            parser.Parse(entry.ReadDataAsString());
+
+            while (!parser.IsDone())
+                ConsumeDefinition(parser);
         }
 
-        private void ConsumeAnimatedDoor()
+        private void ConsumeAnimatedDoor(SimpleParser parser)
         {
-            throw MakeException("TODO: Animated doors are not supported in animdefs currently");
+            throw parser.MakeException("TODO: Animated doors are not supported in animdefs currently");
         }
 
-        private void ConsumeCameraTexture()
+        private void ConsumeCameraTexture(SimpleParser parser)
         {
-            string name = ConsumeString();
-            int width = ConsumeInteger();
-            int height = ConsumeInteger();
+            string name = parser.ConsumeString();
+            int width = parser.ConsumeInteger();
+            int height = parser.ConsumeInteger();
             int? fitWidth = null;
             int? fitHeight = null;
             bool worldPanning = false;
 
-            if (ConsumeIf("FIT"))
+            if (parser.ConsumeIf("FIT"))
             {
-                fitWidth = ConsumeInteger();
-                fitHeight = ConsumeInteger();
-                worldPanning = ConsumeIf("WORLDPANNING");
+                fitWidth = parser.ConsumeInteger();
+                fitHeight = parser.ConsumeInteger();
+                worldPanning = parser.ConsumeIf("WORLDPANNING");
             }
 
             CameraTextures.Add(new AnimatedCameraTexture(name, width, height, fitWidth, fitHeight, worldPanning));
         }
 
-        private void ConsumeWarp(bool waterEffect)
+        private void ConsumeWarp(SimpleParser parser, bool waterEffect)
         {
-            string warpNamespace = ConsumeString();
+            string warpNamespace = parser.ConsumeString();
 
             ResourceNamespace resourceNamespace;
             switch (warpNamespace.ToUpper())
             {
-            case "TEXTURE":
-                resourceNamespace = ResourceNamespace.Textures;
-                break;
-            case "FLAT":
-                resourceNamespace = ResourceNamespace.Flats;
-                break;
-            default:
-                throw MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
+                case "TEXTURE":
+                    resourceNamespace = ResourceNamespace.Textures;
+                    break;
+                case "FLAT":
+                    resourceNamespace = ResourceNamespace.Flats;
+                    break;
+                default:
+                    throw parser.MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
             }
 
-            string upperName = ConsumeString().ToUpper();
-            int? speed = ConsumeIfInt();
-            bool allowDecals = ConsumeIf("ALLOWDECALS");
+            string upperName = parser.ConsumeString().ToUpper();
+            int? speed = parser.ConsumeIfInt();
+            bool allowDecals = parser.ConsumeIf("ALLOWDECALS");
 
             WarpTextures.Add(new AnimatedWarpTexture(upperName, resourceNamespace, speed, allowDecals, waterEffect));
         }
 
-        private (string baseText, int endingNumberIndex) FindTextureRangeFrom(CIString textureName)
+        private (string baseText, int endingNumberIndex) FindTextureRangeFrom(SimpleParser parser, CIString textureName)
         {
             string upperName = textureName.ToString().ToUpper();
             int rightmostNumberChar = upperName.Length - 1;
@@ -86,7 +90,7 @@ namespace Helion.Resources.Definitions.Animdefs
             string numStr = upperName.Substring(rightmostNumberChar);
 
             if (!int.TryParse(numStr, out int value))
-                throw MakeException($"Could not find ending numbers for texture {upperName} to make animation range from");
+                throw parser.MakeException($"Could not find ending numbers for texture {upperName} to make animation range from");
 
             return (baseStr, value);
         }
@@ -111,110 +115,110 @@ namespace Helion.Resources.Definitions.Animdefs
                 components.ForEach(texture.Components.Add);
         }
 
-        private void CreateComponentsFromRange(AnimatedTexture texture, string endName, int minTicks, int maxTicks,
+        private void CreateComponentsFromRange(SimpleParser parser, AnimatedTexture texture, string endName, int minTicks, int maxTicks,
             bool oscillate)
         {
             if (texture.Name.Length != endName.Length)
-                throw MakeException($"Cannot create animation range for {texture.Name} to {endName} due to mismatched text lengths");
+                throw parser.MakeException($"Cannot create animation range for {texture.Name} to {endName} due to mismatched text lengths");
 
-            (string textureBaseText, int startIndex) = FindTextureRangeFrom(texture.Name);
-            (string endBaseText, int endIndex) = FindTextureRangeFrom(endName);
+            (string textureBaseText, int startIndex) = FindTextureRangeFrom(parser, texture.Name);
+            (string endBaseText, int endIndex) = FindTextureRangeFrom(parser, endName);
 
             if (textureBaseText != endBaseText)
-                throw MakeException($"Range animdefs texture mismatch: {textureBaseText} (from {texture.Name}) and {endBaseText} (from {endName}) should match");
+                throw parser.MakeException($"Range animdefs texture mismatch: {textureBaseText} (from {texture.Name}) and {endBaseText} (from {endName}) should match");
 
             int padding = texture.Name.Length - textureBaseText.Length;
             GenerateComponentsFrom(textureBaseText, startIndex, endIndex, padding, minTicks, maxTicks, oscillate, texture);
         }
 
-        private void ConsumePicOrRangeDefinition(AnimatedTexture texture, bool isRange)
+        private void ConsumePicOrRangeDefinition(SimpleParser parser, AnimatedTexture texture, bool isRange)
         {
-            if (PeekInteger())
-                throw MakeException("Animdefs texture/flat pic index type not supported currently");
+            if (parser.PeekInteger(out _))
+                throw parser.MakeException("Animdefs texture/flat pic index type not supported currently");
 
-            string name = ConsumeString();
+            string name = parser.ConsumeString();
 
             // Apparently it is possible for these to be floating point values
             // instead of integers. I don't know if anyone does this though...
             int minTicks;
             int maxTicks;
-            if (ConsumeIf("tics"))
+            if (parser.ConsumeIf("tics"))
             {
-                minTicks = ConsumeInteger();
+                minTicks = parser.ConsumeInteger();
                 maxTicks = minTicks;
             }
             else
             {
-                Consume("rand");
-                minTicks = ConsumeInteger();
-                maxTicks = ConsumeInteger();
+                parser.ConsumeString("rand");
+                minTicks = parser.ConsumeInteger();
+                maxTicks = parser.ConsumeInteger();
             }
 
             if (minTicks <= 0)
-                throw MakeException($"Texture '{name}' has a zero or negative tick duration, which is not allowed");
+                throw parser.MakeException($"Texture '{name}' has a zero or negative tick duration, which is not allowed");
             if (minTicks > maxTicks)
-                throw MakeException($"Texture '{name}' has badly ordered min/max range (min is greater than max)");
+                throw parser.MakeException($"Texture '{name}' has badly ordered min/max range (min is greater than max)");
 
             if (isRange)
             {
-                bool oscillate = ConsumeIf("oscillate");
-                CreateComponentsFromRange(texture, name, minTicks, maxTicks, oscillate);
+                bool oscillate = parser.ConsumeIf("oscillate");
+                CreateComponentsFromRange(parser, texture, name, minTicks, maxTicks, oscillate);
             }
             else
                 texture.Components.Add(new AnimatedTextureComponent(name, minTicks, maxTicks));
         }
 
-        private void ConsumeGraphicAnimation(ResourceNamespace resourceNamespace)
+        private void ConsumeGraphicAnimation(SimpleParser parser, ResourceNamespace resourceNamespace)
         {
-            bool optional = ConsumeIf("OPTIONAL");
-            string name = ConsumeString();
+            bool optional = parser.ConsumeIf("OPTIONAL");
+            string name = parser.ConsumeString();
 
             AnimatedTexture texture = new AnimatedTexture(name, optional, resourceNamespace);
 
             while (true)
             {
-                if (ConsumeIf("ALLOWDECALS"))
+                if (parser.ConsumeIf("ALLOWDECALS"))
                     texture.AllowDecals = true;
-                else if (ConsumeIf("OSCILLATE"))
+                else if (parser.ConsumeIf("OSCILLATE"))
                     texture.Oscillate = true;
-                else if (ConsumeIf("PIC"))
-                    ConsumePicOrRangeDefinition(texture, false);
-                else if (ConsumeIf("RANDOM"))
+                else if (parser.ConsumeIf("PIC"))
+                    ConsumePicOrRangeDefinition(parser, texture, false);
+                else if (parser.ConsumeIf("RANDOM"))
                     texture.Random = true;
-                else if (ConsumeIf("RANGE"))
-                    ConsumePicOrRangeDefinition(texture, true);
+                else if (parser.ConsumeIf("RANGE"))
+                    ConsumePicOrRangeDefinition(parser, texture, true);
                 else
                     break;
             }
 
             if (texture.Components.Empty())
-                throw MakeException($"Animated definition for '{name}' has no animation components");
+                throw parser.MakeException($"Animated definition for '{name}' has no animation components");
 
             AnimatedTextures.Add(texture);
         }
 
-        private void ConsumeSwitchPic(AnimatedSwitch animatedSwitch, bool on)
+        private void ConsumeSwitchPic(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)
         {
-            string name = ConsumeString().ToUpper();
+            string name = parser.ConsumeString().ToUpper();
 
             // I don't know if this is like the texture/flat combo whereby any
             // floating point numbers are allowed or not.
             int minTicks;
             int maxTicks;
-            if (ConsumeIf("tics"))
+            if (parser.ConsumeIf("tics"))
             {
-                minTicks = ConsumeInteger();
+                minTicks = parser.ConsumeInteger();
                 maxTicks = minTicks;
             }
             else
             {
-                Consume("rand");
-                minTicks = ConsumeInteger();
-                maxTicks = ConsumeInteger();
+                parser.ConsumeString("rand");
+                minTicks = parser.ConsumeInteger();
+                maxTicks = parser.ConsumeInteger();
             }
 
             if (minTicks > maxTicks)
-                throw MakeException($"Switch '{animatedSwitch.Texture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
+                throw parser.MakeException($"Switch '{animatedSwitch.Texture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
 
             AnimatedTextureComponent component = new(name.ToUpper(), minTicks, maxTicks);
             if (on)
@@ -223,81 +227,81 @@ namespace Helion.Resources.Definitions.Animdefs
                 animatedSwitch.Off.Add(component);
         }
 
-        private void ConsumeAllSwitchPicAndSounds(AnimatedSwitch animatedSwitch, bool on)
+        private void ConsumeAllSwitchPicAndSounds(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)
         {
             while (true)
             {
-                string? value = PeekCurrentText();
-                if (value == null)
-                    throw MakeException($"Ran out of tokens when parsing switch definition for {animatedSwitch.Texture}");
-
-                switch (value.ToUpper())
-                {
-                case "PIC":
-                    Consume();
-                    ConsumeSwitchPic(animatedSwitch, on);
-                    break;
-                case "SOUND":
-                    Consume();
-                    animatedSwitch.Sound = ConsumeString();
-                    break;
-                default:
+                if (parser.IsDone())
                     return;
+
+                string item = parser.PeekString().ToUpper();
+                switch (item)
+                {
+                    case "PIC":
+                        parser.ConsumeString();
+                        ConsumeSwitchPic(parser, animatedSwitch, on);
+                        break;
+                    case "SOUND":
+                        parser.ConsumeString();
+                        animatedSwitch.Sound = parser.ConsumeString();
+                        break;
+                    default:
+                        return;
                 }
             }
         }
 
-        private void ConsumeSwitchAnimation()
+        private void ConsumeSwitchAnimation(SimpleParser parser)
         {
             // TODO: This needs to be looped, because we could have an ON
             // definition followed by an OFF.
 
-            string upperSwitchName = ConsumeString();
+            string upperSwitchName = parser.ConsumeString();
             bool on = true;
 
-            if (!ConsumeIf("ON"))
+            if (!parser.ConsumeIf("ON"))
             {
-                Consume("OFF");
+                parser.ConsumeString("OFF");
                 on = false;
             }
 
             AnimatedSwitch animatedSwitch = new(upperSwitchName);
-            ConsumeAllSwitchPicAndSounds(animatedSwitch, on);
+            ConsumeAllSwitchPicAndSounds(parser, animatedSwitch, on);
 
             if (animatedSwitch.On.Empty())
-                throw MakeException($"Found no animated definitions for switch {upperSwitchName}");
+                throw parser.MakeException($"Found no animated definitions for switch {upperSwitchName}");
 
             AnimatedSwitches.Add(animatedSwitch);
         }
 
-        private void ConsumeDefinition()
+        private void ConsumeDefinition(SimpleParser parser)
         {
-            string text = ConsumeString();
+            string text = parser.ConsumeString();
             switch (text.ToUpper())
             {
-            case "ANIMATEDDOOR":
-                ConsumeAnimatedDoor();
-                break;
-            case "CAMERATEXTURE":
-                ConsumeCameraTexture();
-                break;
-            case "FLAT":
-                ConsumeGraphicAnimation(ResourceNamespace.Flats);
-                break;
-            case "SWITCH":
-                ConsumeSwitchAnimation();
-                break;
-            case "TEXTURE":
-                ConsumeGraphicAnimation(ResourceNamespace.Textures);
-                break;
-            case "WARP":
-                ConsumeWarp(false);
-                break;
-            case "WARP2":
-                ConsumeWarp(true);
-                break;
-            default:
-                throw MakeException($"Unknown animdefs type {text}");
+                case "ANIMATEDDOOR":
+                    ConsumeAnimatedDoor(parser);
+                    break;
+                case "CAMERATEXTURE":
+                    ConsumeCameraTexture(parser);
+                    break;
+                case "FLAT":
+                    ConsumeGraphicAnimation(parser, ResourceNamespace.Flats);
+                    break;
+                case "SWITCH":
+                    ConsumeSwitchAnimation(parser);
+                    break;
+                case "TEXTURE":
+                    ConsumeGraphicAnimation(parser, ResourceNamespace.Textures);
+                    break;
+                case "WARP":
+                    ConsumeWarp(parser, false);
+                    break;
+                case "WARP2":
+                    ConsumeWarp(parser, true);
+                    break;
+                default:
+                    throw parser.MakeException($"Unknown animdefs type {text}");
             }
         }
     }
