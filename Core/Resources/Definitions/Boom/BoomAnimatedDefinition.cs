@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Helion.Resources.Definitions.Boom
 {
-    public class BoomAnimatedParser
+    public class BoomAnimatedDefinition
     {
         private const int AnimLength = 23;
         public readonly IList<BoomAnimatedTexture> AnimatedTextures = new List<BoomAnimatedTexture>();

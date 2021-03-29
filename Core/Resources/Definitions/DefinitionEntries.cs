@@ -32,7 +32,7 @@ namespace Helion.Resources.Definitions
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
-        public readonly BoomAnimatedParser BoomAnimated = new BoomAnimatedParser();
+        public readonly BoomAnimatedDefinition BoomAnimated = new BoomAnimatedDefinition();
         public readonly CompatibilityDefinitions Compatibility = new CompatibilityDefinitions();
         public readonly DecorateDefinitions Decorate;
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
