@@ -329,6 +329,7 @@ namespace Helion.World.Entities
         public void Dispose()
         {
             Entities.ForEach(entity => entity.Dispose());
+            GC.SuppressFinalize(this);
         }
     }
 }

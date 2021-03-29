@@ -59,6 +59,7 @@ namespace Helion.Resources.Archives
         {
             m_byteReader.Close();
             m_byteReader.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         private WadHeader ReadHeader()
