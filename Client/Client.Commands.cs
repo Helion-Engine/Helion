@@ -11,6 +11,7 @@ using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.World.Util;
 
@@ -211,91 +212,58 @@ namespace Helion.Client
             if (sender is not IWorld world)
                 return;
 
-            MapInfoDef? nextMap = null;
+            if (world is not SinglePlayerWorld singlePlayerWorld)
+            {
+                Log.Error("Currently only support single player worlds");
+                return;
+            }
+            
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    nextMap = GetNextLevel(world.MapInfo);
+                    TransitionToLevel(GetNextLevel(world.MapInfo));
                     break;
+                    
                 case LevelChangeType.SecretNext:
-                    nextMap = GetNextSecretLevel(world.MapInfo);
+                    TransitionToLevel(GetNextSecretLevel(world.MapInfo));
+                    break;
+                
+                case LevelChangeType.SpecificLevel:
+                    ChangeLevel(e);
+                    break;
+                    
+                case LevelChangeType.Reset:
+                    LoadMap(world.MapInfo, null, NoPlayers);
                     break;
             }
-
-            // We may be going to a target level, or resetting. If so, don't do
-            // any intermission or end game stuff.
-            if (nextMap == null)
-                return;
             
-            bool isChangingClusters = world.MapInfo.Cluster != nextMap.Cluster;
-            ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
-            
-            if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
+            void TransitionToLevel(MapInfoDef? nextMapInfo)
             {
-                EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster, nextMap);
-                m_layerManager.Add(endGameLayer);
-            }
-            else
-            {
-                bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
-                IntermissionLayer intermissionLayer = new(world, nextMap, hasEndGame ? cluster : null);
-                m_layerManager.Add(intermissionLayer);
-            }
-            
-            // if (isChangingClusters)
-            // {
-            //     if (world.MapInfo.Cluster.)
-            //     if (cluster != null)
-            //     {
-            //         EndGameLayer endGameLayer = new(cluster, nextMap);
-            //         m_layerManager.Add(endGameLayer);
-            //     }
-            //     else
-            //     {
-            //         Log.Error("Unable to find the current map cluster");
-            //     }
-            // }
-            // else
-            // {
-            //     IntermissionLayer intermissionLayer = new(world, nextMap);
-            //     m_layerManager.Add(intermissionLayer);
-            // }
+                if (nextMapInfo == null)
+                {
+                    Log.Error("Unable to find next map to go to");
+                    return;
+                }
+                
+                bool isChangingClusters = world.MapInfo.Cluster != nextMapInfo.Cluster;
+                ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
 
-            // switch (e.ChangeType)
-            // {
-            //     case LevelChangeType.Next:
-            //         {
-            //             MapInfoDef? nextMap = GetNextLevel(world.MapInfo);
-            //             // TODO implement endgame, this also stupidly assumes endgame
-            //             if (nextMap == null)
-            //             {
-            //                 Log.Info("Your did it!!!");
-            //                 return;
-            //             }
-            //             LoadMap(nextMap, null, world.EntityManager.Players);
-            //         }
-            //         break;
-            //
-            //     case LevelChangeType.SecretNext:
-            //         {
-            //             MapInfoDef? nextMap = GetNextSecretLevel(world.MapInfo);
-            //             if (nextMap == null)
-            //             {
-            //                 LogError($"Unable to find map {world.MapInfo}");
-            //                 return;
-            //             }
-            //             LoadMap(nextMap, null, world.EntityManager.Players);
-            //         }
-            //         break;
-            //
-            //     case LevelChangeType.SpecificLevel:
-            //         ChangeLevel(e);
-            //         break;
-            //
-            //     case LevelChangeType.Reset:
-            //         LoadMap(world.MapInfo, null, NoPlayers);
-            //         break;
-            // }
+                if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
+                {
+                    EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster, nextMapInfo, GoToNextLevel);
+                    m_layerManager.Add(endGameLayer);
+                }
+                else
+                {
+                    bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
+                    ClusterDef? clusterToUse = hasEndGame ? cluster : null;
+                    IntermissionLayer intermissionLayer = new(world, singlePlayerWorld.Player, nextMapInfo, clusterToUse, GoToNextLevel);
+                    m_layerManager.Add(intermissionLayer);
+                }
+                
+                // TODO: Refactor this later so we're not passing around lambdas.
+                void GoToNextLevel() => LoadMap(nextMapInfo, null, world.EntityManager.Players);
+            }
         }
 
         private void ChangeLevel(LevelChangeEvent e)

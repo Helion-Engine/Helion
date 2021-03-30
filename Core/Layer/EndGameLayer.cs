@@ -1,4 +1,5 @@
-﻿using Helion.Audio;
+﻿using System;
+using Helion.Audio;
 using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
@@ -21,16 +22,19 @@ namespace Helion.Layer
         private readonly MapInfoDef m_nextMap;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly EndGameDrawer m_drawer;
+        private readonly Action m_nextMapFunc;
         private bool m_drawingPic;
+        private bool m_invokedNextMapFunc;
 
         protected override double Priority => 0.675;
 
         public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster, 
-            MapInfoDef nextMap)
+            MapInfoDef nextMap, Action nextMapFunc)
         {
             m_drawer = new(archiveCollection);
             m_cluster = cluster;
             m_nextMap = nextMap;
+            m_nextMapFunc = nextMapFunc;
             
             m_ticker.Start();
             PlayMusic(archiveCollection, musicPlayer, cluster.Music);
@@ -64,12 +68,11 @@ namespace Helion.Layer
         private void FinishEndGame()
         {
             if (!m_drawingPic && !m_cluster.Pic.Empty())
-            {
                 m_drawingPic = true;
-            }
-            else
+            else if (!m_invokedNextMapFunc)
             {
-                // TODO: Go to the next map (use m_nextMap)
+                m_invokedNextMapFunc = true;
+                m_nextMapFunc();
             }
         }
 
