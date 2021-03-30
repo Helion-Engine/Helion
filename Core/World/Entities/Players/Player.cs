@@ -454,6 +454,9 @@ namespace Helion.World.Entities.Players
 
         public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
         {
+            if (IsDead)
+                return false;
+
             bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
             if (success)
@@ -479,11 +482,11 @@ namespace Helion.World.Entities.Players
 
             if (isHealth)
             {
-                return AddHealthOrArmor(definition, flags, ref Health, invData.Amount);
+                return AddHealthOrArmor(definition, flags, ref Health, invData.Amount, false);
             }
             else if (isArmor)
             {
-                bool success = AddHealthOrArmor(definition, flags, ref Armor, definition.Properties.Armor.SaveAmount);
+                bool success = AddHealthOrArmor(definition, flags, ref Armor, definition.Properties.Armor.SaveAmount, true);
                 if (success)
                     ArmorDefinition = GetArmorDefinition(definition);
                 return success;
@@ -551,9 +554,9 @@ namespace Helion.World.Entities.Players
             return definition;
         }
 
-        private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount)
+        private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount, bool isArmor)
         {
-            int max = GetMaxAmount(definition);
+            int max = GetMaxAmount(definition, isArmor);
             if (flags != null && !flags.Value.InventoryAlwaysPickup && value >= max)
                 return false;
 
@@ -561,26 +564,21 @@ namespace Helion.World.Entities.Players
             return true;
         }
 
-        private int GetMaxAmount(EntityDefinition def)
+        private int GetMaxAmount(EntityDefinition def, bool isArmor)
         {
-            // TODO these are usually defaults. Defaults come from MAPINFO and not yet implemented.
-            switch (def.Name.ToString())
+            // I wish decorate made sense...
+            if (isArmor)
             {
-                case "ARMORBONUS":
-                case "HEALTHBONUS":
-                case "SOULSPHERE":
-                case "MEGASPHERE":
-                case "BLUEARMOR":
-                    return 200;
-                case "GREENARMOR":
-                case "STIMPACK":
-                case "MEDIKIT":
-                    return 100;
-                default:
-                    break;
+                if (def.Properties.Armor.MaxSaveAmount > 0)
+                    return def.Properties.Armor.MaxSaveAmount;
+                else
+                    return def.Properties.Armor.SaveAmount;
             }
 
-            return 0;
+            if (def.Properties.Inventory.MaxAmount > 0)
+                return def.Properties.Inventory.MaxAmount;
+
+            return Properties.Player.MaxHealth;
         }
 
         private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)

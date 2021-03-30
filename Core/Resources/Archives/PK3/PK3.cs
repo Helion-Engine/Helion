@@ -40,6 +40,7 @@ namespace Helion.Resources.Archives
         public void Dispose()
         {
             m_zipArchive.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public byte[] ReadData(PK3Entry entry)

@@ -741,6 +741,7 @@ namespace Helion.World.Entities
             UnlinkFromWorld();
             EntityListNode.Unlink();
             IsDisposed = true;
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void SetDeath(Entity? source, bool gibbed)

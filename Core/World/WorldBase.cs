@@ -1045,6 +1045,7 @@ namespace Helion.World
 
         protected virtual void PerformDispose()
         {
+            SpecialManager.Dispose();
             EntityManager.Dispose();
             SoundManager.Dispose();
         }
