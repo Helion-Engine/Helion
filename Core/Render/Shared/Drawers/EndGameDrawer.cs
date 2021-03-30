@@ -5,9 +5,11 @@ using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util.Extensions;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Timing;
+using static Helion.Util.Assertion.Assert;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
@@ -25,7 +27,7 @@ namespace Helion.Render.Shared.Drawers
             m_archiveCollection = archiveCollection;
         }
 
-        public void Draw(ClusterDef cluster, Ticker ticker, RenderCommands renderCommands)
+        public void Draw(ClusterDef cluster, bool drawPic, Ticker ticker, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
 
@@ -33,12 +35,25 @@ namespace Helion.Render.Shared.Drawers
 
             helper.AtResolution(Resolution, () =>
             {
-                DrawBackground(cluster.Flat, helper);
-                DrawText(cluster.EnterText, ticker, helper);    
+                if (drawPic)
+                    DrawPic(cluster.Pic, helper);
+                else
+                {
+                    DrawBackground(cluster.Flat, helper);
+                    DrawText(cluster.EnterText, ticker, helper);    
+                }
             });
         }
 
-        private void DrawBackground(string flat, DrawHelper helper)
+        private static void DrawPic(string image, DrawHelper helper)
+        {
+            Precondition(!image.Empty(), "Should not be drawing an empty image");
+            
+            (int w, int h) = Resolution.VirtualDimensions;
+            helper.Image(image, 0, 0, w, h);
+        }
+
+        private static void DrawBackground(string flat, DrawHelper helper)
         {
             var dimension = helper.DrawInfoProvider.GetImageDimension(flat, ResourceNamespace.Flats);
 
@@ -65,7 +80,7 @@ namespace Helion.Render.Shared.Drawers
             return ticker.GetTickerInfo().Ticks / ticksPerLetter;
         }
         
-        private void DrawText(List<string> lines, Ticker ticker, DrawHelper helper)
+        private void DrawText(IEnumerable<string> lines, Ticker ticker, DrawHelper helper)
         {
             const int LineSpacing = 4;
             

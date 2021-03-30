@@ -232,7 +232,7 @@ namespace Helion.Client
             
             if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
             {
-                EndGameLayer endGameLayer = new(cluster, nextMap);
+                EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster, nextMap);
                 m_layerManager.Add(endGameLayer);
             }
             else

@@ -1,36 +1,76 @@
-﻿using Helion.Input;
+﻿using Helion.Audio;
+using Helion.Input;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Extensions;
+using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
+using NLog;
 
 namespace Helion.Layer
 {
     public class EndGameLayer : GameLayer
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private readonly ClusterDef m_cluster;
         private readonly MapInfoDef m_nextMap;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly EndGameDrawer m_drawer;
-        private bool m_playingMusic;
+        private bool m_drawingPic;
 
         protected override double Priority => 0.675;
 
-        public EndGameLayer(ArchiveCollection archiveCollection, ClusterDef cluster, MapInfoDef nextMap)
+        public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster, 
+            MapInfoDef nextMap)
         {
             m_drawer = new(archiveCollection);
             m_cluster = cluster;
             m_nextMap = nextMap;
             
             m_ticker.Start();
+            PlayMusic(archiveCollection, musicPlayer, cluster.Music);
         }
-        
+
+        private void PlayMusic(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, string clusterMusic)
+        {
+            if (clusterMusic.Empty())
+            {
+                musicPlayer.Stop();
+                return;
+            }
+            
+            Entry? entry = archiveCollection.Entries.FindByName(clusterMusic);
+            if (entry == null)
+            {
+                Log.Warn($"Cannot find music file: {clusterMusic}");
+                return;
+            }
+
+            byte[] data = entry.ReadData();
+            // Eventually we'll need to not assume .mus all the time.
+            byte[]? midiData = MusToMidi.Convert(data);
+
+            if (midiData != null)
+                musicPlayer.Play(midiData);
+            else
+                Log.Warn($"Cannot decode music file: {clusterMusic}");
+        }
+
         private void FinishEndGame()
         {
-            // TODO: If we're not on the image pic and there is one, go to that.
-            // TODO: Go to the next map.
+            if (!m_drawingPic && !m_cluster.Pic.Empty())
+            {
+                m_drawingPic = true;
+            }
+            else
+            {
+                // TODO: Go to the next map (use m_nextMap)
+            }
         }
 
         public override void HandleInput(InputEvent input)
@@ -41,20 +81,9 @@ namespace Helion.Layer
             base.HandleInput(input);
         }
 
-        public override void RunLogic()
-        {
-            if (!m_playingMusic)
-            {
-                // TODO: Play music
-                m_playingMusic = true;
-            }
-            
-            base.RunLogic();
-        }
-
         public override void Render(RenderCommands renderCommands)
         {
-            m_drawer.Draw(m_cluster, m_ticker, renderCommands);
+            m_drawer.Draw(m_cluster, m_drawingPic, m_ticker, renderCommands);
             
             base.Render(renderCommands);
         }
