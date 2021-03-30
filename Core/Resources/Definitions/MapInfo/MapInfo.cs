@@ -87,10 +87,11 @@ namespace Helion.Resources.Definitions.MapInfo
 
             return DefaultMap;
         }
-
+        
         public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;
         public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);
         public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
         public MapInfoDef? GetMap(string name) => m_maps.FirstOrDefault(x => x.MapName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+        public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
     }
 }

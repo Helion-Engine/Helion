@@ -211,41 +211,91 @@ namespace Helion.Client
             if (sender is not IWorld world)
                 return;
 
+            MapInfoDef? nextMap = null;
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    {
-                        MapInfoDef? nextMap = GetNextLevel(world.MapInfo);
-                        // TODO implement endgame, this also stupidly assumes endgame
-                        if (nextMap == null)
-                        {
-                            Log.Info("Your did it!!!");
-                            return;
-                        }
-                        LoadMap(nextMap, null, world.EntityManager.Players);
-                    }
+                    nextMap = GetNextLevel(world.MapInfo);
                     break;
-
                 case LevelChangeType.SecretNext:
-                    {
-                        MapInfoDef? nextMap = GetNextSecretLevel(world.MapInfo);
-                        if (nextMap == null)
-                        {
-                            LogError($"Unable to find map {world.MapInfo}");
-                            return;
-                        }
-                        LoadMap(nextMap, null, world.EntityManager.Players);
-                    }
-                    break;
-
-                case LevelChangeType.SpecificLevel:
-                    ChangeLevel(e);
-                    break;
-
-                case LevelChangeType.Reset:
-                    LoadMap(world.MapInfo, null, NoPlayers);
+                    nextMap = GetNextSecretLevel(world.MapInfo);
                     break;
             }
+
+            // We may be going to a target level, or resetting. If so, don't do
+            // any intermission or end game stuff.
+            if (nextMap == null)
+                return;
+            
+            bool isChangingClusters = world.MapInfo.Cluster != nextMap.Cluster;
+            ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
+            
+            if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
+            {
+                EndGameLayer endGameLayer = new(cluster, nextMap);
+                m_layerManager.Add(endGameLayer);
+            }
+            else
+            {
+                bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
+                IntermissionLayer intermissionLayer = new(world, nextMap, hasEndGame ? cluster : null);
+                m_layerManager.Add(intermissionLayer);
+            }
+            
+            // if (isChangingClusters)
+            // {
+            //     if (world.MapInfo.Cluster.)
+            //     if (cluster != null)
+            //     {
+            //         EndGameLayer endGameLayer = new(cluster, nextMap);
+            //         m_layerManager.Add(endGameLayer);
+            //     }
+            //     else
+            //     {
+            //         Log.Error("Unable to find the current map cluster");
+            //     }
+            // }
+            // else
+            // {
+            //     IntermissionLayer intermissionLayer = new(world, nextMap);
+            //     m_layerManager.Add(intermissionLayer);
+            // }
+
+            // switch (e.ChangeType)
+            // {
+            //     case LevelChangeType.Next:
+            //         {
+            //             MapInfoDef? nextMap = GetNextLevel(world.MapInfo);
+            //             // TODO implement endgame, this also stupidly assumes endgame
+            //             if (nextMap == null)
+            //             {
+            //                 Log.Info("Your did it!!!");
+            //                 return;
+            //             }
+            //             LoadMap(nextMap, null, world.EntityManager.Players);
+            //         }
+            //         break;
+            //
+            //     case LevelChangeType.SecretNext:
+            //         {
+            //             MapInfoDef? nextMap = GetNextSecretLevel(world.MapInfo);
+            //             if (nextMap == null)
+            //             {
+            //                 LogError($"Unable to find map {world.MapInfo}");
+            //                 return;
+            //             }
+            //             LoadMap(nextMap, null, world.EntityManager.Players);
+            //         }
+            //         break;
+            //
+            //     case LevelChangeType.SpecificLevel:
+            //         ChangeLevel(e);
+            //         break;
+            //
+            //     case LevelChangeType.Reset:
+            //         LoadMap(world.MapInfo, null, NoPlayers);
+            //         break;
+            // }
         }
 
         private void ChangeLevel(LevelChangeEvent e)
