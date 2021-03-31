@@ -11,6 +11,7 @@ using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.World.Util;
 
@@ -211,40 +212,74 @@ namespace Helion.Client
             if (sender is not IWorld world)
                 return;
 
+            if (world is not SinglePlayerWorld singlePlayerWorld)
+            {
+                Log.Error("Currently only support single player worlds");
+                return;
+            }
+
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    {
-                        MapInfoDef? nextMap = GetNextLevel(world.MapInfo);
-                        // TODO implement endgame, this also stupidly assumes endgame
-                        if (nextMap == null)
-                        {
-                            Log.Info("Your did it!!!");
-                            return;
-                        }
-                        LoadMap(nextMap, null, world.EntityManager.Players);
-                    }
+                    TransitionToLevel(GetNextLevel(world.MapInfo), world.MapInfo, world.MapInfo.Next);
                     break;
-
+                    
                 case LevelChangeType.SecretNext:
-                    {
-                        MapInfoDef? nextMap = GetNextSecretLevel(world.MapInfo);
-                        if (nextMap == null)
-                        {
-                            LogError($"Unable to find map {world.MapInfo}");
-                            return;
-                        }
-                        LoadMap(nextMap, null, world.EntityManager.Players);
-                    }
+                    TransitionToLevel(GetNextSecretLevel(world.MapInfo), world.MapInfo, world.MapInfo.SecretNext);
                     break;
-
+                
                 case LevelChangeType.SpecificLevel:
                     ChangeLevel(e);
                     break;
-
+                    
                 case LevelChangeType.Reset:
                     LoadMap(world.MapInfo, null, NoPlayers);
                     break;
+            }
+
+            void HandleZDoomTransition(ClusterDef? cluster)
+            {
+                if (cluster == null)
+                    return;
+                
+                EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster);
+                m_layerManager.Add(endGameLayer);
+            }
+
+            void TransitionToLevel(MapInfoDef? nextMapInfo, MapInfoDef currentMapInfo, string nextMap)
+            {
+                if (EndGameLayer.EndGameMaps.Contains(nextMap))
+                {
+                    ClusterDef? currentCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(currentMapInfo.Cluster);
+                    HandleZDoomTransition(currentCluster);
+                    return;
+                }
+                
+                if (nextMapInfo == null)
+                {
+                    Log.Error("Unable to find next map to go to");
+                    return;
+                }
+
+                bool isChangingClusters = world.MapInfo.Cluster != nextMapInfo.Cluster;
+                ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
+                
+                if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
+                {
+                    EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster, GoToNextLevel);
+                    m_layerManager.Add(endGameLayer);
+                }
+                else
+                {
+                    bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
+                    ClusterDef? clusterToUse = hasEndGame ? cluster : null;
+                    IntermissionLayer intermissionLayer = new(world, m_soundManager, m_audioSystem.Music, singlePlayerWorld.Player, 
+                        singlePlayerWorld.MapInfo, nextMapInfo, clusterToUse, GoToNextLevel);
+                    m_layerManager.Add(intermissionLayer);
+                }
+                
+                // TODO: Refactor this later so we're not passing around function references.
+                void GoToNextLevel() => LoadMap(nextMapInfo, null, world.EntityManager.Players);
             }
         }
 

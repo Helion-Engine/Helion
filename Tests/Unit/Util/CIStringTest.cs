@@ -37,7 +37,7 @@ namespace Helion.Tests.Unit.Util
         {
             CIString ciStr = data;
 
-            ciStr.Empty.Should().Be(data.Length == 0);
+            ciStr.Length.Should().Be(0);
         }
         
         [Theory(DisplayName = "Check CIString length")]

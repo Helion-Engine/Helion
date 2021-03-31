@@ -38,6 +38,7 @@ namespace Helion.World.Entities.Players
         public int BonusCount;
         public TickCommand TickCommand = new();
         public int ExtraLight;
+        public int SecretsFound;
 
         private bool m_isJumping;
         private bool m_hasNewWeapon;
@@ -125,6 +126,7 @@ namespace Helion.World.Entities.Players
             PrevWeaponOffset = playerModel.WeaponOffset;
             WeaponSlot = playerModel.WeaponSlot;
             WeaponSubSlot = playerModel.WeaponSubSlot;
+            SecretsFound = playerModel.SecretsFound;
             
             Inventory = new Inventory(playerModel, this, entityManager.DefinitionComposer);
 
@@ -168,6 +170,7 @@ namespace Helion.World.Entities.Players
                 Bob = m_bob,
                 Killer = m_killer?.Id,
                 Attacker = Attacker?.Id,
+                SecretsFound = SecretsFound,
                 Weapon = Weapon?.Definition.Name.ToString(),
                 PendingWeapon = PendingWeapon?.Definition.Name.ToString(),
                 AnimationWeapon = AnimationWeapon?.Definition.Name.ToString(),
