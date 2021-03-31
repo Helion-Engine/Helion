@@ -19,7 +19,6 @@ namespace Helion.Layer
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly ClusterDef m_cluster;
-        private readonly MapInfoDef m_nextMap;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly EndGameDrawer m_drawer;
         private readonly Action m_nextMapFunc;
@@ -28,12 +27,11 @@ namespace Helion.Layer
 
         protected override double Priority => 0.675;
 
-        public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster, 
-            MapInfoDef nextMap, Action nextMapFunc)
+        public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
+            Action nextMapFunc)
         {
             m_drawer = new(archiveCollection);
             m_cluster = cluster;
-            m_nextMap = nextMap;
             m_nextMapFunc = nextMapFunc;
             
             m_ticker.Start();
