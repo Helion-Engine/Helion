@@ -96,3 +96,14 @@ actor SpawnFire
         Stop
     }
 }
+
+Actor BossRocket : Rocket
+{
+    States
+    {
+    Spawn:
+        MISL BC 10 Bright
+        MISL D 10 Bright A_BrainExplode
+        Stop
+    }
+}
