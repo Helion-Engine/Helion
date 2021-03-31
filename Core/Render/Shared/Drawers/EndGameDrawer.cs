@@ -27,7 +27,7 @@ namespace Helion.Render.Shared.Drawers
         }
 
         public void Draw(ClusterDef cluster, string flat, List<string> displayText, Ticker ticker,
-            RenderCommands renderCommands)
+            bool showAllText, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
 
@@ -38,15 +38,15 @@ namespace Helion.Render.Shared.Drawers
             helper.AtResolution(Resolution, () =>
             {
                 DrawBackground(flat, helper);
-                DrawText(displayText, ticker, helper);
+                DrawText(displayText, ticker, showAllText, helper);
             });
         }
 
         private static void DrawBackground(string flat, DrawHelper helper)
         {
             var dimension = helper.DrawInfoProvider.GetImageDimension(flat, ResourceNamespace.Flats);
-            int repeatX = (Resolution.VirtualDimensions.Width / dimension.Width) + 1;
-            int repeatY = (Resolution.VirtualDimensions.Height / dimension.Height) + 1;
+            int repeatX = Resolution.VirtualDimensions.Width / dimension.Width;
+            int repeatY = Resolution.VirtualDimensions.Height / dimension.Height;
 
             Vec2I drawCoordinate = Vec2I.Zero;
             for (int y = 0; y < repeatY; y++)
@@ -68,7 +68,7 @@ namespace Helion.Render.Shared.Drawers
             return ticker.GetTickerInfo().Ticks / ticksPerLetter;
         }
         
-        private void DrawText(IEnumerable<string> lines, Ticker ticker, DrawHelper helper)
+        private void DrawText(IEnumerable<string> lines, Ticker ticker, bool showAllText, DrawHelper helper)
         {
             const int LineSpacing = 4;
             
@@ -90,7 +90,7 @@ namespace Helion.Render.Shared.Drawers
             {
                 foreach (char c in line)
                 {
-                    if (charsDrawn >= m_charsToDraw)
+                    if (!showAllText && charsDrawn >= m_charsToDraw)
                         return;
                     
                     helper.Text(Color.Red, c.ToString(), font, fontSize, out Dimension drawArea, x, y);

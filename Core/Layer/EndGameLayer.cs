@@ -27,6 +27,7 @@ namespace Helion.Layer
         private readonly Ticker m_ticker = new(LettersPerSecond);
         private readonly EndGameDrawer m_drawer;
         private readonly Action m_nextMapFunc;
+        private bool m_showAllText;
         private bool m_invokedNextMapFunc;
 
         protected override double Priority => 0.675;
@@ -55,7 +56,7 @@ namespace Helion.Layer
             return message.Split("\n").ToList();
         }
 
-        private void PlayMusic(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
+        private static void PlayMusic(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
             LanguageDefinition language)
         {
             string music = cluster.Music;
@@ -87,6 +88,12 @@ namespace Helion.Layer
 
         private void FinishEndGame()
         {
+            if (!m_showAllText)
+            {
+                m_showAllText = true;
+                return;
+            }
+            
             if (m_invokedNextMapFunc) 
                 return;
             
@@ -104,7 +111,7 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands renderCommands)
         {
-            m_drawer.Draw(m_cluster, m_flatImage, m_displayText, m_ticker, renderCommands);
+            m_drawer.Draw(m_cluster, m_flatImage, m_displayText, m_ticker, m_showAllText, renderCommands);
             
             base.Render(renderCommands);
         }
