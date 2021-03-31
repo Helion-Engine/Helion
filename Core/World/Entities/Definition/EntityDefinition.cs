@@ -16,11 +16,13 @@ namespace Helion.World.Entities.Definition
         public readonly EntityProperties Properties;
         public readonly EntityStates States;
         public readonly List<CIString> ParentClassNames;
+        public EntityDefinition? MonsterSpeciesDefinition { get; set; }
+
         private readonly HashSet<CIString> ParentClassLookup = new HashSet<CIString>();
 
         public EntityDefinition(int id, CIString name, int? editorId, List<CIString> parentClassNames)
         {
-            Precondition(!name.Empty, "Cannot have an entity definition with an empty name");
+            Precondition(!name.IsEmpty(), "Cannot have an entity definition with an empty name");
             
             Id = id;
             Name = name;

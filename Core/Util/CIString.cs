@@ -10,10 +10,12 @@ namespace Helion.Util
     /// </summary>
     public sealed class CIString : IEnumerable<char>
     {
+        public static readonly CIString Empty = string.Empty;
+
         private readonly string str;
 
         public int Length => str.Length;
-        public bool Empty => str.Empty();
+        public bool IsEmpty() => str.Empty();
 
         public CIString(string s)
         {

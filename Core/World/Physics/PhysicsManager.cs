@@ -746,9 +746,6 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(nextBox))
                     {
-                        if (!entity.Flags.NoClip && line.HasSpecial)
-                            tryMove.AddIntersectSpecialLine(line);
-
                         LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
                         if (blockType != LineBlock.NoBlock)
                         {
@@ -759,6 +756,9 @@ namespace Helion.World.Physics
                             if (blockType == LineBlock.BlockStopChecking || (blockType == LineBlock.BlockContinueIfFloat && !entity.Flags.Float))
                                 return GridIterationStatus.Stop;
                         }
+
+                        if (!entity.Flags.NoClip && line.HasSpecial)
+                            tryMove.AddIntersectSpecialLine(line);
                     }
                 }
 
