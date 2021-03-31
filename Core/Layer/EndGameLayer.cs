@@ -29,7 +29,6 @@ namespace Helion.Layer
 
         private readonly string m_flatImage;
         private readonly List<string> m_displayText;
-        private readonly ClusterDef m_cluster;
         private readonly Ticker m_ticker = new(LettersPerSecond);
         private readonly EndGameDrawer m_drawer;
         private readonly Action? m_nextMapFunc;
@@ -44,7 +43,6 @@ namespace Helion.Layer
             var language = archiveCollection.Definitions.Language;
             
             m_drawer = new(archiveCollection);
-            m_cluster = cluster;
             m_nextMapFunc = nextMapFunc;
             m_flatImage = language.GetDefaultMessage(cluster.Flat);
             m_displayText = LookUpDisplayText(language, cluster);
@@ -117,7 +115,7 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands renderCommands)
         {
-            m_drawer.Draw(m_cluster, m_flatImage, m_displayText, m_ticker, m_showAllText, renderCommands);
+            m_drawer.Draw(m_flatImage, m_displayText, m_ticker, m_showAllText, renderCommands);
             
             base.Render(renderCommands);
         }

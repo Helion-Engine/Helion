@@ -4,7 +4,6 @@ using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Geometry;
 using Helion.Util.Geometry.Vectors;
 using Helion.Util.Timing;
@@ -26,8 +25,7 @@ namespace Helion.Render.Shared.Drawers
             m_archiveCollection = archiveCollection;
         }
 
-        public void Draw(ClusterDef cluster, string flat, List<string> displayText, Ticker ticker,
-            bool showAllText, RenderCommands renderCommands)
+        public void Draw(string flat, List<string> displayText, Ticker ticker, bool showAllText, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
 
