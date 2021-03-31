@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Audio;
+using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Commands;
@@ -20,8 +21,14 @@ namespace Helion.Layer
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public readonly IWorld World;
+        public double KillPercent { get; private set; }
+        public double ItemPercent { get; private set; }
+        public double SecretPercent{ get; private set; }
+        public IntermissionState IntermissionState { get; private set; } = IntermissionState.Started;
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly IAudioSystem m_audioSystem;
+        private readonly SoundManager m_soundManager;
+        private readonly IMusicPlayer m_musicPlayer;
         private readonly Player m_player;
         private readonly MapInfoDef m_currentMapInfo;
         private readonly MapInfoDef m_nextMapInfo;
@@ -29,20 +36,16 @@ namespace Helion.Layer
         private readonly Action m_nextMapFunc;
         private readonly IntermissionDrawer m_drawer;
         private bool m_invokedNextMapFunc;
-        private IntermissionState m_intermissionState = IntermissionState.Started;
-        public readonly IWorld World;
-        public double KillPercent { get; private set; }
-        public double ItemPercent { get; private set; }
-        public double SecretPercent{ get; private set; }
 
         protected override double Priority => 0.65;
 
-        public IntermissionLayer(IWorld world, IAudioSystem audioSystem, Player player, MapInfoDef currentMapInfo,
+        public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, Player player, MapInfoDef currentMapInfo,
             MapInfoDef nextMapInfo, ClusterDef? endGameCluster, Action nextMapFunc)
         {
             World = world;
             m_archiveCollection = world.ArchiveCollection;
-            m_audioSystem = audioSystem;
+            m_soundManager = soundManager;
+            m_musicPlayer = musicPlayer;
             m_currentMapInfo = currentMapInfo;
             m_nextMapInfo = nextMapInfo;
             m_player = player;
@@ -92,6 +95,8 @@ namespace Helion.Layer
 
         private void PlayIntermissionMusic()
         {
+            m_musicPlayer.Stop();
+            
             string musicName = m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.IntermissionMusic;
             Entry? entry = m_archiveCollection.Entries.FindByName(musicName);
             if (entry == null)
@@ -108,20 +113,21 @@ namespace Helion.Layer
                 return; 
             }
             
-            m_audioSystem.Music.Play(midiData);
+            m_musicPlayer.Play(midiData);
         }
 
-        private void AdvanceToNextState()
+        private void AdvanceToNextStateForcefully()
         {
-            m_intermissionState = m_intermissionState switch
+            IntermissionState = IntermissionState switch
             {
-                IntermissionState.Started => IntermissionState.TallyingKills,
-                IntermissionState.TallyingKills => IntermissionState.TallyingItems,
-                IntermissionState.TallyingItems => IntermissionState.TallyingSecrets,
-                IntermissionState.TallyingSecrets => IntermissionState.ShowingPar,
-                IntermissionState.ShowingPar => IntermissionState.ShowingPar,
+                IntermissionState.Started => IntermissionState.ShowAllStats,
+                IntermissionState.TallyingKills => IntermissionState.ShowAllStats,
+                IntermissionState.TallyingItems => IntermissionState.ShowAllStats,
+                IntermissionState.TallyingSecrets => IntermissionState.ShowAllStats,
+                IntermissionState.ShowingPar => IntermissionState.ShowAllStats,
+                IntermissionState.ShowAllStats => IntermissionState.NextMap,
                 IntermissionState.NextMap => IntermissionState.NextMap,
-                _ => throw new Exception($"Unexpected intermission: {m_intermissionState}")
+                _ => throw new Exception($"Unexpected intermission state: {IntermissionState}")
             };
         }
 
@@ -130,17 +136,25 @@ namespace Helion.Layer
             if (m_invokedNextMapFunc)
                 return;
 
-            switch (m_intermissionState)
+            switch (IntermissionState)
             {
+            case IntermissionState.Started:
+                break;
             case IntermissionState.TallyingKills:
             case IntermissionState.TallyingItems:
             case IntermissionState.TallyingSecrets:
             case IntermissionState.ShowingPar:
-                // TODO: Play boom sound.
+            case IntermissionState.ShowAllStats:
+                // Playing it twice to simulate a louder sound as if multiple
+                // of the tallies are completed at once.
+                m_soundManager.PlayStaticSound("intermission/nextstage");
+                m_soundManager.PlayStaticSound("intermission/nextstage");
                 break;
             case IntermissionState.NextMap:
-                // TODO: Play shotgun sound.
+                m_soundManager.PlayStaticSound("intermission/nextstage");
                 break;
+            default:
+                throw new Exception($"Unknown intermission state: {IntermissionState}");
             }
         }
 
@@ -151,14 +165,15 @@ namespace Helion.Layer
             
             if (pressedKey)
             {
-                if (!m_invokedNextMapFunc && m_intermissionState == IntermissionState.NextMap)
+                if (!m_invokedNextMapFunc && IntermissionState == IntermissionState.NextMap)
                 {
                     m_invokedNextMapFunc = true;
                     m_nextMapFunc();
                 }
                 else
                 {
-                    AdvanceToNextState();
+                    Console.WriteLine("Going to next state!");
+                    AdvanceToNextStateForcefully();
                 }
 
                 PlayPressedKeySound();
@@ -182,13 +197,14 @@ namespace Helion.Layer
         }
     }
 
-    internal enum IntermissionState
+    public enum IntermissionState
     {
         Started,
         TallyingKills,
         TallyingItems,
         TallyingSecrets,
         ShowingPar,
+        ShowAllStats,
         NextMap
     }
 }

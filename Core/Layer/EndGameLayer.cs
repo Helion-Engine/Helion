@@ -51,7 +51,7 @@ namespace Helion.Layer
             Entry? entry = archiveCollection.Entries.FindByName(clusterMusic);
             if (entry == null)
             {
-                Log.Warn($"Cannot find music file: {clusterMusic}");
+                Log.Warn($"Cannot find end game music file: {clusterMusic}");
                 return;
             }
 
@@ -62,7 +62,7 @@ namespace Helion.Layer
             if (midiData != null)
                 musicPlayer.Play(midiData);
             else
-                Log.Warn($"Cannot decode music file: {clusterMusic}");
+                Log.Warn($"Cannot decode end game music file: {clusterMusic}");
         }
 
         private void FinishEndGame()

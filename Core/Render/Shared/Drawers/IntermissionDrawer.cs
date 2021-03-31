@@ -43,19 +43,28 @@ namespace Helion.Render.Shared.Drawers
             {
                 draw.Image(IntermissionPic, 0, 0);
 
-                DrawTitle(draw);
+                DrawTitle(draw, layer);
                 DrawStatistics(draw, layer, intermissionFont);
                 DrawTime(draw, layer, intermissionFont);
             });
         }
 
-        private void DrawTitle(DrawHelper draw)
+        private void DrawTitle(DrawHelper draw, IntermissionLayer layer)
         {
             const string FinishedImage = "WIF";
+            const string NowEnteringImage = "WIENTER";
             const int topPaddingY = 4;
-            
-            draw.Image(m_currentMapInfo.TitlePatch, 0, topPaddingY, out Dimension drawArea, both: Align.TopMiddle);
-            draw.Image(FinishedImage, 0, drawArea.Height + topPaddingY + 1, both: Align.TopMiddle);
+
+            if (layer.IntermissionState == IntermissionState.NextMap)
+            {
+                draw.Image(NowEnteringImage, 0, topPaddingY, out Dimension drawArea, both: Align.TopMiddle);
+                draw.Image(m_nextMapInfo.TitlePatch, 0, drawArea.Height + topPaddingY + 1, both: Align.TopMiddle);
+            }
+            else
+            {
+                draw.Image(m_currentMapInfo.TitlePatch, 0, topPaddingY, out Dimension drawArea, both: Align.TopMiddle);
+                draw.Image(FinishedImage, 0, drawArea.Height + topPaddingY + 1, both: Align.TopMiddle);   
+            }
         }
 
         private void DrawStatistics(DrawHelper draw, IntermissionLayer layer, Font? intermissionFont)
@@ -65,19 +74,32 @@ namespace Helion.Render.Shared.Drawers
             const int OffsetY = 50;
             const int RowOffsetY = 18;
 
-            draw.Image("WIOSTK", LeftOffsetX, OffsetY);
-            draw.Image("WIOSTI", LeftOffsetX, OffsetY + RowOffsetY);
-            draw.Image("WISCRT2", LeftOffsetX, OffsetY + (2 * RowOffsetY));
+            if (layer.IntermissionState == IntermissionState.NextMap)
+                return;
 
-            if (intermissionFont != null)
+            if (layer.IntermissionState >= IntermissionState.TallyingKills)
             {
+                draw.Image("WIOSTK", LeftOffsetX, OffsetY);
                 DrawNumber(layer.KillPercent, OffsetY, intermissionFont);
+            }
+            
+            if (layer.IntermissionState >= IntermissionState.TallyingItems)
+            {
+                draw.Image("WIOSTI", LeftOffsetX, OffsetY + RowOffsetY);
                 DrawNumber(layer.ItemPercent, OffsetY + RowOffsetY, intermissionFont);
+            }
+            
+            if (layer.IntermissionState >= IntermissionState.TallyingSecrets)
+            {
+                draw.Image("WISCRT2", LeftOffsetX, OffsetY + (2 * RowOffsetY));
                 DrawNumber(layer.SecretPercent, OffsetY + (2 * RowOffsetY), intermissionFont);
             }
 
-            void DrawNumber(double percent, int offsetY, Font font)
+            void DrawNumber(double percent, int offsetY, Font? font)
             {
+                if (font == null)
+                    return;
+                
                 string text = $"{(int)(percent * 100)}%";
                 (int w, int _) = draw.TextDrawArea(text, font, FontSize);
                 
@@ -86,7 +108,7 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private void DrawTime(DrawHelper draw, IntermissionLayer layer, Font? font)
+        private void DrawTime(DrawHelper draw, IntermissionLayer layer, Font? renderFont)
         {
             const int LeftOffsetTimeX = 40;
             const int RightOffsetLevelTimeX = 150;
@@ -94,15 +116,15 @@ namespace Helion.Render.Shared.Drawers
             const int RightOffsetParTimeX = 280;
             const int OffsetY = 40;
             
+            if (layer.IntermissionState == IntermissionState.NextMap || layer.IntermissionState < IntermissionState.ShowingPar)
+                return;
+            
             draw.Image("WITIME", LeftOffsetTimeX, -OffsetY, window: Align.BottomLeft);
             draw.Image("WIPAR", LeftOffsetParX, -OffsetY, window: Align.BottomLeft);
 
-            if (font == null)
-                return;
-
             int levelTimeSeconds = (int)(layer.World.LevelTime / Constants.TicksPerSecond);
-            RenderTime(levelTimeSeconds, RightOffsetLevelTimeX);
-            RenderTime(m_currentMapInfo.ParTime, RightOffsetParTimeX);
+            RenderTime(levelTimeSeconds, RightOffsetLevelTimeX, renderFont);
+            RenderTime(m_currentMapInfo.ParTime, RightOffsetParTimeX, renderFont);
 
             string GetTimeString(int seconds)
             {
@@ -111,8 +133,11 @@ namespace Helion.Render.Shared.Drawers
                 return $"{minutes}:{secondsStr}";
             }
 
-            void RenderTime(int seconds, int rightOffsetX)
+            void RenderTime(int seconds, int rightOffsetX, Font? font)
             {
+                if (font == null)
+                    return;
+                
                 // TODO: Use TextAlign.Right for both below.
                 string levelTime = GetTimeString(seconds);
                 (int w, int _) = draw.TextDrawArea(levelTime, font, FontSize);

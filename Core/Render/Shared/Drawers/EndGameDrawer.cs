@@ -18,7 +18,7 @@ namespace Helion.Render.Shared.Drawers
     {
         private const string Font = "SMALLFONT";
         private static readonly Vec2I TextStartCorner = new(8, 8);
-        private static readonly ResolutionInfo Resolution = DoomHudHelper.DoomResolutionInfo;
+        private static readonly ResolutionInfo Resolution = DoomHudHelper.DoomResolutionInfoCenter;
         
         private readonly ArchiveCollection m_archiveCollection;
 
@@ -32,6 +32,8 @@ namespace Helion.Render.Shared.Drawers
             DrawHelper helper = new(renderCommands);
 
             renderCommands.ClearDepth();
+            
+            helper.FillWindow(Color.Black);
 
             helper.AtResolution(Resolution, () =>
             {
@@ -56,7 +58,6 @@ namespace Helion.Render.Shared.Drawers
         private static void DrawBackground(string flat, DrawHelper helper)
         {
             var dimension = helper.DrawInfoProvider.GetImageDimension(flat, ResourceNamespace.Flats);
-
             int repeatX = (Resolution.VirtualDimensions.Width / dimension.Width) + 1;
             int repeatY = (Resolution.VirtualDimensions.Height / dimension.Height) + 1;
 

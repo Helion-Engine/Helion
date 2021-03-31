@@ -257,7 +257,7 @@ namespace Helion.Client
                 {
                     bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
                     ClusterDef? clusterToUse = hasEndGame ? cluster : null;
-                    IntermissionLayer intermissionLayer = new(world, m_audioSystem, singlePlayerWorld.Player, 
+                    IntermissionLayer intermissionLayer = new(world, m_soundManager, m_audioSystem.Music, singlePlayerWorld.Player, 
                         singlePlayerWorld.MapInfo, nextMapInfo, clusterToUse, GoToNextLevel);
                     m_layerManager.Add(intermissionLayer);
                 }
