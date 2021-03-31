@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Helion.Geometry;
 using Helion.Layer;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
@@ -6,7 +7,6 @@ using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
-using Helion.Util.Geometry;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
