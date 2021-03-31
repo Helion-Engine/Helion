@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Impl.Components;
+using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using MoreLinq.Extensions;
 using NLog;
 using OpenTK.Audio.OpenAL;
@@ -55,7 +55,7 @@ namespace Helion.Audio.Impl
 
         public void SetListener(Vec3D pos, double angle, double pitch)
         {
-            Vec3D vec = Vec3D.Unit(angle, pitch);
+            Vec3D vec = Vec3D.UnitSphere(angle, pitch);
             Vector3 up = new Vector3(0, 0, 1);
             Vector3 at = new Vector3((float)vec.X, (float)vec.Y, (float)vec.Z);
 

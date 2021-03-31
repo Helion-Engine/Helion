@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Numerics;
 using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Shared
 {
@@ -22,23 +20,23 @@ namespace Helion.Render.Shared
         /// used by the game rather than have Y be the vertical axis, or else
         /// it's easy to forget and mix up the Y and Z axes.
         /// </remarks>
-        public static readonly Vector3 Up = new Vector3(0, 0, 1);
+        public static readonly Vec3F Up = new(0, 0, 1);
         
         /// <summary>
         /// The Up vector in GLM's vector format.
         /// </summary>
-        public static readonly vec3 UpGlm = Up.ToGlmVector();
+        public static readonly vec3 UpGlm = Up.GlmVector;
 
         /// <summary>
         /// The current camera position.
         /// </summary>
-        public readonly Vector3 Position;
+        public readonly Vec3F Position;
 
         /// <summary>
         /// The directional vector we're facing. This is made up from the yaw
         /// and pitch.
         /// </summary>
-        public readonly Vector3 Direction;
+        public readonly Vec3F Direction;
         
         /// <summary>
         /// The horizontal viewing angle, where zero radians is equal to facing
@@ -60,7 +58,7 @@ namespace Helion.Render.Shared
         /// <param name="pitchRadians">The vertical looking angle in radians. 
         /// This should be between [-pi/2, pi/2], or else it will be clamped
         /// to that range.</param>
-        public Camera(Vector3 position, float yawRadians, float pitchRadians)
+        public Camera(Vec3F position, float yawRadians, float pitchRadians)
         {          
             Position = position;
             YawRadians = ClampYaw(yawRadians);
@@ -90,8 +88,8 @@ namespace Helion.Render.Shared
         /// <returns>The view matrix for the camera information.</returns>
         public mat4 CalculateViewMatrix()
         {
-            vec3 pos = Position.ToGlmVector();
-            vec3 eye = pos + Direction.ToGlmVector();
+            vec3 pos = Position.GlmVector;
+            vec3 eye = pos + Direction.GlmVector;
             return mat4.LookAt(pos, eye, UpGlm);
         }
         
@@ -102,12 +100,12 @@ namespace Helion.Render.Shared
         /// <param name="pitchRadians">The pitch in radians. This will be 
         /// clamped to the range of [-pi/2, pi/2] if not in range.</param>
         /// <returns>The direction from the yaw/pitch combination.</returns>
-        private static Vector3 DirectionFrom(float yawRadians, float pitchRadians)
+        private static Vec3F DirectionFrom(float yawRadians, float pitchRadians)
         {
             float x = (float)(Math.Cos(yawRadians) * Math.Cos(pitchRadians));
             float y = (float)(Math.Sin(yawRadians) * Math.Cos(pitchRadians));
             float z = (float)Math.Sin(pitchRadians);
-            return Vector3.Normalize(new Vector3(x, y, z));
+            return new Vec3F(x, y, z).Unit();
         }
 
         private static float ClampYaw(double yawRadians)

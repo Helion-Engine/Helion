@@ -10,7 +10,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.Sounds.Mus;
 using Helion.World.Cheats;
 using Helion.World.Entities;
@@ -24,6 +23,7 @@ using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Resources.Definitions.Language;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -379,7 +379,7 @@ namespace Helion.World.Impl.SinglePlayer
             Vec2I pixelsMoved = input.ConsumeMouseDelta();
             if (pixelsMoved.X != 0 || pixelsMoved.Y != 0)
             {
-                Vector2 moveDelta = pixelsMoved.ToFloat() / (float)Config.Mouse.PixelDivisor;
+                Vec2F moveDelta = pixelsMoved.Float / (float)Config.Mouse.PixelDivisor;
                 moveDelta.X *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Yaw);
                 moveDelta.Y *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Pitch);
 

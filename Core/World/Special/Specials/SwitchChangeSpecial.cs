@@ -1,7 +1,7 @@
 ﻿using Helion.Audio;
+using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;

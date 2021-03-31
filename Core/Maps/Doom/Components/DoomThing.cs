@@ -1,8 +1,7 @@
+using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
-using Helion.Maps.Doom.Components.Types;
 using Helion.Maps.Shared;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Doom.Components
 {

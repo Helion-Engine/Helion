@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
+using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
-using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -21,7 +19,7 @@ namespace Helion.Render.Shared.World
     {
         public const double NoOverride = double.MaxValue;
 
-        public static WallVertices HandleOneSided(Side side, in Vector2 textureUVInverse, double tickFraction,
+        public static WallVertices HandleOneSided(Side side, in Vec2F textureUVInverse, double tickFraction,
             double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -49,7 +47,7 @@ namespace Helion.Render.Shared.World
         }
 
         public static WallVertices HandleTwoSidedLower(TwoSided facingSide, Side otherSide, 
-            in Vector2 textureUVInverse, bool isFrontSide, double tickFraction)
+            in Vec2F textureUVInverse, bool isFrontSide, double tickFraction)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
@@ -75,7 +73,7 @@ namespace Helion.Render.Shared.World
         }
         
         public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide, 
-            in Dimension textureDimension, in Vector2 textureUVInverse, double bottomOpeningZ, double topOpeningZ,
+            in Dimension textureDimension, in Vec2F textureUVInverse, double bottomOpeningZ, double topOpeningZ,
             bool isFrontSide, out bool nothingVisible, double tickFraction)
         {
             if (LineOpening.IsRenderingBlocked(facingSide.Line))
@@ -106,7 +104,7 @@ namespace Helion.Render.Shared.World
             return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
         }
 
-        public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, in Vector2 textureUVInverse, 
+        public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, in Vec2F textureUVInverse, 
             bool isFrontSide, double tickFraction, double overrideTopZ = NoOverride)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -166,8 +164,8 @@ namespace Helion.Render.Shared.World
                     if (overrideZ != int.MaxValue)
                         z = overrideZ;
                     
-                    Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, (float)z);
-                    Vector2 uv = CalculateFlatUV(vertex, textureDimension);
+                    Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
+                    Vec2F uv = CalculateFlatUV(vertex, textureDimension);
                     
                     verticesToPopulate.Add(new WorldVertex(position, uv));
                 }
@@ -187,8 +185,8 @@ namespace Helion.Render.Shared.World
                     if (overrideZ != int.MaxValue)
                         z = overrideZ;
 
-                    Vector3 position = new Vector3((float)vertex.X, (float)vertex.Y, (float)z);
-                    Vector2 uv = CalculateFlatUV(vertex, textureDimension);
+                    Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
+                    Vec2F uv = CalculateFlatUV(vertex, textureDimension);
                     
                     verticesToPopulate.Add(new WorldVertex(position, uv));
                 }
@@ -221,43 +219,43 @@ namespace Helion.Render.Shared.World
         }
 
         private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length, 
-            in Vector2 textureUVInverse, double spanZ, double tickFraction)
+            in Vec2F textureUVInverse, double spanZ, double tickFraction)
         {
-            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            Vec2F offsetUV = side.Offset.Float * textureUVInverse;
             if (side.ScrollData != null)
                 offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.MiddlePosition, textureUVInverse, tickFraction);
-            float wallSpanU = (float)length * textureUVInverse.U();
-            float spanV = (float)spanZ * textureUVInverse.V();
+            float wallSpanU = (float)length * textureUVInverse.U;
+            float spanV = (float)spanZ * textureUVInverse.V;
 
-            float leftU = offsetUV.U();
-            float rightU = offsetUV.U() + wallSpanU;
+            float leftU = offsetUV.U;
+            float rightU = offsetUV.U + wallSpanU;
             float topV;
             float bottomV;
             
             if (line.Flags.Unpegged.Lower)
             {
-                bottomV = 1.0f + offsetUV.V();
+                bottomV = 1.0f + offsetUV.V;
                 topV = bottomV - spanV;
             }
             else
             {
-                topV = offsetUV.V();
-                bottomV = offsetUV.V() + spanV;
+                topV = offsetUV.V;
+                bottomV = offsetUV.V + spanV;
             }
             
-            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
+            return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV));   
         }
 
         private static WallUV CalculateTwoSidedLowerWallUV(Line line, Side facingSide, double length, 
-            in Vector2 textureUVInverse, double topZ, double bottomZ, double tickFraction)
+            in Vec2F textureUVInverse, double topZ, double bottomZ, double tickFraction)
         {
-            Vector2 offsetUV = facingSide.Offset.ToFloat() * textureUVInverse;
+            Vec2F offsetUV = facingSide.Offset.Float * textureUVInverse;
             if (facingSide.ScrollData != null)
                 offsetUV += GetScrollOffset(facingSide.ScrollData, SideScrollData.LowerPosition, textureUVInverse, tickFraction);
-            float wallSpanU = (float)length * textureUVInverse.U();
+            float wallSpanU = (float)length * textureUVInverse.U;
 
-            float leftU = offsetUV.U();
-            float rightU = offsetUV.U() + wallSpanU;
+            float leftU = offsetUV.U;
+            float rightU = offsetUV.U + wallSpanU;
             float topV;
             float bottomV;
             
@@ -267,31 +265,31 @@ namespace Helion.Render.Shared.World
                 float topDistFromCeil = (float)(ceilZ - topZ);
                 float bottomDistFromCeil = (float)(ceilZ - bottomZ);
                 
-                topV = offsetUV.V() + (topDistFromCeil * textureUVInverse.V());
-                bottomV = offsetUV.V() + (bottomDistFromCeil * textureUVInverse.V());
+                topV = offsetUV.V + (topDistFromCeil * textureUVInverse.V);
+                bottomV = offsetUV.V + (bottomDistFromCeil * textureUVInverse.V);
             }
             else
             {
                 float spanZ = (float)(topZ - bottomZ);
-                float spanV = spanZ * textureUVInverse.V();
+                float spanV = spanZ * textureUVInverse.V;
 
-                topV = offsetUV.V();
-                bottomV = offsetUV.V() + spanV;
+                topV = offsetUV.V;
+                bottomV = offsetUV.V + spanV;
             }
             
-            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
+            return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV)); 
         }
         
         private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, in MiddleDrawSpan drawSpan,
-            in Vector2 textureUVInverse, double tickFraction)
+            in Vec2F textureUVInverse, double tickFraction)
         {
-            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            Vec2F offsetUV = side.Offset.Float * textureUVInverse;
             if (side.ScrollData != null)
                 offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.MiddlePosition, textureUVInverse, tickFraction);
-            float wallSpanU = (float)length * textureUVInverse.U();
+            float wallSpanU = (float)length * textureUVInverse.U;
             
-            float leftU = offsetUV.U();
-            float rightU = offsetUV.U() + wallSpanU;
+            float leftU = offsetUV.U;
+            float rightU = offsetUV.U + wallSpanU;
             
             // Since we only draw one of the texture, all we need to do is find
             // out where the texture is clamped by and find that value between
@@ -302,52 +300,52 @@ namespace Helion.Render.Shared.World
             float topV = 1.0f - (float)((drawSpan.VisibleTopZ - drawSpan.BottomZ) / textureHeight);
             float bottomV = 1.0f - (float)((drawSpan.VisibleBottomZ - drawSpan.BottomZ) / textureHeight);
             
-            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV)); 
+            return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV)); 
         }
         
         private static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length, 
-            in Vector2 textureUVInverse, double spanZ, double tickFraction)
+            in Vec2F textureUVInverse, double spanZ, double tickFraction)
         {
-            Vector2 offsetUV = side.Offset.ToFloat() * textureUVInverse;
+            Vec2F offsetUV = side.Offset.Float * textureUVInverse;
             if (side.ScrollData != null)
                 offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.UpperPosition, textureUVInverse, tickFraction);
-            float wallSpanU = (float)length * textureUVInverse.U();
-            float spanV = (float)spanZ * textureUVInverse.V();
+            float wallSpanU = (float)length * textureUVInverse.U;
+            float spanV = (float)spanZ * textureUVInverse.V;
 
-            float leftU = offsetUV.U();
-            float rightU = offsetUV.U() + wallSpanU;
+            float leftU = offsetUV.U;
+            float rightU = offsetUV.U+ wallSpanU;
             float topV;
             float bottomV;
             
             if (line.Flags.Unpegged.Upper)
             {
-                topV = offsetUV.V();
+                topV = offsetUV.V;
                 bottomV = topV + spanV;
             }
             else
             {
-                bottomV = 1.0f + offsetUV.V();
+                bottomV = 1.0f + offsetUV.V;
                 topV = bottomV - spanV;
             }
             
-            return new WallUV(new Vector2(leftU, topV), new Vector2(rightU, bottomV));   
+            return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV));   
         }
 
-        private static Vector2 GetScrollOffset(SideScrollData scrollData, int position, in Vector2 textureUVInverse, double tickFraction)
+        private static Vec2F GetScrollOffset(SideScrollData scrollData, int position, in Vec2F textureUVInverse, double tickFraction)
         {
-            Vector2 lastOffset = scrollData.LastOffset[position].ToFloat();
+            Vec2F lastOffset = scrollData.LastOffset[position].Float;
 
-            Vector2 vec = scrollData.Offset[position].ToFloat() - lastOffset;
+            Vec2F vec = scrollData.Offset[position].Float - lastOffset;
             vec.X *= (float)tickFraction;
             vec.Y *= (float)tickFraction;
 
             return (lastOffset + vec) * textureUVInverse;
         }
         
-        private static Vector2 CalculateFlatUV(in Vec2D vertex, in Dimension textureDimension)
+        private static Vec2F CalculateFlatUV(in Vec2D vertex, in Dimension textureDimension)
         {
             // TODO: Sector offsets will go here eventually.
-            Vector2 uv = vertex.ToFloat() / textureDimension.ToVector().ToFloat();
+            Vec2F uv = vertex.Float / textureDimension.Vector.Float;
             
             // When we map coordinates to their texture coordinates, because
             // we do division above, a coordinate with Y values of 16 to 32

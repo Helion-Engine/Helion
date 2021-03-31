@@ -1,6 +1,5 @@
+using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Decorate.States;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.World.Entities.Definition.States
 {

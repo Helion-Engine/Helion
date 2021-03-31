@@ -1,14 +1,13 @@
 using Helion.Bsp.Geometry;
+using Helion.Geometry.Segments;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
-using System;
+using Helion.Geometry.Vectors;
 
 namespace Helion.World.Geometry.Lines
 {

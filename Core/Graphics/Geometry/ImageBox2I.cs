@@ -1,5 +1,5 @@
-﻿using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Graphics.Geometry
 {

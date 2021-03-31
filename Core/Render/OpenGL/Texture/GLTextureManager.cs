@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Context;
@@ -9,7 +10,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 

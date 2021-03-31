@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Helion.Util;
+using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.Util.Bytes;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Components.GL
 {

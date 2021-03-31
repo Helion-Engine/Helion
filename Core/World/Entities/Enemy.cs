@@ -1,7 +1,7 @@
 ﻿using System;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Physics;
 
 namespace Helion.World.Entities
@@ -207,12 +207,12 @@ namespace Helion.World.Entities
         public Vec2D GetNextEnemyPos()
         {
             if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
-                return Position.To2D();
+                return Position.XY;
 
             double speedX = SpeedX[(int)m_direction] * Properties.Speed;
             double speedY = SpeedY[(int)m_direction] * Properties.Speed;
 
-            return new Vec2D(Position.X + speedX, Position.Y + speedY);
+            return (Position.X + speedX, Position.Y + speedY);
         }
 
         public bool MoveEnemy(out TryMoveData? tryMove)
@@ -232,7 +232,7 @@ namespace Helion.World.Entities
             if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
             {
                 BlockFloating = true;
-                Vec3D pos = new Vec3D(Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
+                Vec3D pos = (Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
                 SetPosition(pos);
                 return true;
             }
@@ -243,7 +243,7 @@ namespace Helion.World.Entities
 
             if (tryMove.Success && !Flags.Float)
             {
-                Vec3D newPos = new Vec3D(Position.X, Position.Y, tryMove.HighestFloorZ);
+                Vec3D newPos = (Position.X, Position.Y, tryMove.HighestFloorZ);
                 SetPosition(newPos);
             }
             

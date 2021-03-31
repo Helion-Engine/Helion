@@ -1,6 +1,6 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Specials;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Doom.Components
 {

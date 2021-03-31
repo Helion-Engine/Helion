@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace BspVisualizer

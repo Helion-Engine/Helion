@@ -1,9 +1,8 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Maps.Hexen.Components
 {

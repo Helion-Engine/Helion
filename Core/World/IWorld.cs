@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Util.Configs;
 using Helion.Resources.Definitions.Language;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
 using Helion.World.Entities;

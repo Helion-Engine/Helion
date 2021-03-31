@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Audio.Impl.Components;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -20,7 +21,8 @@ namespace Helion.Audio.Impl
 
         public event EventHandler? Completed;
 
-        public Vector3 Velocity { get; set; }
+        public Vec3F Velocity { get; set; }
+
         public AudioData AudioData { get; set; }
         private readonly OpenALAudioSourceManager m_owner;
         private int m_sourceId;
@@ -74,7 +76,7 @@ namespace Helion.Audio.Impl
             });
         }
 
-        public void SetPosition(System.Numerics.Vector3 pos)
+        public void SetPosition(Vec3F pos)
         {
             OpenALExecutor.Run("Setting sound position", () =>
             {
@@ -82,7 +84,7 @@ namespace Helion.Audio.Impl
             });
         }
 
-        public System.Numerics.Vector3 GetPosition()
+        public Vec3F GetPosition()
         {
             Vector3 pos = Vector3.Zero;
 
@@ -91,10 +93,10 @@ namespace Helion.Audio.Impl
                 AL.GetSource(m_sourceId, ALSource3f.Position, out pos);
             });
 
-            return new System.Numerics.Vector3(pos.X, pos.Y, pos.Z);
+            return new Vec3F(pos.X, pos.Y, pos.Z);
         }
 
-        public void SetVelocity(System.Numerics.Vector3 velocity)
+        public void SetVelocity(Vec3F velocity)
         {
             OpenALExecutor.Run("Setting sound velocity", () =>
             {

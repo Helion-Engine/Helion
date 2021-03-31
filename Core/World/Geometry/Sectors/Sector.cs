@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Audio;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Resources.Definitions.SoundInfo;
@@ -7,7 +8,6 @@ using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
@@ -488,7 +488,7 @@ namespace Helion.World.Geometry.Sectors
 
         public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
         {
-            Vec2D pos2D = listener.Position.To2D();
+            Vec2D pos2D = listener.Position.XY;
             if (listener.Sector.Equals(this))
                 return pos2D.To3D(type == SectorPlaneType.Floor ? ToFloorZ(pos2D) : ToCeilingZ(pos2D));
 

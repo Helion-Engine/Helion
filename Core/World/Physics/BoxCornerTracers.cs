@@ -1,5 +1,4 @@
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Segments;
+using Helion.Geometry.Segments;
 
 namespace Helion.World.Physics
 {

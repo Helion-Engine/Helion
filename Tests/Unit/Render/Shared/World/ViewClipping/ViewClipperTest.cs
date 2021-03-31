@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.Render.Shared.World.ViewClipping;
-using Helion.Util.Geometry.Vectors;
 using Xunit;
 
 namespace Helion.Tests.Unit.Render.Shared.World.ViewClipping

@@ -1,6 +1,5 @@
-﻿using Helion.Resources;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
+using Helion.Resources;
 
 namespace Helion.Graphics
 {
@@ -25,7 +24,7 @@ namespace Helion.Graphics
         /// </summary>
         public ResourceNamespace Namespace { get; }
 
-        public ImageMetadata() : this(new Vec2I(0, 0), ResourceNamespace.Global)
+        public ImageMetadata() : this(Vec2I.Zero, ResourceNamespace.Global)
         {
         }
 
@@ -37,7 +36,7 @@ namespace Helion.Graphics
 
         public ImageMetadata(ResourceNamespace resourceNamespace)
         {
-            Offset = new Vec2I(0, 0);
+            Offset = Vec2I.Zero;
             Namespace = resourceNamespace;
         }
     }

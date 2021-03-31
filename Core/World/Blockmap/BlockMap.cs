@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Grids;
+using Helion.Geometry.Segments;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 

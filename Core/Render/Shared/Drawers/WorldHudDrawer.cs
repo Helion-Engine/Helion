@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
@@ -11,8 +13,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities.Definition.Properties;
@@ -328,7 +328,7 @@ namespace Helion.Render.Shared.Drawers
                     (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
                     Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
                     offset.Y += yOffset;
-                    Vec2I weaponOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction).ToInt();
+                    Vec2I weaponOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction).Int;
 
                     float alpha = 1.0f;
                     IPowerup? powerup = player.Inventory.GetPowerup(PowerupType.Invisibility);
@@ -369,7 +369,7 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawHudCrosshair(Dimension viewport, DrawHelper helper)
         {
-            Vec2I center = viewport.ToVector() / 2;
+            Vec2I center = viewport.Vector / 2;
             Vec2I horizontalStart = center - new Vec2I(CrosshairLength, CrosshairHalfWidth);
             Vec2I verticalStart = center - new Vec2I(CrosshairHalfWidth, CrosshairLength);
 

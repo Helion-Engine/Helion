@@ -1,16 +1,13 @@
-﻿using Helion.Audio;
-using Helion.Maps.Specials.ZDoom;
+﻿using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities;
-using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
-using Helion.World.Sound;
 using System;
+using Helion.Geometry.Vectors;
 
 namespace Helion.World.Special.Specials
 {
@@ -39,8 +36,6 @@ namespace Helion.World.Special.Specials
                         return TeleportFog.Source | TeleportFog.Dest;
                     else
                         return TeleportFog.Dest;
-                default:
-                    break;
             }
 
             return TeleportFog.None;
@@ -64,10 +59,10 @@ namespace Helion.World.Special.Specials
             if (Teleport(entity, teleportSpot))
             {
                 if ((m_fogFlags & TeleportFog.Source) != 0)
-                    m_world.CreateTeleportFog(oldPosition + (Vec3D.Unit(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
+                    m_world.CreateTeleportFog(oldPosition + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
 
                 if ((m_fogFlags & TeleportFog.Dest) != 0)
-                    m_world.CreateTeleportFog(entity.Position + (Vec3D.Unit(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
+                    m_world.CreateTeleportFog(entity.Position + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
             }
 
             return SpecialTickStatus.Destroy;

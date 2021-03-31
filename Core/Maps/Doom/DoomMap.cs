@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Doom.Components;
@@ -10,13 +14,8 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
-using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Container;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

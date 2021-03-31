@@ -1,4 +1,4 @@
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Resources.Definitions.Compatibility.Sides
 {

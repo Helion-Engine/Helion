@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
 using Helion.Render.Commands.Types;
 using Helion.Render.Shared;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
@@ -157,6 +157,6 @@ namespace Helion.Render.Commands
             return new ImageBox2I(start.X + offsetX, start.Y, end.X + offsetX, end.Y);
         }
 
-        private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).ToInt();
+        private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).Int;
     }
 }

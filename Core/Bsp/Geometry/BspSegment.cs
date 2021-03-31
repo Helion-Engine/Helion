@@ -1,8 +1,8 @@
 using Helion.Bsp.Repairer;
+using Helion.Geometry.Graphs;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Segments.Enums;
 using Helion.Maps.Components;
-using Helion.Util.Geometry.Graphs;
-using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Segments.Enums;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry

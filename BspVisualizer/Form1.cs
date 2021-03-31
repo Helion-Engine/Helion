@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using Helion.Bsp;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
 namespace BspVisualizer
 {

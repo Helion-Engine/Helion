@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Util;
-using Helion.Util.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Texture

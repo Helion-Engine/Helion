@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.Geometry

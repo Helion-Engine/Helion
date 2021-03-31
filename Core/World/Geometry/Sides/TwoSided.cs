@@ -1,4 +1,4 @@
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 

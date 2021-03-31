@@ -1,84 +1,177 @@
+﻿// THIS FILE WAS AUTO-GENERATED.
+// CHANGES WILL NOT BE PROPAGATED.
+// ----------------------------------------------------------------------------
+
+using System;
+
 namespace Helion.Util.Extensions
 {
-    /// <summary>
-    /// A collection of helpers for primitive values.
-    /// </summary>
     public static class PrimitiveExtensions
     {
-        /// <summary>
-        /// Checks if the value is approximately equal to another value. If you
-        /// are using a very large or small number you will need to customize
-        /// the epsilon.
-        /// </summary>
-        /// <param name="value">The original object.</param>
-        /// <param name="target">What you want to compare it to.</param>
-        /// <param name="epsilon">The range to check if value is within range
-        /// of target.</param>
-        /// <returns>True if so, false if not.</returns>
-        public static bool ApproxEquals(this double value, double target, double epsilon = 0.00001)
+        public static byte Min(this byte self, byte other)
         {
-            return value >= target - epsilon && value <= target + epsilon;
+            return Math.Min(self, other);
         }
 
-        /// <summary>
-        /// Checks if the value is approximately equal to another value. If you
-        /// are using a very large or small number you will need to customize
-        /// the epsilon.
-        /// </summary>
-        /// <param name="value">The original object.</param>
-        /// <param name="target">What you want to compare it to.</param>
-        /// <param name="epsilon">The range to check if value is within range
-        /// of target.</param>
-        /// <returns>True if so, false if not.</returns>
+        public static byte Max(this byte self, byte other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static short Min(this short self, short other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static short Max(this short self, short other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static short Abs(this short self)
+        {
+            return Math.Abs(self);
+        }
+
+        public static ushort Min(this ushort self, ushort other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static ushort Max(this ushort self, ushort other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static int Min(this int self, int other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static int Max(this int self, int other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static int Abs(this int self)
+        {
+            return Math.Abs(self);
+        }
+
+        public static uint Min(this uint self, uint other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static uint Max(this uint self, uint other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static long Min(this long self, long other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static long Max(this long self, long other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static long Abs(this long self)
+        {
+            return Math.Abs(self);
+        }
+
+        public static ulong Min(this ulong self, ulong other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static ulong Max(this ulong self, ulong other)
+        {
+            return Math.Max(self, other);
+        }
+
         public static bool ApproxEquals(this float value, float target, float epsilon = 0.0001f)
         {
             return value >= target - epsilon && value <= target + epsilon;
         }
 
-        /// <summary>
-        /// Checks if the value is approximately equal to zero.
-        /// </summary>
-        /// <param name="value">The original object.</param>
-        /// <param name="epsilon">The range to check if value is within range
-        /// of target.</param>
-        /// <returns>True if so, false if not.</returns>
-        public static bool ApproxZero(this double value, double epsilon = 0.00001)
-        {
-            return value.ApproxEquals(0.0, epsilon);
-        }
-
-        /// <summary>
-        /// Checks if the value is approximately equal to zero.
-        /// </summary>
-        /// <param name="value">The original object.</param>
-        /// <param name="epsilon">The range to check if value is within range
-        /// of target.</param>
-        /// <returns>True if so, false if not.</returns>
         public static bool ApproxZero(this float value, float epsilon = 0.0001f)
         {
-            return value.ApproxEquals(0.0f, epsilon);
+            return value.ApproxEquals(0, epsilon);
         }
 
-        /// <summary>
-        /// Interpolates the value from the current to the provided value by
-        /// some time t.
-        /// </summary>
-        /// <param name="start">The initial point.</param>
-        /// <param name="end">The ending point.</param>
-        /// <param name="t">The fraction along the way, where 0.0 would yield
-        /// start and 1.0 would yield end.</param>
-        /// <returns>The value based on t.</returns>
-        public static float Interpolate(this float start, float end, float t) => start + (t * (end - start));
+        public static float Interpolate(this float start, float end, float t)
+        {
+            return start + (t * (end - start));
+        }
 
-        /// <summary>
-        /// Interpolates the value from the current to the provided value by
-        /// some time t.
-        /// </summary>
-        /// <param name="start">The initial point.</param>
-        /// <param name="end">The ending point.</param>
-        /// <param name="t">The fraction along the way, where 0.0 would yield
-        /// start and 1.0 would yield end.</param>
-        /// <returns>The value based on t.</returns>
-        public static double Interpolate(this double start, double end, double t) => start + (t * (end - start));
+        public static float Floor(this float self)
+        {
+            return MathF.Floor(self);
+        }
+
+        public static float Ceiling(this float self)
+        {
+            return MathF.Ceiling(self);
+        }
+
+        public static float Min(this float self, float other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static float Max(this float self, float other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static float Abs(this float self)
+        {
+            return Math.Abs(self);
+        }
+
+        public static bool ApproxEquals(this double value, double target, double epsilon = 0.00001)
+        {
+            return value >= target - epsilon && value <= target + epsilon;
+        }
+
+        public static bool ApproxZero(this double value, double epsilon = 0.00001)
+        {
+            return value.ApproxEquals(0, epsilon);
+        }
+
+        public static double Interpolate(this double start, double end, double t)
+        {
+            return start + (t * (end - start));
+        }
+
+        public static double Floor(this double self)
+        {
+            return Math.Floor(self);
+        }
+
+        public static double Ceiling(this double self)
+        {
+            return Math.Ceiling(self);
+        }
+
+        public static double Min(this double self, double other)
+        {
+            return Math.Min(self, other);
+        }
+
+        public static double Max(this double self, double other)
+        {
+            return Math.Max(self, other);
+        }
+
+        public static double Abs(this double self)
+        {
+            return Math.Abs(self);
+        }
+
     }
 }

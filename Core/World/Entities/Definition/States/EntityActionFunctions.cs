@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Helion.Audio;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
@@ -522,18 +522,19 @@ namespace Helion.World.Entities.Definition.States
 
             double pitch = entity.PitchTo(target);
             Entity? spawnShot = entity.World.FireProjectile(entity, pitch, 0.0, false, "SpawnShot");
-            if (spawnShot == null)
-                return;
 
-            double distance = entity.Position.Distance(target.Position);
-            double speed = spawnShot.Definition.Properties.Speed;
-            double reactionTime = distance / speed;
+            if (spawnShot != null)
+            {
+                double distance = entity.Position.Distance(target.Position);
+                double speed = spawnShot.Definition.Properties.Speed;
+                double reactionTime = distance / speed;
 
-            spawnShot.Flags.NoClip = true;
-            spawnShot.AngleRadians = entity.Position.Angle(target.Position);
-            spawnShot.Velocity = Vec3D.UnitTimesValue(spawnShot.AngleRadians, pitch, speed);
-            spawnShot.Target = target;
-            spawnShot.ReactionTime = (int)reactionTime;
+                spawnShot.Flags.NoClip = true;
+                spawnShot.AngleRadians = entity.Position.Angle(target.Position);
+                spawnShot.Velocity = Vec3D.UnitSphere(spawnShot.AngleRadians, pitch) * speed;
+                spawnShot.Target = target;
+                spawnShot.ReactionTime = (int)reactionTime;
+            }
 
             entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
@@ -1063,7 +1064,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             Vec3D newPos = entity.Tracer.Position;
-            Vec3D unit = Vec3D.Unit(entity.Tracer.AngleRadians, 0.0);
+            Vec3D unit = Vec3D.UnitSphere(entity.Tracer.AngleRadians, 0.0);
             newPos.X += unit.X * 24;
             newPos.Y += unit.Y * 24;
 
@@ -1565,10 +1566,10 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
-            skullPos += Vec3D.UnitTimesValue(angle, 0.0, step);
+            skullPos += Vec3D.UnitSphere(angle, 0.0) * step;
             skull.SetPosition(skullPos);
 
-            if (!entity.World.TryMoveXY(skull, skullPos.To2D(), false).Success)
+            if (!entity.World.TryMoveXY(skull, skullPos.XY, false).Success)
             {
                 entity.World.KillEntity(skull, null);
                 return;
@@ -2178,7 +2179,7 @@ namespace Helion.World.Entities.Definition.States
             entity.PlayAttackSound();
             A_FaceTarget(entity);
 
-            entity.Velocity = Vec3D.UnitTimesValue(entity.AngleRadians, entity.PitchTo(entity.CenterPoint, entity.Target), 20);
+            entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, entity.PitchTo(entity.CenterPoint, entity.Target)) * 20;
             entity.Flags.Skullfly = true;
         }
 
@@ -2328,7 +2329,7 @@ namespace Helion.World.Entities.Definition.States
             SetTracerAngle(entity);
 
             double z = entity.Velocity.Z;
-            entity.Velocity = Vec3D.UnitTimesValue(entity.AngleRadians, 0.0, entity.Definition.Properties.Speed);
+            entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.Speed;
             entity.Velocity.Z = z;
 
             double distance = entity.Position.ApproximateDistance2D(entity.Tracer.Position);
@@ -2480,7 +2481,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             Vec3D newPos = entity.Tracer.Position;
-            Vec3D unit = Vec3D.Unit(entity.Tracer.AngleRadians, 0.0);
+            Vec3D unit = Vec3D.UnitSphere(entity.Tracer.AngleRadians, 0.0);
             newPos.X -= unit.X * 24;
             newPos.Y -= unit.Y * 24;
 

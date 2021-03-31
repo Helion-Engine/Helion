@@ -4,7 +4,6 @@ using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Decorate.Parser
@@ -140,7 +139,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
                     Consume(',');
                     int y = ConsumeSignedInteger();
                     Consume(')');
-                    properties.Offset = new Vec2I(x, y);
+                    properties.Offset = (x, y);
                     break; 
                 case "SLOW":
                     ConsumeString();

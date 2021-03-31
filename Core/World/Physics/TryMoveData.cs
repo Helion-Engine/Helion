@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 

@@ -1,7 +1,7 @@
 using System;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Atlas
@@ -72,7 +72,7 @@ namespace Helion.Util.Atlas
         /// </param>
         public AtlasNode(Dimension atlasDimension)
         {
-            Location = new Box2I(new Vec2I(0, 0), atlasDimension.ToVector());
+            Location = new Box2I(new(0, 0), atlasDimension.Vector);
             m_maxAvailableDimensions = atlasDimension;
         }
 
@@ -167,7 +167,7 @@ namespace Helion.Util.Atlas
         internal void EmplaceExistingTree(AtlasNode treeRoot)
         {
             Precondition(!HasChildren, "Trying to fuse a child atlas tree into to a non-empty node");
-            Precondition(Location.BottomLeft.IsOrigin, "All the locations of the child nodes will be wrong");
+            Precondition(Location.BottomLeft == Vec2I.Zero, "All the locations of the child nodes will be wrong");
             
             m_left = treeRoot.m_left;
             m_right = treeRoot.m_right;
@@ -229,7 +229,7 @@ namespace Helion.Util.Atlas
 
         private AtlasNode? AddAsWidthFit(Dimension dimension)
         {
-            Box2I bottom = new Box2I(Location.Min, Location.Min + dimension.ToVector());
+            Box2I bottom = new Box2I(Location.Min, Location.Min + dimension.Vector);
             m_left = new AtlasNode(bottom, this);
 
             Box2I top = new Box2I(bottom.TopLeft, Location.TopRight);
@@ -240,7 +240,7 @@ namespace Helion.Util.Atlas
         
         private AtlasNode? AddAsHeightFit(Dimension dimension)
         {
-            Box2I left = new Box2I(Location.Min, Location.Min + dimension.ToVector());
+            Box2I left = new Box2I(Location.Min, Location.Min + dimension.Vector);
             m_left = new AtlasNode(left, this);
 
             Box2I right = new Box2I(left.BottomRight, Location.TopRight);

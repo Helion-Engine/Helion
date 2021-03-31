@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Helion.Util.Geometry;
-using Helion.Util.Geometry.Vectors;
+using Helion.Geometry.Grids;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Bsp.Geometry
 {
@@ -17,8 +17,8 @@ namespace Helion.Bsp.Geometry
     /// </remarks>
     public class CollinearTracker
     {
-        private readonly Dictionary<double, int> m_verticalIndices = new Dictionary<double, int>();
-        private readonly Dictionary<double, int> m_horizontalIndices = new Dictionary<double, int>();
+        private readonly Dictionary<double, int> m_verticalIndices = new();
+        private readonly Dictionary<double, int> m_horizontalIndices = new();
         private readonly QuantizedGrid<int> m_slopeInterceptToIndex;
         private int m_nextAvailableIndex;
 

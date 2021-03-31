@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
+using Helion.Geometry.Segments.Enums;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Segments.Enums;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Bsp.States.Convex

@@ -1,7 +1,7 @@
-﻿using Helion.Resources;
+﻿using Helion.Geometry.Vectors;
+using Helion.Resources;
 using Helion.Util.Bytes;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Vectors;
 
 namespace Helion.Graphics.Palettes
 {
@@ -96,11 +96,11 @@ namespace Helion.Graphics.Palettes
             //       2) Use native/unsafe code 
             try
             {
-                ByteReader reader = new ByteReader(data);
+                ByteReader reader = new(data);
 
                 int width = reader.ReadInt16();
                 int height = reader.ReadInt16();
-                Vec2I imageOffsets = new Vec2I(width - (reader.ReadInt16() * 2), reader.ReadInt16() - height);
+                Vec2I imageOffsets = (width - (reader.ReadInt16() * 2), reader.ReadInt16() - height);
 
                 int[] offsets = new int[width];
                 for (int i = 0; i < width; i++)

@@ -1,6 +1,5 @@
 ﻿using System;
-using Helion.Util.Geometry;
-using MoreLinq.Extensions;
+using Helion.Geometry;
 
 namespace Helion.Util
 {

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Geometry.Vectors;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -244,8 +244,8 @@ namespace Helion.World.Entities
             ArmorDefinition = entity.ArmorDefinition;
         }
 
-        public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.To2D().Distance(entity.Position.To2D()));
-        public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.CenterPoint, Position.To2D().Distance(entity.Position.To2D()));
+        public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
+        public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.CenterPoint, Position.XY.Distance(entity.Position.XY));
 
         public string GetBloodType()
         {
@@ -292,7 +292,7 @@ namespace Helion.World.Entities
         /// <param name="position">The new position.</param>
         public void SetPosition(Vec3D position)
         {
-            Box.SetXY(position.To2D());
+            Box.SetXY(position.XY);
             Box.SetZ(position.Z);
         }
 

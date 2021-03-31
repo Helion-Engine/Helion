@@ -10,9 +10,6 @@ using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
-using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
-using Helion.Util.Geometry.Vectors;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -39,6 +36,9 @@ using Helion.Models;
 using Helion.Util.Timing;
 using Helion.World.Entities.Definition.Flags;
 using System.Linq;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Cheats;
 
@@ -154,8 +154,8 @@ namespace Helion.World
 
                 if (!allaround)
                 {
-                    Vec2D entityLookingVector = Vec2D.RadiansToUnit(entity.AngleRadians);
-                    Vec2D entityToTarget = player.Position.To2D() - entity.Position.To2D();
+                    Vec2D entityLookingVector = Vec2D.UnitCircle(entity.AngleRadians);
+                    Vec2D entityToTarget = player.Position.XY - entity.Position.XY;
 
                     // Not in front 180 FOV
                     if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
@@ -410,8 +410,8 @@ namespace Helion.World
 
             bool hitBlockLine = false;
             bool activateSuccess = false;
-            Vec2D start = entity.Position.To2D();
-            Vec2D end = start + (Vec2D.RadiansToUnit(entity.AngleRadians) * entity.Properties.Player.UseRange);
+            Vec2D start = entity.Position.XY;
+            Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
 
             for (int i = 0; i < intersections.Count; i++)
@@ -490,14 +490,14 @@ namespace Helion.World
             if (!CanActivate(entity, line, context))
                 return false;
 
-            EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(context, entity, line);
+            EntityActivateSpecialEventArgs args = new(context, entity, line);
             EntityActivatedSpecial?.Invoke(this, args);
             return args.Success;
         }
 
         public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity)
         {
-            Vec3D end = start + Vec3D.UnitTimesValue(angle, 0, distance);
+            Vec3D end = start + Vec3D.UnitSphere(angle, 0) * distance;
             return GetAutoAimAngle(startEntity, start, end, out pitch, out entity);
         }
 
@@ -511,7 +511,7 @@ namespace Helion.World
 
             if (autoAim)
             {
-                Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
+                Vec3D end = start + Vec3D.UnitSphere(shooter.AngleRadians, pitch) * distance;
                 if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
                     pitch = autoAimPitch;
             }
@@ -520,14 +520,14 @@ namespace Helion.World
             if (projectileDef != null)
             {
                 Entity projectile = EntityManager.Create(projectileDef, start, 0.0, shooter.AngleRadians, 0);
-                Vec3D velocity = Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, projectile.Properties.Speed);
-                Vec3D testPos = projectile.Position + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, shooter.Radius - 2.0);
+                Vec3D velocity = Vec3D.UnitSphere(shooter.AngleRadians, pitch) * projectile.Properties.Speed;
+                Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(shooter.AngleRadians, pitch) * (shooter.Radius - 2.0));
                 projectile.Owner = shooter;
                 projectile.PlaySeeSound();
 
                 // TryMoveXY will use the velocity of the projectile
                 // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-                if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.To2D(), true).Success))
+                if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY, true).Success))
                 {
                     projectile.Velocity = velocity;
                     return projectile;
@@ -550,7 +550,7 @@ namespace Helion.World
             if (autoAim)
             {
                 Vec3D start = shooter.HitscanAttackPos;
-                Vec3D end = start + Vec3D.UnitTimesValue(shooter.AngleRadians, pitch, distance);
+                Vec3D end = start + Vec3D.UnitSphere(shooter.AngleRadians, pitch) * distance;
                 if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
                     pitch = autoAimPitch;
             }
@@ -575,7 +575,7 @@ namespace Helion.World
         public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
         {
             Vec3D start = shooter.HitscanAttackPos;
-            Vec3D end = start + Vec3D.UnitTimesValue(angle, pitch, distance);
+            Vec3D end = start + Vec3D.UnitSphere(angle, pitch) * distance;
             Vec3D intersect = new Vec3D(0, 0, 0);
 
             BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect, out Sector? hitSector);
@@ -606,7 +606,7 @@ namespace Helion.World
             hitSector = null;
             BlockmapIntersect? returnValue = null;
             double floorZ, ceilingZ;
-            Seg2D seg = new Seg2D(start.To2D(), end.To2D());
+            Seg2D seg = new(start.XY, end.XY);
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
@@ -687,7 +687,7 @@ namespace Helion.World
 
             if (source != null && thrust != Thrust.None)
             {
-                Vec2D xyDiff = source.Position.To2D() - target.Position.To2D();
+                Vec2D xyDiff = source.Position.XY - target.Position.XY;
                 bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
                 bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
                 double pitch = 0.0;
@@ -718,20 +718,20 @@ namespace Helion.World
                         Vec3D targetPos = target.Position;
                         if (source.Position.Z > target.Position.Z + target.Height)
                             targetPos.Z += target.Height;
-                        pitch = sourcePos.Pitch(targetPos, sourcePos.To2D().Distance(targetPos.To2D()));
+                        pitch = sourcePos.Pitch(targetPos, sourcePos.XY.Distance(targetPos.XY));
                     }
 
                     if (!xyEqual)
-                        thrustVelocity = Vec3D.Unit(angle, 0.0);
+                        thrustVelocity = Vec3D.UnitSphere(angle, 0.0);
 
                     thrustVelocity.Z = Math.Sin(pitch);
                 }
                 else
                 {
-                    thrustVelocity = Vec3D.Unit(angle, 0.0);
+                    thrustVelocity = Vec3D.UnitSphere(angle, 0.0);
                 }
 
-                thrustVelocity.Multiply(thrustAmount);
+                thrustVelocity *= thrustAmount;
             }
 
             bool setPainState = m_random.NextByte() < target.Properties.PainChance;
@@ -847,8 +847,8 @@ namespace Helion.World
 
         public virtual bool CheckLineOfSight(Entity from, Entity to)
         {
-            Vec2D start = from.Position.To2D();
-            Vec2D end = to.Position.To2D();
+            Vec2D start = from.Position.XY;
+            Vec2D end = to.Position.XY;
 
             if (start == end)
                 return true;
@@ -877,7 +877,7 @@ namespace Helion.World
         {
             // Barrels do not apply Z thrust - TODO better way to check?
             Thrust thrust = source.Definition.Name == "ExplosiveBarrel" ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
-            Vec2D pos2D = source.Position.To2D();
+            Vec2D pos2D = source.Position.XY;
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
 
@@ -1002,7 +1002,7 @@ namespace Helion.World
             if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
                 return true;
 
-            if (!PhysicsManager.IsPositionValid(entity, entity.Position.To2D(), new TryMoveData()))
+            if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, new TryMoveData()))
                 return true;
 
             return false;
@@ -1024,7 +1024,7 @@ namespace Helion.World
             }
             else
             {
-                distance = entity.Position.To2D().Distance(source.Position.To2D()) - entity.Radius;
+                distance = entity.Position.XY.Distance(source.Position.XY) - entity.Radius;
             }
 
             int damage = (int)(radius - distance);
@@ -1103,7 +1103,7 @@ namespace Helion.World
 
         private bool GetAutoAimAngle(Entity shooter, in Vec3D start, in Vec3D end, out double pitch, out Entity? entity)
         {
-            Seg2D seg = new Seg2D(start.To2D(), end.To2D());
+            Seg2D seg = new Seg2D(start.XY, end.XY);
 
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
                 BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,

@@ -1,5 +1,5 @@
-﻿using Helion.Util.Geometry.Boxes;
-using Helion.Util.Geometry.Segments;
+﻿using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using static Helion.Maps.Components.GL.GLComponents;
 
 namespace Helion.Maps.Components.GL
