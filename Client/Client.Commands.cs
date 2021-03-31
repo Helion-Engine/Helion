@@ -217,7 +217,7 @@ namespace Helion.Client
                 Log.Error("Currently only support single player worlds");
                 return;
             }
-            
+
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
@@ -257,7 +257,8 @@ namespace Helion.Client
                 {
                     bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
                     ClusterDef? clusterToUse = hasEndGame ? cluster : null;
-                    IntermissionLayer intermissionLayer = new(world, m_audioSystem, singlePlayerWorld.Player, nextMapInfo, clusterToUse, GoToNextLevel);
+                    IntermissionLayer intermissionLayer = new(world, m_audioSystem, singlePlayerWorld.Player, 
+                        singlePlayerWorld.MapInfo, nextMapInfo, clusterToUse, GoToNextLevel);
                     m_layerManager.Add(intermissionLayer);
                 }
                 

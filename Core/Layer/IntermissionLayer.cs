@@ -20,33 +20,35 @@ namespace Helion.Layer
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly IWorld m_world;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly IAudioSystem m_audioSystem;
         private readonly Player m_player;
-        private readonly MapInfoDef m_mapInfo;
+        private readonly MapInfoDef m_currentMapInfo;
+        private readonly MapInfoDef m_nextMapInfo;
         private readonly ClusterDef? m_endGameCluster;
         private readonly Action m_nextMapFunc;
         private readonly IntermissionDrawer m_drawer;
         private bool m_invokedNextMapFunc;
         private IntermissionState m_intermissionState = IntermissionState.Started;
+        public readonly IWorld World;
         public double KillPercent { get; private set; }
         public double ItemPercent { get; private set; }
         public double SecretPercent{ get; private set; }
 
         protected override double Priority => 0.65;
 
-        public IntermissionLayer(IWorld world, IAudioSystem audioSystem, Player player, MapInfoDef mapInfo, 
-            ClusterDef? endGameCluster, Action nextMapFunc)
+        public IntermissionLayer(IWorld world, IAudioSystem audioSystem, Player player, MapInfoDef currentMapInfo,
+            MapInfoDef nextMapInfo, ClusterDef? endGameCluster, Action nextMapFunc)
         {
-            m_world = world;
+            World = world;
             m_archiveCollection = world.ArchiveCollection;
             m_audioSystem = audioSystem;
+            m_currentMapInfo = currentMapInfo;
+            m_nextMapInfo = nextMapInfo;
             m_player = player;
-            m_mapInfo = mapInfo;
             m_endGameCluster = endGameCluster;
             m_nextMapFunc = nextMapFunc;
-            m_drawer = new IntermissionDrawer(world.ArchiveCollection, mapInfo);
+            m_drawer = new IntermissionDrawer(world.ArchiveCollection, currentMapInfo, nextMapInfo);
 
             CalculatePercentages();
             PlayIntermissionMusic();
@@ -61,7 +63,7 @@ namespace Helion.Layer
             int totalSecrets = m_player.SecretsFound;
             int secretsVisited = m_player.SecretsFound;
             
-            foreach (Entity entity in m_world.Entities)
+            foreach (Entity entity in World.Entities)
             {
                 if (entity.Definition.Flags.IsMonster)
                 {
@@ -76,7 +78,7 @@ namespace Helion.Layer
             
             // Since secrets have their sector type turned off, any secrets
             // encountered means the player has not touched them.
-            foreach (Sector sector in m_world.Sectors)
+            foreach (Sector sector in World.Sectors)
                 if (sector.SectorSpecialType == ZDoomSectorSpecialType.Secret)
                     totalSecrets++;
 
