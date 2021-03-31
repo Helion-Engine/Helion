@@ -306,7 +306,7 @@ namespace Helion.World.Special
                 MoveDirection.Up, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
         }
 
-        public ISpecial CreateSectorMoveSpecial(Sector sector, SectorPlane plane, SectorPlaneType moveType, double speed, double destZ, byte negative)
+        public ISpecial CreateSectorMoveSpecial(Sector sector, SectorPlane plane, SectorPlaneType moveType, double speed, double destZ, int negative)
         {
             if (negative > 0)
                 destZ = -destZ;
@@ -739,12 +739,12 @@ namespace Helion.World.Special
             return null;
         }
 
-        private ISpecial CreateLightChangeSpecial(Sector sector, short lightLevel, int fadeTics = 0)
+        private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
         {
-            return new LightChangeSpecial(sector, lightLevel, fadeTics);
+            return new LightChangeSpecial(sector, (short)lightLevel, fadeTics);
         }
 
-        private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, byte lockout)
+        private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
         {
             double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
             sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);

@@ -39,10 +39,10 @@ namespace Helion.World.Geometry.Lines
         
         // TODO: Any way we can encapsulate this somehow?
         public int SectorTag => Args.Arg0;
-        public byte TagArg => Args.Arg0;
-        public byte SpeedArg => Args.Arg1;
-        public byte DelayArg => Args.Arg2;
-        public byte AmountArg => Args.Arg2;
+        public int TagArg => Args.Arg0;
+        public int SpeedArg => Args.Arg1;
+        public int DelayArg => Args.Arg2;
+        public int AmountArg => Args.Arg2;
 
         public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial, 
             SpecialArgs args)

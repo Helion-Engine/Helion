@@ -1,5 +1,3 @@
-using System;
-
 namespace Helion.Maps.Specials
 {
     /// <summary>
@@ -11,13 +9,13 @@ namespace Helion.Maps.Specials
     /// </remarks>
     public struct SpecialArgs
     {
-        public byte Arg0;
-        public byte Arg1;
-        public byte Arg2;
-        public byte Arg3;
-        public byte Arg4;
+        public int Arg0;
+        public int Arg1;
+        public int Arg2;
+        public int Arg3;
+        public int Arg4;
 
-        public SpecialArgs(byte arg0 = 0, byte arg1 = 0, byte arg2 = 0, byte arg3 = 0, byte arg4 = 0)
+        public SpecialArgs(int arg0 = 0, int arg1 = 0, int arg2 = 0, int arg3 = 0, int arg4 = 0)
         {
             Arg0 = arg0;
             Arg1 = arg1;

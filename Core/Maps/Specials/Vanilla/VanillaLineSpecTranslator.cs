@@ -10,7 +10,7 @@ namespace Helion.Maps.Specials.Vanilla
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, byte tag,
+        public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, int tag,
             ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility)
         {
             compatibility = null;
@@ -344,7 +344,7 @@ namespace Helion.Maps.Specials.Vanilla
             return ZDoomLineSpecialType.None;
         }
 
-        private static void HandleDoor(VanillaLineSpecialType type, byte tag, ref SpecialArgs argsToMutate, ref LineSpecialCompatibility compatibility)
+        private static void HandleDoor(VanillaLineSpecialType type, int tag, ref SpecialArgs argsToMutate, ref LineSpecialCompatibility compatibility)
         {
             switch (type)
             {
