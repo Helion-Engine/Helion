@@ -9,7 +9,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
@@ -19,12 +18,13 @@ namespace Helion.Layer
 {
     public class EndGameLayer : GameLayer
     {
+        private const int LettersPerSecond = 10;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly string m_flatImage;
         private readonly List<string> m_displayText;
         private readonly ClusterDef m_cluster;
-        private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
+        private readonly Ticker m_ticker = new(LettersPerSecond);
         private readonly EndGameDrawer m_drawer;
         private readonly Action m_nextMapFunc;
         private bool m_invokedNextMapFunc;
@@ -43,28 +43,35 @@ namespace Helion.Layer
             m_displayText = LookUpDisplayText(language, cluster);
             
             m_ticker.Start();
-            PlayMusic(archiveCollection, musicPlayer, cluster.Music);
+            PlayMusic(archiveCollection, musicPlayer, cluster, language);
         }
 
         private static List<string> LookUpDisplayText(LanguageDefinition language, ClusterDef cluster)
         {
-            return cluster.ExitText.Count != 1 ?
-                cluster.ExitText :
-                language.GetDefaultMessage(cluster.ExitText[0]).Split(",").ToList();
+            if (cluster.ExitText.Count != 1)
+                return cluster.ExitText;
+            
+            string message = language.GetDefaultMessage(cluster.ExitText[0]);
+            return message.Split("\n").ToList();
         }
 
-        private void PlayMusic(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, string clusterMusic)
+        private void PlayMusic(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
+            LanguageDefinition language)
         {
-            if (clusterMusic.Empty())
-            {
-                musicPlayer.Stop();
+            string music = cluster.Music;
+            if (music.Empty())
+                music = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleMusic;
+
+            musicPlayer.Stop();
+            if (music.Empty())
                 return;
-            }
+
+            music = language.GetDefaultMessage(music);
             
-            Entry? entry = archiveCollection.Entries.FindByName(clusterMusic);
+            Entry? entry = archiveCollection.Entries.FindByName(music);
             if (entry == null)
             {
-                Log.Warn($"Cannot find end game music file: {clusterMusic}");
+                Log.Warn($"Cannot find end game music file: {music}");
                 return;
             }
 
@@ -75,7 +82,7 @@ namespace Helion.Layer
             if (midiData != null)
                 musicPlayer.Play(midiData);
             else
-                Log.Warn($"Cannot decode end game music file: {clusterMusic}");
+                Log.Warn($"Cannot decode end game music file: {music}");
         }
 
         private void FinishEndGame()
@@ -97,7 +104,7 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands renderCommands)
         {
-            m_drawer.Draw(m_cluster, m_flatImage, m_ticker, renderCommands);
+            m_drawer.Draw(m_cluster, m_flatImage, m_displayText, m_ticker, renderCommands);
             
             base.Render(renderCommands);
         }

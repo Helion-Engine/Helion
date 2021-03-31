@@ -19,13 +19,15 @@ namespace Helion.Render.Shared.Drawers
         private static readonly ResolutionInfo Resolution = DoomHudHelper.DoomResolutionInfoCenter;
         
         private readonly ArchiveCollection m_archiveCollection;
+        private int m_charsToDraw;
 
         public EndGameDrawer(ArchiveCollection archiveCollection)
         {
             m_archiveCollection = archiveCollection;
         }
 
-        public void Draw(ClusterDef cluster, string flat, Ticker ticker, RenderCommands renderCommands)
+        public void Draw(ClusterDef cluster, string flat, List<string> displayText, Ticker ticker,
+            RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
 
@@ -36,7 +38,7 @@ namespace Helion.Render.Shared.Drawers
             helper.AtResolution(Resolution, () =>
             {
                 DrawBackground(flat, helper);
-                DrawText(cluster.EnterText, ticker, helper);
+                DrawText(displayText, ticker, helper);
             });
         }
 
@@ -62,7 +64,7 @@ namespace Helion.Render.Shared.Drawers
 
         private static int CalculateCharactersToDraw(Ticker ticker)
         {
-            const int ticksPerLetter = 5;
+            const int ticksPerLetter = 4;
             return ticker.GetTickerInfo().Ticks / ticksPerLetter;
         }
         
@@ -73,9 +75,13 @@ namespace Helion.Render.Shared.Drawers
             Font? font = m_archiveCollection.GetFont(Font);
             if (font == null)
                 return;
+
+            // The ticker goes slower than normal, so as long as we see one
+            // or more ticks happening then advance the number of characters
+            // to draw.
+            m_charsToDraw += ticker.GetTickerInfo().Ticks;
             
             int charsDrawn = 0;
-            int charsToDraw = CalculateCharactersToDraw(ticker);
             int x = TextStartCorner.X;
             int y = TextStartCorner.Y;
             int fontSize = font.MaxHeight;
@@ -84,7 +90,7 @@ namespace Helion.Render.Shared.Drawers
             {
                 foreach (char c in line)
                 {
-                    if (charsDrawn > charsToDraw)
+                    if (charsDrawn >= m_charsToDraw)
                         return;
                     
                     helper.Text(Color.Red, c.ToString(), font, fontSize, out Dimension drawArea, x, y);

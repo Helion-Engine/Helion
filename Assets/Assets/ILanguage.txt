@@ -132,7 +132,7 @@ switch which holds earth's population
 hostage."
 C2TEXT,"You have won! Your victory has enabled
 Humankind to evacuate earth and escape
-the nightmare.  Now you are the only
+the nightmare. Now you are the only
 Human left on the face of the planet.
 Cannibal mutations, carnivorous aliens,
 and evil spirits are your only neighbors.
@@ -140,12 +140,12 @@ You sit back and wait for death, content
 that you have saved your species.
 
 But then, Earth Control beams down a
-message from space: "Sensors have located
+message from space: Sensors have located
 the source of the alien invasion. If you
 go there, you may be able to block their
-entry.  The alien base is in the heart of
+entry. The alien base is in the heart of
 your own home city, not far from the
-starport." Slowly and painfully you get
+starport. Slowly and painfully you get
 up and return to the fray."
 C3TEXT,"You are at the corrupt heart of the city,
 surrounded by the corpses of your enemies.
@@ -190,6 +190,73 @@ BGFLAT30,RROCK17
 BGFLAT15,RROCK13
 BGFLAT31,RROCK19
 BGCASTCALL,BOSSBACK
+MUSIC_E1M1,d_e1m1
+MUSIC_E1M2,d_e1m2
+MUSIC_E1M3,d_e1m3
+MUSIC_E1M4,d_e1m4
+MUSIC_E1M5,d_e1m5
+MUSIC_E1M6,d_e1m6
+MUSIC_E1M7,d_e1m7
+MUSIC_E1M8,d_e1m8
+MUSIC_E1M9,d_e1m9
+MUSIC_E2M1,d_e2m1
+MUSIC_E2M2,d_e2m2
+MUSIC_E2M3,d_e2m3
+MUSIC_E2M4,d_e2m4
+MUSIC_E2M5,d_e2m5
+MUSIC_E2M6,d_e2m6
+MUSIC_E2M7,d_e2m7
+MUSIC_E2M8,d_e2m8
+MUSIC_E2M9,d_e2m9
+MUSIC_E3M1,d_e3m1
+MUSIC_E3M2,d_e3m2
+MUSIC_E3M3,d_e3m3
+MUSIC_E3M4,d_e3m4
+MUSIC_E3M5,d_e3m5
+MUSIC_E3M6,d_e3m6
+MUSIC_E3M7,d_e3m7
+MUSIC_E3M8,d_e3m8
+MUSIC_E3M9,d_e3m9
+MUSIC_INTER,d_inter
+MUSIC_INTRO,d_intro
+MUSIC_BUNNY,d_bunny
+MUSIC_VICTOR,d_victor
+MUSIC_INTROA,d_introa
+MUSIC_RUNNIN,d_runnin
+MUSIC_STALKS,d_stalks
+MUSIC_COUNTD,d_countd
+MUSIC_BETWEE,d_betwee
+MUSIC_DOOM,d_doom
+MUSIC_THE_DA,d_the_da
+MUSIC_SHAWN,d_shawn
+MUSIC_DDTBLU,d_ddtblu
+MUSIC_IN_CIT,d_in_cit
+MUSIC_DEAD,d_dead
+MUSIC_STLKS2,d_stlks2
+MUSIC_THEDA2,d_theda2
+MUSIC_DOOM2,d_doom2
+MUSIC_DDTBL2,d_ddtbl2
+MUSIC_RUNNI2,d_runni2
+MUSIC_DEAD2,d_dead2
+MUSIC_STLKS3,d_stlks3
+MUSIC_ROMERO,d_romero
+MUSIC_SHAWN2,d_shawn2
+MUSIC_MESSAG,d_messag
+MUSIC_COUNT2,d_count2
+MUSIC_DDTBL3,d_ddtbl3
+MUSIC_AMPIE,d_ampie
+MUSIC_THEDA3,d_theda3
+MUSIC_ADRIAN,d_adrian
+MUSIC_MESSG2,d_messg2
+MUSIC_ROMER2,d_romer2
+MUSIC_TENSE,d_tense
+MUSIC_SHAWN3,d_shawn3
+MUSIC_OPENIN,d_openin
+MUSIC_EVIL,d_evil
+MUSIC_ULTIMA,d_ultima
+MUSIC_READ_M,d_read_m
+MUSIC_DM2TTL,d_dm2ttl
+MUSIC_DM2INT,d_dm2int
 Pickup
 GOTARMOR,Picked up the armor.
 GOTMEGA,Picked up the MegaArmor!
