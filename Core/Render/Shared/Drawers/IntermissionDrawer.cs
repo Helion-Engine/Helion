@@ -100,22 +100,23 @@ namespace Helion.Render.Shared.Drawers
             if (font == null)
                 return;
 
-            // TODO: Use TextAlign.Right for both below.
-
             int levelTimeSeconds = (int)(layer.World.LevelTime / Constants.TicksPerSecond);
-            string levelTime = GetRenderableTime(levelTimeSeconds);
-            (int w, int _) = draw.TextDrawArea(levelTime, font, FontSize);
-            draw.Text(Color.White, levelTime, font, FontSize, RightOffsetLevelTimeX - w, -OffsetY, window: Align.BottomLeft);
-            
-            string parTime = GetRenderableTime(m_currentMapInfo.ParTime);
-            (int parW, int _) = draw.TextDrawArea(parTime, font, FontSize);
-            draw.Text(Color.White, parTime, font, FontSize, RightOffsetParTimeX - parW, -OffsetY, window: Align.BottomLeft);
-            
-            string GetRenderableTime(int seconds)
+            RenderTime(levelTimeSeconds, RightOffsetLevelTimeX);
+            RenderTime(m_currentMapInfo.ParTime, RightOffsetParTimeX);
+
+            string GetTimeString(int seconds)
             {
                 int minutes = seconds / 60;
                 string secondsStr = (seconds % 60).ToString().PadLeft(2, '0');
                 return $"{minutes}:{secondsStr}";
+            }
+
+            void RenderTime(int seconds, int rightOffsetX)
+            {
+                // TODO: Use TextAlign.Right for both below.
+                string levelTime = GetTimeString(seconds);
+                (int w, int _) = draw.TextDrawArea(levelTime, font, FontSize);
+                draw.Text(Color.White, levelTime, font, FontSize, rightOffsetX - w, -OffsetY, window: Align.BottomLeft);
             }
         }
     }
