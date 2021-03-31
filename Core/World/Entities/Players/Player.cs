@@ -121,8 +121,8 @@ namespace Helion.World.Entities.Players
             m_viewZ = playerModel.ViewZ;
             m_deltaViewHeight = playerModel.DeltaViewHeight;
             m_bob = playerModel.Bob;
-            WeaponOffset = playerModel.WeaponOffset;
-            PrevWeaponOffset = playerModel.WeaponOffset;
+            WeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
+            PrevWeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
             WeaponSlot = playerModel.WeaponSlot;
             WeaponSubSlot = playerModel.WeaponSubSlot;
             SecretsFound = playerModel.SecretsFound;
@@ -173,7 +173,8 @@ namespace Helion.World.Entities.Players
                 Weapon = Weapon?.Definition.Name.ToString(),
                 PendingWeapon = PendingWeapon?.Definition.Name.ToString(),
                 AnimationWeapon = AnimationWeapon?.Definition.Name.ToString(),
-                WeaponOffset = WeaponOffset,
+                WeaponOffsetX = WeaponOffset.X,
+                WeaponOffsetY = WeaponOffset.Y,
                 WeaponSlot = WeaponSlot,
                 WeaponSubSlot = WeaponSubSlot,
                 Inventory = Inventory.ToInventoryModel(),

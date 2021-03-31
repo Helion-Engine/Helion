@@ -1,4 +1,5 @@
-﻿using Helion.Maps.Specials;
+﻿using System.Linq;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.World.Entities;
@@ -35,16 +36,16 @@ namespace Helion.World.Special.Specials
         public LineScrollSpecial(Line line, LineScrollSpecialModel model)
             : this (line, model.SpeedX, model.SpeedY, (ZDoomLineScroll)model.Scroll, model.Front)
         {
-            if (m_front && m_line.Front.ScrollData != null && model.OffsetFront != null)
+            if (m_front && m_line.Front.ScrollData != null && model.OffsetFrontX != null && model.OffsetFrontY != null)
             {
-                m_line.Front.ScrollData.Offset = model.OffsetFront;
-                m_line.Front.ScrollData.LastOffset = model.OffsetFront;
+                m_line.Front.ScrollData.Offset = model.GenerateFrontOffsets();
+                m_line.Front.ScrollData.LastOffset = model.GenerateFrontOffsets();
             }
 
-            if (!m_front && m_line.Back != null && m_line.Back.ScrollData != null && model.OffsetBack != null)
+            if (!m_front && m_line.Back?.ScrollData != null && model.OffsetBackX != null && model.OffsetBackY != null)
             {
-                m_line.Back.ScrollData.Offset = model.OffsetBack;
-                m_line.Back.ScrollData.LastOffset = model.OffsetBack;
+                m_line.Back.ScrollData.Offset = model.GenerateBackOffsets();
+                m_line.Back.ScrollData.LastOffset = model.GenerateBackOffsets();
             }
         }
 
@@ -60,9 +61,16 @@ namespace Helion.World.Special.Specials
             };
 
             if (m_front && m_line.Front.ScrollData != null)
-                model.OffsetFront = m_line.Front.ScrollData.Offset;
-            if (!m_front && m_line.Back != null && m_line.Back.ScrollData != null)
-                model.OffsetBack = m_line.Back.ScrollData.Offset;
+            {
+                model.OffsetFrontX = m_line.Front.ScrollData.Offset.Select(v => v.X).ToArray();
+                model.OffsetFrontY = m_line.Front.ScrollData.Offset.Select(v => v.Y).ToArray();
+            }
+
+            if (!m_front && m_line.Back?.ScrollData != null)
+            {
+                model.OffsetBackX = m_line.Back.ScrollData.Offset.Select(v => v.X).ToArray();
+                model.OffsetBackY = m_line.Back.ScrollData.Offset.Select(v => v.Y).ToArray();
+            }
 
             return model;
         }

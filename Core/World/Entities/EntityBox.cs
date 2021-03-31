@@ -249,7 +249,9 @@ namespace Helion.World.Entities
         {
             return new EntityBoxModel()
             {
-                Center = m_centerBottom,
+                CenterX = m_centerBottom.X,
+                CenterY = m_centerBottom.Y,
+                CenterZ = m_centerBottom.Z,
                 Radius = m_radius,
                 Height = Height
             };

@@ -182,10 +182,10 @@ namespace Helion.World.Entities
             SoundManager = soundManager;
 
             AngleRadians = entityModel.AngleRadians;
-            Box = new EntityBox(entityModel.Box.Center, entityModel.Box.Radius, entityModel.Box.Height);
-            PrevPosition = entityModel.Box.Center;
-            Velocity = entityModel.Velocity;
-            SpawnPoint = entityModel.SpawnPoint;
+            Box = new EntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
+            PrevPosition = entityModel.Box.GetCenter();
+            Velocity = entityModel.GetVelocity();
+            SpawnPoint = entityModel.GetSpawnPoint();
             Sector = world.Sectors[entityModel.Sector];
 
             Refire = entityModel.Refire;
@@ -212,9 +212,13 @@ namespace Helion.World.Entities
             entityModel.Id = Id;
             entityModel.ThingId = ThingId;
             entityModel.AngleRadians = AngleRadians;
-            entityModel.SpawnPoint = SpawnPoint;
+            entityModel.SpawnPointX = SpawnPoint.X;
+            entityModel.SpawnPointY = SpawnPoint.Y;
+            entityModel.SpawnPointZ = SpawnPoint.Z;
             entityModel.Box = Box.ToEntityBoxModel();
-            entityModel.Velocity = Velocity;
+            entityModel.VelocityX = Velocity.X;
+            entityModel.VelocityY = Velocity.Y;
+            entityModel.VelocityZ = Velocity.Z;
             entityModel.Health = Health;
             entityModel.Armor = Armor;
             entityModel.FrozenTics = FrozenTics;

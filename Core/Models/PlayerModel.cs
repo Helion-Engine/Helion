@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Helion.Geometry.Vectors;
 
 namespace Helion.Models
 {
@@ -24,7 +23,8 @@ namespace Helion.Models
         public string? Weapon { get; set; }
         public string? PendingWeapon { get; set; }
         public string? AnimationWeapon { get; set; }
-        public Vec2D WeaponOffset { get; set; }
+        public double WeaponOffsetX { get; set; }
+        public double WeaponOffsetY { get; set; }
         public int WeaponSlot { get; set; }
         public int WeaponSubSlot { get; set; }
         public InventoryModel Inventory { get; set; }

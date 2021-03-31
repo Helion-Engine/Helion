@@ -9,9 +9,12 @@ namespace Helion.Models
         public int ThingId { get; set; }
         public double AngleRadians { get; set; }
         public EntityBoxModel Box { get; set; }
-        public Vec3D SpawnPoint { get; set; }
-
-        public Vec3D Velocity { get; set; }
+        public double SpawnPointX { get; set; }
+        public double SpawnPointY { get; set; }
+        public double SpawnPointZ { get; set; }
+        public double VelocityX { get; set; }
+        public double VelocityY { get; set; }
+        public double VelocityZ { get; set; }
         public int Health { get; set; }
         public int Armor { get; set; }
         public string? ArmorDefinition { get; set; }
@@ -33,5 +36,9 @@ namespace Helion.Models
         public EntityFlagsModel Flags { get; set; }
         public int Threshold { get; set; }
         public int ReactionTime { get; set; }
+
+        public Vec3D GetVelocity() => (VelocityX, VelocityY, VelocityZ);
+        
+        public Vec3D GetSpawnPoint() => (SpawnPointX, SpawnPointY, SpawnPointZ);
     }
 }
