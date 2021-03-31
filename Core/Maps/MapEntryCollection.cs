@@ -60,7 +60,7 @@ namespace Helion.Maps
         /// false otherwise.</returns>
         public bool IsValid()
         {
-            if (Name.Empty)
+            if (Name.IsEmpty())
                 return false;
 
             switch (MapType)
