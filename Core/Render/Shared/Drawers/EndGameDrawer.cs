@@ -19,7 +19,7 @@ namespace Helion.Render.Shared.Drawers
         private static readonly ResolutionInfo Resolution = DoomHudHelper.DoomResolutionInfoCenter;
         
         private readonly ArchiveCollection m_archiveCollection;
-        private int m_charsToDraw;
+        private uint m_charsToDraw;
 
         public EndGameDrawer(ArchiveCollection archiveCollection)
         {
@@ -44,6 +44,7 @@ namespace Helion.Render.Shared.Drawers
 
         private static void DrawBackground(string flat, DrawHelper helper)
         {
+            // TODO: This assumes 64 x 64 textures. It is not robust at all.
             var dimension = helper.DrawInfoProvider.GetImageDimension(flat, ResourceNamespace.Flats);
             int repeatX = Resolution.VirtualDimensions.Width / dimension.Width;
             int repeatY = Resolution.VirtualDimensions.Height / dimension.Height;
@@ -62,12 +63,6 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static int CalculateCharactersToDraw(Ticker ticker)
-        {
-            const int ticksPerLetter = 4;
-            return ticker.GetTickerInfo().Ticks / ticksPerLetter;
-        }
-        
         private void DrawText(IEnumerable<string> lines, Ticker ticker, bool showAllText, DrawHelper helper)
         {
             const int LineSpacing = 4;
@@ -79,7 +74,7 @@ namespace Helion.Render.Shared.Drawers
             // The ticker goes slower than normal, so as long as we see one
             // or more ticks happening then advance the number of characters
             // to draw.
-            m_charsToDraw += ticker.GetTickerInfo().Ticks;
+            m_charsToDraw += (uint)ticker.GetTickerInfo().Ticks;
             
             int charsDrawn = 0;
             int x = TextStartCorner.X;

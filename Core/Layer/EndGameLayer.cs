@@ -9,6 +9,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
@@ -20,20 +21,25 @@ namespace Helion.Layer
     {
         private const int LettersPerSecond = 10;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        public static readonly IEnumerable<CIString> EndGameMaps = new HashSet<CIString>()
+        {
+            "EndPic", "EndGame1", "EndGame2", "EndGameW", "EndGame4", "EndGameC", "EndGame3",
+            "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence"
+        };
 
         private readonly string m_flatImage;
         private readonly List<string> m_displayText;
         private readonly ClusterDef m_cluster;
         private readonly Ticker m_ticker = new(LettersPerSecond);
         private readonly EndGameDrawer m_drawer;
-        private readonly Action m_nextMapFunc;
+        private readonly Action? m_nextMapFunc;
         private bool m_showAllText;
         private bool m_invokedNextMapFunc;
 
         protected override double Priority => 0.675;
 
         public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
-            Action nextMapFunc)
+            Action? nextMapFunc = null)
         {
             var language = archiveCollection.Definitions.Language;
             
@@ -86,7 +92,7 @@ namespace Helion.Layer
                 Log.Warn($"Cannot decode end game music file: {music}");
         }
 
-        private void FinishEndGame()
+        private void AdvanceState()
         {
             if (!m_showAllText)
             {
@@ -98,13 +104,13 @@ namespace Helion.Layer
                 return;
             
             m_invokedNextMapFunc = true;
-            m_nextMapFunc();
+            m_nextMapFunc?.Invoke();
         }
 
         public override void HandleInput(InputEvent input)
         {
             if (input.HasAnyKeyPressed())
-                FinishEndGame();
+                AdvanceState();
             
             base.HandleInput(input);
         }

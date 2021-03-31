@@ -221,11 +221,11 @@ namespace Helion.Client
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    TransitionToLevel(GetNextLevel(world.MapInfo));
+                    TransitionToLevel(GetNextLevel(world.MapInfo), world.MapInfo, world.MapInfo.Next);
                     break;
                     
                 case LevelChangeType.SecretNext:
-                    TransitionToLevel(GetNextSecretLevel(world.MapInfo));
+                    TransitionToLevel(GetNextSecretLevel(world.MapInfo), world.MapInfo, world.MapInfo.SecretNext);
                     break;
                 
                 case LevelChangeType.SpecificLevel:
@@ -236,18 +236,34 @@ namespace Helion.Client
                     LoadMap(world.MapInfo, null, NoPlayers);
                     break;
             }
-            
-            void TransitionToLevel(MapInfoDef? nextMapInfo)
+
+            void HandleZDoomTransition(ClusterDef? cluster)
             {
+                if (cluster == null)
+                    return;
+                
+                EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster);
+                m_layerManager.Add(endGameLayer);
+            }
+
+            void TransitionToLevel(MapInfoDef? nextMapInfo, MapInfoDef currentMapInfo, string nextMap)
+            {
+                if (EndGameLayer.EndGameMaps.Contains(nextMap))
+                {
+                    ClusterDef? currentCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(currentMapInfo.Cluster);
+                    HandleZDoomTransition(currentCluster);
+                    return;
+                }
+                
                 if (nextMapInfo == null)
                 {
                     Log.Error("Unable to find next map to go to");
                     return;
                 }
-                
+
                 bool isChangingClusters = world.MapInfo.Cluster != nextMapInfo.Cluster;
                 ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
-
+                
                 if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
                 {
                     EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster, GoToNextLevel);
@@ -262,7 +278,7 @@ namespace Helion.Client
                     m_layerManager.Add(intermissionLayer);
                 }
                 
-                // TODO: Refactor this later so we're not passing around lambdas.
+                // TODO: Refactor this later so we're not passing around function references.
                 void GoToNextLevel() => LoadMap(nextMapInfo, null, world.EntityManager.Players);
             }
         }
