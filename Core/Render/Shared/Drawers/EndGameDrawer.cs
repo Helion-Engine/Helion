@@ -15,7 +15,7 @@ namespace Helion.Render.Shared.Drawers
     public class EndGameDrawer
     {
         private const string Font = "SMALLFONT";
-        private static readonly Vec2I TextStartCorner = new(8, 8);
+        private static readonly Vec2I TextStartCorner = new(24, 4);
         private static readonly ResolutionInfo Resolution = DoomHudHelper.DoomResolutionInfoCenter;
         
         private readonly ArchiveCollection m_archiveCollection;
@@ -79,7 +79,7 @@ namespace Helion.Render.Shared.Drawers
             int charsDrawn = 0;
             int x = TextStartCorner.X;
             int y = TextStartCorner.Y;
-            int fontSize = font.MaxHeight;
+            int fontSize = font.MaxHeight - 1;
 
             foreach (string line in lines)
             {
