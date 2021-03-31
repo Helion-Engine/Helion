@@ -53,6 +53,143 @@ isn't even remotely fair.
 
 Press Y or N."
 SECRETMESSAGE,A secret is revealed!
+E1TEXT,"Once you beat the big badasses and
+clean out the moon base you're supposed
+to win, aren't you? Aren't you? Where's
+your fat reward and ticket home? What
+the hell is this? It's not supposed to
+end this way!
+
+It stinks like rotten meat, but looks
+like the lost Deimos base. Looks like
+you're stuck on The Shores of Hell.
+The only way out is through.
+
+To continue the DOOM experience, play
+The Shores of Hell and its amazing
+sequel, Inferno!"
+E2TEXT,"You've done it! The hideous cyber-
+demon lord that ruled the lost Deimos
+moon base has been slain and you
+are triumphant! But ... where are
+you? You clamber to the edge of the
+moon and look down to see the awful
+truth.
+
+Deimos floats above Hell itself!
+You've never heard of anyone escaping
+from Hell, but you'll make the bastards
+sorry they ever heard of you! Quickly,
+you rappel down to the surface of
+Hell.
+
+Now, it's on to the final chapter of
+DOOM! -- Inferno."
+E3TEXT,"The loathsome spiderdemon that
+masterminded the invasion of the moon
+bases and caused so much death has had
+its ass kicked for all time.
+
+A hidden doorway opens and you enter.
+You've proven too tough for Hell to
+contain, and now Hell at last plays
+fair -- for you emerge from the door
+to see the green fields of Earth!
+Home at last.
+
+You wonder what's been happening on
+Earth while you were battling evil
+unleashed. It's good that no Hell-
+spawn could have come through that
+door with you ..."
+E4TEXT,"The spider mastermind must have sent forth
+its legions of hellspawn before your
+final confrontation with that terrible
+beast from hell. but you stepped forward
+and brought forth eternal damnation and
+suffering upon the horde as a true hero
+would in the face of something so evil.
+
+Besides, someone was gonna pay for what
+happened to Daisy, your pet rabbit.
+
+But now, you see spread before you more
+potential pain and gibbitude as a nation
+of demons run amok among our cities.
+
+Next stop, Hell on Earth!"
+C1TEXT,"You have entered deeply into the infested
+starport. But something is wrong. The
+monsters have brought their own reality
+with them, and the starport's technology
+is being subverted by their presence.
+
+Ahead, you see an outpost of hell, a
+fortified zone. If you can get past it,
+You can penetrate into the haunted heart
+of the starbase and find the controlling
+switch which holds earth's population
+hostage."
+C2TEXT,"You have won! Your victory has enabled
+Humankind to evacuate earth and escape
+the nightmare.  Now you are the only
+Human left on the face of the planet.
+Cannibal mutations, carnivorous aliens,
+and evil spirits are your only neighbors.
+You sit back and wait for death, content
+that you have saved your species.
+
+But then, Earth Control beams down a
+message from space: "Sensors have located
+the source of the alien invasion. If you
+go there, you may be able to block their
+entry.  The alien base is in the heart of
+your own home city, not far from the
+starport." Slowly and painfully you get
+up and return to the fray."
+C3TEXT,"You are at the corrupt heart of the city,
+surrounded by the corpses of your enemies.
+You see no way to destroy the creatures'
+entryway on this side, so you clench your
+teeth and plunge through it.
+
+There must be a way to close it on the
+other side. What do you care if you've
+got to go through hell to get to it?"
+C4TEXT,"The horrendous visage of the biggest
+demon you've ever seen crumbles before
+you, after you pump your rockets into
+his exposed brain. The monster shrivels
+up and dies, its thrashing limbs
+devastating untold miles of hell's
+surface.
+
+You've done it. The invasion is over.
+Earth is saved. Hell is a wreck. You
+wonder where bad folks will go when they
+die, now. Wiping the sweat from your
+forehead you begin the long trek back
+home. Rebuilding earth ought to be a
+lot more fun than ruining it was."
+C5TEXT,"Congratulations, you've found the secret
+level! Looks like it's been built by
+Humans, rather than demons. You wonder
+who the inmates of this corner of hell
+will be."
+C6TEXT,"Congratulations, you've found the
+super secret level! You'd better
+blaze through this one!"
+BGFLATE1,FLOOR4_8
+BGFLATE2,SFLR6_1
+BGFLATE3,MFLR8_4
+BGFLATE4,MFLR8_3
+BGFLAT06,SLIME16
+BGFLAT11,RROCK14
+BGFLAT20,RROCK07
+BGFLAT30,RROCK17
+BGFLAT15,RROCK13
+BGFLAT31,RROCK19
+BGCASTCALL,BOSSBACK
 Pickup
 GOTARMOR,Picked up the armor.
 GOTMEGA,Picked up the MegaArmor!
