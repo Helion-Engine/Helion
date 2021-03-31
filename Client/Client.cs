@@ -248,7 +248,7 @@ namespace Helion.Client
             using Config config = new();
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config));
             using HelionConsole console = new(config);
-            using IMusicPlayer musicPlayer = new MidiMusicPlayer(config);
+            using IMusicPlayer musicPlayer = new MidiDotNetMusicPlayer();
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
             client.Run();

@@ -1,4 +1,6 @@
-﻿namespace Helion.Util.Extensions
+﻿using Force.Crc32;
+
+namespace Helion.Util.Extensions
 {
     /// <summary>
     /// A list of extensions for arrays.
@@ -15,6 +17,16 @@
         {
             for (int i = 0; i < array.Length; i++)
                 array[i] = element;
+        }
+        
+        /// <summary>
+        /// Calculates the CRC32 hash of a bunch of bytes.
+        /// </summary>
+        /// <param name="bytes">The bytes to hash.</param>
+        /// <returns>The hashed string.</returns>
+        public static string CalculateCrc32(this byte[] bytes)
+        {
+            return Crc32Algorithm.Compute(bytes).ToString("x2").ToUpper();
         }
     }
 }

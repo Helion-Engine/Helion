@@ -23,6 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="4.1.1" />
     <PackageReference Include="NLog" Version="4.6.7" />
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
