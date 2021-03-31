@@ -14,10 +14,12 @@ namespace Helion.Client.Music
         private MidiPlayer? m_player;
         private bool m_disposed;
         private string m_lastDataHash = "";
+        private byte[]? m_lastPlayedData;
+        private bool m_subscribed;
         
         public MidiDotNetMusicPlayer()
         {
-            IMidiAccess access = MidiAccessManager.Default;
+            var access = MidiAccessManager.Default;
             m_output = access.OpenOutputAsync(access.Outputs.Last().Id).Result;
         }
 
@@ -32,14 +34,25 @@ namespace Helion.Client.Music
             // TODO: This doesn't work with the player.
         }
 
-        private MidiPlayer CreatePlayer(byte[] data)
+        private MidiPlayer? CreatePlayer(byte[] data)
         {
-            MidiMusic music = MidiMusic.Read(new MemoryStream(data));
-            return new MidiPlayer(music, m_output);
+            try
+            {
+                MidiMusic music = MidiMusic.Read(new MemoryStream(data));
+                return new MidiPlayer(music, m_output);
+            }
+            catch
+            {
+                // I am unsure if the library can throw, so this is my safety net.
+                return null;
+            }
         }
         
         public bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true)
         {
+            if (m_disposed)
+                return false;
+
             string? hash = null;
             if (ignoreAlreadyPlaying)
             {
@@ -48,19 +61,49 @@ namespace Helion.Client.Music
                     return true;
             }
             
+            if (m_subscribed)
+                PerformUnsubscribe();
+            
             m_player?.Stop();
             m_player?.Dispose();
 
+            m_lastPlayedData = data;
             m_lastDataHash = hash ?? data.CalculateCrc32();
+            
             m_player = CreatePlayer(data);
+            if (m_player == null)
+            {
+                m_lastPlayedData = null;
+                m_lastDataHash = "";
+                return false;
+            }
+            
             m_player.Play();
 
             // This is a horrible hack because the library won't loop and the
             // methods that should make it do so, don't.
             if (loop)
-                m_player.PlaybackCompletedToEnd += () => Play(data, true, false);
+            {
+                m_subscribed = true;
+                m_player.PlaybackCompletedToEnd += Replay;
+            }
 
             return true;
+        }
+
+        private void Replay()
+        {
+            if (m_lastPlayedData != null) 
+                Play(m_lastPlayedData, true, false);
+        }
+
+        private void PerformUnsubscribe()
+        {
+            if (m_player == null) 
+                return;
+            
+            m_player.PlaybackCompletedToEnd -= Replay;
+            m_subscribed = false;
         }
 
         public void Stop()
@@ -78,6 +121,8 @@ namespace Helion.Client.Music
         {
             if (m_disposed)
                 return;
+            
+            PerformUnsubscribe();
             
             m_player?.Dispose();
             m_disposed = true;
