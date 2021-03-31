@@ -96,6 +96,12 @@ namespace Helion.Render.Shared.Drawers.Helper
             ImageBox2I drawArea = new ImageBox2I(x, y, x + width, y + height);
             m_renderCommands.FillRect(drawArea, color, alpha);
         }
+        
+        public void FillWindow(Color color, float alpha = Opaque)
+        {
+            (int windowW, int windowH) = m_renderCommands.WindowDimension;
+            FillRect(0, 0, windowW, windowH, Color.Black);
+        }
 
         /// <summary>
         /// Draws an image at the aligned origin. Does not care about returning

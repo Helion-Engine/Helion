@@ -19,7 +19,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition
 
         public FontDefinition(CIString name)
         {
-            Precondition(!name.Empty, "Should not have an empty font definition name");
+            Precondition(!name.IsEmpty(), "Should not have an empty font definition name");
             
             Name = name;
         }

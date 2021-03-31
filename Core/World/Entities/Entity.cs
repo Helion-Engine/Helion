@@ -477,10 +477,23 @@ namespace Helion.World.Entities
 
         public CIString GetSpeciesName()
         {
-            if (Definition.ParentClassNames.Count < 2)
-                return string.Empty;
+            if (Definition.MonsterSpeciesDefinition != null)
+                return Definition.MonsterSpeciesDefinition.Name;
 
-            return Definition.ParentClassNames[^1];
+            // In decorate the lowest class that is a monster is the definition of the species
+            EntityDefinition speciesDef = Definition;
+            for (int i = 0; i < Definition.ParentClassNames.Count; i++)
+            {
+                var def = World.EntityManager.DefinitionComposer.GetByName(Definition.ParentClassNames[i]);
+                if (def == null || !def.Flags.IsMonster)
+                    continue;
+
+                speciesDef = def;
+                break;
+            }
+
+            Definition.MonsterSpeciesDefinition = speciesDef;
+            return speciesDef.Name;
         }
 
         public virtual bool CanDamage(Entity source)

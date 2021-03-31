@@ -50,10 +50,14 @@ namespace Helion.Layer
         public override void Render(RenderCommands commands)
         {
             const string titlepic = "TITLEPIC";
+
+            DrawHelper draw = new(commands);
             var (width, height) = commands.ResolutionInfo.VirtualDimensions;
-            DrawHelper helper = new(commands);
-            var area = helper.DrawInfoProvider.GetImageDimension(titlepic);
-            helper.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
+            
+            draw.FillWindow(Color.Black);
+
+            var area = draw.DrawInfoProvider.GetImageDimension(titlepic);
+            draw.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
             {
                 commands.DrawImage(titlepic, 0, 0, area.Width, area.Height, Color.White);
             });

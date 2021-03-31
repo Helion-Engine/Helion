@@ -257,6 +257,7 @@ namespace Helion.World
                         DisplayMessage(player, null, "$SECRETMESSAGE", LanguageMessageType.Default);
                         SoundManager.PlayStaticSound("misc/secret");
                         player.Sector.SetSectorSpecialType(ZDoomSectorSpecialType.None);
+                        player.SecretsFound++;
                     }
                 }
 

@@ -20,7 +20,7 @@ namespace Helion.Models
         public double Bob { get; set; }
         public int? Killer { get; set; }
         public int? Attacker { get; set; }
-
+        public int SecretsFound { get; set; }
         public string? Weapon { get; set; }
         public string? PendingWeapon { get; set; }
         public string? AnimationWeapon { get; set; }
