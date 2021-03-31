@@ -153,3 +153,24 @@ font HudYellowNumbers
         "9" STYSNUM9;
     }
 }
+
+font IntermissionFont
+{
+    space = 12;
+    characters
+    {
+        "-" WIMINUS align center;
+        ":" WICOLON;
+        "%" WIPCNT;
+        "0" WINUM0 default;
+        "1" WINUM1;
+        "2" WINUM2;
+        "3" WINUM3;
+        "4" WINUM4;
+        "5" WINUM5;
+        "6" WINUM6;
+        "7" WINUM7;
+        "8" WINUM8;
+        "9" WINUM9;
+    }
+}
