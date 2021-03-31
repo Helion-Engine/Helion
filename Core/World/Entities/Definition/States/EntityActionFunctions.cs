@@ -503,12 +503,9 @@ namespace Helion.World.Entities.Definition.States
 
         private static void BrainExplodeRocket(EntityManager entityManager, in Vec3D pos)
         {
-            Entity? rocket = entityManager.Create("Rocket", pos);
+            Entity? rocket = entityManager.Create("BossRocket", pos);
             if (rocket != null)
-            {
-                rocket.FrameState.SetState("BrainExplode");
                 rocket.Velocity.Z = (entityManager.World.Random.NextByte() << 9) / 65536.0;
-            }
         }
 
         private static void A_BrainSpit(Entity entity)
