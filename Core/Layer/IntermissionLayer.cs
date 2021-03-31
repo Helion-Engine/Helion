@@ -96,8 +96,10 @@ namespace Helion.Layer
         private void PlayIntermissionMusic()
         {
             m_musicPlayer.Stop();
-            
+
             string musicName = m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.IntermissionMusic;
+            musicName = m_archiveCollection.Definitions.Language.GetDefaultMessage(musicName);
+            
             Entry? entry = m_archiveCollection.Entries.FindByName(musicName);
             if (entry == null)
             {
