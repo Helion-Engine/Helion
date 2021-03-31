@@ -1,6 +1,7 @@
 ﻿using System;
 using FluentAssertions;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Xunit;
 
 namespace Helion.Tests.Unit.Util
@@ -37,7 +38,7 @@ namespace Helion.Tests.Unit.Util
         {
             CIString ciStr = data;
 
-            ciStr.Length.Should().Be(0);
+            ciStr.Empty().Should().Be(data.Length == 0);
         }
         
         [Theory(DisplayName = "Check CIString length")]
