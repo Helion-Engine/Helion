@@ -24,5 +24,13 @@ namespace Helion.Models
         public IList<LineModel> Lines { get; set; } = Array.Empty<LineModel>();
         public IList<ISpecialModel> Specials { get; set; } = Array.Empty<ISpecialModel>();
         public IList<SectorDamageSpecialModel> DamageSpecials { get; set; } = Array.Empty<SectorDamageSpecialModel>();
+
+        public int TotalMonsters { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalSecrets { get; set; }
+
+        public int KillCount { get; set; }
+        public int ItemCount { get; set; }
+        public int SecretCount { get; set; }
     }
 }

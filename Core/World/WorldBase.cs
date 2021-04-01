@@ -129,6 +129,13 @@ namespace Helion.World
                 m_soundCount = worldModel.SoundCount;
                 Gravity = worldModel.Gravity;
                 ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+
+                LevelStats.TotalMonsters = worldModel.TotalMonsters;
+                LevelStats.TotalItems = worldModel.TotalItems;
+                LevelStats.TotalSecrets = worldModel.TotalSecrets;
+                LevelStats.KillCount = worldModel.KillCount;
+                LevelStats.ItemCount = worldModel.ItemCount;
+                LevelStats.SecretCount = worldModel.SecretCount;
             }
         }
 
@@ -1418,7 +1425,14 @@ namespace Helion.World
                 Sectors = sectorModels,
                 DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
-                Specials = SpecialManager.GetSpecialModels()
+                Specials = SpecialManager.GetSpecialModels(),
+
+                TotalMonsters = LevelStats.TotalMonsters,
+                TotalItems = LevelStats.TotalItems,
+                TotalSecrets = LevelStats.TotalSecrets,
+                KillCount = LevelStats.KillCount,
+                ItemCount = LevelStats.ItemCount,
+                SecretCount = LevelStats.SecretCount
             };
         }
 

@@ -127,6 +127,8 @@ namespace Helion.World.Entities.Players
             PrevWeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
             WeaponSlot = playerModel.WeaponSlot;
             WeaponSubSlot = playerModel.WeaponSubSlot;
+            KillCount = playerModel.KillCount;
+            ItemCount = playerModel.ItemCount;
             SecretsFound = playerModel.SecretsFound;
             
             Inventory = new Inventory(playerModel, this, entityManager.DefinitionComposer);
@@ -171,6 +173,8 @@ namespace Helion.World.Entities.Players
                 Bob = m_bob,
                 Killer = m_killer?.Id,
                 Attacker = Attacker?.Id,
+                KillCount = KillCount,
+                ItemCount = ItemCount,
                 SecretsFound = SecretsFound,
                 Weapon = Weapon?.Definition.Name.ToString(),
                 PendingWeapon = PendingWeapon?.Definition.Name.ToString(),
