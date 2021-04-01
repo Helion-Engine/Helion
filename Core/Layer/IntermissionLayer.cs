@@ -2,17 +2,14 @@
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Input;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util;
 using Helion.Util.Sounds.Mus;
 using Helion.World;
-using Helion.World.Entities;
-using Helion.World.Entities.Players;
-using Helion.World.Geometry.Sectors;
 using NLog;
 
 namespace Helion.Layer
@@ -25,32 +22,27 @@ namespace Helion.Layer
         public double KillPercent { get; private set; }
         public double ItemPercent { get; private set; }
         public double SecretPercent{ get; private set; }
+        public MapInfoDef CurrentMapInfo { get; private set; }
+        public MapInfoDef? NextMapInfo { get; private set; }
         public IntermissionState IntermissionState { get; private set; } = IntermissionState.Started;
+        public event EventHandler? Exited;
+
         private readonly ArchiveCollection m_archiveCollection;
         private readonly SoundManager m_soundManager;
         private readonly IMusicPlayer m_musicPlayer;
-        private readonly Player m_player;
-        private readonly MapInfoDef m_currentMapInfo;
-        private readonly MapInfoDef m_nextMapInfo;
-        private readonly ClusterDef? m_endGameCluster;
-        private readonly Action m_nextMapFunc;
         private readonly IntermissionDrawer m_drawer;
-        private bool m_invokedNextMapFunc;
 
         protected override double Priority => 0.65;
 
-        public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, Player player, MapInfoDef currentMapInfo,
-            MapInfoDef nextMapInfo, ClusterDef? endGameCluster, Action nextMapFunc)
+        public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, MapInfoDef currentMapInfo,
+            MapInfoDef? nextMapInfo)
         {
             World = world;
+            CurrentMapInfo = currentMapInfo;
+            NextMapInfo = nextMapInfo;
             m_archiveCollection = world.ArchiveCollection;
             m_soundManager = soundManager;
             m_musicPlayer = musicPlayer;
-            m_currentMapInfo = currentMapInfo;
-            m_nextMapInfo = nextMapInfo;
-            m_player = player;
-            m_endGameCluster = endGameCluster;
-            m_nextMapFunc = nextMapFunc;
             m_drawer = new IntermissionDrawer(world.ArchiveCollection, currentMapInfo, nextMapInfo);
 
             CalculatePercentages();
@@ -94,6 +86,12 @@ namespace Helion.Layer
 
         private void AdvanceToNextStateForcefully()
         {
+            if (IntermissionState == IntermissionState.ShowAllStats && NextMapInfo == null)
+            {
+                IntermissionState = IntermissionState.Complete;
+                return;
+            }
+
             IntermissionState = IntermissionState switch
             {
                 IntermissionState.Started => IntermissionState.ShowAllStats,
@@ -102,58 +100,54 @@ namespace Helion.Layer
                 IntermissionState.TallyingSecrets => IntermissionState.ShowAllStats,
                 IntermissionState.ShowingPar => IntermissionState.ShowAllStats,
                 IntermissionState.ShowAllStats => IntermissionState.NextMap,
-                IntermissionState.NextMap => IntermissionState.NextMap,
+                IntermissionState.NextMap => IntermissionState.Complete,
+                IntermissionState.Complete => IntermissionState.Complete,
                 _ => throw new Exception($"Unexpected intermission state: {IntermissionState}")
             };
         }
 
         private void PlayPressedKeySound()
         {
-            if (m_invokedNextMapFunc)
-                return;
-
             switch (IntermissionState)
             {
-            case IntermissionState.Started:
-                break;
-            case IntermissionState.TallyingKills:
-            case IntermissionState.TallyingItems:
-            case IntermissionState.TallyingSecrets:
-            case IntermissionState.ShowingPar:
-            case IntermissionState.ShowAllStats:
-                // Playing it twice to simulate a louder sound as if multiple
-                // of the tallies are completed at once.
-                m_soundManager.PlayStaticSound("intermission/nextstage");
-                m_soundManager.PlayStaticSound("intermission/nextstage");
-                break;
-            case IntermissionState.NextMap:
-                m_soundManager.PlayStaticSound("intermission/nextstage");
-                break;
-            default:
-                throw new Exception($"Unknown intermission state: {IntermissionState}");
+                case IntermissionState.Started:
+                    break;
+                case IntermissionState.TallyingKills:
+                case IntermissionState.TallyingItems:
+                case IntermissionState.TallyingSecrets:
+                case IntermissionState.ShowingPar:
+                case IntermissionState.ShowAllStats:
+                    // Playing it twice to simulate a louder sound as if multiple
+                    // of the tallies are completed at once.
+                    m_soundManager.PlayStaticSound("intermission/nextstage");
+                    m_soundManager.PlayStaticSound("intermission/nextstage");
+                    break;
+                case IntermissionState.NextMap:
+                    m_soundManager.PlayStaticSound("intermission/paststats");
+                    break;
+                case IntermissionState.Complete:
+                    break;
+                default:
+                    throw new HelionException($"Unknown intermission state: {IntermissionState}");
             }
         }
 
         public override void HandleInput(InputEvent input)
         {
+            if (IntermissionState == IntermissionState.Complete)
+                return;
+
             bool pressedKey = input.HasAnyKeyPressed();
             input.ConsumeAll();
             
             if (pressedKey)
             {
-                if (!m_invokedNextMapFunc && IntermissionState == IntermissionState.NextMap)
-                {
-                    m_invokedNextMapFunc = true;
-                    m_nextMapFunc();
-                }
-                else
-                {
-                    Console.WriteLine("Going to next state!");
-                    AdvanceToNextStateForcefully();
-                }
-
+                AdvanceToNextStateForcefully();
                 PlayPressedKeySound();
             }
+
+            if (IntermissionState == IntermissionState.Complete)
+                Exited?.Invoke(this, EventArgs.Empty);
             
             base.HandleInput(input);
         }
@@ -181,6 +175,7 @@ namespace Helion.Layer
         TallyingSecrets,
         ShowingPar,
         ShowAllStats,
-        NextMap
+        NextMap,
+        Complete
     }
 }

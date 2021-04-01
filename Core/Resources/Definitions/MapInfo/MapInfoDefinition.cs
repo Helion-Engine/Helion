@@ -92,6 +92,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly CIString MapSuckName = "sucktime";
         private static readonly CIString MapMusicName = "music";
         private static readonly CIString MapEndGame = "endgame";
+        private static readonly CIString MapNoIntermisison = "nointermission";
 
         private static readonly HashSet<CIString> MapNames = new HashSet<CIString>
         {
@@ -104,7 +105,8 @@ namespace Helion.Resources.Definitions.MapInfo
             MapClusterName,
             MapParName,
             MapSuckName,
-            MapMusicName
+            MapMusicName,
+            MapNoIntermisison
         };
 
         private static readonly CIString ClusterEnterTextName = "entertext";
@@ -314,6 +316,8 @@ namespace Helion.Resources.Definitions.MapInfo
                         mapDef.SuckTime = parser.ConsumeInteger();
                     else if (item == MapMusicName)
                         mapDef.Music = parser.ConsumeString();
+                    else if (item == MapNoIntermisison)
+                        mapDef.NoIntermission = true;
                 }
                 else if (item == "nointermission")
                     mapDef.MapOptions |= MapOptions.NoIntermission;

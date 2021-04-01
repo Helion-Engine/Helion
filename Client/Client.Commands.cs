@@ -11,7 +11,6 @@ using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
-using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.World.Util;
 
@@ -212,20 +211,14 @@ namespace Helion.Client
             if (sender is not IWorld world)
                 return;
 
-            if (world is not SinglePlayerWorld singlePlayerWorld)
-            {
-                Log.Error("Currently only support single player worlds");
-                return;
-            }
-
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    TransitionToLevel(GetNextLevel(world.MapInfo), world.MapInfo, world.MapInfo.Next);
+                    Intermission(world, GetNextLevel(world.MapInfo));
                     break;
                     
                 case LevelChangeType.SecretNext:
-                    TransitionToLevel(GetNextSecretLevel(world.MapInfo), world.MapInfo, world.MapInfo.SecretNext);
+                    Intermission(world, GetNextSecretLevel(world.MapInfo));
                     break;
                 
                 case LevelChangeType.SpecificLevel:
@@ -236,51 +229,59 @@ namespace Helion.Client
                     LoadMap(world.MapInfo, null, NoPlayers);
                     break;
             }
+        }
 
-            void HandleZDoomTransition(ClusterDef? cluster)
+        private void Intermission(IWorld world, MapInfoDef? nextMapInfo)
+        {
+            if (world.MapInfo.NoIntermission)
             {
-                if (cluster == null)
-                    return;
-                
-                EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster);
-                m_layerManager.Add(endGameLayer);
+                EndGame(world, nextMapInfo);
             }
-
-            void TransitionToLevel(MapInfoDef? nextMapInfo, MapInfoDef currentMapInfo, string nextMap)
+            else
             {
-                if (EndGameLayer.EndGameMaps.Contains(nextMap))
-                {
-                    ClusterDef? currentCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(currentMapInfo.Cluster);
-                    HandleZDoomTransition(currentCluster);
-                    return;
-                }
-                
-                if (nextMapInfo == null)
-                {
-                    Log.Error("Unable to find next map to go to");
-                    return;
-                }
-
-                bool isChangingClusters = world.MapInfo.Cluster != nextMapInfo.Cluster;
-                ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
-                
-                if (isChangingClusters && cluster != null && !cluster.AllowIntermission)
-                {
-                    EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, cluster, GoToNextLevel);
-                    m_layerManager.Add(endGameLayer);
-                }
-                else
-                {
-                    bool hasEndGame = isChangingClusters && cluster != null && cluster.AllowIntermission;
-                    ClusterDef? clusterToUse = hasEndGame ? cluster : null;
-                    IntermissionLayer intermissionLayer = new(world, m_soundManager, m_audioSystem.Music, singlePlayerWorld.Player, 
-                        singlePlayerWorld.MapInfo, nextMapInfo, clusterToUse, GoToNextLevel);
-                    m_layerManager.Add(intermissionLayer);
-                }
-                
-                // TODO: Refactor this later so we're not passing around function references.
-                void GoToNextLevel() => LoadMap(nextMapInfo, null, world.EntityManager.Players);
+                IntermissionLayer intermissionLayer = new(world, m_soundManager, m_audioSystem.Music,
+                    world.MapInfo, nextMapInfo);
+                intermissionLayer.Exited += IntermissionLayer_Exited;
+                m_layerManager.Add(intermissionLayer);
             }
+        }
+
+        private void IntermissionLayer_Exited(object? sender, EventArgs e)
+        {
+            if (sender is not IntermissionLayer intermissionLayer)
+                return;
+
+            EndGame(intermissionLayer.World, intermissionLayer.NextMapInfo);
+        }
+
+        private void EndGame(IWorld world, MapInfoDef? nextMapInfo)
+        {
+            ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
+            bool isChangingClusters = nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
+
+            if (isChangingClusters || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
+                HandleZDoomTransition(world, cluster, nextMapInfo);
+            else if (nextMapInfo != null)
+                LoadMap(nextMapInfo, null, world.EntityManager.Players);
+        }
+
+        void HandleZDoomTransition(IWorld world, ClusterDef? cluster, MapInfoDef? nextMapInfo)
+        {
+            if (cluster == null)
+                return;
+
+            EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, world, cluster, nextMapInfo);
+            endGameLayer.Exited += EndGameLayer_Exited;
+            m_layerManager.Add(endGameLayer);
+        }
+
+        private void EndGameLayer_Exited(object? sender, EventArgs e)
+        {
+            if (sender is not EndGameLayer endGameLayer)
+                return;
+
+            if (endGameLayer.NextMapInfo != null)
+                LoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World.EntityManager.Players);
         }
 
         private void ChangeLevel(LevelChangeEvent e)

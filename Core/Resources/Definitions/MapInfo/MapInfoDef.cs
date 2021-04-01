@@ -18,6 +18,7 @@ namespace Helion.Resources.Definitions.MapInfo
         public int Cluster { get; set; }
         public int ParTime { get; set; }
         public int SuckTime { get; set; }
+        public bool NoIntermission { get; set; }
         public MapSpecial MapSpecial { get; set; }
         public MapSpecialAction MapSpecialAction { get; set; }
         public MapOptions MapOptions { get; set; }
