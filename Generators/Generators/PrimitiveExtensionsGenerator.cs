@@ -57,6 +57,18 @@ namespace Generators.Generators
                 
                 w.WriteLine($"public static bool DifferentSign(this {primitive} first, {primitive} second) => (first * second) < 0;");
                 w.WriteLine();
+                
+                w.WriteLine($"public static bool InNormalRange(this {primitive} value) => value >= 0 && value <= 1;");
+                w.WriteLine();
+            }
+
+            if (type != Types.Fixed)
+            {
+                w.WriteLine($"public static double Clamp(this {primitive} value, {primitive} low, {primitive} high) => value < low ? low : (value > high ? high : value);");
+                w.WriteLine();
+                
+                w.WriteLine($"public static ({primitive} min, {primitive} max) MinMax({primitive} first, {primitive} second) => (first.Min(second), first.Max(second));");
+                w.WriteLine();
             }
 
             w.WithCBlock($"public static {primitive} Min(this {primitive} self, {primitive} other)", () =>
