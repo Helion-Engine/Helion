@@ -59,38 +59,12 @@ namespace Helion.Layer
 
         private void CalculatePercentages()
         {
-            int totalMonsters = 0;
-            int monstersDead = 0;
-            int totalItems = 0; // TODO: Get from the world; have the world cache at beginning.
-            int itemsPickedUp = 0;
-            int totalSecrets = m_player.SecretsFound;
-            int secretsVisited = m_player.SecretsFound;
-            
-            foreach (Entity entity in World.Entities)
-            {
-                if (entity.Definition.Flags.IsMonster)
-                {
-                    totalMonsters++;
-                    if (entity.IsDead)
-                        monstersDead++;
-                }
-
-                if (entity.Flags.Pickup)
-                    totalItems++;
-            }
-            
-            // Since secrets have their sector type turned off, any secrets
-            // encountered means the player has not touched them.
-            foreach (Sector sector in World.Sectors)
-                if (sector.SectorSpecialType == ZDoomSectorSpecialType.Secret)
-                    totalSecrets++;
-
-            if (totalMonsters != 0)
-                KillPercent = (double)monstersDead / totalMonsters;
-            if (totalItems != 0)
-                ItemPercent = (double)itemsPickedUp / totalItems;
-            if (totalSecrets != 0)
-                SecretPercent = (double)secretsVisited / totalSecrets;
+            if (World.LevelStats.TotalMonsters != 0)
+                KillPercent = (double)World.LevelStats.KillCount / World.LevelStats.TotalMonsters;
+            if (World.LevelStats.TotalItems != 0)
+                ItemPercent = (double)World.LevelStats.ItemCount / World.LevelStats.TotalItems;
+            if (World.LevelStats.TotalSecrets != 0)
+                SecretPercent = (double)World.LevelStats.SecretCount / World.LevelStats.TotalSecrets;
         }
 
         private void PlayIntermissionMusic()

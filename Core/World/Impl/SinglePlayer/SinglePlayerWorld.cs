@@ -46,7 +46,7 @@ namespace Helion.World.Impl.SinglePlayer
         {
             if (worldModel == null)
             {
-                EntityManager.PopulateFrom(map);
+                EntityManager.PopulateFrom(map, LevelStats);
 
                 IList<Entity> spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
                 if (spawns.Count == 0)

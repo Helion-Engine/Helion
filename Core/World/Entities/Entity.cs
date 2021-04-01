@@ -545,7 +545,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
             {
-                Kill(source);
+                World.KillEntity(this, source);
             }
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {

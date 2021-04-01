@@ -37,6 +37,8 @@ namespace Helion.World.Entities.Players
         public int BonusCount;
         public TickCommand TickCommand = new();
         public int ExtraLight;
+        public int KillCount;
+        public int ItemCount;
         public int SecretsFound;
 
         private bool m_isJumping;
