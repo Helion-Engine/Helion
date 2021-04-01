@@ -104,6 +104,7 @@ namespace Helion.Geometry.Vectors
             Y /= len;
         }
         public float LengthSquared() => (X * X) + (Y * Y);
+        public Vec2F Inverse() => new(1 / X, 1 / Y);
         public float Length() => MathF.Sqrt(LengthSquared());
         public float DistanceSquared(Vec2F other) => (this - other).LengthSquared();
         public float DistanceSquared(Vector2F other) => (this - other).LengthSquared();

@@ -108,6 +108,7 @@ namespace Helion.Geometry.Vectors
         public Vec3D Unit() => this / Length();
         public void Normalize() => this /= Length();
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
+        public Vec3D Inverse() => new(1 / X, 1 / Y, 1 / Z);
         public double Length() => Math.Sqrt(LengthSquared());
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
         public double DistanceSquared(Vector3D other) => (this - other).LengthSquared();

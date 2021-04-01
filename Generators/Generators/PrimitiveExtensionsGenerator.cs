@@ -8,6 +8,12 @@ namespace Generators.Generators
         private static void WriteMethods(Types type, CodegenTextWriter w)
         {
             string primitive = type.PrimitiveType().ToLower();
+
+            if (type.IsSigned())
+            {
+                w.WriteLine($"public static bool DifferentSign(this {primitive} first, {primitive} second) => (first ^ second) < 0;");
+                w.WriteLine();
+            }
             
             if (type.IsFloatingPointPrimitive())
             {
@@ -47,6 +53,9 @@ namespace Generators.Generators
                     else
                         w.WriteLine($"return Math.Ceiling(self);");
                 });
+                w.WriteLine();
+                
+                w.WriteLine($"public static bool DifferentSign(this {primitive} first, {primitive} second) => (first * second) < 0;");
                 w.WriteLine();
             }
 

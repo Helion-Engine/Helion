@@ -22,7 +22,37 @@ namespace Generators
         {
             return type == Types.Float || type == Types.Double;
         }
+        
+        public static bool IsIntegralPrimitive(this Types type)
+        {
+            switch (type)
+            {
+            case Types.Byte:
+            case Types.Short:
+            case Types.UShort:
+            case Types.Int:
+            case Types.UInt:
+            case Types.Long:
+            case Types.ULong:
+                return true;
+            default:
+                return false;
+            }
+        }
 
+        public static bool IsSigned(this Types type)
+        {
+            switch (type)
+            {
+            case Types.Short:
+            case Types.Int:
+            case Types.Long:
+                return true;
+            default:
+                return false;
+            }
+        }
+        
         public static bool IsUnsigned(this Types type)
         {
             switch (type)

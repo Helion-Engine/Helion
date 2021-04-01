@@ -322,7 +322,13 @@ namespace Generators.Generators
 
                 string len = string.Join(" + ", m_fields.Select(f => $"({f} * {f})"));
                 w.WriteLine($"public {m_type.PrimitiveType()} LengthSquared() => {len};");
-                
+
+                if (m_type.IsFloatingPointPrimitive())
+                {
+                    string inv = CommaSeparate(m_fields.Select(f => $"1 / {f}").ToArray());
+                    w.WriteLine($"public {StructType} Inverse() => new({inv});");
+                }
+                    
                 w.WriteLine($"public {m_type.PrimitiveType()} Length() => {MathClass}.Sqrt(LengthSquared());");
                 w.WriteLine($"public {m_type.PrimitiveType()} DistanceSquared({StructType} other) => (this - other).LengthSquared();");
                 w.WriteLine($"public {m_type.PrimitiveType()} DistanceSquared({InstanceType} other) => (this - other).LengthSquared();");

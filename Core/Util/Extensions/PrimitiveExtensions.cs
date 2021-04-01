@@ -18,6 +18,8 @@ namespace Helion.Util.Extensions
             return Math.Max(self, other);
         }
 
+        public static bool DifferentSign(this short first, short second) => (first ^ second) < 0;
+
         public static short Min(this short self, short other)
         {
             return Math.Min(self, other);
@@ -43,6 +45,8 @@ namespace Helion.Util.Extensions
             return Math.Max(self, other);
         }
 
+        public static bool DifferentSign(this int first, int second) => (first ^ second) < 0;
+
         public static int Min(this int self, int other)
         {
             return Math.Min(self, other);
@@ -67,6 +71,8 @@ namespace Helion.Util.Extensions
         {
             return Math.Max(self, other);
         }
+
+        public static bool DifferentSign(this long first, long second) => (first ^ second) < 0;
 
         public static long Min(this long self, long other)
         {
@@ -118,6 +124,8 @@ namespace Helion.Util.Extensions
             return MathF.Ceiling(self);
         }
 
+        public static bool DifferentSign(this float first, float second) => (first * second) < 0;
+
         public static float Min(this float self, float other)
         {
             return Math.Min(self, other);
@@ -157,6 +165,8 @@ namespace Helion.Util.Extensions
         {
             return Math.Ceiling(self);
         }
+
+        public static bool DifferentSign(this double first, double second) => (first * second) < 0;
 
         public static double Min(this double self, double other)
         {
