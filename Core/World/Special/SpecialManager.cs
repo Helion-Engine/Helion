@@ -11,6 +11,7 @@ using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -247,11 +248,26 @@ namespace Helion.World.Special
                 MoveDirection.Down, MoveRepetition.None, speed, 0, null), GetDefaultSectorSound());
         }
 
-        public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, Line line, SectorDest sectorDest, double speed)
+        public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, SectorDest sectorDest, double speed)
         {
-            int floorChangeTexture = line.Front.Sector.Floor.TextureHandle;
-            SectorDamageSpecial? damageSpecial = line.Front.Sector.SectorDamageSpecial;
+            int floorChangeTexture = sector.Floor.TextureHandle;
+            SectorDamageSpecial? damageSpecial = sector.SectorDamageSpecial;
             double destZ = GetDestZ(sector, sectorDest);
+            for (int i = 0; i < sector.Lines.Count; i++)
+            {
+                Line line = sector.Lines[i];
+                if (line.Back == null)
+                    continue;
+
+                Sector opposingSector = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
+                if (opposingSector.Floor.Z == destZ)
+                {
+                    floorChangeTexture = opposingSector.Floor.TextureHandle;
+                    damageSpecial = opposingSector.SectorDamageSpecial;
+                    break;
+                }
+            }
+
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0, null, floorChangeTexture, damageSpecial), GetDefaultSectorSound());
         }
@@ -299,11 +315,33 @@ namespace Helion.World.Special
 
         public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
         {
-            double startZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
-            double destZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
+            double lowZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
+            double highZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
+            if (lowZ > sector.Floor.Z)
+                lowZ = sector.Floor.Z;
+            if (highZ < sector.Floor.Z)
+                highZ = sector.Floor.Z;
 
-            return new SectorMoveSpecial(m_world, sector, startZ + lip, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Up, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
+            lowZ += lip;
+            if (lowZ > highZ)
+                lowZ = highZ;
+
+            int value = m_world.Random.NextByte() & 1;
+            MoveDirection dir = value == 0 ? MoveDirection.Up : MoveDirection.Down;
+            double startZ, destZ;
+            if (dir == MoveDirection.Down)
+            {
+                destZ = lowZ;
+                startZ = highZ;
+            }
+            else
+            {
+                destZ = highZ;
+                startZ = lowZ;
+            }
+
+            return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(SectorPlaneType.Floor,
+                dir, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
         }
 
         public ISpecial CreateSectorMoveSpecial(Sector sector, SectorPlane plane, SectorPlaneType moveType, double speed, double destZ, int negative)
@@ -715,7 +753,7 @@ namespace Helion.World.Special
                     return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
 
                 case ZDoomLineSpecialType.FloorLowerToLowestTxTy:
-                    return CreateFloorLowerSpecialChangeTextureAndType(sector, line, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                    return CreateFloorLowerSpecialChangeTextureAndType(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
 
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
                     return CreateRaisePlatTxSpecial(sector, line, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);

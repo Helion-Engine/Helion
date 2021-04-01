@@ -23,11 +23,12 @@ namespace Helion.Layer
     /// </remarks>
     public class GameLayerManager : GameLayer
     {
+        public readonly SoundManager SoundManager;
+
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HelionConsole m_console;
         private readonly IAudioSystem m_audioSystem;
-        private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
 
         protected override double Priority => 0.5;
@@ -35,10 +36,10 @@ namespace Helion.Layer
         public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console,
             SoundManager soundManager, IAudioSystem audioSystem, SaveGameManager saveGameManager)
         {
+            SoundManager = soundManager;
             m_config = config;
             m_console = console;
             m_archiveCollection = archiveCollection;
-            m_soundManager = soundManager;
             m_audioSystem = audioSystem;
             m_saveGameManager = saveGameManager;
         }
@@ -61,8 +62,12 @@ namespace Helion.Layer
         {
             if (input.ConsumeKeyPressed(m_config.Controls.Console))
                 HandleConsoleToggle(input);
-            
-            if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
+
+            if (input.ConsumeKeyPressed(m_config.Controls.Save))
+                OpenSaveGameMenu();
+            else if (input.ConsumeKeyPressed(m_config.Controls.Load))
+                OpenLoadGameMenu();
+            else if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
             {
                 input.ConsumeAll();
                 CreateAndAddMenu();
@@ -73,7 +78,7 @@ namespace Helion.Layer
 
             if (Contains<ImageLayer>() && input.ConsumeKeyPressed(Key.Escape))
             {
-                m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
+                SoundManager.PlayStaticSound(Constants.MenuSounds.Clear);
                 Remove<ImageLayer>();
             }
 
@@ -84,12 +89,27 @@ namespace Helion.Layer
 
             void CreateAndAddMenu()
             {
-                m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+                SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
                 
-                MainMenu mainMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager);
-                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
+                MainMenu mainMenu = new(this, m_config, m_console, SoundManager, m_archiveCollection, m_saveGameManager);
+                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, SoundManager);
                 Add(menuLayer);
             }
+        }
+
+        private void OpenSaveGameMenu() =>
+            ShowSaveMenu(true);
+
+        private void OpenLoadGameMenu() =>
+            ShowSaveMenu(false);
+
+        private void ShowSaveMenu(bool isSave)
+        {
+            SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+            SaveMenu saveMenu = new(this, m_config, m_console, SoundManager, m_archiveCollection,
+                new SaveGameManager(m_config), Contains<SinglePlayerWorldLayer>(), isSave);
+            MenuLayer menuLayer = new(this, saveMenu, m_archiveCollection, SoundManager);
+            Add(menuLayer);
         }
 
         private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
@@ -99,9 +119,9 @@ namespace Helion.Layer
             if (m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages.Count == 0)
                 return;
 
-            m_soundManager.PlayStaticSound(Constants.MenuSounds.Prompt);
+            SoundManager.PlayStaticSound(Constants.MenuSounds.Prompt);
 
-            CycleImageLayer helpLayer = new(this, m_soundManager, m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages);
+            CycleImageLayer helpLayer = new(this, SoundManager, m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages);
             Add(helpLayer);
         }
 

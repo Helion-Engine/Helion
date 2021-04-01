@@ -14,6 +14,12 @@ namespace Helion.Maps.Specials.Vanilla
             ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility)
         {
             compatibility = null;
+            if (type == VanillaLineSpecialType.None)
+            {
+                lineFlags.ActivationType = ActivationType.None;
+                return ZDoomLineSpecialType.None;
+            }
+
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);
 

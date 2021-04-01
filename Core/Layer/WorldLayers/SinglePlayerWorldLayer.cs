@@ -131,25 +131,8 @@ namespace Helion.Layer.WorldLayers
                 ChangeHudSize(false);
             else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
-            else if (input.ConsumeKeyPressed(Config.Controls.Save))
-                OpenSaveGameMenu();
-            else if (input.ConsumeKeyPressed(Config.Controls.Load))
-                OpenLoadGameMenu();
 			
 			base.HandleInput(input);
-        }
-
-        private void OpenSaveGameMenu()
-        {
-            // TODO
-            // SaveMenu saveMenu = new();
-            // MenuLayer menuLayer = new(Parent, saveMenu);
-            // Parent.Add(menuLayer);
-        }
-
-        private void OpenLoadGameMenu()
-        {
-            // TODO
         }
 
         public override void RunLogic()

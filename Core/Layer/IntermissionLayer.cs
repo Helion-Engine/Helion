@@ -174,7 +174,6 @@ namespace Helion.Layer
                 }
                 else
                 {
-                    Console.WriteLine("Going to next state!");
                     AdvanceToNextStateForcefully();
                 }
 
