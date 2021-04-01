@@ -299,11 +299,33 @@ namespace Helion.World.Special
 
         public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
         {
-            double startZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
-            double destZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
+            double lowZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
+            double highZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
+            if (lowZ > sector.Floor.Z)
+                lowZ = sector.Floor.Z;
+            if (highZ < sector.Floor.Z)
+                highZ = sector.Floor.Z;
 
-            return new SectorMoveSpecial(m_world, sector, startZ + lip, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Up, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
+            lowZ += lip;
+            if (lowZ > highZ)
+                lowZ = highZ;
+
+            int value = m_world.Random.NextByte() & 1;
+            MoveDirection dir = value == 0 ? MoveDirection.Up : MoveDirection.Down;
+            double startZ, destZ;
+            if (dir == MoveDirection.Down)
+            {
+                destZ = lowZ;
+                startZ = highZ;
+            }
+            else
+            {
+                destZ = highZ;
+                startZ = lowZ;
+            }
+
+            return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(SectorPlaneType.Floor,
+                dir, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
         }
 
         public ISpecial CreateSectorMoveSpecial(Sector sector, SectorPlane plane, SectorPlaneType moveType, double speed, double destZ, int negative)
