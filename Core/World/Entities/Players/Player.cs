@@ -621,6 +621,8 @@ namespace Helion.World.Entities.Players
                 return;
 
             PendingWeapon = Inventory.Weapons.GetWeapon(definition.Name);
+            if (PendingWeapon != null)
+                (WeaponSlot, WeaponSubSlot) = Inventory.Weapons.GetWeaponSlot(PendingWeapon.Definition.Name);
         }
 
         /// <summary>
