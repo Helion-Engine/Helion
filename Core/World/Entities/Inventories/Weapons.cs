@@ -197,7 +197,7 @@ namespace Helion.World.Entities.Inventories
             if (slot == player.WeaponSlot && subslot == -1)
                 subslot = GetSlot(player.WeaponSubSlot + 1, 0, GetSubSlots(slot));
             else if (subslot == -1)
-                subslot = GetSubSlots(slot) - 1;
+                subslot = GetFirstSubSlot(slot);
 
             if (m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons) &&
                 weapons.TryGetValue(subslot, out Weapon? weapon))
