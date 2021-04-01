@@ -12,6 +12,8 @@ namespace Helion.Geometry.SegmentsNew
         public Vec2D End;
 
         public Vec2D Delta => End - Start;
+        public double Length => Start.Distance(End);
+        public Vec2D RightNormal => Delta.RotateRight90();
         public Box2D Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         public SegmentDirection Direction => CalculateDirection();
 
@@ -47,10 +49,6 @@ namespace Helion.Geometry.SegmentsNew
         
         public Seg2D WithEnd(Vec2D end) => (Start, end);
         
-        public double Length() => Delta.Length();
-        
-        public Vec2D RightNormal() => Delta.RotateRight90();
-        
         public Vec2D FromTime(double t) => Start + (Delta * t);
         
         public bool SameDirection(Seg2D seg) => SameDirection(seg.Delta);
@@ -78,9 +76,9 @@ namespace Helion.Geometry.SegmentsNew
             return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);
         }
         
-        public bool OnRight(in Vec2D point) => PerpDot(point) <= 0;
+        public bool OnRight(Vec2D point) => PerpDot(point) <= 0;
         
-        public bool OnRight(in Vec3D point) => PerpDot(point) <= 0;
+        public bool OnRight(Vec3D point) => PerpDot(point) <= 0;
         
         public bool OnRight(Seg2D seg) => OnRight(seg.Start) && OnRight(seg.End);
         
