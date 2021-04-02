@@ -19,6 +19,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using MoreLinq.Extensions;
 using NLog;
+using Helion.World.Stats;
 
 namespace Helion.World.Entities
 {
@@ -136,7 +137,7 @@ namespace Helion.World.Entities
             return player;
         }
 
-        public void PopulateFrom(IMap map)
+        public void PopulateFrom(IMap map, LevelStats levelStats)
         {
             List<Entity> relinkEntities = new List<Entity>();
 
@@ -154,6 +155,11 @@ namespace Helion.World.Entities
 
                 if (World.Config.Game.NoMonsters && definition.Flags.IsMonster)
                     continue;
+
+                if (definition.Flags.CountKill)
+                    levelStats.TotalMonsters++;
+                if (definition.Flags.CountItem)
+                    levelStats.TotalItems++;
 
                 double angleRadians = MathHelper.ToRadians(mapThing.Angle);
                 Vec3D position = mapThing.Position.Double;

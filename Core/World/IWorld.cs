@@ -22,6 +22,7 @@ using Helion.Util.Container;
 using Helion.Models;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Cheats;
+using Helion.World.Stats;
 
 namespace Helion.World
 {
@@ -50,6 +51,7 @@ namespace Helion.World
         SkillDef SkillDefinition { get; }
         ArchiveCollection ArchiveCollection { get; }
         MapInfoDef MapInfo { get; }
+        LevelStats LevelStats { get; }
         bool Paused { get; }
 
         void Link(Entity entity);

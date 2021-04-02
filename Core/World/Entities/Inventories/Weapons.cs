@@ -4,6 +4,7 @@ using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
+using MoreLinq;
 
 namespace Helion.World.Entities.Inventories
 {
@@ -157,7 +158,14 @@ namespace Helion.World.Entities.Inventories
         public int GetFirstSubSlot(int slot)
         {
             if (m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons) && weapons.Count > 0)
-                return weapons.First().Key;
+                return weapons.Aggregate((l, r) => l.Key < r.Key ? l : r).Key;
+            return -1;
+        }
+
+        public int GetBestSubSlot(int slot)
+        {
+            if (m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons) && weapons.Count > 0)
+                return weapons.Aggregate((l, r) => l.Key > r.Key ? l : r).Key;
             return -1;
         }
 
@@ -197,7 +205,7 @@ namespace Helion.World.Entities.Inventories
             if (slot == player.WeaponSlot && subslot == -1)
                 subslot = GetSlot(player.WeaponSubSlot + 1, 0, GetSubSlots(slot));
             else if (subslot == -1)
-                subslot = GetSubSlots(slot) - 1;
+                subslot = GetBestSubSlot(slot);
 
             if (m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons) &&
                 weapons.TryGetValue(subslot, out Weapon? weapon))

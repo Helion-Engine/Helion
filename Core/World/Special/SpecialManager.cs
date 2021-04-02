@@ -16,6 +16,7 @@ using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
+using Helion.World.Stats;
 
 namespace Helion.World.Special
 {
@@ -359,7 +360,7 @@ namespace Helion.World.Special
             return new StairSpecial(m_world, sector, speed, height, delay, crush);
         }
 
-        public void StartInitSpecials()
+        public void StartInitSpecials(LevelStats levelStats)
         {
             var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.ActivationType == ActivationType.LevelStart);
             foreach (var line in lines)
@@ -367,7 +368,11 @@ namespace Helion.World.Special
 
             var sectors = m_world.Sectors.Where(sec => sec.SectorSpecialType != ZDoomSectorSpecialType.None);
             foreach (var sector in sectors)
+            {
+                if (sector.SectorSpecialType == ZDoomSectorSpecialType.Secret)
+                    levelStats.TotalSecrets++;
                 HandleSectorSpecial(sector);
+            }
         }
 
         private void HandleLineInitSpecial(Line line)

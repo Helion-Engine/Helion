@@ -150,6 +150,14 @@ namespace Helion.Resources.Definitions.Language
             return message;
         }
 
+        public string[] GetDefaultMessages(string message)
+        {
+            if (message.Length > 0 && message[0] == '$')
+                return LookupMessage(message[1..], LanguageMessageType.Default).Split(new string[] { "\n", "\r\n" }, StringSplitOptions.None);
+
+            return new string[] { message };
+        }
+
         public string GetMessage(Player player, Player? other, string message, LanguageMessageType type)
         {
             if (message.Length > 0 && message[0] == '$')

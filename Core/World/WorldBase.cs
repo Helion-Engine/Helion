@@ -41,6 +41,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Cheats;
+using Helion.World.Stats;
 
 namespace Helion.World
 {
@@ -81,6 +82,7 @@ namespace Helion.World
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
         public Config Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
+        public LevelStats LevelStats { get; } = new ();
         public SkillDef SkillDefinition { get; private set; }
         public ArchiveCollection ArchiveCollection { get; protected set; }
 
@@ -117,7 +119,7 @@ namespace Helion.World
 
             if (worldModel == null)
             {
-                SpecialManager.StartInitSpecials();
+                SpecialManager.StartInitSpecials(LevelStats);
             }
             else
             {
@@ -127,6 +129,13 @@ namespace Helion.World
                 m_soundCount = worldModel.SoundCount;
                 Gravity = worldModel.Gravity;
                 ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+
+                LevelStats.TotalMonsters = worldModel.TotalMonsters;
+                LevelStats.TotalItems = worldModel.TotalItems;
+                LevelStats.TotalSecrets = worldModel.TotalSecrets;
+                LevelStats.KillCount = worldModel.KillCount;
+                LevelStats.ItemCount = worldModel.ItemCount;
+                LevelStats.SecretCount = worldModel.SecretCount;
             }
         }
 
@@ -257,6 +266,7 @@ namespace Helion.World
                         DisplayMessage(player, null, "$SECRETMESSAGE", LanguageMessageType.Default);
                         SoundManager.PlayStaticSound("misc/secret");
                         player.Sector.SetSectorSpecialType(ZDoomSectorSpecialType.None);
+                        LevelStats.SecretCount++;
                         player.SecretsFound++;
                     }
                 }
@@ -756,6 +766,9 @@ namespace Helion.World
             if (entity.IsDead)
                 return;
 
+            if (entity.Flags.CountKill)
+                LevelStats.KillCount++;
+
             if (entity is Player player)
                 ApplyVooDooKill(player, source, forceGib);
 
@@ -779,6 +792,12 @@ namespace Helion.World
             int health = player.Health;
             if (!GiveItem(player, item, item.Flags))
                 return;
+
+            if (item.Flags.CountItem)
+            {
+                LevelStats.ItemCount++;
+                player.ItemCount++;
+            }
 
             string message = item.Definition.Properties.Inventory.PickupMessage;
             var healthProperty = item.Definition.Properties.HealthProperty;
@@ -1402,7 +1421,14 @@ namespace Helion.World
                 Sectors = sectorModels,
                 DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
-                Specials = SpecialManager.GetSpecialModels()
+                Specials = SpecialManager.GetSpecialModels(),
+
+                TotalMonsters = LevelStats.TotalMonsters,
+                TotalItems = LevelStats.TotalItems,
+                TotalSecrets = LevelStats.TotalSecrets,
+                KillCount = LevelStats.KillCount,
+                ItemCount = LevelStats.ItemCount,
+                SecretCount = LevelStats.SecretCount
             };
         }
 

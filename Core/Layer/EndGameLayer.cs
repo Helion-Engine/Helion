@@ -13,6 +13,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
+using Helion.World;
 using NLog;
 
 namespace Helion.Layer
@@ -27,23 +28,28 @@ namespace Helion.Layer
             "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence"
         };
 
+        public event EventHandler? Exited;
+
+        public IWorld World { get; private set; }
+        public MapInfoDef? NextMapInfo { get; private set; }
+
         private readonly string m_flatImage;
         private readonly List<string> m_displayText;
         private readonly Ticker m_ticker = new(LettersPerSecond);
         private readonly EndGameDrawer m_drawer;
-        private readonly Action? m_nextMapFunc;
         private bool m_showAllText;
         private bool m_invokedNextMapFunc;
 
         protected override double Priority => 0.675;
 
-        public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
-            Action? nextMapFunc = null)
+        public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, IWorld world,
+            ClusterDef cluster, MapInfoDef? nextMapInfo)
         {
+            World = world;
+            NextMapInfo = nextMapInfo;
             var language = archiveCollection.Definitions.Language;
             
             m_drawer = new(archiveCollection);
-            m_nextMapFunc = nextMapFunc;
             m_flatImage = language.GetDefaultMessage(cluster.Flat);
             m_displayText = LookUpDisplayText(language, cluster);
             
@@ -102,7 +108,7 @@ namespace Helion.Layer
                 return;
             
             m_invokedNextMapFunc = true;
-            m_nextMapFunc?.Invoke();
+            Exited?.Invoke(this, EventArgs.Empty);
         }
 
         public override void HandleInput(InputEvent input)

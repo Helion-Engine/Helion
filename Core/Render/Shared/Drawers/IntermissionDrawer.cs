@@ -20,10 +20,10 @@ namespace Helion.Render.Shared.Drawers
         
         private readonly ArchiveCollection m_archiveCollection;
         private readonly MapInfoDef m_currentMapInfo;
-        private readonly MapInfoDef m_nextMapInfo;
+        private readonly MapInfoDef? m_nextMapInfo;
 
         public IntermissionDrawer(ArchiveCollection archiveCollection, MapInfoDef currentMapInfo,
-            MapInfoDef nextMapInfo)
+            MapInfoDef? nextMapInfo)
         {
             m_archiveCollection = archiveCollection;
             m_currentMapInfo = currentMapInfo;
@@ -55,7 +55,7 @@ namespace Helion.Render.Shared.Drawers
             const string NowEnteringImage = "WIENTER";
             const int topPaddingY = 4;
 
-            if (layer.IntermissionState == IntermissionState.NextMap)
+            if (layer.IntermissionState == IntermissionState.NextMap && m_nextMapInfo != null)
             {
                 draw.Image(NowEnteringImage, 0, topPaddingY, out Dimension drawArea, both: Align.TopMiddle);
                 draw.Image(m_nextMapInfo.TitlePatch, 0, drawArea.Height + topPaddingY + 1, both: Align.TopMiddle);

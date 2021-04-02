@@ -32,6 +32,7 @@ namespace Helion.Menus.Impl
         private readonly GameLayer m_parent;
         private readonly SaveGameManager m_saveGameManager;
         private readonly bool m_isSave;
+        private readonly bool m_canSave;
         private SaveGame? m_deleteSave;
 
         public SaveMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
@@ -40,6 +41,7 @@ namespace Helion.Menus.Impl
         {
             m_parent = parent;
             m_saveGameManager = saveManager;
+            m_canSave = hasWorld;
             m_isSave = isSave;
 
             List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
@@ -73,7 +75,13 @@ namespace Helion.Menus.Impl
 
             if (m_isSave && !hasWorld)
             {
-                Components = Components.Add(new MenuSmallTextComponent("No game active to save."));
+                string[] text = ArchiveCollection.Definitions.Language.GetDefaultMessages("$SAVEDEAD");
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Components = Components.Add(new MenuSmallTextComponent(text[i]));
+                    if (i != text.Length - 1)
+                        Components = Components.Add(new MenuPaddingComponent(8));
+                }
                 return;
             }
 
@@ -94,12 +102,14 @@ namespace Helion.Menus.Impl
         {
             base.HandleInput(input);
 
-            if (input.ConsumeKeyPressed(Key.Enter) && ComponentIndex.HasValue)
+            if (input.HasAnyKeyPressed() && m_isSave && !m_canSave)
             {
-                var action = Components[ComponentIndex.Value].Action;
-                if (action != null)
-                    action();
+                m_parent.Remove<MenuLayer>();
+                return;
             }
+
+            if (input.ConsumeKeyPressed(Key.Enter) && ComponentIndex.HasValue)
+                Components[ComponentIndex.Value].Action?.Invoke();
         }
 
         private IEnumerable<IMenuComponent> CreateSaveRowComponents(IEnumerable<SaveGame> savedGames)
