@@ -95,10 +95,6 @@ namespace Helion.Geometry.Vectors
         public static Vec4Fixed operator /(Vector4Fixed self, Vec4Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4Fixed operator /(Vector4Fixed self, Vector4Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4Fixed operator /(Vector4Fixed self, Fixed value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
-        public static bool operator ==(Vector4Fixed self, Vec4Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vector4Fixed self, Vector4Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator !=(Vector4Fixed self, Vec4Fixed other) => !(self == other);
-        public static bool operator !=(Vector4Fixed self, Vector4Fixed other) => !(self == other);
 
         public Vec4Fixed WithX(Fixed x) => new(x, Y, Z, W);
         public Vec4Fixed WithY(Fixed y) => new(X, y, Z, W);

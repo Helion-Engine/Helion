@@ -40,8 +40,6 @@ namespace Helion.Geometry.Segments
         public static Seg3F operator +(SegmentT3F<T> self, T other) => new(self.Start + other, self.End + other);
         public static Seg3F operator -(SegmentT3F<T> self, Vec3F other) => new(self.Start - other, self.End - other);
         public static Seg3F operator -(SegmentT3F<T> self, T other) => new(self.Start - other, self.End - other);
-        public static bool operator ==(SegmentT3F<T> self, SegmentT3F<T> other) => self.Start == other.Start && self.End == other.End;
-        public static bool operator !=(SegmentT3F<T> self, SegmentT3F<T> other) => !(self == other);
 
         public T Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
         public Vec3F FromTime(float t) => Start + (Delta * t);

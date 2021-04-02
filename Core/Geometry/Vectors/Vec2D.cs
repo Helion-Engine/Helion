@@ -83,9 +83,7 @@ namespace Helion.Geometry.Vectors
         public static Vec2D operator /(Vec2D self, Vector2D other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2D operator /(Vec2D self, double value) => new(self.X / value, self.Y / value);
         public static bool operator ==(Vec2D self, Vec2D other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vec2D self, Vector2D other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2D self, Vec2D other) => !(self == other);
-        public static bool operator !=(Vec2D self, Vector2D other) => !(self == other);
 
         public Vec2D WithX(double x) => new(x, Y);
         public Vec2D WithY(double y) => new(X, y);

@@ -164,8 +164,11 @@ namespace Generators.Generators
             w.WriteLine($"public static {StructType} operator +({ClassName} self, {vecClass} other) => new(self.Start + other, self.End + other);");
             w.WriteLine($"public static {StructType} operator -({ClassName} self, {VecStruct} other) => new(self.Start - other, self.End - other);");
             w.WriteLine($"public static {StructType} operator -({ClassName} self, {vecClass} other) => new(self.Start - other, self.End - other);");
-            w.WriteLine($"public static bool operator ==({ClassName} self, {ClassName} other) => self.Start == other.Start && self.End == other.End;");
-            w.WriteLine($"public static bool operator !=({ClassName} self, {ClassName} other) => !(self == other);");
+            if (m_isStruct)
+            {
+                w.WriteLine($"public static bool operator ==({StructType} self, {StructType} other) => self.Start == other.Start && self.End == other.End;");
+                w.WriteLine($"public static bool operator !=({StructType} self, {StructType} other) => !(self == other);");    
+            }
             
             w.WriteLine();
         }

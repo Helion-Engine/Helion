@@ -78,10 +78,6 @@ namespace Helion.Geometry.Vectors
         public static Vec2Fixed operator /(Vector2Fixed self, Vec2Fixed other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2Fixed operator /(Vector2Fixed self, Vector2Fixed other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2Fixed operator /(Vector2Fixed self, Fixed value) => new(self.X / value, self.Y / value);
-        public static bool operator ==(Vector2Fixed self, Vec2Fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vector2Fixed self, Vector2Fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vector2Fixed self, Vec2Fixed other) => !(self == other);
-        public static bool operator !=(Vector2Fixed self, Vector2Fixed other) => !(self == other);
 
         public Vec2Fixed WithX(Fixed x) => new(x, Y);
         public Vec2Fixed WithY(Fixed y) => new(X, y);

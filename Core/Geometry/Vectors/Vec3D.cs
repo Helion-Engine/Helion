@@ -92,9 +92,7 @@ namespace Helion.Geometry.Vectors
         public static Vec3D operator /(Vec3D self, Vector3D other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3D operator /(Vec3D self, double value) => new(self.X / value, self.Y / value, self.Z / value);
         public static bool operator ==(Vec3D self, Vec3D other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator ==(Vec3D self, Vector3D other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
         public static bool operator !=(Vec3D self, Vec3D other) => !(self == other);
-        public static bool operator !=(Vec3D self, Vector3D other) => !(self == other);
 
         public Vec3D WithX(double x) => new(x, Y, Z);
         public Vec3D WithY(double y) => new(X, y, Z);

@@ -92,9 +92,7 @@ namespace Helion.Geometry.Vectors
         public static Vec3Fixed operator /(Vec3Fixed self, Vector3Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3Fixed operator /(Vec3Fixed self, Fixed value) => new(self.X / value, self.Y / value, self.Z / value);
         public static bool operator ==(Vec3Fixed self, Vec3Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator ==(Vec3Fixed self, Vector3Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
         public static bool operator !=(Vec3Fixed self, Vec3Fixed other) => !(self == other);
-        public static bool operator !=(Vec3Fixed self, Vector3Fixed other) => !(self == other);
 
         public Vec3Fixed WithX(Fixed x) => new(x, Y, Z);
         public Vec3Fixed WithY(Fixed y) => new(X, y, Z);

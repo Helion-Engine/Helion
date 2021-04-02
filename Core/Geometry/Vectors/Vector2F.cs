@@ -78,10 +78,6 @@ namespace Helion.Geometry.Vectors
         public static Vec2F operator /(Vector2F self, Vec2F other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2F operator /(Vector2F self, Vector2F other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2F operator /(Vector2F self, float value) => new(self.X / value, self.Y / value);
-        public static bool operator ==(Vector2F self, Vec2F other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vector2F self, Vector2F other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vector2F self, Vec2F other) => !(self == other);
-        public static bool operator !=(Vector2F self, Vector2F other) => !(self == other);
 
         public Vec2F WithX(float x) => new(x, Y);
         public Vec2F WithY(float y) => new(X, y);

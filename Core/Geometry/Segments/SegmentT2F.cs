@@ -41,8 +41,6 @@ namespace Helion.Geometry.Segments
         public static Seg2F operator +(SegmentT2F<T> self, T other) => new(self.Start + other, self.End + other);
         public static Seg2F operator -(SegmentT2F<T> self, Vec2F other) => new(self.Start - other, self.End - other);
         public static Seg2F operator -(SegmentT2F<T> self, T other) => new(self.Start - other, self.End - other);
-        public static bool operator ==(SegmentT2F<T> self, SegmentT2F<T> other) => self.Start == other.Start && self.End == other.End;
-        public static bool operator !=(SegmentT2F<T> self, SegmentT2F<T> other) => !(self == other);
 
         public T Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
         public Vec2F FromTime(float t) => Start + (Delta * t);

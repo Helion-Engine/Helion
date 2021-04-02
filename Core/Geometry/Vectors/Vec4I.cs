@@ -100,9 +100,7 @@ namespace Helion.Geometry.Vectors
         public static Vec4I operator /(Vec4I self, Vector4I other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4I operator /(Vec4I self, int value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
         public static bool operator ==(Vec4I self, Vec4I other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vec4I self, Vector4I other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
         public static bool operator !=(Vec4I self, Vec4I other) => !(self == other);
-        public static bool operator !=(Vec4I self, Vector4I other) => !(self == other);
 
         public Vec4I WithX(int x) => new(x, Y, Z, W);
         public Vec4I WithY(int y) => new(X, y, Z, W);

@@ -232,10 +232,12 @@ namespace Generators.Generators
             WriteOperatorValue("/", m_type.PrimitiveType(), selfValue, true);
             
             string equality = string.Join(" && ", selfOther.Select(pair => $"{pair.Item1} == {pair.Item2}"));
-            w.WriteLine($"public static bool operator ==({ClassName} self, {StructType} other) => {equality};");
-            w.WriteLine($"public static bool operator ==({ClassName} self, {InstanceType} other) => {equality};");
-            w.WriteLine($"public static bool operator !=({ClassName} self, {StructType} other) => !(self == other);");
-            w.WriteLine($"public static bool operator !=({ClassName} self, {InstanceType} other) => !(self == other);");
+            if (m_isStruct)
+            {
+                w.WriteLine($"public static bool operator ==({ClassName} self, {StructType} other) => {equality};");
+                w.WriteLine($"public static bool operator !=({ClassName} self, {StructType} other) => !(self == other);");
+            }
+            
             w.WriteLine();
 
             string Fuse(string join, (string, string)[] pairs)

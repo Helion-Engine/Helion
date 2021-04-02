@@ -95,10 +95,6 @@ namespace Helion.Geometry.Vectors
         public static Vec4F operator /(Vector4F self, Vec4F other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4F operator /(Vector4F self, Vector4F other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4F operator /(Vector4F self, float value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
-        public static bool operator ==(Vector4F self, Vec4F other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vector4F self, Vector4F other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator !=(Vector4F self, Vec4F other) => !(self == other);
-        public static bool operator !=(Vector4F self, Vector4F other) => !(self == other);
 
         public Vec4F WithX(float x) => new(x, Y, Z, W);
         public Vec4F WithY(float y) => new(X, y, Z, W);

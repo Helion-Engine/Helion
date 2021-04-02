@@ -87,10 +87,6 @@ namespace Helion.Geometry.Vectors
         public static Vec3I operator /(Vector3I self, Vec3I other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3I operator /(Vector3I self, Vector3I other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3I operator /(Vector3I self, int value) => new(self.X / value, self.Y / value, self.Z / value);
-        public static bool operator ==(Vector3I self, Vec3I other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator ==(Vector3I self, Vector3I other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator !=(Vector3I self, Vec3I other) => !(self == other);
-        public static bool operator !=(Vector3I self, Vector3I other) => !(self == other);
 
         public Vec3I WithX(int x) => new(x, Y, Z);
         public Vec3I WithY(int y) => new(X, y, Z);

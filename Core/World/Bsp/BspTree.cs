@@ -197,7 +197,7 @@ namespace Helion.World.Bsp
         {
             List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
 
-            List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Cast<Seg2D>().ToList();
+            List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => s.Struct).ToList();
             Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
 
             Sector sector = GetSectorFrom(node, builder);
@@ -214,7 +214,7 @@ namespace Helion.World.Bsp
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge, builder);
-                SubsectorSegment subsectorEdge = new SubsectorSegment(Segments.Count, side, edge.Start, edge.End);
+                SubsectorSegment subsectorEdge = new(Segments.Count, side, edge.Start, edge.End);
 
                 returnSegments.Add(subsectorEdge);
                 Segments.Add(subsectorEdge);
