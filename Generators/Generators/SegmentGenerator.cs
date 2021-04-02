@@ -216,6 +216,8 @@ namespace Generators.Generators
                 w.WriteLine($"public bool OnRight({VecClass} point) => PerpDot(point) <= 0;");
                 w.WriteLine($"public bool OnRight({VecStruct3D()} point) => PerpDot(point.XY) <= 0;");
                 w.WriteLine($"public bool OnRight({VecClass3D()} point) => PerpDot(point.XY) <= 0;");
+                w.WriteLine($"public bool OnRight({StructType} seg) => OnRight(seg.Start) && OnRight(seg.End);");
+                w.WriteLine($"public bool OnRight<T>({InstanceName} seg) {WhereConstraint} => OnRight(seg.Start) && OnRight(seg.End);");
                 w.WriteLine($"public bool DifferentSides({VecStruct} first, {VecStruct} second) => OnRight(first) != OnRight(second);");
                 w.WriteLine($"public bool DifferentSides({VecClass} first, {VecClass} second) => OnRight(first) != OnRight(second);");
                 w.WriteLine($"public bool DifferentSides({StructType} seg) => OnRight(seg.Start) != OnRight(seg.End);");
@@ -235,6 +237,19 @@ namespace Generators.Generators
                         w.WriteLine($"bool approxZero = value.ApproxZero(epsilon);");
                         w.WriteLine($"return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);");
                     });  
+                    
+                    w.WithCBlock($"public {PrimitiveType} ToTime({VecStruct} point)", () =>
+                    {
+                        w.WriteLine($"if (Start.X.ApproxEquals(End.X))");
+                        w.WriteLine($"    return (point.Y - Start.Y) / (End.Y - Start.Y);");
+                        w.WriteLine($"return (point.X - Start.X) / (End.X - Start.X);");
+                    });
+                    w.WithCBlock($"public {PrimitiveType} ToTime({VecClass} point)", () =>
+                    {
+                        w.WriteLine($"if (Start.X.ApproxEquals(End.X))");
+                        w.WriteLine($"    return (point.Y - Start.Y) / (End.Y - Start.Y);");
+                        w.WriteLine($"return (point.X - Start.X) / (End.X - Start.X);");
+                    });
                     
                     w.WithCBlock($"public bool Parallel({StructType} seg, {PrimitiveType} epsilon = {epsilon})", () =>
                     {

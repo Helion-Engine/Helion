@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Helion.Geometry.Boxes;
-using Helion.Geometry.SegmentsNew;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;

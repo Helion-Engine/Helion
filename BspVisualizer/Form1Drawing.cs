@@ -19,8 +19,8 @@ namespace BspVisualizer
         /// <param name="segment">The segment to draw.</param>
         private void DrawSegment(Graphics g, Pen pen, BspSegment segment)
         {
-            Point start = TransformPoint(segment.Start);
-            Point end = TransformPoint(segment.End);
+            Point start = TransformPoint(segment.Start.Struct);
+            Point end = TransformPoint(segment.End.Struct);
             g.DrawLine(pen, start.X, start.Y, end.X, end.Y);
         }
 

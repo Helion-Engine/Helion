@@ -90,14 +90,14 @@ namespace Helion.Bsp.Node
             List<SubsectorEdge> subsectorEdges = new();
 
             ConvexTraversalPoint firstTraversal = traversal.First();
-            Vec2D startPoint = firstTraversal.Vertex;
+            BspVertex startPoint = firstTraversal.Vertex;
             foreach (ConvexTraversalPoint traversalPoint in traversal)
             {
                 BspSegment segment = traversalPoint.Segment;
-                Vec2D endingPoint = segment.Opposite(traversalPoint.Endpoint);
+                BspVertex endingPoint = segment.Opposite(traversalPoint.Endpoint);
                 bool traversedFrontSide = CheckIfTraversedFrontSide(traversalPoint, rotation);
 
-                SubsectorEdge edge = new SubsectorEdge(startPoint, endingPoint, segment.Line, traversedFrontSide);
+                SubsectorEdge edge = new(startPoint.Struct, endingPoint.Struct, segment.Line, traversedFrontSide);
                 subsectorEdges.Add(edge);
 
                 Invariant(startPoint != endingPoint, "Traversal produced the wrong endpoint indices");

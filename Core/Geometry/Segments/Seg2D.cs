@@ -95,6 +95,8 @@ namespace Helion.Geometry.Segments
         public bool OnRight(Vector2D point) => PerpDot(point) <= 0;
         public bool OnRight(Vec3D point) => PerpDot(point.XY) <= 0;
         public bool OnRight(Vector3D point) => PerpDot(point.XY) <= 0;
+        public bool OnRight(Seg2D seg) => OnRight(seg.Start) && OnRight(seg.End);
+        public bool OnRight<T>(Segment2D<T> seg) where T : Vector2D => OnRight(seg.Start) && OnRight(seg.End);
         public bool DifferentSides(Vec2D first, Vec2D second) => OnRight(first) != OnRight(second);
         public bool DifferentSides(Vector2D first, Vector2D second) => OnRight(first) != OnRight(second);
         public bool DifferentSides(Seg2D seg) => OnRight(seg.Start) != OnRight(seg.End);
@@ -110,6 +112,18 @@ namespace Helion.Geometry.Segments
             double value = PerpDot(point);
             bool approxZero = value.ApproxZero(epsilon);
             return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);
+        }
+        public double ToTime(Vec2D point)
+        {
+            if (Start.X.ApproxEquals(End.X))
+                return (point.Y - Start.Y) / (End.Y - Start.Y);
+            return (point.X - Start.X) / (End.X - Start.X);
+        }
+        public double ToTime(Vector2D point)
+        {
+            if (Start.X.ApproxEquals(End.X))
+                return (point.Y - Start.Y) / (End.Y - Start.Y);
+            return (point.X - Start.X) / (End.X - Start.X);
         }
         public bool Parallel(Seg2D seg, double epsilon = 0.000001)
         {

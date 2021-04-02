@@ -122,8 +122,8 @@ namespace Helion.Bsp.Repairer
         {
             while (true)
             {
-                List<BspSegment> segsToRemove = new List<BspSegment>();
-                List<BspSegment> segsToAdd = new List<BspSegment>();
+                List<BspSegment> segsToRemove = new();
+                List<BspSegment> segsToAdd = new();
 
                 // TODO: We need to fully break out of both loops, but we also
                 // dont want to keep revisiting them since this is a O(n^4)
