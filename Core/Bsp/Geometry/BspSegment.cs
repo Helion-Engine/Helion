@@ -10,7 +10,7 @@ namespace Helion.Bsp.Geometry
     /// A BSP segment that contains extra line information in addition to a
     /// double-based segment.
     /// </summary>
-    public class BspSegment : Segment2D<BspVertex>, IGraphEdge
+    public class BspSegment : SegmentT2D<BspVertex>, IGraphEdge
     {
         /// <summary>
         /// The constants for no sector existing.

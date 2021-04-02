@@ -12,8 +12,8 @@ namespace Helion.Geometry.Vectors
 {
     public struct Vec3D
     {
-        public static readonly Vec3D Zero = (0, 0, 0);
-        public static readonly Vec3D One = (1, 1, 1);
+        public static readonly Vec3D Zero = new(0, 0, 0);
+        public static readonly Vec3D One = new(1, 1, 1);
 
         public double X;
         public double Y;

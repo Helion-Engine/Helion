@@ -10,40 +10,40 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
-    public class Segment2F
+    public class SegmentT2F<T> where T : Vector2F
     {
-        public Vec2F Start;
-        public Vec2F End;
+        public T Start;
+        public T End;
 
         public Vec2F Delta => End - Start;
         public float Length => Start.Distance(End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
         public Box2F Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
-        public IEnumerable<Vec2F> Vertices => GetVertices();
+        public IEnumerable<T> Vertices => GetVertices();
 
-        public Segment2F(Vec2F start, Vec2F end)
+        public SegmentT2F(T start, T end)
         {
             Start = start;
             End = end;
         }
 
-        public void Deconstruct(out Vec2F start, out Vec2F end)
+        public void Deconstruct(out T start, out T end)
         {
             start = Start;
             end = End;
         }
 
-        public Vec2F this[int index] => index == 0 ? Start : End;
-        public Vec2F this[Endpoint endpoint] => endpoint == Endpoint.Start ? Start : End;
+        public T this[int index] => index == 0 ? Start : End;
+        public T this[Endpoint endpoint] => endpoint == Endpoint.Start ? Start : End;
 
-        public static Seg2F operator +(Segment2F self, Vec2F other) => new(self.Start + other, self.End + other);
-        public static Seg2F operator +(Segment2F self, Vector2F other) => new(self.Start + other, self.End + other);
-        public static Seg2F operator -(Segment2F self, Vec2F other) => new(self.Start - other, self.End - other);
-        public static Seg2F operator -(Segment2F self, Vector2F other) => new(self.Start - other, self.End - other);
-        public static bool operator ==(Segment2F self, Segment2F other) => self.Start == other.Start && self.End == other.End;
-        public static bool operator !=(Segment2F self, Segment2F other) => !(self == other);
+        public static Seg2F operator +(SegmentT2F<T> self, Vec2F other) => new(self.Start + other, self.End + other);
+        public static Seg2F operator +(SegmentT2F<T> self, T other) => new(self.Start + other, self.End + other);
+        public static Seg2F operator -(SegmentT2F<T> self, Vec2F other) => new(self.Start - other, self.End - other);
+        public static Seg2F operator -(SegmentT2F<T> self, T other) => new(self.Start - other, self.End - other);
+        public static bool operator ==(SegmentT2F<T> self, SegmentT2F<T> other) => self.Start == other.Start && self.End == other.End;
+        public static bool operator !=(SegmentT2F<T> self, SegmentT2F<T> other) => !(self == other);
 
-        public Vec2F Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
+        public T Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
         public Vec2F FromTime(float t) => Start + (Delta * t);
         public bool SameDirection(Seg2F seg) => SameDirection(seg.Delta);
         public bool SameDirection(Segment2F seg) => SameDirection(seg.Delta);
@@ -287,9 +287,9 @@ namespace Helion.Geometry.Segments
             float t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
 
             if (t <= 0)
-                return Start;
+                return Start.Struct;
             if (t >= 1)
-                return End;
+                return End.Struct;
             return FromTime(t);
         }
         public Vec2F ClosestPoint(Vector2F point)
@@ -298,9 +298,9 @@ namespace Helion.Geometry.Segments
             float t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
 
             if (t <= 0)
-                return Start;
+                return Start.Struct;
             if (t >= 1)
-                return End;
+                return End.Struct;
             return FromTime(t);
         }
         public bool Intersects(Box2F box)
@@ -323,10 +323,10 @@ namespace Helion.Geometry.Segments
             return ((aX - cX) * (bY - cY)) - ((aY - cY) * (bX - cX));
         }
         public override string ToString() => $"({Start}), ({End})";
-        public override bool Equals(object? obj) => obj is Segment2F seg && Start == seg.Start && End == seg.End;
+        public override bool Equals(object? obj) => obj is SegmentT2F<T> seg && Start == seg.Start && End == seg.End;
         public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
 
-        private IEnumerable<Vec2F> GetVertices()
+        private IEnumerable<T> GetVertices()
         {
             yield return Start;
             yield return End;

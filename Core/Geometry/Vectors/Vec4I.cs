@@ -12,8 +12,8 @@ namespace Helion.Geometry.Vectors
 {
     public struct Vec4I
     {
-        public static readonly Vec4I Zero = (0, 0, 0, 0);
-        public static readonly Vec4I One = (1, 1, 1, 1);
+        public static readonly Vec4I Zero = new(0, 0, 0, 0);
+        public static readonly Vec4I One = new(1, 1, 1, 1);
 
         public int X;
         public int Y;

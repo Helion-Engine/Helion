@@ -12,8 +12,8 @@ namespace Helion.Geometry.Vectors
 {
     public class Vector3F
     {
-        public static readonly Vector3F Zero = (0, 0, 0);
-        public static readonly Vector3F One = (1, 1, 1);
+        public static readonly Vector3F Zero = new(0, 0, 0);
+        public static readonly Vector3F One = new(1, 1, 1);
 
         public float X;
         public float Y;
@@ -35,11 +35,6 @@ namespace Helion.Geometry.Vectors
             X = x;
             Y = y;
             Z = z;
-        }
-
-        public static implicit operator Vector3F(ValueTuple<float, float, float> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3);
         }
 
         public void Deconstruct(out float x, out float y, out float z)

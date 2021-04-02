@@ -12,8 +12,8 @@ namespace Helion.Geometry.Vectors
 {
     public class Vector2Fixed
     {
-        public static readonly Vector2Fixed Zero = (Fixed.Zero(), Fixed.Zero());
-        public static readonly Vector2Fixed One = (Fixed.One(), Fixed.One());
+        public static readonly Vector2Fixed Zero = new(Fixed.Zero(), Fixed.Zero());
+        public static readonly Vector2Fixed One = new(Fixed.One(), Fixed.One());
 
         public Fixed X;
         public Fixed Y;
@@ -30,11 +30,6 @@ namespace Helion.Geometry.Vectors
         {
             X = x;
             Y = y;
-        }
-
-        public static implicit operator Vector2Fixed(ValueTuple<Fixed, Fixed> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
         }
 
         public void Deconstruct(out Fixed x, out Fixed y)

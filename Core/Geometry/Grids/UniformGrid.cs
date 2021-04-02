@@ -100,7 +100,7 @@ namespace Helion.Geometry.Grids
         /// <param name="seg">The segment to iterate with.</param>
         /// <param name="func">The function to call for each block it visits.
         /// </param>
-        public void Iterate<V>(Segment2D<V> seg, Action<T> func) where V : Vector2D
+        public void Iterate<V>(SegmentT2D<V> seg, Action<T> func) where V : Vector2D
         {
             Iterate(seg, block =>
             {
@@ -119,7 +119,7 @@ namespace Helion.Geometry.Grids
         /// (true) or continue (false).</param>
         /// <returns>True if it terminated due to a `Stop` condition from the
         /// function, false otherwise.</returns>
-        public bool Iterate<V>(Segment2D<V> seg, Func<T, GridIterationStatus> func) where V : Vector2D
+        public bool Iterate<V>(SegmentT2D<V> seg, Func<T, GridIterationStatus> func) where V : Vector2D
         {
             // This algorithm requires us to be on the unit interval range for 
             // our block coordinates. We also want them to be positive, since 

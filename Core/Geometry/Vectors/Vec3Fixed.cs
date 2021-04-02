@@ -12,8 +12,8 @@ namespace Helion.Geometry.Vectors
 {
     public struct Vec3Fixed
     {
-        public static readonly Vec3Fixed Zero = (Fixed.Zero(), Fixed.Zero(), Fixed.Zero());
-        public static readonly Vec3Fixed One = (Fixed.One(), Fixed.One(), Fixed.One());
+        public static readonly Vec3Fixed Zero = new(Fixed.Zero(), Fixed.Zero(), Fixed.Zero());
+        public static readonly Vec3Fixed One = new(Fixed.One(), Fixed.One(), Fixed.One());
 
         public Fixed X;
         public Fixed Y;

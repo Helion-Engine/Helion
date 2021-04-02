@@ -12,8 +12,8 @@ namespace Helion.Geometry.Vectors
 {
     public class Vector2I
     {
-        public static readonly Vector2I Zero = (0, 0);
-        public static readonly Vector2I One = (1, 1);
+        public static readonly Vector2I Zero = new(0, 0);
+        public static readonly Vector2I One = new(1, 1);
 
         public int X;
         public int Y;
@@ -30,11 +30,6 @@ namespace Helion.Geometry.Vectors
         {
             X = x;
             Y = y;
-        }
-
-        public static implicit operator Vector2I(ValueTuple<int, int> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
         }
 
         public void Deconstruct(out int x, out int y)

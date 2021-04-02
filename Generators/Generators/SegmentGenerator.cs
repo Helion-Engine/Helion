@@ -8,22 +8,25 @@ namespace Generators.Generators
         private readonly Types m_type;
         private readonly int m_dimension;
         private readonly bool m_isStruct;
+        private readonly bool m_hasStructVecs;
 
-        private string ClassName => m_isStruct ? StructType : InstanceName;
+        private string ClassName => m_isStruct ? StructType : (m_hasStructVecs ? InstanceStructName : InstanceTName);
         private string PrimitiveType => m_type.PrimitiveType();
         private string StructType => $"Seg{m_dimension}{m_type.GetShorthand()}";
-        private string InstanceName => $"Segment{m_dimension}{m_type.GetShorthand()}<T>";
+        private string InstanceStructName => $"Segment{m_dimension}{m_type.GetShorthand()}";
+        private string InstanceTName => $"SegmentT{m_dimension}{m_type.GetShorthand()}<T>";
         private string VecStruct => $"Vec{m_dimension}{m_type.GetShorthand()}";
         private string VecClass => $"Vector{m_dimension}{m_type.GetShorthand()}";
-        private string VecFieldType => m_isStruct ? VecStruct : "T";
+        private string VecFieldType => m_isStruct || m_hasStructVecs ? VecStruct : "T";
         private string BoxStruct => $"Box{m_dimension}{m_type.GetShorthand()}";
         private string WhereConstraint => $"where T : {VecClass}";
         
-        public SegmentGenerator(Types type, int dimension, bool isStruct)
+        public SegmentGenerator(Types type, int dimension, bool isStruct, bool hasStructVecs)
         {
             m_type = type;
             m_dimension = dimension;
             m_isStruct = isStruct;
+            m_hasStructVecs = hasStructVecs;
         }
 
         private void PerformGeneration()
@@ -40,7 +43,7 @@ namespace Generators.Generators
             w.WriteNamespaceBlock("Geometry.Segments", () =>
             {
                 string classOrStruct = m_isStruct ? "struct" : "class";
-                string whereSuffix = m_isStruct ? "" : $" where T : {VecClass}";
+                string whereSuffix = m_isStruct || m_hasStructVecs ? "" : $" where T : {VecClass}";
                 w.WithCBlock($"public {classOrStruct} {ClassName}{whereSuffix}", () =>
                 {
                     WriteFields(w);
@@ -153,7 +156,7 @@ namespace Generators.Generators
 
         private void WriteOperators(CodegenTextWriter w)
         {
-            string vecClass = m_isStruct ? VecClass : "T";
+            string vecClass = m_isStruct || m_hasStructVecs ? VecClass : "T";
             
             w.WriteLine($"public static {StructType} operator +({ClassName} self, {VecStruct} other) => new(self.Start + other, self.End + other);");
             w.WriteLine($"public static {StructType} operator +({ClassName} self, {vecClass} other) => new(self.Start + other, self.End + other);");
@@ -167,7 +170,7 @@ namespace Generators.Generators
 
         private void WriteMethods(CodegenTextWriter w)
         {
-            string vecClass = m_isStruct ? VecStruct : "T";
+            string vecClass = m_isStruct || m_hasStructVecs ? VecStruct : "T";
             string epsilon = m_type == Types.Double ? "0.000001" : (m_type == Types.Float ? "0.0001f" : "FIXED_EPSILON");
 
             w.WriteLine($"public {vecClass} Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;");
@@ -188,7 +191,8 @@ namespace Generators.Generators
                 string VecClass3D() => "Vector3" + m_type.GetShorthand();
                 
                 w.WriteLine($"public bool SameDirection({StructType} seg) => SameDirection(seg.Delta);");
-                w.WriteLine($"public bool SameDirection<T>({InstanceName} seg) {WhereConstraint} => SameDirection(seg.Delta);");
+                w.WriteLine($"public bool SameDirection({InstanceStructName} seg) => SameDirection(seg.Delta);");
+                w.WriteLine($"public bool SameDirection<T>({InstanceTName} seg) {WhereConstraint} => SameDirection(seg.Delta);");
 
                 w.WithCBlock($"public bool SameDirection({VecStruct} delta)", () =>
                 {
@@ -217,11 +221,13 @@ namespace Generators.Generators
                 w.WriteLine($"public bool OnRight({VecStruct3D()} point) => PerpDot(point.XY) <= 0;");
                 w.WriteLine($"public bool OnRight({VecClass3D()} point) => PerpDot(point.XY) <= 0;");
                 w.WriteLine($"public bool OnRight({StructType} seg) => OnRight(seg.Start) && OnRight(seg.End);");
-                w.WriteLine($"public bool OnRight<T>({InstanceName} seg) {WhereConstraint} => OnRight(seg.Start) && OnRight(seg.End);");
+                w.WriteLine($"public bool OnRight({InstanceStructName} seg) => OnRight(seg.Start) && OnRight(seg.End);");
+                w.WriteLine($"public bool OnRight<T>({InstanceTName} seg) {WhereConstraint} => OnRight(seg.Start) && OnRight(seg.End);");
                 w.WriteLine($"public bool DifferentSides({VecStruct} first, {VecStruct} second) => OnRight(first) != OnRight(second);");
                 w.WriteLine($"public bool DifferentSides({VecClass} first, {VecClass} second) => OnRight(first) != OnRight(second);");
                 w.WriteLine($"public bool DifferentSides({StructType} seg) => OnRight(seg.Start) != OnRight(seg.End);");
-                w.WriteLine($"public bool DifferentSides<T>({InstanceName} seg) {WhereConstraint} => OnRight(seg.Start) != OnRight(seg.End);");
+                w.WriteLine($"public bool DifferentSides({InstanceStructName} seg) => OnRight(seg.Start) != OnRight(seg.End);");
+                w.WriteLine($"public bool DifferentSides<T>({InstanceTName} seg) {WhereConstraint} => OnRight(seg.Start) != OnRight(seg.End);");
                 
                 if (m_type != Types.Fixed)
                 {
@@ -255,7 +261,11 @@ namespace Generators.Generators
                     {
                         w.WriteLine($"return (Delta.Y * seg.Delta.X).ApproxEquals(Delta.X * seg.Delta.Y, epsilon);");
                     }); 
-                    w.WithCBlock($"public bool Parallel<T>({InstanceName} seg, {PrimitiveType} epsilon = {epsilon}) {WhereConstraint}", () =>
+                    w.WithCBlock($"public bool Parallel({InstanceStructName} seg, {PrimitiveType} epsilon = {epsilon})", () =>
+                    {
+                        w.WriteLine($"return (Delta.Y * seg.Delta.X).ApproxEquals(Delta.X * seg.Delta.Y, epsilon);");
+                    }); 
+                    w.WithCBlock($"public bool Parallel<T>({InstanceTName} seg, {PrimitiveType} epsilon = {epsilon}) {WhereConstraint}", () =>
                     {
                         w.WriteLine($"return (Delta.Y * seg.Delta.X).ApproxEquals(Delta.X * seg.Delta.Y, epsilon);");
                     }); 
@@ -264,15 +274,21 @@ namespace Generators.Generators
                     {
                         w.WriteLine("return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&");
                         w.WriteLine("       CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);");
-                    }); 
-                    w.WithCBlock($"public bool Collinear<T>({InstanceName} seg) {WhereConstraint}", () =>
+                    });
+                    w.WithCBlock($"public bool Collinear({InstanceStructName} seg)", () =>
+                    {
+                        w.WriteLine("return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&");
+                        w.WriteLine("       CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);");
+                    });
+                    w.WithCBlock($"public bool Collinear<T>({InstanceTName} seg) {WhereConstraint}", () =>
                     {
                         w.WriteLine("return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&");
                         w.WriteLine("       CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);");
                     });
 
                     w.WriteLine($"public bool Intersects({StructType} other) => Intersection(other, out {PrimitiveType} t) && (t >= 0 && t <= 1);");
-                    w.WriteLine($"public bool Intersects<T>({InstanceName} other) {WhereConstraint} => Intersection(other, out {PrimitiveType} t) && (t >= 0 && t <= 1);");
+                    w.WriteLine($"public bool Intersects({InstanceStructName} other) => Intersection(other, out {PrimitiveType} t) && (t >= 0 && t <= 1);");
+                    w.WriteLine($"public bool Intersects<T>({InstanceTName} other) {WhereConstraint} => Intersection(other, out {PrimitiveType} t) && (t >= 0 && t <= 1);");
 
                     string intersectionInternal = $@"
                         {PrimitiveType} areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
@@ -296,7 +312,11 @@ namespace Generators.Generators
                     {
                         w.WriteLine(intersectionInternal);
                     });
-                    w.WithCBlock($"public bool Intersection<T>({InstanceName} seg, out {PrimitiveType} t) {WhereConstraint}", () =>
+                    w.WithCBlock($"public bool Intersection({InstanceStructName} seg, out {PrimitiveType} t)", () =>
+                    {
+                        w.WriteLine(intersectionInternal);
+                    });
+                    w.WithCBlock($"public bool Intersection<T>({InstanceTName} seg, out {PrimitiveType} t) {WhereConstraint}", () =>
                     {
                         w.WriteLine(intersectionInternal);
                     });
@@ -316,7 +336,11 @@ namespace Generators.Generators
                     {
                         w.WriteLine(intersectionAsLineInternal);
                     });
-                    w.WithCBlock($"public bool IntersectionAsLine<T>({InstanceName} seg, out {PrimitiveType} tThis) {WhereConstraint}", () =>
+                    w.WithCBlock($"public bool IntersectionAsLine({InstanceStructName} seg, out {PrimitiveType} tThis)", () =>
+                    {
+                        w.WriteLine(intersectionAsLineInternal);
+                    });
+                    w.WithCBlock($"public bool IntersectionAsLine<T>({InstanceTName} seg, out {PrimitiveType} tThis) {WhereConstraint}", () =>
                     {
                         w.WriteLine(intersectionAsLineInternal);
                     });
@@ -339,13 +363,17 @@ namespace Generators.Generators
                     {
                         w.WriteLine(intersectionAsLineTwoInternal);
                     });
-                    w.WithCBlock($"public bool IntersectionAsLine<T>({InstanceName} seg, out {PrimitiveType} tThis, out {PrimitiveType} tOther) {WhereConstraint}", () =>
+                    w.WithCBlock($"public bool IntersectionAsLine({InstanceStructName} seg, out {PrimitiveType} tThis, out {PrimitiveType} tOther)", () =>
+                    {
+                        w.WriteLine(intersectionAsLineTwoInternal);
+                    });
+                    w.WithCBlock($"public bool IntersectionAsLine<T>({InstanceTName} seg, out {PrimitiveType} tThis, out {PrimitiveType} tOther) {WhereConstraint}", () =>
                     {
                         w.WriteLine(intersectionAsLineTwoInternal);
                     });
 
-                    string closestStart = m_isStruct ? "Start" : "Start.Struct";
-                    string closestEnd = m_isStruct ? "End" : "End.Struct";
+                    string closestStart = m_isStruct || m_hasStructVecs ? "Start" : "Start.Struct";
+                    string closestEnd = m_isStruct || m_hasStructVecs ? "End" : "End.Struct";
                     string closestPointInternal = $@"
                         {VecStruct} pointToStartDelta = Start - point;
                         {PrimitiveType} t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
@@ -409,8 +437,9 @@ namespace Generators.Generators
             {
                 foreach (int dimension in new[] { 2, 3 })
                 {
-                    new SegmentGenerator(type, dimension, true).PerformGeneration();
-                    new SegmentGenerator(type, dimension, false).PerformGeneration();
+                    new SegmentGenerator(type, dimension, true, false).PerformGeneration();
+                    new SegmentGenerator(type, dimension, false, true).PerformGeneration();
+                    new SegmentGenerator(type, dimension, false, false).PerformGeneration();
                 }
             }
         }

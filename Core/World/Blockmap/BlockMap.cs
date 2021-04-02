@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
-using Helion.Geometry.Segments;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;

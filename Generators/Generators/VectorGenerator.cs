@@ -93,13 +93,13 @@ namespace Generators.Generators
         {
             if (m_type == Types.Fixed)
             {
-                w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat("Fixed.Zero()", m_dimension)});");
-                w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat("Fixed.One()", m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} Zero = new({CommaSeparateRepeat("Fixed.Zero()", m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} One = new({CommaSeparateRepeat("Fixed.One()", m_dimension)});");
             }
             else
             {
-                w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat(0, m_dimension)});");
-                w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat(1, m_dimension)});");   
+                w.WriteLine($"public static readonly {ClassName} Zero = new({CommaSeparateRepeat(0, m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} One = new({CommaSeparateRepeat(1, m_dimension)});");   
             }
             
             w.WriteLine();
@@ -162,13 +162,16 @@ namespace Generators.Generators
             });
             w.WriteLine();
 
-            string generics = CommaSeparateRepeat(m_type.PrimitiveType(), m_dimension);
-            w.WithCBlock($"public static implicit operator {ClassName}(ValueTuple<{generics}> tuple)", () =>
+            if (m_isStruct)
             {
-                string[] args = m_fields.Select((f, i) => $"tuple.Item{i + 1}").ToArray();
-                w.WriteLine($"return new({CommaSeparate(args)});");
-            });
-            w.WriteLine();
+                string generics = CommaSeparateRepeat(m_type.PrimitiveType(), m_dimension);
+                w.WithCBlock($"public static implicit operator {ClassName}(ValueTuple<{generics}> tuple)", () =>
+                {
+                    string[] args = m_fields.Select((f, i) => $"tuple.Item{i + 1}").ToArray();
+                    w.WriteLine($"return new({CommaSeparate(args)});");
+                });
+                w.WriteLine();
+            }
         }
 
         private void WriteDeconstructions(CodegenTextWriter w)
