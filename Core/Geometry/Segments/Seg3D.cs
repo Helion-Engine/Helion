@@ -25,6 +25,21 @@ namespace Helion.Geometry.Segments
             Start = start;
             End = end;
         }
+        public Seg3D(Vec3D start, Vector3D end)
+        {
+            Start = start;
+            End = end.Struct;
+        }
+        public Seg3D(Vector3D start, Vec3D end)
+        {
+            Start = start.Struct;
+            End = end;
+        }
+        public Seg3D(Vector3D start, Vector3D end)
+        {
+            Start = start.Struct;
+            End = end.Struct;
+        }
 
         public static implicit operator Seg3D(ValueTuple<Vec3D, Vec3D> tuple)
         {
@@ -53,5 +68,14 @@ namespace Helion.Geometry.Segments
         public Seg3D WithEnd(Vec3D end) => (Start, end);
         public Seg3D WithEnd(Vector3D end) => (Start, end.Struct);
         public Vec3D FromTime(double t) => Start + (Delta * t);
+        public override string ToString() => $"({Start}), ({End})";
+        public override bool Equals(object? obj) => obj is Seg3D seg && Start == seg.Start && End == seg.End;
+        public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
+
+        private IEnumerable<Vec3D> GetVertices()
+        {
+            yield return Start;
+            yield return End;
+        }
     }
 }

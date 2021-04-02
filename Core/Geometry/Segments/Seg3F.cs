@@ -25,6 +25,21 @@ namespace Helion.Geometry.Segments
             Start = start;
             End = end;
         }
+        public Seg3F(Vec3F start, Vector3F end)
+        {
+            Start = start;
+            End = end.Struct;
+        }
+        public Seg3F(Vector3F start, Vec3F end)
+        {
+            Start = start.Struct;
+            End = end;
+        }
+        public Seg3F(Vector3F start, Vector3F end)
+        {
+            Start = start.Struct;
+            End = end.Struct;
+        }
 
         public static implicit operator Seg3F(ValueTuple<Vec3F, Vec3F> tuple)
         {
@@ -53,5 +68,14 @@ namespace Helion.Geometry.Segments
         public Seg3F WithEnd(Vec3F end) => (Start, end);
         public Seg3F WithEnd(Vector3F end) => (Start, end.Struct);
         public Vec3F FromTime(float t) => Start + (Delta * t);
+        public override string ToString() => $"({Start}), ({End})";
+        public override bool Equals(object? obj) => obj is Seg3F seg && Start == seg.Start && End == seg.End;
+        public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
+
+        private IEnumerable<Vec3F> GetVertices()
+        {
+            yield return Start;
+            yield return End;
+        }
     }
 }

@@ -26,6 +26,21 @@ namespace Helion.Geometry.Segments
             Start = start;
             End = end;
         }
+        public Seg2F(Vec2F start, Vector2F end)
+        {
+            Start = start;
+            End = end.Struct;
+        }
+        public Seg2F(Vector2F start, Vec2F end)
+        {
+            Start = start.Struct;
+            End = end;
+        }
+        public Seg2F(Vector2F start, Vector2F end)
+        {
+            Start = start.Struct;
+            End = end.Struct;
+        }
 
         public static implicit operator Seg2F(ValueTuple<Vec2F, Vec2F> tuple)
         {
@@ -55,7 +70,7 @@ namespace Helion.Geometry.Segments
         public Seg2F WithEnd(Vector2F end) => (Start, end.Struct);
         public Vec2F FromTime(float t) => Start + (Delta * t);
         public bool SameDirection(Seg2F seg) => SameDirection(seg.Delta);
-        public bool SameDirection(Segment2F seg) => SameDirection(seg.Delta);
+        public bool SameDirection<T>(Segment2F<T> seg) where T : Vector2F => SameDirection(seg.Delta);
         public bool SameDirection(Vec2F delta)
         {
             Vec2F thisDelta = Delta;
@@ -66,11 +81,11 @@ namespace Helion.Geometry.Segments
             Vec2F thisDelta = Delta;
             return !thisDelta.X.DifferentSign(delta.X) && !thisDelta.Y.DifferentSign(delta.Y);
         }
-        public double PerpDot(Vec2F point)
+        public float PerpDot(Vec2F point)
         {
             return (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
         }
-        public double PerpDot(Vector2F point)
+        public float PerpDot(Vector2F point)
         {
             return (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
         }
@@ -83,8 +98,14 @@ namespace Helion.Geometry.Segments
         public bool DifferentSides(Vec2F first, Vec2F second) => OnRight(first) != OnRight(second);
         public bool DifferentSides(Vector2F first, Vector2F second) => OnRight(first) != OnRight(second);
         public bool DifferentSides(Seg2F seg) => OnRight(seg.Start) != OnRight(seg.End);
-        public bool DifferentSides(Segment2F seg) => OnRight(seg.Start) != OnRight(seg.End);
+        public bool DifferentSides<T>(Segment2F<T> seg) where T : Vector2F => OnRight(seg.Start) != OnRight(seg.End);
         public Rotation ToSide(Vec2F point, float epsilon = 0.0001f)
+        {
+            float value = PerpDot(point);
+            bool approxZero = value.ApproxZero(epsilon);
+            return approxZero ? Rotation.On : (value < 0 ? Rotation.Right : Rotation.Left);
+        }
+        public Rotation ToSide(Vector2F point, float epsilon = 0.0001f)
         {
             float value = PerpDot(point);
             bool approxZero = value.ApproxZero(epsilon);
@@ -94,29 +115,31 @@ namespace Helion.Geometry.Segments
         {
             return (Delta.Y * seg.Delta.X).ApproxEquals(Delta.X * seg.Delta.Y, epsilon);
         }
-        public bool Parallel(Segment2F seg, float epsilon = 0.0001f)
+        public bool Parallel<T>(Segment2F<T> seg, float epsilon = 0.0001f) where T : Vector2F
         {
             return (Delta.Y * seg.Delta.X).ApproxEquals(Delta.X * seg.Delta.Y, epsilon);
         }
         public bool Collinear(Seg2F seg)
         {
-            return CollinearHelper(seg.Start, Start, End) && CollinearHelper(seg.End, Start, End);
+            return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&
+                   CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);
         }
-        public bool Collinear(Segment2F seg)
+        public bool Collinear<T>(Segment2F<T> seg) where T : Vector2F
         {
-            return CollinearHelper(seg.Start, Start, End) && CollinearHelper(seg.End, Start, End);
+            return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&
+                   CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);
         }
         public bool Intersects(Seg2F other) => Intersection(other, out float t) && (t >= 0 && t <= 1);
-        public bool Intersects(Segment2F other) => Intersection(other, out float t) && (t >= 0 && t <= 1);
+        public bool Intersects<T>(Segment2F<T> other) where T : Vector2F => Intersection(other, out float t) && (t >= 0 && t <= 1);
         public bool Intersection(Seg2F seg, out float t)
         {
-            float areaStart = DoubleTriArea(Start, End, seg.End);
-            float areaEnd = DoubleTriArea(Start, End, seg.Start);
+            float areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
+            float areaEnd = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.Start.X, seg.Start.Y);
 
             if (areaStart.DifferentSign(areaEnd))
             {
-                float areaThisStart = DoubleTriArea(seg.Start, seg.End, Start);
-                float areaThisEnd = DoubleTriArea(seg.Start, seg.End, End);
+                float areaThisStart = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, Start.X, Start.Y);
+                float areaThisEnd = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, End.X, End.Y);
                 
                 if (areaStart.DifferentSign(areaEnd))
                 {
@@ -128,15 +151,15 @@ namespace Helion.Geometry.Segments
             t = default;
             return false;
         }
-        public bool Intersection(Segment2F seg, out float t)
+        public bool Intersection<T>(Segment2F<T> seg, out float t) where T : Vector2F
         {
-            float areaStart = DoubleTriArea(Start, End, seg.End);
-            float areaEnd = DoubleTriArea(Start, End, seg.Start);
+            float areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
+            float areaEnd = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.Start.X, seg.Start.Y);
 
             if (areaStart.DifferentSign(areaEnd))
             {
-                float areaThisStart = DoubleTriArea(seg.Start, seg.End, Start);
-                float areaThisEnd = DoubleTriArea(seg.Start, seg.End, End);
+                float areaThisStart = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, Start.X, Start.Y);
+                float areaThisEnd = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, End.X, End.Y);
                 
                 if (areaStart.DifferentSign(areaEnd))
                 {
@@ -161,7 +184,7 @@ namespace Helion.Geometry.Segments
             tThis = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) / determinant;
             return true;
         }
-        public bool IntersectionAsLine(Segment2F seg, out float tThis)
+        public bool IntersectionAsLine<T>(Segment2F<T> seg, out float tThis) where T : Vector2F
         {
             float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
             if (determinant.ApproxZero())
@@ -179,9 +202,9 @@ namespace Helion.Geometry.Segments
             float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
             if (determinant.ApproxZero())
             {
-                    tThis = default;
-                    tOther = default;
-                    return false;
+                tThis = default;
+                tOther = default;
+                return false;
             }
 
             Vec2F startDelta = Start - seg.Start;
@@ -190,14 +213,14 @@ namespace Helion.Geometry.Segments
             tOther = ((-Delta.Y * startDelta.X) + (Delta.X * startDelta.Y)) * inverseDeterminant;
             return true;
         }
-        public bool IntersectionAsLine(Segment2F seg, out float tThis, out float tOther)
+        public bool IntersectionAsLine<T>(Segment2F<T> seg, out float tThis, out float tOther) where T : Vector2F
         {
             float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
             if (determinant.ApproxZero())
             {
-                    tThis = default;
-                    tOther = default;
-                    return false;
+                tThis = default;
+                tOther = default;
+                return false;
             }
 
             Vec2F startDelta = Start - seg.Start;
@@ -239,6 +262,14 @@ namespace Helion.Geometry.Segments
                 DifferentSides(box.TopLeft, box.BottomRight);
         }
 
+        private static bool CollinearHelper(float aX, float aY, float bX, float bY, float cX, float cY)
+        {
+            return ((aX * (bY - cY)) + (bX * (cY - aY)) + (cX * (aY - bY))).ApproxZero();
+        }
+        private static float DoubleTriArea(float aX, float aY, float bX, float bY, float cX, float cY)
+        {
+            return ((aX - cX) * (bY - cY)) - ((aY - cY) * (bX - cX));
+        }
         public override string ToString() => $"({Start}), ({End})";
         public override bool Equals(object? obj) => obj is Seg2F seg && Start == seg.Start && End == seg.End;
         public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
@@ -247,14 +278,6 @@ namespace Helion.Geometry.Segments
         {
             yield return Start;
             yield return End;
-        }
-        private static bool CollinearHelper(Vec2F first, Vec2F second, Vec2F third)
-        {
-            return ((first.X * (second.Y - third.Y)) + (second.X * (third.Y - first.Y)) + (third.X * (first.Y - second.Y))).ApproxZero();
-        }
-        private static double DoubleTriArea(Vec2F first, Vec2F second, Vec2F third)
-        {
-            return ((first.X - third.X) * (second.Y - third.Y)) - ((first.Y - third.Y) * (second.X - third.X));
         }
     }
 }
