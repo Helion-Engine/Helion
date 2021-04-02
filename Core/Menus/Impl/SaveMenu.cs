@@ -102,7 +102,7 @@ namespace Helion.Menus.Impl
         {
             base.HandleInput(input);
 
-            if (input.HasAnyKeyPressed() && !m_canSave)
+            if (input.HasAnyKeyPressed() && m_isSave && !m_canSave)
             {
                 m_parent.Remove<MenuLayer>();
                 return;
