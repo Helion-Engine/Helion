@@ -770,11 +770,7 @@ namespace Helion.World
                 LevelStats.KillCount++;
 
             if (entity is Player player)
-            {
                 ApplyVooDooKill(player, source, forceGib);
-                if (entity.Flags.CountKill)
-                    player.KillCount++;
-            }
 
             if (forceGib)
                 entity.ForceGib();

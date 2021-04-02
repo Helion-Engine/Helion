@@ -233,7 +233,7 @@ namespace Helion.Client
 
         private void Intermission(IWorld world, MapInfoDef? nextMapInfo)
         {
-            if (world.MapInfo.NoIntermission)
+            if (world.MapInfo.MapOptions.HasFlag(MapOptions.NoIntermission))
             {
                 EndGame(world, nextMapInfo);
             }
