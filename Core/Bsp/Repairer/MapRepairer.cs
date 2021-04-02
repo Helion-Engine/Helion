@@ -60,7 +60,7 @@ namespace Helion.Bsp.Repairer
         {
             foreach (BspSegment segment in m_segments)
             {
-                m_blocks.Iterate(segment, block =>
+                m_blocks.Iterate(segment.Struct, block =>
                 { 
                     block.Segments.Add(segment);
                     if (segment.OneSided)
@@ -79,7 +79,7 @@ namespace Helion.Bsp.Repairer
             {
                 m_segments.Add(seg);
                 
-                m_blocks.Iterate(seg, block =>
+                m_blocks.Iterate(seg.Struct, block =>
                 {
                     block.Segments.Add(seg);
                     if (seg.OneSided)
@@ -98,7 +98,7 @@ namespace Helion.Bsp.Repairer
             {
                 m_segments.Remove(seg);
                 
-                m_blocks.Iterate(seg, block =>
+                m_blocks.Iterate(seg.Struct, block =>
                 {
                     block.Segments.Remove(seg);
                     if (seg.OneSided)

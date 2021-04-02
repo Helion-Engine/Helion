@@ -895,13 +895,13 @@ namespace Helion.World.Physics
                     new[] { currentBox.TopLeft, currentBox.BottomLeft, currentBox.BottomRight };
             }
 
-            Seg2DBase first = new Seg2DBase(corners[0], corners[0] + stepDelta);
-            Seg2DBase second = new Seg2DBase(corners[1], corners[1] + stepDelta);
-            Seg2DBase third = new Seg2DBase(corners[2], corners[2] + stepDelta);
+            Seg2D first = new Seg2D(corners[0], corners[0] + stepDelta);
+            Seg2D second = new Seg2D(corners[1], corners[1] + stepDelta);
+            Seg2D third = new Seg2D(corners[2], corners[2] + stepDelta);
             return new BoxCornerTracers(first, second, third);
         }
 
-        private void CheckCornerTracerIntersection(Seg2DBase cornerTracer, Entity entity, ref MoveInfo moveInfo)
+        private void CheckCornerTracerIntersection(Seg2D cornerTracer, Entity entity, ref MoveInfo moveInfo)
         {
             bool hit = false;
             double hitTime = double.MaxValue;

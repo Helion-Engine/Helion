@@ -51,7 +51,7 @@ namespace Helion.World.Physics.Blockmap
             }
             else if (seg != null)
             {
-                m_blockmap.Iterate(seg, IterateBlock);
+                m_blockmap.Iterate(seg.Value, IterateBlock);
             }
 
             hitOneSidedLine = hitOneSidedIterate;
@@ -66,7 +66,7 @@ namespace Helion.World.Physics.Blockmap
                         if (m_lineMap.Contains(line.Id))
                             continue;
 
-                        if (seg != null && line.Segment.Intersection(seg, out double t))
+                        if (seg != null && line.Segment.Intersection(seg.Value, out double t))
                         {
                             m_lineMap.Add(line.Id);
                             intersect = line.Segment.FromTime(t);
@@ -77,7 +77,7 @@ namespace Helion.World.Physics.Blockmap
                                 return GridIterationStatus.Stop;
                             }
 
-                            intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
+                            intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Value.Start)));
                         }
                         else if (box != null && line.Segment.Intersects(box.Value))
                         {
@@ -108,10 +108,10 @@ namespace Helion.World.Physics.Blockmap
                         if (m_entityMap.Contains(entity.Id))
                             continue;
 
-                        if (seg != null && entity.Box.Intersects(seg.Start, seg.End, ref intersect))
+                        if (seg != null && entity.Box.Intersects(seg.Value.Start, seg.Value.End, ref intersect))
                         {
                             m_entityMap.Add(entity.Id);
-                            intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
+                            intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Value.Start)));
                         }
                         else if (box != null && box.Value.Overlaps(entity.Box))
                         {

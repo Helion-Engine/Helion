@@ -260,7 +260,7 @@ namespace Helion.World.Bsp
             BspCreateResult right = RecursivelyCreateComponents(node.Right, builder);
             Box2D bbox = MakeBoundingBoxFrom(left, right);
 
-            BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter, bbox);
+            BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter.Struct, bbox);
             Nodes[m_nextNodeIndex] = compactNode;
 
             return BspCreateResult.Node(m_nextNodeIndex++);
@@ -276,7 +276,7 @@ namespace Helion.World.Bsp
         private void HandleSingleSubsectorTree()
         {
             Subsector subsector = Subsectors[0];
-            var edge = subsector.ClockwiseEdges[0];
+            SubsectorSegment edge = subsector.ClockwiseEdges[0];
             Seg2D splitter = new Seg2D(edge.Start, edge.End);
             Box2D box = subsector.BoundingBox;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
+using Helion.Geometry.Segments;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
@@ -42,7 +43,7 @@ namespace Helion.World.Blockmap
         /// continued or not.</param>
         /// <returns>True if iteration was halted due to the return value of
         /// the provided function, false if not.</returns>
-        public bool Iterate(Seg2DBase seg, Func<Block, GridIterationStatus> func) 
+        public bool Iterate(Seg2D seg, Func<Block, GridIterationStatus> func) 
         {
             return m_blocks.Iterate(seg, func);
         }

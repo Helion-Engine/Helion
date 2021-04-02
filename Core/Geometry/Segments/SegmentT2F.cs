@@ -17,6 +17,7 @@ namespace Helion.Geometry.Segments
 
         public Vec2F Delta => End - Start;
         public float Length => Start.Distance(End);
+        public Seg2F Struct => new(Start, End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
         public Box2F Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         public IEnumerable<T> Vertices => GetVertices();

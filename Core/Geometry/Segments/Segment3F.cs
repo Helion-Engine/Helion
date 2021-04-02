@@ -17,6 +17,7 @@ namespace Helion.Geometry.Segments
 
         public Vec3F Delta => End - Start;
         public float Length => Start.Distance(End);
+        public Seg3F Struct => new(Start, End);
         public Box3F Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y), Start.Z.Min(End.Z)), (Start.X.Max(End.X), Start.Y.Max(End.Y), Start.Z.Max(End.Z)));
         public IEnumerable<Vec3F> Vertices => GetVertices();
 

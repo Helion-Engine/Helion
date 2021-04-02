@@ -73,6 +73,8 @@ namespace Generators.Generators
         {
             w.WriteLine($"public {VecStruct} Delta => End - Start;");
             w.WriteLine($"public {PrimitiveType} Length => Start.Distance(End);");
+            if (!m_isStruct)
+                w.WriteLine($"public {StructType} Struct => new(Start, End);");
             if (m_dimension == 2)
             {
                 w.WriteLine($"public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);");
