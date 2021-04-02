@@ -44,6 +44,15 @@ namespace Helion.Layer
             m_saveGameManager = saveGameManager;
         }
 
+        public static SaveMenu CreateSaveMenu(GameLayer parent, Config config, HelionConsole console, 
+            SoundManager soundManager, ArchiveCollection archiveCollection, SaveGameManager saveManager, bool isSave)
+        {
+            bool hasWorld = parent.Contains<SinglePlayerWorldLayer>() && 
+                !parent.Contains<IntermissionLayer>() && !parent.Contains<EndGameLayer>();
+            return new(parent, config, console, soundManager, archiveCollection,
+                saveManager, hasWorld, isSave);
+        }
+
         public override void Add(GameLayer layer)
         {
             if (layer is TitlepicLayer titlepicLayer)
@@ -106,8 +115,8 @@ namespace Helion.Layer
         private void ShowSaveMenu(bool isSave)
         {
             SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-            SaveMenu saveMenu = new(this, m_config, m_console, SoundManager, m_archiveCollection,
-                new SaveGameManager(m_config), Contains<SinglePlayerWorldLayer>(), isSave);
+            SaveMenu saveMenu = CreateSaveMenu(this, m_config, m_console, SoundManager, 
+                m_archiveCollection, new SaveGameManager(m_config), isSave);
             MenuLayer menuLayer = new(this, saveMenu, m_archiveCollection, SoundManager);
             Add(menuLayer);
         }

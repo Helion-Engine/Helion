@@ -53,6 +53,9 @@ isn't even remotely fair.
 
 Press Y or N."
 SECRETMESSAGE,A secret is revealed!
+SAVEDEAD,"You can't save if you aren't playing!
+
+Press a key."
 E1TEXT,"Once you beat the big badasses and
 clean out the moon base you're supposed
 to win, aren't you? Aren't you? Where's

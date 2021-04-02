@@ -44,8 +44,7 @@ namespace Helion.Menus.Impl
             if (quitMessages.Count > 0)
             {
                 TrueRandom random = new TrueRandom();
-                string msg = archiveCollection.Definitions.Language.GetDefaultMessage(quitMessages[random.NextByte() % quitMessages.Count]);
-                string[] lines = msg.Split(new char[] { '\n' });
+                string[] lines = archiveCollection.Definitions.Language.GetDefaultMessages(quitMessages[random.NextByte() % quitMessages.Count]);
                 foreach (string line in lines)
                 {
                     Components = Components.Add(new MenuSmallTextComponent(line));

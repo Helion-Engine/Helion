@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer;
-using Helion.Layer.WorldLayers;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
@@ -50,8 +49,7 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                bool hasWorld = m_parent.Contains<WorldLayer>();
-                return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, hasWorld, true);
+                return GameLayerManager.CreateSaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, true);
             };
         }
 
