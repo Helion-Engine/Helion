@@ -1,4 +1,4 @@
-namespace Helion.Geometry.Segments.Enums
+namespace Helion.Geometry.Segments
 {
     /// <summary>
     /// A simple enumeration for representing endpoints of a segment.

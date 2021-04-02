@@ -10,43 +10,43 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
-    public struct Seg2Fixed
+    public class SegmentT2Fixed
     {
-        public Vec2Fixed Start;
-        public Vec2Fixed End;
+        public T Start;
+        public T End;
 
         public Vec2Fixed Delta => End - Start;
         public Fixed Length => Start.Distance(End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
         public Box2Fixed Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
-        public IEnumerable<Vec2Fixed> Vertices => GetVertices();
+        public IEnumerable<T> Vertices => GetVertices();
 
-        public Seg2Fixed(Vec2Fixed start, Vec2Fixed end)
+        public SegmentT2Fixed(T start, T end)
         {
             Start = start;
             End = end;
         }
 
-        public static implicit operator Seg2Fixed(ValueTuple<Vec2Fixed, Vec2Fixed> tuple)
+        public static implicit operator SegmentT2Fixed(ValueTuple<T, T> tuple)
         {
             return new(tuple.Item1, tuple.Item2);
         }
 
-        public void Deconstruct(out Vec2Fixed start, out Vec2Fixed end)
+        public void Deconstruct(out T start, out T end)
         {
             start = Start;
             end = End;
         }
 
-        public Vec2Fixed this[int index] => index == 0 ? Start : End;
-        public Vec2Fixed this[Endpoint endpoint] => endpoint == Endpoint.Start ? Start : End;
+        public T this[int index] => index == 0 ? Start : End;
+        public T this[Endpoint endpoint] => endpoint == Endpoint.Start ? Start : End;
 
-        public static Seg2Fixed operator +(Seg2Fixed self, Vec2Fixed other) => new(self.Start + other, self.End + other);
-        public static Seg2Fixed operator +(Seg2Fixed self, Vector2Fixed other) => new(self.Start + other, self.End + other);
-        public static Seg2Fixed operator -(Seg2Fixed self, Vec2Fixed other) => new(self.Start - other, self.End - other);
-        public static Seg2Fixed operator -(Seg2Fixed self, Vector2Fixed other) => new(self.Start - other, self.End - other);
-        public static bool operator ==(Seg2Fixed self, Seg2Fixed other) => self.Start == other.Start && self.End == other.End;
-        public static bool operator !=(Seg2Fixed self, Seg2Fixed other) => !(self == other);
+        public static Seg2Fixed operator +(SegmentT2Fixed self, Vec2Fixed other) => new(self.Start + other, self.End + other);
+        public static Seg2Fixed operator +(SegmentT2Fixed self, T other) => new(self.Start + other, self.End + other);
+        public static Seg2Fixed operator -(SegmentT2Fixed self, Vec2Fixed other) => new(self.Start - other, self.End - other);
+        public static Seg2Fixed operator -(SegmentT2Fixed self, T other) => new(self.Start - other, self.End - other);
+        public static bool operator ==(SegmentT2Fixed self, SegmentT2Fixed other) => self.Start == other.Start && self.End == other.End;
+        public static bool operator !=(SegmentT2Fixed self, SegmentT2Fixed other) => !(self == other);
 
         public Vec2Fixed Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
         public Seg2Fixed WithStart(Vec2Fixed start) => (start, End);
@@ -85,10 +85,10 @@ namespace Helion.Geometry.Segments
         public bool DifferentSides(Seg2Fixed seg) => OnRight(seg.Start) != OnRight(seg.End);
         public bool DifferentSides(Segment2Fixed seg) => OnRight(seg.Start) != OnRight(seg.End);
         public override string ToString() => $"({Start}), ({End})";
-        public override bool Equals(object? obj) => obj is Seg2Fixed seg && Start == seg.Start && End == seg.End;
+        public override bool Equals(object? obj) => obj is SegmentT2Fixed seg && Start == seg.Start && End == seg.End;
         public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
 
-        private IEnumerable<Vec2Fixed> GetVertices()
+        private IEnumerable<T> GetVertices()
         {
             yield return Start;
             yield return End;

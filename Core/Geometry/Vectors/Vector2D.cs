@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Segments.Enums;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
@@ -105,6 +107,8 @@ namespace Helion.Geometry.Vectors
         }
         public double LengthSquared() => (X * X) + (Y * Y);
         public Vec2D Inverse() => new(1 / X, 1 / Y);
+        public Rotation Rotation(Vec2D second, Vec2D third, double epsilon = 0.000001) => new Seg2D(this, second).ToSide(third, epsilon);
+        public Rotation Rotation(Vector2D second, Vector2D third, double epsilon = 0.000001) => new Seg2D(this, second).ToSide(third, epsilon);
         public double Length() => Math.Sqrt(LengthSquared());
         public double DistanceSquared(Vec2D other) => (this - other).LengthSquared();
         public double DistanceSquared(Vector2D other) => (this - other).LengthSquared();

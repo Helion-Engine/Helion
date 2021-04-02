@@ -2,7 +2,7 @@
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Convex;
-using Helion.Geometry.Segments.Enums;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 

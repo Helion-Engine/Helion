@@ -65,6 +65,8 @@ namespace Generators.Generators
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
             w.WriteLine("using GlmSharp;");
+            w.WriteLine("using Helion.Geometry.Segments;");
+            w.WriteLine("using Helion.Geometry.Segments.Enums;");
             w.WriteLine("using Helion.Util.Extensions;");
             w.WriteLine();
             w.WriteNamespaceBlock("Geometry.Vectors", () =>
@@ -327,6 +329,12 @@ namespace Generators.Generators
                 {
                     string inv = CommaSeparate(m_fields.Select(f => $"1 / {f}").ToArray());
                     w.WriteLine($"public {StructType} Inverse() => new({inv});");
+                }
+
+                if (m_dimension == 2 && m_type.IsFloatingPointPrimitive())
+                {
+                    w.WriteLine($"public Rotation Rotation({StructType} second, {StructType} third, {m_type.PrimitiveType()} epsilon = 0.000001) => new Seg2{m_type.GetShorthand()}(this, second).ToSide(third, epsilon);");
+                    w.WriteLine($"public Rotation Rotation({InstanceType} second, {InstanceType} third, {m_type.PrimitiveType()} epsilon = 0.000001) => new Seg2{m_type.GetShorthand()}(this, second).ToSide(third, epsilon);");
                 }
                     
                 w.WriteLine($"public {m_type.PrimitiveType()} Length() => {MathClass}.Sqrt(LengthSquared());");

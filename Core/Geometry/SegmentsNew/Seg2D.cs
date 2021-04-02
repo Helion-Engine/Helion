@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments.Enums;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
 
@@ -13,9 +14,9 @@ namespace Helion.Geometry.SegmentsNew
 
         public Vec2D Delta => End - Start;
         public double Length => Start.Distance(End);
-        public Vec2D RightNormal => Delta.RotateRight90();
         public Box2D Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
-        public SegmentDirection Direction => CalculateDirection();
+        public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
+        public IEnumerable<Vec2D> Vertices => GetVertices();
 
         public Seg2D(Vec2D start, Vec2D end)
         {
@@ -40,6 +41,8 @@ namespace Helion.Geometry.SegmentsNew
             start = Start;
             end = End;
         }
+        
+        public Vec2D this[int index] => index == 0 ? Start : End;
         
         public Vec2D this[Endpoint endpoint] => endpoint == Endpoint.Start ? Start : End;
         
@@ -90,10 +93,6 @@ namespace Helion.Geometry.SegmentsNew
         
         public bool Parallel(Seg2D seg, double epsilon = 0.000001)
         {
-            // If both slopes are the same for seg 1 and 2, then we know the
-            // slopes are the same, meaning: d1y / d1x = d2y / d2x. Therefore
-            // d1y * d2x == d2y * d1x. This also avoids weird division by zero
-            // errors and all that fun stuff from any vertical lines.
             return (Delta.Y * seg.Delta.X).ApproxEquals(Delta.X * seg.Delta.Y, epsilon);
         }
         
@@ -171,38 +170,25 @@ namespace Helion.Geometry.SegmentsNew
 
         public bool Intersects(in Box2D box)
         {
-            if (!Box.Overlaps(box))
-                return false;
-
-            switch (Direction)
-            {
-            case SegmentDirection.Vertical:
+            if (Start.X.ApproxEquals(End.X))
                 return box.Min.X < Start.X && Start.X < box.Max.X;
-            case SegmentDirection.Horizontal:
+            if (Start.Y.ApproxEquals(End.Y))
                 return box.Min.Y < Start.Y && Start.Y < box.Max.Y;
-            case SegmentDirection.PositiveSlope:
-                return DifferentSides(box.TopLeft, box.BottomRight);
-            case SegmentDirection.NegativeSlope:
-                return DifferentSides(box.BottomLeft, box.TopRight);
-            default:
-                throw new InvalidOperationException("Invalid box intersection direction enumeration");
-            }
+            return (box.Min.X < box.Max.X) ^ (box.Min.Y < box.Max.Y) ?
+                DifferentSides(box.BottomLeft, box.TopRight) :
+                DifferentSides(box.TopLeft, box.BottomRight);
         }
         
         public override string ToString() => $"({Start}), ({End})";
         public override bool Equals(object? obj) => obj is Seg2D seg && Start == seg.Start && End == seg.End;
         public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
 
-        private SegmentDirection CalculateDirection()
+        private IEnumerable<Vec2D> GetVertices()
         {
-            Vec2D delta = Delta;
-            if (delta.X.ApproxZero())
-                return SegmentDirection.Vertical;
-            if (delta.Y.ApproxZero())
-                return SegmentDirection.Horizontal;
-            return delta.X.DifferentSign(delta.Y) ? SegmentDirection.NegativeSlope : SegmentDirection.PositiveSlope;
+            yield return Start;
+            yield return End;
         }
-
+        
         private static bool CollinearHelper(in Vec2D first, in Vec2D second, in Vec2D third)
         {
             double determinant = (first.X * (second.Y - third.Y)) + 

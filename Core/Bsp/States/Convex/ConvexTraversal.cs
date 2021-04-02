@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
-using Helion.Geometry.Segments.Enums;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
