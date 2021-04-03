@@ -10,21 +10,23 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
-    public class Segment3D
+    public class Segment3D 
     {
-        public Vec3D Start;
-        public Vec3D End;
+        public readonly Vec3D Start;
+        public readonly Vec3D End;
+        public readonly Vec3D Delta;
+        public readonly Box3D Box;
 
-        public Vec3D Delta => End - Start;
         public double Length => Start.Distance(End);
         public Seg3D Struct => new(Start, End);
-        public Box3D Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y), Start.Z.Min(End.Z)), (Start.X.Max(End.X), Start.Y.Max(End.Y), Start.Z.Max(End.Z)));
         public IEnumerable<Vec3D> Vertices => GetVertices();
 
         public Segment3D(Vec3D start, Vec3D end)
         {
             Start = start;
             End = end;
+            Delta = End - Start;
+            Box = new((Start.X.Min(End.X), Start.Y.Min(End.Y), Start.Z.Min(End.Z)), (Start.X.Max(End.X), Start.Y.Max(End.Y), Start.Z.Max(End.Z)));
         }
 
         public void Deconstruct(out Vec3D start, out Vec3D end)

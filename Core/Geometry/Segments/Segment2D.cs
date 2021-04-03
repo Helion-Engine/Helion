@@ -10,22 +10,24 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
-    public class Segment2D
+    public class Segment2D 
     {
-        public Vec2D Start;
-        public Vec2D End;
+        public readonly Vec2D Start;
+        public readonly Vec2D End;
+        public readonly Vec2D Delta;
+        public readonly Box2D Box;
 
-        public Vec2D Delta => End - Start;
         public double Length => Start.Distance(End);
         public Seg2D Struct => new(Start, End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
-        public Box2D Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         public IEnumerable<Vec2D> Vertices => GetVertices();
 
         public Segment2D(Vec2D start, Vec2D end)
         {
             Start = start;
             End = end;
+            Delta = End - Start;
+            Box = new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         }
 
         public void Deconstruct(out Vec2D start, out Vec2D end)

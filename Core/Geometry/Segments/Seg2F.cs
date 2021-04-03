@@ -10,15 +10,15 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
-    public struct Seg2F
+    public struct Seg2F 
     {
         public Vec2F Start;
         public Vec2F End;
 
         public Vec2F Delta => End - Start;
+        public Box2F Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         public float Length => Start.Distance(End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
-        public Box2F Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         public IEnumerable<Vec2F> Vertices => GetVertices();
 
         public Seg2F(Vec2F start, Vec2F end)

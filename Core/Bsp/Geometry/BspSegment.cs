@@ -87,7 +87,7 @@ namespace Helion.Bsp.Geometry
         public BspSegment(BspVertex start, BspVertex end, int collinearIndex, IBspUsableLine? line = null) : 
             base(start, end)
         {
-            Precondition(start != end, "BSP segment shouldn't have a start and end index being the same");
+            Precondition(!ReferenceEquals(start, end), "BSP segment shouldn't have a start and end index being the same");
 
             StartVertex = start;
             EndVertex = end;

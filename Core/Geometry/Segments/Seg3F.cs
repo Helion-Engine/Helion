@@ -10,14 +10,14 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
-    public struct Seg3F
+    public struct Seg3F 
     {
         public Vec3F Start;
         public Vec3F End;
 
         public Vec3F Delta => End - Start;
-        public float Length => Start.Distance(End);
         public Box3F Box => new((Start.X.Min(End.X), Start.Y.Min(End.Y), Start.Z.Min(End.Z)), (Start.X.Max(End.X), Start.Y.Max(End.Y), Start.Z.Max(End.Z)));
+        public float Length => Start.Distance(End);
         public IEnumerable<Vec3F> Vertices => GetVertices();
 
         public Seg3F(Vec3F start, Vec3F end)
