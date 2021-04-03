@@ -370,6 +370,9 @@ namespace Helion.World.Entities
             if (FrozenTics > 0)
                 FrozenTics--;
 
+            if (Flags.BossSpawnShot && ReactionTime > 0)
+                ReactionTime--;
+
             FrameState.Tick();
 
             if (Flags.Monster && IsDeathStateFinished)

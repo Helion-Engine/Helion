@@ -526,11 +526,11 @@ namespace Helion.World.Entities.Definition.States
                 double speed = spawnShot.Definition.Properties.Speed;
                 double reactionTime = distance / speed;
 
-                spawnShot.Flags.NoClip = true;
                 spawnShot.AngleRadians = entity.Position.Angle(target.Position);
                 spawnShot.Velocity = Vec3D.UnitSphere(spawnShot.AngleRadians, pitch) * speed;
                 spawnShot.Target = target;
                 spawnShot.ReactionTime = (int)reactionTime;
+                spawnShot.Flags.BossSpawnShot = true;
             }
 
             entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
@@ -544,7 +544,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
             
-            if (--entity.ReactionTime > 0)
+            if (entity.ReactionTime > 0)
                 return;
                 
             entity.EntityManager.Create("ArchvileFire", entity.Target.Position);

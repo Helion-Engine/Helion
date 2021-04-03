@@ -319,7 +319,7 @@ namespace Helion.World.Entities.Definition.Flags
         public bool WeaponSpawn { get => (Flags10 & FlagValue.Flag11) != 0; set { if (value) Flags10 |= FlagValue.Flag11; else Flags10 &= FlagValue.InvFlag11; } }
         public bool WindThrust { get => (Flags10 & FlagValue.Flag12) != 0; set { if (value) Flags10 |= FlagValue.Flag12; else Flags10 &= FlagValue.InvFlag12; } }
         public bool ZdoomTrans { get => (Flags10 & FlagValue.Flag13) != 0; set { if (value) Flags10 |= FlagValue.Flag13; else Flags10 &= FlagValue.InvFlag13; } }
-
+        public bool BossSpawnShot { get => (Flags10 & FlagValue.Flag14) != 0; set { if (value) Flags10 |= FlagValue.Flag14; else Flags10 &= FlagValue.InvFlag14; } }
 
         public EntityFlags(EntityFlagsModel model)
         {
