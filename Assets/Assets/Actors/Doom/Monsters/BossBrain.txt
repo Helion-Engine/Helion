@@ -75,8 +75,8 @@ actor SpawnShot
     States
     {
     Spawn:
-        BOSF A 0 Bright A_SpawnSound
-        BOSF AAABBBCCCDDD 1 Bright A_SpawnFly
+        BOSF A 3 Bright A_SpawnSound
+        BOSF ABCD 3 Bright A_SpawnFly
         Loop
     }
 }
