@@ -1568,7 +1568,7 @@ namespace Helion.World.Entities.Definition.States
 
             if (!entity.World.TryMoveXY(skull, skullPos.XY, false).Success)
             {
-                entity.World.KillEntity(skull, null);
+                skull.Kill(null);
                 return;
             }
 

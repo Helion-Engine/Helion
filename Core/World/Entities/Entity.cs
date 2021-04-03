@@ -402,13 +402,14 @@ namespace Helion.World.Entities
 
         public void Kill(Entity? source)
         {
-            if (Health < -Properties.Health && HasXDeathState())
+            bool gib = Health < -Properties.Health;
+            Health = 0;
+            SetHeight(Definition.Properties.Height / 4.0);
+
+            if (gib && HasXDeathState())
                 SetXDeathState(source);
             else
                 SetDeathState(source);
-
-            Health = 0;
-            SetHeight(Definition.Properties.Height / 4.0);
         }
 
         public void SetSpawnState() =>
@@ -545,7 +546,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
             {
-                World.KillEntity(this, source);
+                Kill(source);
             }
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {
@@ -782,7 +783,7 @@ namespace Helion.World.Entities
                     Flags.NoGravity = false;
             }
 
-            World.HandleEntityDeath(this, source);
+            World.HandleEntityDeath(this, source, gibbed);
         }
 
         [Conditional("DEBUG")]

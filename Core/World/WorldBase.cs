@@ -396,7 +396,7 @@ namespace Helion.World
         {
             List<Entity> blockingEntities = entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
             for (int i = 0; i < blockingEntities.Count; i++)
-                KillEntity(blockingEntities[i], entity, true);
+                blockingEntities[i].ForceGib();
         }
 
         /// <summary>
@@ -761,23 +761,6 @@ namespace Helion.World
             return true;
         }
 
-        public void KillEntity(Entity entity, Entity? source, bool forceGib = false)
-        {
-            if (entity.IsDead)
-                return;
-
-            if (entity.Flags.CountKill)
-                LevelStats.KillCount++;
-
-            if (entity is Player player)
-                ApplyVooDooKill(player, source, forceGib);
-
-            if (forceGib)
-                entity.ForceGib();
-            else
-                entity.Kill(source);
-        }
-
         public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true)
         {
             GiveVooDooItem(player, item, flags, pickupFlash);
@@ -919,13 +902,21 @@ namespace Helion.World
             double speed, double destZ, CrushData? crush)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush);
 
-        public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource)
+        public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
         {
             PhysicsManager.HandleEntityDeath(deathEntity);
             CheckDropItem(deathEntity);
 
-            if (deathSource != null && deathEntity is Player player)
-                HandleObituary(player, deathSource);
+            if (deathEntity.Flags.CountKill)
+                LevelStats.KillCount++;
+
+            if (deathEntity is Player player)
+            {
+                if (deathSource != null)
+                    HandleObituary(player, deathSource);
+
+                ApplyVooDooKill(player, deathSource, gibbed);
+            }            
         }
 
         private void CheckDropItem(Entity deathEntity)
@@ -1353,7 +1344,7 @@ namespace Helion.World
 
             foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
             {
-                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber || updatePlayer.IsDead)
                     continue;
 
                 if (forceGib)
