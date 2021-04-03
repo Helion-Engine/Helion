@@ -480,9 +480,9 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BrainExplode(Entity entity)
         {
-            Vec3D pos = new Vec3D(entity.Position.X + (entity.World.Random.NextDiff() * 2048),
+            Vec3D pos = new Vec3D(entity.Position.X + (entity.World.Random.NextDiff() * 0.03125),
                 entity.Position.Y, 128 + (entity.World.Random.NextByte() * 2));
-            BrainExplodeRocket(entity.EntityManager, pos);
+            BrainExplodeRocket(entity, pos);
         }
 
         private static void A_BrainPain(Entity entity)
@@ -495,17 +495,20 @@ namespace Helion.World.Entities.Definition.States
             for (double x = entity.Position.X - 196; x < entity.Position.X + 320; x += 8)
             {
                 Vec3D pos = new Vec3D(x, entity.Position.Y - 320, 128 + entity.World.Random.NextByte() + 1);
-                BrainExplodeRocket(entity.EntityManager, pos);
+                BrainExplodeRocket(entity, pos);
             }
 
             entity.SoundManager.CreateSoundOn(entity, "brain/death", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
         }
 
-        private static void BrainExplodeRocket(EntityManager entityManager, in Vec3D pos)
+        private static void BrainExplodeRocket(Entity entity, in Vec3D pos)
         {
-            Entity? rocket = entityManager.Create("BossRocket", pos);
+            Entity? rocket = entity.EntityManager.Create("BossRocket", pos);
             if (rocket != null)
-                rocket.Velocity.Z = (entityManager.World.Random.NextByte() << 9) / 65536.0;
+            {
+                rocket.FrameState.SetTics(entity.World.Random.NextByte() & 7);
+                rocket.Velocity.Z = (entity.World.Random.NextByte() << 9) / 65536.0;
+            }
         }
 
         private static void A_BrainSpit(Entity entity)
