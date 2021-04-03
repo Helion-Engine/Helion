@@ -877,8 +877,7 @@ namespace Helion.World
 
         public virtual void RadiusExplosion(Entity source, int radius)
         {
-            // Barrels do not apply Z thrust - TODO better way to check?
-            Thrust thrust = source.Definition.Name == "ExplosiveBarrel" ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
+            Thrust thrust = source.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
             Vec2D pos2D = source.Position.XY;
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
@@ -889,7 +888,7 @@ namespace Helion.World
             {
                 BlockmapIntersect bi = intersections[i];
                 if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, source))
-                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust);
+                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust, source.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
             }
 
             DataCache.Instance.FreeBlockmapIntersectList(intersections);
@@ -1018,7 +1017,8 @@ namespace Helion.World
             return false;
         }
 
-        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
+        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust, 
+            bool approxDistance2D)
         {
             double distance;
 
@@ -1030,11 +1030,17 @@ namespace Helion.World
                 if (source.Position.Z > entity.Position.Z)
                     targetPos.Z += entity.Height;
 
-                distance = Math.Max(0.0, sourcePos.ApproximateDistance2D(targetPos) - entity.Radius);
+                if (approxDistance2D)
+                    distance = Math.Max(0.0, sourcePos.ApproximateDistance2D(targetPos) - entity.Radius);
+                else
+                    distance = Math.Max(0.0, sourcePos.Distance(targetPos) - entity.Radius);
             }
             else
             {
-                distance = entity.Position.XY.Distance(source.Position.XY) - entity.Radius;
+                if (approxDistance2D)
+                    distance = entity.Position.ApproximateDistance2D(source.Position) - entity.Radius;
+                else
+                    distance = entity.Position.Distance(source.Position) - entity.Radius;
             }
 
             int damage = (int)(radius - distance);
