@@ -1565,6 +1565,7 @@ namespace Helion.World.Entities.Definition.States
             double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
             skullPos += Vec3D.UnitSphere(angle, 0.0) * step;
             skull.SetPosition(skullPos);
+            skull.Flags.CountKill = false;
 
             if (!entity.World.TryMoveXY(skull, skullPos.XY, false).Success)
             {
