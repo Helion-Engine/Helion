@@ -2223,7 +2223,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_SpawnSound(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+            entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.Default));
         }
 
         private static void A_SpidRefire(Entity entity)
