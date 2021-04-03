@@ -113,7 +113,7 @@ namespace Helion.World.Physics.Blockmap
                             m_entityMap.Add(entity.Id);
                             intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Value.Start)));
                         }
-                        else if (box != null && box.Value.Overlaps(entity.Box))
+                        else if (box != null && entity.Box.Overlaps2D(box.Value))
                         {
                             m_entityMap.Add(entity.Id);
                             Vec2D pos = entity.Position.XY;

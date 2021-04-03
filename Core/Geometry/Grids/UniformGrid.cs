@@ -62,7 +62,7 @@ namespace Helion.Geometry.Grids
         {
             Bounds = ToBounds(bounds);
 
-            Vec2D sides = Bounds.Sides();
+            Vec2D sides = Bounds.Sides;
             Width = (int)(sides.X / Dimension);
             Height = (int)(sides.Y / Dimension);
             

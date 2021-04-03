@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
@@ -29,7 +30,7 @@ namespace Helion.World.Blockmap
         /// <param name="lines">The lines to make the grid for.</param>
         public BlockMap(IList<Line> lines)
         {
-            Bounds = FindMapBoundingBox(lines);
+            Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
             m_blocks = new UniformGrid<Block>(Bounds);
             SetBlockCoordinates();
             AddLinesToBlocks(lines);
@@ -97,11 +98,10 @@ namespace Helion.World.Blockmap
             }
         }
 
-        private static Box2D FindMapBoundingBox(IList<Line> lines)
+        private static Box2D? FindMapBoundingBox(IEnumerable<Line> lines)
         {
-            Box2D startBox = lines.First().Segment.Box;
-            return lines.Select(pair => pair.Segment.Box)
-                        .Aggregate(startBox, (accumBox, lineBox) => Box2D.Combine(accumBox, lineBox));
+            var boxes = lines.Select(l => l.Segment.Box);
+            return Box2D.Combine(boxes);
         }
 
         private void SetBlockCoordinates()

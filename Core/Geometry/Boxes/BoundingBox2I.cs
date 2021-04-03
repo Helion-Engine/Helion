@@ -12,13 +12,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
 {
-    public readonly struct Box2I
+    public class BoundingBox2I
     {
-        public static readonly Box2I UnitBox = ((0, 0), (1, 1));
+        protected Vec2I m_Min;
+        protected Vec2I m_Max;
 
-        public readonly Vec2I Min;
-        public readonly Vec2I Max;
-
+        public Vec2I Min => m_Min;
+        public Vec2I Max => m_Max;
         public Vec2I TopLeft => new(Min.X, Max.Y);
         public Vec2I BottomLeft => Min;
         public Vec2I BottomRight => new(Max.X, Min.Y);
@@ -29,73 +29,54 @@ namespace Helion.Geometry.Boxes
         public int Right => Max.X;
         public int Width => Max.X - Min.X;
         public int Height => Max.Y - Min.Y;
+        public Box2I Struct => new(Min, Max);
         public Dimension Dimension => new(Sides);
         public Vec2I Sides => Max - Min;
 
-        public Box2I(Vec2I min, Vec2I max)
+        public BoundingBox2I(Vec2I min, Vec2I max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min;
-            Max = max;
+            m_Min = min;
+            m_Max = max;
         }
 
-        public Box2I(Vec2I min, Vector2I max)
+        public BoundingBox2I(Vec2I min, Vector2I max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min;
-            Max = max.Struct;
+            m_Min = min;
+            m_Max = max.Struct;
         }
 
-        public Box2I(Vector2I min, Vec2I max)
+        public BoundingBox2I(Vector2I min, Vec2I max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min.Struct;
-            Max = max;
+            m_Min = min.Struct;
+            m_Max = max;
         }
 
-        public Box2I(Vector2I min, Vector2I max)
+        public BoundingBox2I(Vector2I min, Vector2I max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min.Struct;
-            Max = max.Struct;
+            m_Min = min.Struct;
+            m_Max = max.Struct;
         }
 
-        public Box2I(Vec2I center, int radius)
+        public BoundingBox2I(Vec2I center, int radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");
-            Min = new(center.X - radius, center.Y - radius);
-            Max = new(center.X + radius, center.Y + radius);
+            m_Min = new(center.X - radius, center.Y - radius);
+            m_Max = new(center.X + radius, center.Y + radius);
         }
 
-        public Box2I(Vector2I center, int radius)
+        public BoundingBox2I(Vector2I center, int radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");
-            Min = new(center.X - radius, center.Y - radius);
-            Max = new(center.X + radius, center.Y + radius);
-        }
-
-        public static implicit operator Box2I(ValueTuple<Vec2I, Vec2I> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
-        }
-
-        public static implicit operator Box2I(ValueTuple<Vec2I, Vector2I> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
-        }
-
-        public static implicit operator Box2I(ValueTuple<Vector2I, Vec2I> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
-        }
-
-        public static implicit operator Box2I(ValueTuple<Vector2I, Vector2I> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
+            m_Min = new(center.X - radius, center.Y - radius);
+            m_Max = new(center.X + radius, center.Y + radius);
         }
 
         public void Deconstruct(out Vec2I min, out Vec2I max)
@@ -104,10 +85,10 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
-        public static Box2I operator +(Box2I self, Vec2I offset) => new(self.Min + offset, self.Max + offset);
-        public static Box2I operator +(Box2I self, Vector2I offset) => new(self.Min + offset, self.Max + offset);
-        public static Box2I operator -(Box2I self, Vec2I offset) => new(self.Min - offset, self.Max - offset);
-        public static Box2I operator -(Box2I self, Vector2I offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2I operator +(BoundingBox2I self, Vec2I offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2I operator +(BoundingBox2I self, Vector2I offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2I operator -(BoundingBox2I self, Vec2I offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2I operator -(BoundingBox2I self, Vector2I offset) => new(self.Min - offset, self.Max - offset);
 
         public bool Contains(Vec2I point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
         public bool Contains(Vector2I point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;

@@ -198,7 +198,7 @@ namespace Helion.World.Bsp
             List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
 
             List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => s.Struct).ToList();
-            Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
+            Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
 
             Sector sector = GetSectorFrom(node, builder);
             Subsector subsector = new((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
@@ -270,7 +270,7 @@ namespace Helion.World.Bsp
         {
             Box2D leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
             Box2D rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
-            return Box2D.Combine(leftBox, rightBox);
+            return leftBox.Combine(rightBox);
         }
 
         private void HandleSingleSubsectorTree()

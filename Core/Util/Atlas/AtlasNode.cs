@@ -72,7 +72,7 @@ namespace Helion.Util.Atlas
         /// </param>
         public AtlasNode(Dimension atlasDimension)
         {
-            Location = new Box2I(new(0, 0), atlasDimension.Vector);
+            Location = new Box2I(new Vec2I(0, 0), atlasDimension.Vector);
             m_maxAvailableDimensions = atlasDimension;
         }
 

@@ -712,7 +712,7 @@ namespace Helion.World.Physics
                 tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
             }
 
-            Box2D nextBox = Box2D.CopyToOffset(position, entity.Radius);
+            Box2D nextBox = new(position, entity.Radius);
             entity.BlockingLine = null;
             entity.BlockingEntity = null;
             entity.BlockingSectorPlane = null;

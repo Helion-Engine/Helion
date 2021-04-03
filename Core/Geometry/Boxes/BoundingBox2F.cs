@@ -12,13 +12,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
 {
-    public readonly struct Box2F
+    public class BoundingBox2F
     {
-        public static readonly Box2F UnitBox = ((0, 0), (1, 1));
+        protected Vec2F m_Min;
+        protected Vec2F m_Max;
 
-        public readonly Vec2F Min;
-        public readonly Vec2F Max;
-
+        public Vec2F Min => m_Min;
+        public Vec2F Max => m_Max;
         public Vec2F TopLeft => new(Min.X, Max.Y);
         public Vec2F BottomLeft => Min;
         public Vec2F BottomRight => new(Max.X, Min.Y);
@@ -29,72 +29,53 @@ namespace Helion.Geometry.Boxes
         public float Right => Max.X;
         public float Width => Max.X - Min.X;
         public float Height => Max.Y - Min.Y;
+        public Box2F Struct => new(Min, Max);
         public Vec2F Sides => Max - Min;
 
-        public Box2F(Vec2F min, Vec2F max)
+        public BoundingBox2F(Vec2F min, Vec2F max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min;
-            Max = max;
+            m_Min = min;
+            m_Max = max;
         }
 
-        public Box2F(Vec2F min, Vector2F max)
+        public BoundingBox2F(Vec2F min, Vector2F max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min;
-            Max = max.Struct;
+            m_Min = min;
+            m_Max = max.Struct;
         }
 
-        public Box2F(Vector2F min, Vec2F max)
+        public BoundingBox2F(Vector2F min, Vec2F max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min.Struct;
-            Max = max;
+            m_Min = min.Struct;
+            m_Max = max;
         }
 
-        public Box2F(Vector2F min, Vector2F max)
+        public BoundingBox2F(Vector2F min, Vector2F max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Min = min.Struct;
-            Max = max.Struct;
+            m_Min = min.Struct;
+            m_Max = max.Struct;
         }
 
-        public Box2F(Vec2F center, float radius)
+        public BoundingBox2F(Vec2F center, float radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");
-            Min = new(center.X - radius, center.Y - radius);
-            Max = new(center.X + radius, center.Y + radius);
+            m_Min = new(center.X - radius, center.Y - radius);
+            m_Max = new(center.X + radius, center.Y + radius);
         }
 
-        public Box2F(Vector2F center, float radius)
+        public BoundingBox2F(Vector2F center, float radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");
-            Min = new(center.X - radius, center.Y - radius);
-            Max = new(center.X + radius, center.Y + radius);
-        }
-
-        public static implicit operator Box2F(ValueTuple<Vec2F, Vec2F> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
-        }
-
-        public static implicit operator Box2F(ValueTuple<Vec2F, Vector2F> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
-        }
-
-        public static implicit operator Box2F(ValueTuple<Vector2F, Vec2F> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
-        }
-
-        public static implicit operator Box2F(ValueTuple<Vector2F, Vector2F> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
+            m_Min = new(center.X - radius, center.Y - radius);
+            m_Max = new(center.X + radius, center.Y + radius);
         }
 
         public void Deconstruct(out Vec2F min, out Vec2F max)
@@ -103,10 +84,10 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
-        public static Box2F operator +(Box2F self, Vec2F offset) => new(self.Min + offset, self.Max + offset);
-        public static Box2F operator +(Box2F self, Vector2F offset) => new(self.Min + offset, self.Max + offset);
-        public static Box2F operator -(Box2F self, Vec2F offset) => new(self.Min - offset, self.Max - offset);
-        public static Box2F operator -(Box2F self, Vector2F offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2F operator +(BoundingBox2F self, Vec2F offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2F operator +(BoundingBox2F self, Vector2F offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2F operator -(BoundingBox2F self, Vec2F offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2F operator -(BoundingBox2F self, Vector2F offset) => new(self.Min - offset, self.Max - offset);
 
         public bool Contains(Vec2F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
         public bool Contains(Vector2F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
@@ -210,91 +191,6 @@ namespace Helion.Geometry.Boxes
                 max.Y = max.Y.Max(box.Max.Y);
             }
             return new(min, max);
-        }
-        public static Box2F? Combine(IEnumerable<Box2F> items) 
-        {
-            if (items.Empty())
-                return null;
-            Box2F initial = items.First();
-            return items.Skip(1).Aggregate(initial, (acc, box) =>
-            {
-                Vec2F min = acc.Min;
-                Vec2F max = acc.Max;
-                min.X = min.X.Min(box.Min.X);
-                min.Y = min.Y.Min(box.Min.Y);
-                max.X = max.X.Max(box.Max.X);
-                max.Y = max.Y.Max(box.Max.Y);
-                return new Box2F(min, max);
-            }
-            );
-        }
-        public static Box2F? Combine(IEnumerable<BoundingBox2F> items) 
-        {
-            if (items.Empty())
-                return null;
-            Box2F initial = items.First().Struct;
-            return items.Skip(1).Select(s => s.Struct).Aggregate(initial, (acc, box) =>
-            {
-                Vec2F min = acc.Min;
-                Vec2F max = acc.Max;
-                min.X = min.X.Min(box.Min.X);
-                min.Y = min.Y.Min(box.Min.Y);
-                max.X = max.X.Max(box.Max.X);
-                max.Y = max.Y.Max(box.Max.Y);
-                return new Box2F(min, max);
-            }
-            );
-        }
-        public static Box2F? Bound(IEnumerable<Seg2F> items) 
-        {
-            if (items.Empty())
-                return null;
-            Box2F initial = items.First().Box;
-            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
-            {
-                Vec2F min = acc.Min;
-                Vec2F max = acc.Max;
-                min.X = min.X.Min(box.Min.X);
-                min.Y = min.Y.Min(box.Min.Y);
-                max.X = max.X.Max(box.Max.X);
-                max.Y = max.Y.Max(box.Max.Y);
-                return new Box2F(min, max);
-            }
-            );
-        }
-        public static Box2F? Bound(IEnumerable<Segment2F> items) 
-        {
-            if (items.Empty())
-                return null;
-            Box2F initial = items.First().Box;
-            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
-            {
-                Vec2F min = acc.Min;
-                Vec2F max = acc.Max;
-                min.X = min.X.Min(box.Min.X);
-                min.Y = min.Y.Min(box.Min.Y);
-                max.X = max.X.Max(box.Max.X);
-                max.Y = max.Y.Max(box.Max.Y);
-                return new Box2F(min, max);
-            }
-            );
-        }
-        public static Box2F? Bound<T>(IEnumerable<SegmentT2F<T>> items) where T : Vector2F
-        {
-            if (items.Empty())
-                return null;
-            Box2F initial = items.First().Box;
-            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
-            {
-                Vec2F min = acc.Min;
-                Vec2F max = acc.Max;
-                min.X = min.X.Min(box.Min.X);
-                min.Y = min.Y.Min(box.Min.Y);
-                max.X = max.X.Max(box.Max.X);
-                max.Y = max.Y.Max(box.Max.Y);
-                return new Box2F(min, max);
-            }
-            );
         }
         public override string ToString() => $"({Min}), ({Max})";
     }

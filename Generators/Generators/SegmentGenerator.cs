@@ -21,6 +21,7 @@ namespace Generators.Generators
         private string VecClass => $"Vector{m_dimension}{m_type.GetShorthand()}";
         private string VecFieldType => m_isStruct || m_hasStructVecs ? VecStruct : "V";
         private string BoxStruct => $"Box{m_dimension}{m_type.GetShorthand()}";
+        private string BoxInstance => $"BoundingBox{m_dimension}{m_type.GetShorthand()}";
         private string WhereConstraintT => $"where T : {VecClass}";
         private string WhereConstraintV => $"where V : {VecClass}";
         
@@ -421,6 +422,10 @@ namespace Generators.Generators
                             DifferentSides(box.BottomLeft, box.TopRight) :
                             DifferentSides(box.TopLeft, box.BottomRight);";
                     w.WithCBlock($"public bool Intersects({BoxStruct} box)", () =>
+                    {
+                        w.WriteLine(intersectsBoxInternal);
+                    });
+                    w.WithCBlock($"public bool Intersects({BoxInstance} box)", () =>
                     {
                         w.WriteLine(intersectsBoxInternal);
                     });

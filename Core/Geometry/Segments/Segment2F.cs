@@ -316,6 +316,18 @@ namespace Helion.Geometry.Segments
                 DifferentSides(box.BottomLeft, box.TopRight) :
                 DifferentSides(box.TopLeft, box.BottomRight);
         }
+        public bool Intersects(BoundingBox2F box)
+        {
+            if (!box.Overlaps(Box))
+                return false;
+            if (Start.X.ApproxEquals(End.X))
+                return box.Min.X < Start.X && Start.X < box.Max.X;
+            if (Start.Y.ApproxEquals(End.Y))
+                return box.Min.Y < Start.Y && Start.Y < box.Max.Y;
+            return ((Start.X < End.X) ^ (Start.Y < End.Y)) ? 
+                DifferentSides(box.BottomLeft, box.TopRight) :
+                DifferentSides(box.TopLeft, box.BottomRight);
+        }
 
         private static bool CollinearHelper(float aX, float aY, float bX, float bY, float cX, float cY)
         {
