@@ -396,7 +396,7 @@ namespace Helion.World
         {
             List<Entity> blockingEntities = entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
             for (int i = 0; i < blockingEntities.Count; i++)
-                KillEntity(blockingEntities[i], entity, true);
+                blockingEntities[i].ForceGib();
         }
 
         /// <summary>
@@ -761,23 +761,6 @@ namespace Helion.World
             return true;
         }
 
-        public void KillEntity(Entity entity, Entity? source, bool forceGib = false)
-        {
-            if (entity.IsDead)
-                return;
-
-            if (entity.Flags.CountKill)
-                LevelStats.KillCount++;
-
-            if (entity is Player player)
-                ApplyVooDooKill(player, source, forceGib);
-
-            if (forceGib)
-                entity.ForceGib();
-            else
-                entity.Kill(source);
-        }
-
         public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true)
         {
             GiveVooDooItem(player, item, flags, pickupFlash);
@@ -894,8 +877,7 @@ namespace Helion.World
 
         public virtual void RadiusExplosion(Entity source, int radius)
         {
-            // Barrels do not apply Z thrust - TODO better way to check?
-            Thrust thrust = source.Definition.Name == "ExplosiveBarrel" ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
+            Thrust thrust = source.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
             Vec2D pos2D = source.Position.XY;
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
@@ -906,7 +888,7 @@ namespace Helion.World
             {
                 BlockmapIntersect bi = intersections[i];
                 if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, source))
-                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust);
+                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust, source.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
             }
 
             DataCache.Instance.FreeBlockmapIntersectList(intersections);
@@ -919,13 +901,21 @@ namespace Helion.World
             double speed, double destZ, CrushData? crush)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush);
 
-        public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource)
+        public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
         {
             PhysicsManager.HandleEntityDeath(deathEntity);
             CheckDropItem(deathEntity);
 
-            if (deathSource != null && deathEntity is Player player)
-                HandleObituary(player, deathSource);
+            if (deathEntity.Flags.CountKill)
+                LevelStats.KillCount++;
+
+            if (deathEntity is Player player)
+            {
+                if (deathSource != null)
+                    HandleObituary(player, deathSource);
+
+                ApplyVooDooKill(player, deathSource, gibbed);
+            }            
         }
 
         private void CheckDropItem(Entity deathEntity)
@@ -1027,7 +1017,8 @@ namespace Helion.World
             return false;
         }
 
-        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust)
+        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust, 
+            bool approxDistance2D)
         {
             double distance;
 
@@ -1039,11 +1030,17 @@ namespace Helion.World
                 if (source.Position.Z > entity.Position.Z)
                     targetPos.Z += entity.Height;
 
-                distance = Math.Max(0.0, sourcePos.Distance(targetPos) - entity.Radius);
+                if (approxDistance2D)
+                    distance = Math.Max(0.0, sourcePos.ApproximateDistance2D(targetPos) - entity.Radius);
+                else
+                    distance = Math.Max(0.0, sourcePos.Distance(targetPos) - entity.Radius);
             }
             else
             {
-                distance = entity.Position.XY.Distance(source.Position.XY) - entity.Radius;
+                if (approxDistance2D)
+                    distance = entity.Position.ApproximateDistance2D(source.Position) - entity.Radius;
+                else
+                    distance = entity.Position.Distance(source.Position) - entity.Radius;
             }
 
             int damage = (int)(radius - distance);
@@ -1353,7 +1350,7 @@ namespace Helion.World
 
             foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
             {
-                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+                if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber || updatePlayer.IsDead)
                     continue;
 
                 if (forceGib)

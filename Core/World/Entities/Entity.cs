@@ -370,6 +370,9 @@ namespace Helion.World.Entities
             if (FrozenTics > 0)
                 FrozenTics--;
 
+            if (Flags.BossSpawnShot && ReactionTime > 0)
+                ReactionTime--;
+
             FrameState.Tick();
 
             if (Flags.Monster && IsDeathStateFinished)
@@ -394,21 +397,19 @@ namespace Helion.World.Entities
             RunDebugSanityChecks();
         }
 
-        public void ForceGib()
-        {
-            Health = -Properties.Health - 1;
-            Kill(null);
-        }
+        public void ForceGib() =>
+            Damage(null, int.MaxValue, false);
 
         public void Kill(Entity? source)
         {
-            if (Health < -Properties.Health && HasXDeathState())
+            bool gib = Health < -Properties.Health;
+            Health = 0;
+            SetHeight(Definition.Properties.Height / 4.0);
+
+            if (gib && HasXDeathState())
                 SetXDeathState(source);
             else
                 SetDeathState(source);
-
-            Health = 0;
-            SetHeight(Definition.Properties.Height / 4.0);
         }
 
         public void SetSpawnState() =>
@@ -532,7 +533,8 @@ namespace Helion.World.Entities
                 {
                     if (!Flags.QuickToRetaliate)
                         Threshold = Properties.DefThreshold;
-                    Target = damageSource;
+                    if (!damageSource.Flags.NoTarget)
+                        Target = damageSource;
                     if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
                         SetSeeState();
                 }
@@ -545,7 +547,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
             {
-                World.KillEntity(this, source);
+                Kill(source);
             }
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {
@@ -782,7 +784,7 @@ namespace Helion.World.Entities
                     Flags.NoGravity = false;
             }
 
-            World.HandleEntityDeath(this, source);
+            World.HandleEntityDeath(this, source, gibbed);
         }
 
         [Conditional("DEBUG")]

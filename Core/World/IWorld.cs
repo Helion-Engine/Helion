@@ -72,7 +72,6 @@ namespace Helion.World
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
         bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
-        void KillEntity(Entity entity, Entity? source, bool forceGib = false);
         bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true);
         void PerformItemPickup(Entity entity, Entity item);
         void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
@@ -81,7 +80,7 @@ namespace Helion.World
         TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
             double speed, double destZ, CrushData? crush);
-        void HandleEntityDeath(Entity deathEntity, Entity? deathSource);
+        void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
         void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
         // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
         bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
