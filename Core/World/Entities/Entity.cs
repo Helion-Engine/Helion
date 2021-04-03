@@ -394,11 +394,8 @@ namespace Helion.World.Entities
             RunDebugSanityChecks();
         }
 
-        public void ForceGib()
-        {
-            Health = -Properties.Health - 1;
-            Kill(null);
-        }
+        public void ForceGib() =>
+            Damage(null, int.MaxValue, false);
 
         public void Kill(Entity? source)
         {
