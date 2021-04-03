@@ -398,6 +398,8 @@ namespace Generators.Generators
                     });
                     
                     string intersectsBoxInternal = @"
+                        if (!box.Overlaps(Box))
+                            return false;
                         if (Start.X.ApproxEquals(End.X))
                             return box.Min.X < Start.X && Start.X < box.Max.X;
                         if (Start.Y.ApproxEquals(End.Y))

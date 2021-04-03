@@ -304,6 +304,8 @@ namespace Helion.Geometry.Segments
         }
         public bool Intersects(Box2F box)
         {
+            if (!box.Overlaps(Box))
+                return false;
             if (Start.X.ApproxEquals(End.X))
                 return box.Min.X < Start.X && Start.X < box.Max.X;
             if (Start.Y.ApproxEquals(End.Y))

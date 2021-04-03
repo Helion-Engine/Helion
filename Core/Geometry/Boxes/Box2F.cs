@@ -17,5 +17,10 @@ namespace Helion.Geometry.Boxes
             Min = min;
             Max = max;
         }
+        
+        public bool Overlaps(in Box2F box)
+        {
+            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        }
     }
 }
