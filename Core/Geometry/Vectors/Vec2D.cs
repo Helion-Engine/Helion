@@ -88,6 +88,7 @@ namespace Helion.Geometry.Vectors
         public Vec2D WithX(double x) => new(x, Y);
         public Vec2D WithY(double y) => new(X, y);
         public bool IsApprox(Vec2D other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
+        public bool IsApprox(in Vec2D other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
         public bool IsApprox(Vector2D other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
         public Vec3D To3D(double z) => new(X, Y, z);
 

@@ -1,5 +1,4 @@
 using Helion.Bsp.Repairer;
-using Helion.Geometry.Graphs;
 using Helion.Geometry.Segments;
 using Helion.Maps.Components;
 using static Helion.Util.Assertion.Assert;
@@ -10,7 +9,7 @@ namespace Helion.Bsp.Geometry
     /// A BSP segment that contains extra line information in addition to a
     /// double-based segment.
     /// </summary>
-    public class BspSegment : SegmentT2D<BspVertex>, IGraphEdge
+    public class BspSegment : SegmentT2D<BspVertex>
     {
         /// <summary>
         /// The constants for no sector existing.
@@ -174,10 +173,6 @@ namespace Helion.Bsp.Geometry
                    EndIndex == segment.StartIndex ||
                    EndIndex == segment.EndIndex;
         }
-
-        public IGraphVertex GetStart() => StartVertex;
-
-        public IGraphVertex GetEnd() => EndVertex;
         
         public override string ToString()
         {

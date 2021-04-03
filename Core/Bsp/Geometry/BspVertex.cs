@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using Helion.Geometry.Graphs;
 using Helion.Geometry.Vectors;
 
 namespace Helion.Bsp.Geometry
 {
-    public class BspVertex : Vector2D, IGraphVertex
+    public class BspVertex : Vector2D
     {
         public readonly int Index;
         public readonly List<BspSegment> Edges = new();
@@ -15,8 +14,6 @@ namespace Helion.Bsp.Geometry
         {
             Index = index;
         }
-
-        public IReadOnlyList<IGraphEdge> GetEdges() => Edges;
 
         public override string ToString() => $"{base.ToString()} (index = {Index}, edgeCount = {Edges.Count})";
     }

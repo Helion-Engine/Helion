@@ -9,6 +9,7 @@ namespace Generators
             PrimitiveExtensionsGenerator.Generate();
             VectorGenerator.Generate();
             SegmentGenerator.Generate();
+            BoxGenerator.Generate();
         }
     }
 }
