@@ -1030,7 +1030,7 @@ namespace Helion.World
                 if (source.Position.Z > entity.Position.Z)
                     targetPos.Z += entity.Height;
 
-                distance = Math.Max(0.0, sourcePos.Distance(targetPos) - entity.Radius);
+                distance = Math.Max(0.0, sourcePos.ApproximateDistance2D(targetPos) - entity.Radius);
             }
             else
             {
