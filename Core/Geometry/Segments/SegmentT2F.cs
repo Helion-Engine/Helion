@@ -310,7 +310,7 @@ namespace Helion.Geometry.Segments
                 return box.Min.X < Start.X && Start.X < box.Max.X;
             if (Start.Y.ApproxEquals(End.Y))
                 return box.Min.Y < Start.Y && Start.Y < box.Max.Y;
-            return (box.Min.X < box.Max.X) ^ (box.Min.Y < box.Max.Y) ?
+            return ((Start.X < End.X) ^ (Start.Y < End.Y)) ? 
                 DifferentSides(box.BottomLeft, box.TopRight) :
                 DifferentSides(box.TopLeft, box.BottomRight);
         }
