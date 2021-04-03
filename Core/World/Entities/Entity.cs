@@ -533,7 +533,8 @@ namespace Helion.World.Entities
                 {
                     if (!Flags.QuickToRetaliate)
                         Threshold = Properties.DefThreshold;
-                    Target = damageSource;
+                    if (!damageSource.Flags.NoTarget)
+                        Target = damageSource;
                     if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
                         SetSeeState();
                 }
