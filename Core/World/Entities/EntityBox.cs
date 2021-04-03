@@ -11,8 +11,8 @@ namespace Helion.World.Entities
         public double Radius { get; }
         public double Height { get; private set; }
         
-        public double Top => Min.Z;
-        public double Bottom => Max.Z;
+        public double Top => Max.Z;
+        public double Bottom => Min.Z;
         public Vec3D Position => m_centerBottom;
         public Box2D To2D() => new(Min.XY, Max.XY);
 
