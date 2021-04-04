@@ -505,33 +505,33 @@ namespace Helion.World
             return args.Success;
         }
 
-        public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity)
-        {
-            Vec3D end = start + Vec3D.UnitSphere(angle, 0) * distance;
-            return GetAutoAimAngle(startEntity, start, end, out pitch, out entity);
-        }
+        public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
+            GetAutoAimAngle(startEntity, start, distance, out pitch, out _, out entity);
 
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
-            if (shooter is Player player)
+            Player? player = shooter as Player;
+            if (player != null)
                 player.DescreaseAmmo();
 
+            double angle = shooter.AngleRadians;
             Vec3D start = shooter.ProjectileAttackPos;
             start.Z += zOffset;
 
-            if (autoAim)
+            if (autoAim && player != null &&
+                GetAutoAimAngle(shooter, start, distance, out double autoAimPitch, out double autoAimAngle, 
+                    out _, tracers: Constants.AutoAimTracers))
             {
-                Vec3D end = start + Vec3D.UnitSphere(shooter.AngleRadians, pitch) * distance;
-                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
-                    pitch = autoAimPitch;
+                pitch = autoAimPitch;
+                angle = autoAimAngle;
             }
 
             var projectileDef = EntityManager.DefinitionComposer.GetByName(projectClassName);
             if (projectileDef != null)
             {
-                Entity projectile = EntityManager.Create(projectileDef, start, 0.0, shooter.AngleRadians, 0);
-                Vec3D velocity = Vec3D.UnitSphere(shooter.AngleRadians, pitch) * projectile.Properties.Speed;
-                Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(shooter.AngleRadians, pitch) * (shooter.Radius - 2.0));
+                Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
+                Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.Speed;
+                Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0));
                 projectile.Owner = shooter;
                 projectile.PlaySeeSound();
 
@@ -560,8 +560,7 @@ namespace Helion.World
             if (autoAim)
             {
                 Vec3D start = shooter.HitscanAttackPos;
-                Vec3D end = start + Vec3D.UnitSphere(shooter.AngleRadians, pitch) * distance;
-                if (GetAutoAimAngle(shooter, start, end, out double autoAimPitch, out _))
+                if (GetAutoAimAngle(shooter, start, distance, out double autoAimPitch, out _, out _, tracers: Constants.AutoAimTracers))
                     pitch = autoAimPitch;
             }
 
@@ -1117,17 +1116,58 @@ namespace Helion.World
             intersect.Y = start.Y + (Math.Sin(angle) * distXY);
         }
 
-        private bool GetAutoAimAngle(Entity shooter, in Vec3D start, in Vec3D end, out double pitch, out Entity? entity)
+        /// <summary>
+        /// Fires when an entity activates a line special with use or by crossing a line.
+        /// </summary>
+        /// <param name="shooter">The entity firing.</param>
+        /// <param name="start">The position the enity is firing from.</param>
+        /// <param name="distance">The distance to use for firing.</param>
+        /// <param name="pitch">The pitch to use for the hit entity.</param>
+        /// <param name="angle">The angle to use for the hit entity.</param>
+        /// <param name="entity">The hit entity.</param>
+        /// <param name="tracers">The number of tracers to use excluding the angle of the player. Vanilla doom used 2.</param>
+        /// <returns>True if a valid entity is found and the pitch is set.</returns>
+        /// <param name="tracerSpread">Doom would check at -5 degress and +5 degrees for a hit as well.
+        /// Doom used the pitch for hitscan weapons, but would use the angle as well for projectiles.</param>
+        private bool GetAutoAimAngle(Entity shooter, in Vec3D start, double distance,
+            out double pitch, out double angle, out Entity? entity,
+            int tracers = 0, double tracerSpread = Constants.DefaultSpreadAngle)
         {
-            Seg2D seg = new Seg2D(start.XY, end.XY);
+            entity = null;
+            pitch = 0;
 
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
-                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
-                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
+            double spread;
+            if (tracers <= 1)
+            {
+                angle = shooter.AngleRadians;
+                spread = 0;
+            }
+            else
+            {
+                spread = tracerSpread / (tracers / 2);
+                angle = shooter.AngleRadians - (tracerSpread);
+                tracers++;
+            }
 
-            TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
-            DataCache.Instance.FreeBlockmapIntersectList(intersections);
-            return status == TraversalPitchStatus.PitchSet;
+            for (int i = 0; i < tracers; i++)
+            {
+                Seg2D seg = new Seg2D(start.XY, (start + Vec3D.UnitSphere(angle, 0) * distance).XY);
+                List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
+                    BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
+                    BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
+
+                TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
+                DataCache.Instance.FreeBlockmapIntersectList(intersections);
+
+                if (status == TraversalPitchStatus.PitchSet)
+                    return true;
+
+                angle += spread;
+            }
+
+
+            angle = shooter.AngleRadians;
+            return false;
         }
 
         private enum TraversalPitchStatus
