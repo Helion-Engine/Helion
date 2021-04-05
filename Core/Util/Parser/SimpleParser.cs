@@ -189,7 +189,8 @@ namespace Helion.Util.Parser
 
         public bool Peek(char c)
         {
-            AssertData();
+            if (IsDone())
+                return false;
 
             if (char.ToUpperInvariant(GetCharData(m_index)) == char.ToUpperInvariant(c))
                 return true;
@@ -199,7 +200,8 @@ namespace Helion.Util.Parser
 
         public bool Peek(string str)
         {
-            AssertData();
+            if (IsDone())
+                return false;
 
             if (GetData(m_index).Equals(str, StringComparison.OrdinalIgnoreCase))
                 return true;
