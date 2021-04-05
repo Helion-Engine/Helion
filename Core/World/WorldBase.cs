@@ -1135,21 +1135,23 @@ namespace Helion.World
         {
             entity = null;
             pitch = 0;
+            angle = shooter.AngleRadians;
 
             double spread;
+            int iterateTracers;
             if (tracers <= 1)
             {
-                angle = shooter.AngleRadians;
                 spread = 0;
+                tracers = 1;
+                iterateTracers = 1;
             }
             else
             {
                 spread = tracerSpread / (tracers / 2);
-                angle = shooter.AngleRadians - (tracerSpread);
-                tracers++;
+                iterateTracers = tracers + 1;
             }
 
-            for (int i = 0; i < tracers; i++)
+            for (int i = 0; i < iterateTracers; i++)
             {
                 Seg2D seg = new Seg2D(start.XY, (start + Vec3D.UnitSphere(angle, 0) * distance).XY);
                 List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
@@ -1163,6 +1165,8 @@ namespace Helion.World
                     return true;
 
                 angle += spread;
+                if (i == tracers / 2)
+                    angle = shooter.AngleRadians - tracerSpread;
             }
 
 
