@@ -129,6 +129,7 @@ namespace Helion.World
                 m_soundCount = worldModel.SoundCount;
                 Gravity = worldModel.Gravity;
                 ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+                CurrentBossTarget = worldModel.CurrentBossTarget;
 
                 LevelStats.TotalMonsters = worldModel.TotalMonsters;
                 LevelStats.TotalItems = worldModel.TotalItems;
@@ -1456,6 +1457,7 @@ namespace Helion.World
                 Gravity = Gravity,
                 RandomIndex = ((DoomRandom)Random).RandomIndex,
                 Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
+                CurrentBossTarget = CurrentBossTarget,
 
                 Players = GetPlayerModels(),
                 Entities = GetEntityModels(),

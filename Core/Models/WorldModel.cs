@@ -17,6 +17,7 @@ namespace Helion.Models
         public byte RandomIndex { get; set; }
         public double Gravity { get; set; }
         public SkillLevel Skill { get; set; }
+        public int CurrentBossTarget { get; set; }
 
         public IList<PlayerModel> Players { get; set; } = Array.Empty<PlayerModel>();
         public IList<EntityModel> Entities { get; set; } = Array.Empty<EntityModel>();
