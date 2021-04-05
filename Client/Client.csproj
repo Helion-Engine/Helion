@@ -23,8 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="managed-midi" Version="1.9.14" />
-    <PackageReference Include="Melanchall.DryWetMidi" Version="4.1.1" />
+    <PackageReference Include="nfluidsynth" Version="0.3.1" />
     <PackageReference Include="NLog" Version="4.6.7" />
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
     <PackageReference Include="OpenTK" Version="4.4.0" />
@@ -33,5 +32,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if not exist $(OutDir)SoundFonts mkdir $(OutDir)SoundFonts&#xD;&#xA;xcopy /y /d  &quot;$(ProjectDir)SoundFonts\Default.sf2&quot; &quot;$(OutDir)SoundFonts&quot;&#xD;&#xA;&#xD;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x64\*.dll&quot; &quot;$(TargetDir)runtimes\win-x64\native&quot;&#xD;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x86\*.dll&quot; &quot;$(TargetDir)runtimes\win-x86\native&quot;" />
+  </Target>
 
 </Project>

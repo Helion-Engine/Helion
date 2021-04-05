@@ -40,8 +40,12 @@ namespace Helion.Client
                     StartNewGame();
                     break;
 
-                case "VOLUME":
-                    SetVolume(ccmdArgs.Args);
+                case "SOUNDVOLUME":
+                    SetSoundVolume(ccmdArgs.Args);
+                    break;
+
+                case "MUSICVOLUME":
+                    SetMusicVolume(ccmdArgs.Args);
                     break;
 
                 case "AUDIODEVICE":
@@ -146,16 +150,28 @@ namespace Helion.Client
             m_audioSystem.SetVolume(m_config.Audio.Volume);
         }
 
-        private void SetVolume(IList<string> args)
+        private void SetSoundVolume(IList<string> args)
         {
             if (args.Empty() || !float.TryParse(args[0], out float volume))
             {
-                Log.Info("Usage: volume <volume>");
+                Log.Info("Usage: soundvolume <volume>");
                 return;
             }
 
-            m_config.Audio.Volume.Set(volume);
+            m_config.Audio.SoundVolume.Set(volume);
             m_audioSystem.SetVolume(volume);
+        }
+
+        private void SetMusicVolume(IList<string> args)
+        {
+            if (args.Empty() || !float.TryParse(args[0], out float volume))
+            {
+                Log.Info("Usage: musicvolume <volume>");
+                return;
+            }
+
+            m_config.Audio.MusicVolume.Set(volume);
+            m_audioSystem.Music.SetVolume(volume);
         }
 
         private void HandleMap(IList<string> args)
