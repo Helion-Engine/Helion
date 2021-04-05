@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Bsp.Geometry;
 using Helion.Geometry.Segments;
-using Helion.Geometry.Segments.Enums;
 using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -73,8 +72,8 @@ namespace Helion.Bsp.States.Convex
             //
             // Each number is the vertex in the rotation order.
             BspSegment currentSeg = States.CurrentSegment;
-            Vec2D firstVertex = currentSeg[States.CurrentEndpoint];
-            Vec2D secondVertex = currentSeg.Opposite(States.CurrentEndpoint);
+            BspVertex firstVertex = currentSeg[States.CurrentEndpoint];
+            BspVertex secondVertex = currentSeg.Opposite(States.CurrentEndpoint);
             int pivotIndex = currentSeg.OppositeIndex(States.CurrentEndpoint);
 
             // Since we know there are exactly two lines at each endpoint, we
@@ -88,9 +87,9 @@ namespace Helion.Bsp.States.Convex
                 nextSeg = linesAtPivot[1].Segment;
 
             Endpoint nextSegPivotEndpoint = nextSeg.EndpointFrom(pivotIndex);
-            Vec2D thirdVertex = nextSeg.Opposite(nextSegPivotEndpoint);
+            BspVertex thirdVertex = nextSeg.Opposite(nextSegPivotEndpoint);
 
-            Rotation rotation = Seg2D.Rotation(firstVertex, secondVertex, thirdVertex);
+            Rotation rotation = firstVertex.Rotation(secondVertex, thirdVertex);
             if (rotation != Rotation.On)
             {
                 if (States.Rotation == Rotation.On)

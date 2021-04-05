@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector4Fixed
     {
-        public static readonly Vector4Fixed Zero = (Fixed.Zero(), Fixed.Zero(), Fixed.Zero(), Fixed.Zero());
-        public static readonly Vector4Fixed One = (Fixed.One(), Fixed.One(), Fixed.One(), Fixed.One());
+        public static readonly Vector4Fixed Zero = new(Fixed.Zero(), Fixed.Zero(), Fixed.Zero(), Fixed.Zero());
+        public static readonly Vector4Fixed One = new(Fixed.One(), Fixed.One(), Fixed.One(), Fixed.One());
 
         public Fixed X;
         public Fixed Y;
@@ -36,11 +37,6 @@ namespace Helion.Geometry.Vectors
             Y = y;
             Z = z;
             W = w;
-        }
-
-        public static implicit operator Vector4Fixed(ValueTuple<Fixed, Fixed, Fixed, Fixed> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
         }
 
         public void Deconstruct(out Fixed x, out Fixed y, out Fixed z, out Fixed w)
@@ -99,10 +95,6 @@ namespace Helion.Geometry.Vectors
         public static Vec4Fixed operator /(Vector4Fixed self, Vec4Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4Fixed operator /(Vector4Fixed self, Vector4Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4Fixed operator /(Vector4Fixed self, Fixed value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
-        public static bool operator ==(Vector4Fixed self, Vec4Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vector4Fixed self, Vector4Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator !=(Vector4Fixed self, Vec4Fixed other) => !(self == other);
-        public static bool operator !=(Vector4Fixed self, Vector4Fixed other) => !(self == other);
 
         public Vec4Fixed WithX(Fixed x) => new(x, Y, Z, W);
         public Vec4Fixed WithY(Fixed y) => new(X, y, Z, W);

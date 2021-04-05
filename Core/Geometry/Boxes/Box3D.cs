@@ -1,146 +1,224 @@
+﻿// THIS FILE WAS AUTO-GENERATED.
+// CHANGES WILL NOT BE PROPAGATED.
+// ----------------------------------------------------------------------------
+
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
 {
-   /// <summary>
-    /// A two dimensional box, which follows the cartesian coordinate system.
-    /// </summary>
-    public struct Box3D
+    public readonly struct Box3D
     {
-        /// <summary>
-        /// The minimum point in the box. This is equal to the bottom left 
-        /// corner.
-        /// </summary>
-        public Vec3D Min;
+        public static readonly Box3D UnitBox = ((0, 0, 0), (1, 1, 1));
 
-        /// <summary>
-        /// The maximum point in the box. This is equal to the top right 
-        /// corner.
-        /// </summary>
-        public Vec3D Max;
+        public readonly Vec3D Min;
+        public readonly Vec3D Max;
 
-        /// <summary>
-        /// The top value of the box.
-        /// </summary>
-        public double Top => Max.Z;
-        
-        /// <summary>
-        /// The bottom value of the box.
-        /// </summary>
-        public double Bottom => Min.Z;
+        public Vec3D Sides => Max - Min;
 
-        /// <summary>
-        /// Creates a box from a bottom left and top right point. It is an 
-        /// error if the min has any coordinate greater the maximum point.
-        /// </summary>
-        /// <param name="min">The bottom left point.</param>
-        /// <param name="max">The top right point.</param>
-        public Box3D(in Vec3D min, in Vec3D max)
+        public Box3D(Vec3D min, Vec3D max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-            Precondition(min.Z <= max.Z, "Bounding box min Z > max Z");
-
             Min = min;
             Max = max;
         }
-        
-        /// <summary>
-        /// Creates a bigger box from a series of smaller boxes, returning such
-        /// a box that encapsulates minimally all the provided arguments.
-        /// </summary>
-        /// <param name="firstBox">The first box in the sequence.</param>
-        /// <param name="boxes">The remaining boxes, if any.</param>
-        /// <returns>A box that encases all of the args tightly.</returns>
-        public static Box3D Combine(Box3D firstBox, params Box3D[] boxes)
-        {
-            Vec3D min = firstBox.Min;
-            Vec3D max = firstBox.Max;
 
-            foreach (Box3D box in boxes)
+        public Box3D(Vec3D min, Vector3D max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min;
+            Max = max.Struct;
+        }
+
+        public Box3D(Vector3D min, Vec3D max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min.Struct;
+            Max = max;
+        }
+
+        public Box3D(Vector3D min, Vector3D max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min.Struct;
+            Max = max.Struct;
+        }
+
+        public static implicit operator Box3D(ValueTuple<Vec3D, Vec3D> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box3D(ValueTuple<Vec3D, Vector3D> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box3D(ValueTuple<Vector3D, Vec3D> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box3D(ValueTuple<Vector3D, Vector3D> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public void Deconstruct(out Vec3D min, out Vec3D max)
+        {
+            min = Min;
+            max = Max;
+        }
+
+        public static Box3D operator +(Box3D self, Vec3D offset) => new(self.Min + offset, self.Max + offset);
+        public static Box3D operator +(Box3D self, Vector3D offset) => new(self.Min + offset, self.Max + offset);
+        public static Box3D operator -(Box3D self, Vec3D offset) => new(self.Min - offset, self.Max - offset);
+        public static Box3D operator -(Box3D self, Vector3D offset) => new(self.Min - offset, self.Max - offset);
+
+        public bool Contains(Vec3D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y && point.Z > Min.Z && point.Z < Max.Z;
+        public bool Contains(Vector3D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y && point.Z > Min.Z && point.Z < Max.Z;
+        public bool Overlaps2D(in Box2D other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+        public bool Overlaps2D(in Box3D other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+        public bool Overlaps2D(BoundingBox2D other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+        public bool Overlaps2D(BoundingBox3D other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+        public bool Overlaps(in Box3D box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y || Min.Z >= box.Max.Z || Max.Z <= box.Min.Z);
+        public bool Overlaps(BoundingBox3D box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y || Min.Z >= box.Max.Z || Max.Z <= box.Min.Z);
+        public Box3D Combine(params Box3D[] boxes)
+        {
+            Vec3D min = Min;
+            Vec3D max = Max;
+            for (int i = 0; i < boxes.Length; i++)
             {
-                min.X = Math.Min(min.X, box.Min.X);
-                min.Y = Math.Min(min.Y, box.Min.Y);
-                min.Z = Math.Min(min.Z, box.Min.Z);
-                
-                max.X = Math.Max(max.X, box.Max.X);
-                max.Y = Math.Max(max.Y, box.Max.Y);
-                max.Z = Math.Max(max.Z, box.Max.Z);
+                Box3D box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
             }
-
-            return new Box3D(min, max);
+            return new(min, max);
         }
-
-        /// <summary>
-        /// Checks if the boxes overlap. Touching is not considered to be
-        /// overlapping.
-        /// </summary>
-        /// <param name="center">Center position of the first box.</param>
-        /// <param name="radius">Radius of the first box.</param>
-        /// <param name="height">Height of the first box.</param>
-        /// <param name="otherCenter">Center position of the second box.</param>
-        /// <param name="otherRadius">Radius of the second box.</param>
-        /// <param name="otherHeight">Height of the second box.</param>
-        /// <returns>True if they overlap, false if not.</returns>
-        public static bool Overlaps(in Vec3D center, double radius, double height,
-                in Vec3D otherCenter, double otherRadius, double otherHeight)
+        public Box3D Combine(params BoundingBox3D[] boxes)
         {
-            return !(center.X - radius >= otherCenter.X + otherRadius || center.X + radius <= otherCenter.X - otherRadius ||
-                 center.Y - radius >= otherCenter.Y + otherRadius || center.Y + radius <= otherCenter.Y - otherRadius ||
-                 center.Z >= otherCenter.Z + otherHeight || center.Z + height <= otherCenter.Z);
+            Vec3D min = Min;
+            Vec3D max = Max;
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                BoundingBox3D box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
+            }
+            return new(min, max);
         }
-
-        /// <summary>
-        /// Checks if the box contains the point. Being on the edge is not
-        /// considered to be containing.
-        /// </summary>
-        /// <param name="point">The point to check.</param>
-        /// <returns>True if it is inside, false if not.</returns>
-        public bool Contains(Vec2D point)
+        public static Box3D? Combine(IEnumerable<Box3D> items) 
         {
-            return point.X <= Min.X || point.X >= Max.X || point.Y <= Min.Y || point.Y >= Max.Y;
+            if (items.Empty())
+                return null;
+            Box3D initial = items.First();
+            return items.Skip(1).Aggregate(initial, (acc, box) =>
+            {
+                Vec3D min = acc.Min;
+                Vec3D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
+                return new Box3D(min, max);
+            }
+            );
         }
-        
-        /// <summary>
-        /// Checks if the box contains the point. Being on the edge is not
-        /// considered to be containing.
-        /// </summary>
-        /// <param name="point">The point to check.</param>
-        /// <returns>True if it is inside, false if not.</returns>
-        public bool Contains(Vec3D point)
+        public static Box3D? Combine(IEnumerable<BoundingBox3D> items) 
         {
-            return point.X <= Min.X || point.X >= Max.X || 
-                   point.Y <= Min.Y || point.Y >= Max.Y ||
-                   point.Z <= Min.Z || point.Z >= Max.Z;
+            if (items.Empty())
+                return null;
+            Box3D initial = items.First().Struct;
+            return items.Skip(1).Select(s => s.Struct).Aggregate(initial, (acc, box) =>
+            {
+                Vec3D min = acc.Min;
+                Vec3D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
+                return new Box3D(min, max);
+            }
+            );
         }
-
-        /// <summary>
-        /// Checks if the boxes overlap. Touching is not considered to be
-        /// overlapping.
-        /// </summary>
-        /// <param name="box">The other box to check against.</param>
-        /// <returns>True if they overlap, false if not.</returns>
-        public bool Overlaps(in Box3D box)
+        public static Box3D? Bound(IEnumerable<Seg3D> items) 
         {
-            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || 
-                     Min.Y >= box.Max.Y || Max.Y <= box.Min.Y ||
-                     Min.Z >= box.Max.Z || Max.Z <= box.Min.Z);
+            if (items.Empty())
+                return null;
+            Box3D initial = items.First().Box;
+            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
+            {
+                Vec3D min = acc.Min;
+                Vec3D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
+                return new Box3D(min, max);
+            }
+            );
         }
-
-        /// <summary>
-        /// Calculates the sides of this bounding box.
-        /// </summary>
-        /// <returns>The sides of the bounding box.</returns>
-        public Vec3D Sides() => Max - Min;
-        
-        /// <summary>
-        /// Gets a 2-dimensional box by dropping the Z axis.
-        /// </summary>
-        /// <returns>The two dimensional representation of this box.</returns>
-        public Box2D To2D() => new(Min.XY, Max.XY);
-
+        public static Box3D? Bound(IEnumerable<Segment3D> items) 
+        {
+            if (items.Empty())
+                return null;
+            Box3D initial = items.First().Box;
+            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
+            {
+                Vec3D min = acc.Min;
+                Vec3D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
+                return new Box3D(min, max);
+            }
+            );
+        }
+        public static Box3D? Bound<T>(IEnumerable<SegmentT3D<T>> items) where T : Vector3D
+        {
+            if (items.Empty())
+                return null;
+            Box3D initial = items.First().Box;
+            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
+            {
+                Vec3D min = acc.Min;
+                Vec3D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                min.Z = min.Z.Min(box.Min.Z);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                max.Z = max.Z.Max(box.Max.Z);
+                return new Box3D(min, max);
+            }
+            );
+        }
         public override string ToString() => $"({Min}), ({Max})";
     }
 }

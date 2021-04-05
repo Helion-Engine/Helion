@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector3F
     {
-        public static readonly Vector3F Zero = (0, 0, 0);
-        public static readonly Vector3F One = (1, 1, 1);
+        public static readonly Vector3F Zero = new(0, 0, 0);
+        public static readonly Vector3F One = new(1, 1, 1);
 
         public float X;
         public float Y;
@@ -34,11 +35,6 @@ namespace Helion.Geometry.Vectors
             X = x;
             Y = y;
             Z = z;
-        }
-
-        public static implicit operator Vector3F(ValueTuple<float, float, float> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3);
         }
 
         public void Deconstruct(out float x, out float y, out float z)
@@ -92,10 +88,6 @@ namespace Helion.Geometry.Vectors
         public static Vec3F operator /(Vector3F self, Vec3F other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3F operator /(Vector3F self, Vector3F other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3F operator /(Vector3F self, float value) => new(self.X / value, self.Y / value, self.Z / value);
-        public static bool operator ==(Vector3F self, Vec3F other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator ==(Vector3F self, Vector3F other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator !=(Vector3F self, Vec3F other) => !(self == other);
-        public static bool operator !=(Vector3F self, Vector3F other) => !(self == other);
 
         public Vec3F WithX(float x) => new(x, Y, Z);
         public Vec3F WithY(float y) => new(X, y, Z);
@@ -116,6 +108,7 @@ namespace Helion.Geometry.Vectors
             Z /= len;
         }
         public float LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
+        public Vec3F Inverse() => new(1 / X, 1 / Y, 1 / Z);
         public float Length() => MathF.Sqrt(LengthSquared());
         public float DistanceSquared(Vec3F other) => (this - other).LengthSquared();
         public float DistanceSquared(Vector3F other) => (this - other).LengthSquared();

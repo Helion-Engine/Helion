@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public struct Vec2Fixed
     {
-        public static readonly Vec2Fixed Zero = (Fixed.Zero(), Fixed.Zero());
-        public static readonly Vec2Fixed One = (Fixed.One(), Fixed.One());
+        public static readonly Vec2Fixed Zero = new(Fixed.Zero(), Fixed.Zero());
+        public static readonly Vec2Fixed One = new(Fixed.One(), Fixed.One());
 
         public Fixed X;
         public Fixed Y;
@@ -82,9 +83,7 @@ namespace Helion.Geometry.Vectors
         public static Vec2Fixed operator /(Vec2Fixed self, Vector2Fixed other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2Fixed operator /(Vec2Fixed self, Fixed value) => new(self.X / value, self.Y / value);
         public static bool operator ==(Vec2Fixed self, Vec2Fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vec2Fixed self, Vector2Fixed other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2Fixed self, Vec2Fixed other) => !(self == other);
-        public static bool operator !=(Vec2Fixed self, Vector2Fixed other) => !(self == other);
 
         public Vec2Fixed WithX(Fixed x) => new(x, Y);
         public Vec2Fixed WithY(Fixed y) => new(X, y);

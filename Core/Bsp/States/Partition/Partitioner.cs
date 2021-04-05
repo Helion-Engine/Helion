@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
 using Helion.Bsp.States.Miniseg;
-using Helion.Geometry.Segments.Enums;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using NLog;
@@ -203,7 +203,7 @@ namespace Helion.Bsp.States.Partition
             // on the left or the right side of the splitter, so we'll use 
             // that 'opposite' endpoint to check the side we should place the
             // segment on.
-            Vec2D oppositeVertex = segmentToSplit.Opposite(endpoint);
+            BspVertex oppositeVertex = segmentToSplit.Opposite(endpoint);
             Rotation side = splitter.ToSide(oppositeVertex);
             Invariant(side != Rotation.On, "Ambiguous split, segment too small to determine splitter side");
 

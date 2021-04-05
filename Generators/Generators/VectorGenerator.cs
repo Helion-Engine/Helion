@@ -65,6 +65,7 @@ namespace Generators.Generators
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
             w.WriteLine("using GlmSharp;");
+            w.WriteLine("using Helion.Geometry.Segments;");
             w.WriteLine("using Helion.Util.Extensions;");
             w.WriteLine();
             w.WriteNamespaceBlock("Geometry.Vectors", () =>
@@ -92,13 +93,13 @@ namespace Generators.Generators
         {
             if (m_type == Types.Fixed)
             {
-                w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat("Fixed.Zero()", m_dimension)});");
-                w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat("Fixed.One()", m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} Zero = new({CommaSeparateRepeat("Fixed.Zero()", m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} One = new({CommaSeparateRepeat("Fixed.One()", m_dimension)});");
             }
             else
             {
-                w.WriteLine($"public static readonly {ClassName} Zero = ({CommaSeparateRepeat(0, m_dimension)});");
-                w.WriteLine($"public static readonly {ClassName} One = ({CommaSeparateRepeat(1, m_dimension)});");   
+                w.WriteLine($"public static readonly {ClassName} Zero = new({CommaSeparateRepeat(0, m_dimension)});");
+                w.WriteLine($"public static readonly {ClassName} One = new({CommaSeparateRepeat(1, m_dimension)});");   
             }
             
             w.WriteLine();
@@ -161,13 +162,16 @@ namespace Generators.Generators
             });
             w.WriteLine();
 
-            string generics = CommaSeparateRepeat(m_type.PrimitiveType(), m_dimension);
-            w.WithCBlock($"public static implicit operator {ClassName}(ValueTuple<{generics}> tuple)", () =>
+            if (m_isStruct)
             {
-                string[] args = m_fields.Select((f, i) => $"tuple.Item{i + 1}").ToArray();
-                w.WriteLine($"return new({CommaSeparate(args)});");
-            });
-            w.WriteLine();
+                string generics = CommaSeparateRepeat(m_type.PrimitiveType(), m_dimension);
+                w.WithCBlock($"public static implicit operator {ClassName}(ValueTuple<{generics}> tuple)", () =>
+                {
+                    string[] args = m_fields.Select((f, i) => $"tuple.Item{i + 1}").ToArray();
+                    w.WriteLine($"return new({CommaSeparate(args)});");
+                });
+                w.WriteLine();
+            }
         }
 
         private void WriteDeconstructions(CodegenTextWriter w)
@@ -228,10 +232,12 @@ namespace Generators.Generators
             WriteOperatorValue("/", m_type.PrimitiveType(), selfValue, true);
             
             string equality = string.Join(" && ", selfOther.Select(pair => $"{pair.Item1} == {pair.Item2}"));
-            w.WriteLine($"public static bool operator ==({ClassName} self, {StructType} other) => {equality};");
-            w.WriteLine($"public static bool operator ==({ClassName} self, {InstanceType} other) => {equality};");
-            w.WriteLine($"public static bool operator !=({ClassName} self, {StructType} other) => !(self == other);");
-            w.WriteLine($"public static bool operator !=({ClassName} self, {InstanceType} other) => !(self == other);");
+            if (m_isStruct)
+            {
+                w.WriteLine($"public static bool operator ==({ClassName} self, {StructType} other) => {equality};");
+                w.WriteLine($"public static bool operator !=({ClassName} self, {StructType} other) => !(self == other);");
+            }
+            
             w.WriteLine();
 
             string Fuse(string join, (string, string)[] pairs)
@@ -322,7 +328,20 @@ namespace Generators.Generators
 
                 string len = string.Join(" + ", m_fields.Select(f => $"({f} * {f})"));
                 w.WriteLine($"public {m_type.PrimitiveType()} LengthSquared() => {len};");
-                
+
+                if (m_type.IsFloatingPointPrimitive())
+                {
+                    string inv = CommaSeparate(m_fields.Select(f => $"1 / {f}").ToArray());
+                    w.WriteLine($"public {StructType} Inverse() => new({inv});");
+                }
+
+                if (m_dimension == 2 && m_type.IsFloatingPointPrimitive())
+                {
+                    string epsilon = m_type == Types.Double ? "0.000001" : "0.0001f";
+                    w.WriteLine($"public Rotation Rotation({StructType} second, {StructType} third, {m_type.PrimitiveType()} epsilon = {epsilon}) => new Seg2{m_type.GetShorthand()}(this, second).ToSide(third, epsilon);");
+                    w.WriteLine($"public Rotation Rotation({InstanceType} second, {InstanceType} third, {m_type.PrimitiveType()} epsilon = {epsilon}) => new Seg2{m_type.GetShorthand()}(this, second).ToSide(third, epsilon);");
+                }
+                    
                 w.WriteLine($"public {m_type.PrimitiveType()} Length() => {MathClass}.Sqrt(LengthSquared());");
                 w.WriteLine($"public {m_type.PrimitiveType()} DistanceSquared({StructType} other) => (this - other).LengthSquared();");
                 w.WriteLine($"public {m_type.PrimitiveType()} DistanceSquared({InstanceType} other) => (this - other).LengthSquared();");

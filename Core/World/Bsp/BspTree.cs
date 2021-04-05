@@ -197,8 +197,8 @@ namespace Helion.World.Bsp
         {
             List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
 
-            List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Cast<Seg2D>().ToList();
-            Box2D bbox = Box2D.BoundSegments(clockwiseDoubleSegments);
+            List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => s.Struct).ToList();
+            Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
 
             Sector sector = GetSectorFrom(node, builder);
             Subsector subsector = new((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
@@ -214,7 +214,7 @@ namespace Helion.World.Bsp
             foreach (SubsectorEdge edge in node.ClockwiseEdges)
             {
                 Side? side = GetSideFromEdge(edge, builder);
-                SubsectorSegment subsectorEdge = new SubsectorSegment(Segments.Count, side, edge.Start, edge.End);
+                SubsectorSegment subsectorEdge = new(Segments.Count, side, edge.Start, edge.End);
 
                 returnSegments.Add(subsectorEdge);
                 Segments.Add(subsectorEdge);
@@ -260,7 +260,7 @@ namespace Helion.World.Bsp
             BspCreateResult right = RecursivelyCreateComponents(node.Right, builder);
             Box2D bbox = MakeBoundingBoxFrom(left, right);
 
-            BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter, bbox);
+            BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter.Struct, bbox);
             Nodes[m_nextNodeIndex] = compactNode;
 
             return BspCreateResult.Node(m_nextNodeIndex++);
@@ -270,13 +270,13 @@ namespace Helion.World.Bsp
         {
             Box2D leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
             Box2D rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
-            return Box2D.Combine(leftBox, rightBox);
+            return leftBox.Combine(rightBox);
         }
 
         private void HandleSingleSubsectorTree()
         {
             Subsector subsector = Subsectors[0];
-            var edge = subsector.ClockwiseEdges[0];
+            SubsectorSegment edge = subsector.ClockwiseEdges[0];
             Seg2D splitter = new Seg2D(edge.Start, edge.End);
             Box2D box = subsector.BoundingBox;
 

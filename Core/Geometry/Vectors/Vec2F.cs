@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public struct Vec2F
     {
-        public static readonly Vec2F Zero = (0, 0);
-        public static readonly Vec2F One = (1, 1);
+        public static readonly Vec2F Zero = new(0, 0);
+        public static readonly Vec2F One = new(1, 1);
 
         public float X;
         public float Y;
@@ -82,9 +83,7 @@ namespace Helion.Geometry.Vectors
         public static Vec2F operator /(Vec2F self, Vector2F other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2F operator /(Vec2F self, float value) => new(self.X / value, self.Y / value);
         public static bool operator ==(Vec2F self, Vec2F other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vec2F self, Vector2F other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2F self, Vec2F other) => !(self == other);
-        public static bool operator !=(Vec2F self, Vector2F other) => !(self == other);
 
         public Vec2F WithX(float x) => new(x, Y);
         public Vec2F WithY(float y) => new(X, y);
@@ -98,6 +97,9 @@ namespace Helion.Geometry.Vectors
         public Vec2F Unit() => this / Length();
         public void Normalize() => this /= Length();
         public float LengthSquared() => (X * X) + (Y * Y);
+        public Vec2F Inverse() => new(1 / X, 1 / Y);
+        public Rotation Rotation(Vec2F second, Vec2F third, float epsilon = 0.0001f) => new Seg2F(this, second).ToSide(third, epsilon);
+        public Rotation Rotation(Vector2F second, Vector2F third, float epsilon = 0.0001f) => new Seg2F(this, second).ToSide(third, epsilon);
         public float Length() => MathF.Sqrt(LengthSquared());
         public float DistanceSquared(Vec2F other) => (this - other).LengthSquared();
         public float DistanceSquared(Vector2F other) => (this - other).LengthSquared();

@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector2Fixed
     {
-        public static readonly Vector2Fixed Zero = (Fixed.Zero(), Fixed.Zero());
-        public static readonly Vector2Fixed One = (Fixed.One(), Fixed.One());
+        public static readonly Vector2Fixed Zero = new(Fixed.Zero(), Fixed.Zero());
+        public static readonly Vector2Fixed One = new(Fixed.One(), Fixed.One());
 
         public Fixed X;
         public Fixed Y;
@@ -29,11 +30,6 @@ namespace Helion.Geometry.Vectors
         {
             X = x;
             Y = y;
-        }
-
-        public static implicit operator Vector2Fixed(ValueTuple<Fixed, Fixed> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
         }
 
         public void Deconstruct(out Fixed x, out Fixed y)
@@ -82,10 +78,6 @@ namespace Helion.Geometry.Vectors
         public static Vec2Fixed operator /(Vector2Fixed self, Vec2Fixed other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2Fixed operator /(Vector2Fixed self, Vector2Fixed other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2Fixed operator /(Vector2Fixed self, Fixed value) => new(self.X / value, self.Y / value);
-        public static bool operator ==(Vector2Fixed self, Vec2Fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vector2Fixed self, Vector2Fixed other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vector2Fixed self, Vec2Fixed other) => !(self == other);
-        public static bool operator !=(Vector2Fixed self, Vector2Fixed other) => !(self == other);
 
         public Vec2Fixed WithX(Fixed x) => new(x, Y);
         public Vec2Fixed WithY(Fixed y) => new(X, y);

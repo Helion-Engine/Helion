@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector4I
     {
-        public static readonly Vector4I Zero = (0, 0, 0, 0);
-        public static readonly Vector4I One = (1, 1, 1, 1);
+        public static readonly Vector4I Zero = new(0, 0, 0, 0);
+        public static readonly Vector4I One = new(1, 1, 1, 1);
 
         public int X;
         public int Y;
@@ -36,11 +37,6 @@ namespace Helion.Geometry.Vectors
             Y = y;
             Z = z;
             W = w;
-        }
-
-        public static implicit operator Vector4I(ValueTuple<int, int, int, int> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
         }
 
         public void Deconstruct(out int x, out int y, out int z, out int w)
@@ -99,10 +95,6 @@ namespace Helion.Geometry.Vectors
         public static Vec4I operator /(Vector4I self, Vec4I other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4I operator /(Vector4I self, Vector4I other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4I operator /(Vector4I self, int value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
-        public static bool operator ==(Vector4I self, Vec4I other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vector4I self, Vector4I other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator !=(Vector4I self, Vec4I other) => !(self == other);
-        public static bool operator !=(Vector4I self, Vector4I other) => !(self == other);
 
         public Vec4I WithX(int x) => new(x, Y, Z, W);
         public Vec4I WithY(int y) => new(X, y, Z, W);

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Helion.Bsp.Geometry;
-using Helion.Geometry.Segments.Enums;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
@@ -58,14 +58,9 @@ namespace Helion.Bsp.States.Split
 
         private static double CalculateDistanceToNearestEndpoint(BspSegment segment, double tSegment)
         {
-            Vec2D endpointVertex = (tSegment < 0.5 ? segment.Start : segment.End);
+            Vec2D endpointVertex = (tSegment < 0.5 ? segment.Start.Struct : segment.End.Struct);
             Vec2D intersectionPoint = segment.FromTime(tSegment);
             return endpointVertex.Distance(intersectionPoint);
-        }
-
-        private static bool IsAxisAligned(BspSegment seg)
-        {
-            return seg.Direction == SegmentDirection.Vertical || seg.Direction == SegmentDirection.Horizontal;
         }
 
         private static bool CheckEndpointEpsilon(double distance, double epsilon)
@@ -109,7 +104,7 @@ namespace Helion.Bsp.States.Split
             SplitWeights splitWeights = m_bspConfig.SplitWeights;
             int score = 0;
 
-            if (!IsAxisAligned(splitter))
+            if (!splitter.IsAxisAligned)
                 score += splitWeights.NotAxisAlignedScore;
 
             int splitCount = 0;

@@ -8,7 +8,7 @@ namespace Helion.World.Geometry.Subsectors
     /// <summary>
     /// An edge of a subsector.
     /// </summary>
-    public class SubsectorSegment : Seg2D
+    public class SubsectorSegment : Segment2D
     {
         /// <summary>
         /// The unique ID for the segment.

@@ -1,7 +1,5 @@
 using Helion.Bsp.Repairer;
-using Helion.Geometry.Graphs;
 using Helion.Geometry.Segments;
-using Helion.Geometry.Segments.Enums;
 using Helion.Maps.Components;
 using static Helion.Util.Assertion.Assert;
 
@@ -11,7 +9,7 @@ namespace Helion.Bsp.Geometry
     /// A BSP segment that contains extra line information in addition to a
     /// double-based segment.
     /// </summary>
-    public class BspSegment : Seg2D, IGraphEdge
+    public class BspSegment : SegmentT2D<BspVertex>
     {
         /// <summary>
         /// The constants for no sector existing.
@@ -86,9 +84,9 @@ namespace Helion.Bsp.Geometry
         /// <param name="line">The line (if any, this being null implies it is
         /// a miniseg).</param>
         public BspSegment(BspVertex start, BspVertex end, int collinearIndex, IBspUsableLine? line = null) : 
-            base(start.Position, end.Position)
+            base(start, end)
         {
-            Precondition(start != end, "BSP segment shouldn't have a start and end index being the same");
+            Precondition(!ReferenceEquals(start, end), "BSP segment shouldn't have a start and end index being the same");
 
             StartVertex = start;
             EndVertex = end;
@@ -98,7 +96,7 @@ namespace Helion.Bsp.Geometry
             start.Edges.Add(this);
             end.Edges.Add(this);
 
-            Postcondition(Length() >= 0.00001, "Extremely small BSP segment detected");
+            Postcondition(Length >= 0.00001, "Extremely small BSP segment detected");
         }
 
         /// <summary>
@@ -175,10 +173,6 @@ namespace Helion.Bsp.Geometry
                    EndIndex == segment.StartIndex ||
                    EndIndex == segment.EndIndex;
         }
-
-        public IGraphVertex GetStart() => StartVertex;
-
-        public IGraphVertex GetEnd() => EndVertex;
         
         public override string ToString()
         {

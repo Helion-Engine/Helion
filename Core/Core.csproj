@@ -58,12 +58,4 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Geometry\Circles" />
-    <Folder Include="Geometry\Lines" />
-    <Folder Include="Geometry\Rays" />
-    <Folder Include="Geometry\Spheres" />
-    <Folder Include="Geometry\Triangles" />
-  </ItemGroup>
 </Project>

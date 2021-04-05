@@ -1,183 +1,145 @@
+﻿// THIS FILE WAS AUTO-GENERATED.
+// CHANGES WILL NOT BE PROPAGATED.
+// ----------------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Util;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
 {
-    /// <summary>
-    /// A two dimensional box, which follows the cartesian coordinate system.
-    /// </summary>
-    public struct Box2Fixed
+    public readonly struct Box2Fixed
     {
-        /// <summary>
-        /// The minimum point in the box. This is equal to the bottom left 
-        /// corner.
-        /// </summary>
-        public Vec2Fixed Min;
+        public readonly Vec2Fixed Min;
+        public readonly Vec2Fixed Max;
 
-        /// <summary>
-        /// The maximum point in the box. This is equal to the top right 
-        /// corner.
-        /// </summary>
-        public Vec2Fixed Max;
-
-        /// <summary>
-        /// The top left corner of the box.
-        /// </summary>
-        public Vec2Fixed TopLeft => new Vec2Fixed(Min.X, Max.Y);
-
-        /// <summary>
-        /// The bottom left corner of the box.
-        /// </summary>
+        public Vec2Fixed TopLeft => new(Min.X, Max.Y);
         public Vec2Fixed BottomLeft => Min;
-
-        /// <summary>
-        /// The bottom right corner of the box.
-        /// </summary>
-        public Vec2Fixed BottomRight => new Vec2Fixed(Max.X, Min.Y);
-
-        /// <summary>
-        /// The top right corner of the box.
-        /// </summary>
+        public Vec2Fixed BottomRight => new(Max.X, Min.Y);
         public Vec2Fixed TopRight => Max;
-        
-        /// <summary>
-        /// The top value of the box.
-        /// </summary>
         public Fixed Top => Max.Y;
-        
-        /// <summary>
-        /// The bottom value of the box.
-        /// </summary>
         public Fixed Bottom => Min.Y;
-        
-        /// <summary>
-        /// The left value of the box.
-        /// </summary>
         public Fixed Left => Min.X;
-        
-        /// <summary>
-        /// The right value of the box.
-        /// </summary>
         public Fixed Right => Max.X;
-                
-        /// <summary>
-        /// A property that calculates the width of the box.
-        /// </summary>
         public Fixed Width => Max.X - Min.X;
-        
-        /// <summary>
-        /// A property that calculates the height of the box.
-        /// </summary>
         public Fixed Height => Max.Y - Min.Y;
+        public Vec2Fixed Sides => Max - Min;
 
-        /// <summary>
-        /// Creates a box from a bottom left and top right point. It is an 
-        /// error if the min has any coordinate greater the maximum point.
-        /// </summary>
-        /// <param name="min">The bottom left point.</param>
-        /// <param name="max">The top right point.</param>
         public Box2Fixed(Vec2Fixed min, Vec2Fixed max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-
             Min = min;
             Max = max;
         }
 
-        /// <summary>
-        /// Creates a bigger box from a series of smaller boxes, returning such
-        /// a box that encapsulates minimally all the provided arguments.
-        /// </summary>
-        /// <param name="firstBox">The first box in the sequence.</param>
-        /// <param name="boxes">The remaining boxes, if any.</param>
-        /// <returns>A box that encases all of the args tightly.</returns>
-        public static Box2Fixed Combine(Box2Fixed firstBox, params Box2Fixed[] boxes)
+        public Box2Fixed(Vec2Fixed min, Vector2Fixed max)
         {
-            Vec2Fixed min = firstBox.Min;
-            Vec2Fixed max = firstBox.Max;
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min;
+            Max = max.Struct;
+        }
 
-            foreach (Box2Fixed box in boxes)
+        public Box2Fixed(Vector2Fixed min, Vec2Fixed max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min.Struct;
+            Max = max;
+        }
+
+        public Box2Fixed(Vector2Fixed min, Vector2Fixed max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min.Struct;
+            Max = max.Struct;
+        }
+
+        public Box2Fixed(Vec2Fixed center, Fixed radius)
+        {
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+            Min = new(center.X - radius, center.Y - radius);
+            Max = new(center.X + radius, center.Y + radius);
+        }
+
+        public Box2Fixed(Vector2Fixed center, Fixed radius)
+        {
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+            Min = new(center.X - radius, center.Y - radius);
+            Max = new(center.X + radius, center.Y + radius);
+        }
+
+        public static implicit operator Box2Fixed(ValueTuple<Vec2Fixed, Vec2Fixed> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box2Fixed(ValueTuple<Vec2Fixed, Vector2Fixed> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box2Fixed(ValueTuple<Vector2Fixed, Vec2Fixed> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box2Fixed(ValueTuple<Vector2Fixed, Vector2Fixed> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public void Deconstruct(out Vec2Fixed min, out Vec2Fixed max)
+        {
+            min = Min;
+            max = Max;
+        }
+
+        public static Box2Fixed operator +(Box2Fixed self, Vec2Fixed offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2Fixed operator +(Box2Fixed self, Vector2Fixed offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2Fixed operator -(Box2Fixed self, Vec2Fixed offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2Fixed operator -(Box2Fixed self, Vector2Fixed offset) => new(self.Min - offset, self.Max - offset);
+
+        public bool Contains(Vec2Fixed point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vector2Fixed point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vec3Fixed point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vector3Fixed point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Overlaps(in Box2Fixed box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        public bool Overlaps(BoundingBox2Fixed box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        public Box2Fixed Combine(params Box2Fixed[] boxes)
+        {
+            Vec2Fixed min = Min;
+            Vec2Fixed max = Max;
+            for (int i = 0; i < boxes.Length; i++)
             {
-                min.X = MathHelper.Min(min.X, box.Min.X);
-                min.Y = MathHelper.Min(min.Y, box.Min.Y);
-                max.X = MathHelper.Max(max.X, box.Max.X);
-                max.Y = MathHelper.Max(max.Y, box.Max.Y);
+                Box2Fixed box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
             }
-
-            return new Box2Fixed(min, max);
+            return new(min, max);
         }
-
-        /// <summary>
-        /// Bounds all the segments by a tight axis aligned bounding box.
-        /// </summary>
-        /// <param name="segments">The segments to bound. This should contain
-        /// at least one element.</param>
-        /// <returns>A box that bounds the segments.</returns>
-        public static Box2Fixed BoundSegments(List<Seg2Fixed> segments)
+        public Box2Fixed Combine(params BoundingBox2Fixed[] boxes)
         {
-            Precondition(segments.Count > 0, "Cannot bound segments when none are provided");
-
-            return Combine(segments.First().Box, segments.Skip(1).Select(s => s.Box).ToArray());
+            Vec2Fixed min = Min;
+            Vec2Fixed max = Max;
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                BoundingBox2Fixed box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+            }
+            return new(min, max);
         }
-
-        /// <summary>
-        /// Checks if the box contains the point. Being on the edge is not
-        /// considered to be containing.
-        /// </summary>
-        /// <param name="point">The point to check.</param>
-        /// <returns>True if it is inside, false if not.</returns>
-        [Pure]
-        public bool Contains(Vec2Fixed point)
-        {
-            return point.X <= Min.X || point.X >= Max.X || point.Y <= Min.Y || point.Y >= Max.Y;
-        }
-
-        /// <summary>
-        /// Checks if the box contains the point. Being on the edge is not
-        /// considered to be containing.
-        /// </summary>
-        /// <param name="point">The point to check.</param>
-        /// <returns>True if it is inside, false if not.</returns>
-        [Pure]
-        public bool Contains(Vec3Fixed point)
-        {
-            return point.X <= Min.X || point.X >= Max.X || point.Y <= Min.Y || point.Y >= Max.Y;
-        }
-
-        /// <summary>
-        /// Checks if the boxes overlap. Touching is not considered to be
-        /// overlapping.
-        /// </summary>
-        /// <param name="box">The other box to check against.</param>
-        /// <returns>True if they overlap, false if not.</returns>
-        [Pure]
-        public bool Overlaps(Box2Fixed box)
-        {
-            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
-        }
-
-        /// <summary>
-        /// Checks for an intersection with a segment. This will invoke
-        /// <see cref="Seg2Fixed.Intersects(Box2Fixed)"/>.
-        /// </summary>
-        /// <param name="seg">The seg to check against.</param>
-        /// <returns>True if it intersects, false if not.</returns>
-        [Pure]
-        public bool Intersects(Seg2Fixed seg) => seg.Intersects(this);
-
-        /// <summary>
-        /// Calculates the sides of this bounding box.
-        /// </summary>
-        /// <returns>The sides of the bounding box.</returns>
-        [Pure]
-        public Vec2Fixed Sides() => Max - Min;
-
         public override string ToString() => $"({Min}), ({Max})";
     }
 }

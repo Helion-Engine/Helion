@@ -1,4 +1,4 @@
-namespace Helion.Geometry.Segments.Enums
+namespace Helion.Geometry.Segments
 {
     /// <summary>
     /// A rotation with respect to a segment.

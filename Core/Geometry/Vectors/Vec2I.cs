@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public struct Vec2I
     {
-        public static readonly Vec2I Zero = (0, 0);
-        public static readonly Vec2I One = (1, 1);
+        public static readonly Vec2I Zero = new(0, 0);
+        public static readonly Vec2I One = new(1, 1);
 
         public int X;
         public int Y;
@@ -82,9 +83,7 @@ namespace Helion.Geometry.Vectors
         public static Vec2I operator /(Vec2I self, Vector2I other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2I operator /(Vec2I self, int value) => new(self.X / value, self.Y / value);
         public static bool operator ==(Vec2I self, Vec2I other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vec2I self, Vector2I other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2I self, Vec2I other) => !(self == other);
-        public static bool operator !=(Vec2I self, Vector2I other) => !(self == other);
 
         public Vec2I WithX(int x) => new(x, Y);
         public Vec2I WithY(int y) => new(X, y);

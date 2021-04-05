@@ -4,11 +4,11 @@ namespace Helion.World.Physics
 {
     public struct BoxCornerTracers
     {
-        public readonly Seg2DBase First;
-        public readonly Seg2DBase Second;
-        public readonly Seg2DBase Third;
+        public readonly Seg2D First;
+        public readonly Seg2D Second;
+        public readonly Seg2D Third;
 
-        public BoxCornerTracers(Seg2DBase first, Seg2DBase second, Seg2DBase third)
+        public BoxCornerTracers(Seg2D first, Seg2D second, Seg2D third)
         {
             First = first;
             Second = second;

@@ -128,7 +128,7 @@ namespace Helion.World.Entities
         /// entity (so the entity can destroy itself if needed).</param>
         /// <param name="soundManager">The sound manager to which we can play
         /// any sounds with.</param>
-        /// /// <param name="world">The world this entity belongs to.</param>
+        /// <param name="world">The world this entity belongs to.</param>
         public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
         {

@@ -1,280 +1,301 @@
+﻿// THIS FILE WAS AUTO-GENERATED.
+// CHANGES WILL NOT BE PROPAGATED.
+// ----------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.World.Entities;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
 {
-    /// <summary>
-    /// A two dimensional box, which follows the cartesian coordinate system.
-    /// </summary>
-    public struct Box2D
+    public readonly struct Box2D
     {
-        /// <summary>
-        /// A box that goes from (0, 0) to (1, 1).
-        /// </summary>
-        public static readonly Box2D ZeroToOne = new(Vec2D.Zero, Vec2D.One);
+        public static readonly Box2D UnitBox = ((0, 0), (1, 1));
 
-        /// <summary>
-        /// The minimum point in the box. This is equal to the bottom left
-        /// corner.
-        /// </summary>
-        public Vec2D Min;
+        public readonly Vec2D Min;
+        public readonly Vec2D Max;
 
-        /// <summary>
-        /// The maximum point in the box. This is equal to the top right
-        /// corner.
-        /// </summary>
-        public Vec2D Max;
-
-        /// <summary>
-        /// The top left corner of the box.
-        /// </summary>
-        public Vec2D TopLeft => new Vec2D(Min.X, Max.Y);
-
-        /// <summary>
-        /// The bottom left corner of the box.
-        /// </summary>
+        public Vec2D TopLeft => new(Min.X, Max.Y);
         public Vec2D BottomLeft => Min;
-
-        /// <summary>
-        /// The bottom right corner of the box.
-        /// </summary>
-        public Vec2D BottomRight => new Vec2D(Max.X, Min.Y);
-
-        /// <summary>
-        /// The top right corner of the box.
-        /// </summary>
+        public Vec2D BottomRight => new(Max.X, Min.Y);
         public Vec2D TopRight => Max;
-
-        /// <summary>
-        /// The top value of the box.
-        /// </summary>
         public double Top => Max.Y;
-
-        /// <summary>
-        /// The bottom value of the box.
-        /// </summary>
         public double Bottom => Min.Y;
-
-        /// <summary>
-        /// The left value of the box.
-        /// </summary>
         public double Left => Min.X;
-
-        /// <summary>
-        /// The right value of the box.
-        /// </summary>
         public double Right => Max.X;
-
-        /// <summary>
-        /// A property that calculates the width of the box.
-        /// </summary>
         public double Width => Max.X - Min.X;
-
-        /// <summary>
-        /// A property that calculates the height of the box.
-        /// </summary>
         public double Height => Max.Y - Min.Y;
+        public Vec2D Sides => Max - Min;
 
-        /// <summary>
-        /// Creates a box from a bottom left and top right point. It is an
-        /// error if the min has any coordinate greater the maximum point.
-        /// </summary>
-        /// <param name="min">The bottom left point.</param>
-        /// <param name="max">The top right point.</param>
         public Box2D(Vec2D min, Vec2D max)
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
-
             Min = min;
             Max = max;
         }
 
-        /// <summary>
-        /// Creates a bigger box from a series of smaller boxes, returning such
-        /// a box that encapsulates minimally all the provided arguments.
-        /// </summary>
-        /// <param name="firstBox">The first box in the sequence.</param>
-        /// <param name="boxes">The remaining boxes, if any.</param>
-        /// <returns>A box that encases all of the args tightly.</returns>
-        public static Box2D Combine(Box2D firstBox, params Box2D[] boxes)
+        public Box2D(Vec2D min, Vector2D max)
         {
-            Vec2D min = firstBox.Min;
-            Vec2D max = firstBox.Max;
-
-            foreach (Box2D box in boxes)
-            {
-                min.X = Math.Min(min.X, box.Min.X);
-                min.Y = Math.Min(min.Y, box.Min.Y);
-                max.X = Math.Max(max.X, box.Max.X);
-                max.Y = Math.Max(max.Y, box.Max.Y);
-            }
-
-            return new Box2D(min, max);
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min;
+            Max = max.Struct;
         }
 
-        /// <summary>
-        /// Bounds all the segments by a tight axis aligned bounding box.
-        /// </summary>
-        /// <param name="segments">The segments to bound. This should contain
-        /// at least one element.</param>
-        /// <returns>A box that bounds the segments.</returns>
-        public static Box2D BoundSegments(List<Seg2D> segments)
+        public Box2D(Vector2D min, Vec2D max)
         {
-            Precondition(segments.Count > 0, "Cannot bound segments when none are provided");
-
-            return Combine(segments.First().Box, segments.Skip(1).Select(s => s.Box).ToArray());
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min.Struct;
+            Max = max;
         }
 
-        /// <summary>
-        /// Takes some offset delta and creates a copy of the box at the offset
-        /// provided.
-        /// </summary>
-        /// <param name="offset">The absolute center coordinate.</param>
-        /// <param name="radius">The radius of the box.</param>
-        /// <returns>The box at the position.</returns>
-        public static Box2D CopyToOffset(in Vec2D offset, double radius)
+        public Box2D(Vector2D min, Vector2D max)
         {
-            Vec2D newMin = new Vec2D(offset.X - radius, offset.Y - radius);
-            Vec2D newMax = new Vec2D(offset.X + radius, offset.Y + radius);
-            return new Box2D(newMin, newMax);
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            Min = min.Struct;
+            Max = max.Struct;
         }
 
-        /// <summary>
-        /// Checks if the box contains the point. Being on the edge is not
-        /// considered to be containing.
-        /// </summary>
-        /// <param name="point">The point to check.</param>
-        /// <returns>True if it is inside, false if not.</returns>
-        [Pure]
-        public bool Contains(Vec2D point)
+        public Box2D(Vec2D center, double radius)
         {
-            return point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+            Min = new(center.X - radius, center.Y - radius);
+            Max = new(center.X + radius, center.Y + radius);
         }
 
-        /// <summary>
-        /// Checks if the box contains the point. Being on the edge is not
-        /// considered to be containing.
-        /// </summary>
-        /// <param name="point">The point to check.</param>
-        /// <returns>True if it is inside, false if not.</returns>
-        [Pure]
-        public bool Contains(Vec3D point)
+        public Box2D(Vector2D center, double radius)
         {
-            return point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+            Min = new(center.X - radius, center.Y - radius);
+            Max = new(center.X + radius, center.Y + radius);
         }
 
-        /// <summary>
-        /// Checks if the boxes overlap. Touching is not considered to be
-        /// overlapping.
-        /// </summary>
-        /// <param name="box">The other box to check against.</param>
-        /// <returns>True if they overlap, false if not.</returns>
-        [Pure]
-        public bool Overlaps(in Box2D box)
+        public static implicit operator Box2D(ValueTuple<Vec2D, Vec2D> tuple)
         {
-            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+            return new(tuple.Item1, tuple.Item2);
         }
 
-        [Pure]
-        public bool Overlaps(in EntityBox box)
+        public static implicit operator Box2D(ValueTuple<Vec2D, Vector2D> tuple)
         {
-            return !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+            return new(tuple.Item1, tuple.Item2);
         }
 
-        /// <summary>
-        /// Checks for an intersection with a segment.
-        /// </summary>
-        /// <param name="seg">The seg to check against.</param>
-        /// <returns>True if it intersects, false if not.</returns>
-        [Pure]
+        public static implicit operator Box2D(ValueTuple<Vector2D, Vec2D> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public static implicit operator Box2D(ValueTuple<Vector2D, Vector2D> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
+        }
+
+        public void Deconstruct(out Vec2D min, out Vec2D max)
+        {
+            min = Min;
+            max = Max;
+        }
+
+        public static Box2D operator +(Box2D self, Vec2D offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2D operator +(Box2D self, Vector2D offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2D operator -(Box2D self, Vec2D offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2D operator -(Box2D self, Vector2D offset) => new(self.Min - offset, self.Max - offset);
+
+        public bool Contains(Vec2D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vector2D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vec3D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vector3D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Overlaps(in Box2D box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        public bool Overlaps(BoundingBox2D box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
         public bool Intersects(Seg2D seg) => seg.Intersects(this);
-
-        /// <summary>
-        /// Gets the closest edge to some point. If along diagonals, it instead
-        /// will return the diagonal.
-        /// </summary>
-        /// <param name="position">The position to look from.</param>
-        /// <returns>The start and end points along the bounding box.</returns>
-        [Pure]
-        public (Vec2D, Vec2D) GetSpanningEdge(in Vec2D position)
-        {
-            // This is best understood by asking ourselves how we'd classify
-            // where we are along a 1D line. Suppose we want to find out which
-            // one of the spans were in along the X axis:
-            //
-            //      0     1     2
-            //   A-----B-----C-----D
-            //
-            // We want to know if we're in span 0, 1, or 2. We can just check
-            // by doing `if x > B` for span 1 or 2, and `if x > C` for span 2.
-            // Instead of doing if statements, we can just cast the bool to an
-            // int and add them up.
-            //
-            // Next we do this along the Y axis.
-            //
-            // After our results, we can merge the bits such that the higher
-            // two bits are the Y value, and the lower 2 bits are the X value.
-            // This gives us: 0bYYXX.
-            //
-            // Since each coordinate in the following image has its own unique
-            // bitcode, we can switch on the bitcode to get the corners.
-            //
-            //       XY values           Binary codes
-            //
-            //      02 | 12 | 22       1000|1001|1010
-            //         |    |           8  | 9  | A
-            //     ----o----o----      ----o----o----
-            //      01 | 11 | 21       0100|0101|0110
-            //         |    |           4  | 5  | 6
-            //     ----o----o----      ----o----o----
-            //      00 | 10 | 20       0000|0001|0010
-            //         |    |           0  | 1  | 2
-            //
-            // Note this is my optimization to the Cohen-Sutherland algorithm
-            // bitcode detector.
-            uint horizontalBits = Convert.ToUInt32(position.X > Left) + Convert.ToUInt32(position.X > Right);
-            uint verticalBits = Convert.ToUInt32(position.Y > Bottom) + Convert.ToUInt32(position.Y > Top);
-
-            switch (horizontalBits | (verticalBits << 2))
+        public bool Intersects(Segment2D seg) => seg.Intersects(this);
+        public bool Intersects<T>(SegmentT2D<T> seg) where T : Vector2D => seg.Intersects(this);
+        public Seg2D GetSpanningEdge(Vector2D position) => GetSpanningEdge(position.Struct);
+        public Seg2D GetSpanningEdge(Vec2D position)
             {
-            case 0x0: // Bottom left
-                return (TopLeft, BottomRight);
-            case 0x1: // Bottom middle
-                return (BottomLeft, BottomRight);
-            case 0x2: // Bottom right
-                return (BottomLeft, TopRight);
-            case 0x4: // Middle left
-                return (TopLeft, BottomLeft);
-            case 0x5: // Center (this shouldn't be a case via precondition).
-                return (TopLeft, BottomRight);
-            case 0x6: // Middle right
-                return (BottomRight, TopRight);
-            case 0x8: // Top left
-                return (TopRight, BottomLeft);
-            case 0x9: // Top middle
-                return (TopRight, TopLeft);
-            case 0xA: // Top right
-                return (BottomRight, TopLeft);
-            default:
-                Fail("Unexpected spanning edge bit code");
-                return (TopLeft, BottomRight);
+                // This is best understood by asking ourselves how we'd classify
+                // where we are along a 1D line. Suppose we want to find out which
+                // one of the spans were in along the X axis:
+                //
+                //      0     1     2
+                //   A-----B-----C-----D
+                //
+                // We want to know if we're in span 0, 1, or 2. We can just check
+                // by doing `if x > B` for span 1 or 2, and `if x > C` for span 2.
+                // Instead of doing if statements, we can just cast the bool to an
+                // int and add them up.
+                //
+                // Next we do this along the Y axis.
+                //
+                // After our results, we can merge the bits such that the higher
+                // two bits are the Y value, and the lower 2 bits are the X value.
+                // This gives us: 0bYYXX.
+                //
+                // Since each coordinate in the following image has its own unique
+                // bitcode, we can switch on the bitcode to get the corners.
+                //
+                //       XY values           Binary codes
+                //
+                //      02 | 12 | 22       1000|1001|1010
+                //         |    |           8  | 9  | A
+                //     ----o----o----      ----o----o----
+                //      01 | 11 | 21       0100|0101|0110
+                //         |    |           4  | 5  | 6
+                //     ----o----o----      ----o----o----
+                //      00 | 10 | 20       0000|0001|0010
+                //         |    |           0  | 1  | 2
+                //
+                // Note this is my optimization to the Cohen-Sutherland algorithm
+                // bitcode detector.
+                uint horizontalBits = Convert.ToUInt32(position.X > Left) + Convert.ToUInt32(position.X > Right);
+                uint verticalBits = Convert.ToUInt32(position.Y > Bottom) + Convert.ToUInt32(position.Y > Top);
+
+                switch (horizontalBits | (verticalBits << 2))
+                {
+                case 0x0: // Bottom left
+                    return (TopLeft, BottomRight);
+                case 0x1: // Bottom middle
+                    return (BottomLeft, BottomRight);
+                case 0x2: // Bottom right
+                    return (BottomLeft, TopRight);
+                case 0x4: // Middle left
+                    return (TopLeft, BottomLeft);
+                case 0x5: // Center (this shouldn't be a case via precondition).
+                    return (TopLeft, BottomRight);
+                case 0x6: // Middle right
+                    return (BottomRight, TopRight);
+                case 0x8: // Top left
+                    return (TopRight, BottomLeft);
+                case 0x9: // Top middle
+                    return (TopRight, TopLeft);
+                case 0xA: // Top right
+                    return (BottomRight, TopLeft);
+                default:
+                    Fail("Unexpected spanning edge bit code");
+                    return (TopLeft, BottomRight);
+                }
             }
+
+        public Box2D Combine(params Box2D[] boxes)
+        {
+            Vec2D min = Min;
+            Vec2D max = Max;
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                Box2D box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+            }
+            return new(min, max);
         }
-
-        /// <summary>
-        /// Calculates the sides of this bounding box.
-        /// </summary>
-        /// <returns>The sides of the bounding box.</returns>
-        [Pure]
-        public Vec2D Sides() => Max - Min;
-
+        public Box2D Combine(params BoundingBox2D[] boxes)
+        {
+            Vec2D min = Min;
+            Vec2D max = Max;
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                BoundingBox2D box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+            }
+            return new(min, max);
+        }
+        public static Box2D? Combine(IEnumerable<Box2D> items) 
+        {
+            if (items.Empty())
+                return null;
+            Box2D initial = items.First();
+            return items.Skip(1).Aggregate(initial, (acc, box) =>
+            {
+                Vec2D min = acc.Min;
+                Vec2D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                return new Box2D(min, max);
+            }
+            );
+        }
+        public static Box2D? Combine(IEnumerable<BoundingBox2D> items) 
+        {
+            if (items.Empty())
+                return null;
+            Box2D initial = items.First().Struct;
+            return items.Skip(1).Select(s => s.Struct).Aggregate(initial, (acc, box) =>
+            {
+                Vec2D min = acc.Min;
+                Vec2D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                return new Box2D(min, max);
+            }
+            );
+        }
+        public static Box2D? Bound(IEnumerable<Seg2D> items) 
+        {
+            if (items.Empty())
+                return null;
+            Box2D initial = items.First().Box;
+            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
+            {
+                Vec2D min = acc.Min;
+                Vec2D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                return new Box2D(min, max);
+            }
+            );
+        }
+        public static Box2D? Bound(IEnumerable<Segment2D> items) 
+        {
+            if (items.Empty())
+                return null;
+            Box2D initial = items.First().Box;
+            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
+            {
+                Vec2D min = acc.Min;
+                Vec2D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                return new Box2D(min, max);
+            }
+            );
+        }
+        public static Box2D? Bound<T>(IEnumerable<SegmentT2D<T>> items) where T : Vector2D
+        {
+            if (items.Empty())
+                return null;
+            Box2D initial = items.First().Box;
+            return items.Skip(1).Select(s => s.Box).Aggregate(initial, (acc, box) =>
+            {
+                Vec2D min = acc.Min;
+                Vec2D max = acc.Max;
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+                return new Box2D(min, max);
+            }
+            );
+        }
         public override string ToString() => $"({Min}), ({Max})";
     }
 }

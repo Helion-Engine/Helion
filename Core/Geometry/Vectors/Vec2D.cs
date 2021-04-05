@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public struct Vec2D
     {
-        public static readonly Vec2D Zero = (0, 0);
-        public static readonly Vec2D One = (1, 1);
+        public static readonly Vec2D Zero = new(0, 0);
+        public static readonly Vec2D One = new(1, 1);
 
         public double X;
         public double Y;
@@ -82,9 +83,7 @@ namespace Helion.Geometry.Vectors
         public static Vec2D operator /(Vec2D self, Vector2D other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2D operator /(Vec2D self, double value) => new(self.X / value, self.Y / value);
         public static bool operator ==(Vec2D self, Vec2D other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vec2D self, Vector2D other) => self.X == other.X && self.Y == other.Y;
         public static bool operator !=(Vec2D self, Vec2D other) => !(self == other);
-        public static bool operator !=(Vec2D self, Vector2D other) => !(self == other);
 
         public Vec2D WithX(double x) => new(x, Y);
         public Vec2D WithY(double y) => new(X, y);
@@ -98,6 +97,9 @@ namespace Helion.Geometry.Vectors
         public Vec2D Unit() => this / Length();
         public void Normalize() => this /= Length();
         public double LengthSquared() => (X * X) + (Y * Y);
+        public Vec2D Inverse() => new(1 / X, 1 / Y);
+        public Rotation Rotation(Vec2D second, Vec2D third, double epsilon = 0.000001) => new Seg2D(this, second).ToSide(third, epsilon);
+        public Rotation Rotation(Vector2D second, Vector2D third, double epsilon = 0.000001) => new Seg2D(this, second).ToSide(third, epsilon);
         public double Length() => Math.Sqrt(LengthSquared());
         public double DistanceSquared(Vec2D other) => (this - other).LengthSquared();
         public double DistanceSquared(Vector2D other) => (this - other).LengthSquared();

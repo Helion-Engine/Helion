@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public struct Vec3D
     {
-        public static readonly Vec3D Zero = (0, 0, 0);
-        public static readonly Vec3D One = (1, 1, 1);
+        public static readonly Vec3D Zero = new(0, 0, 0);
+        public static readonly Vec3D One = new(1, 1, 1);
 
         public double X;
         public double Y;
@@ -91,9 +92,7 @@ namespace Helion.Geometry.Vectors
         public static Vec3D operator /(Vec3D self, Vector3D other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3D operator /(Vec3D self, double value) => new(self.X / value, self.Y / value, self.Z / value);
         public static bool operator ==(Vec3D self, Vec3D other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator ==(Vec3D self, Vector3D other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
         public static bool operator !=(Vec3D self, Vec3D other) => !(self == other);
-        public static bool operator !=(Vec3D self, Vector3D other) => !(self == other);
 
         public Vec3D WithX(double x) => new(x, Y, Z);
         public Vec3D WithY(double y) => new(X, y, Z);
@@ -108,6 +107,7 @@ namespace Helion.Geometry.Vectors
         public Vec3D Unit() => this / Length();
         public void Normalize() => this /= Length();
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z);
+        public Vec3D Inverse() => new(1 / X, 1 / Y, 1 / Z);
         public double Length() => Math.Sqrt(LengthSquared());
         public double DistanceSquared(Vec3D other) => (this - other).LengthSquared();
         public double DistanceSquared(Vector3D other) => (this - other).LengthSquared();

@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector2F
     {
-        public static readonly Vector2F Zero = (0, 0);
-        public static readonly Vector2F One = (1, 1);
+        public static readonly Vector2F Zero = new(0, 0);
+        public static readonly Vector2F One = new(1, 1);
 
         public float X;
         public float Y;
@@ -29,11 +30,6 @@ namespace Helion.Geometry.Vectors
         {
             X = x;
             Y = y;
-        }
-
-        public static implicit operator Vector2F(ValueTuple<float, float> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
         }
 
         public void Deconstruct(out float x, out float y)
@@ -82,10 +78,6 @@ namespace Helion.Geometry.Vectors
         public static Vec2F operator /(Vector2F self, Vec2F other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2F operator /(Vector2F self, Vector2F other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2F operator /(Vector2F self, float value) => new(self.X / value, self.Y / value);
-        public static bool operator ==(Vector2F self, Vec2F other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vector2F self, Vector2F other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vector2F self, Vec2F other) => !(self == other);
-        public static bool operator !=(Vector2F self, Vector2F other) => !(self == other);
 
         public Vec2F WithX(float x) => new(x, Y);
         public Vec2F WithY(float y) => new(X, y);
@@ -104,6 +96,9 @@ namespace Helion.Geometry.Vectors
             Y /= len;
         }
         public float LengthSquared() => (X * X) + (Y * Y);
+        public Vec2F Inverse() => new(1 / X, 1 / Y);
+        public Rotation Rotation(Vec2F second, Vec2F third, float epsilon = 0.0001f) => new Seg2F(this, second).ToSide(third, epsilon);
+        public Rotation Rotation(Vector2F second, Vector2F third, float epsilon = 0.0001f) => new Seg2F(this, second).ToSide(third, epsilon);
         public float Length() => MathF.Sqrt(LengthSquared());
         public float DistanceSquared(Vec2F other) => (this - other).LengthSquared();
         public float DistanceSquared(Vector2F other) => (this - other).LengthSquared();

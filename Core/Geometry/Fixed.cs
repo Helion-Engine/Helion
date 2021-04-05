@@ -5,7 +5,7 @@ namespace Helion.Geometry
     /// <summary>
     /// An implementation of a 16.16 fixed point number as a 32-bit integer.
     /// </summary>
-    public struct Fixed
+    public readonly struct Fixed
     {
         /// <summary>
         /// How many bits make up a single fractional unit.
@@ -112,6 +112,8 @@ namespace Helion.Geometry
             return new Fixed(Bits & IntegralMask);
         }
 
+        public Fixed Min(Fixed other) => Bits < other.Bits ? this : other;
+        public Fixed Max(Fixed other) => Bits > other.Bits ? this : other;
         public Fixed Abs() => new(Math.Abs(Bits));
         public Fixed Sqrt() => new(Math.Sqrt(ToDouble()));
         public Fixed Inverse() => One() / this;

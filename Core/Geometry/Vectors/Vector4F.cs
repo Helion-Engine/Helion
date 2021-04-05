@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector4F
     {
-        public static readonly Vector4F Zero = (0, 0, 0, 0);
-        public static readonly Vector4F One = (1, 1, 1, 1);
+        public static readonly Vector4F Zero = new(0, 0, 0, 0);
+        public static readonly Vector4F One = new(1, 1, 1, 1);
 
         public float X;
         public float Y;
@@ -36,11 +37,6 @@ namespace Helion.Geometry.Vectors
             Y = y;
             Z = z;
             W = w;
-        }
-
-        public static implicit operator Vector4F(ValueTuple<float, float, float, float> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
         }
 
         public void Deconstruct(out float x, out float y, out float z, out float w)
@@ -99,10 +95,6 @@ namespace Helion.Geometry.Vectors
         public static Vec4F operator /(Vector4F self, Vec4F other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4F operator /(Vector4F self, Vector4F other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4F operator /(Vector4F self, float value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
-        public static bool operator ==(Vector4F self, Vec4F other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vector4F self, Vector4F other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator !=(Vector4F self, Vec4F other) => !(self == other);
-        public static bool operator !=(Vector4F self, Vector4F other) => !(self == other);
 
         public Vec4F WithX(float x) => new(x, Y, Z, W);
         public Vec4F WithY(float y) => new(X, y, Z, W);
@@ -124,6 +116,7 @@ namespace Helion.Geometry.Vectors
             W /= len;
         }
         public float LengthSquared() => (X * X) + (Y * Y) + (Z * Z) + (W * W);
+        public Vec4F Inverse() => new(1 / X, 1 / Y, 1 / Z, 1 / W);
         public float Length() => MathF.Sqrt(LengthSquared());
         public float DistanceSquared(Vec4F other) => (this - other).LengthSquared();
         public float DistanceSquared(Vector4F other) => (this - other).LengthSquared();

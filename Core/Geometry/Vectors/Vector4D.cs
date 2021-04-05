@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector4D
     {
-        public static readonly Vector4D Zero = (0, 0, 0, 0);
-        public static readonly Vector4D One = (1, 1, 1, 1);
+        public static readonly Vector4D Zero = new(0, 0, 0, 0);
+        public static readonly Vector4D One = new(1, 1, 1, 1);
 
         public double X;
         public double Y;
@@ -36,11 +37,6 @@ namespace Helion.Geometry.Vectors
             Y = y;
             Z = z;
             W = w;
-        }
-
-        public static implicit operator Vector4D(ValueTuple<double, double, double, double> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
         }
 
         public void Deconstruct(out double x, out double y, out double z, out double w)
@@ -99,10 +95,6 @@ namespace Helion.Geometry.Vectors
         public static Vec4D operator /(Vector4D self, Vec4D other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4D operator /(Vector4D self, Vector4D other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z, self.W / other.W);
         public static Vec4D operator /(Vector4D self, double value) => new(self.X / value, self.Y / value, self.Z / value, self.W / value);
-        public static bool operator ==(Vector4D self, Vec4D other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator ==(Vector4D self, Vector4D other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z && self.W == other.W;
-        public static bool operator !=(Vector4D self, Vec4D other) => !(self == other);
-        public static bool operator !=(Vector4D self, Vector4D other) => !(self == other);
 
         public Vec4D WithX(double x) => new(x, Y, Z, W);
         public Vec4D WithY(double y) => new(X, y, Z, W);
@@ -124,6 +116,7 @@ namespace Helion.Geometry.Vectors
             W /= len;
         }
         public double LengthSquared() => (X * X) + (Y * Y) + (Z * Z) + (W * W);
+        public Vec4D Inverse() => new(1 / X, 1 / Y, 1 / Z, 1 / W);
         public double Length() => Math.Sqrt(LengthSquared());
         public double DistanceSquared(Vec4D other) => (this - other).LengthSquared();
         public double DistanceSquared(Vector4D other) => (this - other).LengthSquared();

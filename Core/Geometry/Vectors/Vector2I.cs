@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector2I
     {
-        public static readonly Vector2I Zero = (0, 0);
-        public static readonly Vector2I One = (1, 1);
+        public static readonly Vector2I Zero = new(0, 0);
+        public static readonly Vector2I One = new(1, 1);
 
         public int X;
         public int Y;
@@ -29,11 +30,6 @@ namespace Helion.Geometry.Vectors
         {
             X = x;
             Y = y;
-        }
-
-        public static implicit operator Vector2I(ValueTuple<int, int> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2);
         }
 
         public void Deconstruct(out int x, out int y)
@@ -82,10 +78,6 @@ namespace Helion.Geometry.Vectors
         public static Vec2I operator /(Vector2I self, Vec2I other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2I operator /(Vector2I self, Vector2I other) => new(self.X / other.X, self.Y / other.Y);
         public static Vec2I operator /(Vector2I self, int value) => new(self.X / value, self.Y / value);
-        public static bool operator ==(Vector2I self, Vec2I other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator ==(Vector2I self, Vector2I other) => self.X == other.X && self.Y == other.Y;
-        public static bool operator !=(Vector2I self, Vec2I other) => !(self == other);
-        public static bool operator !=(Vector2I self, Vector2I other) => !(self == other);
 
         public Vec2I WithX(int x) => new(x, Y);
         public Vec2I WithY(int y) => new(X, y);

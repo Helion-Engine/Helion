@@ -2492,7 +2492,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_VileChase(Entity entity)
         {
-            Box2D nextBox = Box2D.CopyToOffset(entity.GetNextEnemyPos(), entity.Radius);
+            Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
             List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
                 BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
 

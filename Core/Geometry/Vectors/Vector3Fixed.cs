@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
     public class Vector3Fixed
     {
-        public static readonly Vector3Fixed Zero = (Fixed.Zero(), Fixed.Zero(), Fixed.Zero());
-        public static readonly Vector3Fixed One = (Fixed.One(), Fixed.One(), Fixed.One());
+        public static readonly Vector3Fixed Zero = new(Fixed.Zero(), Fixed.Zero(), Fixed.Zero());
+        public static readonly Vector3Fixed One = new(Fixed.One(), Fixed.One(), Fixed.One());
 
         public Fixed X;
         public Fixed Y;
@@ -33,11 +34,6 @@ namespace Helion.Geometry.Vectors
             X = x;
             Y = y;
             Z = z;
-        }
-
-        public static implicit operator Vector3Fixed(ValueTuple<Fixed, Fixed, Fixed> tuple)
-        {
-            return new(tuple.Item1, tuple.Item2, tuple.Item3);
         }
 
         public void Deconstruct(out Fixed x, out Fixed y, out Fixed z)
@@ -91,10 +87,6 @@ namespace Helion.Geometry.Vectors
         public static Vec3Fixed operator /(Vector3Fixed self, Vec3Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3Fixed operator /(Vector3Fixed self, Vector3Fixed other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
         public static Vec3Fixed operator /(Vector3Fixed self, Fixed value) => new(self.X / value, self.Y / value, self.Z / value);
-        public static bool operator ==(Vector3Fixed self, Vec3Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator ==(Vector3Fixed self, Vector3Fixed other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-        public static bool operator !=(Vector3Fixed self, Vec3Fixed other) => !(self == other);
-        public static bool operator !=(Vector3Fixed self, Vector3Fixed other) => !(self == other);
 
         public Vec3Fixed WithX(Fixed x) => new(x, Y, Z);
         public Vec3Fixed WithY(Fixed y) => new(X, y, Z);
