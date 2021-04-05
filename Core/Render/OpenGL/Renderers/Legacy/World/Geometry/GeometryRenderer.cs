@@ -28,7 +28,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 {
     public class GeometryRenderer : IDisposable
     {
-        private const double MaxSky = 65536;
+        private const double MaxSky = 16384;
 
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
@@ -42,8 +42,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
         private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
         private LegacyVertex[][] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
-        private SkyGeometryVertex[][] m_skyWallVertexLowerLookup = new SkyGeometryVertex[0][];
-        private SkyGeometryVertex[][] m_skyWallVertexUpperLookup = new SkyGeometryVertex[0][];
+        private SkyGeometryVertex[][] m_skyWallVertexLowerLookup = Array.Empty<SkyGeometryVertex[]>();
+        private SkyGeometryVertex[][] m_skyWallVertexUpperLookup = Array.Empty<SkyGeometryVertex[]>();
         private LegacyVertex[][] m_vertexFloorLookup = Array.Empty<LegacyVertex[]>();
         private LegacyVertex[][] m_vertexCeilingLookup = Array.Empty<LegacyVertex[]>();
         private SkyGeometryVertex[][] m_skyFloorVertexLookup = Array.Empty<SkyGeometryVertex[]>();
@@ -168,7 +168,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderSide(Side side, bool isFrontSide)
         {
             m_skyOverride = false;
-            if (!(side is TwoSided twoSided))
+            if (side is not TwoSided twoSided)
                 RenderOneSided(side);
             else
                 RenderTwoSided(twoSided, isFrontSide);
@@ -197,7 +197,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             renderData.Vbo.Add(data);
         }
 
-        private void SetLightToVertices(LegacyVertex[] data, float lightLevel)
+        private static void SetLightToVertices(LegacyVertex[] data, float lightLevel)
         {
             for (int i = 0; i < data.Length; i++)
                 data[i].LightLevelUnit = lightLevel;
@@ -296,11 +296,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             SectorPlane plane = otherSide.Sector.Ceiling;
-            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
+            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle) && TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle);
             Wall upperWall = facingSide.Upper;
 
             if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle) && upperWall.TextureHandle == Constants.NoTextureIndex)
+            {
+                if (TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+                    m_skyOverride = true;
                 return;
+            }
 
             GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
@@ -317,7 +321,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                     return;
                 }
 
-                if (facingSide.OffsetChanged || facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
+                if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction, MaxSky);
@@ -350,8 +354,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private void RenderSkySide(Side facingSide, TwoSided? twoSided, GLLegacyTexture texture)
         {
-            if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle))
-                return;
+            if (twoSided == null)
+            {
+                if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle))
+                    return;
+            }
+            else
+            {
+                TwoSided otherSide = twoSided.Sector.Id == facingSide.Sector.Id ? twoSided.PartnerSide : twoSided;
+                if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle) &&
+                    !TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+                    return;
+            }
 
             bool isFront = twoSided == null || twoSided.IsFront;
             WallVertices wall;
@@ -494,7 +508,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             }
         }
 
-        private SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)
+        private static SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)
         {
             SkyGeometryVertex[] data = new SkyGeometryVertex[6];
             data[0].X = wv.TopLeft.X;
@@ -524,7 +538,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             return data;
         }
 
-        private SkyGeometryVertex[] CreateSkyFlatVertices(in WorldVertex root, in WorldVertex second, in WorldVertex third)
+        private static SkyGeometryVertex[] CreateSkyFlatVertices(in WorldVertex root, in WorldVertex second, in WorldVertex third)
         {
             SkyGeometryVertex[] data = new SkyGeometryVertex[3];
             data[0].X = root.X;
@@ -542,7 +556,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             return data;
         }
 
-        private LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevel)
+        private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevel)
         {
             LegacyVertex[] data = new LegacyVertex[6];
             // Our triangle is added like:
@@ -626,7 +640,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             return data;
         }
 
-        private LegacyVertex[] GetFlatVertices(ref WorldVertex root, ref WorldVertex second, ref WorldVertex third, float lightLevel)
+        private static LegacyVertex[] GetFlatVertices(ref WorldVertex root, ref WorldVertex second, ref WorldVertex third, float lightLevel)
         {
             LegacyVertex[] data = new LegacyVertex[3];
 

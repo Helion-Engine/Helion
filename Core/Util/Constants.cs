@@ -120,13 +120,15 @@ namespace Helion.Util
 
         public const double EntityShootDistance = 8192.0;
         public const double EntityMeleeDistance = 64.0;
-        public const double DefaultSpreadAngle = 5.6 * Math.PI / 180.0;
+        public const double DefaultSpreadAngle = 5.625 * Math.PI / 180.0;
         public const double SuperShotgunSpreadAngle = 11.2 * Math.PI / 180.0;
         public const double SuperShotgunSpreadPitch = 7.1 * Math.PI / 180.0;
         public const int ShotgunBullets = 7;
         public const int SuperShotgunBullets = 20;
         public const double PosRandomSpread = 22.4121094 * Math.PI / 180;
         public const double ShadowRandomSpread = 44.8242188 * Math.PI / 180;
+        public const double AutoAimSpread = 5.625 * Math.PI / 180;
+        public const int AutoAimTracers = 2;
         public const double MancSpread = Math.PI / 16;
         public const double TracerAngle = 16.0 * Math.PI / 180;
         public const double MeleeAngle = 5 * Math.PI / 180;
