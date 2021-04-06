@@ -25,7 +25,7 @@ namespace Helion.Layer
         public static readonly IEnumerable<CIString> EndGameMaps = new HashSet<CIString>()
         {
             "EndPic", "EndGame1", "EndGame2", "EndGameW", "EndGame4", "EndGameC", "EndGame3",
-            "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence"
+            "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence", "EndBunny"
         };
 
         public event EventHandler? Exited;
