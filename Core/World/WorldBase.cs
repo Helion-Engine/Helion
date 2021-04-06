@@ -507,7 +507,7 @@ namespace Helion.World
         }
 
         public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
-            GetAutoAimAngle(startEntity, start, distance, out pitch, out _, out entity);
+            GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
@@ -520,7 +520,7 @@ namespace Helion.World
             start.Z += zOffset;
 
             if (autoAim && player != null &&
-                GetAutoAimAngle(shooter, start, distance, out double autoAimPitch, out double autoAimAngle, 
+                GetAutoAimAngle(shooter, start, shooter.AngleRadians, distance, out double autoAimPitch, out double autoAimAngle, 
                     out _, tracers: Constants.AutoAimTracers))
             {
                 pitch = autoAimPitch;
@@ -561,7 +561,8 @@ namespace Helion.World
             if (autoAim)
             {
                 Vec3D start = shooter.HitscanAttackPos;
-                if (GetAutoAimAngle(shooter, start, distance, out double autoAimPitch, out _, out _, tracers: Constants.AutoAimTracers))
+                if (GetAutoAimAngle(shooter, start, shooter.AngleRadians, distance, out double autoAimPitch, out _, out _, 
+                    tracers: Constants.AutoAimTracers))
                     pitch = autoAimPitch;
             }
 
@@ -1122,21 +1123,22 @@ namespace Helion.World
         /// </summary>
         /// <param name="shooter">The entity firing.</param>
         /// <param name="start">The position the enity is firing from.</param>
+        /// <param name="angle">The angle the entity is firing.</param>
         /// <param name="distance">The distance to use for firing.</param>
         /// <param name="pitch">The pitch to use for the hit entity.</param>
-        /// <param name="angle">The angle to use for the hit entity.</param>
+        /// <param name="setAngle">The angle to use for the hit entity.</param>
         /// <param name="entity">The hit entity.</param>
         /// <param name="tracers">The number of tracers to use excluding the angle of the player. Vanilla doom used 2.</param>
         /// <returns>True if a valid entity is found and the pitch is set.</returns>
         /// <param name="tracerSpread">Doom would check at -5 degress and +5 degrees for a hit as well.
         /// Doom used the pitch for hitscan weapons, but would use the angle as well for projectiles.</param>
-        private bool GetAutoAimAngle(Entity shooter, in Vec3D start, double distance,
-            out double pitch, out double angle, out Entity? entity,
+        private bool GetAutoAimAngle(Entity shooter, in Vec3D start, double angle, double distance,
+            out double pitch, out double setAngle, out Entity? entity,
             int tracers = 0, double tracerSpread = Constants.DefaultSpreadAngle)
         {
             entity = null;
             pitch = 0;
-            angle = shooter.AngleRadians;
+            setAngle = angle;
 
             double spread;
             int iterateTracers;
@@ -1154,7 +1156,7 @@ namespace Helion.World
 
             for (int i = 0; i < iterateTracers; i++)
             {
-                Seg2D seg = new Seg2D(start.XY, (start + Vec3D.UnitSphere(angle, 0) * distance).XY);
+                Seg2D seg = new Seg2D(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
                 List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
                     BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
                     BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
@@ -1165,13 +1167,13 @@ namespace Helion.World
                 if (status == TraversalPitchStatus.PitchSet)
                     return true;
 
-                angle += spread;
+                setAngle += spread;
                 if (i == tracers / 2)
-                    angle = shooter.AngleRadians - tracerSpread;
+                    setAngle = angle - tracerSpread;
             }
 
 
-            angle = shooter.AngleRadians;
+            angle = setAngle;
             return false;
         }
 
