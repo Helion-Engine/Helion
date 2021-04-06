@@ -83,7 +83,8 @@ namespace Helion.World.Physics
             if (!entity.Flags.NoBlockmap)
                 m_blockmap.Link(entity);
 
-            LinkToSectors(entity, tryMove);
+            if (!entity.Flags.NoSector)
+                LinkToSectors(entity, tryMove);
 
             ClampBetweenFloorAndCeiling(entity, clampToLinkedSectors);
         }
@@ -113,11 +114,9 @@ namespace Helion.World.Physics
             sectorPlane.Plane.MoveZ(destZ - startZ);
 
             // Move lower entities first to handle stacked entities
-            var entities = sector.Entities.OrderBy(x => x.Box.Bottom).ToList();
-
-            for (int i = 0; i < entities.Count; i++)
+            var entities = sector.Entities.OrderBy(x => x.Box.Bottom);
+            foreach (Entity entity in entities)
             {
-                Entity entity = entities[i];
                 entity.SaveZ = entity.Position.Z;
                 entity.PrevSaveZ = entity.PrevPosition.Z;
 
@@ -146,9 +145,8 @@ namespace Helion.World.Physics
                 }
             }
 
-            for (int i = 0; i < entities.Count; i++)
+            foreach (Entity entity in entities)
             {
-                Entity entity = entities[i];
                 ClampBetweenFloorAndCeiling(entity);
                 entity.PrevPosition.Z = entity.PrevSaveZ;
                 // This allows the player to pickup items like the original
@@ -548,13 +546,10 @@ namespace Helion.World.Physics
             foreach (Sector sector in sectors)
                 entity.IntersectSectors.Add(sector);
 
-            if (!entity.Flags.NoSector)
-            {
-                for (int i = 0; i < entity.IntersectSectors.Count; i++)
-                    entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
+            for (int i = 0; i < entity.IntersectSectors.Count; i++)
+                entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
 
-                entity.SubsectorNode = centerSubsector.Link(entity);
-            }
+            entity.SubsectorNode = centerSubsector.Link(entity);
 
             DataCache.Instance.FreeSectorSet(sectors);
 
