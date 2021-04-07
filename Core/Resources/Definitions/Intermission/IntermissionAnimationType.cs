@@ -2,7 +2,7 @@
 {
     public enum IntermissionAnimationType
     {
-        None,
+        Normal,
         IfLeaving,
         IfEntering,
         IfVisited

@@ -44,7 +44,7 @@ namespace Helion.Resources.Definitions.Intermission
                 else if (item == Pointer)
                     def.Pointer = GetPointer(parser);
                 else if (item == Animation)
-                    def.Animations.Add(ParseAnimation(parser, string.Empty, IntermissionAnimationType.None));
+                    def.Animations.Add(ParseAnimation(parser, string.Empty, IntermissionAnimationType.Normal));
                 else if (item == IfLeaving)
                     def.Animations.Add(ParseAnimation(parser, parser.ConsumeString(), IntermissionAnimationType.IfLeaving));
                 else if (item == IfEntering)
