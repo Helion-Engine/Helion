@@ -95,6 +95,9 @@
     <Content Include="Assets\Graphics\debugboxoriginal.png" />
     <Content Include="Assets\Graphics\helion.png" />
     <Content Include="Assets\ILanguage.txt" />
+    <Content Include="Assets\Intermission\in_epi1.txt" />
+    <Content Include="Assets\Intermission\in_epi2.txt" />
+    <Content Include="Assets\Intermission\in_epi3.txt" />
     <Content Include="Assets\Licenses\fonts.console.LICENSE" />
     <Content Include="Assets\Licenses\graphics.cursor.LICENSE" />
     <Content Include="Assets\MapInfo\Chex.txt" />

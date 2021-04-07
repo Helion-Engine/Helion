@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Helion.Resources.Definitions.Intermission
+{
+    public class IntermissionAnimation
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Tics { get; set; }
+        public IntermissionAnimationType Type { get; set; }
+        public string MapName { get; set; } = string.Empty;
+        public bool Once { get; set; }
+        public IList<string> Items { get; set; } = Array.Empty<string>();
+    }
+}
