@@ -325,7 +325,7 @@ namespace Helion.Render.Shared.Drawers
             {
                 draw.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
                 {
-                    (int width, int height) = draw.DrawInfoProvider.GetImageDimension(sprite);
+                    Dimension dimension = draw.DrawInfoProvider.GetImageDimension(sprite);
                     Vec2I offset = draw.DrawInfoProvider.GetImageOffset(sprite);
                     offset.Y += yOffset;
                     Vec2I weaponOffset = player.PrevWeaponOffset.Interpolate(player.WeaponOffset, tickFraction).Int;
@@ -336,11 +336,9 @@ namespace Helion.Render.Shared.Drawers
                         alpha = 0.3f;
 
                     bool drawInvul = player.DrawInvulnerableColorMap();
-
-                    // Translate doom image offset to OpenGL coordinates
-                    int x = (offset.X / 2) - (width / 2) + weaponOffset.X;
-                    int y = -offset.Y - height + weaponOffset.Y;
-                    draw.Image(sprite, x, y, color: lightLevelColor, alpha: alpha, drawInvul: drawInvul);
+                    draw.TranslateDoomOffset(ref offset, dimension);
+                    draw.Image(sprite, offset.X + weaponOffset.X, offset.Y + weaponOffset.Y, color: lightLevelColor, 
+                        alpha: alpha, drawInvul: drawInvul);
                 });
             }
         }

@@ -399,5 +399,11 @@ namespace Helion.Render.Shared.Drawers.Helper
 
             return windowPos + imageOffset + offset;
         }
+
+        public void TranslateDoomOffset(ref Vec2I offset, in Dimension dimension)
+        {
+            offset.X = (offset.X / 2) - (dimension.Width / 2);
+            offset.Y = -offset.Y - dimension.Height;
+        }
     }
 }

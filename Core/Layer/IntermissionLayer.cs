@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Input;
@@ -6,10 +8,13 @@ using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Parser;
 using Helion.Util.Sounds.Mus;
 using Helion.World;
+using MoreLinq;
 using NLog;
 
 namespace Helion.Layer
@@ -24,6 +29,8 @@ namespace Helion.Layer
         public double SecretPercent{ get; private set; }
         public MapInfoDef CurrentMapInfo { get; private set; }
         public MapInfoDef? NextMapInfo { get; private set; }
+        public string IntermissionPic { get; private set; }
+        public IntermissionDef? IntermissionDef { get; private set; }
         public IntermissionState IntermissionState { get; private set; } = IntermissionState.Started;
         public event EventHandler? Exited;
 
@@ -31,6 +38,9 @@ namespace Helion.Layer
         private readonly SoundManager m_soundManager;
         private readonly IMusicPlayer m_musicPlayer;
         private readonly IntermissionDrawer m_drawer;
+        private readonly Stopwatch m_stopwatch = new Stopwatch();
+
+        private int m_tics;
 
         protected override double Priority => 0.65;
 
@@ -43,10 +53,39 @@ namespace Helion.Layer
             m_archiveCollection = world.ArchiveCollection;
             m_soundManager = soundManager;
             m_musicPlayer = musicPlayer;
-            m_drawer = new IntermissionDrawer(world.ArchiveCollection, currentMapInfo, nextMapInfo);
+            m_stopwatch.Start();
+
+            IntermissionPic = "INTERPIC";
+            CheckEpisodeIntermission();
+            Tick();
+
+            m_drawer = new IntermissionDrawer(world.ArchiveCollection, currentMapInfo, nextMapInfo, this);
 
             CalculatePercentages();
             PlayIntermissionMusic();
+        }
+
+        private void CheckEpisodeIntermission()
+        {
+            if (!Regex.IsMatch(CurrentMapInfo.MapName, @"E\dM\d"))
+                return;
+
+            string fileName = $"in_epi{CurrentMapInfo.MapName[1]}";
+            var entry = m_archiveCollection.Entries.FindByName(fileName);
+            if (entry == null)
+                return;
+
+            try
+            {
+                IntermissionDef = IntermissionParser.Parse(entry.ReadDataAsString());
+                IntermissionPic = IntermissionDef.Background;
+
+                IntermissionDef.Animations.ForEach(x => x.ShouldDraw = x.Type == IntermissionAnimationType.Normal);
+            }
+            catch (ParserException e)
+            {
+                Log.Error(e);
+            }
         }
 
         private void CalculatePercentages()
@@ -154,14 +193,68 @@ namespace Helion.Layer
 
         public override void RunLogic()
         {
-            // TODO: Play gunshot sounds when advancing the percentages.
-            
+            // TODO: Play gunshot sounds when advancing the percentages.       
             base.RunLogic();
+
+            if (m_stopwatch.ElapsedMilliseconds > 1000 / Constants.TicksPerSecond)
+            {
+                m_stopwatch.Restart();
+                Tick();
+            }
+        }
+
+        private bool IsLeaving => IntermissionState == IntermissionState.ShowAllStats;
+
+        private static bool CompareMapName(IntermissionAnimation animation, MapInfoDef? mapInfo)
+        {
+            if (mapInfo == null)
+                return false;
+
+            return animation.MapName.Equals(mapInfo.MapName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void Tick()
+        {
+            m_tics++;
+            if (IntermissionDef == null)
+                return;
+
+            foreach (var animation in IntermissionDef.Animations)
+            {
+                animation.Tic++;
+                if (animation.Tic >= animation.Tics)
+                {
+                    switch (animation.Type)
+                    {
+                        case IntermissionAnimationType.IfEntering:
+                            if (IsLeaving || NextMapInfo == null || !CompareMapName(animation, NextMapInfo))
+                                continue;
+                            break;
+
+                        case IntermissionAnimationType.IfLeaving:
+                            if (!IsLeaving || !CompareMapName(animation, CurrentMapInfo))
+                                continue;
+                            break;
+
+                        case IntermissionAnimationType.IfVisited:
+                            // TODO waiting for this to be implemented
+                            continue;
+
+                        default:
+                            break;
+                    }
+
+                    animation.ShouldDraw = true;
+                    animation.Tic = 0;
+                    if (!animation.Once)
+                        animation.ItemIndex = (animation.ItemIndex + 1) % animation.Items.Count;
+                }
+            }
         }
 
         public override void Render(RenderCommands renderCommands)
         {
-            m_drawer.Draw(this, renderCommands);
+            m_drawer.Draw(this, renderCommands, m_tics);
             
             base.Render(renderCommands);
         }
