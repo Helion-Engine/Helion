@@ -20,6 +20,8 @@ namespace Helion.Client
     {
         private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
 
+        private List<MapInfoDef> m_visitedMaps = new List<MapInfoDef>();
+
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
         {
             switch (ccmdArgs.Command.ToUpper())
@@ -113,7 +115,8 @@ namespace Helion.Client
                 LogError("Unable to find default map for game to start on");
                 return;
             }
-            
+
+            m_visitedMaps.Clear();
             LoadMap(mapInfoDef.MapName);
         }
 
@@ -182,6 +185,7 @@ namespace Helion.Client
                 return;
             }
 
+            m_visitedMaps.Clear();
             LoadMap(GetMapInfo(args[0]), null, NoPlayers);    
         }
 
@@ -190,6 +194,7 @@ namespace Helion.Client
 
         private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
         {
+            m_visitedMaps.Add(mapInfoDef);
             IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
             if (map == null)
             {
@@ -210,7 +215,7 @@ namespace Helion.Client
             m_layerManager.Remove<SinglePlayerWorldLayer>();
             m_layerManager.PruneDisposed();
 
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_config, m_console,
+            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_visitedMaps, m_config, m_console,
                 m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, players.FirstOrDefault(), worldModel);
             if (newLayer == null)
                 return;

@@ -85,6 +85,7 @@ namespace Helion.World
         public LevelStats LevelStats { get; } = new ();
         public SkillDef SkillDefinition { get; private set; }
         public ArchiveCollection ArchiveCollection { get; protected set; }
+        public IList<MapInfoDef> VisitedMaps { get; }
 
         protected readonly IAudioSystem AudioSystem;
         protected readonly MapGeometry Geometry;
@@ -99,10 +100,11 @@ namespace Helion.World
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
 
-        protected WorldBase(Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
+        protected WorldBase(IList<MapInfoDef> visitedMaps, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             CreationTimeNanos = Ticker.NanoTime();
+            VisitedMaps = visitedMaps;
             ArchiveCollection = archiveCollection;
             AudioSystem = audioSystem;
             Config = config;
@@ -130,6 +132,7 @@ namespace Helion.World
                 Gravity = worldModel.Gravity;
                 ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
                 CurrentBossTarget = worldModel.CurrentBossTarget;
+                VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps);
 
                 LevelStats.TotalMonsters = worldModel.TotalMonsters;
                 LevelStats.TotalItems = worldModel.TotalItems;
@@ -138,6 +141,19 @@ namespace Helion.World
                 LevelStats.ItemCount = worldModel.ItemCount;
                 LevelStats.SecretCount = worldModel.SecretCount;
             }
+        }
+
+        private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
+        {
+            List<MapInfoDef> maps = new();
+            foreach (string mapName in visitedMaps)
+            {            
+                var mapInfoDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(mapName);
+                if (mapInfoDef != null)
+                    maps.Add(mapInfoDef);
+            }
+
+            return maps;
         }
 
         ~WorldBase()
@@ -1467,6 +1483,7 @@ namespace Helion.World
                 DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
                 Specials = SpecialManager.GetSpecialModels(),
+                VisitedMaps = VisitedMaps.Select(x => x.MapName).ToList(),
 
                 TotalMonsters = LevelStats.TotalMonsters,
                 TotalItems = LevelStats.TotalItems,
