@@ -53,7 +53,7 @@ namespace Helion.World
         MapInfoDef MapInfo { get; }
         LevelStats LevelStats { get; }
         bool Paused { get; }
-        IList<MapInfoDef> VisitedMaps { get; }
+        public GlobalData GlobalData { get; }
 
         void Link(Entity entity);
         void Tick();

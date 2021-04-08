@@ -20,7 +20,7 @@ namespace Helion.Client
     {
         private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
 
-        private List<MapInfoDef> m_visitedMaps = new List<MapInfoDef>();
+        private GlobalData m_globalData = new();
 
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
         {
@@ -116,7 +116,7 @@ namespace Helion.Client
                 return;
             }
 
-            m_visitedMaps.Clear();
+            m_globalData = new();
             LoadMap(mapInfoDef.MapName);
         }
 
@@ -185,7 +185,7 @@ namespace Helion.Client
                 return;
             }
 
-            m_visitedMaps.Clear();
+            m_globalData = new();
             LoadMap(GetMapInfo(args[0]), null, NoPlayers);    
         }
 
@@ -194,7 +194,7 @@ namespace Helion.Client
 
         private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
         {
-            m_visitedMaps.Add(mapInfoDef);
+            m_globalData.VisitedMaps.Add(mapInfoDef);
             IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
             if (map == null)
             {
@@ -215,7 +215,7 @@ namespace Helion.Client
             m_layerManager.Remove<SinglePlayerWorldLayer>();
             m_layerManager.PruneDisposed();
 
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_visitedMaps, m_config, m_console,
+            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, players.FirstOrDefault(), worldModel);
             if (newLayer == null)
                 return;

@@ -39,10 +39,10 @@ namespace Helion.World.Impl.SinglePlayer
 
         public Player Player { get; private set; }
 
-        public SinglePlayerWorld(IList<MapInfoDef> visitedMaps, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
+        public SinglePlayerWorld(GlobalData globalData, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef, IMap map, 
             Player? existingPlayer = null, WorldModel? worldModel = null)
-            : base(visitedMaps, config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, worldModel)
+            : base(globalData, config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, worldModel)
         {
             if (worldModel == null)
             {

@@ -26,6 +26,7 @@ namespace Helion.Models
         public IList<ISpecialModel> Specials { get; set; } = Array.Empty<ISpecialModel>();
         public IList<SectorDamageSpecialModel> DamageSpecials { get; set; } = Array.Empty<SectorDamageSpecialModel>();
         public IList<string> VisitedMaps { get; set; } = Array.Empty<string>();
+        public int TotalTime { get; set; }
 
         public int TotalMonsters { get; set; }
         public int TotalItems { get; set; }

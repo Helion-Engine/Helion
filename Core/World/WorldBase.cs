@@ -82,10 +82,10 @@ namespace Helion.World
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
         public Config Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
-        public LevelStats LevelStats { get; } = new ();
+        public LevelStats LevelStats { get; } = new();
         public SkillDef SkillDefinition { get; private set; }
         public ArchiveCollection ArchiveCollection { get; protected set; }
-        public IList<MapInfoDef> VisitedMaps { get; }
+        public GlobalData GlobalData { get; }
 
         protected readonly IAudioSystem AudioSystem;
         protected readonly MapGeometry Geometry;
@@ -100,11 +100,11 @@ namespace Helion.World
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
 
-        protected WorldBase(IList<MapInfoDef> visitedMaps, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
+        protected WorldBase(GlobalData globalData, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             CreationTimeNanos = Ticker.NanoTime();
-            VisitedMaps = visitedMaps;
+            GlobalData = globalData;
             ArchiveCollection = archiveCollection;
             AudioSystem = audioSystem;
             Config = config;
@@ -132,7 +132,11 @@ namespace Helion.World
                 Gravity = worldModel.Gravity;
                 ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
                 CurrentBossTarget = worldModel.CurrentBossTarget;
-                VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps);
+                GlobalData = new()
+                {
+                    VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps),
+                    TotalTime = worldModel.TotalTime
+                };
 
                 LevelStats.TotalMonsters = worldModel.TotalMonsters;
                 LevelStats.TotalItems = worldModel.TotalItems;
@@ -293,6 +297,7 @@ namespace Helion.World
                 SoundManager.Tick();
 
                 LevelTime++;
+                GlobalData.TotalTime++;
             }
 
             Gametick++;
@@ -1483,7 +1488,8 @@ namespace Helion.World
                 DamageSpecials = sectorDamageSpecialModels,
                 Lines = GetLineModels(),
                 Specials = SpecialManager.GetSpecialModels(),
-                VisitedMaps = VisitedMaps.Select(x => x.MapName).ToList(),
+                VisitedMaps = GlobalData.VisitedMaps.Select(x => x.MapName).ToList(),
+                TotalTime = GlobalData.TotalTime,
 
                 TotalMonsters = LevelStats.TotalMonsters,
                 TotalItems = LevelStats.TotalItems,

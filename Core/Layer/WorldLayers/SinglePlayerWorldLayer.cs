@@ -85,21 +85,21 @@ namespace Helion.Layer.WorldLayers
             PerformDispose();
         }
 
-        public static SinglePlayerWorldLayer? Create(GameLayer parent, IList<MapInfoDef> visitedMaps, Config config, HelionConsole console, 
+        public static SinglePlayerWorldLayer? Create(GameLayer parent, GlobalData globalData, Config config, HelionConsole console, 
             IAudioSystem audioSystem, ArchiveCollection archiveCollection, MapInfoDef mapInfoDef, 
             SkillDef skillDef, IMap map, Player? existingPlayer, WorldModel? worldModel)
         {
             string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
             Log.Info(displayName);
             TextureManager.Init(archiveCollection, mapInfoDef);
-            SinglePlayerWorld? world = CreateWorldGeometry(visitedMaps, config, audioSystem, archiveCollection, mapInfoDef, skillDef, 
+            SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, mapInfoDef, skillDef, 
                 map, existingPlayer, worldModel);
             if (world == null)
                 return null;
             return new SinglePlayerWorldLayer(parent, config, console, archiveCollection, audioSystem, world, mapInfoDef);
         }
 
-        private static SinglePlayerWorld? CreateWorldGeometry(IList<MapInfoDef> visitedMaps, Config config, IAudioSystem audioSystem,
+        private static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, Config config, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map,
                 Player? existingPlayer, WorldModel? worldModel)
         {
@@ -109,7 +109,7 @@ namespace Helion.Layer.WorldLayers
 
             try
             {
-                return new SinglePlayerWorld(visitedMaps, config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map,
+                return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map,
                     existingPlayer, worldModel);
             }
             catch(HelionException e)
