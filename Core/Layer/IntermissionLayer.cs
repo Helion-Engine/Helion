@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Helion.Audio;
 using Helion.Audio.Sounds;
@@ -44,8 +45,8 @@ namespace Helion.Layer
 
         protected override double Priority => 0.65;
 
-        public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, MapInfoDef currentMapInfo,
-            MapInfoDef? nextMapInfo)
+        public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, 
+            MapInfoDef currentMapInfo, MapInfoDef? nextMapInfo)
         {
             World = world;
             CurrentMapInfo = currentMapInfo;
@@ -59,7 +60,7 @@ namespace Helion.Layer
             CheckEpisodeIntermission();
             Tick();
 
-            m_drawer = new IntermissionDrawer(world.ArchiveCollection, currentMapInfo, nextMapInfo, this);
+            m_drawer = new IntermissionDrawer(world, currentMapInfo, nextMapInfo, this);
 
             CalculatePercentages();
             PlayIntermissionMusic();
@@ -203,15 +204,21 @@ namespace Helion.Layer
             }
         }
 
-        private bool IsLeaving => IntermissionState == IntermissionState.ShowAllStats;
+        private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
 
-        private static bool CompareMapName(IntermissionAnimation animation, MapInfoDef? mapInfo)
+        private static bool CompareMapName(string mapName, MapInfoDef? mapInfo)
         {
             if (mapInfo == null)
                 return false;
 
-            return animation.MapName.Equals(mapInfo.MapName, StringComparison.OrdinalIgnoreCase);
+            return mapName.Equals(mapInfo.MapName, StringComparison.OrdinalIgnoreCase);
         }
+
+        private bool VisitedMap(string mapName) =>
+            World.VisitedMaps.Any(x => CompareMapName(mapName, x));
+
+        private static bool ShouldAnimate(IntermissionAnimation animation) =>
+            !animation.Once || (animation.ItemIndex < animation.Items.Count - 1);
 
         private void Tick()
         {
@@ -219,6 +226,7 @@ namespace Helion.Layer
             if (IntermissionDef == null)
                 return;
 
+            bool draw = true;
             foreach (var animation in IntermissionDef.Animations)
             {
                 animation.Tic++;
@@ -227,26 +235,27 @@ namespace Helion.Layer
                     switch (animation.Type)
                     {
                         case IntermissionAnimationType.IfEntering:
-                            if (IsLeaving || NextMapInfo == null || !CompareMapName(animation, NextMapInfo))
-                                continue;
+                            draw = IsNextMap && NextMapInfo != null && CompareMapName(animation.MapName, NextMapInfo);
                             break;
 
                         case IntermissionAnimationType.IfLeaving:
-                            if (!IsLeaving || !CompareMapName(animation, CurrentMapInfo))
-                                continue;
+                            draw = !IsNextMap && CompareMapName(animation.MapName, CurrentMapInfo);
                             break;
 
                         case IntermissionAnimationType.IfVisited:
-                            // TODO waiting for this to be implemented
-                            continue;
+                            draw = VisitedMap(animation.MapName);
+                            break;
 
                         default:
                             break;
                     }
 
+                    if (!draw)
+                        continue;
+
                     animation.ShouldDraw = true;
                     animation.Tic = 0;
-                    if (!animation.Once)
+                    if (ShouldAnimate(animation))
                         animation.ItemIndex = (animation.ItemIndex + 1) % animation.Items.Count;
                 }
             }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Helion.Geometry;
@@ -8,10 +8,10 @@ using Helion.Layer;
 using Helion.Render.Commands;
 using Helion.Render.Commands.Alignment;
 using Helion.Render.Shared.Drawers.Helper;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.World;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.Shared.Drawers
@@ -22,33 +22,29 @@ namespace Helion.Render.Shared.Drawers
         private const int FontSize = 12;
         private static readonly ResolutionInfo Resolution = DoomHudHelper.DoomResolutionInfoCenter;
 
-        private readonly ArchiveCollection m_archiveCollection;
+        private readonly IWorld m_world;
         private readonly MapInfoDef m_currentMapInfo;
         private readonly MapInfoDef? m_nextMapInfo;
-        private readonly IntermissionSpot? m_thisSpot;
-        private readonly IntermissionSpot? m_nextSpot;
+        private readonly List<IntermissionSpot> m_visitedSpots = new();
+        private IntermissionSpot? m_nextSpot;
+        private string? m_pointerImage;
 
         private int m_lastPointerTic;
         private bool m_drawPointer;
+        private bool m_spotsInit;
 
-        public IntermissionDrawer(ArchiveCollection archiveCollection, MapInfoDef currentMapInfo,
+        public IntermissionDrawer(IWorld world, MapInfoDef currentMapInfo,
             MapInfoDef? nextMapInfo, IntermissionLayer layer)
         {
-            m_archiveCollection = archiveCollection;
+            m_world = world;
             m_currentMapInfo = currentMapInfo;
             m_nextMapInfo = nextMapInfo;
-
-            if (layer.IntermissionDef != null)
-            {
-                m_thisSpot = layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName == layer.CurrentMapInfo.MapName);
-                m_nextSpot = layer.NextMapInfo == null ? null : layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName == layer.NextMapInfo.MapName);
-            }
         }    
 
         public void Draw(IntermissionLayer layer, RenderCommands commands, int tics)
         {
             DrawHelper draw = new(commands);
-            Font? intermissionFont = m_archiveCollection.GetFont(Font);
+            Font? intermissionFont = m_world.ArchiveCollection.GetFont(Font);
 
             commands.ClearDepth();
 
@@ -71,54 +67,58 @@ namespace Helion.Render.Shared.Drawers
             if (layer.IntermissionState != IntermissionState.NextMap || layer.IntermissionDef == null)
                 return;
 
-            if (tics - m_lastPointerTic >= 16)
+            if (!m_spotsInit)
+            {
+                InitSpots(draw, layer);
+                m_spotsInit = true;
+            }
+
+            if (tics - m_lastPointerTic >= (m_drawPointer ? 20 : 11))
             {
                 m_drawPointer = !m_drawPointer;
                 m_lastPointerTic = tics;
             }
 
-            Dimension? thisSpotDimension = null;
-            Vec2I thisSpotOffset = Vec2I.Zero;
+            foreach (var visitedSpot in m_visitedSpots)
+                draw.Image(layer.IntermissionDef.Splat, visitedSpot.Box.BottomLeft.X, visitedSpot.Box.BottomLeft.Y);
 
-            if (m_thisSpot != null)
+            if (m_drawPointer && m_nextSpot != null && m_pointerImage != null)
+                draw.Image(m_pointerImage, m_nextSpot.Box.BottomLeft.X, m_nextSpot.Box.BottomRight.Y);
+        }
+
+        private void InitSpots(DrawHelper draw, IntermissionLayer layer)
+        {
+            if (layer.IntermissionDef != null)
             {
-                thisSpotDimension = draw.DrawInfoProvider.GetImageDimension(layer.IntermissionDef.Splat);
-                thisSpotOffset = draw.DrawInfoProvider.GetImageOffset(layer.IntermissionDef.Splat);
-                draw.TranslateDoomOffset(ref thisSpotOffset, thisSpotDimension.Value);
-                thisSpotOffset.X += m_thisSpot.X;
-                thisSpotOffset.Y += m_thisSpot.Y;
-                draw.Image(layer.IntermissionDef.Splat, thisSpotOffset.X, thisSpotOffset.Y);
-            }
+                var dimension = draw.DrawInfoProvider.GetImageDimension(layer.IntermissionDef.Splat);
+                var offset = draw.DrawInfoProvider.GetImageOffset(layer.IntermissionDef.Splat);
+                draw.TranslateDoomOffset(ref offset, dimension);
 
-            if (m_nextSpot != null && layer.IntermissionDef.Pointer.Count > 0 && m_drawPointer)
-            {
-                var nextSpotDimension = draw.DrawInfoProvider.GetImageDimension(layer.IntermissionDef.Pointer[0]);
-                var nextSpotOffset = draw.DrawInfoProvider.GetImageOffset(layer.IntermissionDef.Pointer[0]);
-                draw.TranslateDoomOffset(ref nextSpotOffset, nextSpotDimension);
-                nextSpotOffset.X += m_nextSpot.X;
-                nextSpotOffset.Y += m_nextSpot.Y;
-
-                if (m_thisSpot != null && thisSpotDimension.HasValue && layer.IntermissionDef.Pointer.Count > 1)
+                foreach (var visitedMap in m_world.VisitedMaps)
                 {
-                    Box2I thisSpotBox = new Box2I(thisSpotOffset, new Vec2I(thisSpotOffset.X + thisSpotDimension.Value.Width,
-                        thisSpotOffset.Y + thisSpotDimension.Value.Height));
-                    Box2I nextSpotBox = new Box2I(nextSpotOffset, new Vec2I(nextSpotOffset.X + nextSpotDimension.Width,
-                        nextSpotOffset.Y + nextSpotDimension.Height));
+                    var spot = layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName == visitedMap.MapName);
+                    if (spot != null)
+                    {
+                        m_visitedSpots.Add(spot);
+                        var spotOffset = offset;
+                        spotOffset.X += spot.X;
+                        spotOffset.Y += spot.Y;
+                        spot.Box = new Box2I(spotOffset, new Vec2I(spotOffset.X + dimension.Width, spotOffset.Y + dimension.Height));
+                    }
+                }
 
-                    if (thisSpotBox.Overlaps(nextSpotBox))
-                    {
-                        nextSpotDimension = draw.DrawInfoProvider.GetImageDimension(layer.IntermissionDef.Pointer[1]);
-                        nextSpotOffset = draw.DrawInfoProvider.GetImageOffset(layer.IntermissionDef.Pointer[1]);
-                        draw.TranslateDoomOffset(ref nextSpotOffset, nextSpotDimension);
-                        nextSpotOffset.X += m_nextSpot.X;
-                        nextSpotOffset.Y += m_nextSpot.Y;
-                        draw.Image(layer.IntermissionDef.Pointer[1], nextSpotOffset.X, nextSpotOffset.Y);
-                    }
-                    else
-                    {
-                        draw.Image(layer.IntermissionDef.Pointer[0], nextSpotOffset.X, nextSpotOffset.Y);
-                    }
-                }               
+                m_nextSpot = layer.NextMapInfo == null ? null : layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName == layer.NextMapInfo.MapName);
+                if (m_nextSpot != null && layer.IntermissionDef.Pointer.Count > 1)
+                {
+                    m_pointerImage = layer.IntermissionDef.Pointer[0];
+                    var nextSpotDimension = draw.DrawInfoProvider.GetImageDimension(layer.IntermissionDef.Pointer[0]);
+                    var nextSpotOffset = draw.DrawInfoProvider.GetImageOffset(layer.IntermissionDef.Pointer[0]);
+                    draw.TranslateDoomOffset(ref nextSpotOffset, nextSpotDimension);
+                    nextSpotOffset.X += m_nextSpot.X;
+                    nextSpotOffset.Y += m_nextSpot.Y;
+                    m_nextSpot.Box = new Box2I(nextSpotOffset, new Vec2I(nextSpotOffset.X + nextSpotDimension.Width,
+                        nextSpotOffset.Y + nextSpotDimension.Height));
+                }
             }
         }
 
