@@ -94,7 +94,7 @@ namespace Helion.Render.Shared.Drawers
                 var offset = draw.DrawInfoProvider.GetImageOffset(layer.IntermissionDef.Splat);
                 draw.TranslateDoomOffset(ref offset, dimension);
 
-                foreach (var visitedMap in m_world.VisitedMaps)
+                foreach (var visitedMap in m_world.GlobalData.VisitedMaps)
                 {
                     var spot = layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName == visitedMap.MapName);
                     if (spot != null)
@@ -195,6 +195,7 @@ namespace Helion.Render.Shared.Drawers
             const int LeftOffsetParX = 180;
             const int RightOffsetParTimeX = 280;
             const int OffsetY = 40;
+            const int TotalOffsetY = 20;
             
             if (layer.IntermissionState == IntermissionState.NextMap || layer.IntermissionState < IntermissionState.TallyingTime)
                 return;
@@ -202,8 +203,14 @@ namespace Helion.Render.Shared.Drawers
             draw.Image("WITIME", LeftOffsetTimeX, -OffsetY, window: Align.BottomLeft);
             draw.Image("WIPAR", LeftOffsetParX, -OffsetY, window: Align.BottomLeft);
 
-            RenderTime(layer.LevelTimeSeconds, RightOffsetLevelTimeX, renderFont);
-            RenderTime(layer.ParTimeSeconds, RightOffsetParTimeX, renderFont);
+            RenderTime(layer.LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY, renderFont);
+            RenderTime(layer.ParTimeSeconds, RightOffsetParTimeX, -OffsetY, renderFont);
+
+            if (layer.IntermissionState >= IntermissionState.ShowAllStats)
+            {
+                draw.Image("WIMSTT", LeftOffsetTimeX, -TotalOffsetY, window: Align.BottomLeft);
+                RenderTime(layer.World.GlobalData.TotalTime / (int)Constants.TicksPerSecond, RightOffsetLevelTimeX, -TotalOffsetY, renderFont);
+            }
 
             string GetTimeString(int seconds)
             {
@@ -212,7 +219,7 @@ namespace Helion.Render.Shared.Drawers
                 return $"{minutes}:{secondsStr}";
             }
 
-            void RenderTime(int seconds, int rightOffsetX, Font? font)
+            void RenderTime(int seconds, int rightOffsetX, int y, Font? font)
             {
                 if (font == null)
                     return;
@@ -220,7 +227,7 @@ namespace Helion.Render.Shared.Drawers
                 // TODO: Use TextAlign.Right for both below.
                 string levelTime = GetTimeString(seconds);
                 (int w, int _) = draw.TextDrawArea(levelTime, font, FontSize);
-                draw.Text(Color.White, levelTime, font, FontSize, rightOffsetX - w, -OffsetY, window: Align.BottomLeft);
+                draw.Text(Color.White, levelTime, font, FontSize, rightOffsetX - w, y, window: Align.BottomLeft);
             }
         }
     }

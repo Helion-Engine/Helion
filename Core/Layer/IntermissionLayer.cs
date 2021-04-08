@@ -195,9 +195,6 @@ namespace Helion.Layer
 
         private void AdvanceTally()
         {
-            m_delayTics = (int)Constants.TicksPerSecond;
-            m_soundManager.PlayStaticSound("intermission/nextstage");
-
             m_delayState = IntermissionState switch
             {
                 IntermissionState.Started => IntermissionState.TallyingKills,
@@ -207,6 +204,10 @@ namespace Helion.Layer
                 IntermissionState.TallyingTime => IntermissionState.ShowAllStats,
                 _ => IntermissionState
             };
+
+            if (m_delayState != IntermissionState.ShowAllStats)
+                m_delayTics = (int)Constants.TicksPerSecond;
+            m_soundManager.PlayStaticSound("intermission/nextstage");
         }
 
         private void PlayPressedKeySound()
@@ -272,7 +273,7 @@ namespace Helion.Layer
         }
 
         private bool VisitedMap(string mapName) =>
-            World.VisitedMaps.Any(x => CompareMapName(mapName, x));
+            World.GlobalData.VisitedMaps.Any(x => CompareMapName(mapName, x));
 
         private static bool ShouldAnimate(IntermissionAnimation animation) =>
             !animation.Once || (animation.ItemIndex < animation.Items.Count - 1);
