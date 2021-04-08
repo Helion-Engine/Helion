@@ -162,30 +162,25 @@ namespace Helion.Render.Shared.Drawers
             if (layer.IntermissionState == IntermissionState.NextMap)
                 return;
 
+            draw.Image("WIOSTK", LeftOffsetX, OffsetY);
+            draw.Image("WIOSTI", LeftOffsetX, OffsetY + RowOffsetY);
+            draw.Image("WISCRT2", LeftOffsetX, OffsetY + (2 * RowOffsetY));
+
             if (layer.IntermissionState >= IntermissionState.TallyingKills)
-            {
-                draw.Image("WIOSTK", LeftOffsetX, OffsetY);
                 DrawNumber(layer.KillPercent, OffsetY, intermissionFont);
-            }
             
             if (layer.IntermissionState >= IntermissionState.TallyingItems)
-            {
-                draw.Image("WIOSTI", LeftOffsetX, OffsetY + RowOffsetY);
                 DrawNumber(layer.ItemPercent, OffsetY + RowOffsetY, intermissionFont);
-            }
             
             if (layer.IntermissionState >= IntermissionState.TallyingSecrets)
-            {
-                draw.Image("WISCRT2", LeftOffsetX, OffsetY + (2 * RowOffsetY));
                 DrawNumber(layer.SecretPercent, OffsetY + (2 * RowOffsetY), intermissionFont);
-            }
 
             void DrawNumber(double percent, int offsetY, Font? font)
             {
                 if (font == null)
                     return;
                 
-                string text = $"{(int)(percent * 100)}%";
+                string text = $"{percent}%";
                 (int w, int _) = draw.TextDrawArea(text, font, FontSize);
                 
                 // TODO: Use TextAlign.Right
@@ -201,15 +196,14 @@ namespace Helion.Render.Shared.Drawers
             const int RightOffsetParTimeX = 280;
             const int OffsetY = 40;
             
-            if (layer.IntermissionState == IntermissionState.NextMap || layer.IntermissionState < IntermissionState.ShowingPar)
+            if (layer.IntermissionState == IntermissionState.NextMap || layer.IntermissionState < IntermissionState.TallyingTime)
                 return;
             
             draw.Image("WITIME", LeftOffsetTimeX, -OffsetY, window: Align.BottomLeft);
             draw.Image("WIPAR", LeftOffsetParX, -OffsetY, window: Align.BottomLeft);
 
-            int levelTimeSeconds = (int)(layer.World.LevelTime / Constants.TicksPerSecond);
-            RenderTime(levelTimeSeconds, RightOffsetLevelTimeX, renderFont);
-            RenderTime(m_currentMapInfo.ParTime, RightOffsetParTimeX, renderFont);
+            RenderTime(layer.LevelTimeSeconds, RightOffsetLevelTimeX, renderFont);
+            RenderTime(layer.ParTimeSeconds, RightOffsetParTimeX, renderFont);
 
             string GetTimeString(int seconds)
             {
