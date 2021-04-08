@@ -51,7 +51,7 @@ namespace Helion.Layer
 
         private IntermissionState m_delayState;
         private int m_tics;
-        private int m_delayTics;
+        private int m_delayStateTics;
 
         protected override double Priority => 0.65;
 
@@ -66,14 +66,13 @@ namespace Helion.Layer
             m_musicPlayer = musicPlayer;
             m_stopwatch.Start();
             m_totalLevelTime = World.LevelTime / (int)Constants.TicksPerSecond;
-            //m_totalLevelTime = 1000;
 
             IntermissionPic = "INTERPIC";
             CalculatePercentages();
             CheckEpisodeIntermission();
             Tick();
 
-            m_delayTics = (int)Constants.TicksPerSecond;
+            m_delayStateTics = (int)Constants.TicksPerSecond;
             m_delayState = IntermissionState.TallyingKills;
 
             m_drawer = new IntermissionDrawer(world, currentMapInfo, nextMapInfo, this);
@@ -106,13 +105,6 @@ namespace Helion.Layer
 
         private void CalculatePercentages()
         {
-            //World.LevelStats.KillCount = 100;
-            //World.LevelStats.ItemCount = 100;
-            //World.LevelStats.SecretCount = 100;
-            //World.LevelStats.TotalMonsters = 100;
-            //World.LevelStats.TotalItems = 100;
-            //World.LevelStats.TotalSecrets = 100;
-
             if (World.LevelStats.TotalMonsters != 0)
                 m_levelPercents.TotalMonsters = (World.LevelStats.KillCount * 100) / World.LevelStats.TotalMonsters;
             if (World.LevelStats.TotalItems != 0)
@@ -154,9 +146,9 @@ namespace Helion.Layer
                 return;
             }
 
-            if (m_delayTics != 0)
+            if (m_delayStateTics != 0)
             {
-                m_delayTics = 0;
+                m_delayStateTics = 0;
                 IntermissionState = m_delayState;
                 m_delayState = IntermissionState.None;
             }
@@ -172,14 +164,14 @@ namespace Helion.Layer
                 IntermissionState.TallyingSecrets => IntermissionState.ShowAllStats,
                 IntermissionState.TallyingTime => IntermissionState.ShowAllStats,
                 IntermissionState.ShowAllStats => IntermissionState.NextMap,
-                IntermissionState.NextMap => IntermissionState.Complete,
+                IntermissionState.NextMap => IntermissionState.NextMap,
                 IntermissionState.Complete => IntermissionState.Complete,
                 _ => throw new Exception($"Unexpected intermission state: {IntermissionState}")
             };
 
             if (IntermissionState == IntermissionState.NextMap)
             {
-                m_delayTics = (int)Constants.TicksPerSecond * 4;
+                m_delayStateTics = (int)Constants.TicksPerSecond * 4;
                 m_delayState = IntermissionState.Complete;
             }
         }
@@ -206,7 +198,7 @@ namespace Helion.Layer
             };
 
             if (m_delayState != IntermissionState.ShowAllStats)
-                m_delayTics = (int)Constants.TicksPerSecond;
+                m_delayStateTics = (int)Constants.TicksPerSecond;
             m_soundManager.PlayStaticSound("intermission/nextstage");
         }
 
@@ -251,8 +243,7 @@ namespace Helion.Layer
         }
 
         public override void RunLogic()
-        {
-            // TODO: Play gunshot sounds when advancing the percentages.       
+        {    
             base.RunLogic();
 
             if (m_stopwatch.ElapsedMilliseconds > 1000 / Constants.TicksPerSecond)
@@ -281,9 +272,11 @@ namespace Helion.Layer
         private void Tick()
         {
             m_tics++;
-            if (m_delayTics > 0)
+            AnimationTick();
+
+            if (m_delayStateTics > 0)
             {
-                m_delayTics--;
+                m_delayStateTics--;
                 return;
             }
 
@@ -294,7 +287,6 @@ namespace Helion.Layer
             }
 
             TallyTick();
-            AnimationTick();
 
             if (IntermissionState == IntermissionState.Complete)
                 Exited?.Invoke(this, EventArgs.Empty);
