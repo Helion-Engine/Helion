@@ -101,6 +101,9 @@ namespace Helion.World.Entities.Players
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
 
+            WeaponOffset.Y = Constants.WeaponBottom;
+            PrevWeaponOffset.Y = Constants.WeaponBottom;
+
             StatusBar = new PlayerStatusBar(this);
         }
 
