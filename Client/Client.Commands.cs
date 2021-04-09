@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.World;
@@ -19,6 +21,7 @@ namespace Helion.Client
     public partial class Client
     {
         private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
+        private static readonly string StatFile = "levelstat.txt";
 
         private GlobalData m_globalData = new();
 
@@ -116,8 +119,13 @@ namespace Helion.Client
                 return;
             }
 
+            NewGame(mapInfoDef);
+        }
+
+        private void NewGame(MapInfoDef mapInfo)
+        {
             m_globalData = new();
-            LoadMap(mapInfoDef.MapName);
+            LoadMap(mapInfo, null, NoPlayers);
         }
 
         private void PrintAudioDevices()
@@ -185,8 +193,7 @@ namespace Helion.Client
                 return;
             }
 
-            m_globalData = new();
-            LoadMap(GetMapInfo(args[0]), null, NoPlayers);    
+            NewGame(GetMapInfo(args[0]));    
         }
 
         private MapInfoDef GetMapInfo(string mapName) =>
@@ -232,6 +239,9 @@ namespace Helion.Client
             if (sender is not IWorld world)
                 return;
 
+            if (m_config.Game.LevelStat)
+                WriteStatsFile(world);
+
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
@@ -249,6 +259,36 @@ namespace Helion.Client
                 case LevelChangeType.Reset:
                     LoadMap(world.MapInfo, null, NoPlayers);
                     break;
+            }
+        }
+
+        private static void ClearStatsFile()
+        {
+            try
+            {
+                File.WriteAllText(StatFile, string.Empty);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to clear {StatFile} - {e}");
+            }
+        }
+
+        private static void WriteStatsFile(IWorld world)
+        {
+            try
+            {
+                TimeSpan ts = TimeSpan.FromSeconds(world.LevelTime / Constants.TicksPerSecond);
+                using StreamWriter sw = File.AppendText(StatFile);
+                sw.WriteLine(string.Format("{0} - {1} ({2})  K: {3}/{4}  I: {5}/{6}  S: {7}/{8}", world.MapInfo.MapName,
+                    $"{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}", $"{ts.Minutes}:{ts.Seconds}",
+                    world.LevelStats.KillCount, world.LevelStats.TotalMonsters,
+                    world.LevelStats.ItemCount, world.LevelStats.TotalItems,
+                    world.LevelStats.SecretCount, world.LevelStats.TotalSecrets));
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to write {StatFile} - {e}");
             }
         }
 

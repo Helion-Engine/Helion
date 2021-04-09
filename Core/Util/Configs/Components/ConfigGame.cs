@@ -15,6 +15,9 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("Whether no monsters should be spawned.", save: false)]
         public readonly ConfigValueBoolean NoMonsters = new();
 
+        [ConfigInfo("If stats should be written to levelstat.txt.", save: false)]
+        public readonly ConfigValueBoolean LevelStat = new();
+
         [ConfigInfo("Enables fast monsters.", save: false)]
         public readonly ConfigValueBoolean SV_FastMonsters = new();
     }

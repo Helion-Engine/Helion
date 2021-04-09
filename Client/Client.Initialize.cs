@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Helion.Layer;
@@ -34,7 +35,11 @@ namespace Helion.Client
                 SetSkill(m_commandLineArgs.Skill.Value);
 
             m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
+            m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
             m_config.Game.SV_FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+
+            if (m_commandLineArgs.LevelStat)
+                ClearStatsFile();
 
             CheckLoadMap();
             AddTitlepicIfNoMap();

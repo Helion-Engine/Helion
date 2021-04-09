@@ -18,6 +18,7 @@ namespace Helion.Util.CommandLine
         public string? Warp { get; set; }
         public int? Skill { get; set; }
         public bool NoMonsters { get; set; }
+        public bool LevelStat { get; set; }
         public bool SV_FastMonsters { get; set; }
 
         /// <summary>
@@ -48,6 +49,8 @@ namespace Helion.Util.CommandLine
                     commandLineArgs.Map = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "-nomonsters"))
                     commandLineArgs.NoMonsters = true;
+                else if (IsArgMatch(parsedArg, "-levelstat"))
+                    commandLineArgs.LevelStat = true;
                 else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
                     commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
                 else
