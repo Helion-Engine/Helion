@@ -140,7 +140,7 @@ namespace Helion.Render.Shared.Drawers
             const string NowEnteringImage = "WIENTER";
             const int topPaddingY = 4;
 
-            if (layer.IntermissionState == IntermissionState.NextMap && m_nextMapInfo != null)
+            if (layer.IntermissionState >= IntermissionState.NextMap && m_nextMapInfo != null)
             {
                 draw.Image(NowEnteringImage, 0, topPaddingY, out Dimension drawArea, both: Align.TopMiddle);
                 draw.Image(m_nextMapInfo.TitlePatch, 0, drawArea.Height + topPaddingY + 1, both: Align.TopMiddle);
