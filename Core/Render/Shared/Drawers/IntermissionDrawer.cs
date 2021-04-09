@@ -159,7 +159,7 @@ namespace Helion.Render.Shared.Drawers
             const int OffsetY = 50;
             const int RowOffsetY = 18;
 
-            if (layer.IntermissionState == IntermissionState.NextMap)
+            if (layer.IntermissionState >= IntermissionState.NextMap)
                 return;
 
             draw.Image("WIOSTK", LeftOffsetX, OffsetY);
