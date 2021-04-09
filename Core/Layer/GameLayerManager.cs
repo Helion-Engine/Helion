@@ -69,8 +69,11 @@ namespace Helion.Layer
 
         public override void HandleInput(InputEvent input)
         {
+            // We give special priority to the console.
             if (input.ConsumeKeyPressed(m_config.Controls.Console))
                 HandleConsoleToggle(input);
+            
+            base.HandleInput(input);
 
             if (input.ConsumeKeyPressed(m_config.Controls.Save))
                 OpenSaveGameMenu();
@@ -81,7 +84,7 @@ namespace Helion.Layer
                 input.ConsumeAll();
                 CreateAndAddMenu();
             }
-
+            
             if (!ContainsEither<ConsoleLayer, ImageLayer>() && input.ConsumeKeyPressed(Key.F1))
                 CreateAndAddHelp();
 
@@ -93,8 +96,6 @@ namespace Helion.Layer
 
             if (!Contains<MenuLayer>() && input.ConsumeKeyPressed(Key.Escape))
                 CreateAndAddMenu();
-
-            base.HandleInput(input);
 
             void CreateAndAddMenu()
             {
