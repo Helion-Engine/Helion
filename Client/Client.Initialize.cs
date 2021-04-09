@@ -41,8 +41,15 @@ namespace Helion.Client
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
 
-            CheckLoadMap();
-            AddTitlepicIfNoMap();
+            if (m_commandLineArgs.LoadGame != null)
+            {
+                HandleLoadGame(new string[] { m_commandLineArgs.LoadGame });
+            }
+            else
+            {
+                CheckLoadMap();
+                AddTitlepicIfNoMap();
+            }
         }
 
         private void AddTitlepicIfNoMap()

@@ -19,6 +19,7 @@ namespace Helion.Util.CommandLine
         public int? Skill { get; set; }
         public bool NoMonsters { get; set; }
         public bool LevelStat { get; set; }
+        public string? LoadGame { get; set; }
         public bool SV_FastMonsters { get; set; }
 
         /// <summary>
@@ -51,6 +52,8 @@ namespace Helion.Util.CommandLine
                     commandLineArgs.NoMonsters = true;
                 else if (IsArgMatch(parsedArg, "-levelstat"))
                     commandLineArgs.LevelStat = true;
+                else if (IsArgMatch(parsedArg, "-loadgame"))
+                    commandLineArgs.LoadGame = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
                     commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
                 else
