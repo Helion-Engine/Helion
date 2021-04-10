@@ -13,8 +13,17 @@ namespace Helion.World.Cheats
         ChangeMusic,
         ShowPosition,
 
+        Behold,
+        BeholdRadSuit,
+        BeholdPartialInvisibility,
+        BeholdInvulnerability,
+        BeholdComputerAreaMap,
+        BeholdLightAmp,
+        BeholdBerserk,
+
         // Start non-vanilla doom cheats
         Fly,
-        Ressurect
+        Ressurect,
+        Kill
     }
 }

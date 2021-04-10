@@ -42,6 +42,9 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Cheats;
 using Helion.World.Stats;
+using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Impl.SinglePlayer;
+using Helion.World.Util;
 
 namespace Helion.World
 {
@@ -57,6 +60,7 @@ namespace Helion.World
         /// </summary>
         public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
         public event EventHandler<LevelChangeEvent>? LevelExit;
+        public event EventHandler<int> ChangeMusic;
 
         public readonly long CreationTimeNanos;
         public CIString MapName { get; protected set; }
@@ -1077,6 +1081,20 @@ namespace Helion.World
             LevelExit?.Invoke(this, new LevelChangeEvent(number));
         }
 
+        protected bool ChangeToMusic(int number)
+        {
+            if (this is SinglePlayerWorld singlePlayerWorld)
+            {
+                if (!MapWarp.GetMap(number, ArchiveCollection.Definitions.MapInfoDefinition.MapInfo, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
+                    return false;
+
+                SinglePlayerWorld.PlayLevelMusic(singlePlayerWorld.AudioSystem, mapInfoDef.Music, ArchiveCollection);
+                return true;
+            }
+
+            return false;
+        }
+
         protected void ResetLevel()
         {
             LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Reset));
@@ -1339,10 +1357,17 @@ namespace Helion.World
 
         public void ActivateCheat(Player player, ICheat cheat)
         {
-            if (cheat is ChangeLevelCheat changeLevel)
+            if (cheat is LevelCheat levelCheat)
             {
-                ChangeToLevel(changeLevel.LevelNumber);
-                return;
+                if (levelCheat.CheatType == CheatType.ChangeLevel)
+                {
+                    ChangeToLevel(levelCheat.LevelNumber);
+                    return;
+                }
+                else if (levelCheat.CheatType == CheatType.ChangeMusic && !ChangeToMusic(levelCheat.LevelNumber))
+                {
+                    return;
+                }
             }
 
             switch (cheat.CheatType)
@@ -1353,12 +1378,16 @@ namespace Helion.World
                 case CheatType.Fly:
                     player.Flags.NoGravity = player.Cheats.IsCheatActive(cheat.CheatType);
                     break;
+                case CheatType.Kill:
+                    player.ForceGib();
+                    break;
                 case CheatType.Ressurect:
                     if (player.IsDead)
                         player.SetRaiseState();
                     break;
                 case CheatType.God:
-                    player.Health = player.Definition.Properties.Player.MaxHealth;
+                    if (!player.IsDead)
+                        player.Health = player.Definition.Properties.Player.MaxHealth;
                     player.Flags.Invulnerable = player.Cheats.IsCheatActive(cheat.CheatType);
                     break;
                 case CheatType.GiveAllNoKeys:
@@ -1370,15 +1399,103 @@ namespace Helion.World
                     player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
                     player.GiveBestArmor(EntityManager.DefinitionComposer);
                     break;
+                case CheatType.Chainsaw:
+                    GiveChainsaw(player);
+                    break;
+                case CheatType.BeholdRadSuit:
+                case CheatType.BeholdPartialInvisibility:
+                case CheatType.BeholdInvulnerability:
+                case CheatType.BeholdComputerAreaMap:
+                case CheatType.BeholdLightAmp:
+                case CheatType.BeholdBerserk:
+                    TogglePowerup(player, PowerupNameFromCheatType(cheat.CheatType), PowerupTypeFromCheatType(cheat.CheatType));
+                    break;
+                case CheatType.Automap:
+                    // TODO
+                    break;
+                default:
+                    break;
             }
+
+            if (string.IsNullOrEmpty(cheat.CheatName))
+                return;
 
             string msg;
             if (cheat.IsToggleCheat)
-                msg = string.Format("{0} cheat: {1}", player.Cheats.IsCheatActive(cheat.CheatType) ? "Activated" : "Deactivated", cheat.CheatName);
+                msg = string.Format("{0} {1}", cheat.CheatName, player.Cheats.IsCheatActive(cheat.CheatType) ? "ON" : "OFF");
             else
                 msg = cheat.CheatName;
 
             DisplayMessage(player, null, msg, LanguageMessageType.None);
+        }
+
+        private void TogglePowerup(Player player, string powerupDefinition, PowerupType powerupType)
+        {
+            if (string.IsNullOrEmpty(powerupDefinition) || powerupType == PowerupType.None)
+                return;
+
+            var def = EntityManager.DefinitionComposer.GetByName(powerupDefinition);
+            if (def == null)
+                return;
+
+            var existingPowerup = player.Inventory.Powerups.FirstOrDefault(x => x.PowerupType == powerupType);
+            if (existingPowerup != null)
+                player.Inventory.RemovePowerup(existingPowerup);
+            else
+                player.Inventory.Add(def, 1);
+        }
+
+        private static string PowerupNameFromCheatType(CheatType cheatType)
+        {
+            switch (cheatType)
+            {
+                case CheatType.BeholdRadSuit:
+                    return "RadSuit";
+                case CheatType.BeholdPartialInvisibility:
+                    return "BlurSphere";
+                case CheatType.BeholdInvulnerability:
+                    return "InvulnerabilitySphere";
+                case CheatType.BeholdComputerAreaMap:
+                    return "Allmap";
+                case CheatType.BeholdLightAmp:
+                    return "Infrared";
+                case CheatType.BeholdBerserk:
+                    return "Berserk";
+                default:
+                    break;
+            }
+
+            return string.Empty;
+        }
+
+        private static PowerupType PowerupTypeFromCheatType(CheatType cheatType)
+        {
+            switch (cheatType)
+            {
+                case CheatType.BeholdRadSuit:
+                    return PowerupType.IronFeet;
+                case CheatType.BeholdPartialInvisibility:
+                    return PowerupType.Invisibility;
+                case CheatType.BeholdInvulnerability:
+                    return PowerupType.Invulnerable;
+                case CheatType.BeholdComputerAreaMap:
+                    return PowerupType.ComputerAreaMap;
+                case CheatType.BeholdLightAmp:
+                    return PowerupType.LightAmp;
+                case CheatType.BeholdBerserk:
+                    return PowerupType.Strength;
+                default:
+                    break;
+            }
+
+            return PowerupType.None;
+        }
+
+        private void GiveChainsaw(Player player)
+        {
+            var chainsaw = EntityManager.DefinitionComposer.GetByName("chainsaw");
+            if (chainsaw != null)
+                player.GiveWeapon(chainsaw);
         }
 
         private void GiveAllWeapons(Player player)

@@ -6,7 +6,8 @@
         string? ConsoleCommand { get; }
         CheatType CheatType { get; }
         bool IsToggleCheat { get; }
-        
+        bool ClearTypedCheatString { get; }
+
         bool IsMatch(string str);
         bool PartialMatch(string str);
     }

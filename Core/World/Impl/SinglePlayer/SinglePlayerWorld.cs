@@ -165,7 +165,7 @@ namespace Helion.World.Impl.SinglePlayer
             base.Start();
         }
 
-        private static void PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
+        public static void PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
         {
             Entry? entry = archiveCollection.Entries.FindByName(entryName);
             if (entry == null)

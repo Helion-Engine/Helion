@@ -7,6 +7,7 @@
         Strength,
         Invisibility,
         IronFeet,
-        LightAmp
+        LightAmp,
+        ComputerAreaMap,
     }
 }

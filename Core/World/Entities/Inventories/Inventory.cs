@@ -131,6 +131,12 @@ namespace Helion.World.Entities.Inventories
 
         public IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
 
+        public void RemovePowerup(IPowerup powerup)
+        {
+            Powerups.Remove(powerup);
+            SetPriorityPowerupEffects();
+        }
+
         public void ClearPowerups()
         {
             foreach (IPowerup powerup in Powerups)

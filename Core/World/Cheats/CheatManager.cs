@@ -9,15 +9,31 @@ namespace Helion.World.Cheats
 {
     public class CheatManager
     {
+        private const string BeholdActivated = "Power-up Toggled";
+
         private static readonly ICheat[] Cheats =
         {
-            new ChangeLevelCheat(),
-            new ExactMatchCheat("No clipping mode", "idclip", "noclip", CheatType.NoClip),
-            new ExactMatchCheat("God mode", "iddqd", "god", CheatType.God),
+            new LevelCheat(string.Empty, "idclev", CheatType.ChangeLevel),
+            new LevelCheat("Change music", "idmus", CheatType.ChangeMusic),
+            new MultiCodeCheat("No clipping mode", new string[] { "idclip", "idspispopd" }, "noclip", CheatType.NoClip),
+            new ExactMatchCheat(string.Empty, "idmypos", CheatType.ShowPosition),
+            new ExactMatchCheat(string.Empty, "iddt", CheatType.Automap),
+            new ExactMatchCheat("Degreelessness mode", "iddqd", "god", CheatType.God),
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
+            new ExactMatchCheat("Die", "kill", "kill", CheatType.Kill, canToggle: false),
             new ExactMatchCheat("Resurrect", "resurrect", "resurrect", CheatType.Ressurect, canToggle: false),
             new ExactMatchCheat("Ammo (no keys) added", "idfa", "idfa", CheatType.GiveAllNoKeys, canToggle: false),
             new ExactMatchCheat("Very happy ammo added", "idkfa", "idkfa", CheatType.GiveAll, canToggle: false),
+            new ExactMatchCheat("... Doesn't Suck - GM", "idchoppers", CheatType.Chainsaw, canToggle: false),
+
+            new ExactMatchCheat("inVuln, Str, Inviso, Rad, Allmap, or Lite-amp", "idbehold", CheatType.Automap, canToggle: false,
+                clearTypedCheatString: false),
+            new ExactMatchCheat(BeholdActivated, "idbeholdr", CheatType.BeholdRadSuit, canToggle: false),
+            new ExactMatchCheat(BeholdActivated, "idbeholdi", CheatType.BeholdPartialInvisibility, canToggle: false),
+            new ExactMatchCheat(BeholdActivated, "idbeholdv", CheatType.BeholdInvulnerability, canToggle: false),
+            new ExactMatchCheat(BeholdActivated, "idbeholda", CheatType.BeholdComputerAreaMap, canToggle: false),
+            new ExactMatchCheat(BeholdActivated, "idbeholdl", CheatType.BeholdLightAmp, canToggle: false),
+            new ExactMatchCheat(BeholdActivated, "idbeholds", CheatType.BeholdBerserk, canToggle: false),
         };
 
         private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
@@ -75,7 +91,8 @@ namespace Helion.World.Cheats
                     if (cheat != null)
                     {
                         ActivateCheat(player, cheat.CheatType);
-                        m_currentCheat.Clear();
+                        if (cheat.ClearTypedCheatString)
+                            m_currentCheat.Clear();
                     }
                 }
                 else
