@@ -58,7 +58,7 @@ namespace Helion.World.Util
                 var episodeDef = mapInfo.Episodes[0];
                 var match = mapRegex.Match(episodeDef.StartMap);
                 if (match.Success)
-                    mapName = match.Groups["map"] + level.ToString().PadLeft(2, '0');
+                    mapName = match.Groups["map"] + episode.ToString() + level.ToString();
             }
 
             mapInfoDef = mapInfo.GetMap(mapName);
