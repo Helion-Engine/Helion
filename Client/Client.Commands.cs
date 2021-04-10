@@ -311,7 +311,7 @@ namespace Helion.Client
         {
             if (sender is not IntermissionLayer intermissionLayer)
                 return;
-
+            m_layerManager.Remove<IntermissionLayer>();
             EndGame(intermissionLayer.World, intermissionLayer.NextMapInfo);
         }
 

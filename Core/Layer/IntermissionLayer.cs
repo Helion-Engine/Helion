@@ -52,6 +52,7 @@ namespace Helion.Layer
         private IntermissionState m_delayState;
         private int m_tics;
         private int m_delayStateTics;
+        private bool m_exited;
 
         protected override double Priority => 0.65;
 
@@ -271,6 +272,9 @@ namespace Helion.Layer
 
         private void Tick()
         {
+            if (m_exited)
+                return;
+
             m_tics++;
             AnimationTick();
 
