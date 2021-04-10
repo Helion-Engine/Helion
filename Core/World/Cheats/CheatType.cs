@@ -8,6 +8,7 @@ namespace Helion.World.Cheats
         ChangeLevel,
         God,
         Automap,
+        AutomapMode,
         GiveAllNoKeys,
         GiveAll,
         ChangeMusic,

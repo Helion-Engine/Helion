@@ -71,6 +71,7 @@ namespace Helion.Render.Shared.Drawers
             cmd.ClearDepth();
 
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, consoleFont, out int topRightY);
+            DrawPosition(player, viewport, draw, consoleFont, ref topRightY);
             DrawHud(topRightY, player, tickFraction, viewport, config, largeFont, draw);
             DrawPowerupEffect(player, viewport, draw);
             DrawPickupFlash(player, viewport, draw);
@@ -462,6 +463,22 @@ namespace Helion.Render.Shared.Drawers
                 viewport.Width - 1, y, textbox: Align.TopRight);
 
             y += minArea.Height;
+        }
+
+        private static void DrawPosition(Player player, Dimension viewport, DrawHelper draw, Font? consoleFont, ref int topRightY)
+        {
+            if (consoleFont == null || !player.Cheats.IsCheatActive(Helion.World.Cheats.CheatType.ShowPosition))
+                return;
+
+            draw.Text(Color.White, $"X: {Math.Round(player.Position.X, 4)}", consoleFont, 16, out Dimension xArea,
+                viewport.Width - 1, topRightY, textbox: Align.TopRight);
+            topRightY += xArea.Height + FpsMessageSpacing;
+            draw.Text(Color.White, $"Y: {Math.Round(player.Position.Y, 4)}", consoleFont, 16, out Dimension yArea,
+                viewport.Width - 1, topRightY, textbox: Align.TopRight);
+            topRightY += yArea.Height + FpsMessageSpacing;
+            draw.Text(Color.White, $"Z: {Math.Round(player.Position.Z, 4)}", consoleFont, 16, out Dimension zArea,
+                viewport.Width - 1, topRightY, textbox: Align.TopRight);
+            topRightY += zArea.Height + FpsMessageSpacing;
         }
 
         private static float CalculateFade(long timeSinceMessage)

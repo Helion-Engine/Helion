@@ -17,7 +17,7 @@ namespace Helion.World.Cheats
             new LevelCheat("Change music", "idmus", CheatType.ChangeMusic),
             new MultiCodeCheat("No clipping mode", new string[] { "idclip", "idspispopd" }, "noclip", CheatType.NoClip),
             new ExactMatchCheat(string.Empty, "idmypos", CheatType.ShowPosition),
-            new ExactMatchCheat(string.Empty, "iddt", CheatType.Automap),
+            new ExactMatchCheat(string.Empty, "iddt", CheatType.AutomapMode),
             new ExactMatchCheat("Degreelessness mode", "iddqd", "god", CheatType.God),
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
             new ExactMatchCheat("Die", "kill", "kill", CheatType.Kill, canToggle: false),
