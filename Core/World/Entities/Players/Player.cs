@@ -262,10 +262,9 @@ namespace Helion.World.Entities.Players
         {
             var weapon = World.EntityManager.DefinitionComposer.GetByName(name);
             if (weapon != null)
-                GiveWeapon(weapon, false);
+                GiveWeapon(weapon, giveDefaultAmmo: false, autoSwitch: false);
         }
 
-        // TODO
         public bool HasNewWeapon() => m_hasNewWeapon;
 
         public Vec3D GetViewPosition()
@@ -470,11 +469,8 @@ namespace Helion.World.Entities.Players
             if (IsDead)
                 return false;
 
-            bool ownedWeapon = Inventory.Weapons.OwnsWeapon(definition.Name);
             bool success = GiveWeapon(definition);
-            if (success)
-                CheckAutoSwitchWeapon(definition, ownedWeapon);
-            else
+            if (!success)
                 success = GiveItemBase(definition, flags);
 
             if (success && pickupFlash)
@@ -627,9 +623,7 @@ namespace Helion.World.Entities.Players
             if (newWeapon == null)
                 return;
 
-            PendingWeapon = Inventory.Weapons.GetWeapon(definition.Name);
-            if (PendingWeapon != null)
-                (WeaponSlot, WeaponSubSlot) = Inventory.Weapons.GetWeaponSlot(PendingWeapon.Definition.Name);
+            ChangeWeapon(newWeapon);
         }
 
         /// <summary>
@@ -660,6 +654,8 @@ namespace Helion.World.Entities.Players
 
                 if (addedWeapon != null)
                 {
+                    if (autoSwitch)
+                        CheckAutoSwitchWeapon(definition, false);
                     m_hasNewWeapon = true;
                     return true;
                 }
@@ -670,23 +666,23 @@ namespace Helion.World.Entities.Players
 
         public void ChangeWeapon(Weapon weapon)
         {
-            var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition.Name);
-            if (Inventory.Weapons.OwnsWeapon(weapon.Definition.Name))
+            if (!Inventory.Weapons.OwnsWeapon(weapon.Definition.Name))
+                return;
+
+            bool hadWeapon = Weapon != null;
+            var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition.Name); 
+            WeaponSlot = slot.Item1;
+            WeaponSubSlot = slot.Item2;
+
+            if (!hadWeapon && PendingWeapon == null)
             {
-                WeaponSlot = slot.Item1;
-                WeaponSubSlot = slot.Item2;
-                bool hadWeapon = Weapon != null;
-
-                if (!hadWeapon && PendingWeapon == null)
-                {
-                    Weapon = weapon;
-                    AnimationWeapon = weapon;
-                    WeaponOffset.Y = Constants.WeaponBottom;
-                }
-
-                PendingWeapon = weapon;
-                LowerWeapon(hadWeapon);
+                Weapon = weapon;
+                AnimationWeapon = weapon;
+                WeaponOffset.Y = Constants.WeaponBottom;
             }
+
+            PendingWeapon = weapon;
+            LowerWeapon(hadWeapon);
         }
 
 
