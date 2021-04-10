@@ -221,7 +221,7 @@ namespace Helion.World.Entities.Players
                 }
 
                 foreach (Weapon weapon in player.Inventory.Weapons.GetWeapons())
-                    GiveWeapon(weapon.Definition, false);
+                    GiveWeapon(weapon.Definition, giveDefaultAmmo: false, autoSwitch: false);
 
                 if (player.Weapon != null)
                 {
