@@ -7,26 +7,13 @@ namespace Helion.World.Util
     {
         public static bool GetMap(string warpString, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
         {
-            mapInfoDef = null;
-            string[] items = warpString.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-            if (items.Length == 0)
-                return false;
-
-            int episode = 1;
-            int level;
-            if (items.Length > 1)
+            if (!int.TryParse(warpString, out int warp))
             {
-                if (!int.TryParse(items[0], out episode))
-                    return false;
-                if (!int.TryParse(items[1], out level))
-                    return false;
-            }
-            else if (!int.TryParse(items[0], out level))
-            {      
+                mapInfoDef = null;
                 return false;
             }
 
-            return GetMap(episode, level, mapInfo, out mapInfoDef);
+            return GetMap(warp, mapInfo, out mapInfoDef);
         }
 
         public static bool GetMap(int warp, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
@@ -52,7 +39,7 @@ namespace Helion.World.Util
                 }
             }
 
-            if (mapName.Length == 0)
+            if (mapName.Length == 0 && mapInfo.Episodes.Count > 0)
             {
                 Regex mapRegex = new Regex(@"(?<map>[^\s\d]+)\d+");
                 var episodeDef = mapInfo.Episodes[0];
