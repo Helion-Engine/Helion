@@ -245,7 +245,7 @@ namespace Helion.Resources
                 Animation animation = new Animation(new AnimatedTexture(GetTexture(startIndex).Name.ToString(), false, resNamespace), startIndex);
                 m_animations.Add(animation);
 
-                for (int i = startIndex + 1; i <= endIndex; i++)
+                for (int i = startIndex; i <= endIndex; i++)
                 {
                     Texture texture = GetTexture(i);
                     var component = new AnimatedTextureComponent(texture.Name.ToString(),
@@ -259,7 +259,7 @@ namespace Helion.Resources
 
         private void CreateComponentAnimations(Animation animation)
         {
-            for (int i = 0; i < animation.AnimatedTexture.Components.Count; i++)
+            for (int i = 1; i < animation.AnimatedTexture.Components.Count; i++)
             {
                 int nextAnimIndex = animation.AnimatedTexture.Components[i].TextureIndex;
                 Animation nextAnim = new Animation(new AnimatedTexture(GetTexture(nextAnimIndex).Name.ToString(), false, 
