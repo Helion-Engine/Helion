@@ -25,5 +25,8 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
         public readonly ConfigValueBoolean VSync = new();
+
+        [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
+        public readonly ConfigValueBoolean FakeContrast = new(true);
     }
 }

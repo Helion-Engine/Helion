@@ -30,6 +30,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
     {
         private const double MaxSky = 16384;
 
+        private readonly Config m_config;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
@@ -53,6 +54,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
             RenderWorldDataManager worldDataManager)
         {
+            m_config = config;
             m_textureManager = textureManager;
             m_worldDataManager = worldDataManager;
             m_viewClipper = viewClipper;
@@ -185,16 +187,29 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             if (side.OffsetChanged || side.Sector.DataChanged || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
-                data = GetWallVertices(wall, side.Sector.LightLevel / 256.0f);
+                data = GetWallVertices(wall, GetRenderLightLevel(side) / 256.0f);
                 m_vertexLookup[side.Id] = data;
             }
             else if (side.Sector.LightingChanged)
             {
-                SetLightToVertices(data, side.Sector.LightLevel / 256.0f);
+                SetLightToVertices(data, GetRenderLightLevel(side) / 256.0f);
             }
 
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
             renderData.Vbo.Add(data);
+        }
+
+        private int GetRenderLightLevel(Side side)
+        {
+            if (!m_config.Render.FakeContrast)
+                return side.Sector.LightLevel;
+
+            if (side.Line.StartPosition.Y == side.Line.EndPosition.Y)
+                return Math.Clamp(side.Sector.LightLevel - 16, 0, short.MaxValue);
+            else if (side.Line.StartPosition.X == side.Line.EndPosition.X)
+                return Math.Clamp(side.Sector.LightLevel + 16, 0, short.MaxValue);
+
+            return side.Sector.LightLevel;
         }
 
         private static void SetLightToVertices(LegacyVertex[] data, float lightLevel)
@@ -279,12 +294,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
-                    data = GetWallVertices(wall, facingSide.Sector.LightLevel / 256.0f);
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide) / 256.0f);
                     m_vertexLowerLookup[facingSide.Id] = data;
                 }
                 else if (facingSide.Sector.LightingChanged)
                 {
-                    SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
+                    SetLightToVertices(data, GetRenderLightLevel(facingSide) / 256.0f);
                 }
 
                 // See RenderOneSided() for an ASCII image of why we do this.
@@ -339,12 +354,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
-                    data = GetWallVertices(wall, facingSide.Sector.LightLevel / 256.0f);
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide) / 256.0f);
                     m_vertexUpperLookup[facingSide.Id] = data;
                 }
                 else if (facingSide.Sector.LightingChanged)
                 {
-                    SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
+                    SetLightToVertices(data, GetRenderLightLevel(facingSide) / 256.0f);
                 }
 
                 // See RenderOneSided() for an ASCII image of why we do this.
@@ -405,13 +420,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 if (nothingVisible)
                     data = Array.Empty<LegacyVertex>();
                 else
-                    data = GetWallVertices(wall, facingSide.Sector.LightLevel / 256.0f);
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide) / 256.0f);
 
                 m_vertexLookup[facingSide.Id] = data;
             }
             else if (facingSide.Sector.LightingChanged)
             {
-                SetLightToVertices(data, facingSide.Sector.LightLevel / 256.0f);
+                SetLightToVertices(data, GetRenderLightLevel(facingSide) / 256.0f);
             }
 
             // See RenderOneSided() for an ASCII image of why we do this.
