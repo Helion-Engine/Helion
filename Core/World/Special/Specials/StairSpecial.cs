@@ -14,9 +14,9 @@ namespace Helion.World.Special.Specials
         private readonly int m_stairDelay;
         private readonly double m_startZ;
         private readonly List<StairMove> m_stairs = new List<StairMove>();
+        private readonly bool m_crush;
         private int m_destroyCount;
         private int m_stairDelayTics;
-        private bool m_crush;
 
         private class StairMove
         {
@@ -42,9 +42,12 @@ namespace Helion.World.Special.Specials
 
             do
             {
-                stairMove.Sector.ActiveMoveSpecial = this;
-                CreateMovementSound(stairMove.Sector);
-                m_stairs.Add(stairMove);
+                if (stairMove.Sector.ActiveMoveSpecial == null || ReferenceEquals(stairMove.Sector.ActiveMoveSpecial, this))
+                {
+                    stairMove.Sector.ActiveMoveSpecial = this;
+                    CreateMovementSound(stairMove.Sector);
+                    m_stairs.Add(stairMove);
+                }
                 stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height);
             }
             while (stairMove != null);
@@ -106,7 +109,12 @@ namespace Helion.World.Special.Specials
             if (m_stairDelayTics > 0)
             {
                 for (int i = m_destroyCount - 1; i < m_stairs.Count; i++)
+                {
+                    if (!ReferenceEquals(m_stairs[i].Sector.ActiveMoveSpecial, this))
+                        continue;
+
                     m_stairs[i].Sector.Floor.PrevZ = m_stairs[i].Sector.Floor.Z;
+                }
 
                 m_stairDelayTics--;
                 return SpecialTickStatus.Continue;
@@ -121,13 +129,12 @@ namespace Helion.World.Special.Specials
                 Sector = m_stairs[i].Sector;
                 SectorPlane = Sector.Floor;
                 DestZ = m_startZ + height;
-                if (Sector.IsMoving)
-                    currentStatus = base.Tick();
-                else
-                    SectorPlane.PrevZ = SectorPlane.Z;
+                if (ReferenceEquals(Sector.ActiveMoveSpecial, this))
+                    currentStatus = base.Tick();                    
 
                 if (currentStatus == SpecialTickStatus.Destroy)
                 {
+                    SectorPlane.PrevZ = SectorPlane.Z;
                     m_destroyCount++;
                     m_stairDelayTics = m_stairDelay;
                 }
