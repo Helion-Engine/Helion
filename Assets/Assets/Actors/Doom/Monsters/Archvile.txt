@@ -58,6 +58,7 @@ actor ArchvileFire
     Alpha 1
     RenderStyle Add
     SpawnID 98
+    Alpha 0.6
     
     +NOBLOCKMAP
     +NOGRAVITY

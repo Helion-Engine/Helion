@@ -7,7 +7,7 @@
   Projectile
   +RANDOMIZE
   RenderStyle Add
-  Alpha 0.75
+  Alpha 0.6
   DeathSound "weapons/bfgx"
   Obituary "$OB_MPBFG_BOOM"
   States

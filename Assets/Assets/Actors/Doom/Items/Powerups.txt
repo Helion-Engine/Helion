@@ -1,5 +1,6 @@
 actor InvulnerabilitySphere : PowerupGiver 2022
 {
+    Alpha 0.7
     SpawnID 133
     Inventory.MaxAmount 0
     Inventory.PickupMessage "$GOTINVUL"
@@ -21,6 +22,7 @@ actor InvulnerabilitySphere : PowerupGiver 2022
 
 actor Soulsphere : Health 2013
 {
+    Alpha 0.7
     SpawnID 25
     Inventory.Amount 100
     Inventory.MaxAmount 200
@@ -56,6 +58,7 @@ actor BlueArmorForMegasphere : BlueArmor
 
 actor Megasphere : CustomInventory 83
 {
+    Alpha 0.7
     SpawnID 132
     Inventory.PickupMessage "$GOTMSPHERE"
     Inventory.PickupSound "misc/p_pkup"
@@ -77,6 +80,7 @@ actor Megasphere : CustomInventory 83
 
 actor BlurSphere : PowerupGiver 2024
 {
+    Alpha 0.7
     RenderStyle Translucent
     SpawnID 135
     Inventory.MaxAmount 0

@@ -54,7 +54,7 @@ actor Fatso 67
 
 actor FatShot
 {
-    Alpha 1
+    Alpha 0.6
     Damage 8
     DeathSound "fatso/shotx"
     Height 8

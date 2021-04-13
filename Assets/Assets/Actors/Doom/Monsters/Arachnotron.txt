@@ -63,6 +63,7 @@ actor ArachnotronPlasma
     SeeSound "baby/attack"
     SpawnID 129
     Speed 25
+    Alpha 0.5
     
     PROJECTILE
     +RANDOMIZE

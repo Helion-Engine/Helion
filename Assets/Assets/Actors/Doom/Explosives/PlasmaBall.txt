@@ -10,7 +10,7 @@
 	+RANDOMIZE
 	+ZDOOMTRANS
 	RenderStyle "Add";
-	Alpha 0.75;
+	Alpha 0.6;
 	SeeSound "weapons/plasmaf";
 	DeathSound "weapons/plasmax";
 	Obituary "$OB_MPPLASMARIFLE"; // "%o was melted by %k's plasma gun."

@@ -67,6 +67,7 @@ actor DoomImpBall
     SeeSound "imp/attack"
     SpawnID 10
     Speed 10
+    Alpha 0.6
     
     PROJECTILE
     +RANDOMIZE
