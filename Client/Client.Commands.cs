@@ -6,6 +6,7 @@ using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Maps;
 using Helion.Models;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Consoles;
@@ -201,11 +202,16 @@ namespace Helion.Client
 
         private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
         {
-            m_globalData.VisitedMaps.Add(mapInfoDef);
             IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
             if (map == null)
             {
                 LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
+                return;
+            }
+
+            if (!m_config.Developer.InternalBSPBuilder && !RunZdbsp(map, mapInfoDef.MapName, out map))
+            {
+                Log.Error("Failed to run zdbsp.");
                 return;
             }
 
@@ -222,17 +228,26 @@ namespace Helion.Client
             m_layerManager.Remove<SinglePlayerWorldLayer>();
             m_layerManager.PruneDisposed();
 
+            if (map == null)
+            {
+                LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
+                return;
+            }
+
             SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, players.FirstOrDefault(), worldModel);
             if (newLayer == null)
                 return;
 
+            m_globalData.VisitedMaps.Add(mapInfoDef);
             newLayer.World.LevelExit += World_LevelExit;
             m_layerManager.Add(newLayer);
             newLayer.World.Start();
 
             m_layerManager.RemoveAllBut<WorldLayer>();
         }
+
+     
 
         private void World_LevelExit(object? sender, LevelChangeEvent e)
         {

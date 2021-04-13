@@ -24,7 +24,7 @@ namespace Helion.Resources.Archives.Collection
     /// A collection of archives along with the processed results of all their
     /// data.
     /// </summary>
-    public class ArchiveCollection
+    public class ArchiveCollection : IDisposable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -40,6 +40,15 @@ namespace Helion.Resources.Archives.Collection
         {
             m_archiveLocator = archiveLocator;
             Definitions = new DefinitionEntries(this);
+        }
+
+        public void Dispose()
+        {
+            foreach (var archive in m_archives)
+            {
+                if (archive is IDisposable disposable)
+                    disposable.Dispose();
+            }
         }
 
         public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true)
@@ -99,7 +108,7 @@ namespace Helion.Resources.Archives.Collection
 
         private Archive? LoadArchive(string filePath)
         {
-            Archive? archive = Caches.Load(filePath, m_archiveLocator);
+            Archive? archive = m_archiveLocator.Locate(filePath);
             if (archive == null)
             {
                 Log.Error("Failure when loading {0}", filePath);
