@@ -174,7 +174,8 @@ namespace Helion.World.Physics
                         continue;
                     }
 
-                    if (!entity.Flags.Solid)
+                    // Doom checked against shootable instead of solid...
+                    if (!entity.Flags.Shootable)
                         continue;
 
                     if (crush != null)
