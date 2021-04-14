@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using NLog;
 
 namespace Helion.Bsp.External
@@ -7,24 +11,28 @@ namespace Helion.Bsp.External
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly string m_exe;
         private readonly string m_file;
         private readonly string m_output;
 
-        public Zdbsp(string zdbspExe, string file, string outputFile)
+        public Zdbsp(string intpuFile, string outputFile)
         {
-            m_exe = zdbspExe;
-            m_file = file;
+            m_file = intpuFile;
             m_output = outputFile;
         }
 
-        public void Run()
+        public bool Run(string map, out string output)
         {
+            output = string.Empty;
+            string? path = GetZdbspPath();
+            if (string.IsNullOrEmpty(path))
+                return false;
+
             ProcessStartInfo info = new()
             {
-                FileName = m_exe,
-                Arguments = CreateArgs(),
+                FileName = Path.Combine(path, "zdbsp.exe"),
+                Arguments = CreateArgs(map),
                 UseShellExecute = false,
+                RedirectStandardOutput = true,
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
@@ -33,15 +41,39 @@ namespace Helion.Bsp.External
             if (process == null)
             {
                 Log.Warn("Unable to start ZDBSP process");
-                return;
+                return false;
             }
 
+            StringBuilder sb = new StringBuilder();
+            while (!process.StandardOutput.EndOfStream)
+                sb.AppendLine(process.StandardOutput.ReadLine());
+
+            output = sb.ToString();
             process.WaitForExit();
+            return true;
         }
 
-        private string CreateArgs()
+        private static string? GetZdbspPath()
         {
-            return $"--gl-only --output {m_output} {m_file}";
+            string platform;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                platform = "win";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                platform = "linux";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                platform = "osx";
+            else
+                return null;
+
+            if (Environment.Is64BitOperatingSystem)
+                return Path.Combine("runtimes", $"{platform}-x64", "native");
+            else
+                return Path.Combine("runtimes", $"{platform}-x86", "native");
+        }
+
+        private string CreateArgs(string map)
+        {
+            return string.Format("--gl-only --output \"{0}\" \"{1}\" --map=\"{2}\"", m_output, m_file, map);
         }
     }
 }
