@@ -177,10 +177,15 @@ namespace Helion.Audio.Sounds
         
         private bool StopSoundsBySource(ISoundSource source, SoundInfo? soundInfo, SoundChannelType channel)
         {
+            // Always try to stop looping sounds that are waiting to be in range
+            // This does not free up a sound if the limit has been hit
+            StopSoundBySource(source, soundInfo, channel, m_waitingLoopSounds);
+
             if (StopSoundBySource(source, soundInfo, channel, m_soundsToPlay))
                 return true;
             if (StopSoundBySource(source, soundInfo, channel, PlayingSounds))
                 return true;
+
             return false;
         }
 
@@ -239,8 +244,12 @@ namespace Helion.Audio.Sounds
             bool waitLoopSound = false;
             double distance = GetDistance(source);
             int priority = GetPriority(source, soundInfo, soundParams);
-            if (!CheckDistance(distance, soundParams.Attenuation) || SoundPriorityTooLow(source, channel, soundInfo, distance, priority))
+            bool soundTooFar = !CheckDistance(distance, soundParams.Attenuation);
+            if (soundTooFar || SoundPriorityTooLow(source, channel, soundInfo, distance, priority))
             {
+                if (soundTooFar)
+                    StopSoundsBySource(source, soundInfo, channel);
+
                 if (soundParams.Loop)
                     waitLoopSound = true;
                 else
