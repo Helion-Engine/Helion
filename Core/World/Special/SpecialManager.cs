@@ -844,7 +844,7 @@ namespace Helion.World.Special
             return new List<Sector>();
         }
 
-        private double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)
+        private static double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)
         {
             switch (destination)
             {
@@ -876,49 +876,49 @@ namespace Helion.World.Special
             return 0;
         }
 
-        private double GetNextLowestFloorDestZ(Sector sector)
+        private static double GetNextLowestFloorDestZ(Sector sector)
         {
             Sector? destSector = sector.GetNextLowestFloor();
             return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
-        private double GetNextLowestCeilingDestZ(Sector sector)
+        private static double GetNextLowestCeilingDestZ(Sector sector)
         {
             Sector? destSector = sector.GetNextLowestCeiling();
             return destSector?.Ceiling.Z ?? sector.Floor.Z;
         }
 
-        private double GetNextHighestFloorDestZ(Sector sector)
+        private static double GetNextHighestFloorDestZ(Sector sector)
         {
             Sector? destSector = sector.GetNextHighestFloor();
             return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
-        private double GetNextHighestCeilingDestZ(Sector sector)
+        private static double GetNextHighestCeilingDestZ(Sector sector)
         {
             Sector? destSector = sector.GetNextHighestCeiling();
             return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
         }
 
-        private double GetLowestFloorDestZ(Sector sector)
+        private static double GetLowestFloorDestZ(Sector sector)
         {
             Sector? destSector = sector.GetLowestAdjacentFloor();
             return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
-        private double GetHighestFloorDestZ(Sector sector)
+        private static double GetHighestFloorDestZ(Sector sector)
         {
             Sector? destSector = sector.GetHighestAdjacentFloor();
             return destSector?.Floor.Z ?? sector.Floor.Z;
         }
 
-        private double GetLowestCeilingDestZ(Sector sector, bool includeThis)
+        private static double GetLowestCeilingDestZ(Sector sector, bool includeThis)
         {
             Sector? destSector = sector.GetLowestAdjacentCeiling(includeThis);
             return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
         }
 
-        private double GetHighestCeilingDestZ(Sector sector)
+        private static double GetHighestCeilingDestZ(Sector sector)
         {
             Sector? destSector = sector.GetHighestAdjacentCeiling();
             return destSector?.Ceiling.Z ?? sector.Ceiling.Z;

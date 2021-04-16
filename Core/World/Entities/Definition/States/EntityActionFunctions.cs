@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Audio;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials.Vanilla;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories.Powerups;
@@ -10,6 +12,8 @@ using Helion.World.Entities.Players;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
+using Helion.World.Special;
+using Helion.World.Special.Specials;
 using NLog;
 
 namespace Helion.World.Entities.Definition.States
@@ -1348,7 +1352,20 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_KeenDie(Entity entity)
         {
-             // TODO
+            var world = entity.World;
+            var def = world.EntityManager.DefinitionComposer.GetByName("CommanderKeen");
+            if (def == null || !def.EditorId.HasValue)
+                return;
+
+            if (world.EntityAliveCount(def.EditorId.Value, false) == 0)
+            {
+                var sectors = world.Sectors.Where(x => x.Tag == 666);
+                foreach (var sector in sectors)
+                {
+                    var special = world.SpecialManager.CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpecialManager.SpeedFactor);
+                    world.SpecialManager.AddSpecial(special);
+                }
+            }
         }
 
         private static void A_KillChildren(Entity entity)

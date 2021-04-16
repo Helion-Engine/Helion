@@ -84,6 +84,7 @@ namespace Helion.World
         public abstract double ListenerPitch { get; }
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
+        public SpecialManager SpecialManager { get; private set; }
         public Config Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
         public LevelStats LevelStats { get; } = new();
@@ -93,7 +94,6 @@ namespace Helion.World
 
         protected readonly IAudioSystem AudioSystem;
         protected readonly MapGeometry Geometry;
-        protected readonly SpecialManager SpecialManager;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly IMap Map;
         private readonly DoomRandom m_random = new();
@@ -1427,6 +1427,16 @@ namespace Helion.World
                 msg = cheat.CheatName;
 
             DisplayMessage(player, null, msg, LanguageMessageType.None);
+        }
+
+        public int EntityAliveCount(int editorId, bool deathStateComplete)
+        {
+            if (deathStateComplete)
+                return EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue &&
+                    x.Definition.EditorId.Value == editorId && !x.IsDeathStateFinished);
+            else
+                return EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue &&
+                    x.Definition.EditorId.Value == editorId && !x.IsDead);
         }
 
         private void TogglePowerup(Player player, string powerupDefinition, PowerupType powerupType)

@@ -23,6 +23,7 @@ using Helion.Models;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Cheats;
 using Helion.World.Stats;
+using Helion.World.Special;
 
 namespace Helion.World
 {
@@ -47,6 +48,7 @@ namespace Helion.World
         EntityManager EntityManager { get; }
         WorldSoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
+        SpecialManager SpecialManager { get; }
         Config Config { get; }
         SkillDef SkillDefinition { get; }
         ArchiveCollection ArchiveCollection { get; }
@@ -90,6 +92,7 @@ namespace Helion.World
         void ActivateCheat(Player player, ICheat cheat);
         bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
         bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
+        int EntityAliveCount(int editorId, bool deathStateComplete);
 
         WorldModel ToWorldModel();
         GameFilesModel GetGameFilesModel();

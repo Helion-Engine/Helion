@@ -3,7 +3,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,7 +29,7 @@ namespace Helion.World.Special
 
         public SpecialTickStatus Tick()
         {
-            if (MonsterAliveCount() == 0)
+            if (m_world.EntityAliveCount(m_countId, true) == 0)
             {
                 ExecuteSpecial();
                 return SpecialTickStatus.Destroy;
@@ -70,8 +69,5 @@ namespace Helion.World.Special
         {
             // Not needed
         }
-
-        private int MonsterAliveCount() => m_world.EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue && 
-            x.Definition.EditorId.Value == m_countId && !x.IsDeathStateFinished);
     }
 }
