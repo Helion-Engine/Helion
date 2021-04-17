@@ -3,6 +3,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -39,6 +40,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         private readonly EntityRenderer m_entityRenderer;
         private readonly LegacyShader m_shaderProgram;
         private readonly RenderWorldDataManager m_worldDataManager;
+        private readonly LegacyAutomapRenderer m_automapRenderer;
         private readonly ViewClipper m_viewClipper = new();
 
         public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
@@ -46,6 +48,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         {
             m_config = config;
             gl = functions;
+            m_automapRenderer = new LegacyAutomapRenderer(capabilities, gl);
             m_worldDataManager = new RenderWorldDataManager(capabilities, gl);
             m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
             m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,
@@ -71,6 +74,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         {
             m_geometryRenderer.UpdateTo(world);
             m_entityRenderer.UpdateTo(world);
+        }
+
+        protected override void PerformAutomapRender(WorldBase world, RenderInfo renderInfo)
+        {
+            m_automapRenderer.Render(world, renderInfo);
         }
 
         protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
@@ -210,6 +218,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_shaderProgram.Dispose();
             m_geometryRenderer.Dispose();
             m_worldDataManager.Dispose();
+            m_automapRenderer.Dispose();
         }
     }
 }

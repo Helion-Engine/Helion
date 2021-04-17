@@ -68,9 +68,9 @@ namespace Helion.Render.Commands
             m_commands.Add(command);
         }
 
-        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity)
+        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap)
         {
-            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity));
+            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap));
         }
 
         public void Viewport(Dimension dimension, Vec2I? offset = null)

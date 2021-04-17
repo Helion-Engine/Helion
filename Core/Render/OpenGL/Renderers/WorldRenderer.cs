@@ -25,7 +25,10 @@ namespace Helion.Render.OpenGL.Renderers
                 UpdateToNewWorld(world);
             }
             
-            PerformRender(world, renderInfo);
+            if (renderInfo.DrawAutomap)
+                PerformAutomapRender(world, renderInfo);
+            else
+                PerformRender(world, renderInfo);
         }
 
         public abstract void Dispose();
@@ -37,6 +40,13 @@ namespace Helion.Render.OpenGL.Renderers
         /// <param name="world">The world to update to.</param>
         protected abstract void UpdateToNewWorld(WorldBase world);
 
+        /// <summary>
+        /// Performs the actual rendering of the automap.
+        /// </summary>
+        /// <param name="world">The world.</param>
+        /// <param name="renderInfo">The rendering metadata.</param>
+        protected abstract void PerformAutomapRender(WorldBase world, RenderInfo renderInfo);
+        
         /// <summary>
         /// Performs the actual rendering commands.
         /// </summary>

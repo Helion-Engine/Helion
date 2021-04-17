@@ -22,7 +22,6 @@ using NLog;
 using System;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
-using System.Collections.Generic;
 
 namespace Helion.Layer.WorldLayers
 {
@@ -38,6 +37,7 @@ namespace Helion.Layer.WorldLayers
         private readonly SinglePlayerWorld m_world;
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
+        private bool m_drawAutomap;
         private bool m_disposed;
 
         public override WorldBase World => m_world;
@@ -132,6 +132,8 @@ namespace Helion.Layer.WorldLayers
                 ChangeHudSize(false);
             else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
+            else if (input.ConsumeKeyPressed(Config.Controls.Automap))
+                m_drawAutomap = !m_drawAutomap;
 			
 			base.HandleInput(input);
         }
@@ -166,7 +168,7 @@ namespace Helion.Layer.WorldLayers
         {
             Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
             Player player = m_world.Player;
-            renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player);
+            renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player, m_drawAutomap);
 
             // TODO: Should not be passing the window dimension as the viewport.
             m_worldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,

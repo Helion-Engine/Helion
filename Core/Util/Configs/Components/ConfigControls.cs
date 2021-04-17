@@ -74,5 +74,8 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("The key for loading the game")]
         public readonly ConfigValueEnum<Key> Load = new(Key.F3);
+        
+        [ConfigInfo("The key for toggling the automap")]
+        public readonly ConfigValueEnum<Key> Automap = new(Key.Tab);
     }
 }

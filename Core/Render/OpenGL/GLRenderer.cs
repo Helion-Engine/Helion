@@ -300,10 +300,15 @@ namespace Helion.Render.OpenGL
         {
             if (viewport.Width == 0 || viewport.Height == 0)
                 return;
+            
+            if (cmd.DrawAutomap)
+            {
+                // TODO: If drawing automap, draw black box everywhere.
+            }
 
             DrawHudImagesIfAnyQueued(viewport);
 
-            RenderInfo renderInfo = new(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity);
+            RenderInfo renderInfo = new(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap);
             m_worldRenderer.Render(cmd.World, renderInfo);
         }
 

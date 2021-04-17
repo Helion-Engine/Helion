@@ -13,8 +13,9 @@ namespace Helion.Render.Shared
         public readonly float TickFraction;
         public readonly Rectangle Viewport;
         public readonly Entity ViewerEntity;
+        public readonly bool DrawAutomap;
 
-        public RenderInfo(Camera camera, float tickFraction, Rectangle viewport, Entity viewerEntity)
+        public RenderInfo(Camera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap)
         {
             Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick fraction should be in the unit range");
 
@@ -22,6 +23,7 @@ namespace Helion.Render.Shared
             TickFraction = tickFraction;
             Viewport = viewport;
             ViewerEntity = viewerEntity;
+            DrawAutomap = drawAutomap;
         }
     }
 }

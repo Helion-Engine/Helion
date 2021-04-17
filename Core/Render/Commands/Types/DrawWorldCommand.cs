@@ -11,15 +11,17 @@ namespace Helion.Render.Commands.Types
         public readonly int Gametick;
         public readonly float GametickFraction;
         public readonly Entity ViewerEntity;
+        public readonly bool DrawAutomap;
 
         public DrawWorldCommand(WorldBase world, Camera camera, int gametick, float gametickFraction,
-            Entity viewerEntity)
+            Entity viewerEntity, bool drawAutomap)
         {
             World = world;
             Camera = camera;
             Gametick = gametick;
             GametickFraction = gametickFraction;
             ViewerEntity = viewerEntity;
+            DrawAutomap = drawAutomap;
         }
     }
 }
