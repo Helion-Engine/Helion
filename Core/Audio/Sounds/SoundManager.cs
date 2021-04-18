@@ -104,7 +104,6 @@ namespace Helion.Audio.Sounds
                 if (ReferenceEquals(audioSource, node.Value))
                 {
                     node.Value.Stop();
-
                     DataCache.Instance.FreeAudioSource(node.Value);
                     audioSources.Remove(audioSource);
                 }
@@ -152,7 +151,6 @@ namespace Helion.Audio.Sounds
         {
             foreach (IAudioSource sound in audioSources)
             {
-                sound.AudioData.SoundSource.ClearSound(sound, sound.AudioData.SoundChannelType);
                 sound.Stop();
                 DataCache.Instance.FreeAudioSource(sound);
             }
@@ -212,7 +210,6 @@ namespace Helion.Audio.Sounds
                         continue;
                     }
 
-                    node.Value.AudioData.SoundSource?.ClearSound(node.Value, node.Value.AudioData.SoundChannelType);
                     node.Value.Stop();
                     DataCache.Instance.FreeAudioSource(node.Value);
                     audioSources.Remove(node);
@@ -238,7 +235,10 @@ namespace Helion.Audio.Sounds
             Precondition((int)channel < Entity.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
             SoundInfo? soundInfo = GetSoundInfo(source, sound);
             if (soundInfo == null)
+            {
+                DataCache.Instance.FreeSoundParams(soundParams);
                 return null;
+            }
 
             AttenuateIfNeeded(source, soundInfo, soundParams);
 
@@ -252,19 +252,30 @@ namespace Helion.Audio.Sounds
                     StopSoundsBySource(source, soundInfo, channel);
 
                 if (soundParams.Loop)
+                {
                     waitLoopSound = true;
+                }
                 else
+                {
+                    DataCache.Instance.FreeSoundParams(soundParams);
                     return null;
+                }
             }
 
             if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, channel))
+            {
+                DataCache.Instance.FreeSoundParams(soundParams);
                 return null;
+            }
 
             soundParams.SoundInfo = soundInfo;
             AudioData audioData = DataCache.Instance.GetAudioData(source, soundInfo, channel, soundParams.Attenuation, priority, soundParams.Loop);
             IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData, soundParams);
             if (audioSource == null)
+            {
+                DataCache.Instance.FreeSoundParams(soundParams);
                 return null;
+            }
 
             if (soundParams.Attenuation != Attenuation.None)
             {

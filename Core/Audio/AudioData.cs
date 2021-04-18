@@ -5,10 +5,6 @@ namespace Helion.Audio
 {
     public class AudioData
     {
-        public AudioData()
-        {
-        }
-
         public AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannelType channel, Attenuation attenuation, 
             int priority, bool loop)
         {
