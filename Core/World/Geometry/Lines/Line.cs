@@ -27,6 +27,7 @@ namespace Helion.World.Geometry.Lines
         public bool DataChanged => DataChanges > 0;
         // Rendering hax...
         public bool Sky;
+        public bool SeenForAutomap;
 
         public Vec2D StartPosition => Segment.Start;
         public Vec2D EndPosition => Segment.End;

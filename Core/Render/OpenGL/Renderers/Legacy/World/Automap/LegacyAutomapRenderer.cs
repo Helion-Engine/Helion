@@ -159,6 +159,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
             foreach (Line line in world.Lines)
             {
+                if (!line.SeenForAutomap)
+                    continue;
+                
                 Vec2D start = line.StartPosition;
                 Vec2D end = line.EndPosition;
                 

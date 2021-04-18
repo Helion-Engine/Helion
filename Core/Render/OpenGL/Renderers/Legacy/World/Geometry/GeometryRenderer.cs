@@ -140,6 +140,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                         AddLineClip(edge);
                     continue;
                 }
+                
+                edge.Line.SeenForAutomap = true;
 
                 bool onFrontSide = edge.Line.Segment.OnRight(position);
                 if (!onFrontSide && edge.Line.OneSided)
