@@ -40,6 +40,11 @@ namespace Helion.Render.Commands
         {
             m_commands.Add(ClearRenderCommand.All());
         }
+        
+        public void Clear(Color color)
+        {
+            m_commands.Add(new ClearRenderCommand(true, false, false, color));
+        }
 
         public void ClearDepth()
         {

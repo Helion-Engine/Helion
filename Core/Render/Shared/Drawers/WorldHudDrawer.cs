@@ -58,7 +58,7 @@ namespace Helion.Render.Shared.Drawers
         }
 
         public void Draw(Player player, WorldBase world, float tickFraction, HelionConsole console,
-            Dimension viewport, Config config, RenderCommands cmd)
+            Dimension viewport, Config config, bool drawAutomap, RenderCommands cmd)
         {
             m_scale = (float)config.Hud.Scale.Value;
             m_padding = (int)(4 * m_scale);
@@ -72,7 +72,7 @@ namespace Helion.Render.Shared.Drawers
 
             DrawFPS(cmd.Config, viewport, cmd.FpsTracker, draw, consoleFont, out int topRightY);
             DrawPosition(player, viewport, draw, consoleFont, ref topRightY);
-            DrawHud(topRightY, player, tickFraction, viewport, config, largeFont, draw);
+            DrawHud(topRightY, player, tickFraction, viewport, config, largeFont, drawAutomap, draw);
             DrawPowerupEffect(player, viewport, draw);
             DrawPickupFlash(player, viewport, draw);
             DrawDamage(player, viewport, draw);
@@ -80,9 +80,9 @@ namespace Helion.Render.Shared.Drawers
         }
 
         private void DrawHud(int topRightY, Player player, float tickFraction,
-            Dimension viewport, Config config, Font? largeFont, DrawHelper draw)
+            Dimension viewport, Config config, Font? largeFont, bool drawAutomap, DrawHelper draw)
         {
-            if (player.AnimationWeapon != null)
+            if (player.AnimationWeapon != null && !drawAutomap)
             {
                 // Doom pushes the gun sprite up when the status bar is showing
                 int yOffset = config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;

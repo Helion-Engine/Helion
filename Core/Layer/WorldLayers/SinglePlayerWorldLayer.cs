@@ -20,6 +20,7 @@ using Helion.World.Impl.SinglePlayer;
 using Helion.World.StatusBar;
 using NLog;
 using System;
+using System.Drawing;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 
@@ -166,13 +167,21 @@ namespace Helion.Layer.WorldLayers
 
         public override void Render(RenderCommands renderCommands)
         {
+            if (m_drawAutomap)
+            {
+                // (int screenW, int screenH) = renderCommands.WindowDimension.Vector;
+                // ImageBox2I screen = new ImageBox2I(0, 0, screenW, screenH);
+                // renderCommands.FillRect(screen, Color.Black, 1.0f);
+                renderCommands.Clear(Color.Black);
+            }
+            
             Camera camera = m_world.Player.GetCamera(m_lastTickInfo.Fraction);
             Player player = m_world.Player;
             renderCommands.DrawWorld(m_world, camera, m_lastTickInfo.Ticks, m_lastTickInfo.Fraction, player, m_drawAutomap);
 
             // TODO: Should not be passing the window dimension as the viewport.
             m_worldHudDrawer.Draw(player, m_world, m_lastTickInfo.Fraction, Console, renderCommands.WindowDimension,
-                Config, renderCommands);
+                Config, m_drawAutomap, renderCommands);
             
             base.Render(renderCommands);
         }
