@@ -125,6 +125,7 @@ namespace Helion.Util
                 audioData.SoundChannelType = channel;
                 audioData.Attenuation = attenuation;
                 audioData.Priority = priority;
+                audioData.Loop = loop;
                 m_audioData.RemoveLast();
                 return audioData;
             }
@@ -178,7 +179,9 @@ namespace Helion.Util
 
         public void FreeAudioSource(IAudioSource audioSource)
         {
+            audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
             audioSource.CacheFree();
+            audioSource.AudioData = null;
             m_audioSources.Add(audioSource);
         }
     }

@@ -9,7 +9,7 @@
     <NullableContextOptions>enable</NullableContextOptions>
     <NullableReferenceTypes>true</NullableReferenceTypes>
     <LangVersion>preview</LangVersion>
-	<TieredCompilation>true</TieredCompilation>
+	<TieredCompilation>false</TieredCompilation>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
