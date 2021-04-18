@@ -124,17 +124,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             {
                 m_vboRanges.Add((m_vbo.Count, Brown));
                 foreach (vec2 line in m_brownLines)
-                    m_vbo.Add(new vec2(line.x, line.y));
+                    AddLine(line);
             }
             
             if (m_yellowLines.Length > 0)
             {
                 m_vboRanges.Add((m_vbo.Count, Yellow));
                 foreach (vec2 line in m_yellowLines)
-                    m_vbo.Add(new vec2(line.x, line.y));
+                    AddLine(line);
             }
 
-            box2F = ((minX, maxX), (minY, maxY));
+            box2F = ((minX, minY), (maxX, maxY));
             
             void AddLine(vec2 line)
             {
