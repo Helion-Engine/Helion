@@ -1,10 +1,15 @@
-﻿using Helion.Render.OpenGL.Context;
+﻿using Helion.Audio;
+using Helion.Audio.Impl;
+using Helion.Audio.Impl.Components;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics.Blockmap;
+using Helion.World.Sound;
 using System.Collections.Generic;
 
 namespace Helion.Util
@@ -14,10 +19,13 @@ namespace Helion.Util
         public static DataCache Instance { get; } = new DataCache();
 
         private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new DynamicArray<LinkableNode<Entity>>(1024);
-        private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new DynamicArray<List<BlockmapIntersect>>();
-        private readonly DynamicArray<HashSet<Sector>> m_sectorSet = new DynamicArray<HashSet<Sector>>();
-        private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>>();
-        
+        private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
+        private readonly DynamicArray<HashSet<Sector>> m_sectorSet = new();
+        private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new();
+        private readonly DynamicArray<AudioData> m_audioData = new();
+        private readonly DynamicArray<SoundParams> m_soundParams = new();
+        private readonly DynamicArray<IAudioSource> m_audioSources = new();
+
         public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
         {
             LinkableNode<Entity> node;
@@ -104,6 +112,74 @@ namespace Helion.Util
         {
             set.Clear();
             m_sectorSet.Add(set);
+        }
+
+        public AudioData GetAudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannelType channel, Attenuation attenuation,
+            int priority, bool loop)
+        {
+            if (m_audioData.Length > 0)
+            {
+                AudioData audioData = m_audioData.Data[m_audioData.Length - 1];
+                audioData.SoundSource = soundSource;
+                audioData.SoundInfo = soundInfo;
+                audioData.SoundChannelType = channel;
+                audioData.Attenuation = attenuation;
+                audioData.Priority = priority;
+                m_audioData.RemoveLast();
+                return audioData;
+            }
+
+            return new AudioData(soundSource, soundInfo, channel, attenuation, priority, loop);
+        }
+
+        public void FreeAudioData(AudioData audioData)
+        {
+            audioData.SoundSource = null;
+            audioData.SoundInfo = null;
+            m_audioData.Add(audioData);
+        }
+
+        public SoundParams GetSoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default, 
+            float volume = SoundParams.MaxVolume)
+        {
+            if (m_soundParams.Length > 0)
+            {
+                SoundParams soundParams = m_soundParams[m_soundParams.Length - 1];
+                soundParams.SoundSource = soundSource;
+                soundParams.Loop = loop;
+                soundParams.Attenuation = attenuation;
+                soundParams.Volume = volume;
+                m_soundParams.RemoveLast();
+                return soundParams;
+            }
+
+            return new SoundParams(soundSource, loop, attenuation, volume);
+        }
+
+        public void FreeSoundParams(SoundParams soundParams)
+        {
+            soundParams.SoundSource = null;
+            soundParams.SoundInfo = null;
+            m_soundParams.Add(soundParams);
+        }
+
+        public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
+        {
+            if (m_audioSources.Length > 0)
+            {
+                OpenALAudioSource audioSource = (OpenALAudioSource)m_audioSources[m_audioSources.Length - 1];
+                audioSource.Set(owner, buffer, audioData, soundParams);
+                m_audioSources.RemoveLast();
+                return audioSource;
+            }
+
+            return new OpenALAudioSource(owner, buffer, audioData, soundParams);
+        }
+
+        public void FreeAudioSource(IAudioSource audioSource)
+        {
+            audioSource.CacheFree();
+            m_audioSources.Add(audioSource);
         }
     }
 }

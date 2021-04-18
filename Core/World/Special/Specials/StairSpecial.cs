@@ -174,6 +174,7 @@ namespace Helion.World.Special.Specials
         }
 
         private void CreateMovementSound(Sector sector) =>
-            m_world.SoundManager.CreateSoundOn(sector, Constants.PlatMoveSound, SoundChannelType.Auto, new SoundParams(sector, true));
+            m_world.SoundManager.CreateSoundOn(sector, Constants.PlatMoveSound, SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(sector, true));
     }
 }

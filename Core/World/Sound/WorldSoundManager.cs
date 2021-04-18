@@ -32,7 +32,7 @@ namespace Helion.World.Sound
         {
             ISoundSource soundSource = DefaultSoundSource.Default;
             return m_world.SoundManager.CreateSoundOn(DefaultSoundSource.Default, sound,
-                SoundChannelType.Auto, new SoundParams(soundSource));
+                SoundChannelType.Auto, DataCache.Instance.GetSoundParams(soundSource));
         }
         
         public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundChannelType channel, SoundParams soundParams)
@@ -92,7 +92,7 @@ namespace Helion.World.Sound
                 nextNode = node.Next;
                 if (node.Value.IsFinished())
                 {
-                    node.Value.Dispose();
+                    DataCache.Instance.FreeAudioSource(node.Value);
                     PlayingSounds.Remove(node.Value);
                 }
                 else
@@ -104,7 +104,7 @@ namespace Helion.World.Sound
                         PlayingSounds.Remove(node);
 
                         if (ShouldDisposeBumpedSound(node.Value))
-                            node.Value.Dispose();
+                            DataCache.Instance.FreeAudioSource(node.Value);
                     }
                     else
                     {

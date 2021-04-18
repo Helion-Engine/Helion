@@ -12,9 +12,9 @@ namespace Helion.Audio
         public const float DefaultMaxDistance = 1752.0f;
         public const float DefaultRadius = 32.0f;
 
-        public readonly ISoundSource SoundSource;
-        public readonly bool Loop;
-        public readonly float Volume;
+        public ISoundSource SoundSource { get; set; }
+        public bool Loop { get; set; }
+        public float Volume { get; set; }
         public Attenuation Attenuation { get; set; }
         public SoundInfo? SoundInfo { get; set; }
 

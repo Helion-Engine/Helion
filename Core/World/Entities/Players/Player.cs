@@ -754,7 +754,8 @@ namespace Helion.World.Entities.Players
                 return;
 
             if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
-                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Auto, new SoundParams(this));
+                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Auto, 
+                    DataCache.Instance.GetSoundParams(this));
 
             AnimationWeapon = PendingWeapon;
             PendingWeapon = null;
@@ -803,29 +804,29 @@ namespace Helion.World.Entities.Players
             if (!IsDead)
             {
                 if (Health < 26)
-                    SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Voice, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
                 else if (Health < 51)
-                    SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Voice, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
                 else if (Health < 76)
-                    SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Voice, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
                 else
-                    SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Voice, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
             }
         }
 
         public void PlayGruntSound()
         {
-            SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Voice, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
         }
 
         public void PlayUseFailSound()
         {
-            SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Voice, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
         }
 
         public void PlayLandSound()
         {
-            SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
         }
 
         public string GetPlayerName() => "Player";
@@ -841,7 +842,7 @@ namespace Helion.World.Entities.Players
             else if (Health <= -50)
                 deathSound = "*xdeath";
 
-            SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Voice, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
             if (source != null)

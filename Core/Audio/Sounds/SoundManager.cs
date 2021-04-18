@@ -104,7 +104,8 @@ namespace Helion.Audio.Sounds
                 if (ReferenceEquals(audioSource, node.Value))
                 {
                     node.Value.Stop();
-                    node.Value.Dispose();
+
+                    DataCache.Instance.FreeAudioSource(node.Value);
                     audioSources.Remove(audioSource);
                 }
                 node = node.Next;
@@ -153,7 +154,7 @@ namespace Helion.Audio.Sounds
             {
                 sound.AudioData.SoundSource.ClearSound(sound, sound.AudioData.SoundChannelType);
                 sound.Stop();
-                sound.Dispose();
+                DataCache.Instance.FreeAudioSource(sound);
             }
 
             audioSources.Clear();
@@ -213,7 +214,7 @@ namespace Helion.Audio.Sounds
 
                     node.Value.AudioData.SoundSource?.ClearSound(node.Value, node.Value.AudioData.SoundChannelType);
                     node.Value.Stop();
-                    node.Value.Dispose();
+                    DataCache.Instance.FreeAudioSource(node.Value);
                     audioSources.Remove(node);
                     soundStopped = true;
                 }
@@ -260,7 +261,7 @@ namespace Helion.Audio.Sounds
                 return null;
 
             soundParams.SoundInfo = soundInfo;
-            AudioData audioData = new(source, soundInfo, channel, soundParams.Attenuation, priority, soundParams.Loop);
+            AudioData audioData = DataCache.Instance.GetAudioData(source, soundInfo, channel, soundParams.Attenuation, priority, soundParams.Loop);
             IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData, soundParams);
             if (audioSource == null)
                 return null;
@@ -344,7 +345,7 @@ namespace Helion.Audio.Sounds
                 lowestPriorityNode.Value.Stop();
 
                 if (ShouldDisposeBumpedSound(lowestPriorityNode.Value))
-                    lowestPriorityNode.Value.Dispose();
+                    DataCache.Instance.FreeAudioSource(lowestPriorityNode.Value);
 
                 audioSources.Remove(lowestPriorityNode);
                 return true;
@@ -436,7 +437,7 @@ namespace Helion.Audio.Sounds
                 nextNode = node.Next;
                 if (node.Value.IsFinished())
                 {
-                    node.Value.Dispose();
+                    DataCache.Instance.FreeAudioSource(node.Value);
                     PlayingSounds.Remove(node.Value);
                 }
 

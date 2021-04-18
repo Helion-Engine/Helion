@@ -465,19 +465,19 @@ namespace Helion.World.Entities
         public void PlaySeeSound()
         {
             if (Definition.Properties.SeeSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
         }
 
         public void PlayAttackSound()
         {
             if (Properties.AttackSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
         }
 
         public void PlayActiveSound()
         {
             if (Properties.ActiveSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
         }
 
         public CIString GetSpeciesName()
@@ -554,7 +554,7 @@ namespace Helion.World.Entities
                 Flags.JustHit = true;
                 FrameState.SetState(Constants.FrameStates.Pain);
                 if (Definition.Properties.PainSound.Length > 0)
-                    SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, new SoundParams(this));
+                    SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
             }
 
 
@@ -766,9 +766,9 @@ namespace Helion.World.Entities
         protected virtual void SetDeath(Entity? source, bool gibbed)
         {
             if (gibbed)
-                SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
             else if (Definition.Properties.DeathSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
 
             if (Flags.Missile)
             {

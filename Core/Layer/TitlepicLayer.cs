@@ -7,6 +7,7 @@ using Helion.Render.Commands;
 using Helion.Render.Shared.Drawers.Helper;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
@@ -41,6 +42,8 @@ namespace Helion.Layer
 
             if (input.HasAnyKeyPressed() && Parent?.Count == 1)
             {
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+
                 MainMenu mainMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager);
                 MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, m_soundManager);
                 Parent.Add(menuLayer);

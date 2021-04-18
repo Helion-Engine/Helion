@@ -87,7 +87,8 @@ namespace Helion.World.Special.Specials
         {
             Vec2D pos = line.Segment.FromTime(0.5);
             DefaultSoundSource soundSource = new DefaultSoundSource(pos.To3D(line.Front.Sector.ToFloorZ(pos)));
-            soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, SoundChannelType.Auto, new SoundParams(soundSource));
+            soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(soundSource));
         }
     }
 }

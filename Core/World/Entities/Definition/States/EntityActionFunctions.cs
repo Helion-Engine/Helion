@@ -418,7 +418,7 @@ namespace Helion.World.Entities.Definition.States
         private static void A_BFGSound(Entity entity)
         {
             if (entity is Player player)
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_BFGSpray(Entity entity)
@@ -444,7 +444,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BabyMetal(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "baby/walk", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "baby/walk", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_BarrelDestroy(Entity entity)
@@ -474,7 +474,8 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BrainAwake(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "brain/sight", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+            entity.SoundManager.CreateSoundOn(entity, "brain/sight", SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
         }
 
         private static void A_BrainDie(Entity entity)
@@ -491,7 +492,8 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BrainPain(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "brain/pain", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+            entity.SoundManager.CreateSoundOn(entity, "brain/pain", SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
         }
 
         private static void A_BrainScream(Entity entity)
@@ -502,7 +504,8 @@ namespace Helion.World.Entities.Definition.States
                 BrainExplodeRocket(entity, pos);
             }
 
-            entity.SoundManager.CreateSoundOn(entity, "brain/death", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+            entity.SoundManager.CreateSoundOn(entity, "brain/death", SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
         }
 
         private static void BrainExplodeRocket(Entity entity, in Vec3D pos)
@@ -540,7 +543,8 @@ namespace Helion.World.Entities.Definition.States
                 spawnShot.Flags.BossSpawnShot = true;
             }
 
-            entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.None));
+            entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
         }
 
         private static void A_SpawnFly(Entity entity)
@@ -555,7 +559,8 @@ namespace Helion.World.Entities.Definition.States
                 return;
                 
             entity.EntityManager.Create("ArchvileFire", entity.Target.Position);
-            entity.SoundManager.CreateSoundOn(entity.Target, "misc/teleport", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity.Target, "misc/teleport", SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(entity));
 
             Entity? enemy = entity.EntityManager.Create(GetRandomBossSpawn(entity.World.Random), entity.Target.Position);
             if (enemy != null)
@@ -603,7 +608,7 @@ namespace Helion.World.Entities.Definition.States
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 10;
                 entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
-                entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, new SoundParams(entity));
+                entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 return;
             }
 
@@ -822,7 +827,8 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_CloseShotgun2(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", entity.WeaponSoundChannel, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", entity.WeaponSoundChannel, 
+                DataCache.Instance.GetSoundParams(entity));
             A_ReFire(entity);
         }
 
@@ -1056,7 +1062,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_Fire(Entity entity)
@@ -1100,7 +1106,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                 int offset = player.Weapon == null ? 0 : Math.Clamp(player.Weapon.FrameState.Frame.Frame, 0, 1);
                 player.Weapon?.SetFlashState(offset);
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
@@ -1110,7 +1116,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireCrackle(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "vile/firecrkl", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "vile/firecrkl", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_FireCustomMissile(Entity entity)
@@ -1142,7 +1148,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
                     player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
@@ -1173,7 +1179,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
                     player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
@@ -1184,7 +1190,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity is Player player)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, new SoundParams(entity));
+                player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                 player.Weapon?.SetFlashState();
                 player.World.FireHitscanBullets(player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
                     player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
@@ -1267,7 +1273,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Hoof(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_IceGuyDie(Entity entity)
@@ -1430,7 +1436,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_LoadShotgun2(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", entity.WeaponSoundChannel, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_Log(Entity entity)
@@ -1485,7 +1491,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Metal(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_MissileAttack(Entity entity)
@@ -1525,7 +1531,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_OpenShotgun2(Entity entity)
         {
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", entity.WeaponSoundChannel, new SoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_Overlay(Entity entity)
@@ -1667,7 +1673,7 @@ namespace Helion.World.Entities.Definition.States
                 if (hitEntity != null)
                 {
                     player.AngleRadians = angle;
-                    player.World.SoundManager.CreateSoundOn(entity, "player/male/fist", SoundChannelType.Auto, new SoundParams(entity));
+                    player.World.SoundManager.CreateSoundOn(entity, "player/male/fist", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                     player.AngleRadians = player.Position.Angle(hitEntity.Position);
                 }
             }
@@ -1754,7 +1760,7 @@ namespace Helion.World.Entities.Definition.States
                     player.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
                 {
                     player.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
-                        SoundChannelType.Auto, new SoundParams(entity));
+                        SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 }
             }
         }
@@ -1887,12 +1893,12 @@ namespace Helion.World.Entities.Definition.States
                 Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance + 1, damage);
                 if (hitEntity == null)
                 {
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, new SoundParams(entity));
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                 }
                 else
                 {
                     player.AngleRadians = angle;
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, new SoundParams(entity));
+                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                     player.AngleRadians = player.Position.Angle(hitEntity.Position);
                 }
             }
@@ -2164,7 +2170,7 @@ namespace Helion.World.Entities.Definition.States
             {
                 int damage = ((entity.World.Random.NextByte() % 10) + 1) * 6;
                 entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
-                entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, new SoundParams(entity));
+                entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
             }
         }
 
@@ -2186,7 +2192,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             A_FaceTarget(entity);
-            entity.SoundManager.CreateSoundOn(entity, "skeleton/swing", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "skeleton/swing", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_SkullAttack(Entity entity)
@@ -2243,7 +2249,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_SpawnSound(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, new SoundParams(entity, false, Attenuation.Default));
+            entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity, false, Attenuation.Default));
         }
 
         private static void A_SpidRefire(Entity entity)
@@ -2277,7 +2283,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_StartFire(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "vile/firestrt", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "vile/firestrt", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_Stop(Entity entity)
@@ -2428,7 +2434,7 @@ namespace Helion.World.Entities.Definition.States
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
                 entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
-                entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, new SoundParams(entity));
+                entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 return;
             }
 
@@ -2491,7 +2497,7 @@ namespace Helion.World.Entities.Definition.States
             if (!entity.World.CheckLineOfSight(entity, entity.Target))
                 return;
 
-            entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
             entity.World.DamageEntity(entity.Target, entity, 20, Thrust.Horizontal);
             entity.Target.Velocity.Z = 1000.0 / entity.Target.Definition.Properties.Mass;
 
@@ -2532,7 +2538,7 @@ namespace Helion.World.Entities.Definition.States
                 entity.Target = saveTarget;
                 entity.SetHealState();
 
-                entity.SoundManager.CreateSoundOn(bi.Entity, "vile/raise", SoundChannelType.Auto, new SoundParams(entity));
+                entity.SoundManager.CreateSoundOn(bi.Entity, "vile/raise", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 bi.Entity.SetRaiseState();
                 break;
             }
@@ -2544,7 +2550,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_VileStart(Entity entity)
         {
-            entity.SoundManager.CreateSoundOn(entity, "vile/start", SoundChannelType.Auto, new SoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "vile/start", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_VileTarget(Entity entity)
