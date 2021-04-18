@@ -1,14 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
+using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Locks;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using OpenTK.Graphics.OpenGL;
@@ -18,26 +23,35 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 {
     public class LegacyAutomapRenderer : IDisposable
     {
-        private static readonly vec3 Red = new(1, 0, 0);
-        private static readonly vec3 Brown = new(0.82f, 0.7f, 0.55f);
-        private static readonly vec3 Yellow = new(1, 1, 0);
+        // private static readonly vec3 White = new(1, 1, 1);
+        // private static readonly vec3 Gray = new(0.5f, 0.5f, 0.5f);
+        // private static readonly vec3 Red = new(1, 0, 0);
+        // private static readonly vec3 Green = new(0, 1, 0);
+        // private static readonly vec3 Blue = new(0, 0, 1);
+        // private static readonly vec3 Yellow = new(1, 1, 0);
+        // private static readonly vec3 Purple = new(0.6f, 0.25f, 0.8f);
+        // private static readonly vec3 Tan = new(0.82f, 0.7f, 0.55f);
+        
         private static readonly VertexArrayAttributes Attributes = new(new VertexPointerFloatAttribute("pos", 0, 2));
 
         private readonly IGLFunctions gl;
+        private readonly ArchiveCollection m_archiveCollection;
         private readonly LegacyAutomapShader m_shader;
         private readonly StreamVertexBuffer<vec2> m_vbo;
         private readonly VertexArrayObject m_vao;
-        private readonly DynamicArray<vec2> m_redLines = new();
-        private readonly DynamicArray<vec2> m_yellowLines = new();
-        private readonly DynamicArray<vec2> m_brownLines = new();
+        private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
         private readonly List<(int start, vec3 color)> m_vboRanges = new();
         private bool m_disposed;
         
-        public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions)
+        public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
         {
             gl = glFunctions;
+            m_archiveCollection = archiveCollection;
             m_vao = new VertexArrayObject(capabilities, gl, Attributes, "VAO: Attributes for Automap");
             m_vbo = new StreamVertexBuffer<vec2>(capabilities, gl, m_vao, "VBO: Geometry for Automap");
+            
+            foreach (AutomapColor _ in Enum.GetValues<AutomapColor>())
+                m_colorEnumToLines.Add(new DynamicArray<vec2>());
             
             using (var shaderBuilder = LegacyAutomapShader.MakeBuilder(gl))
                 m_shader = new LegacyAutomapShader(gl, shaderBuilder, Attributes);
@@ -113,27 +127,29 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             
             m_vboRanges.Clear();
 
-            if (m_redLines.Length > 0)
+            for (int i = 0; i < m_colorEnumToLines.Count; i++)
             {
-                m_vboRanges.Add((m_vbo.Count, Red));
-                foreach (vec2 line in m_redLines)
-                    AddLine(line);
-            }
-            
-            if (m_brownLines.Length > 0)
-            {
-                m_vboRanges.Add((m_vbo.Count, Brown));
-                foreach (vec2 line in m_brownLines)
-                    AddLine(line);
-            }
-            
-            if (m_yellowLines.Length > 0)
-            {
-                m_vboRanges.Add((m_vbo.Count, Yellow));
-                foreach (vec2 line in m_yellowLines)
+                DynamicArray<vec2> lines = m_colorEnumToLines[i];
+                if (lines.Empty())
+                    continue;
+
+                AutomapColor color = (AutomapColor)i;
+                vec3 colorVec = color.ToColor();
+                m_vboRanges.Add((m_vbo.Count, colorVec));
+                
+                foreach (vec2 line in lines)
                     AddLine(line);
             }
 
+            // This is a backup case in the event there are no lines.
+            if (minX == Single.PositiveInfinity)
+            {
+                minX = 0;
+                minY = 0;
+                maxX = 1;
+                maxY = 1;
+            }
+            
             box2F = ((minX, minY), (maxX, maxY));
             
             void AddLine(vec2 line)
@@ -153,9 +169,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
         private void PopulateColoredLines(IWorld world)
         {
-            m_redLines.Clear();
-            m_brownLines.Clear();
-            m_yellowLines.Clear();
+            foreach (DynamicArray<vec2> lineList in m_colorEnumToLines)
+                lineList.Clear();
 
             foreach (Line line in world.Lines)
             {
@@ -164,28 +179,45 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 
                 Vec2D start = line.StartPosition;
                 Vec2D end = line.EndPosition;
+
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
+                {
+                    LockDef? lockDef = m_archiveCollection.Definitions.LockDefininitions.GetLockDef(line.Args.Arg3);
+                    if (lockDef != null)
+                    {
+                        if (lockDef.MapColor == Color.Red)
+                        {
+                            AddLine(AutomapColor.Red, start, end);
+                            continue;
+                        } 
+                        if (lockDef.MapColor == Color.Yellow)
+                        {
+                            AddLine(AutomapColor.Yellow, start, end);
+                            continue;
+                        } 
+                        if (lockDef.MapColor == Color.Blue)
+                        {
+                            AddLine(AutomapColor.Blue, start, end);
+                            continue;
+                        } 
+                    }
+                }
                 
                 if (line.Back == null)
                 {
-                    vec2 startVec = new vec2((float)start.X, (float)start.Y);
-                    vec2 endVec = new vec2((float)end.X, (float)end.Y);
-                    m_redLines.Add(startVec);
-                    m_redLines.Add(endVec);
+                    AddLine(AutomapColor.White, start, end);
                     continue;
                 }
-                
-                // Floor changes (brown) overrides ceiling changes (yellow).
-                bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
-                if (floorChanges)
-                {
-                    m_brownLines.Add(new vec2((float)start.X, (float)start.Y));
-                    m_brownLines.Add(new vec2((float)end.X, (float)end.Y));
-                }
-                else
-                {
-                    m_yellowLines.Add(new vec2((float)start.X, (float)start.Y));
-                    m_yellowLines.Add(new vec2((float)end.X, (float)end.Y));
-                }
+
+                // TODO: bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
+                AddLine(AutomapColor.Gray, start, end);
+            }
+
+            void AddLine(AutomapColor color, Vec2D start, Vec2D end)
+            {
+                DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
+                array.Add(new vec2((float)start.X, (float)start.Y));
+                array.Add(new vec2((float)end.X, (float)end.Y));
             }
         }
 

@@ -48,7 +48,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         {
             m_config = config;
             gl = functions;
-            m_automapRenderer = new LegacyAutomapRenderer(capabilities, gl);
+            m_automapRenderer = new LegacyAutomapRenderer(capabilities, gl, archiveCollection);
             m_worldDataManager = new RenderWorldDataManager(capabilities, gl);
             m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
             m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,

@@ -1,5 +1,6 @@
 ﻿using Helion.Util;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace Helion.Resources.Definitions.Locks
@@ -16,6 +17,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("red"),
                 KeyNumber = 1,
+                MapColor = Color.Red,
                 KeyDefinitionNames = new List<CIString>() { "RedCard" }
             });
 
@@ -23,6 +25,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("blue"),
                 KeyNumber = 2,
+                MapColor = Color.Blue,
                 KeyDefinitionNames = new List<CIString>() { "BlueCard" }
             });
 
@@ -30,6 +33,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("yellow"),
                 KeyNumber = 3,
+                MapColor = Color.Yellow,
                 KeyDefinitionNames = new List<CIString>() { "YellowCard" }
             });
 
@@ -37,6 +41,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("red skull"),
                 KeyNumber = 4,
+                MapColor = Color.Red,
                 KeyDefinitionNames = new List<CIString>() { "RedSkull" }
             });
 
@@ -44,6 +49,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("blue skull"),
                 KeyNumber = 5,
+                MapColor = Color.Blue,
                 KeyDefinitionNames = new List<CIString>() { "BlueSkull" }
             });
 
@@ -51,6 +57,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("yellow skull"),
                 KeyNumber = 6,
+                MapColor = Color.Yellow,
                 KeyDefinitionNames = new List<CIString>() { "YellowSkull" }
             });
 
@@ -58,6 +65,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("red"),
                 KeyNumber = 129,
+                MapColor = Color.Red,
                 KeyDefinitionNames = new List<CIString>() { "RedCard", "RedSkull" }
             });
 
@@ -65,6 +73,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("blue"),
                 KeyNumber = 130,
+                MapColor = Color.Blue,
                 KeyDefinitionNames = new List<CIString>() { "BlueCard", "BlueSkull" }
             });
 
@@ -72,6 +81,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("yellow"),
                 KeyNumber = 131,
+                MapColor = Color.Yellow,
                 KeyDefinitionNames = new List<CIString>() { "YellowCard", "YellowSkull" }
             });
         }
