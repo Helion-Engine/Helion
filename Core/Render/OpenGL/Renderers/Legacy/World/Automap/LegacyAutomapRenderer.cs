@@ -15,6 +15,8 @@ using Helion.Resources.Definitions.Locks;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World;
+using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -56,7 +58,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
         public void Render(IWorld world, RenderInfo renderInfo)
         {
-            PopulateData(world, out Box2F worldBounds);
+            PopulateData(world, renderInfo.ViewerEntity as Player, out Box2F worldBounds);
 
             m_shader.BindAnd(() =>
             {
@@ -101,10 +103,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             return new vec2(1 / vW, 1 / vH);
         }
 
-        private void PopulateData(IWorld world, out Box2F box2F)
+        private void PopulateData(IWorld world, Player? player, out Box2F box2F)
         {
             m_vbo.Clear();
-            PopulateColoredLines(world);
+            PopulateColoredLines(world, player);
             TransferLineDataIntoBuffer(out box2F);
             m_vbo.UploadIfNeeded();
         }
@@ -133,7 +135,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             }
 
             // This is a backup case in the event there are no lines.
-            if (minX == Single.PositiveInfinity)
+            if (float.IsPositiveInfinity(minX))
             {
                 minX = 0;
                 minY = 0;
@@ -158,14 +160,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             }
         }
 
-        private void PopulateColoredLines(IWorld world)
+        private void PopulateColoredLines(IWorld world, Player? player)
         {
             foreach (DynamicArray<vec2> lineList in m_colorEnumToLines)
                 lineList.Clear();
 
+            // TODO: Move away from "ALLMAP" in the future.
+            bool drawAllLines = (player?.Inventory.IsPowerupActive(PowerupType.ComputerAreaMap) ?? false) || 
+                                (player?.Inventory.HasItem("ALLMAP") ?? false);
+
             foreach (Line line in world.Lines)
             {
-                if (!line.SeenForAutomap)
+                if (!drawAllLines && !line.SeenForAutomap)
                     continue;
                 
                 Vec2D start = line.StartPosition;

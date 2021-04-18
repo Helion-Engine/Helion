@@ -1408,10 +1408,9 @@ namespace Helion.World
                 case CheatType.BeholdComputerAreaMap:
                 case CheatType.BeholdLightAmp:
                 case CheatType.BeholdBerserk:
-                    TogglePowerup(player, PowerupNameFromCheatType(cheat.CheatType), PowerupTypeFromCheatType(cheat.CheatType));
-                    break;
                 case CheatType.Automap:
-                    // TODO
+                case CheatType.AutomapMode:
+                    TogglePowerup(player, PowerupNameFromCheatType(cheat.CheatType), PowerupTypeFromCheatType(cheat.CheatType));
                     break;
                 default:
                     break;
@@ -1459,6 +1458,9 @@ namespace Helion.World
         {
             switch (cheatType)
             {
+                case CheatType.Automap:
+                case CheatType.AutomapMode:
+                    return "Allmap";
                 case CheatType.BeholdRadSuit:
                     return "RadSuit";
                 case CheatType.BeholdPartialInvisibility:
@@ -1494,6 +1496,9 @@ namespace Helion.World
                     return PowerupType.LightAmp;
                 case CheatType.BeholdBerserk:
                     return PowerupType.Strength;
+                case CheatType.Automap:
+                case CheatType.AutomapMode:
+                    return PowerupType.ComputerAreaMap;
                 default:
                     break;
             }
