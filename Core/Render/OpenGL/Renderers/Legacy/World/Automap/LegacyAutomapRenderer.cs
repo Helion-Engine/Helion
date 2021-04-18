@@ -23,15 +23,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 {
     public class LegacyAutomapRenderer : IDisposable
     {
-        // private static readonly vec3 White = new(1, 1, 1);
-        // private static readonly vec3 Gray = new(0.5f, 0.5f, 0.5f);
-        // private static readonly vec3 Red = new(1, 0, 0);
-        // private static readonly vec3 Green = new(0, 1, 0);
-        // private static readonly vec3 Blue = new(0, 0, 1);
-        // private static readonly vec3 Yellow = new(1, 1, 0);
-        // private static readonly vec3 Purple = new(0.6f, 0.25f, 0.8f);
-        // private static readonly vec3 Tan = new(0.82f, 0.7f, 0.55f);
-        
         private static readonly VertexArrayAttributes Attributes = new(new VertexPointerFloatAttribute("pos", 0, 2));
 
         private readonly IGLFunctions gl;
