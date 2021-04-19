@@ -210,7 +210,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 vec4 s = transform * new vec4(startX, startY, 0, 1); 
                 vec4 e = transform * new vec4(endX, endY, 0, 1);
                 
-                Console.WriteLine($"{s.xy}, {e.xy}");
                 m_playerArrowPoints.Add(s.xy);
                 m_playerArrowPoints.Add(e.xy);
             }
