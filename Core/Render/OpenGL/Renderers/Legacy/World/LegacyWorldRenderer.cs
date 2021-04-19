@@ -78,6 +78,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
         protected override void PerformAutomapRender(WorldBase world, RenderInfo renderInfo)
         {
+            Clear(world, renderInfo);
+            TraverseBsp(world, renderInfo);
+            
             m_automapRenderer.Render(world, renderInfo);
         }
 
