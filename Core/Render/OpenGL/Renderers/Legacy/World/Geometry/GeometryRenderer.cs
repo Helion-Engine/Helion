@@ -112,15 +112,25 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
 
         private static void PreloadAllTextures(IWorld world)
         {
-            var textures = world.Lines.SelectMany(line => line.Sides)
-                .SelectMany(side => side.Walls)
-                .Select(wall => wall.TextureHandle)
-                .Distinct().ToList();
+            HashSet<int> textures = new HashSet<int>();
 
-            var flatTextures = world.Sectors.SelectMany(sector => new[] { sector.Ceiling, sector.Floor })
-                .Select(flat => flat.TextureHandle)
-                .Distinct();
-            textures.AddRange(flatTextures);
+            for (int i = 0; i < world.Lines.Count; i++)
+            {
+                for (int j = 0; j < world.Lines[i].Front.Walls.Length; j++)
+                    textures.Add(world.Lines[i].Front.Walls[j].TextureHandle);
+
+                if (world.Lines[i].Back == null)
+                    continue;
+
+                for (int j = 0; j < world.Lines[i].Back!.Walls.Length; j++)
+                    textures.Add(world.Lines[i].Back!.Walls[j].TextureHandle);
+            }
+
+            for (int i = 0; i < world.Sectors.Count; i++)
+            {
+                textures.Add(world.Sectors[i].Floor.TextureHandle);
+                textures.Add(world.Sectors[i].Ceiling.TextureHandle);
+            }
 
             TextureManager.Instance.LoadTextureImages(textures);
         }

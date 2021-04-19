@@ -72,27 +72,40 @@ namespace Helion.Resources
         /// Loads the texture images.
         /// </summary>
         /// <param name="textures">List of texture indices to load.</param>
-        public void LoadTextureImages(List<int> textures)
+        public void LoadTextureImages(HashSet<int> textures)
         {
-            textures.ForEach(LoadTextureImage);
+            foreach (int texture in textures)
+                LoadTextureImage(texture);
 
             foreach (Animation anim in m_animations)
             {
                 if (textures.Contains(anim.TranslationIndex))
-                {
-                    foreach (var component in anim.AnimatedTexture.Components)
-                        LoadTextureImage(component.TextureIndex);
-                }
+                    LoadAnimatedTextures(anim);
             }
 
             foreach (AnimatedSwitch animSwitch in m_archiveCollection.Definitions.Animdefs.AnimatedSwitches)
             {
                 LoadTextureImage(animSwitch.StartTextureIndex);
-                foreach (var component in animSwitch.On)
-                    LoadTextureImage(component.TextureIndex);
-                foreach (var component in animSwitch.Off)
-                    LoadTextureImage(component.TextureIndex);
+                LoadAnimSwitchComponents(animSwitch.On);
+                LoadAnimSwitchComponents(animSwitch.Off);
             }
+        }
+
+        private void LoadAnimSwitchComponents(IList<AnimatedTextureComponent> components)
+        {
+            foreach (var component in components)
+            {
+                LoadTextureImage(component.TextureIndex);
+                var anim = m_animations.FirstOrDefault(x => x.TranslationIndex == component.TextureIndex);
+                if (anim != null)
+                    LoadAnimatedTextures(anim);
+            }
+        }
+
+        private void LoadAnimatedTextures(Animation anim)
+        {
+            foreach (var component in anim.AnimatedTexture.Components)
+                LoadTextureImage(component.TextureIndex);
         }
 
         /// <summary>
@@ -116,7 +129,7 @@ namespace Helion.Resources
             if (name == Constants.NoTexture)
                 return m_textures[Constants.NoTextureIndex];
 
-            Texture texture;
+            Texture? texture;
             if (resourceNamespace == ResourceNamespace.Global)
                 texture = m_textures.FirstOrDefault(tex => tex.Name == name);
             else
