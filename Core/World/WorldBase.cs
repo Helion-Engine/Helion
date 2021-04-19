@@ -1448,11 +1448,22 @@ namespace Helion.World
             if (def == null)
                 return;
 
-            var existingPowerup = player.Inventory.Powerups.FirstOrDefault(x => x.PowerupType == powerupType);
-            if (existingPowerup != null)
-                player.Inventory.RemovePowerup(existingPowerup);
+            // Not really a powerup, part of inventory
+            if (powerupType == PowerupType.ComputerAreaMap)
+            {
+                if (player.Inventory.HasItem(def.Name))
+                    player.Inventory.Remove(def.Name, 1);
+                else
+                    player.Inventory.Add(def, 1);
+            }
             else
-                player.Inventory.Add(def, 1);
+            {
+                var existingPowerup = player.Inventory.Powerups.FirstOrDefault(x => x.PowerupType == powerupType);
+                if (existingPowerup != null)
+                    player.Inventory.RemovePowerup(existingPowerup);
+                else
+                    player.Inventory.Add(def, 1);
+            }
         }
 
         private static string PowerupNameFromCheatType(CheatType cheatType)

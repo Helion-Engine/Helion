@@ -26,7 +26,7 @@ namespace Helion.World.Cheats
             new ExactMatchCheat("Very happy ammo added", "idkfa", "idkfa", CheatType.GiveAll, canToggle: false),
             new ExactMatchCheat("... Doesn't Suck - GM", "idchoppers", CheatType.Chainsaw, canToggle: false),
 
-            new ExactMatchCheat("inVuln, Str, Inviso, Rad, Allmap, or Lite-amp", "idbehold", CheatType.Automap, canToggle: false,
+            new ExactMatchCheat("inVuln, Str, Inviso, Rad, Allmap, or Lite-amp", "idbehold", CheatType.Behold, canToggle: false,
                 clearTypedCheatString: false),
             new ExactMatchCheat(BeholdActivated, "idbeholdr", CheatType.BeholdRadSuit, canToggle: false),
             new ExactMatchCheat(BeholdActivated, "idbeholdi", CheatType.BeholdPartialInvisibility, canToggle: false),

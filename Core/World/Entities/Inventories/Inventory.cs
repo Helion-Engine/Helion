@@ -127,7 +127,13 @@ namespace Helion.World.Entities.Inventories
 
         public static bool IsPowerup(EntityDefinition def) => def.IsType(PowerupClassName) || !string.IsNullOrEmpty(def.Properties.Powerup.Type);
 
-        public bool IsPowerupActive(PowerupType type) => Powerups.Any(x => x.PowerupType == type);
+        public bool IsPowerupActive(PowerupType type)
+        {
+            if (type == PowerupType.ComputerAreaMap)
+                return HasItemOfClass("MapRevealer");
+
+            return Powerups.Any(x => x.PowerupType == type);
+        }
 
         public IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
 

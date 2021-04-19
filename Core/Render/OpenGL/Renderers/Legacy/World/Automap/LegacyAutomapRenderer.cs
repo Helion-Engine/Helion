@@ -120,13 +120,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             foreach (DynamicArray<vec2> lineList in m_colorEnumToLines)
                 lineList.Clear();
 
-            // TODO: Move away from "ALLMAP" in the future.
-            bool drawAllLines = (player?.Inventory.IsPowerupActive(PowerupType.ComputerAreaMap) ?? false) || 
-                                (player?.Inventory.HasItem("ALLMAP") ?? false);
+            bool allMap = player?.Inventory.IsPowerupActive(PowerupType.ComputerAreaMap) ?? false;
 
             foreach (Line line in world.Lines)
             {
-                if (!drawAllLines && !line.SeenForAutomap)
+                if (!allMap && !line.SeenForAutomap)
                     continue;
                 
                 Vec2D start = line.StartPosition;
@@ -155,9 +153,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                     }
                 }
                 
-                if (line.Back == null)
+                if (line.Back == null || line.Flags.Secret)
                 {
-                    AddLine(AutomapColor.White, start, end);
+                    AddLine(line.SeenForAutomap ? AutomapColor.White : AutomapColor.LightBlue, start, end);
                     continue;
                 }
 
