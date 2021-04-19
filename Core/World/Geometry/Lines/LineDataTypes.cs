@@ -6,6 +6,7 @@ namespace Helion.World.Geometry.Lines
     public enum LineDataTypes
     {
         Activated = 1,
-        Texture = 2
+        Texture = 2,
+        Automap = 4
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -150,8 +149,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                         AddLineClip(edge);
                     continue;
                 }
-                
-                edge.Line.SeenForAutomap = true;
+
+                edge.Line.MarkSeenOnAutomap();
 
                 bool onFrontSide = edge.Line.Segment.OnRight(position);
                 if (!onFrontSide && edge.Line.OneSided)

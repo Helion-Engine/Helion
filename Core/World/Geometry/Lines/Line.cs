@@ -27,7 +27,6 @@ namespace Helion.World.Geometry.Lines
         public bool DataChanged => DataChanges > 0;
         // Rendering hax...
         public bool Sky;
-        public bool SeenForAutomap;
 
         public Vec2D StartPosition => Segment.Start;
         public Vec2D EndPosition => Segment.End;
@@ -43,6 +42,7 @@ namespace Helion.World.Geometry.Lines
         public int SpeedArg => Args.Arg1;
         public int DelayArg => Args.Arg2;
         public int AmountArg => Args.Arg2;
+        public bool SeenForAutomap => DataChanges.HasFlag(LineDataTypes.Automap);
 
         public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial, 
             SpecialArgs args)
@@ -69,7 +69,12 @@ namespace Helion.World.Geometry.Lines
 
         public LineModel ToLineModel()
         {
-            LineModel lineModel = new LineModel() { Id = Id, DataChanges = (int)DataChanges };
+            LineModel lineModel = new()
+            {
+                Id = Id, 
+                DataChanges = (int)DataChanges,
+            };
+            
             if (DataChanges.HasFlag(LineDataTypes.Activated))
                 lineModel.Activated = Activated;
 
@@ -149,6 +154,11 @@ namespace Helion.World.Geometry.Lines
             return OneSided || (entity.Flags.Monster && Flags.Blocking.Monsters) || (entity is Player && Flags.Blocking.Players);
         }
 
+        public void MarkSeenOnAutomap()
+        {
+            DataChanges |= LineDataTypes.Automap;
+        }
+        
         public override string ToString()
         {
             return $"Id={Id} [{StartPosition}] [{EndPosition}]";
