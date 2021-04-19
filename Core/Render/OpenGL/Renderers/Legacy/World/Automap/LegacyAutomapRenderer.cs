@@ -34,6 +34,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
         private readonly VertexArrayObject m_vao;
         private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
         private readonly List<(int start, vec3 color)> m_vboRanges = new();
+        private readonly DynamicArray<vec2> m_playerArrowPoints = new(); 
         private bool m_disposed;
         
         public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
@@ -58,7 +59,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
         public void Render(IWorld world, RenderInfo renderInfo)
         {
-            PopulateData(world, renderInfo.ViewerEntity as Player, out Box2F worldBounds);
+            PopulateData(world, renderInfo, out Box2F worldBounds);
 
             m_shader.BindAnd(() =>
             {
@@ -103,61 +104,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             return new vec2(1 / vW, 1 / vH);
         }
 
-        private void PopulateData(IWorld world, Player? player, out Box2F box2F)
+        private void PopulateData(IWorld world, RenderInfo renderInfo, out Box2F box2F)
         {
+            Player? player = renderInfo.ViewerEntity as Player;
+            
             m_vbo.Clear();
             PopulateColoredLines(world, player);
+            PopulatePlayerArrow(player, renderInfo.TickFraction);
             TransferLineDataIntoBuffer(out box2F);
             m_vbo.UploadIfNeeded();
-        }
-
-        private void TransferLineDataIntoBuffer(out Box2F box2F)
-        {
-            float minX = Single.PositiveInfinity;
-            float minY = Single.PositiveInfinity;
-            float maxX = Single.NegativeInfinity;
-            float maxY = Single.NegativeInfinity;
-            
-            m_vboRanges.Clear();
-
-            for (int i = 0; i < m_colorEnumToLines.Count; i++)
-            {
-                DynamicArray<vec2> lines = m_colorEnumToLines[i];
-                if (lines.Empty())
-                    continue;
-
-                AutomapColor color = (AutomapColor)i;
-                vec3 colorVec = color.ToColor();
-                m_vboRanges.Add((m_vbo.Count, colorVec));
-                
-                foreach (vec2 line in lines)
-                    AddLine(line);
-            }
-
-            // This is a backup case in the event there are no lines.
-            if (float.IsPositiveInfinity(minX))
-            {
-                minX = 0;
-                minY = 0;
-                maxX = 1;
-                maxY = 1;
-            }
-            
-            box2F = ((minX, minY), (maxX, maxY));
-            
-            void AddLine(vec2 line)
-            {
-                m_vbo.Add(line);
-
-                if (line.x < minX)
-                    minX = line.x;
-                if (line.y < minY)
-                    minY = line.y;
-                if (line.x > maxX)
-                    maxX = line.x;
-                if (line.y > maxY)
-                    maxY = line.y;
-            }
         }
 
         private void PopulateColoredLines(IWorld world, Player? player)
@@ -215,6 +170,98 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
                 array.Add(new vec2((float)start.X, (float)start.Y));
                 array.Add(new vec2((float)end.X, (float)end.Y));
+            }
+        }
+        
+        private void PopulatePlayerArrow(Player? player, float interpolateFrac)
+        {
+            if (player == null)
+                return;
+            
+            m_playerArrowPoints.Clear();
+
+            // We start with the arrow facing along the positive X axis direction.
+            // This way, our rotation can be easily done.
+            var center = player.PrevPosition.Interpolate(player.Position, interpolateFrac);
+            var (width, height) = player.Box.To2D().Sides.Float;
+            var (centerX, centerY) = center.XY.Float;
+            float halfWidth = width / 2;
+            float quarterWidth = width / 4;
+            float quarterHeight = height / 4;
+            
+            mat4 rotate = mat4.Rotate((float)player.AngleRadians, vec3.UnitZ);
+            mat4 translate = mat4.Translate(centerX, centerY, 0);
+            mat4 transform = translate * rotate;
+            
+            // Main arrow from middle left to middle right
+            AddLine(-halfWidth, 0, halfWidth, 0);
+            
+            // Arrow from the right tip to the top middle at 45 degrees. Same
+            // for the bottom one.
+            AddLine(halfWidth, 0, quarterWidth, quarterHeight);
+            AddLine(halfWidth, 0, quarterWidth, -quarterHeight);
+
+            DynamicArray<vec2> array = m_colorEnumToLines[(int)AutomapColor.Green];
+            foreach (vec2 point in m_playerArrowPoints)
+                array.Add(point);
+
+            void AddLine(float startX, float startY, float endX, float endY)
+            {
+                vec4 s = transform * new vec4(startX, startY, 0, 1); 
+                vec4 e = transform * new vec4(endX, endY, 0, 1);
+                
+                Console.WriteLine($"{s.xy}, {e.xy}");
+                m_playerArrowPoints.Add(s.xy);
+                m_playerArrowPoints.Add(e.xy);
+            }
+        }
+        
+        private void TransferLineDataIntoBuffer(out Box2F box2F)
+        {
+            float minX = Single.PositiveInfinity;
+            float minY = Single.PositiveInfinity;
+            float maxX = Single.NegativeInfinity;
+            float maxY = Single.NegativeInfinity;
+            
+            m_vboRanges.Clear();
+
+            for (int i = 0; i < m_colorEnumToLines.Count; i++)
+            {
+                DynamicArray<vec2> lines = m_colorEnumToLines[i];
+                if (lines.Empty())
+                    continue;
+
+                AutomapColor color = (AutomapColor)i;
+                vec3 colorVec = color.ToColor();
+                m_vboRanges.Add((m_vbo.Count, colorVec));
+                
+                foreach (vec2 line in lines)
+                    AddLine(line);
+            }
+
+            // This is a backup case in the event there are no lines.
+            if (float.IsPositiveInfinity(minX))
+            {
+                minX = 0;
+                minY = 0;
+                maxX = 1;
+                maxY = 1;
+            }
+            
+            box2F = ((minX, minY), (maxX, maxY));
+            
+            void AddLine(vec2 line)
+            {
+                m_vbo.Add(line);
+
+                if (line.x < minX)
+                    minX = line.x;
+                if (line.y < minY)
+                    minY = line.y;
+                if (line.x > maxX)
+                    maxX = line.x;
+                if (line.y > maxY)
+                    maxY = line.y;
             }
         }
 

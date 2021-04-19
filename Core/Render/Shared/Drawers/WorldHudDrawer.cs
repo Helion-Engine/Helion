@@ -91,7 +91,8 @@ namespace Helion.Render.Shared.Drawers
                     DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, draw, yOffset);
             }
 
-            DrawHudCrosshair(viewport, draw);
+            if (!drawAutomap)
+                DrawHudCrosshair(viewport, draw);
 
             // TODO: This should be at the top, rendering order is reversed somehow (check impl)
             switch(config.Hud.StatusBarSize.Value)
