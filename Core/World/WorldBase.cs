@@ -819,7 +819,7 @@ namespace Helion.World
             if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
             {
                 SoundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                    new SoundParams(entity));
+                    DataCache.Instance.GetSoundParams(entity));
             }
         }
 
@@ -1350,7 +1350,8 @@ namespace Helion.World
                 if (teleport != null)
                 {
                     teleport.SetZ(teleport.Sector.ToFloorZ(pos), false);
-                    SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, new SoundParams(teleport));
+                    SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto, 
+                        DataCache.Instance.GetSoundParams(teleport));
                 }
             }
         }
@@ -1577,7 +1578,7 @@ namespace Helion.World
                 if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
                 {
                     SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                        new SoundParams(updatePlayer));
+                        DataCache.Instance.GetSoundParams(updatePlayer));
                 }
             }
         }

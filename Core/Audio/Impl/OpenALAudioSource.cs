@@ -24,7 +24,7 @@ namespace Helion.Audio.Impl
         public Vec3F Velocity { get; set; }
 
         public AudioData AudioData { get; set; }
-        private readonly OpenALAudioSourceManager m_owner;
+        public OpenALAudioSourceManager Owner { get; private set; }
         private int m_sourceId;
         private bool m_disposed;
 
@@ -32,7 +32,12 @@ namespace Helion.Audio.Impl
 
         public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
         {
-            m_owner = owner;
+            Set(owner, buffer, audioData, soundParams);
+        }
+
+        public void Set(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
+        {
+            Owner = owner;
             AudioData = audioData;
 
             float rolloffFactor = DefaultRolloff;
@@ -47,19 +52,19 @@ namespace Helion.Audio.Impl
 
             switch (soundParams.Attenuation)
             {
-            case Attenuation.None:
-                // Max out the distance to prevent directional sound from taking effect
-                radius = 65536.0f;
-                referenceDistance = 0.0f;
-                maxDistance = 0.0f;
-                rolloffFactor = 0.0f;
-                break;
-            case Attenuation.Rapid:
-                rolloffFactor = DefaultRolloff * 2.0f;
-                break;
-            case Attenuation.Default:
-            default:
-                break;
+                case Attenuation.None:
+                    // Max out the distance to prevent directional sound from taking effect
+                    radius = 65536.0f;
+                    referenceDistance = 0.0f;
+                    maxDistance = 0.0f;
+                    rolloffFactor = 0.0f;
+                    break;
+                case Attenuation.Rapid:
+                    rolloffFactor = DefaultRolloff * 2.0f;
+                    break;
+                case Attenuation.Default:
+                default:
+                    break;
             }
 
             OpenALExecutor.Run("Creating new source", () =>
@@ -74,6 +79,8 @@ namespace Helion.Audio.Impl
                 AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
                 AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
             });
+
+            DataCache.Instance.FreeSoundParams(soundParams);
         }
 
         public void SetPosition(Vec3F pos)
@@ -189,8 +196,6 @@ namespace Helion.Audio.Impl
             if (m_disposed)
                 return;
 
-            Completed?.Invoke(this, EventArgs.Empty);
-
             PerformDispose();
             GC.SuppressFinalize(this);
         }
@@ -200,13 +205,22 @@ namespace Helion.Audio.Impl
             if (m_disposed)
                 return;
 
-            m_owner.Unlink(this);
+            CacheFree();
+
+            m_disposed = true;
+        }
+
+        public void CacheFree()
+        {
+            Completed?.Invoke(this, EventArgs.Empty);
+
+            Owner.Unlink(this);
             OpenALExecutor.Run("Deleting sound source", () =>
             {
                 AL.DeleteSource(m_sourceId);
             });
 
-            m_disposed = true;
+            DataCache.Instance.FreeAudioData(AudioData);
         }
     }
 }

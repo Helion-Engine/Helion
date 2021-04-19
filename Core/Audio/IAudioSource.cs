@@ -58,5 +58,11 @@ namespace Helion.Audio
         /// removed by whatever is managing this object.
         /// </summary>
         bool IsFinished();
+
+        /// <summary>
+        /// Intended for DataCache FreeAudioSource. Should cleanup all resources but
+        /// not actually dispose the object so it can be used again from the cache.
+        /// </summary>
+        void CacheFree();
     }
 }

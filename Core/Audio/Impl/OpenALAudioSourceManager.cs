@@ -6,6 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using MoreLinq.Extensions;
@@ -86,7 +87,7 @@ namespace Helion.Audio.Impl
             if (buffer == null)
                 return null;
 
-            OpenALAudioSource source = new(this, buffer, audioData, soundParams);
+            OpenALAudioSource source = DataCache.Instance.GetAudioSource(this, buffer, audioData, soundParams);
             m_sources.Add(source);
             return source;
         }
