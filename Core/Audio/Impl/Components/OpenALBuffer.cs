@@ -8,18 +8,16 @@ namespace Helion.Audio.Impl.Components
     {
         public int BufferId;
 
-        private OpenALBuffer(int sampleRate, byte[] sampleData)
+        private OpenALBuffer(int sampleRate, Span<byte> sampleData)
         {
-            OpenALExecutor.Run("Creating buffer", () =>
-            {
-                BufferId = AL.GenBuffer();
-            });
+            OpenALDebug.Start("Creating buffer");
+            BufferId = AL.GenBuffer();
+            OpenALDebug.End("Creating buffer");
 
-            OpenALExecutor.Run("Setting buffer data", () =>
-            {
-                // Note: We only support DMX sounds currently!
-                AL.BufferData(BufferId, ALFormat.Mono8, sampleData, sampleRate);
-            });
+            // Note: We only support DMX sounds currently!
+            OpenALDebug.Start("Setting buffer data");
+            AL.BufferData(BufferId, ALFormat.Mono8, sampleData, sampleRate);
+            OpenALDebug.End("Setting buffer data");
         }
 
         ~OpenALBuffer()
@@ -30,7 +28,7 @@ namespace Helion.Audio.Impl.Components
 
         public static OpenALBuffer? Create(byte[] data)
         {
-            if (AudioHelper.TryReadDoomSound(data, out int sampleRate, out byte[] sampleData))
+            if (AudioHelper.TryReadDoomSound(data, out int sampleRate, out Span<byte> sampleData))
                 return new OpenALBuffer(sampleRate, sampleData);
             return null;
         }
@@ -43,10 +41,9 @@ namespace Helion.Audio.Impl.Components
 
         private void ReleaseUnmanagedResources()
         {
-            OpenALExecutor.Run("Deleting sound buffer", () =>
-            {
-                AL.DeleteBuffer(BufferId);
-            });
+            OpenALDebug.Start("Deleting sound buffer");
+            AL.DeleteBuffer(BufferId);
+            OpenALDebug.End("Deleting sound buffer");
         }
     }
 }

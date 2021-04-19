@@ -67,48 +67,43 @@ namespace Helion.Audio.Impl
                     break;
             }
 
-            OpenALExecutor.Run("Creating new source", () =>
-            {
-                m_sourceId = AL.GenSource();
-                AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
-                AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
-                AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
-                AL.Source(m_sourceId, SourceRadius, radius);
-                AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
-                AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
-                AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
-                AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
-            });
+            OpenALDebug.Start("Creating new source");
+            m_sourceId = AL.GenSource();
+            AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
+            AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
+            AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
+            AL.Source(m_sourceId, SourceRadius, radius);
+            AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
+            AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
+            AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
+            AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
+            OpenALDebug.End("Creating new source");
+
 
             DataCache.Instance.FreeSoundParams(soundParams);
         }
 
         public void SetPosition(Vec3F pos)
         {
-            OpenALExecutor.Run("Setting sound position", () =>
-            {
-                AL.Source(m_sourceId, ALSource3f.Position, pos.X, pos.Y, pos.Z);
-            });
+            OpenALDebug.Start("Setting sound position");
+            AL.Source(m_sourceId, ALSource3f.Position, pos.X, pos.Y, pos.Z);
+            OpenALDebug.End("Setting sound position");
         }
 
         public Vec3F GetPosition()
         {
-            Vector3 pos = Vector3.Zero;
-
-            OpenALExecutor.Run("Getting sound position", () =>
-            {
-                AL.GetSource(m_sourceId, ALSource3f.Position, out pos);
-            });
+            OpenALDebug.Start("Getting sound position");
+            AL.GetSource(m_sourceId, ALSource3f.Position, out Vector3 pos);
+            OpenALDebug.End("Getting sound position");
 
             return new Vec3F(pos.X, pos.Y, pos.Z);
         }
 
         public void SetVelocity(Vec3F velocity)
         {
-            OpenALExecutor.Run("Setting sound velocity", () =>
-            {
-                AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
-            });
+            OpenALDebug.Start("Setting sound velocity");
+            AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+            OpenALDebug.End("Setting sound velocity");
         }
 
         ~OpenALAudioSource()
@@ -131,10 +126,9 @@ namespace Helion.Audio.Impl
         {
             if (!m_disposed)
             {
-                OpenALExecutor.Run("Playing sound", () =>
-                {
-                    AL.SourcePlay(m_sourceId);
-                });
+                OpenALDebug.Start("Playing sound");
+                AL.SourcePlay(m_sourceId);
+                OpenALDebug.End("Playing sound");
             }
         }
 
@@ -142,10 +136,9 @@ namespace Helion.Audio.Impl
         {
             if (!m_disposed)
             {
-                OpenALExecutor.Run("Pausing sound", () =>
-                {
-                    AL.SourcePause(m_sourceId);
-                });
+                OpenALDebug.Start("Pausing sound");
+                AL.SourcePause(m_sourceId);
+                OpenALDebug.End("Pausing sound");
             }
         }
 
@@ -154,11 +147,9 @@ namespace Helion.Audio.Impl
             if (m_disposed)
                 return false;
 
-            int state = 0;
-            OpenALExecutor.Run("Checking if sound is playing", () =>
-            {
-                AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out state);
-            });
+            OpenALDebug.Start("Checking if sound is playing");
+            AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out int state);
+            OpenALDebug.End("Checking if sound is playing");
 
             return (ALSourceState)state == ALSourceState.Playing;
         }
@@ -167,10 +158,9 @@ namespace Helion.Audio.Impl
         {
             if (!m_disposed)
             {
-                OpenALExecutor.Run("Stopping sound source", () =>
-                {
-                    AL.SourceStop(m_sourceId);
-                });
+                OpenALDebug.Start("Stopping sound source");
+                AL.SourceStop(m_sourceId);
+                OpenALDebug.End("Stopping sound source");
             }
         }
 
@@ -182,11 +172,9 @@ namespace Helion.Audio.Impl
             // For the future, maybe we should just track timestamps instead as
             // using "stopped" means we don't know if someone called Stop() or
             // if the sound fully finished.
-            int state = 0;
-            OpenALExecutor.Run("Checking if sound finished playing", () =>
-            {
-                AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out state);
-            });
+            OpenALDebug.Start("Checking if sound finished playing");
+            AL.GetSource(m_sourceId, ALGetSourcei.SourceState, out int state);
+            OpenALDebug.End("Checking if sound finished playing");
 
             return (ALSourceState)state == ALSourceState.Stopped;
         }
@@ -215,10 +203,9 @@ namespace Helion.Audio.Impl
             Completed?.Invoke(this, EventArgs.Empty);
 
             Owner.Unlink(this);
-            OpenALExecutor.Run("Deleting sound source", () =>
-            {
-                AL.DeleteSource(m_sourceId);
-            });
+            OpenALDebug.Start("Deleting sound source");
+            AL.DeleteSource(m_sourceId);
+            OpenALDebug.End("Deleting sound source");
 
             DataCache.Instance.FreeAudioData(AudioData);
         }

@@ -31,10 +31,9 @@ namespace Helion.Audio.Impl
         {
             m_owner = owner;
             m_archiveCollection = archiveCollection;
-            OpenALExecutor.Run("Setting distance model", () =>
-            {
-                AL.DistanceModel(ALDistanceModel.ExponentDistance);
-            });
+            OpenALDebug.Start("Setting distance model");
+            AL.DistanceModel(ALDistanceModel.ExponentDistance);
+            OpenALDebug.End("Setting distance model");
 
             owner.DeviceChanging += Owner_DeviceChanging;
         }
@@ -60,19 +59,17 @@ namespace Helion.Audio.Impl
             Vector3 up = new Vector3(0, 0, 1);
             Vector3 at = new Vector3((float)vec.X, (float)vec.Y, (float)vec.Z);
 
-            OpenALExecutor.Run("Setting source manager position and orientation", () =>
-            {
-                AL.Listener(ALListenerfv.Orientation, ref at, ref up);
-                AL.Listener(ALListener3f.Position, (float)pos.X, (float)pos.Y, (float)pos.Z);
-            });
+            OpenALDebug.Start("Setting source manager position and orientation");
+            AL.Listener(ALListenerfv.Orientation, ref at, ref up);
+            AL.Listener(ALListener3f.Position, (float)pos.X, (float)pos.Y, (float)pos.Z);
+            OpenALDebug.End("Setting source manager position and orientation");
         }
 
         public void SetListenerVelocity(System.Numerics.Vector3 velocity)
         {
-            OpenALExecutor.Run("Setting listener velocity", () =>
-            {
-                AL.Listener(ALListener3f.Velocity, velocity.X, velocity.Y, velocity.Z);
-            });
+            OpenALDebug.Start("Setting listener velocity");
+            AL.Listener(ALListener3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+            OpenALDebug.End("Setting listener velocity");
         }
 
         ~OpenALAudioSourceManager()
@@ -97,10 +94,9 @@ namespace Helion.Audio.Impl
             foreach (IAudioSource audioSource in audioSources)
                m_playGroup.Add(((OpenALAudioSource)audioSource).ID);
 
-            OpenALExecutor.Run("Playing audio group", () =>
-            {
-                AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
-            });
+            OpenALDebug.Start("Playing audio group");
+            AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
+            OpenALDebug.End("Playing audio group");
 
             m_playGroup.Clear();
         }
