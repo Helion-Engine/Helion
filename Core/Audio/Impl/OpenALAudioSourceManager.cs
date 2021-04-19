@@ -24,7 +24,7 @@ namespace Helion.Audio.Impl
         private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenALAudioSystem m_owner;
         private readonly HashSet<OpenALAudioSource> m_sources = new();
-        private readonly Dictionary<string, OpenALBuffer> m_nameToBuffer = new();
+        private readonly Dictionary<string, OpenALBuffer> m_nameToBuffer = new(StringComparer.OrdinalIgnoreCase);
         private readonly DynamicArray<int> m_playGroup = new();
 
         public OpenALAudioSourceManager(OpenALAudioSystem owner, ArchiveCollection archiveCollection)
@@ -107,11 +107,10 @@ namespace Helion.Audio.Impl
 
         private OpenALBuffer? GetBuffer(string sound)
         {
-            string upperSound = sound.ToUpper();
-            if (m_nameToBuffer.TryGetValue(upperSound, out OpenALBuffer? existingBuffer))
+            if (m_nameToBuffer.TryGetValue(sound, out OpenALBuffer? existingBuffer))
                 return existingBuffer;
 
-            Entry? entry = m_archiveCollection.Entries.FindByNamespace(upperSound, ResourceNamespace.Sounds);
+            Entry? entry = m_archiveCollection.Entries.FindByNamespace(sound, ResourceNamespace.Sounds);
             if (entry == null)
             {
                 Log.Warn("Cannot find sound: {0}", sound);
@@ -125,7 +124,7 @@ namespace Helion.Audio.Impl
                 return null;
             }
 
-            m_nameToBuffer[upperSound] = buffer;
+            m_nameToBuffer[sound] = buffer;
             return buffer;
         }
 
