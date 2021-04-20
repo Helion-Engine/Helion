@@ -125,7 +125,10 @@ namespace Helion.World.Entities.Inventories
             return definition.Name;
         }
 
-        public static bool IsPowerup(EntityDefinition def) => def.IsType(PowerupClassName) || !string.IsNullOrEmpty(def.Properties.Powerup.Type);
+        public static bool IsPowerup(EntityDefinition def) => 
+            def.IsType(PowerupClassName) || !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
+            // See TODO in Inventory.Add for this berserk check
+            def.Name == "BERSERK" || def.IsType("MapRevealer");
 
         public bool IsPowerupActive(PowerupType type)
         {

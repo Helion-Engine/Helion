@@ -215,8 +215,7 @@ namespace Helion.World.Entities.Players
             {
                 foreach (InventoryItem item in player.Inventory.GetInventoryItems())
                 {
-                    // See TODO in Inventory.Add for this berserk check
-                    if (!Inventory.IsPowerup(item.Definition) && item.Definition.Name != "BERSERK")
+                    if (!Inventory.IsPowerup(item.Definition))
                         Inventory.Add(item.Definition, item.Amount);
                 }
 
