@@ -124,7 +124,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
             foreach (Line line in world.Lines)
             {
-                if (!allMap && !line.SeenForAutomap)
+                if (!line.Flags.Automap.AlwaysDraw && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                     continue;
                 
                 Vec2D start = line.StartPosition;
@@ -153,7 +153,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                     }
                 }
                 
-                if (line.Back == null || line.Flags.Secret)
+                if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
                 {
                     AddLine(line.SeenForAutomap ? AutomapColor.White : AutomapColor.LightBlue, start, end);
                     continue;
