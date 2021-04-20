@@ -63,7 +63,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
             m_shader.BindAnd(() =>
             {
-                m_shader.Mvp.Set(gl, CalculateMvp(renderInfo, worldBounds));
+                m_shader.Mvp.Set(gl, CalculateMvp(renderInfo, worldBounds, world));
 
                 for (int i = 0; i < m_vboRanges.Count; i++)
                 {
@@ -79,9 +79,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             });
         }
 
-        private mat4 CalculateMvp(RenderInfo renderInfo, Box2F worldBounds)
+        private mat4 CalculateMvp(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
         {
-            vec2 scale = CalculateScale(renderInfo, worldBounds);
+            vec2 scale = CalculateScale(renderInfo, worldBounds, world);
             vec3 camera = renderInfo.Camera.Position.GlmVector;
 
             mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
@@ -91,7 +91,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             return model * view * proj;
         }
 
-        private static vec2 CalculateScale(RenderInfo renderInfo, Box2F worldBounds)
+        private static vec2 CalculateScale(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
         {
             // Note: we're translating to NDC coordinates, so everything should
             // end up between [-1.0, 1.0].
@@ -100,8 +100,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             float aspect = vW / vH;
 
             // TODO: Do this properly...
-
-            return new vec2(1 / vW, 1 / vH);
+            float scale = (float)world.Config.Hud.AutoMapScale.Value;
+            return new vec2(1 / vW * scale, 1 / vH * scale);
         }
 
         private void PopulateData(IWorld world, RenderInfo renderInfo, out Box2F box2F)

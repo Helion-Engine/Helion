@@ -14,5 +14,8 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("Amount to scale minimal hud.")]
         public readonly ConfigValueDouble Scale = new ConfigValueDouble(2.0, 0.0);
+
+        [ConfigInfo("Amount to scale automap.", save: false)]
+        public readonly ConfigValueDouble AutoMapScale = new ConfigValueDouble(1.0, 0.1, 10.0);
     }
 }

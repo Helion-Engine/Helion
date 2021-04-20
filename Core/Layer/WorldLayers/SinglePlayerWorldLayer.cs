@@ -39,6 +39,7 @@ namespace Helion.Layer.WorldLayers
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
         private bool m_drawAutomap;
+        private float m_autoMapScale = 1;
         private bool m_disposed;
 
         public override WorldBase World => m_world;
@@ -129,14 +130,22 @@ namespace Helion.Layer.WorldLayers
                 m_world.HandleFrameInput(input);
             }
 
+            if (m_drawAutomap)
+            {
+                if (input.ConsumeKeyPressed(Config.Controls.AutoMapDecrease))
+                    ChangeAutoMapSize(false);
+                else if (input.ConsumeKeyPressed(Config.Controls.AutoMapIncrease))
+                    ChangeAutoMapSize(true);
+            }
+
             if (input.ConsumeKeyPressed(Config.Controls.HudDecrease))
                 ChangeHudSize(false);
             else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
             else if (input.ConsumeKeyPressed(Config.Controls.Automap))
                 m_drawAutomap = !m_drawAutomap;
-			
-			base.HandleInput(input);
+
+            base.HandleInput(input);
         }
 
         public override void RunLogic()
@@ -207,6 +216,14 @@ namespace Helion.Layer.WorldLayers
             foreach (var (inputKey, command) in m_consumePressedKeys)
                 if (input.ConsumeKeyPressed(inputKey))
                     m_tickCommand.Add(command);
+        }
+
+        private void ChangeAutoMapSize(bool increase)
+        {
+            if (increase)
+                Config.Hud.AutoMapScale.Set(Config.Hud.AutoMapScale.Value + 0.1);
+            else
+                Config.Hud.AutoMapScale.Set(Config.Hud.AutoMapScale.Value - 0.1);
         }
 
         private void ChangeHudSize(bool increase)
