@@ -102,8 +102,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             vec2 scale = CalculateScale(renderInfo, worldBounds, world);
             vec3 camera = renderInfo.Camera.Position.GlmVector;
 
+            float offsetX = world.Config.Hud.AutoMapOffsetX * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
+            float offsetY = world.Config.Hud.AutoMapOffsetY * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
+
             mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
-            mat4 view = mat4.Translate(-camera.x, -camera.y, 0);
+            mat4 view = mat4.Translate(-camera.x - offsetX, -camera.y - offsetY, 0);
             mat4 proj = mat4.Identity;
 
             return model * view * proj;

@@ -39,7 +39,6 @@ namespace Helion.Layer.WorldLayers
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
         private bool m_drawAutomap;
-        private float m_autoMapScale = 1;
         private bool m_disposed;
 
         public override WorldBase World => m_world;
@@ -124,18 +123,13 @@ namespace Helion.Layer.WorldLayers
 
         public override void HandleInput(InputEvent input)
         {
+            if (m_drawAutomap)
+                HandleAutoMapInput(input);
+
             if (!m_world.Paused)
             {
                 HandleMovementInput(input);
                 m_world.HandleFrameInput(input);
-            }
-
-            if (m_drawAutomap)
-            {
-                if (input.ConsumeKeyPressed(Config.Controls.AutoMapDecrease))
-                    ChangeAutoMapSize(false);
-                else if (input.ConsumeKeyPressed(Config.Controls.AutoMapIncrease))
-                    ChangeAutoMapSize(true);
             }
 
             if (input.ConsumeKeyPressed(Config.Controls.HudDecrease))
@@ -143,9 +137,45 @@ namespace Helion.Layer.WorldLayers
             else if (input.ConsumeKeyPressed(Config.Controls.HudIncrease))
                 ChangeHudSize(true);
             else if (input.ConsumeKeyPressed(Config.Controls.Automap))
+            {
                 m_drawAutomap = !m_drawAutomap;
+                Config.Hud.AutoMapOffsetX.Set(0);
+                Config.Hud.AutoMapOffsetY.Set(0);
+            }
 
             base.HandleInput(input);
+        }
+
+        private void HandleAutoMapInput(InputEvent input)
+        {
+            if (input.ConsumeKeyPressed(Config.Controls.AutoMapDecrease))
+                ChangeAutoMapSize(false);
+            else if (input.ConsumeKeyPressed(Config.Controls.AutoMapIncrease))
+                ChangeAutoMapSize(true);
+            else if (input.ConsumeKeyPressed(Config.Controls.AutoMapUp))
+                ChangeAutoMapOffsetY(true);
+            else if (input.ConsumeKeyPressed(Config.Controls.AutoMapDown))
+                ChangeAutoMapOffsetY(false);
+            else if (input.ConsumeKeyPressed(Config.Controls.AutoMapRight))
+                ChangeAutoMapOffsetX(true);
+            else if (input.ConsumeKeyPressed(Config.Controls.AutoMapLeft))
+                ChangeAutoMapOffsetX(false);
+        }
+
+        private void ChangeAutoMapOffsetY(bool increase)
+        {
+            if (increase)
+                Config.Hud.AutoMapOffsetY.Set(Config.Hud.AutoMapOffsetY + 1);
+            else
+                Config.Hud.AutoMapOffsetY.Set(Config.Hud.AutoMapOffsetY - 1);
+        }
+
+        private void ChangeAutoMapOffsetX(bool increase)
+        {
+            if (increase)
+                Config.Hud.AutoMapOffsetX.Set(Config.Hud.AutoMapOffsetX + 1);
+            else
+                Config.Hud.AutoMapOffsetX.Set(Config.Hud.AutoMapOffsetX - 1);
         }
 
         public override void RunLogic()

@@ -75,6 +75,11 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("The key for decreasing automap size")]
         public readonly ConfigValueEnum<Key> AutoMapDecrease = new(Key.Minus);
 
+        public readonly ConfigValueEnum<Key> AutoMapUp= new(Key.Up);
+        public readonly ConfigValueEnum<Key> AutoMapDown = new(Key.Down);
+        public readonly ConfigValueEnum<Key> AutoMapLeft = new(Key.Left);
+        public readonly ConfigValueEnum<Key> AutoMapRight = new(Key.Right);
+
         [ConfigInfo("The key for saving the game")]
         public readonly ConfigValueEnum<Key> Save = new(Key.F2);
 
