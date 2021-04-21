@@ -12,9 +12,13 @@ using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Render.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World;
+using Helion.World.Cheats;
+using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
@@ -34,8 +38,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
         private readonly VertexArrayObject m_vao;
         private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
         private readonly List<(int start, vec3 color)> m_vboRanges = new();
-        private readonly DynamicArray<vec2> m_playerArrowPoints = new(); 
+        private readonly DynamicArray<vec2> m_entityPoints = new(); 
         private bool m_disposed;
+
+        private readonly Dictionary<CIString, AutomapColor> m_keys = new();
         
         public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
         {
@@ -49,6 +55,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             
             using (var shaderBuilder = LegacyAutomapShader.MakeBuilder(gl))
                 m_shader = new LegacyAutomapShader(gl, shaderBuilder, Attributes);
+
+            foreach (var lockDef in m_archiveCollection.Definitions.LockDefininitions.LockDefs)
+            {
+                foreach (var item in lockDef.KeyDefinitionNames)
+                {
+                    // TODO support any color
+                    if (FromColor(lockDef.MapColor, out AutomapColor? color))
+                        m_keys[item.ToString()] = color!.Value;
+                    else
+                        m_keys[item.ToString()] = AutomapColor.Purple;
+                }
+            }
         }
 
         ~LegacyAutomapRenderer()
@@ -110,9 +128,19 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             
             m_vbo.Clear();
             PopulateColoredLines(world, player);
-            PopulatePlayerArrow(player, renderInfo.TickFraction);
+            PopulateThings(world, player, renderInfo);
+            DrawEntity(player, renderInfo.TickFraction);
             TransferLineDataIntoBuffer(out box2F);
             m_vbo.UploadIfNeeded();
+        }
+
+        private void PopulateThings(IWorld world, Player? player, RenderInfo renderInfo)
+        {
+            if (player == null || !player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings))
+                return;
+
+            foreach (var entity in world.Entities)
+                DrawEntity(entity, renderInfo.TickFraction);
         }
 
         private void PopulateColoredLines(IWorld world, Player? player)
@@ -120,7 +148,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             foreach (DynamicArray<vec2> lineList in m_colorEnumToLines)
                 lineList.Clear();
 
-            bool allMap = player?.Inventory.IsPowerupActive(PowerupType.ComputerAreaMap) ?? false;
+            bool allMap = false;
+            if (player != null)
+            {
+                allMap = player.Inventory.IsPowerupActive(PowerupType.ComputerAreaMap) ||
+                    player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLines) ||
+                    player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings);
+            }
 
             foreach (Line line in world.Lines)
             {
@@ -133,23 +167,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
                 {
                     LockDef? lockDef = m_archiveCollection.Definitions.LockDefininitions.GetLockDef(line.Args.Arg3);
-                    if (lockDef != null)
+                    if (lockDef != null && FromColor(lockDef.MapColor, out AutomapColor? color))
                     {
-                        if (lockDef.MapColor == Color.Red)
-                        {
-                            AddLine(AutomapColor.Red, start, end);
-                            continue;
-                        } 
-                        if (lockDef.MapColor == Color.Yellow)
-                        {
-                            AddLine(AutomapColor.Yellow, start, end);
-                            continue;
-                        } 
-                        if (lockDef.MapColor == Color.Blue)
-                        {
-                            AddLine(AutomapColor.Blue, start, end);
-                            continue;
-                        } 
+                        AddLine(color!.Value, start, end);
+                        continue;
                     }
                 }
                 
@@ -160,7 +181,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 }
 
                 // TODO: bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
-                AddLine(AutomapColor.Gray, start, end);
+                AddLine((line.HasSpecial && line.Special.IsTeleport()) ? AutomapColor.Green : AutomapColor.Gray, start, end);
             }
 
             void AddLine(AutomapColor color, Vec2D start, Vec2D end)
@@ -170,46 +191,105 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 array.Add(new vec2((float)end.X, (float)end.Y));
             }
         }
-        
-        private void PopulatePlayerArrow(Player? player, float interpolateFrac)
+
+        private static bool FromColor(Color color, out AutomapColor? automapColor)
         {
-            if (player == null)
+            automapColor = null;
+            if (color == Color.Red)
+                automapColor = AutomapColor.Red;
+            else if (color == Color.Blue)
+                automapColor = AutomapColor.Blue;
+            else if (color == Color.Yellow)
+                automapColor = AutomapColor.Yellow;
+
+            return automapColor != null;
+        }
+        
+        private void DrawEntity(Entity? entity, float interpolateFrac)
+        {
+            if (entity == null)
                 return;
-            
-            m_playerArrowPoints.Clear();
+
+            // Ignore player starts and deathmatch starts
+            if (entity.Definition.EditorId < 4 || entity.Definition.EditorId == 11)
+                return;
+
+            m_entityPoints.Clear();
 
             // We start with the arrow facing along the positive X axis direction.
             // This way, our rotation can be easily done.
-            var center = player.PrevPosition.Interpolate(player.Position, interpolateFrac);
-            var (width, height) = player.Box.To2D().Sides.Float;
+            var center = entity.PrevPosition.Interpolate(entity.Position, interpolateFrac);
+            var (width, height) = entity.Box.To2D().Sides.Float;
             var (centerX, centerY) = center.XY.Float;
             float halfWidth = width / 2;
+            float halfHeight = height / 2;
             float quarterWidth = width / 4;
             float quarterHeight = height / 4;
             
-            mat4 rotate = mat4.Rotate((float)player.AngleRadians, vec3.UnitZ);
+            mat4 rotate = mat4.Rotate((float)entity.AngleRadians, vec3.UnitZ);
             mat4 translate = mat4.Translate(centerX, centerY, 0);
             mat4 transform = translate * rotate;
-            
-            // Main arrow from middle left to middle right
-            AddLine(-halfWidth, 0, halfWidth, 0);
-            
-            // Arrow from the right tip to the top middle at 45 degrees. Same
-            // for the bottom one.
-            AddLine(halfWidth, 0, quarterWidth, quarterHeight);
-            AddLine(halfWidth, 0, quarterWidth, -quarterHeight);
 
-            DynamicArray<vec2> array = m_colorEnumToLines[(int)AutomapColor.Green];
-            foreach (vec2 point in m_playerArrowPoints)
+            AutomapColor color = AutomapColor.Green;
+            bool isKey = false;
+
+            if (m_keys.TryGetValue(entity.Definition.Name, out AutomapColor keyColor))
+            {
+                isKey = true;
+                color = keyColor;
+            }
+            else if (entity.Flags.IsMonster)
+                color = entity.IsDead ? AutomapColor.Gray : AutomapColor.Red;
+            else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
+                color = AutomapColor.Yellow;
+
+            if (entity.Definition.EditorId == 14)
+            {
+                color = AutomapColor.Green;
+                AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
+            }
+            else if (isKey)
+            {
+                // Draw a square for keys, make it flash
+                if (entity.World.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+                    AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
+            }
+            else if (entity is Player)
+            {
+                color = AutomapColor.Green;
+                // Main arrow from middle left to middle right
+                AddLine(-halfWidth, 0, halfWidth, 0);
+
+                // Arrow from the right tip to the top middle at 45 degrees. Same
+                // for the bottom one.
+                AddLine(halfWidth, 0, quarterWidth, quarterHeight);
+                AddLine(halfWidth, 0, quarterWidth, -quarterHeight);
+            }
+            else
+            {
+                AddLine(-halfWidth, quarterHeight, halfWidth, 0);
+                AddLine(-halfWidth, -quarterHeight, halfWidth, 0);
+                AddLine(-halfWidth, -quarterHeight, -halfWidth, quarterHeight);
+            }
+
+            DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
+            foreach (vec2 point in m_entityPoints)
                 array.Add(point);
+            void AddSquare(float startX, float startY, float width, float height)
+            {
+                AddLine(startX, startY, startX, startY + height);
+                AddLine(startX, startY + height, startX + width, startY + height);
+                AddLine(startX + width, startY + height, startX + halfWidth, startY);
+                AddLine(startX + width, startY, startX, startY);
+            }
 
             void AddLine(float startX, float startY, float endX, float endY)
             {
                 vec4 s = transform * new vec4(startX, startY, 0, 1); 
                 vec4 e = transform * new vec4(endX, endY, 0, 1);
-                
-                m_playerArrowPoints.Add(s.xy);
-                m_playerArrowPoints.Add(e.xy);
+
+                m_entityPoints.Add(s.xy);
+                m_entityPoints.Add(e.xy);
             }
         }
         

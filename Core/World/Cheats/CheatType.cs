@@ -14,6 +14,9 @@ namespace Helion.World.Cheats
         ChangeMusic,
         ShowPosition,
 
+        AutoMapModeShowAllLines,
+        AutoMapModeShowAllLinesAndThings,
+
         Behold,
         BeholdRadSuit,
         BeholdPartialInvisibility,

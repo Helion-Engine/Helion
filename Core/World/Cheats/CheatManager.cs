@@ -17,7 +17,7 @@ namespace Helion.World.Cheats
             new LevelCheat("Change music", "idmus", CheatType.ChangeMusic),
             new MultiCodeCheat("No clipping mode", new string[] { "idclip", "idspispopd" }, "noclip", CheatType.NoClip),
             new ExactMatchCheat(string.Empty, "idmypos", CheatType.ShowPosition),
-            new ExactMatchCheat(string.Empty, "iddt", CheatType.AutomapMode),
+            new AutoMapCheat(string.Empty, "iddt", CheatType.AutomapMode),
             new ExactMatchCheat("Degreelessness mode", "iddqd", "god", CheatType.God),
             new ExactMatchCheat("Fly mode", "fly", "fly", CheatType.Fly),
             new ExactMatchCheat("Die", "kill", "kill", CheatType.Kill, canToggle: false),
@@ -55,12 +55,7 @@ namespace Helion.World.Cheats
 
             ICheat cheat = m_cheatLookup[cheatType];
             if (cheat.IsToggleCheat)
-            {
-                if (player.Cheats.IsCheatActive(cheatType))
-                    player.Cheats.SetCheatInactive(cheatType);
-                else
-                    player.Cheats.SetCheatActive(cheatType);
-            }
+                cheat.SetActivated(player);
 
             CheatActivationChanged?.Invoke(this, new CheatEventArgs(player, cheat));
         }

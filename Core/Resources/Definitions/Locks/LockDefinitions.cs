@@ -7,7 +7,7 @@ namespace Helion.Resources.Definitions.Locks
 {
     public class LockDefinitions
     {
-        private readonly List<LockDef> LockDefs = new List<LockDef>();
+        public readonly List<LockDef> LockDefs = new List<LockDef>();
 
         private static string KeyMessage(string name) => $"{name} key";
 

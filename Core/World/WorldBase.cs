@@ -623,7 +623,7 @@ namespace Helion.World
                     // Only move closer on a line hit
                     if (bi.Value.Entity == null && hitSector == null)
                         MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-                    HitscanHit(bi.Value, intersect, distance, damage);
+                    HitscanHit(bi.Value, intersect, angle, distance, damage);
                 }
 
                 if (bi.Value.Entity != null)
@@ -1107,7 +1107,7 @@ namespace Helion.World
             SoundManager.Dispose();
         }
 
-        private void HitscanHit(in BlockmapIntersect bi, Vec3D intersect, double distance, int damage)
+        private void HitscanHit(in BlockmapIntersect bi, Vec3D intersect, double angle, double distance, int damage)
         {
             bool bulletPuff = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood;
             string className;
@@ -1125,6 +1125,7 @@ namespace Helion.World
             if (entity == null)
                 return;
 
+            entity.AngleRadians = angle;
             if (bulletPuff)
             {
                 entity.Velocity.Z = 1;
@@ -1410,7 +1411,6 @@ namespace Helion.World
                 case CheatType.BeholdLightAmp:
                 case CheatType.BeholdBerserk:
                 case CheatType.Automap:
-                case CheatType.AutomapMode:
                     TogglePowerup(player, PowerupNameFromCheatType(cheat.CheatType), PowerupTypeFromCheatType(cheat.CheatType));
                     break;
                 default:
@@ -1471,7 +1471,6 @@ namespace Helion.World
             switch (cheatType)
             {
                 case CheatType.Automap:
-                case CheatType.AutomapMode:
                     return "Allmap";
                 case CheatType.BeholdRadSuit:
                     return "RadSuit";
@@ -1509,7 +1508,6 @@ namespace Helion.World
                 case CheatType.BeholdBerserk:
                     return PowerupType.Strength;
                 case CheatType.Automap:
-                case CheatType.AutomapMode:
                     return PowerupType.ComputerAreaMap;
                 default:
                     break;
