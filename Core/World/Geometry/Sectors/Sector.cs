@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Geometry.Vectors;
@@ -547,7 +548,7 @@ namespace Helion.World.Geometry.Sectors
 
         public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
         {
-            if (m_audio != null && m_audio.AudioData.SoundInfo.Name == sound)
+            if (m_audio != null && m_audio.AudioData.SoundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
             {
                 IAudioSource stopSource = m_audio;
                 m_audio = null;

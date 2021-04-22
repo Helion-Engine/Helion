@@ -383,11 +383,11 @@ namespace Helion.Audio.Sounds
 
             if (soundInfo != null && soundSource is Entity entity && entity.Flags.Monster)
             {
-                if (soundInfo.Name == entity.Properties.PainSound)
+                if (soundInfo.Name.Equals(entity.Properties.PainSound, StringComparison.OrdinalIgnoreCase))
                     return 3;
-                if (soundInfo.Name == entity.Properties.SeeSound)
+                if (soundInfo.Name.Equals(entity.Properties.SeeSound, StringComparison.OrdinalIgnoreCase))
                     return 4;
-                if (soundInfo.Name == entity.Properties.ActiveSound)
+                if (soundInfo.Name.Equals(entity.Properties.ActiveSound, StringComparison.OrdinalIgnoreCase))
                     return 5;
             }
 

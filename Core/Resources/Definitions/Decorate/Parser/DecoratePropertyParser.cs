@@ -675,7 +675,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void ConsumeFakeInventoryProperty()
         {
             string fakeInventoryProperty = ConsumeString();
-            if (fakeInventoryProperty.ToUpper() == "RESPAWNS")
+            if (fakeInventoryProperty.Equals("RESPAWNS", StringComparison.OrdinalIgnoreCase))
                 m_currentDefinition.Properties.FakeInventoryProperty.Respawns = true;
             else 
                 throw MakeException($"Unknown fake inventory property '{fakeInventoryProperty}' on actor '{m_currentDefinition.Name}'");
@@ -684,7 +684,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void ConsumeHealthProperty()
         {
             string healthProperty = ConsumeString();
-            if (healthProperty.ToUpper() == "LOWMESSAGE")
+            if (healthProperty.Equals("LOWMESSAGE", StringComparison.OrdinalIgnoreCase))
             {
                 m_currentDefinition.Properties.HealthProperty.LowMessageHealth = ConsumeInteger();
                 Consume(',');
@@ -697,7 +697,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private void ConsumeHealthPickupProperty()
         {
             string healthPickupProperty = ConsumeString();
-            if (healthPickupProperty.ToUpper() == "AUTOUSE")
+            if (healthPickupProperty.Equals("AUTOUSE", StringComparison.OrdinalIgnoreCase))
             {
                 int autoUseValue = ConsumeInteger();
                 if (autoUseValue < 0 || autoUseValue > 3)

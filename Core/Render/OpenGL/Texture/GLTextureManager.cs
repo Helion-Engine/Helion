@@ -245,7 +245,7 @@ namespace Helion.Render.OpenGL.Texture
             if (image == null)
                 texture = NullTexture;
             else
-                texture = GenerateTexture(image, name == null ? string.Empty : name, resourceNamespace);
+                texture = GenerateTexture(image, name ?? "", resourceNamespace);
 
             if (name != null)
                 m_textureTracker.Insert(name, resourceNamespace, texture);

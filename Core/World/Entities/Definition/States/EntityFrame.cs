@@ -1,3 +1,4 @@
+using System;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
@@ -28,7 +29,7 @@ namespace Helion.World.Entities.Definition.States
             ActionFunction = actionFunction;
             NextFrameIndex = nextFrameIndex;
             BranchType = ActorStateBranch.None;
-            IsInvisible = sprite == Constants.InvisibleSprite;
+            IsInvisible = sprite.Equals(Constants.InvisibleSprite, StringComparison.OrdinalIgnoreCase);
         }
 
         public void SetTicks(int tics) => Ticks = tics;

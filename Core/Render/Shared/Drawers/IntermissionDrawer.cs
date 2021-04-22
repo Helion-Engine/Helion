@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Helion.Geometry;
@@ -96,7 +97,7 @@ namespace Helion.Render.Shared.Drawers
 
                 foreach (var visitedMap in m_world.GlobalData.VisitedMaps)
                 {
-                    var spot = layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName == visitedMap.MapName);
+                    var spot = layer.IntermissionDef.Spots.FirstOrDefault(x => x.MapName.Equals(visitedMap.MapName, StringComparison.OrdinalIgnoreCase));
                     if (spot != null)
                     {
                         m_visitedSpots.Add(spot);

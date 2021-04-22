@@ -293,13 +293,13 @@ namespace Helion.Resources.Definitions.MapInfo
                     else if (item.Equals(MapNextName, StringComparison.OrdinalIgnoreCase))
                     {
                         mapDef.Next = parser.ConsumeString();
-                        if (mapDef.Next == MapEndGame)
+                        if (mapDef.Next.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
                             mapDef.EndGame = ParseEndGame(parser);
                     }
                     else if (item.Equals(MapSecretName, StringComparison.OrdinalIgnoreCase))
                     {
                         mapDef.SecretNext = parser.ConsumeString();
-                        if (mapDef.SecretNext == MapEndGame)
+                        if (mapDef.SecretNext.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
                             mapDef.EndGameSecret = ParseEndGame(parser);
                     }
                     else if (item.Equals(MapSky1Name, StringComparison.OrdinalIgnoreCase))

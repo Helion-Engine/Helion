@@ -210,7 +210,7 @@ namespace Helion.World.Entities.Definition.Composer
                 EntityFrame entityFrame = unresolved.EntityFrame;
                 ActorFlowControl flowControl = actorFrame.FlowControl.Value;
                 string upperLabel = flowControl.Label.ToUpper();
-                string upperParent = flowControl.Parent;
+                string upperParent = flowControl.Parent.ToUpper();
                 
                 if (upperParent.Empty())
                 {

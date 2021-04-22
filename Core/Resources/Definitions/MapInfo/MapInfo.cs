@@ -48,7 +48,7 @@ namespace Helion.Resources.Definitions.MapInfo
         {
             for (int i = 0; i < m_skills.Count; i++)
             {
-                if (m_skills[i].Key == skillDef.Key)
+                if (m_skills[i].Key.Equals(skillDef.Key, StringComparison.OrdinalIgnoreCase))
                     return (SkillLevel)(i + 1);
             }
 

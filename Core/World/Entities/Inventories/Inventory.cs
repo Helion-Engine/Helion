@@ -72,7 +72,7 @@ namespace Helion.World.Entities.Inventories
                 EntityDefinition? definition = EntityDefinitionComposer.GetByName(weaponName);
                 if (definition != null)
                 {
-                    if (weaponName == playerModel.AnimationWeapon)
+                    if (weaponName.Equals(playerModel.AnimationWeapon, StringComparison.OrdinalIgnoreCase))
                         Weapons.Add(definition, owner, owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
                     else
                         Weapons.Add(definition, owner, owner.World.EntityManager);
@@ -125,10 +125,12 @@ namespace Helion.World.Entities.Inventories
             return definition.Name;
         }
 
+        // See TODO in Inventory.Add for this berserk check
         public static bool IsPowerup(EntityDefinition def) => 
-            def.IsType(PowerupClassName) || !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
-            // See TODO in Inventory.Add for this berserk check
-            def.Name == "BERSERK" || def.IsType("MapRevealer");
+            def.IsType(PowerupClassName) || 
+            !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
+            def.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase) || 
+            def.IsType("MapRevealer");
 
         public bool IsPowerupActive(PowerupType type)
         {
@@ -184,12 +186,12 @@ namespace Helion.World.Entities.Inventories
 
             // TODO test hack until A_GiveInventory and Pickup states are implemented
             bool overridehack = false;
-            if (definition.Name == "BERSERK")
+            if (definition.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase))
             {
                 overridehack = true;
                 GiveBerserk(definition);
             }
-            else if (definition.Name == "MEGASPHERE")
+            else if (definition.Name.Equals("MEGASPHERE", StringComparison.OrdinalIgnoreCase))
             {
                 GiveMegasphere();
             }

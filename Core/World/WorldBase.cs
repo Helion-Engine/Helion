@@ -375,7 +375,7 @@ namespace Helion.World
         private void InitBossBrainTargets()
         {
             // Doom chose for some reason to iterate in reverse order.
-            m_bossBrainTargets = EntityManager.Entities.Where(e => e.Definition.Name == "BOSSTARGET")
+            m_bossBrainTargets = EntityManager.Entities.Where(e => e.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
                 .Reverse()
                 .ToArray();
         }

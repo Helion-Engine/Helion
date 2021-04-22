@@ -607,7 +607,7 @@ namespace Helion.World.Entities.Players
                     ammoWeapon.Definition.Properties.Weapons.SelectionOrder < Weapon.Definition.Properties.Weapons.SelectionOrder)
                 {
                     // Only switch to rocket launcher on fist (see above todo)
-                    if (Weapon != null && Weapon.Definition.Name == "FIST" && ammoWeapon.Definition.Name == "ROCKETLAUNCHER")
+                    if (Weapon != null && Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase) && ammoWeapon.Definition.Name.Equals("ROCKETLAUNCHER", StringComparison.OrdinalIgnoreCase))
                         return;
                     ChangeWeapon(ammoWeapon);
                 }

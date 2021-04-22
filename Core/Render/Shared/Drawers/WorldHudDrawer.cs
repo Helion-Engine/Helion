@@ -216,7 +216,7 @@ namespace Helion.Render.Shared.Drawers
 
             foreach (string name in new[] { skullKeyName, keyName })
             {
-                if (key.Definition.Name == name && draw.ImageExists(imageName))
+                if (key.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && draw.ImageExists(imageName))
                 {
                     draw.Image(imageName, x, y);
                     break;

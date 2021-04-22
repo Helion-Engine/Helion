@@ -126,7 +126,7 @@ namespace Helion.Resources
         /// If not found the texture will be returned with Name = Constants.NoTexture and Index = Constants.NoTextureIndex.</returns>
         public Texture GetTexture(string name, ResourceNamespace resourceNamespace)
         {
-            if (name == Constants.NoTexture)
+            if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
                 return m_textures[Constants.NoTextureIndex];
 
             Texture? texture;
@@ -315,7 +315,7 @@ namespace Helion.Resources
                 m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
 
                 // TODO fix with MapInfo when implemented
-                if (flat.Path.Name == Constants.SkyTexture)
+                if (flat.Path.Name.Equals(Constants.SkyTexture, StringComparison.OrdinalIgnoreCase))
                     m_skyIndex = index;
 
                 index++;

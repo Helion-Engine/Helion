@@ -126,14 +126,12 @@ namespace Helion.Resources.Archives.Collection
 
         public MapEntryCollection? GetMapEntryCollection(string mapName)
         {
-            string upperMapName = mapName.ToUpper();
-
             for (int i = m_archives.Count - 1; i >= 0; i--)
             {
                 Archive archive = m_archives[i];
                 foreach (var mapEntryCollection in new ArchiveMapIterator(archive))
                 {
-                    if (mapEntryCollection.Name == upperMapName)
+                    if (mapEntryCollection.Name.Equals(mapName, StringComparison.OrdinalIgnoreCase))
                         return mapEntryCollection;
                 }
             }

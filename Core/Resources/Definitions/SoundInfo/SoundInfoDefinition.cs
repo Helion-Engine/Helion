@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
@@ -63,21 +64,21 @@ namespace Helion.Resources.Definitions.SoundInfo
         {
             string type = parser.ConsumeString();
 
-            if (type == "$playercompat")
+            if (type.Equals("$playercompat", StringComparison.OrdinalIgnoreCase))
                 ParsePlayerCompat(parser);
-            else if (type == "$playersound")
+            else if (type.Equals("$playersound", StringComparison.OrdinalIgnoreCase))
                 ParsePlayerSound(parser);
-            else if (type == "$playersounddup")
+            else if (type.Equals("$playersounddup", StringComparison.OrdinalIgnoreCase))
                 ParsePlayerSoundDup(parser);
-            else if (type == "$pitchshift")
+            else if (type.Equals("$pitchshift", StringComparison.OrdinalIgnoreCase))
                 ParsePitchShift(parser);
-            else if (type == "$pitchshiftrange")
+            else if (type.Equals("$pitchshiftrange", StringComparison.OrdinalIgnoreCase))
                 m_pitchShiftRange = parser.ConsumeInteger();
-            else if (type == "$alias")
+            else if (type.Equals("$alias", StringComparison.OrdinalIgnoreCase))
                 ParseAlias(parser);
-            else if (type == "$limit")
+            else if (type.Equals("$limit", StringComparison.OrdinalIgnoreCase))
                 ParseLimit(parser);
-            else if (type == "$random")
+            else if (type.Equals("$random", StringComparison.OrdinalIgnoreCase))
                 ParseRandom(parser);
             else
                 throw new ParserException(parser.GetCurrentLine(), 0, 0, "Bad command.");

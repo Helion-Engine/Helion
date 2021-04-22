@@ -375,7 +375,7 @@ namespace Helion.World.Physics
         private void ClampBetweenFloorAndCeiling(Entity entity, bool clampToLinkedSectors = true)
         {
             // TODO fixme
-            if (entity.Definition.Name == "BulletPuff")
+            if (entity.Definition.Name.Equals("BulletPuff", StringComparison.OrdinalIgnoreCase))
                 return;
             if (entity.Flags.NoClip && entity.Flags.NoGravity)
                 return;
