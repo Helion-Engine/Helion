@@ -41,6 +41,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
         private readonly DynamicArray<vec2> m_entityPoints = new(); 
         private bool m_disposed;
 
+        private float m_offsetX;
+        private float m_offsetY;
+
+        private int m_lastOffsetX;
+        private int m_lastOffsetY;
+
         private readonly Dictionary<CIString, AutomapColor> m_keys = new();
         
         public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
@@ -77,6 +83,23 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
 
         public void Render(IWorld world, RenderInfo renderInfo)
         {
+            // Consider both offsets at zero a reset
+            if (world.Config.Hud.AutoMapOffsetX == 0 && world.Config.Hud.AutoMapOffsetY == 0)
+            {
+                m_offsetX = 0;
+                m_offsetY = 0;
+                m_lastOffsetX = 0;
+                m_lastOffsetY = 0;
+            }
+
+            if (m_lastOffsetX != world.Config.Hud.AutoMapOffsetX || m_lastOffsetY != world.Config.Hud.AutoMapOffsetY)
+            {
+                m_offsetX += (world.Config.Hud.AutoMapOffsetX - m_lastOffsetX) * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
+                m_offsetY += (world.Config.Hud.AutoMapOffsetY - m_lastOffsetY) * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
+                m_lastOffsetX = world.Config.Hud.AutoMapOffsetX;
+                m_lastOffsetY = world.Config.Hud.AutoMapOffsetY;
+            }
+
             PopulateData(world, renderInfo, out Box2F worldBounds);
 
             m_shader.BindAnd(() =>
@@ -102,11 +125,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             vec2 scale = CalculateScale(renderInfo, worldBounds, world);
             vec3 camera = renderInfo.Camera.Position.GlmVector;
 
-            float offsetX = world.Config.Hud.AutoMapOffsetX * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
-            float offsetY = world.Config.Hud.AutoMapOffsetY * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
+            float offsetX = (m_offsetX - m_lastOffsetY) * renderInfo.TickFraction;
+            float offsetY = (m_offsetY - m_lastOffsetY) * renderInfo.TickFraction;
 
             mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
-            mat4 view = mat4.Translate(-camera.x - offsetX, -camera.y - offsetY, 0);
+            mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);
             mat4 proj = mat4.Identity;
 
             return model * view * proj;
@@ -133,8 +156,29 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
             PopulateColoredLines(world, player);
             PopulateThings(world, player, renderInfo);
             DrawEntity(player, renderInfo.TickFraction);
+
+            if (player != null && (m_offsetX != 0 || m_offsetY != 0))
+                DrawCenterCross(world, player, renderInfo);
+
             TransferLineDataIntoBuffer(out box2F);
             m_vbo.UploadIfNeeded();
+        }
+
+        private void DrawCenterCross(IWorld world, Player player, RenderInfo renderInfo)
+        {
+            const int VirtualLength = 17;
+            var center = player.PrevPosition.Interpolate(player.Position, renderInfo.TickFraction);
+            float x = (float)center.X + m_offsetX;
+            float y = (float)center.Y + m_offsetY;
+            float length = VirtualLength * 1 / (float)world.Config.Hud.AutoMapScale;
+            // Center the cross
+            float offset = length / VirtualLength / 2.0f;
+
+            DynamicArray<vec2> array = m_colorEnumToLines[(int)AutomapColor.Purple];
+            array.Add(new vec2(x - length, y - offset));
+            array.Add(new vec2(x + length, y - offset));
+            array.Add(new vec2(x - offset, y - length));
+            array.Add(new vec2(x - offset, y + length));
         }
 
         private void PopulateThings(IWorld world, Player? player, RenderInfo renderInfo)
