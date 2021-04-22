@@ -665,7 +665,7 @@ namespace Helion.World.Entities.Players
 
         public void ChangeWeapon(Weapon weapon)
         {
-            if (!Inventory.Weapons.OwnsWeapon(weapon.Definition.Name))
+            if (!Inventory.Weapons.OwnsWeapon(weapon.Definition.Name) || Weapon == weapon || AnimationWeapon == weapon)
                 return;
 
             bool hadWeapon = Weapon != null;

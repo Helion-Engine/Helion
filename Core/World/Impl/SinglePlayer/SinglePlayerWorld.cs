@@ -280,7 +280,7 @@ namespace Helion.World.Impl.SinglePlayer
                         weapon = Player.Inventory.Weapons.GetWeapon(Player, slot);
                     }
 
-                    if (weapon != null && weapon != Player.Weapon)
+                    if (weapon != null)
                         Player.ChangeWeapon(weapon);
                 }
             }
