@@ -78,7 +78,7 @@ namespace Helion.Resources.Archives
         {
             int offset = m_byteReader.ReadInt32();
             int size = m_byteReader.ReadInt32();
-            string name = m_byteReader.ReadEightByteString().ToUpper();
+            string name = m_byteReader.ReadEightByteString();
             return (offset, size, name);
         }
 

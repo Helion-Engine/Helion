@@ -58,7 +58,7 @@ namespace Helion.Resources.Definitions.MapInfo
 
         public override int GetHashCode()
         {
-            return MapName.ToUpper().GetHashCode();
+            return MapName.GetHashCode(StringComparison.OrdinalIgnoreCase);
         }
     }
 }

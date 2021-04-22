@@ -13,7 +13,6 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special;
-using Helion.World.Special.Specials;
 using NLog;
 
 namespace Helion.World.Entities.Definition.States
@@ -24,7 +23,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private static readonly Dictionary<string, ActionFunction> ActionFunctions = new Dictionary<string, ActionFunction>
+        private static readonly Dictionary<string, ActionFunction> ActionFunctions = new(StringComparer.OrdinalIgnoreCase)
         {
             ["ACS_NAMEDEXECUTE"] = ACS_NamedExecute,
             ["ACS_NAMEDEXECUTEALWAYS"] = ACS_NamedExecuteAlways,
@@ -357,7 +356,7 @@ namespace Helion.World.Entities.Definition.States
         {
              if (actionFuncName != null)
              {
-                  if (ActionFunctions.TryGetValue(actionFuncName.ToUpper(), out ActionFunction? func))
+                  if (ActionFunctions.TryGetValue(actionFuncName, out ActionFunction? func))
                        return func;
                   Log.Warn("Unable to find action function: {0}", actionFuncName);
              }

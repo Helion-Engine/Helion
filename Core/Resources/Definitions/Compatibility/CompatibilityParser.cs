@@ -166,9 +166,9 @@ namespace Helion.Resources.Definitions.Compatibility
 
         private void ConsumeDefinitions()
         {
-            HashSet<string> identifiers = new HashSet<string> { ConsumeString().ToUpper() };
+            HashSet<string> identifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ConsumeString() };
 
-            InvokeUntilAndConsume('{', () => identifiers.Add(ConsumeString().ToUpper()));
+            InvokeUntilAndConsume('{', () => identifiers.Add(ConsumeString()));
             ConsumeDefinition();
 
             AddDefinitionToIdentifier(identifiers);

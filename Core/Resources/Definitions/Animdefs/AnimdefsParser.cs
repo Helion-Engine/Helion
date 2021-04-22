@@ -66,31 +66,30 @@ namespace Helion.Resources.Definitions.Animdefs
                     throw parser.MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
             }
 
-            string upperName = parser.ConsumeString().ToUpper();
+            string name = parser.ConsumeString();
             int? speed = parser.ConsumeIfInt();
             bool allowDecals = parser.ConsumeIf("ALLOWDECALS");
 
-            WarpTextures.Add(new AnimatedWarpTexture(upperName, resourceNamespace, speed, allowDecals, waterEffect));
+            WarpTextures.Add(new AnimatedWarpTexture(name, resourceNamespace, speed, allowDecals, waterEffect));
         }
 
         private (string baseText, int endingNumberIndex) FindTextureRangeFrom(SimpleParser parser, string textureName)
         {
-            string upperName = textureName.ToString().ToUpper();
-            int rightmostNumberChar = upperName.Length - 1;
+            int rightmostNumberChar = textureName.Length - 1;
 
-            for (int i = upperName.Length - 1; i >= 0; i--)
+            for (int i = textureName.Length - 1; i >= 0; i--)
             {
-                if (char.IsNumber(upperName[i]))
+                if (char.IsNumber(textureName[i]))
                     rightmostNumberChar = i;
                 else
                     break;
             }
 
-            string baseStr = upperName.Substring(0, rightmostNumberChar);
-            string numStr = upperName.Substring(rightmostNumberChar);
+            string baseStr = textureName.Substring(0, rightmostNumberChar);
+            string numStr = textureName.Substring(rightmostNumberChar);
 
             if (!int.TryParse(numStr, out int value))
-                throw parser.MakeException($"Could not find ending numbers for texture {upperName} to make animation range from");
+                throw parser.MakeException($"Could not find ending numbers for texture {textureName} to make animation range from");
 
             return (baseStr, value);
         }
@@ -197,9 +196,9 @@ namespace Helion.Resources.Definitions.Animdefs
             AnimatedTextures.Add(texture);
         }
 
-        private void ConsumeSwitchPic(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)
+        private static void ConsumeSwitchPic(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)
         {
-            string name = parser.ConsumeString().ToUpper();
+            string name = parser.ConsumeString();
 
             // I don't know if this is like the texture/flat combo whereby any
             // floating point numbers are allowed or not.
@@ -220,7 +219,7 @@ namespace Helion.Resources.Definitions.Animdefs
             if (minTicks > maxTicks)
                 throw parser.MakeException($"Switch '{animatedSwitch.Texture}' (pic '{name}') has badly ordered min/max range (min is greater than max)");
 
-            AnimatedTextureComponent component = new(name.ToUpper(), minTicks, maxTicks);
+            AnimatedTextureComponent component = new(name, minTicks, maxTicks);
             if (on)
                 animatedSwitch.On.Add(component);
             else

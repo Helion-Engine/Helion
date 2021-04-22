@@ -97,8 +97,7 @@ namespace Helion.Maps.Doom
             IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes);
 
             GLComponents? gl = GLComponents.Read(map);
-            string mapName = map.Name.ToString().ToUpper();
-            return new DoomMap(archive, mapName, vertices, sectors, sides, lines, things, nodes, gl);
+            return new DoomMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl);
         }
 
         public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
@@ -141,8 +140,8 @@ namespace Helion.Maps.Doom
             {
                 short floorZ = reader.ReadInt16();
                 short ceilZ = reader.ReadInt16();
-                string floorTexture = reader.ReadEightByteString().ToUpper();
-                string ceilTexture = reader.ReadEightByteString().ToUpper();
+                string floorTexture = reader.ReadEightByteString();
+                string ceilTexture = reader.ReadEightByteString();
                 short lightLevel = reader.ReadInt16();
                 ushort special = reader.ReadUInt16();
                 ushort tag = reader.ReadUInt16();
@@ -168,9 +167,9 @@ namespace Helion.Maps.Doom
             for (int id = 0; id < numSides; id++)
             {
                 Vec2I offset = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
-                string upperTexture = reader.ReadEightByteString().ToUpper();
-                string lowerTexture = reader.ReadEightByteString().ToUpper();
-                string middleTexture = reader.ReadEightByteString().ToUpper();
+                string upperTexture = reader.ReadEightByteString();
+                string lowerTexture = reader.ReadEightByteString();
+                string middleTexture = reader.ReadEightByteString();
                 ushort sectorIndex = reader.ReadUInt16();
 
                 if (sectorIndex >= sectors.Count)
@@ -211,11 +210,11 @@ namespace Helion.Maps.Doom
             }
 
             if (sideSetDefinition.Lower != null)
-                side.LowerTexture = sideSetDefinition.Lower.ToUpper();
+                side.LowerTexture = sideSetDefinition.Lower;
             if (sideSetDefinition.Middle != null)
-                side.MiddleTexture = sideSetDefinition.Middle.ToUpper();
+                side.MiddleTexture = sideSetDefinition.Middle;
             if (sideSetDefinition.Upper != null)
-                side.UpperTexture = sideSetDefinition.Upper.ToUpper();
+                side.UpperTexture = sideSetDefinition.Upper;
             if (sideSetDefinition.Offset != null)
                 side.Offset = sideSetDefinition.Offset.Value;
         }

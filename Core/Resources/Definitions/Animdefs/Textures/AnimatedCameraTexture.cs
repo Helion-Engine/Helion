@@ -10,7 +10,7 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
         public readonly bool WorldPanning;
         public AnimatedCameraTexture(string name, int width, int height, int? fitWidth, int? fitHeight, bool worldPanning)
         {
-            Name = name.ToUpper();
+            Name = name;
             Width = width;
             Height = height;
             FitWidth = fitWidth;

@@ -47,7 +47,7 @@ namespace Helion.Resources.Definitions.Texture
                 {
                     reader.Offset(dataOffset);
 
-                    string name = reader.ReadEightByteString().ToUpper();
+                    string name = reader.ReadEightByteString();
                     reader.Advance(4); // Skip flags/scalex/scaley.
                     int width = reader.ReadInt16();
                     int height = reader.ReadInt16();

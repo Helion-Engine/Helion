@@ -141,17 +141,15 @@ namespace Helion.Resources.Archives.Collection
 
         public IMap? FindMap(string mapName)
         {
-            string upperMapName = mapName.ToUpper();
-
             for (int i = m_archives.Count - 1; i >= 0; i--)
             {
                 Archive archive = m_archives[i];
                 foreach (var mapEntryCollection in new ArchiveMapIterator(archive))
                 {
-                    if (mapEntryCollection.Name != upperMapName)
+                    if (!mapEntryCollection.Name.Equals(mapName, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(archive, upperMapName);
+                    CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(archive, mapName);
 
                     // If we find a map that is corrupt, we want to exit early
                     // instead of keep looking since the latest map we find is
@@ -163,7 +161,7 @@ namespace Helion.Resources.Archives.Collection
                     if (map != null)
                         return map;
 
-                    Log.Warn("Unable to use map {0}, it is corrupt", upperMapName);
+                    Log.Warn("Unable to use map {0}, it is corrupt", mapName);
                     return null;
                 }
             }

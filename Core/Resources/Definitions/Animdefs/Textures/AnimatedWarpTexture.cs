@@ -11,7 +11,7 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
         public AnimatedWarpTexture(string name, ResourceNamespace resourceNamespace, int? speed, bool allowDecals,
             bool waterEffect)
         {
-            Name = name.ToUpper();
+            Name = name;
             Namespace = resourceNamespace;
             Speed = speed ?? 0;
             AllowDecals = allowDecals;

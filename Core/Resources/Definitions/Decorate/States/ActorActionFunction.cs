@@ -6,7 +6,7 @@ namespace Helion.Resources.Definitions.Decorate.States
 
         public ActorActionFunction(string functionName)
         {
-            FunctionName = functionName.ToUpper();
+            FunctionName = functionName;
         }
 
         public override string ToString() => FunctionName;

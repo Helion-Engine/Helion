@@ -94,15 +94,15 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void ConsumeActorHeader()
         {
-            string name = ConsumeString().ToUpper();
+            string name = ConsumeString();
             
             string? parent = null;
             if (ConsumeIf(':'))
-                parent = ConsumeString().ToUpper();
+                parent = ConsumeString();
 
             string? replacesName = null;
             if (ConsumeIf("replaces"))
-                replacesName = ConsumeString().ToUpper();
+                replacesName = ConsumeString();
             
             int? editorId = ConsumeIfInt();
             
