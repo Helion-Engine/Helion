@@ -12,7 +12,14 @@ namespace Helion.Util.Container
     /// <typeparam name="V">The value.</typeparam>
     public class HashTable<K1, K2, V> where V : class
     {
-        private readonly Dictionary<K1, Dictionary<K2, V>> m_table = new Dictionary<K1, Dictionary<K2, V>>();
+        private readonly Dictionary<K1, Dictionary<K2, V>> m_table;
+        private readonly IEqualityComparer<K2>? m_comparer;
+
+        public HashTable(IEqualityComparer<K1>? comparer1 = null, IEqualityComparer<K2>? comparer2 = null)
+        {
+            m_table = new Dictionary<K1, Dictionary<K2, V>>(comparer1);
+            m_comparer = comparer2;
+        }
 
         /// <summary>
         /// Gets/sets the value at the key pair provided. If it doesn't exist
@@ -53,7 +60,7 @@ namespace Helion.Util.Container
             if (m_table.TryGetValue(firstKey, out Dictionary<K2, V>? map))
                 map[secondKey] = value;
             else
-                m_table[firstKey] = new Dictionary<K2, V>() { [secondKey] = value };
+                m_table[firstKey] = new Dictionary<K2, V>(m_comparer) { [secondKey] = value };
         }
 
         /// <summary>

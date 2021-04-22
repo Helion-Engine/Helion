@@ -13,8 +13,8 @@ namespace Helion.Resources.Archives.Entries
     /// </remarks>
     public class Defines
     {
-        public static readonly CIString Playpal = "PLAYPAL";
-        public static readonly CIString Pnames = "PNAMES";
-        public static readonly CIString[] TextureDefinitions = new CIString[] { "TEXTURE1", "TEXTURE2", "TEXTURE3" };
+        public static readonly string Playpal = "PLAYPAL";
+        public static readonly string Pnames = "PNAMES";
+        public static readonly string[] TextureDefinitions = new string[] { "TEXTURE1", "TEXTURE2", "TEXTURE3" };
     }
 }

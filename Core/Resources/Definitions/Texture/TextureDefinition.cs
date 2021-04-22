@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helion.Geometry;
-using Helion.Util;
 
 namespace Helion.Resources.Definitions.Texture
 {
@@ -13,7 +12,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// The name of this image.
         /// </summary>
-        public readonly CIString Name;
+        public readonly string Name;
         
         /// <summary>
         /// The dimensions of the image.
@@ -49,7 +48,7 @@ namespace Helion.Resources.Definitions.Texture
         /// </param>
         /// <param name="components">A list of all the sub-images that make up
         /// this definition.</param>
-        public TextureDefinition(CIString name, Dimension dimension, ResourceNamespace resourceNamespace,
+        public TextureDefinition(string name, Dimension dimension, ResourceNamespace resourceNamespace,
             IList<TextureDefinitionComponent> components)
         {
             Name = name;

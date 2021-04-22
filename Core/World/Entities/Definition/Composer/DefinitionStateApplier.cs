@@ -181,7 +181,7 @@ namespace Helion.World.Entities.Definition.Composer
         private static void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
             IDictionary<string, int> masterLabelTable)
         {
-            foreach ((CIString label, ActorFlowOverride flowOverride) in current.States.FlowOverrides)
+            foreach ((string label, ActorFlowOverride flowOverride) in current.States.FlowOverrides)
             {
                 if (flowOverride.BranchType != ActorStateBranch.Goto)
                     continue;

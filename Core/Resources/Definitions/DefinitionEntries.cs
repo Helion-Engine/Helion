@@ -13,7 +13,6 @@ using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
-using Helion.Util;
 using Helion.Util.Extensions;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
@@ -41,7 +40,7 @@ namespace Helion.Resources.Definitions
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
-        private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction = new Dictionary<CIString, Action<Entry>>();
+        private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
 

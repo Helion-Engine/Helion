@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using Helion.Util;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -11,18 +11,18 @@ namespace Helion.World.Entities.Definition
     {
         public readonly int Id;
         public readonly int? EditorId;
-        public readonly CIString Name;
+        public readonly string Name;
         public EntityFlags Flags;
         public readonly EntityProperties Properties;
         public readonly EntityStates States;
-        public readonly List<CIString> ParentClassNames;
+        public readonly List<string> ParentClassNames;
         public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
-        private readonly HashSet<CIString> ParentClassLookup = new HashSet<CIString>();
+        private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        public EntityDefinition(int id, CIString name, int? editorId, List<CIString> parentClassNames)
+        public EntityDefinition(int id, string name, int? editorId, List<string> parentClassNames)
         {
-            Precondition(!name.IsEmpty(), "Cannot have an entity definition with an empty name");
+            Precondition(!string.IsNullOrEmpty(name), "Cannot have an entity definition with an empty name");
             
             Id = id;
             Name = name;
@@ -40,7 +40,7 @@ namespace Helion.World.Entities.Definition
         /// <param name="className">The name of the class, which is case
         /// insensitive.</param>
         /// <returns>True if it is the type, false if not.</returns>
-        public bool IsType(CIString className) => ParentClassLookup.Contains(className);
+        public bool IsType(string className) => ParentClassLookup.Contains(className);
         
         /// <summary>
         /// Checks if the definition is a descendant or class of the type

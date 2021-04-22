@@ -32,7 +32,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
             ReleaseUnmanagedResources();
         }
 
-        public void UploadAndSetParameters(GLLegacyTexture texture, Image image, CIString name, ResourceNamespace resourceNamespace)
+        public void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace)
         {
             Precondition(image.Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
 
@@ -67,7 +67,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         /// <param name="resourceNamespace">What namespace the texture is from.
         /// </param>
         /// <returns>A new texture.</returns>
-        protected override GLLegacyTexture GenerateTexture(Image image, CIString name,
+        protected override GLLegacyTexture GenerateTexture(Image image, string name,
             ResourceNamespace resourceNamespace)
         {
             int textureId = gl.GenTexture();
@@ -85,7 +85,7 @@ namespace Helion.Render.OpenGL.Texture.Legacy
         /// <param name="font">The font to make this from.</param>
         /// <param name="name">The name of the font.</param>
         /// <returns>A newly allocated font texture.</returns>
-        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, CIString name)
+        protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, string name)
         {
             GLLegacyTexture texture = GenerateTexture(font.Atlas, $"[FONT] {name}", ResourceNamespace.Fonts);
             GLFontTexture<GLLegacyTexture> fontTexture = new(texture, font);

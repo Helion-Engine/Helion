@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry;
-using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Texture
@@ -14,7 +13,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// The name of the texture.
         /// </summary>
-        public readonly CIString Name;
+        public readonly string Name;
 
         /// <summary>
         /// The width of the texture.
@@ -44,7 +43,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <param name="height">The image height.</param>
         /// <param name="patches">All the patches that make up the texture.
         /// </param>
-        public TextureXImage(CIString name, int width, int height, List<TextureXPatch> patches)
+        public TextureXImage(string name, int width, int height, List<TextureXPatch> patches)
         {
             Precondition(width >= 0, "TextureX image width must not be negative");
             Precondition(height >= 0, "TextureX image height must not be negative");

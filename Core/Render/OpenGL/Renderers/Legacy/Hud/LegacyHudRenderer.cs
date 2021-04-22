@@ -15,7 +15,6 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
-using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -62,14 +61,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud
             m_drawBuffer.Clear();
         }
 
-        public override void DrawImage(CIString textureName, ImageBox2I drawArea, Color multiplyColor,
+        public override void DrawImage(string textureName, ImageBox2I drawArea, Color multiplyColor,
             float alpha, bool drawInvul)
         {
             m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
             AddImage(texture, drawArea, multiplyColor, alpha, drawInvul);
         }
 
-        public override void DrawImage(CIString textureName, Vec2I topLeft, Color multiplyColor,
+        public override void DrawImage(string textureName, Vec2I topLeft, Color multiplyColor,
             float alpha, bool drawInvul)
         {
             m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);

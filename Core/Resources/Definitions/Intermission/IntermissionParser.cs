@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using Helion.Util.Parser;
+﻿using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
 
@@ -7,16 +6,16 @@ namespace Helion.Resources.Definitions.Intermission
 {
     public static class IntermissionParser
     {
-        private static readonly CIString Background = "Background";
-        private static readonly CIString Splat = "Splat";
-        private static readonly CIString Pointer = "Pointer";
-        private static readonly CIString Animation = "Animation";
-        private static readonly CIString IfLeaving = "IfLeaving";
-        private static readonly CIString IfEntering = "IfEntering";
-        private static readonly CIString IfVisited = "IfVisited";
-        private static readonly CIString Spots = "Spots";
+        private static readonly string Background = "Background";
+        private static readonly string Splat = "Splat";
+        private static readonly string Pointer = "Pointer";
+        private static readonly string Animation = "Animation";
+        private static readonly string IfLeaving = "IfLeaving";
+        private static readonly string IfEntering = "IfEntering";
+        private static readonly string IfVisited = "IfVisited";
+        private static readonly string Spots = "Spots";
 
-        private static readonly HashSet<CIString> Items = new HashSet<CIString>()
+        private static readonly HashSet<string> Items = new(StringComparer.OrdinalIgnoreCase)
         {
             Background,
             Splat,
@@ -35,23 +34,23 @@ namespace Helion.Resources.Definitions.Intermission
 
             while (!parser.IsDone())
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
-                if (item == Background)
+                if (item.Equals(Background, StringComparison.OrdinalIgnoreCase))
                     def.Background = parser.ConsumeString();
-                else if (item == Splat)
+                else if (item.Equals(Splat, StringComparison.OrdinalIgnoreCase))
                     def.Splat = parser.ConsumeString();
-                else if (item == Pointer)
+                else if (item.Equals(Pointer, StringComparison.OrdinalIgnoreCase))
                     def.Pointer = GetPointer(parser);
-                else if (item == Animation)
+                else if (item.Equals(Animation, StringComparison.OrdinalIgnoreCase))
                     def.Animations.Add(ParseAnimation(parser, string.Empty, IntermissionAnimationType.Normal));
-                else if (item == IfLeaving)
+                else if (item.Equals(IfLeaving, StringComparison.OrdinalIgnoreCase))
                     def.Animations.Add(ParseAnimation(parser, parser.ConsumeString(), IntermissionAnimationType.IfLeaving));
-                else if (item == IfEntering)
+                else if (item.Equals(IfEntering, StringComparison.OrdinalIgnoreCase))
                     def.Animations.Add(ParseAnimation(parser, parser.ConsumeString(), IntermissionAnimationType.IfEntering));
-                else if (item == IfVisited)
+                else if (item.Equals(IfVisited, StringComparison.OrdinalIgnoreCase))
                     def.Animations.Add(ParseAnimation(parser, parser.ConsumeString(), IntermissionAnimationType.IfVisited));
-                else if (item == Spots)
+                else if (item.Equals(Spots, StringComparison.OrdinalIgnoreCase))
                     def.Spots = ParseSpots(parser);
             }
 

@@ -51,7 +51,7 @@ namespace Helion.Render.Commands
             m_commands.Add(ClearRenderCommand.DepthOnly());
         }
 
-        public void DrawImage(CIString textureName, int left, int top, int width, int height, Color color,
+        public void DrawImage(string textureName, int left, int top, int width, int height, Color color,
             float alpha = 1.0f, bool drawInvul = false)
         {
             ImageBox2I drawArea = TranslateDimensions(left, top, width, height);

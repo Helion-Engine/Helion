@@ -595,8 +595,9 @@ namespace Helion.World.Entities.Players
             if (Weapon != null && Weapon.Definition.Name != "FIST" && Weapon.Definition.Name != "PISTOL")
                 return;
 
-            CIString name = Inventory.GetBaseInventoryName(ammoDef);
-            Weapon? ammoWeapon = GetSelectionOrderedWeapons().FirstOrDefault(x => x.AmmoDefinition != null && x.AmmoDefinition.Name == name);
+            string name = Inventory.GetBaseInventoryName(ammoDef);
+            Weapon? ammoWeapon = GetSelectionOrderedWeapons().FirstOrDefault(x => x.AmmoDefinition != null && 
+                x.AmmoDefinition.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             if (ammoWeapon != null)
             {
                 if (CheckAmmo(ammoWeapon, oldCount))

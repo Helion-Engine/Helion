@@ -4,7 +4,6 @@ using Helion.Graphics.Fonts;
 using Helion.Graphics.Fonts.TrueTypeFont;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using NLog;
 
 namespace Helion.Resources.Data
@@ -17,9 +16,9 @@ namespace Helion.Resources.Data
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly Dictionary<CIString, Font> TrueTypeFonts = new();
-        private readonly Dictionary<CIString, Action<Entry>> m_entryNameToAction;
-        private readonly Dictionary<CIString, Action<Entry>> m_extensionToAction;
+        public readonly Dictionary<string, Font> TrueTypeFonts = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Action<Entry>> m_entryNameToAction;
+        private readonly Dictionary<string, Action<Entry>> m_extensionToAction;
         private Palette? m_latestPalette;
 
         /// <summary>
@@ -34,12 +33,12 @@ namespace Helion.Resources.Data
         /// </summary>
         public DataEntries()
         {
-            m_entryNameToAction = new Dictionary<CIString, Action<Entry>>
+            m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["PLAYPAL"] = HandlePlaypal,
             };
 
-            m_extensionToAction = new Dictionary<CIString, Action<Entry>>
+            m_extensionToAction = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["TTF"] = HandleTrueTypeFont,
             };
@@ -69,7 +68,7 @@ namespace Helion.Resources.Data
 
         private void HandleTrueTypeFont(Entry entry)
         {
-            CIString fontName = entry.Path.Name;
+            string fontName = entry.Path.Name;
             Font? font = TtfReader.ReadFont(fontName, entry.ReadData(), 0.4f);
 
             if (font != null)

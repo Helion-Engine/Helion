@@ -1,6 +1,5 @@
 ﻿using System;
 using Helion.Graphics.String;
-using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Menus.Base.Text
@@ -12,10 +11,10 @@ namespace Helion.Menus.Base.Text
     {
         public readonly ColoredString Text;
         public readonly int Size;
-        public readonly CIString FontName;
+        public readonly string FontName;
         public Func<Menu?>? Action { get; }
 
-        public MenuTextComponent(ColoredString text, int size, CIString fontName, Func<Menu?>? action = null)
+        public MenuTextComponent(ColoredString text, int size, string fontName, Func<Menu?>? action = null)
         {
             Precondition(size > 0, "Cannot have a zero or negative font size");
             

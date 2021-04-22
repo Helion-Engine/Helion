@@ -34,7 +34,7 @@ namespace Helion.Resources.Archives.Collection
         public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();
-        private readonly Dictionary<CIString, Font?> m_fonts = new();
+        private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
 
         public ArchiveCollection(IArchiveLocator archiveLocator)
         {
@@ -173,7 +173,7 @@ namespace Helion.Resources.Archives.Collection
             return null;
         }
 
-        public Font? GetFont(CIString name)
+        public Font? GetFont(string name)
         {
             if (m_fonts.TryGetValue(name, out Font? font))
                 return font;

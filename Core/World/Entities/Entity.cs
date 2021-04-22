@@ -480,7 +480,7 @@ namespace Helion.World.Entities
                 SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
         }
 
-        public CIString GetSpeciesName()
+        public string GetSpeciesName()
         {
             if (Definition.MonsterSpeciesDefinition != null)
                 return Definition.MonsterSpeciesDefinition.Name;

@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using Helion.Util;
 
 namespace Helion.Resources.Definitions.Animdefs.Textures
 {
     public class AnimatedTexture
     {
-        public readonly CIString Name;
+        public readonly string Name;
         public readonly bool Optional;
         public readonly ResourceNamespace Namespace;
         public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
@@ -15,7 +14,7 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
 
         public AnimatedTexture(string name, bool optional, ResourceNamespace resourceNamespace)
         {
-            Name = name.ToUpper();
+            Name = name;
             Optional = optional;
             Namespace = resourceNamespace;
         }

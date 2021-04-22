@@ -42,9 +42,9 @@ namespace Helion.Render.Shared.Drawers
         private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
         private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
-        private static readonly CIString SmallHudFont = "SmallFont";
-        private static readonly CIString LargeHudFont = "LargeHudFont";
-        private static readonly CIString ConsoleFont = "Console";
+        private static readonly string SmallHudFont = "SmallFont";
+        private static readonly string LargeHudFont = "LargeHudFont";
+        private static readonly string ConsoleFont = "Console";
 
         private readonly ArchiveCollection m_archiveCollection;
 

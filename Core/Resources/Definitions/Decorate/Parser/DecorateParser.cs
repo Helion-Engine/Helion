@@ -16,7 +16,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly IList<ActorDefinition> ActorDefinitions = new List<ActorDefinition>();
-        public readonly IDictionary<CIString, double> Variables = new Dictionary<CIString, double>();
+        public readonly Dictionary<string, double> Variables = new(StringComparer.OrdinalIgnoreCase);
         protected readonly string Path;
         protected readonly Func<string, string?> IncludeResolver;
         private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
@@ -96,11 +96,11 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         {
             string name = ConsumeString().ToUpper();
             
-            CIString? parent = null;
+            string? parent = null;
             if (ConsumeIf(':'))
                 parent = ConsumeString().ToUpper();
 
-            CIString? replacesName = null;
+            string? replacesName = null;
             if (ConsumeIf("replaces"))
                 replacesName = ConsumeString().ToUpper();
             

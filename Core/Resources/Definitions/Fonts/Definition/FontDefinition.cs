@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Util;
 using Helion.Util.Extensions;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -11,15 +10,15 @@ namespace Helion.Resources.Definitions.Fonts.Definition
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly CIString Name;
+        public readonly string Name;
         public readonly Dictionary<char, CharDefinition> CharDefinitions = new Dictionary<char, CharDefinition>();
         public bool Grayscale;
         public int? SpaceWidth;
         public FontAlignment Alignment = FontAlignment.Bottom;
 
-        public FontDefinition(CIString name)
+        public FontDefinition(string name)
         {
-            Precondition(!name.IsEmpty(), "Should not have an empty font definition name");
+            Precondition(!string.IsNullOrEmpty(name), "Should not have an empty font definition name");
             
             Name = name;
         }

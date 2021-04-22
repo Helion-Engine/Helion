@@ -73,7 +73,7 @@ namespace Helion.Resources.Definitions.Animdefs
             WarpTextures.Add(new AnimatedWarpTexture(upperName, resourceNamespace, speed, allowDecals, waterEffect));
         }
 
-        private (string baseText, int endingNumberIndex) FindTextureRangeFrom(SimpleParser parser, CIString textureName)
+        private (string baseText, int endingNumberIndex) FindTextureRangeFrom(SimpleParser parser, string textureName)
         {
             string upperName = textureName.ToString().ToUpper();
             int rightmostNumberChar = upperName.Length - 1;

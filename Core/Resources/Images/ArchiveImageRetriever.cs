@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.IO;
 using Helion.Geometry.Vectors;
@@ -47,7 +48,7 @@ namespace Helion.Resources.Images
             return data.Length > 14 && data[0] == 'B' && data[1] == 'M';
         }
 
-        public Image? Get(CIString name, ResourceNamespace priorityNamespace)
+        public Image? Get(string name, ResourceNamespace priorityNamespace)
         {
             Image? compiledImage = m_compiledImages.Get(name, priorityNamespace);
             if (compiledImage != null)
@@ -64,7 +65,7 @@ namespace Helion.Resources.Images
             return null;
         }
 
-        public Image? GetOnly(CIString name, ResourceNamespace targetNamespace)
+        public Image? GetOnly(string name, ResourceNamespace targetNamespace)
         {
             Image? compiledImage = m_compiledImages.GetOnly(name, targetNamespace);
             if (compiledImage != null)
@@ -93,7 +94,7 @@ namespace Helion.Resources.Images
                     // to look in our entry list only because it can lead to
                     // infinite recursion and a stack overflow. Lots of vanilla
                     // wads do this unfortunately...
-                    if (component.Name == definition.Name)
+                    if (component.Name.Equals(definition.Name, StringComparison.OrdinalIgnoreCase))
                     {
                         Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
                         if (entry != null)

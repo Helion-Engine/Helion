@@ -6,7 +6,6 @@ using System.Drawing;
 using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
-using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -25,7 +24,7 @@ namespace Helion.Graphics.Fonts
         /// <summary>
         /// The name of the font.
         /// </summary>
-        public readonly CIString Name;
+        public readonly string Name;
 
         /// <summary>
         /// The metrics for the entire font.
@@ -53,7 +52,7 @@ namespace Helion.Graphics.Fonts
         /// <param name="glyphs">A list of all the glyphs. This must contain
         /// the default glyph.</param>
         /// <param name="metrics">The font metrics for drawing with.</param>
-        public Font(CIString name, IList<Glyph> glyphs, FontMetrics metrics)
+        public Font(string name, IList<Glyph> glyphs, FontMetrics metrics)
         {
             Precondition(!glyphs.Empty(), "Cannot make a font that has no glyphs");
 

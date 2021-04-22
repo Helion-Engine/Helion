@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Helion.Resources;
-using Helion.Util;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -31,7 +30,7 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
         /// <param name="alphaCutoff">The cutoff to which anything under it is
         /// made transparent.</param>
         /// <returns>The font, or null on failure.</returns>
-        public static Font? ReadFont(CIString name, byte[] data, float alphaCutoff)
+        public static Font? ReadFont(string name, byte[] data, float alphaCutoff)
         {
             // I have no idea if this can throw, or if nulls get returned (and
             // that would be an exception anyways...) so I'm playing it safe.

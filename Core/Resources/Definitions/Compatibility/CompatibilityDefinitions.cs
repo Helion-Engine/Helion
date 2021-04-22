@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
@@ -10,8 +11,8 @@ namespace Helion.Resources.Definitions.Compatibility
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
-        private readonly Dictionary<CIString, CompatibilityDefinition> FileDefinitions = new Dictionary<CIString, CompatibilityDefinition>();
-        private readonly Dictionary<CIString, CompatibilityDefinition> HashDefinitions = new Dictionary<CIString, CompatibilityDefinition>();
+        private readonly Dictionary<string, CompatibilityDefinition> FileDefinitions = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, CompatibilityDefinition> HashDefinitions = new(StringComparer.OrdinalIgnoreCase);
 
         public CompatibilityMapDefinition? Find(Archive archive, string mapName)
         {
