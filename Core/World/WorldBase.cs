@@ -60,10 +60,9 @@ namespace Helion.World
         /// </summary>
         public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
         public event EventHandler<LevelChangeEvent>? LevelExit;
-        public event EventHandler<int> ChangeMusic;
 
         public readonly long CreationTimeNanos;
-        public CIString MapName { get; protected set; }
+        public string MapName { get; protected set; }
         public readonly BlockMap Blockmap;
         public WorldState WorldState { get; protected set; } = WorldState.Normal;
         public int Gametick { get; private set; }
@@ -376,7 +375,7 @@ namespace Helion.World
         private void InitBossBrainTargets()
         {
             // Doom chose for some reason to iterate in reverse order.
-            m_bossBrainTargets = EntityManager.Entities.Where(e => e.Definition.Name == "BOSSTARGET")
+            m_bossBrainTargets = EntityManager.Entities.Where(e => e.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
                 .Reverse()
                 .ToArray();
         }
@@ -1525,7 +1524,7 @@ namespace Helion.World
 
         private void GiveAllWeapons(Player player)
         {
-            foreach (CIString name in player.Inventory.Weapons.GetWeaponDefinitionNames())
+            foreach (string name in player.Inventory.Weapons.GetWeaponDefinitionNames())
             {
                 var weapon = EntityManager.DefinitionComposer.GetByName(name);
                 if (weapon != null)

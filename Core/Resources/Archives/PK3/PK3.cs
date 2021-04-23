@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
@@ -16,7 +15,7 @@ namespace Helion.Resources.Archives
     {
         private static readonly string DirectorySeparatorChar = System.IO.Path.DirectorySeparatorChar.ToString();
         private static readonly string AltDirectorySeparatorChar = System.IO.Path.AltDirectorySeparatorChar.ToString();
-        private static readonly Dictionary<CIString, ResourceNamespace> FolderToNamespace = new Dictionary<CIString, ResourceNamespace>()
+        private static readonly Dictionary<string, ResourceNamespace> FolderToNamespace = new(StringComparer.OrdinalIgnoreCase)
         {
             ["ACS"] = ResourceNamespace.ACS,
             ["FLATS"] = ResourceNamespace.Flats,

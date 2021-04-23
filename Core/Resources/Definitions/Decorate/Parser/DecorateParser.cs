@@ -16,7 +16,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly IList<ActorDefinition> ActorDefinitions = new List<ActorDefinition>();
-        public readonly IDictionary<CIString, double> Variables = new Dictionary<CIString, double>();
+        public readonly Dictionary<string, double> Variables = new(StringComparer.OrdinalIgnoreCase);
         protected readonly string Path;
         protected readonly Func<string, string?> IncludeResolver;
         private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
@@ -94,15 +94,15 @@ namespace Helion.Resources.Definitions.Decorate.Parser
 
         private void ConsumeActorHeader()
         {
-            string name = ConsumeString().ToUpper();
+            string name = ConsumeString();
             
-            CIString? parent = null;
+            string? parent = null;
             if (ConsumeIf(':'))
-                parent = ConsumeString().ToUpper();
+                parent = ConsumeString();
 
-            CIString? replacesName = null;
+            string? replacesName = null;
             if (ConsumeIf("replaces"))
-                replacesName = ConsumeString().ToUpper();
+                replacesName = ConsumeString();
             
             int? editorId = ConsumeIfInt();
             
@@ -130,7 +130,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             // For whatever reason, default crush state isn't in decorate (which would probably make more sense...)
             // Check for monster / player definition and add the default crush state here
             if (!m_currentDefinition.States.Labels.ContainsKey(Constants.ActorCrushState) &&
-                ((m_currentDefinition.Flags.Monster.HasValue && m_currentDefinition.Flags.Monster.Value) || m_currentDefinition.Name == Constants.PlayerClass))
+                ((m_currentDefinition.Flags.Monster.HasValue && m_currentDefinition.Flags.Monster.Value) || m_currentDefinition.Name.Equals(Constants.PlayerClass, StringComparison.OrdinalIgnoreCase)))
             {
                 ActorFrame actorFrame = new ActorFrame("POL5", 0, -1, new ActorFrameProperties(), null)
                 {

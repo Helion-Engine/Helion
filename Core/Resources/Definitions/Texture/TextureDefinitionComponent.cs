@@ -1,5 +1,4 @@
 using Helion.Geometry.Vectors;
-using Helion.Util;
 
 namespace Helion.Resources.Definitions.Texture
 {
@@ -12,7 +11,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// The name of the component.
         /// </summary>
-        public CIString Name;
+        public string Name;
         
         /// <summary>
         /// The offset relative to the top left of the main texture definition.
@@ -25,7 +24,7 @@ namespace Helion.Resources.Definitions.Texture
         /// <param name="name">The name of the component.</param>
         /// <param name="offset">The offsets relative to the top left of the
         /// texture definition image.</param>
-        public TextureDefinitionComponent(CIString name, Vec2I offset)
+        public TextureDefinitionComponent(string name, Vec2I offset)
         {
             Name = name;
             Offset = offset;

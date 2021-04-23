@@ -595,8 +595,9 @@ namespace Helion.World.Entities.Players
             if (Weapon != null && Weapon.Definition.Name != "FIST" && Weapon.Definition.Name != "PISTOL")
                 return;
 
-            CIString name = Inventory.GetBaseInventoryName(ammoDef);
-            Weapon? ammoWeapon = GetSelectionOrderedWeapons().FirstOrDefault(x => x.AmmoDefinition != null && x.AmmoDefinition.Name == name);
+            string name = Inventory.GetBaseInventoryName(ammoDef);
+            Weapon? ammoWeapon = GetSelectionOrderedWeapons().FirstOrDefault(x => x.AmmoDefinition != null && 
+                x.AmmoDefinition.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             if (ammoWeapon != null)
             {
                 if (CheckAmmo(ammoWeapon, oldCount))
@@ -606,7 +607,7 @@ namespace Helion.World.Entities.Players
                     ammoWeapon.Definition.Properties.Weapons.SelectionOrder < Weapon.Definition.Properties.Weapons.SelectionOrder)
                 {
                     // Only switch to rocket launcher on fist (see above todo)
-                    if (Weapon != null && Weapon.Definition.Name == "FIST" && ammoWeapon.Definition.Name == "ROCKETLAUNCHER")
+                    if (Weapon != null && Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase) && ammoWeapon.Definition.Name.Equals("ROCKETLAUNCHER", StringComparison.OrdinalIgnoreCase))
                         return;
                     ChangeWeapon(ammoWeapon);
                 }

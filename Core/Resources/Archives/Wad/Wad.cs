@@ -19,7 +19,7 @@ namespace Helion.Resources.Archives
         public WadHeader Header;
         private readonly ByteReader m_byteReader;
 
-        private readonly Dictionary<CIString, ResourceNamespace> m_entryToNamespace = new Dictionary<CIString, ResourceNamespace>()
+        private readonly Dictionary<string, ResourceNamespace> m_entryToNamespace = new(StringComparer.OrdinalIgnoreCase)
         {
             ["F_START"] = ResourceNamespace.Flats,
             ["F_END"] = ResourceNamespace.Global,
@@ -78,7 +78,7 @@ namespace Helion.Resources.Archives
         {
             int offset = m_byteReader.ReadInt32();
             int size = m_byteReader.ReadInt32();
-            string name = m_byteReader.ReadEightByteString().ToUpper();
+            string name = m_byteReader.ReadEightByteString();
             return (offset, size, name);
         }
 

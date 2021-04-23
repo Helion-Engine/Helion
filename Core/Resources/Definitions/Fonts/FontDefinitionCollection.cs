@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Fonts.Definition;
-using Helion.Util;
 using MoreLinq;
 
 namespace Helion.Resources.Definitions.Fonts
@@ -12,7 +12,7 @@ namespace Helion.Resources.Definitions.Fonts
     /// </summary>
     public class FontDefinitionCollection
     {
-        private readonly Dictionary<CIString, FontDefinition> m_definitions = new Dictionary<CIString, FontDefinition>();
+        private readonly Dictionary<string, FontDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Gets a parsed definition with the case-insensitive name provided.
@@ -20,7 +20,7 @@ namespace Helion.Resources.Definitions.Fonts
         /// <param name="name">The name of the font.</param>
         /// <returns>The font definition, or null if a definition does not
         /// exist.</returns>
-        public FontDefinition? Get(CIString name)
+        public FontDefinition? Get(string name)
         {
             return m_definitions.TryGetValue(name, out FontDefinition? definition) ? definition : null;
         }

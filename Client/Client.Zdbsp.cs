@@ -21,7 +21,7 @@ namespace Helion.Client
 
             try
             {
-                if (m_lastBspCollection != null && File.Exists(outputFile) && m_lastMapName == mapName)
+                if (m_lastBspCollection != null && File.Exists(outputFile) && m_lastMapName.Equals(mapName, StringComparison.OrdinalIgnoreCase))
                 {
                     outputMap = m_lastBspCollection.FindMap(mapName);
                     return outputMap != null;

@@ -5,13 +5,13 @@ namespace Helion.Resources.Definitions.Animdefs.Textures
 {
     public class AnimatedSwitch
     {
-        public readonly CIString Texture;
+        public readonly string Texture;
         public readonly IList<AnimatedTextureComponent> On = new List<AnimatedTextureComponent>();
         public readonly IList<AnimatedTextureComponent> Off = new List<AnimatedTextureComponent>();
         public string? Sound;
         public int StartTextureIndex;
 
-        public AnimatedSwitch(CIString texture)
+        public AnimatedSwitch(string texture)
         {
             Texture = texture;
        }

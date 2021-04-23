@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Decorate.States;
@@ -32,7 +33,7 @@ namespace Helion.World.Entities.Definition.Composer
             //    LABEL
             //
             // which are eligible to be overwritten.
-            Dictionary<string, int> masterLabelTable = new Dictionary<string, int>();
+            Dictionary<string, int> masterLabelTable = new(StringComparer.OrdinalIgnoreCase);
             
             // We always have to apply the first definition to it, which should
             // be the Actor class. However to reduce code duplication, we'll be
@@ -121,10 +122,9 @@ namespace Helion.World.Entities.Definition.Composer
         {
             definition.States.Labels.ForEach(pair =>
             {
-                string upperLabel = pair.Key.ToString().ToUpper();
-                masterLabelTable[upperLabel] = startingFrameOffset + pair.Value;
+                masterLabelTable[pair.Key] = startingFrameOffset + pair.Value;
                 
-                string upperFullLabel = $"{upperActorName}::{upperLabel}";
+                string upperFullLabel = $"{upperActorName}::{pair.Key}";
                 masterLabelTable[upperFullLabel] = startingFrameOffset + pair.Value;
             });
         }
@@ -141,13 +141,11 @@ namespace Helion.World.Entities.Definition.Composer
             {
                 if (suffix == null)
                     return;
-                
-                string upperSuffix = suffix.ToUpper();
-                HashSet<string> keysToRemove = new HashSet<string>();
-                
+
+                HashSet<string> keysToRemove = new(StringComparer.OrdinalIgnoreCase);               
                 masterLabelTable.ForEach(pair =>
                 {
-                    if (pair.Key.EndsWith(upperSuffix))
+                    if (pair.Key.EndsWith(suffix))
                         keysToRemove.Add(pair.Key);
                 });
                 
@@ -163,17 +161,15 @@ namespace Helion.World.Entities.Definition.Composer
                 Log.Error("Malformed flow override offset label (report this to a developer!)");
                 return 0;
             }
-            
-            string upperTargetLabel = flowOverride.Label.ToUpper();
+
             int offset = flowOverride.Offset ?? 0;
 
             if (flowOverride.Parent == null) 
-                return masterLabelTable[$"{upperTargetLabel}"] + offset;
+                return masterLabelTable[$"{flowOverride.Label}"] + offset;
             
-            string upperParentLabel = flowOverride.Parent.ToUpper();
-            string label = $"{upperParentLabel}::{upperTargetLabel}";
-            if (upperParentLabel == "SUPER")
-                label = $"{upperImmediateParentName.ToUpper()}::{upperTargetLabel}";
+            string label = $"{flowOverride.Parent}::{flowOverride.Label}";
+            if (flowOverride.Parent.Equals("SUPER", StringComparison.OrdinalIgnoreCase))
+                label = $"{upperImmediateParentName}::{flowOverride.Label}";
             
             return masterLabelTable[label] + offset;
         }
@@ -181,17 +177,14 @@ namespace Helion.World.Entities.Definition.Composer
         private static void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
             IDictionary<string, int> masterLabelTable)
         {
-            foreach ((CIString label, ActorFlowOverride flowOverride) in current.States.FlowOverrides)
+            foreach ((string label, ActorFlowOverride flowOverride) in current.States.FlowOverrides)
             {
                 if (flowOverride.BranchType != ActorStateBranch.Goto)
                     continue;
 
-                string upperActorName = current.Name.ToString().ToUpper();
-                string upperLabel = label.ToString().ToUpper();
-
                 int overrideOffset = FindGotoOverrideOffset(masterLabelTable, flowOverride, upperImmediateParentName);
-                masterLabelTable[upperLabel] = overrideOffset;
-                masterLabelTable[$"{upperActorName}::{upperLabel}"] = overrideOffset;
+                masterLabelTable[label] = overrideOffset;
+                masterLabelTable[$"{current.Name}::{label}"] = overrideOffset;
             }
         }
         
@@ -209,28 +202,26 @@ namespace Helion.World.Entities.Definition.Composer
                 
                 EntityFrame entityFrame = unresolved.EntityFrame;
                 ActorFlowControl flowControl = actorFrame.FlowControl.Value;
-                string upperLabel = flowControl.Label.ToUpper();
-                string upperParent = flowControl.Parent;
                 
-                if (upperParent.Empty())
+                if (flowControl.Parent.Empty())
                 {
-                    if (masterLabelTable.TryGetValue(upperLabel, out int offset))
+                    if (masterLabelTable.TryGetValue(flowControl.Label, out int offset))
                     {
                         entityFrame.NextFrameIndex = offset + flowControl.Offset;
                         if (entityFrame.NextFrameIndex < 0 || entityFrame.NextFrameIndex >= definition.States.Frames.Count)
-                            Log.Error($"Invalid goto offset '{upperLabel}' in actor '{definition.Name}'");
+                            Log.Error($"Invalid goto offset '{flowControl.Label}' in actor '{definition.Name}'");
                     }
                     else
                     {
-                        Log.Error("Unable to resolve goto label '{0}' in actor '{1}', actor is likely malformed", upperLabel, definition.Name);
+                        Log.Error("Unable to resolve goto label '{0}' in actor '{1}', actor is likely malformed", flowControl.Label, definition.Name);
                     }
 
                     continue;
                 }
                 
-                string targetLabel = $"{upperParent}::{upperLabel}";
-                if (upperParent == "SUPER")
-                    targetLabel = $"{upperImmediateParentName}::{upperLabel}";
+                string targetLabel = $"{flowControl.Parent}::{flowControl.Label}";
+                if (flowControl.Parent.Equals("SUPER", StringComparison.OrdinalIgnoreCase))
+                    targetLabel = $"{upperImmediateParentName}::{flowControl.Label}";
                 
                 if (masterLabelTable.TryGetValue(targetLabel, out int parentOffset))
                     entityFrame.NextFrameIndex = parentOffset;
@@ -242,16 +233,14 @@ namespace Helion.World.Entities.Definition.Composer
         private static void ApplyActorDefinition(EntityDefinition definition, ActorDefinition current,
             ActorDefinition parent, Dictionary<string, int> masterLabelTable)
         {
-            string upperImmediateParentName = parent.Name.ToString().ToUpper();
-            string upperCurrentName = current.Name.ToString().ToUpper();
             int startingFrameOffset = definition.States.Frames.Count;
             List<UnresolvedGotoFrame> unresolvedGotoFrames = new List<UnresolvedGotoFrame>();
             
             AddFrameAndNonGotoFlowControl(definition, current, startingFrameOffset, unresolvedGotoFrames);
-            AddLabelsToMasterTable(current, masterLabelTable, upperCurrentName, startingFrameOffset);
+            AddLabelsToMasterTable(current, masterLabelTable, current.Name, startingFrameOffset);
             PurgeAnyControlFlowStopOverride(current, masterLabelTable);
-            HandleGotoFlowOverrides(current, upperImmediateParentName, masterLabelTable);
-            ApplyGotoOffsets(unresolvedGotoFrames, masterLabelTable, upperImmediateParentName, definition);
+            HandleGotoFlowOverrides(current, parent.Name, masterLabelTable);
+            ApplyGotoOffsets(unresolvedGotoFrames, masterLabelTable, parent.Name, definition);
         }
     }
 }

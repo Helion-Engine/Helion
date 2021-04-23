@@ -12,9 +12,9 @@ namespace Helion.Resources.Definitions.Texture
         /// <summary>
         /// All the names that make up their respective indices.
         /// </summary>
-        public readonly List<CIString> Names;
+        public readonly List<string> Names;
         
-        private Pnames(List<CIString> names)
+        private Pnames(List<string> names)
         {
             Names = names;
         }
@@ -30,7 +30,7 @@ namespace Helion.Resources.Definitions.Texture
             if ((data.Length - 4) % 8 != 0)
                 return null;
 
-            List<CIString> names = new List<CIString>();
+            List<string> names = new List<string>();
 
             try
             {
@@ -42,7 +42,7 @@ namespace Helion.Resources.Definitions.Texture
                     return null;
 
                 for (int i = 0; i < count; i++)
-                    names.Add(reader.ReadEightByteString().ToUpper());
+                    names.Add(reader.ReadEightByteString());
             }
             catch
             {

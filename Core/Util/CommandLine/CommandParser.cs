@@ -37,7 +37,7 @@ namespace Helion.Util.CommandLine
 
         private CommandArg FindOrCreate(string argKey, List<CommandArg> args)
         {
-            CommandArg? arg = args.FirstOrDefault(x => x.Key == argKey);
+            CommandArg? arg = args.FirstOrDefault(x => x.Key.Equals(argKey, StringComparison.OrdinalIgnoreCase));
             if (arg != null)
                 return arg;
 

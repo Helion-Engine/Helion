@@ -47,7 +47,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
         private int m_lastOffsetX;
         private int m_lastOffsetY;
 
-        private readonly Dictionary<CIString, AutomapColor> m_keys = new();
+        private readonly Dictionary<string, AutomapColor> m_keys = new(StringComparer.OrdinalIgnoreCase);
         
         public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
         {
@@ -68,9 +68,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap
                 {
                     // TODO support any color
                     if (FromColor(lockDef.MapColor, out AutomapColor? color))
-                        m_keys[item.ToString()] = color!.Value;
+                        m_keys[item] = color!.Value;
                     else
-                        m_keys[item.ToString()] = AutomapColor.Purple;
+                        m_keys[item] = AutomapColor.Purple;
                 }
             }
         }

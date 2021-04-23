@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Collection;
@@ -28,7 +29,7 @@ namespace Helion.World.Entities.Definition.Composer
 
         private readonly ArchiveCollection m_archiveCollection;
         private readonly AvailableIndexTracker m_indexTracker = new AvailableIndexTracker();
-        private readonly Dictionary<CIString, EntityDefinition> m_definitions = new Dictionary<CIString, EntityDefinition>();
+        private readonly Dictionary<string, EntityDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<EntityDefinition> m_listDefinitions = new List<EntityDefinition>();
         private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new Dictionary<int, EntityDefinition>();
 
@@ -41,7 +42,7 @@ namespace Helion.World.Entities.Definition.Composer
                 ComposeNewDefinition(definition);
         }
 
-        public EntityDefinition? GetByName(CIString name)
+        public EntityDefinition? GetByName(string name)
         {
             if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
                 return definition;
@@ -140,7 +141,7 @@ namespace Helion.World.Entities.Definition.Composer
             }
             
             int id = m_indexTracker.Next();
-            List<CIString> parentClassNames = definitions.Select(d => d.Name).ToList();
+            List<string> parentClassNames = definitions.Select(d => d.Name).ToList();
             EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
             ApplyFlagsAndPropertiesFrom(definition, definitions);

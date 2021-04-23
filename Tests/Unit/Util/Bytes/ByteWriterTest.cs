@@ -202,22 +202,7 @@ namespace Helion.Tests.Unit.Util.Bytes
 
             IEnumerable<byte> expected = data.SelectMany(Encoding.UTF8.GetBytes);
             writer.GetData().Should().Equal(expected);
-        }
-        
-        [Theory(DisplayName = "Writes case insensitive strings")]
-        [InlineData]
-        [InlineData("hi")]
-        [InlineData("123", "", ":)", "This Is A String")]
-        public void WriteCIStrings(params string[] data)
-        {
-            CIString[] strings = data.Select(s => new CIString(s)).ToArray();
-            ByteWriter writer = new();
-            
-            writer.String(strings);
-
-            IEnumerable<byte> expected = data.SelectMany(Encoding.UTF8.GetBytes);
-            writer.GetData().Should().Equal(expected);
-        }
+        }        
         
         [Theory(DisplayName = "Writes strings with a null terminator")]
         [InlineData]
@@ -233,21 +218,6 @@ namespace Helion.Tests.Unit.Util.Bytes
             writer.GetData().Should().Equal(expected);
         }
         
-        [Theory(DisplayName = "Writes case insensitive strings with a null terminator")]
-        [InlineData]
-        [InlineData("hi")]
-        [InlineData("123", "", ":)", "This Is A String")]
-        public void WriteNullTerminatedCIStrings(params string[] data)
-        {
-            CIString[] strings = data.Select(s => new CIString(s)).ToArray();
-            ByteWriter writer = new();
-            
-            writer.StringNullTerminated(strings);
-
-            IEnumerable<byte> expected = data.Select(s => s + "\0").SelectMany(Encoding.UTF8.GetBytes);
-            writer.GetData().Should().Equal(expected);
-        }
-        
         [Theory(DisplayName = "Writes strings to the eight-char null padded format")]
         [InlineData]
         [InlineData("hi")]
@@ -257,22 +227,6 @@ namespace Helion.Tests.Unit.Util.Bytes
             ByteWriter writer = new();
             
             writer.EightCharString(data);
-
-            IEnumerable<byte> expected = data.Select(s => s.Length > 8 ? s[..8] : s.PadRight(8, '\0'))
-                                             .SelectMany(Encoding.UTF8.GetBytes);
-            writer.GetData().Should().Equal(expected);
-        }
-        
-        [Theory(DisplayName = "Writes case insensitive strings to the eight-char null padded format")]
-        [InlineData]
-        [InlineData("hi")]
-        [InlineData("123", "", ":)", "This Is A String")]
-        public void WriteEightCharCIStrings(params string[] data)
-        {
-            CIString[] strings = data.Select(s => new CIString(s)).ToArray();
-            ByteWriter writer = new();
-            
-            writer.EightCharString(strings);
 
             IEnumerable<byte> expected = data.Select(s => s.Length > 8 ? s[..8] : s.PadRight(8, '\0'))
                                              .SelectMany(Encoding.UTF8.GetBytes);

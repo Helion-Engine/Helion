@@ -31,7 +31,7 @@ namespace Helion.Util
         /// <summary>
         /// The name of a 'missing' texture in a map.
         /// </summary>
-        public static readonly CIString NoTexture = "-";
+        public static readonly string NoTexture = "-";
 
         /// <summary>
         /// The index of a 'missing' texture in a map.
@@ -41,12 +41,12 @@ namespace Helion.Util
         /// <summary>
         /// The sky flat texture name.
         /// </summary>
-        public static readonly CIString SkyTexture = "F_SKY1";
+        public static readonly string SkyTexture = "F_SKY1";
 
         /// <summary>
         /// The name of the decorate player class.
         /// </summary>
-        public static readonly CIString PlayerClass = "DoomPlayer";
+        public static readonly string PlayerClass = "DoomPlayer";
 
         public static readonly string ActorCrushState = "CRUSH";
 
@@ -54,19 +54,19 @@ namespace Helion.Util
         /// The name of the actor class that is at the base of all decorate
         /// inheritance hierarchies.
         /// </summary>
-        public static readonly CIString BaseActorClass = "ACTOR";
+        public static readonly string BaseActorClass = "ACTOR";
 
         /// <summary>
         /// The name of the 4 letter sprite that should not be drawn in the
         /// renderer if encountered as a frame.
         /// </summary>
-        public static readonly CIString InvisibleSprite = "TNT1";
+        public static readonly string InvisibleSprite = "TNT1";
 
         /// <summary>
         /// The texture name of the debug box image for seeing the bounding box
         /// of things in game.
         /// </summary>
-        public static readonly CIString DebugBoxTexture = "DEBUGBOX";
+        public static readonly string DebugBoxTexture = "DEBUGBOX";
 
         public static readonly string PlatStartSound = "plats/pt1_strt";
         public static readonly string PlatStopSound = "plats/pt1_stop";

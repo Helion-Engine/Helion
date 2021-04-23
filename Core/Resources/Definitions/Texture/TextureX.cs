@@ -47,7 +47,7 @@ namespace Helion.Resources.Definitions.Texture
                 {
                     reader.Offset(dataOffset);
 
-                    string name = reader.ReadEightByteString().ToUpper();
+                    string name = reader.ReadEightByteString();
                     reader.Advance(4); // Skip flags/scalex/scaley.
                     int width = reader.ReadInt16();
                     int height = reader.ReadInt16();
@@ -108,7 +108,7 @@ namespace Helion.Resources.Definitions.Texture
                     continue;
                 }
 
-                CIString name = pnames.Names[patch.PnamesIndex];
+                string name = pnames.Names[patch.PnamesIndex];
                 TextureDefinitionComponent component = new TextureDefinitionComponent(name, patch.Offset);
                 components.Add(component);
             }

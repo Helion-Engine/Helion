@@ -22,7 +22,7 @@ namespace Helion.Layer
     {
         private const int LettersPerSecond = 10;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static readonly IEnumerable<CIString> EndGameMaps = new HashSet<CIString>()
+        public static readonly IEnumerable<string> EndGameMaps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "EndPic", "EndGame1", "EndGame2", "EndGameW", "EndGame4", "EndGameC", "EndGame3",
             "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence", "EndBunny"

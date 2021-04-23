@@ -1,4 +1,6 @@
-﻿namespace Helion.Resources.Definitions.SoundInfo
+﻿using System;
+
+namespace Helion.Resources.Definitions.SoundInfo
 {
     public class SoundInfo
     {
@@ -20,7 +22,7 @@
         public override bool Equals(object? obj)
         {
             if (obj is SoundInfo soundInfo)
-                return soundInfo.Name == Name;
+                return soundInfo.Name.Equals(Name, StringComparison.OrdinalIgnoreCase);
 
             return false;
         }

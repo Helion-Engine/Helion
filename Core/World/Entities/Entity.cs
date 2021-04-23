@@ -480,7 +480,7 @@ namespace Helion.World.Entities
                 SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
         }
 
-        public CIString GetSpeciesName()
+        public string GetSpeciesName()
         {
             if (Definition.MonsterSpeciesDefinition != null)
                 return Definition.MonsterSpeciesDefinition.Name;
@@ -838,7 +838,7 @@ namespace Helion.World.Entities
 
         public bool CanAttenuate(SoundInfo soundInfo)
         {
-            if (Flags.Boss && (soundInfo.Name == Definition.Properties.SeeSound || soundInfo.Name == Definition.Properties.DeathSound))
+            if (Flags.Boss && (soundInfo.Name.Equals(Definition.Properties.SeeSound, StringComparison.OrdinalIgnoreCase) || soundInfo.Name.Equals(Definition.Properties.DeathSound, StringComparison.OrdinalIgnoreCase)))
                 return false;
 
             return true;

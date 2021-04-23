@@ -124,16 +124,16 @@ namespace Helion.Resources
         /// <param name="resourceNamespace">The resource namespace to search by.</param>
         /// <returns>Returns the texture given the name and resource namespace.
         /// If not found the texture will be returned with Name = Constants.NoTexture and Index = Constants.NoTextureIndex.</returns>
-        public Texture GetTexture(CIString name, ResourceNamespace resourceNamespace)
+        public Texture GetTexture(string name, ResourceNamespace resourceNamespace)
         {
-            if (name == Constants.NoTexture)
+            if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
                 return m_textures[Constants.NoTextureIndex];
 
             Texture? texture;
             if (resourceNamespace == ResourceNamespace.Global)
-                texture = m_textures.FirstOrDefault(tex => tex.Name == name);
+                texture = m_textures.FirstOrDefault(tex => tex.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             else
-                texture = m_textures.FirstOrDefault(tex => tex.Name == name && tex.Namespace == resourceNamespace);
+                texture = m_textures.FirstOrDefault(tex => tex.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && tex.Namespace == resourceNamespace);
 
             if (texture == null)
                 return m_textures[Constants.NoTextureIndex];
@@ -315,7 +315,7 @@ namespace Helion.Resources
                 m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
 
                 // TODO fix with MapInfo when implemented
-                if (flat.Path.Name == Constants.SkyTexture)
+                if (flat.Path.Name.Equals(Constants.SkyTexture, StringComparison.OrdinalIgnoreCase))
                     m_skyIndex = index;
 
                 index++;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Compatibility.Lines;
@@ -13,11 +14,11 @@ namespace Helion.Resources.Definitions.Compatibility
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly Dictionary<CIString, CompatibilityDefinition> Files = new Dictionary<CIString, CompatibilityDefinition>();
-        public readonly Dictionary<CIString, CompatibilityDefinition> Hashes = new Dictionary<CIString, CompatibilityDefinition>();
+        public readonly Dictionary<string, CompatibilityDefinition> Files = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, CompatibilityDefinition> Hashes = new(StringComparer.OrdinalIgnoreCase);
         private CompatibilityDefinition m_definition = new CompatibilityDefinition();
         private CompatibilityMapDefinition m_mapDefinition = new CompatibilityMapDefinition();
-        private CIString m_mapName = "";
+        private string m_mapName = string.Empty;
 
         protected override void PerformParsing()
         {
@@ -25,9 +26,9 @@ namespace Helion.Resources.Definitions.Compatibility
                 ConsumeDefinitions();
         }
         
-        private void AddDefinitionToIdentifier(IEnumerable<CIString> identifiers)
+        private void AddDefinitionToIdentifier(IEnumerable<string> identifiers)
         {
-            foreach (CIString identifier in identifiers)
+            foreach (string identifier in identifiers)
             {
                 if (identifier.ToString().IsMD5())
                 {
@@ -165,9 +166,9 @@ namespace Helion.Resources.Definitions.Compatibility
 
         private void ConsumeDefinitions()
         {
-            HashSet<CIString> identifiers = new HashSet<CIString> { ConsumeString().ToUpper() };
+            HashSet<string> identifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ConsumeString() };
 
-            InvokeUntilAndConsume('{', () => identifiers.Add(ConsumeString().ToUpper()));
+            InvokeUntilAndConsume('{', () => identifiers.Add(ConsumeString()));
             ConsumeDefinition();
 
             AddDefinitionToIdentifier(identifiers);

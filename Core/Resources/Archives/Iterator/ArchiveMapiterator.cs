@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using Helion.Maps;
@@ -13,7 +14,7 @@ namespace Helion.Resources.Archives.Iterator
     /// </summary>
     public class ArchiveMapIterator : IEnumerable<MapEntryCollection>
     {
-        private static readonly HashSet<CIString> MapEntryNames = new HashSet<CIString>()
+        private static readonly HashSet<string> MapEntryNames = new(StringComparer.OrdinalIgnoreCase)
         {
             "THINGS", "LINEDEFS", "SIDEDEFS", "VERTEXES", "SEGS", "SSECTORS",
             "NODES", "SECTORS", "REJECT", "BLOCKMAP", "BEHAVIOR", "SCRIPTS",
@@ -21,7 +22,7 @@ namespace Helion.Resources.Archives.Iterator
             "GL_SEGS", "GL_SSECT", "GL_NODES", "GL_PVS",
         };
 
-        private static readonly Dictionary<CIString, PropertyInfo> MapEntryLookup = new Dictionary<CIString, PropertyInfo>
+        private static readonly Dictionary<string, PropertyInfo> MapEntryLookup = new(StringComparer.OrdinalIgnoreCase)
         {
             { "BEHAVIOR", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Behavior)) ! },
             { "BLOCKMAP", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Blockmap)) ! },
@@ -49,7 +50,7 @@ namespace Helion.Resources.Archives.Iterator
 
         private readonly Archive m_archive;
         private MapEntryCollection m_currentMap = new MapEntryCollection();
-        private CIString m_lastEntryName = "";
+        private string m_lastEntryName = string.Empty;
         private bool m_makingMap;
 
         public ArchiveMapIterator(Archive archive)
@@ -61,7 +62,7 @@ namespace Helion.Resources.Archives.Iterator
         {
             foreach (Entry entry in m_archive.Entries)
             {
-                CIString entryName = entry.Path.Name;
+                string entryName = entry.Path.Name;
 
                 if (m_makingMap)
                 {
@@ -94,14 +95,14 @@ namespace Helion.Resources.Archives.Iterator
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private bool IsGLBSPMapHeader(CIString entryName)
+        private bool IsGLBSPMapHeader(string entryName)
         {
             // Unfortunately GLBSP decided it'd allow things like GL_XXXXX
             // where the X's are the map name if it's less/equal to 5 letters.
-            return m_currentMap.Name.Length <= 5 && (entryName == "GL_" + m_currentMap.Name);
+            return m_currentMap.Name.Length <= 5 && (entryName.Equals("GL_" + m_currentMap.Name, StringComparison.OrdinalIgnoreCase));
         }
 
-        private bool IsMapEntry(CIString entryName)
+        private bool IsMapEntry(string entryName)
         {
             return IsGLBSPMapHeader(entryName) || MapEntryNames.Contains(entryName);
         }
@@ -110,10 +111,10 @@ namespace Helion.Resources.Archives.Iterator
         {
             m_currentMap = new MapEntryCollection();
             m_makingMap = false;
-            m_lastEntryName = "";
+            m_lastEntryName = string.Empty;
         }
 
-        private void TrackMapEntry(CIString entryName, Entry entry)
+        private void TrackMapEntry(string entryName, Entry entry)
         {
             if (IsGLBSPMapHeader(entryName))
             {

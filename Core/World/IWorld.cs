@@ -16,7 +16,6 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
 using Helion.Models;
@@ -29,7 +28,7 @@ namespace Helion.World
 {
     public interface IWorld : IDisposable
     {
-        CIString MapName { get; }
+        string MapName { get; }
         int Gametick { get; }
         int LevelTime { get; }
         double Gravity { get; }

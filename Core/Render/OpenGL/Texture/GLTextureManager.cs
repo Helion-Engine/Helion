@@ -22,7 +22,7 @@ namespace Helion.Render.OpenGL.Texture
         protected readonly GLCapabilities Capabilities;
         protected readonly IGLFunctions gl;
         private readonly IImageRetriever m_imageRetriever;
-        private readonly Dictionary<CIString, GLFontTexture<GLTextureType>> m_fonts = new Dictionary<CIString, GLFontTexture<GLTextureType>>();
+        private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
 
         public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
@@ -81,7 +81,7 @@ namespace Helion.Render.OpenGL.Texture
         /// </summary>
         /// <param name="name">The name of the image.</param>
         /// <returns>True if it does, false if not.</returns>
-        public bool Contains(CIString name)
+        public bool Contains(string name)
         {
             return TryGet(name, ResourceNamespace.Global, out _);
         }
@@ -97,7 +97,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture you want, or it will be the null image texture.</param>
         /// <returns>True if the texture was found, false if it was not found
         /// and the out value is the null texture handle.</returns>
-        public bool TryGet(CIString name, ResourceNamespace priorityNamespace, out GLTextureType texture)
+        public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture)
         {
             texture = NullTexture;
             if (name == Constants.NoTexture)
@@ -197,7 +197,7 @@ namespace Helion.Render.OpenGL.Texture
         /// the texture you want, or it will be the null image texture.</param>
         /// <returns>True if the texture was found, false if it was not found
         /// and the out value is the null texture handle.</returns>
-        public bool TryGetSprite(CIString name, out GLTextureType texture)
+        public bool TryGetSprite(string name, out GLTextureType texture)
         {
             return TryGet(name, ResourceNamespace.Sprites, out texture);
         }
@@ -210,7 +210,7 @@ namespace Helion.Render.OpenGL.Texture
         /// <returns>The font for the provided name, otherwise the 'Null
         /// texture' (which isn't null but is made up of textures that are the
         /// missing texture image).</returns>
-        public GLFontTexture<GLTextureType> GetFont(CIString name)
+        public GLFontTexture<GLTextureType> GetFont(string name)
         {
             if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? existingFontTexture))
                 return existingFontTexture;
@@ -236,7 +236,7 @@ namespace Helion.Render.OpenGL.Texture
 
         protected GLTextureType CreateTexture(Image? image) => CreateTexture(image, null, ResourceNamespace.Global);
 
-        protected GLTextureType CreateTexture(Image? image, CIString? name, ResourceNamespace resourceNamespace)
+        protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace)
         {
             if (name != null)
                 DeleteOldTextureIfAny(name, resourceNamespace);
@@ -245,7 +245,7 @@ namespace Helion.Render.OpenGL.Texture
             if (image == null)
                 texture = NullTexture;
             else
-                texture = GenerateTexture(image, name == null ? string.Empty : name, resourceNamespace);
+                texture = GenerateTexture(image, name ?? "", resourceNamespace);
 
             if (name != null)
                 m_textureTracker.Insert(name, resourceNamespace, texture);
@@ -253,7 +253,7 @@ namespace Helion.Render.OpenGL.Texture
             return texture;
         }
 
-        protected void DeleteTexture(GLTextureType texture, CIString name, ResourceNamespace resourceNamespace)
+        protected void DeleteTexture(GLTextureType texture, string name, ResourceNamespace resourceNamespace)
         {
             m_textureTracker.Remove(name, resourceNamespace);
             texture.Dispose();
@@ -268,9 +268,9 @@ namespace Helion.Render.OpenGL.Texture
             m_fonts.ForEach(pair => pair.Value.Dispose());
         }
 
-        protected abstract GLTextureType GenerateTexture(Image image, CIString name, ResourceNamespace resourceNamespace);
+        protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace);
 
-        protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, CIString name);
+        protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, string name);
 
         private GLTextureType CreateNullTexture()
         {
@@ -294,14 +294,14 @@ namespace Helion.Render.OpenGL.Texture
             return GenerateFont(font, NullFontName);
         }
 
-        private void DeleteOldTextureIfAny(CIString name, ResourceNamespace resourceNamespace)
+        private void DeleteOldTextureIfAny(string name, ResourceNamespace resourceNamespace)
         {
             GLTextureType? texture = m_textureTracker.GetOnly(name, resourceNamespace);
             if (texture != null)
                 DeleteTexture(texture, name, resourceNamespace);
         }
 
-        private GLFontTexture<GLTextureType> CreateNewFont(Font font, CIString name)
+        private GLFontTexture<GLTextureType> CreateNewFont(Font font, string name)
         {
             GLFontTexture<GLTextureType> fontTexture = GenerateFont(font, name);
 
@@ -311,7 +311,7 @@ namespace Helion.Render.OpenGL.Texture
             return fontTexture;
         }
 
-        private void DeleteOldFontIfAny(CIString name)
+        private void DeleteOldFontIfAny(string name)
         {
             if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? texture))
             {

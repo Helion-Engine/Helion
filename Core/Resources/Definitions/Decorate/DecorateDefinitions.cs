@@ -5,18 +5,17 @@ using System.Text;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Parser;
-using Helion.Util;
 using MoreLinq;
 
 namespace Helion.Resources.Definitions.Decorate
 {
     public class DecorateDefinitions
     {
-        private readonly Dictionary<CIString, ActorDefinition> m_definitions = new Dictionary<CIString, ActorDefinition>();
+        private readonly Dictionary<string, ActorDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, ActorDefinition> m_definitionsByEditorNumber = new Dictionary<int, ActorDefinition>();
         private readonly ArchiveCollection m_archiveCollection;
         
-        public ActorDefinition? this[CIString name] => m_definitions.TryGetValue(name, out ActorDefinition? def) ? def : null;
+        public ActorDefinition? this[string name] => m_definitions.TryGetValue(name, out ActorDefinition? def) ? def : null;
         public ActorDefinition? this[int editorNum] => m_definitionsByEditorNumber.TryGetValue(editorNum, out ActorDefinition? def) ? def : null;
 
         public List<ActorDefinition> GetActorDefinitions() => m_definitions.Values.ToList();

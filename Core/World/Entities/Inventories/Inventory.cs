@@ -13,21 +13,21 @@ namespace Helion.World.Entities.Inventories
 {
     public class Inventory
     {
-        public static readonly CIString AmmoClassName = "AMMO";
-        public static readonly CIString BackPackBaseClassName = "BACKPACKITEM";
-        public static readonly CIString WeaponClassName = "WEAPON";
-        public static readonly CIString HealthClassName = "HEALTH";
-        public static readonly CIString ArmorClassName = "ARMOR";
-        public static readonly CIString BasicArmorBonusClassName = "BASICARMORBONUS";
-        public static readonly CIString BasicArmorPickupClassName = "BASICARMORPICKUP";
-        public static readonly CIString KeyClassName = "KEY";
-        public static readonly CIString PowerupClassName = "POWERUPGIVER";
+        public static readonly string AmmoClassName = "AMMO";
+        public static readonly string BackPackBaseClassName = "BACKPACKITEM";
+        public static readonly string WeaponClassName = "WEAPON";
+        public static readonly string HealthClassName = "HEALTH";
+        public static readonly string ArmorClassName = "ARMOR";
+        public static readonly string BasicArmorBonusClassName = "BASICARMORBONUS";
+        public static readonly string BasicArmorPickupClassName = "BASICARMORPICKUP";
+        public static readonly string KeyClassName = "KEY";
+        public static readonly string PowerupClassName = "POWERUPGIVER";
 
         /// <summary>
         /// All of the items owned by the player that are not a special type of
         /// item (ex: weapons, which need more logic).
         /// </summary>
-        private readonly Dictionary<CIString, InventoryItem> Items = new Dictionary<CIString, InventoryItem>();
+        private readonly Dictionary<string, InventoryItem> Items = new Dictionary<string, InventoryItem>(StringComparer.OrdinalIgnoreCase);
         private readonly List<InventoryItem> Keys = new List<InventoryItem>();
         private readonly EntityDefinitionComposer EntityDefinitionComposer;
         private readonly Player Owner;
@@ -72,7 +72,7 @@ namespace Helion.World.Entities.Inventories
                 EntityDefinition? definition = EntityDefinitionComposer.GetByName(weaponName);
                 if (definition != null)
                 {
-                    if (weaponName == playerModel.AnimationWeapon)
+                    if (weaponName.Equals(playerModel.AnimationWeapon, StringComparison.OrdinalIgnoreCase))
                         Weapons.Add(definition, owner, owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
                     else
                         Weapons.Add(definition, owner, owner.World.EntityManager);
@@ -116,7 +116,7 @@ namespace Helion.World.Entities.Inventories
             };
         }
 
-        public static CIString GetBaseInventoryName(EntityDefinition definition)
+        public static string GetBaseInventoryName(EntityDefinition definition)
         {
             int index = definition.ParentClassNames.IndexOf(AmmoClassName);
             if (index > 0 && index < definition.ParentClassNames.Count - 1)
@@ -125,10 +125,12 @@ namespace Helion.World.Entities.Inventories
             return definition.Name;
         }
 
+        // See TODO in Inventory.Add for this berserk check
         public static bool IsPowerup(EntityDefinition def) => 
-            def.IsType(PowerupClassName) || !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
-            // See TODO in Inventory.Add for this berserk check
-            def.Name == "BERSERK" || def.IsType("MapRevealer");
+            def.IsType(PowerupClassName) || 
+            !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
+            def.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase) || 
+            def.IsType("MapRevealer");
 
         public bool IsPowerupActive(PowerupType type)
         {
@@ -184,12 +186,12 @@ namespace Helion.World.Entities.Inventories
 
             // TODO test hack until A_GiveInventory and Pickup states are implemented
             bool overridehack = false;
-            if (definition.Name == "BERSERK")
+            if (definition.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase))
             {
                 overridehack = true;
                 GiveBerserk(definition);
             }
-            else if (definition.Name == "MEGASPHERE")
+            else if (definition.Name.Equals("MEGASPHERE", StringComparison.OrdinalIgnoreCase))
             {
                 GiveMegasphere();
             }
@@ -197,7 +199,7 @@ namespace Helion.World.Entities.Inventories
             if (definition.IsType(PowerupClassName) || overridehack)
                 AddPowerup(definition);
 
-            CIString name = GetBaseInventoryName(definition);
+            string name = GetBaseInventoryName(definition);
             int maxAmount = definition.Properties.Inventory.MaxAmount;
             if (definition.IsType(AmmoClassName) && HasItemOfClass(BackPackBaseClassName) && definition.Properties.Ammo.BackpackMaxAmount > maxAmount)
                 maxAmount = definition.Properties.Ammo.BackpackMaxAmount;
@@ -307,11 +309,11 @@ namespace Helion.World.Entities.Inventories
 
         public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)
         {
-            HashSet<CIString> addedBaseNames = new HashSet<CIString>();
+            HashSet<string> addedBaseNames = new(StringComparer.OrdinalIgnoreCase);
             List<EntityDefinition> ammoDefinitions = GetAmmoTypes(definitionComposer).Where(x => x.Properties.Ammo.BackpackAmount > 0).ToList();
             foreach (EntityDefinition ammo in ammoDefinitions)
             {
-                CIString baseName = GetBaseInventoryName(ammo);
+                string baseName = GetBaseInventoryName(ammo);
                 if (addedBaseNames.Contains(baseName))
                     continue;
 
@@ -348,15 +350,15 @@ namespace Helion.World.Entities.Inventories
             Keys.Clear();
         }
 
-        public bool HasItem(CIString name) => Items.ContainsKey(name);
+        public bool HasItem(string name) => Items.ContainsKey(name);
 
-        public bool HasAnyItem(IEnumerable<CIString> names) => names.Any(x => HasItem(x));
+        public bool HasAnyItem(IEnumerable<string> names) => names.Any(x => HasItem(x));
 
-        public bool HasItemOfClass(CIString name) => Items.Any(x => x.Value.Definition.IsType(name));
+        public bool HasItemOfClass(string name) => Items.Any(x => x.Value.Definition.IsType(name));
         
-        public int Amount(CIString name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
+        public int Amount(string name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
 
-        public void Remove(CIString name, int amount)
+        public void Remove(string name, int amount)
         {
             if (amount <= 0)
                 return;
@@ -385,7 +387,7 @@ namespace Helion.World.Entities.Inventories
         public List<InventoryItem> GetInventoryItems() => Items.Values.ToList();
         public List<InventoryItem> GetKeys() => Keys;
 
-        public void RemoveAll(CIString name)
+        public void RemoveAll(string name)
         {
             Items.Remove(name);
         }

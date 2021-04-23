@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
-using MoreLinq;
 
 namespace Helion.World.Entities.Inventories
 {
@@ -17,8 +17,8 @@ namespace Helion.World.Entities.Inventories
         private const int MaxSlot = 7;
         private static readonly (int, int) DefaultSlot = (-1, -1);
         private readonly Dictionary<int, Dictionary<int, Weapon>> m_weaponSlots = new();
-        private readonly Dictionary<CIString, (int, int)> m_weaponSlotLookup = new();
-        private readonly List<CIString> m_weaponNames = new();
+        private readonly Dictionary<string, (int, int)> m_weaponSlotLookup = new(StringComparer.OrdinalIgnoreCase);
+        private readonly List<string> m_weaponNames = new();
 
         public Weapons(Dictionary<int, List<string>> weaponSlots)
         {
@@ -33,7 +33,7 @@ namespace Helion.World.Entities.Inventories
             }
         }
 
-        public (int, int) GetWeaponSlot(CIString definitionName)
+        public (int, int) GetWeaponSlot(string definitionName)
         {
             if (m_weaponSlotLookup.TryGetValue(definitionName, out (int, int) slot))
                 return slot;
@@ -41,7 +41,7 @@ namespace Helion.World.Entities.Inventories
             return DefaultSlot;
         }
 
-        public IList<CIString> GetWeaponDefinitionNames() => m_weaponNames.AsReadOnly();
+        public IList<string> GetWeaponDefinitionNames() => m_weaponNames.AsReadOnly();
 
         public List<string> GetOwnedWeaponNames()
         {
@@ -148,10 +148,10 @@ namespace Helion.World.Entities.Inventories
         /// Removes a weapon with the name provided.
         /// </summary>
         /// <param name="name">The case-insensitive name of the weapon.</param>
-        public void Remove(CIString name)
+        public void Remove(string name)
         {
             foreach (var weapons in m_weaponSlots.Values)
-                foreach (var item in weapons.Where(kv => kv.Value.Definition.Name == name))
+                foreach (var item in weapons.Where(kv => kv.Value.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                     m_weaponSlots.Remove(item.Key);
         }
 
@@ -176,7 +176,7 @@ namespace Helion.World.Entities.Inventories
             return 0;
         }
 
-        public bool OwnsWeapon(CIString name) => GetWeapon(name) != null;
+        public bool OwnsWeapon(string name) => GetWeapon(name) != null;
 
         public List<Weapon> GetWeapons()
         {
@@ -186,13 +186,13 @@ namespace Helion.World.Entities.Inventories
             return allWeapons;
         }
 
-        public Weapon? GetWeapon(CIString name)
+        public Weapon? GetWeapon(string name)
         {
             foreach (var weapons in m_weaponSlots.Values)
             {
                 foreach (var weapon in weapons.Values)
                 {
-                    if (weapon.Definition.Name == name)
+                    if (weapon.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                         return weapon;
                 }
             }

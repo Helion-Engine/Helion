@@ -14,7 +14,7 @@ namespace Helion.Maps
         /// <summary>
         /// The name of the map.
         /// </summary>
-        public CIString Name = string.Empty;
+        public string Name = string.Empty;
 
         // The following are a list of all the components that may be present.
         public byte[]? Vertices { get; set; }
@@ -60,20 +60,16 @@ namespace Helion.Maps
         /// false otherwise.</returns>
         public bool IsValid()
         {
-            if (Name.IsEmpty())
+            if (string.IsNullOrEmpty(Name))
                 return false;
 
-            switch (MapType)
+            return MapType switch
             {
-            case MapType.Doom:
-                return IsDoomMap;
-            case MapType.Hexen:
-                return IsHexenMap;
-            case MapType.UDMF:
-                return IsUDMFMap;
-            }
-
-            return false;
+                MapType.Doom => IsDoomMap,
+                MapType.Hexen => IsHexenMap,
+                MapType.UDMF => IsUDMFMap,
+                _ => false,
+            };
         }
 
         /// <summary>

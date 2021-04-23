@@ -88,7 +88,7 @@ namespace Helion.Maps.Hexen
             IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes);
 
             GLComponents? gl = GLComponents.Read(map);
-            return new HexenMap(archive, map.Name.ToString().ToUpper(), vertices, sectors, sides, lines, things, nodes, gl);
+            return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl);
         }
 
         public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;

@@ -14,18 +14,18 @@ namespace Helion.Resources.Definitions.MapInfo
         public MapInfo MapInfo { get; private set; } = new();
         public GameInfoDef GameDefinition { get; private set; } = new();
 
-        private static readonly CIString GameInfoName = "gameinfo";
-        private static readonly CIString ClearEpisodesName = "clearepisodes";
-        private static readonly CIString EpisodeName = "episode";
-        private static readonly CIString ClusterName = "cluster";
-        private static readonly CIString ClusterDefName = "clusterdef";
-        private static readonly CIString DefaultMapName = "defaultmap";
-        private static readonly CIString AddDefaultMapName = "adddefaultmap";
-        private static readonly CIString MapName = "map";
-        private static readonly CIString SkillName = "skill";
-        private static readonly CIString ClearSkillsName = "clearskills";
+        private static readonly string GameInfoName = "gameinfo";
+        private static readonly string ClearEpisodesName = "clearepisodes";
+        private static readonly string EpisodeName = "episode";
+        private static readonly string ClusterName = "cluster";
+        private static readonly string ClusterDefName = "clusterdef";
+        private static readonly string DefaultMapName = "defaultmap";
+        private static readonly string AddDefaultMapName = "adddefaultmap";
+        private static readonly string MapName = "map";
+        private static readonly string SkillName = "skill";
+        private static readonly string ClearSkillsName = "clearskills";
 
-        private static readonly HashSet<CIString> HighLevelNames = new HashSet<CIString>
+        private static readonly HashSet<string> HighLevelNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             GameInfoName,
             ClearEpisodesName,
@@ -39,21 +39,21 @@ namespace Helion.Resources.Definitions.MapInfo
             ClearSkillsName
         };
 
-        private static readonly CIString GameCreditPageName = "creditpage";
-        private static readonly CIString GameFinalePageName = "finalepage";
-        private static readonly CIString GameInfoPageName = "infopage";
-        private static readonly CIString GameQuitMessagesName = "quitmessages";
-        private static readonly CIString GameTitleMusicName = "titlemusic";
-        private static readonly CIString GameTitleTimeName = "titletime";
-        private static readonly CIString GameFinaleMusicName = "finalemusic";
-        private static readonly CIString GameFinaleFlatName = "finaleflat";
-        private static readonly CIString GameQuitSoundName = "quitsound";
-        private static readonly CIString GameBorderFlatName = "borderflat";
-        private static readonly CIString GameDrawReadThisName = "drawreadthis";
-        private static readonly CIString GameIntermissionMusicName = "intermissionmusic";
-        private static readonly CIString GameWeaponSlotName = "WeaponSlot";
+        private static readonly string GameCreditPageName = "creditpage";
+        private static readonly string GameFinalePageName = "finalepage";
+        private static readonly string GameInfoPageName = "infopage";
+        private static readonly string GameQuitMessagesName = "quitmessages";
+        private static readonly string GameTitleMusicName = "titlemusic";
+        private static readonly string GameTitleTimeName = "titletime";
+        private static readonly string GameFinaleMusicName = "finalemusic";
+        private static readonly string GameFinaleFlatName = "finaleflat";
+        private static readonly string GameQuitSoundName = "quitsound";
+        private static readonly string GameBorderFlatName = "borderflat";
+        private static readonly string GameDrawReadThisName = "drawreadthis";
+        private static readonly string GameIntermissionMusicName = "intermissionmusic";
+        private static readonly string GameWeaponSlotName = "WeaponSlot";
 
-        private static readonly HashSet<CIString> GameInfoNames = new HashSet<CIString>
+        private static readonly HashSet<string> GameInfoNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             GameCreditPageName,
             GameFinalePageName,
@@ -70,30 +70,30 @@ namespace Helion.Resources.Definitions.MapInfo
             GameWeaponSlotName
         };
 
-        private static readonly CIString EpisodePicName = "picname";
-        private static readonly CIString EpisodeEpName = "name";
-        private static readonly CIString EpisodeKeyName = "key";
+        private static readonly string EpisodePicName = "picname";
+        private static readonly string EpisodeEpName = "name";
+        private static readonly string EpisodeKeyName = "key";
 
-        private static readonly HashSet<CIString> EpisodeNames = new HashSet<CIString>
+        private static readonly HashSet<string> EpisodeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             EpisodePicName,
             EpisodeEpName,
             EpisodeKeyName
         };
 
-        private static readonly CIString MapLevelNumName = "levelnum";
-        private static readonly CIString MapTitlePatchName = "titlepatch";
-        private static readonly CIString MapNextName = "next";
-        private static readonly CIString MapSecretName = "secretnext";
-        private static readonly CIString MapSky1Name = "sky1";
-        private static readonly CIString MapSky2Name = "sky2";
-        private static readonly CIString MapClusterName = "cluster";
-        private static readonly CIString MapParName = "par";
-        private static readonly CIString MapSuckName = "sucktime";
-        private static readonly CIString MapMusicName = "music";
-        private static readonly CIString MapEndGame = "endgame";
+        private static readonly string MapLevelNumName = "levelnum";
+        private static readonly string MapTitlePatchName = "titlepatch";
+        private static readonly string MapNextName = "next";
+        private static readonly string MapSecretName = "secretnext";
+        private static readonly string MapSky1Name = "sky1";
+        private static readonly string MapSky2Name = "sky2";
+        private static readonly string MapClusterName = "cluster";
+        private static readonly string MapParName = "par";
+        private static readonly string MapSuckName = "sucktime";
+        private static readonly string MapMusicName = "music";
+        private static readonly string MapEndGame = "endgame";
 
-        private static readonly HashSet<CIString> MapNames = new HashSet<CIString>
+        private static readonly HashSet<string> MapNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             MapLevelNumName,
             MapTitlePatchName,
@@ -107,16 +107,16 @@ namespace Helion.Resources.Definitions.MapInfo
             MapMusicName
         };
 
-        private static readonly CIString ClusterEnterTextName = "entertext";
-        private static readonly CIString ClusterExitTextName = "exittext";
-        private static readonly CIString ClusterExitTextIsLumpName = "exittextislump";
-        private static readonly CIString ClusterMusicName = "music";
-        private static readonly CIString ClusterFlatName = "flat";
-        private static readonly CIString ClusterPicName = "pic";
-        private static readonly CIString ClusterHubName = "hub";
-        private static readonly CIString ClusterAllowIntermissionName = "allowintermission";
+        private static readonly string ClusterEnterTextName = "entertext";
+        private static readonly string ClusterExitTextName = "exittext";
+        private static readonly string ClusterExitTextIsLumpName = "exittextislump";
+        private static readonly string ClusterMusicName = "music";
+        private static readonly string ClusterFlatName = "flat";
+        private static readonly string ClusterPicName = "pic";
+        private static readonly string ClusterHubName = "hub";
+        private static readonly string ClusterAllowIntermissionName = "allowintermission";
 
-        private static readonly HashSet<CIString> ClusterNames = new HashSet<CIString>
+        private static readonly HashSet<string> ClusterNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ClusterEnterTextName,
             ClusterExitTextName,
@@ -126,41 +126,41 @@ namespace Helion.Resources.Definitions.MapInfo
             ClusterPicName,
         };
 
-        private static readonly CIString Skill_AmmoFactorName = "AmmoFactor";
-        private static readonly CIString Skill_DropAmmoFactorName = "DropAmmoFactor";
-        private static readonly CIString Skill_DoubleAmmoFactorName = "DoubleAmmoFactor";
-        private static readonly CIString Skill_DamageFactorName = "DamageFactor";
-        private static readonly CIString Skill_RespawnTimeName = "RespawnTime";
-        private static readonly CIString Skill_RespawnLimit= "RespawnLimit";
-        private static readonly CIString Skill_AggressivenessName = "Aggressiveness";
-        private static readonly CIString Skill_SpawnFilterName = "SpawnFilter";
-        private static readonly CIString Skill_ACSReturnName = "ACSReturn";
-        private static readonly CIString Skill_KeyName = "Key";
-        private static readonly CIString Skill_MustConfirmName = "MustConfirm";
-        private static readonly CIString Skill_Name = "Name";
-        private static readonly CIString Skill_PlayerClassNameName = "PlayerClassName";
-        private static readonly CIString Skill_PicNameName = "PicName";
-        private static readonly CIString Skill_TextColorName = "TextColorName";
-        private static readonly CIString Skill_EasyBossBrainName = "EasyBossBrain";
-        private static readonly CIString Skill_EasyKeyName = "EasyKey";
-        private static readonly CIString Skill_FastMonstersName = "FastMonsters";
-        private static readonly CIString Skill_SlowMonstersName = "SlowMonsters";
-        private static readonly CIString Skill_DisableCheatsName = "DisableCheats";
-        private static readonly CIString Skill_AutoUseHealthName = "AutoUseHealth";
-        private static readonly CIString Skill_ReplaceActorName = "ReplaceActor";
-        private static readonly CIString Skill_MonsterHealthName = "MonsterHealth";
-        private static readonly CIString Skill_FriendlyHealthName = "FriendlyHealth";
-        private static readonly CIString Skill_NoPainName = "NoPain";
-        private static readonly CIString Skill_DefaultSkillName = "DefaultSkill";
-        private static readonly CIString Skill_ArmorFactorName = "ArmorFactor";
-        private static readonly CIString Skill_NoInfightingName = "NoInfighting";
-        private static readonly CIString Skill_TotalInfightingName = "TotalInfighting";
-        private static readonly CIString Skill_HealthFactorName = "HealthFactor";
-        private static readonly CIString Skill_KickbackFactorName = "KickbackFactor";
-        private static readonly CIString Skill_NoMenuName = "NoMenu";
-        private static readonly CIString Skill_PlayerRespawnName = "PlayerRespawn";
+        private static readonly string Skill_AmmoFactorName = "AmmoFactor";
+        private static readonly string Skill_DropAmmoFactorName = "DropAmmoFactor";
+        private static readonly string Skill_DoubleAmmoFactorName = "DoubleAmmoFactor";
+        private static readonly string Skill_DamageFactorName = "DamageFactor";
+        private static readonly string Skill_RespawnTimeName = "RespawnTime";
+        private static readonly string Skill_RespawnLimit= "RespawnLimit";
+        private static readonly string Skill_AggressivenessName = "Aggressiveness";
+        private static readonly string Skill_SpawnFilterName = "SpawnFilter";
+        private static readonly string Skill_ACSReturnName = "ACSReturn";
+        private static readonly string Skill_KeyName = "Key";
+        private static readonly string Skill_MustConfirmName = "MustConfirm";
+        private static readonly string Skill_Name = "Name";
+        private static readonly string Skill_PlayerClassNameName = "PlayerClassName";
+        private static readonly string Skill_PicNameName = "PicName";
+        private static readonly string Skill_TextColorName = "TextColorName";
+        private static readonly string Skill_EasyBossBrainName = "EasyBossBrain";
+        private static readonly string Skill_EasyKeyName = "EasyKey";
+        private static readonly string Skill_FastMonstersName = "FastMonsters";
+        private static readonly string Skill_SlowMonstersName = "SlowMonsters";
+        private static readonly string Skill_DisableCheatsName = "DisableCheats";
+        private static readonly string Skill_AutoUseHealthName = "AutoUseHealth";
+        private static readonly string Skill_ReplaceActorName = "ReplaceActor";
+        private static readonly string Skill_MonsterHealthName = "MonsterHealth";
+        private static readonly string Skill_FriendlyHealthName = "FriendlyHealth";
+        private static readonly string Skill_NoPainName = "NoPain";
+        private static readonly string Skill_DefaultSkillName = "DefaultSkill";
+        private static readonly string Skill_ArmorFactorName = "ArmorFactor";
+        private static readonly string Skill_NoInfightingName = "NoInfighting";
+        private static readonly string Skill_TotalInfightingName = "TotalInfighting";
+        private static readonly string Skill_HealthFactorName = "HealthFactor";
+        private static readonly string Skill_KickbackFactorName = "KickbackFactor";
+        private static readonly string Skill_NoMenuName = "NoMenu";
+        private static readonly string Skill_PlayerRespawnName = "PlayerRespawn";
 
-        private static readonly HashSet<CIString> SkillNames = new HashSet<CIString>()
+        private static readonly HashSet<string> SkillNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             Skill_AmmoFactorName,
             Skill_DropAmmoFactorName,
@@ -197,13 +197,13 @@ namespace Helion.Resources.Definitions.MapInfo
             Skill_PlayerRespawnName
         };
 
-        private static readonly CIString EndGame_PicName = "pic";
-        private static readonly CIString EndGame_MusicName = "music";
-        private static readonly CIString EndGame_HScrollName = "hscroll";
-        private static readonly CIString EndGame_VScollName = "vscroll";
-        private static readonly CIString EndGame_CastName = "cast";
+        private static readonly string EndGame_PicName = "pic";
+        private static readonly string EndGame_MusicName = "music";
+        private static readonly string EndGame_HScrollName = "hscroll";
+        private static readonly string EndGame_VScollName = "vscroll";
+        private static readonly string EndGame_CastName = "cast";
 
-        private static readonly HashSet<CIString> EndGameNames = new HashSet<CIString>()
+        private static readonly HashSet<string> EndGameNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             EndGame_PicName,
             EndGame_MusicName,
@@ -222,27 +222,27 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!parser.IsDone())
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
-                if (item == "include")
+                if (item.Equals("include", StringComparison.OrdinalIgnoreCase))
                     ParseInclude(archiveCollection, parser);
-                else if (item == GameInfoName)
+                else if (item.Equals(GameInfoName, StringComparison.OrdinalIgnoreCase))
                     ParseGameInfo(parser, GameDefinition);
-                else if (item == ClearEpisodesName)
+                else if (item.Equals(ClearEpisodesName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.ClearEpisodes();
-                else if (item == EpisodeName)
+                else if (item.Equals(EpisodeName, StringComparison.OrdinalIgnoreCase))
                     ParseEpisode(parser);
-                else if (item == ClusterName || item == ClusterDefName)
+                else if (item.Equals(ClusterName, StringComparison.OrdinalIgnoreCase) || item.Equals(ClusterDefName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.AddCluster(ParseCluster(parser));
-                else if (item == DefaultMapName)
+                else if (item.Equals(DefaultMapName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.SetDefaultMap(ParseMapDef(parser, false));
-                else if (item == AddDefaultMapName)
+                else if (item.Equals(AddDefaultMapName, StringComparison.OrdinalIgnoreCase))
                     ParseMapDef(parser, false, MapInfo.DefaultMap);
-                else if (item == MapName)
+                else if (item.Equals(MapName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.AddMap(ParseMapDef(parser, true, (MapInfoDef)MapInfo.DefaultMap.Clone()));
-                else if (item == SkillName)
+                else if (item.Equals(SkillName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.AddSkill(ParseSkillDef(parser));
-                else if (item == ClearSkillsName)
+                else if (item.Equals(ClearSkillsName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.ClearSkills();
                 else
                     throw new ParserException(parser.GetCurrentLine(), parser.GetCurrentCharOffset(), 0, $"Unknown item {item}");
@@ -280,66 +280,66 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser))
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
                 if (MapNames.Contains(item))
                 {
                     ConsumeEquals(parser);
 
-                    if (item == MapLevelNumName)
+                    if (item.Equals(MapLevelNumName, StringComparison.OrdinalIgnoreCase))
                         mapDef.LevelNumber = parser.ConsumeInteger();
-                    else if (item == MapTitlePatchName)
+                    else if (item.Equals(MapTitlePatchName, StringComparison.OrdinalIgnoreCase))
                         mapDef.TitlePatch = parser.ConsumeString();
-                    else if (item == MapNextName)
+                    else if (item.Equals(MapNextName, StringComparison.OrdinalIgnoreCase))
                     {
                         mapDef.Next = parser.ConsumeString();
-                        if (mapDef.Next == MapEndGame)
+                        if (mapDef.Next.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
                             mapDef.EndGame = ParseEndGame(parser);
                     }
-                    else if (item == MapSecretName)
+                    else if (item.Equals(MapSecretName, StringComparison.OrdinalIgnoreCase))
                     {
                         mapDef.SecretNext = parser.ConsumeString();
-                        if (mapDef.SecretNext == MapEndGame)
+                        if (mapDef.SecretNext.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
                             mapDef.EndGameSecret = ParseEndGame(parser);
                     }
-                    else if (item == MapSky1Name)
+                    else if (item.Equals(MapSky1Name, StringComparison.OrdinalIgnoreCase))
                         mapDef.Sky1 = ParseMapSky(parser);
-                    else if (item == MapSky2Name)
+                    else if (item.Equals(MapSky2Name, StringComparison.OrdinalIgnoreCase))
                         mapDef.Sky2 = ParseMapSky(parser);
-                    else if (item == MapClusterName)
+                    else if (item.Equals(MapClusterName, StringComparison.OrdinalIgnoreCase))
                         mapDef.Cluster = parser.ConsumeInteger();
-                    else if (item == MapParName)
+                    else if (item.Equals(MapParName, StringComparison.OrdinalIgnoreCase))
                         mapDef.ParTime = parser.ConsumeInteger();
-                    else if (item == MapSuckName)
+                    else if (item.Equals(MapSuckName, StringComparison.OrdinalIgnoreCase))
                         mapDef.SuckTime = parser.ConsumeInteger();
-                    else if (item == MapMusicName)
+                    else if (item.Equals(MapMusicName, StringComparison.OrdinalIgnoreCase))
                         mapDef.Music = parser.ConsumeString();
                 }
-                else if (item == "nointermission")
+                else if (item.Equals("nointermission", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapOptions |= MapOptions.NoIntermission;
-                else if (item == "needclustertext")
+                else if (item.Equals("needclustertext", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapOptions |= MapOptions.NeedClusterText;
-                else if (item == "allowmonstertelefrags")
+                else if (item.Equals("allowmonstertelefrags", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapOptions |= MapOptions.AllowMonsterTelefrags;
-                else if (item == "nocrouch")
+                else if (item.Equals("nocrouch", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapOptions |= MapOptions.NoCrouch;
-                else if (item == "nojump")
+                else if (item.Equals("nojump", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapOptions |= MapOptions.NoJump;
-                else if (item == "nosoundclipping")
+                else if (item.Equals("nosoundclipping", StringComparison.OrdinalIgnoreCase))
                     continue; // Deprecated, no longer used
-                else if (item == "baronspecial")
+                else if (item.Equals("baronspecial", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecial = MapSpecial.BaronSpecial;
-                else if (item == "cyberdemonspecial")
+                else if (item.Equals("cyberdemonspecial", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecial = MapSpecial.CyberdemonSpecial;
-                else if (item == "spidermastermindspecial")
+                else if (item.Equals("spidermastermindspecial", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecial = MapSpecial.SpiderMastermindSpecial;
-                else if (item == "map07special")
+                else if (item.Equals("map07special", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecial = MapSpecial.Map07Special;
-                else if (item == "specialaction_lowerfloor")
+                else if (item.Equals("specialaction_lowerfloor", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecialAction = MapSpecialAction.LowerFloor;
-                else if (item == "specialaction_exitlevel")
+                else if (item.Equals("specialaction_exitlevel", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecialAction = MapSpecialAction.ExitLevel;
-                else if (item == "specialaction_opendoor")
+                else if (item.Equals("specialaction_opendoor", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecialAction = MapSpecialAction.OpenDoor;
                 else
                 {
@@ -359,31 +359,31 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser))
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
                 if (EndGameNames.Contains(item))
                 {
-                    if (item == EndGame_PicName)
+                    if (item.Equals(EndGame_PicName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         endGameDef.Pic = parser.ConsumeString();
                     }
-                    else if (item == EndGame_MusicName)
+                    else if (item.Equals(EndGame_MusicName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         endGameDef.Music = parser.ConsumeString();
                     }
-                    else if (item == EndGame_HScrollName)
+                    else if (item.Equals(EndGame_HScrollName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         endGameDef.HorizontalScroll = GetEndGameHScroll(parser);
                     }
-                    else if (item == EndGame_VScollName)
+                    else if (item.Equals(EndGame_VScollName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         endGameDef.VerticalScroll = GetEndGameVScroll(parser);
                     }
-                    else if (item == EndGame_CastName)
+                    else if (item.Equals(EndGame_CastName, StringComparison.OrdinalIgnoreCase))
                     {
                         endGameDef.Cast = true;
                     }
@@ -438,28 +438,28 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser))
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
                 if (ClusterNames.Contains(item))
                 {
                     ConsumeEquals(parser);
 
-                    if (item == ClusterEnterTextName)
+                    if (item.Equals(ClusterEnterTextName, StringComparison.OrdinalIgnoreCase))
                         clusterDef.EnterText = GetClusterText(parser);
-                    else if (item == ClusterExitTextName)
+                    else if (item.Equals(ClusterExitTextName, StringComparison.OrdinalIgnoreCase))
                         clusterDef.ExitText = GetClusterText(parser);
-                    else if (item == ClusterMusicName)
+                    else if (item.Equals(ClusterMusicName, StringComparison.OrdinalIgnoreCase))
                         clusterDef.Music = parser.ConsumeString();
-                    else if (item == ClusterFlatName)
+                    else if (item.Equals(ClusterFlatName, StringComparison.OrdinalIgnoreCase))
                         clusterDef.Flat = parser.ConsumeString();
-                    else if (item == ClusterPicName)
+                    else if (item.Equals(ClusterPicName, StringComparison.OrdinalIgnoreCase))
                         clusterDef.Pic = parser.ConsumeString();
                 }
-                else if (item == ClusterExitTextIsLumpName)
+                else if (item.Equals(ClusterExitTextIsLumpName, StringComparison.OrdinalIgnoreCase))
                     clusterDef.IsExitTextLump = true;
-                else if (item == ClusterHubName)
+                else if (item.Equals(ClusterHubName, StringComparison.OrdinalIgnoreCase))
                     clusterDef.IsHub = true;
-                else if (item == ClusterAllowIntermissionName)
+                else if (item.Equals(ClusterAllowIntermissionName, StringComparison.OrdinalIgnoreCase))
                     clusterDef.AllowIntermission = true;
                 else
                 {
@@ -506,19 +506,19 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser))
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
                 if (EpisodeNames.Contains(item))
                 {
                     ConsumeEquals(parser);
-                    if (item == EpisodePicName)
+                    if (item.Equals(EpisodePicName, StringComparison.OrdinalIgnoreCase))
                         episodeDef.PicName = parser.ConsumeString();
-                    else if (item == EpisodeEpName)
+                    else if (item.Equals(EpisodeEpName, StringComparison.OrdinalIgnoreCase))
                         episodeDef.Name = parser.ConsumeString();
-                    else if (item == EpisodeKeyName)
+                    else if (item.Equals(EpisodeKeyName, StringComparison.OrdinalIgnoreCase))
                         episodeDef.Key = parser.ConsumeString();
                 }
-                else if (item == "optional")
+                else if (item.Equals("optional", StringComparison.OrdinalIgnoreCase))
                     episodeDef.Optional = true;
                 else
                 {
@@ -537,37 +537,37 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser))
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
                 if (GameInfoNames.Contains(item))
                 {
                     ConsumeEquals(parser);
 
-                    if (item == GameCreditPageName)
+                    if (item.Equals(GameCreditPageName, StringComparison.OrdinalIgnoreCase))
                         gameDef.CreditPages = GetStringList(parser);
-                    else if (item == GameFinalePageName)
+                    else if (item.Equals(GameFinalePageName, StringComparison.OrdinalIgnoreCase))
                         gameDef.FinalePages = GetStringList(parser);
-                    else if (item == GameInfoPageName)
+                    else if (item.Equals(GameInfoPageName, StringComparison.OrdinalIgnoreCase))
                         gameDef.InfoPages = GetStringList(parser);
-                    else if (item == GameQuitMessagesName)
+                    else if (item.Equals(GameQuitMessagesName, StringComparison.OrdinalIgnoreCase))
                         gameDef.QuitMessages = GetStringList(parser);
-                    else if (item == GameTitleMusicName)
+                    else if (item.Equals(GameTitleMusicName, StringComparison.OrdinalIgnoreCase))
                         gameDef.TitleMusic = parser.ConsumeString();
-                    else if (item == GameTitleTimeName)
+                    else if (item.Equals(GameTitleTimeName, StringComparison.OrdinalIgnoreCase))
                         gameDef.TitleTime = parser.ConsumeInteger();
-                    else if (item == GameFinaleMusicName)
+                    else if (item.Equals(GameFinaleMusicName, StringComparison.OrdinalIgnoreCase))
                         gameDef.FinaleMusic = parser.ConsumeString();
-                    else if (item == GameFinaleFlatName)
+                    else if (item.Equals(GameFinaleFlatName, StringComparison.OrdinalIgnoreCase))
                         gameDef.FinaleFlat = parser.ConsumeString();
-                    else if (item == GameQuitSoundName)
+                    else if (item.Equals(GameQuitSoundName, StringComparison.OrdinalIgnoreCase))
                         gameDef.QuitSound = parser.ConsumeString();
-                    else if (item == GameBorderFlatName)
+                    else if (item.Equals(GameBorderFlatName, StringComparison.OrdinalIgnoreCase))
                         gameDef.BorderFlat = parser.ConsumeString();
-                    else if (item == GameDrawReadThisName)
+                    else if (item.Equals(GameDrawReadThisName, StringComparison.OrdinalIgnoreCase))
                         gameDef.DrawReadThis = parser.ConsumeBool();
-                    else if (item == GameIntermissionMusicName)
+                    else if (item.Equals(GameIntermissionMusicName, StringComparison.OrdinalIgnoreCase))
                         gameDef.IntermissionMusic = parser.ConsumeString();
-                    else if (item == GameWeaponSlotName)
+                    else if (item.Equals(GameWeaponSlotName, StringComparison.OrdinalIgnoreCase))
                         ParseWeaponSlot(gameDef, parser);
                 }
                 else
@@ -600,121 +600,121 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser))
             {
-                CIString item = parser.ConsumeString();
+                string item = parser.ConsumeString();
 
                 if (SkillNames.Contains(item))
                 {
-                    if (item == Skill_AmmoFactorName)
+                    if (item.Equals(Skill_AmmoFactorName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.AmmoFactor = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_DropAmmoFactorName)
+                    else if (item.Equals(Skill_DropAmmoFactorName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.DropAmmoFactor = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_DoubleAmmoFactorName)
+                    else if (item.Equals(Skill_DoubleAmmoFactorName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.DoubleAmmoFactor = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_DamageFactorName)
+                    else if (item.Equals(Skill_DamageFactorName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.DamageFator = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_RespawnTimeName)
+                    else if (item.Equals(Skill_RespawnTimeName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.RespawnTime = TimeSpan.FromSeconds(parser.ConsumeInteger());
                     }
-                    else if (item == Skill_RespawnLimit)
+                    else if (item.Equals(Skill_RespawnLimit, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.RespawnLimit = parser.ConsumeInteger();
                     }
-                    else if (item == Skill_AggressivenessName)
+                    else if (item.Equals(Skill_AggressivenessName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.MonsterAggressiveness = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_SpawnFilterName)
+                    else if (item.Equals(Skill_SpawnFilterName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.SpawnFilter = ParseSpawnFilter(parser);
                     }
-                    else if (item == Skill_ACSReturnName)
+                    else if (item.Equals(Skill_ACSReturnName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.ACSReturn = parser.ConsumeString();
                     }
-                    else if (item == Skill_KeyName)
+                    else if (item.Equals(Skill_KeyName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.Key = parser.ConsumeString();
                     }
-                    else if (item == Skill_Name)
+                    else if (item.Equals(Skill_Name, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.Name = parser.ConsumeString();
                     }
-                    else if (item == Skill_PlayerClassNameName)
+                    else if (item.Equals(Skill_PlayerClassNameName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.PlayerClassName = parser.ConsumeString();
                     }
-                    else if (item == Skill_PicNameName)
+                    else if (item.Equals(Skill_PicNameName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.PicName = parser.ConsumeString();
                     }
-                    else if (item == Skill_TextColorName)
+                    else if (item.Equals(Skill_TextColorName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.TextColor = Color.FromName(parser.ConsumeString());
                     }
-                    else if (item == Skill_MonsterHealthName)
+                    else if (item.Equals(Skill_MonsterHealthName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.MonsterHealthFactor = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_FriendlyHealthName)
+                    else if (item.Equals(Skill_FriendlyHealthName, StringComparison.OrdinalIgnoreCase))
                     {
                         ConsumeEquals(parser);
                         skillDef.FriendlyHealthFactor = parser.ConsumeDouble();
                     }
-                    else if (item == Skill_EasyBossBrainName)
+                    else if (item.Equals(Skill_EasyBossBrainName, StringComparison.OrdinalIgnoreCase))
                         skillDef.EasyBossBrain = true;
-                    else if (item == Skill_EasyKeyName)
+                    else if (item.Equals(Skill_EasyKeyName, StringComparison.OrdinalIgnoreCase))
                         skillDef.EasyKey = true;
-                    else if (item == Skill_FastMonstersName)
+                    else if (item.Equals(Skill_FastMonstersName, StringComparison.OrdinalIgnoreCase))
                         skillDef.FastMonsters = true;
-                    else if (item == Skill_SlowMonstersName)
+                    else if (item.Equals(Skill_SlowMonstersName, StringComparison.OrdinalIgnoreCase))
                         skillDef.SlowMonsters = true;
-                    else if (item == Skill_DisableCheatsName)
+                    else if (item.Equals(Skill_DisableCheatsName, StringComparison.OrdinalIgnoreCase))
                         skillDef.DisableCheats = true;
-                    else if (item == Skill_AutoUseHealthName)
+                    else if (item.Equals(Skill_AutoUseHealthName, StringComparison.OrdinalIgnoreCase))
                         skillDef.AutoUseHealth = true;
-                    else if (item == Skill_NoPainName)
+                    else if (item.Equals(Skill_NoPainName, StringComparison.OrdinalIgnoreCase))
                         skillDef.NoPain = true;
-                    else if (item == Skill_DefaultSkillName)
+                    else if (item.Equals(Skill_DefaultSkillName, StringComparison.OrdinalIgnoreCase))
                         skillDef.Default = true;
-                    else if (item == Skill_ArmorFactorName)
+                    else if (item.Equals(Skill_ArmorFactorName, StringComparison.OrdinalIgnoreCase))
                         skillDef.ArmorFactor = parser.ConsumeDouble();
-                    else if (item == Skill_NoInfightingName)
+                    else if (item.Equals(Skill_NoInfightingName, StringComparison.OrdinalIgnoreCase))
                         skillDef.NoInfighting = true;
-                    else if (item == Skill_TotalInfightingName)
+                    else if (item.Equals(Skill_TotalInfightingName, StringComparison.OrdinalIgnoreCase))
                         skillDef.TotalInfighting = true;
-                    else if (item == Skill_HealthFactorName)
+                    else if (item.Equals(Skill_HealthFactorName, StringComparison.OrdinalIgnoreCase))
                         skillDef.HealthFactor = parser.ConsumeDouble();
-                    else if (item == Skill_KickbackFactorName)
+                    else if (item.Equals(Skill_KickbackFactorName, StringComparison.OrdinalIgnoreCase))
                         skillDef.KickbackFactor = parser.ConsumeDouble();
-                    else if (item == Skill_NoMenuName)
+                    else if (item.Equals(Skill_NoMenuName, StringComparison.OrdinalIgnoreCase))
                         skillDef.NoMenu = true;
-                    else if (item == Skill_PlayerRespawnName)
+                    else if (item.Equals(Skill_PlayerRespawnName, StringComparison.OrdinalIgnoreCase))
                         skillDef.PlayerRespawn = true;
-                    else if (item == Skill_MustConfirmName)
+                    else if (item.Equals(Skill_MustConfirmName, StringComparison.OrdinalIgnoreCase))
                         skillDef.MustConfirm = true;
                 }
                 else
@@ -731,19 +731,19 @@ namespace Helion.Resources.Definitions.MapInfo
 
         private int ParseSpawnFilter(SimpleParser parser)
         {
-            CIString filter = parser.ConsumeString();
+            string filter = parser.ConsumeString();
             if (int.TryParse(filter.ToString(), out int i))
                 return i;
 
-            if (filter == "baby")
+            if (filter.Equals("baby", StringComparison.OrdinalIgnoreCase))
                 return (int)SkillLevel.VeryEasy;
-            else if (filter == "easy")
+            else if (filter.Equals("easy", StringComparison.OrdinalIgnoreCase))
                 return (int)SkillLevel.Easy;
-            else if (filter == "normal")
+            else if (filter.Equals("normal", StringComparison.OrdinalIgnoreCase))
                 return (int)SkillLevel.Medium;
-            else if (filter == "hard")
+            else if (filter.Equals("hard", StringComparison.OrdinalIgnoreCase))
                 return (int)SkillLevel.Hard;
-            else if (filter == "nightmare")
+            else if (filter.Equals("nightmare", StringComparison.OrdinalIgnoreCase))
                 return (int)SkillLevel.Nightmare;
 
             throw new ParserException(parser.GetCurrentLine(), 0, 0, $"Invalid spawn filter {filter}");

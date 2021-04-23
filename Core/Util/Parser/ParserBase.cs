@@ -385,15 +385,12 @@ namespace Helion.Util.Parser
         protected bool ConsumeBoolean()
         {
             string str = ConsumeString();
-            switch (str.ToUpper())
-            {
-            case "TRUE":
+            if (str.Equals("TRUE", StringComparison.OrdinalIgnoreCase))
                 return true;
-            case "FALSE":
+            else if (str.Equals("FALSE", StringComparison.OrdinalIgnoreCase))
                 return false;
-            default:
+            else
                 throw MakeException($"Expecting boolean value of 'true' or 'false', got {str} instead");
-            }
         }
 
         /// <summary>

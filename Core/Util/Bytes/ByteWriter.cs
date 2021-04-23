@@ -167,16 +167,6 @@ namespace Helion.Util.Bytes
         /// </summary>
         /// <param name="items">The items to write.</param>
         /// <returns>This instance for chaining.</returns>
-        public ByteWriter String(params CIString[] items)
-        {
-            return String(items.Select(s => s.ToString()).ToArray());
-        }
-
-        /// <summary>
-        /// Writes the values into the data stream.
-        /// </summary>
-        /// <param name="items">The items to write.</param>
-        /// <returns>This instance for chaining.</returns>
         public ByteWriter StringNullTerminated(params string[] items)
         {
             for (int i = 0; i < items.Length; i++)
@@ -186,16 +176,6 @@ namespace Helion.Util.Bytes
             }
 
             return this;
-        }
-
-        /// <summary>
-        /// Writes the values into the data stream.
-        /// </summary>
-        /// <param name="items">The items to write.</param>
-        /// <returns>This instance for chaining.</returns>
-        public ByteWriter StringNullTerminated(params CIString[] items)
-        {
-            return StringNullTerminated(items.Select(s => s.ToString()).ToArray());
         }
 
         /// <summary>
@@ -214,16 +194,6 @@ namespace Helion.Util.Bytes
             }
 
             return this;
-        }
-
-        /// <summary>
-        /// Writes the values into the data stream.
-        /// </summary>
-        /// <param name="items">The items to write.</param>
-        /// <returns>This instance for chaining.</returns>
-        public ByteWriter EightCharString(params CIString[] items)
-        {
-            return EightCharString(items.Select(s => s.ToString()).ToArray());
         }
 
         /// <summary>

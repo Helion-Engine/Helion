@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Maps.Specials;
@@ -13,7 +14,7 @@ namespace Helion.Resources.Definitions.Decorate.Parser
     /// </summary>
     public partial class DecorateParser
     {
-        private static readonly HashSet<string> FramePropertyKeywords = new HashSet<string>
+        private static readonly HashSet<string> FramePropertyKeywords = new(StringComparer.OrdinalIgnoreCase)
         {
             "BRIGHT", "CANRAISE", "FAST", "LIGHT", "NODELAY", "OFFSET", "SLOW",
         };
@@ -54,9 +55,8 @@ namespace Helion.Resources.Definitions.Decorate.Parser
         
         private void CreateActorStateLabel(string label)
         {
-            string upperLabel = label.ToUpper();
-            m_immediatelySeenLabel = upperLabel;
-            m_currentDefinition.States.Labels[upperLabel] = m_frameIndex;
+            m_immediatelySeenLabel = label;
+            m_currentDefinition.States.Labels[label] = m_frameIndex;
         }
 
         private int ConsumeActorFrameTicks()

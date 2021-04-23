@@ -1,5 +1,4 @@
 ﻿using Helion.Resources.IWad;
-using Helion.Util;
 using Helion.Util.Parser;
 using Helion.World.Entities.Players;
 using System;
@@ -10,22 +9,25 @@ namespace Helion.Resources.Definitions.Language
 {
     public class LanguageDefinition
     {
-        private static readonly HashSet<string> TypeNames = new HashSet<string>(new string[] { "Default", "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" });
-        private static readonly HashSet<string> IWadMessageTypeNames = new HashSet<string>(new string[] { "Level names" });
-        private static readonly HashSet<string> IWadTypeNames = new HashSet<string>(new string[] { "Doom 1", "Doom 2", "Plutonia", "TNT: Evilution", "Chex" });
+        private static readonly HashSet<string> TypeNames = new HashSet<string>(new string[] { "Default", "Pickup", "Locks", "Cast call names", "Actor tag names", "Obituaries" },
+            StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> IWadMessageTypeNames = new HashSet<string>(new string[] { "Level names" },
+            StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> IWadTypeNames = new HashSet<string>(new string[] { "Doom 1", "Doom 2", "Plutonia", "TNT: Evilution", "Chex" },
+            StringComparer.OrdinalIgnoreCase);
 
-        private static readonly Dictionary<CIString, LanguageMessageType> MessageTypeLookup = new()
+        private static readonly Dictionary<string, LanguageMessageType> MessageTypeLookup = new(StringComparer.OrdinalIgnoreCase)
         {
             { "Default", LanguageMessageType.Default },
             { "Pickup", LanguageMessageType.Pickup },
             { "Locks", LanguageMessageType.Lock },
             { "Obituaries", LanguageMessageType.Obituary }
         };
-        private static readonly Dictionary<CIString, IWadLanguageMessageType> IWadMessageTypeLookup = new()
+        private static readonly Dictionary<string, IWadLanguageMessageType> IWadMessageTypeLookup = new(StringComparer.OrdinalIgnoreCase)
         {
             { "Level names", IWadLanguageMessageType.LevelName },
         };
-        private static readonly Dictionary<CIString, IWadBaseType> IWadTypeLookup = new()
+        private static readonly Dictionary<string, IWadBaseType> IWadTypeLookup = new(StringComparer.OrdinalIgnoreCase)
         {
             { "Doom 1", IWadBaseType.Doom1 },
             { "Doom 2", IWadBaseType.Doom2 },
@@ -34,29 +36,29 @@ namespace Helion.Resources.Definitions.Language
             { "Chex", IWadBaseType.ChexQuest }
         };
 
-        private readonly Dictionary<CIString, string>[] m_lookups;
-        private readonly Dictionary<IWadBaseType, Dictionary<CIString, string>[]> m_iwadLookups = new();
+        private readonly Dictionary<string, string>[] m_lookups;
+        private readonly Dictionary<IWadBaseType, Dictionary<string, string>[]> m_iwadLookups = new();
 
         public LanguageDefinition()
         {
-            m_lookups = new Dictionary<CIString, string>[Enum.GetValues(typeof(LanguageMessageType)).Length];
+            m_lookups = new Dictionary<string, string>[Enum.GetValues(typeof(LanguageMessageType)).Length];
             for (int i = 0; i < m_lookups.Length; i++)
-                m_lookups[i] = new();
+                m_lookups[i] = new(StringComparer.OrdinalIgnoreCase);
 
             var iwads = Enum.GetValues(typeof(IWadBaseType));
             foreach (IWadBaseType iwad in iwads)
             {
-                var lookup = new Dictionary<CIString, string>[Enum.GetValues(typeof(IWadLanguageMessageType)).Length];
+                var lookup = new Dictionary<string, string>[Enum.GetValues(typeof(IWadLanguageMessageType)).Length];
                 for (int i = 0; i < lookup.Length; i++)
-                    lookup[i] = new();
+                    lookup[i] = new(StringComparer.OrdinalIgnoreCase);
                 m_iwadLookups.Add(iwad, lookup);
             }
         }
 
         public void ParseInternal(string data)
         {
-            Dictionary<CIString, string> currentLookup = new();
-            Dictionary<CIString, string> currentIwadLookup = new();
+            Dictionary<string, string> currentLookup = new();
+            Dictionary<string, string> currentIwadLookup = new();
             SimpleParser parser = new SimpleParser(ParseType.Csv);
             parser.Parse(data);
 
@@ -238,12 +240,12 @@ namespace Helion.Resources.Definitions.Language
             return IWadBaseType.None;
         }
 
-        private Dictionary<CIString, string> GetLookup(LanguageMessageType type)
+        private Dictionary<string, string> GetLookup(LanguageMessageType type)
         {
             return m_lookups[(int)type];
         }
 
-        private Dictionary<CIString, string> GetIWadLookup(IWadBaseType iwadType, IWadLanguageMessageType type)
+        private Dictionary<string, string> GetIWadLookup(IWadBaseType iwadType, IWadLanguageMessageType type)
         {
             return m_iwadLookups[iwadType][(int)type];
         }

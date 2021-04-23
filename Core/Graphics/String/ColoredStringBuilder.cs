@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Text;
-using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.String
@@ -26,9 +25,6 @@ namespace Helion.Graphics.String
                     m_builder.Append($@"\c[{color.R},{color.G},{color.B}]");
                     break;
                 case string str:
-                    m_builder.Append(str);
-                    break;
-                case CIString str:
                     m_builder.Append(str);
                     break;
                 default:
