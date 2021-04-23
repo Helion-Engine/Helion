@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Entries;
@@ -54,17 +55,12 @@ namespace Helion.Resources.Definitions.Animdefs
             string warpNamespace = parser.ConsumeString();
 
             ResourceNamespace resourceNamespace;
-            switch (warpNamespace.ToUpper())
-            {
-                case "TEXTURE":
-                    resourceNamespace = ResourceNamespace.Textures;
-                    break;
-                case "FLAT":
-                    resourceNamespace = ResourceNamespace.Flats;
-                    break;
-                default:
-                    throw parser.MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
-            }
+            if (warpNamespace.Equals("TEXTURE", StringComparison.OrdinalIgnoreCase))
+                resourceNamespace = ResourceNamespace.Textures;
+            else if (warpNamespace.Equals("FLAT", StringComparison.OrdinalIgnoreCase))
+                resourceNamespace = ResourceNamespace.Flats;
+            else
+                throw parser.MakeException($"Warp animated texture needs to be 'TEXTURE' or 'FLAT', got '{warpNamespace}' instead");
 
             string name = parser.ConsumeString();
             int? speed = parser.ConsumeIfInt();
@@ -226,26 +222,27 @@ namespace Helion.Resources.Definitions.Animdefs
                 animatedSwitch.Off.Add(component);
         }
 
-        private void ConsumeAllSwitchPicAndSounds(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)
+        private static void ConsumeAllSwitchPicAndSounds(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)
         {
             while (true)
             {
                 if (parser.IsDone())
                     return;
 
-                string item = parser.PeekString().ToUpper();
-                switch (item)
+                string item = parser.PeekString();
+                if (item.Equals("PIC", StringComparison.OrdinalIgnoreCase))
                 {
-                    case "PIC":
-                        parser.ConsumeString();
-                        ConsumeSwitchPic(parser, animatedSwitch, on);
-                        break;
-                    case "SOUND":
-                        parser.ConsumeString();
-                        animatedSwitch.Sound = parser.ConsumeString();
-                        break;
-                    default:
-                        return;
+                    parser.ConsumeString();
+                    ConsumeSwitchPic(parser, animatedSwitch, on);
+                }
+                else if (item.Equals("SOUND", StringComparison.OrdinalIgnoreCase))
+                {
+                    parser.ConsumeString();
+                    animatedSwitch.Sound = parser.ConsumeString();
+                }
+                else
+                {
+                    return;
                 }
             }
         }
@@ -276,32 +273,22 @@ namespace Helion.Resources.Definitions.Animdefs
         private void ConsumeDefinition(SimpleParser parser)
         {
             string text = parser.ConsumeString();
-            switch (text.ToUpper())
-            {
-                case "ANIMATEDDOOR":
-                    ConsumeAnimatedDoor(parser);
-                    break;
-                case "CAMERATEXTURE":
-                    ConsumeCameraTexture(parser);
-                    break;
-                case "FLAT":
-                    ConsumeGraphicAnimation(parser, ResourceNamespace.Flats);
-                    break;
-                case "SWITCH":
-                    ConsumeSwitchAnimation(parser);
-                    break;
-                case "TEXTURE":
-                    ConsumeGraphicAnimation(parser, ResourceNamespace.Textures);
-                    break;
-                case "WARP":
-                    ConsumeWarp(parser, false);
-                    break;
-                case "WARP2":
-                    ConsumeWarp(parser, true);
-                    break;
-                default:
-                    throw parser.MakeException($"Unknown animdefs type {text}");
-            }
+            if (text.Equals("ANIMATEDDOOR", StringComparison.OrdinalIgnoreCase))
+                ConsumeAnimatedDoor(parser);
+            else if (text.Equals("CAMERATEXTURE", StringComparison.OrdinalIgnoreCase))
+                ConsumeCameraTexture(parser);
+            else if (text.Equals("FLAT", StringComparison.OrdinalIgnoreCase))
+                ConsumeGraphicAnimation(parser, ResourceNamespace.Flats);
+            else if (text.Equals("SWITCH", StringComparison.OrdinalIgnoreCase))
+                ConsumeSwitchAnimation(parser);
+            else if (text.Equals("TEXTURE", StringComparison.OrdinalIgnoreCase))
+                ConsumeGraphicAnimation(parser, ResourceNamespace.Textures);
+            else if (text.Equals("WARP", StringComparison.OrdinalIgnoreCase))
+                ConsumeWarp(parser, false);
+            else if (text.Equals("WARP2", StringComparison.OrdinalIgnoreCase))
+                ConsumeWarp(parser, true);
+            else
+                throw parser.MakeException($"Unknown animdefs type {text}");
         }
     }
 }
