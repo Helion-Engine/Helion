@@ -335,7 +335,7 @@ namespace Helion.World.Physics
         {
             NoBlock,
             BlockStopChecking,
-            BlockContinueIfFloat,
+            BlockContinue,
         }
 
         private LineBlock LineBlocksEntity(Entity entity, in Vec2D position, Line line, TryMoveData? tryMove)
@@ -351,7 +351,7 @@ namespace Helion.World.Physics
             if (opening.CanPassOrStepThrough(entity))
                 return LineBlock.NoBlock;
 
-            return LineBlock.BlockContinueIfFloat;
+            return LineBlock.BlockContinue;
         }
 
         public LineOpening GetLineOpening(in Vec2D position, Line line)
@@ -746,9 +746,7 @@ namespace Helion.World.Physics
                         {
                             entity.BlockingLine = line;
                             tryMove.Success = false;
-                            // Only keep checking if entity floats
-                            // Block floating check needs all intersecting LineOpenings
-                            if (blockType == LineBlock.BlockStopChecking || (blockType == LineBlock.BlockContinueIfFloat && !entity.Flags.Float))
+                            if (blockType == LineBlock.BlockStopChecking)
                                 return GridIterationStatus.Stop;
                         }
 
