@@ -350,6 +350,7 @@ namespace Helion.World.Entities.Definition.States
             ["A_WOLFATTACK"] = A_WolfAttack,
             ["A_XSCREAM"] = A_XScream,
             ["A_ZOOMFACTOR"] = A_ZoomFactor,
+            ["HEALTHING"] = HealThing,
         };
 
         public static ActionFunction? Find(string? actionFuncName)
@@ -2602,6 +2603,11 @@ namespace Helion.World.Entities.Definition.States
         private static void A_ZoomFactor(Entity entity)
         {
              // TODO
+        }
+
+        private static void HealThing(Entity entity)
+        {
+            // TODO
         }
     }
 }
