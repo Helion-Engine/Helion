@@ -545,10 +545,10 @@ namespace Helion.World.Physics
 
             entity.Sector = centerSector;
             foreach (Sector sector in sectors)
+            {
                 entity.IntersectSectors.Add(sector);
-
-            for (int i = 0; i < entity.IntersectSectors.Count; i++)
-                entity.SectorNodes.Add(entity.IntersectSectors[i].Link(entity));
+                entity.SectorNodes.Add(sector.Link(entity));
+            }
 
             entity.SubsectorNode = centerSubsector.Link(entity);
 
