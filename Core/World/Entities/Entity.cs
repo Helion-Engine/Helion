@@ -91,10 +91,10 @@ namespace Helion.World.Entities
         public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
 
         public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-        protected internal LinkableNode<Entity> EntityListNode = new LinkableNode<Entity>();
         protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
         protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
         protected internal LinkableNode<Entity>? SubsectorNode;
+        protected internal LinkableNode<Entity>? EntityListNode;
         internal bool IsDisposed { get; private set; }
 
         // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -758,7 +758,7 @@ namespace Helion.World.Entities
         public void Dispose()
         {
             UnlinkFromWorld();
-            EntityListNode.Unlink();
+            EntityListNode?.Unlink();
             IsDisposed = true;
             GC.SuppressFinalize(this);
         }
