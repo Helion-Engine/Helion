@@ -592,7 +592,8 @@ namespace Helion.World.Entities.Players
         private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)
         {
             // TODO the hardcoded checks are probably defined somewhere
-            if (Weapon != null && Weapon.Definition.Name != "FIST" && Weapon.Definition.Name != "PISTOL")
+            if (Weapon != null && Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase)
+                && Weapon.Definition.Name.Equals("PISTOL", StringComparison.OrdinalIgnoreCase))
                 return;
 
             string name = Inventory.GetBaseInventoryName(ammoDef);
@@ -607,7 +608,8 @@ namespace Helion.World.Entities.Players
                     ammoWeapon.Definition.Properties.Weapons.SelectionOrder < Weapon.Definition.Properties.Weapons.SelectionOrder)
                 {
                     // Only switch to rocket launcher on fist (see above todo)
-                    if (Weapon != null && Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase) && ammoWeapon.Definition.Name.Equals("ROCKETLAUNCHER", StringComparison.OrdinalIgnoreCase))
+                    if (Weapon != null && !Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase) &&
+                        ammoWeapon.Definition.Name.Equals("ROCKETLAUNCHER", StringComparison.OrdinalIgnoreCase))
                         return;
                     ChangeWeapon(ammoWeapon);
                 }
