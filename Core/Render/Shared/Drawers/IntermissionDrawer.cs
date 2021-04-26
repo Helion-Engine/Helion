@@ -65,7 +65,7 @@ namespace Helion.Render.Shared.Drawers
 
         private void DrawPointer(DrawHelper draw, IntermissionLayer layer, int tics)
         {
-            if (layer.IntermissionState != IntermissionState.NextMap || layer.IntermissionDef == null)
+            if (layer.IntermissionState < IntermissionState.NextMap || layer.IntermissionDef == null)
                 return;
 
             if (!m_spotsInit)
@@ -198,7 +198,7 @@ namespace Helion.Render.Shared.Drawers
             const int OffsetY = 40;
             const int TotalOffsetY = 20;
             
-            if (layer.IntermissionState == IntermissionState.NextMap || layer.IntermissionState < IntermissionState.TallyingTime)
+            if (layer.IntermissionState >= IntermissionState.NextMap || layer.IntermissionState < IntermissionState.TallyingTime)
                 return;
             
             draw.Image("WITIME", LeftOffsetTimeX, -OffsetY, window: Align.BottomLeft);

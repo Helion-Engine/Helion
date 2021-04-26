@@ -293,7 +293,10 @@ namespace Helion.Layer
             TallyTick();
 
             if (IntermissionState == IntermissionState.Complete)
+            {
+                m_exited = true;
                 Exited?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private void AnimationTick()
