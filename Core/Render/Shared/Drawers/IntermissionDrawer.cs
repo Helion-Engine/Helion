@@ -131,7 +131,12 @@ namespace Helion.Render.Shared.Drawers
             foreach (var animation in layer.IntermissionDef.Animations)
             {
                 if (animation.ShouldDraw)
-                    draw.Image(animation.Items[animation.ItemIndex], animation.X, animation.Y);
+                {
+                    string image = animation.Items[animation.ItemIndex];
+                    Vec2I offset = draw.DrawInfoProvider.GetImageOffset(image);
+                    draw.TranslateDoomOffset(ref offset, draw.DrawInfoProvider.GetImageDimension(image));
+                    draw.Image(image, animation.X + offset.X, animation.Y + offset.Y);
+                }
             }
         }
 
