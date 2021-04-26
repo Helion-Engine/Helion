@@ -592,8 +592,8 @@ namespace Helion.World.Entities.Players
         private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)
         {
             // TODO the hardcoded checks are probably defined somewhere
-            if (Weapon != null && Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase)
-                && Weapon.Definition.Name.Equals("PISTOL", StringComparison.OrdinalIgnoreCase))
+            if (Weapon != null && !Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase)
+                && !Weapon.Definition.Name.Equals("PISTOL", StringComparison.OrdinalIgnoreCase))
                 return;
 
             string name = Inventory.GetBaseInventoryName(ammoDef);
