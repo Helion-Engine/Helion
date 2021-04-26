@@ -63,6 +63,7 @@ actor BaronBall
     SeeSound "baron/attack"
     SpawnID 154
     Speed 15
+    Alpha 0.6
     
     PROJECTILE
     +RANDOMIZE

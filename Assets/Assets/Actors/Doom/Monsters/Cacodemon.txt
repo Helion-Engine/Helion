@@ -63,6 +63,7 @@ actor CacodemonBall
     SeeSound "caco/attack"
     SpawnID 126
     Speed 10
+    Alpha 0.6
     
     PROJECTILE
     +RANDOMIZE
