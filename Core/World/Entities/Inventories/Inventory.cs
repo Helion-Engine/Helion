@@ -118,7 +118,7 @@ namespace Helion.World.Entities.Inventories
 
         public static string GetBaseInventoryName(EntityDefinition definition)
         {
-            int index = definition.ParentClassNames.IndexOf(AmmoClassName);
+            int index = definition.ParentClassNames.FindIndex(x => x.Equals(AmmoClassName, StringComparison.OrdinalIgnoreCase));
             if (index > 0 && index < definition.ParentClassNames.Count - 1)
                 return definition.ParentClassNames[index + 1];
 
