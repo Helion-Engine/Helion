@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
-using Helion.World.Entities.Players;
 
 namespace Helion.Resources.Definitions.SoundInfo
 {
     public class SoundInfoDefinition
     {
-        private readonly Dictionary<string, SoundInfo> m_lookup = new Dictionary<string, SoundInfo>();
-        private readonly Dictionary<string, List<string>> m_randomLookup = new Dictionary<string, List<string>>();
-        private readonly Dictionary<string, string> m_playerCompatLookup = new Dictionary<string, string>();
+        private readonly Dictionary<string, SoundInfo> m_lookup = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<string>> m_randomLookup = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> m_playerCompatLookup = new(StringComparer.OrdinalIgnoreCase);
 
         private int m_pitchShiftRange = 0;
 
-        public static string GetPlayerSound(Player player, string sound)
+        public static string GetPlayerSound(string gender, string sound)
         {
             if (sound.Length > 0 && sound[0] == '*')
-                return $"player/{player.GetGenderString()}/{sound}";
+                return $"player/{gender}/{sound}";
 
             return sound;
         }

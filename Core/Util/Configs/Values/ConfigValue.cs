@@ -42,7 +42,7 @@ namespace Helion.Util.Configs.Values
         /// <param name="oldValue">The old value.</param>
         protected void EmitEventIfChanged(T oldValue)
         {
-            if (oldValue != null && !oldValue.Equals(Value))
+            if (oldValue != null && oldValue.Equals(Value))
                 return;
 
             Changed = true;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.Shared;
@@ -65,6 +64,7 @@ namespace Helion.World.Entities.Players
         public Entity? Attacker { get; private set; }
         public PlayerStatusBar StatusBar { get; private set; }
         public PlayerCheats Cheats { get; } = new PlayerCheats();
+        public PlayerInfo Info { get; set; } = new PlayerInfo();
         public bool IsVooDooDoll { get; set; }
 
         public bool DrawFullBright()
@@ -105,6 +105,7 @@ namespace Helion.World.Entities.Players
             PrevWeaponOffset.Y = Constants.WeaponBottom;
 
             StatusBar = new PlayerStatusBar(this);
+            SetPlayerInfo();
         }
 
         public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition,
@@ -156,6 +157,14 @@ namespace Helion.World.Entities.Players
 
             foreach (CheatType cheat in playerModel.Cheats)
                 Cheats.SetCheatActive(cheat);
+
+            SetPlayerInfo();
+        }
+
+        private void SetPlayerInfo()
+        {
+            Info.Name = World.Config.Player.Name;
+            Info.Gender = World.Config.Player.Gender;
         }
 
         public PlayerModel ToPlayerModel()
@@ -830,9 +839,6 @@ namespace Helion.World.Entities.Players
         {
             SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
         }
-
-        public string GetPlayerName() => "Player";
-        public string GetGenderString() => "male";
 
         protected override void SetDeath(Entity? source, bool gibbed)
         {

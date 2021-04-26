@@ -184,10 +184,11 @@ namespace Helion.Resources.Definitions.Language
             switch (type)
             {
                 case LanguageMessageType.Obituary:
-                    message = message.Replace("%o", player.GetPlayerName());
-                    message = message.Replace("%g", "he");
+                    message = message.Replace("%o", player.Info.Name);
+                    message = message.Replace("%g", player.Info.GetGenderSubject());
+                    message = message.Replace("%h", player.Info.GetGenderObject());
                     if (other != null)
-                        message = message.Replace("%k", other.GetPlayerName());
+                        message = message.Replace("%k", player.Info.Name);
                     return message;
 
                 default:

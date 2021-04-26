@@ -32,6 +32,7 @@ namespace Helion.Util.Configs
         public readonly ConfigMouse Mouse = new();
         public readonly ConfigRender Render = new();
         public readonly ConfigWindow Window = new();
+        public readonly ConfigPlayer Player = new();
 
         // Anything below this is not serialized into the engine section of the
         // config file.

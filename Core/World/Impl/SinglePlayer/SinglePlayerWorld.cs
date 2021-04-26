@@ -103,7 +103,13 @@ namespace Helion.World.Impl.SinglePlayer
 
             CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
             EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
+
+            config.Player.Name.OnChanged += PlayerName_OnChanged;
+            config.Player.Gender.OnChanged += PlayerGender_OnChanged;
         }
+
+        private void PlayerName_OnChanged(object? sender, string name) => Player.Info.Name = name;
+        private void PlayerGender_OnChanged(object? sender, PlayerGender gender) =>  Player.Info.Gender = gender;
 
         private void ApplyCheats(WorldModel worldModel)
         {

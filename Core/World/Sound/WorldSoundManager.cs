@@ -54,11 +54,17 @@ namespace Helion.World.Sound
         {
             if (source is Player player)
             {
-                string playerSound = SoundInfoDefinition.GetPlayerSound(player, sound);
-                
+                string playerSound = SoundInfoDefinition.GetPlayerSound(player.Info.GetGender(), sound);            
                 SoundInfo? soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(playerSound, m_world.Random);
+                if (soundInfo != null && ArchiveCollection.Entries.FindByName(playerSound) != null)
+                    return soundInfo;
+
+                // Sound likely does not exist for user selected gender - fallback to default
+                playerSound = SoundInfoDefinition.GetPlayerSound("male", sound);
+                soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(playerSound, m_world.Random);
                 if (soundInfo != null)
                     return soundInfo;
+
             }
 
             return base.GetSoundInfo(source, sound);
