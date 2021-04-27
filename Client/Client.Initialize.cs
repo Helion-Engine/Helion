@@ -6,6 +6,7 @@ using Helion.Layer;
 using Helion.Layer.WorldLayers;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
+using Helion.Util;
 using Helion.Util.Timing;
 using Helion.World.Util;
 
@@ -64,7 +65,16 @@ namespace Helion.Client
         private void LoadFiles()
         {
             if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad()))
-                Log.Error("Unable to load files at startup");
+            {
+                if (m_archiveCollection.GetAssets() == null)
+                    ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
+                else if (m_archiveCollection.GetIWad() == null)
+                    ShowFatalError("Failed to load IWAD.");
+                else
+                    ShowFatalError("Failed to load files.");
+
+                Process.GetCurrentProcess().Kill();
+            }
         }
 
         private void CheckLoadMap()

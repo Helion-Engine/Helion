@@ -53,7 +53,6 @@ namespace Helion.Resources.Archives.Collection
 
         public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true)
         {
-            List<Archive> loadedArchives = new();
             List<string> filePaths = new();
             Archive? iwadArchive = null;
 
@@ -66,7 +65,7 @@ namespace Helion.Resources.Archives.Collection
                 if (assetsArchive == null)
                     return false;
 
-                loadedArchives.Add(assetsArchive);
+                m_archives.Add(assetsArchive);
             }
 
             if (iwad != null)
@@ -75,7 +74,7 @@ namespace Helion.Resources.Archives.Collection
                 if (iwadArchive == null)
                     return false;
 
-                loadedArchives.Add(iwadArchive);
+                m_archives.Add(iwadArchive);
             }
 
             filePaths.AddRange(files);
@@ -84,13 +83,12 @@ namespace Helion.Resources.Archives.Collection
             {
                 Archive? archive = LoadArchive(filePath);
                 if (archive == null)
-                    return false;
+                    continue;
 
-                loadedArchives.Add(archive);
+                m_archives.Add(archive);
             }
 
-            ProcessAndIndexEntries(iwadArchive, loadedArchives);
-            m_archives.AddRange(loadedArchives);
+            ProcessAndIndexEntries(iwadArchive, m_archives);
             IWadType = GetIWadInfo().IWadBaseType;
 
             return true;
@@ -191,6 +189,8 @@ namespace Helion.Resources.Archives.Collection
 
             return null;
         }
+
+        public Archive? GetAssets() => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
 
         public Archive? GetIWad() => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);
 

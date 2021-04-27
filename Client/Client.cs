@@ -239,9 +239,12 @@ namespace Helion.Client
                 File.WriteAllText("errorlog.txt", msg);
                 // TODO verify this doesn't prevent from loading on other platforms...
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowFatalError(msg);
             }
         }
+
+        private static void ShowFatalError(string msg) =>
+            MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
         private static void Run(CommandLineArgs commandLineArgs)
         {
