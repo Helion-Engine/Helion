@@ -89,18 +89,18 @@ namespace Helion.Resources.Definitions
         {
             string text = entry.ReadDataAsString();
 
-            //try
-            //{
+            try
+            {
                 parseAction(text);
-            //}
-            //catch (ParserException e)
-            //{
-            //    var logMessages = e.LogToReadableMessage(text);
-            //    foreach (var message in logMessages)
-            //        Log.Error(message);
-            //    throw;
-            //}
-        }
+            }
+            catch (ParserException e)
+            {
+                var logMessages = e.LogToReadableMessage(text);
+                foreach (var message in logMessages)
+                    Log.Error(message);
+                throw;
+            }
+}
         
         /// <summary>
         /// Tracks all the resources from an archive.

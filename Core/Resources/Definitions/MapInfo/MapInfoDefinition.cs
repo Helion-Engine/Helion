@@ -278,7 +278,7 @@ namespace Helion.Resources.Definitions.MapInfo
 
             ConsumeBrace(parser, true);
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, true))
             {
                 string item = parser.ConsumeString();
 
@@ -357,7 +357,7 @@ namespace Helion.Resources.Definitions.MapInfo
             EndGameDef endGameDef = new();
             ConsumeBrace(parser, true);
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, false))
             {
                 string item = parser.ConsumeString();
 
@@ -436,7 +436,7 @@ namespace Helion.Resources.Definitions.MapInfo
 
             ConsumeBrace(parser, true);
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, false))
             {
                 string item = parser.ConsumeString();
 
@@ -504,7 +504,7 @@ namespace Helion.Resources.Definitions.MapInfo
             episodeDef.StartMap = parser.ConsumeString();
             ConsumeBrace(parser, true);
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, false))
             {
                 string item = parser.ConsumeString();
 
@@ -535,7 +535,7 @@ namespace Helion.Resources.Definitions.MapInfo
         {
             ConsumeBrace(parser, true);
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, false))
             {
                 string item = parser.ConsumeString();
 
@@ -598,7 +598,7 @@ namespace Helion.Resources.Definitions.MapInfo
             skillDef.SkillName = parser.ConsumeString();
             ConsumeBrace(parser, true);
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, false))
             {
                 string item = parser.ConsumeString();
 
@@ -763,12 +763,16 @@ namespace Helion.Resources.Definitions.MapInfo
                 parser.ConsumeString("}");
         }
 
-        private bool IsBlockComplete(SimpleParser parser)
+        private bool IsBlockComplete(SimpleParser parser, bool isMapInfo)
         {
             if (m_legacy)
             {
                 if (parser.IsDone())
                     return true;
+
+                // Legacy mapinfo has a cluster definition and is also a valid map property...
+                if (isMapInfo && parser.Peek(ClusterName))
+                    return false;
 
                 return HighLevelNames.Contains(parser.PeekString());
             }
