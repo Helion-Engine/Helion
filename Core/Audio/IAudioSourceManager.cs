@@ -46,5 +46,6 @@ namespace Helion.Audio
 
         void SetListener(Vec3D pos, double angle, double pitch);
         void PlayGroup(IEnumerable<IAudioSource> audioSources);
+        void DeviceChanging();
     }
 }

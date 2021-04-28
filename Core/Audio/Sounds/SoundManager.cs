@@ -46,6 +46,7 @@ namespace Helion.Audio.Sounds
         private void AudioSystem_DeviceChanging(object? sender, EventArgs e)
         {
             ClearSounds();
+            AudioManager.DeviceChanging();
         }
 
         ~SoundManager()

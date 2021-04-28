@@ -34,19 +34,10 @@ namespace Helion.Audio.Impl
             OpenALDebug.Start("Setting distance model");
             AL.DistanceModel(ALDistanceModel.ExponentDistance);
             OpenALDebug.End("Setting distance model");
-
-            owner.DeviceChanging += Owner_DeviceChanging;
         }
 
-        private void Owner_DeviceChanging(object? sender, EventArgs e)
+        public void DeviceChanging()
         {
-            foreach (var source in m_sources.ToList())
-            {
-                Unlink(source);
-                source.Stop();
-                source.Dispose();
-            }
-
             foreach (var buffer in m_nameToBuffer.Values)
                 buffer.Dispose();
 
