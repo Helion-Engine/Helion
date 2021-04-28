@@ -61,6 +61,8 @@ namespace Helion.Client
 
             if (config.Mouse.RawInput)
                 m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
+
+            RegisterConfigChanges();
         }
 
         ~Client()
@@ -254,6 +256,7 @@ namespace Helion.Client
             using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
             musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
+            audioPlayer.SetVolume(config.Audio.SoundVolume.Value);
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
             client.Run();
         }
