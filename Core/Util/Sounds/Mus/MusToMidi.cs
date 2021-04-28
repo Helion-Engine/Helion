@@ -32,14 +32,22 @@ namespace Helion.Util.Sounds.Mus
         /// <returns>A new byte array of MIDI data.</returns>
         public static byte[]? Convert(byte[] musData)
         {
-            try
+            if (musData.Length > 3 && musData[0] == 'M' && musData[1] == 'U' && musData[2] == 'S')
             {
-                return ConvertOrThrow(musData);
+                try
+                {
+                    return ConvertOrThrow(musData);
+                }
+                catch
+                {
+                    return null;
+                }
             }
-            catch
-            {
-                return null;
-            }
+
+            if (musData.Length > 4 && musData[0] == 'M' && musData[1] == 'T' && musData[2] == 'h' && musData[3] == 'd')
+                return musData;
+
+            return null;
         }
 
         private static void WriteTime(ref uint queuedTime, ByteWriter writer)
