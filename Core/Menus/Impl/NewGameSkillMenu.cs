@@ -68,7 +68,7 @@ namespace Helion.Menus.Impl
             {
                 return () =>
                 {
-                    string[] confirm = ArchiveCollection.Definitions.Language.GetDefaultMessages("$NIGHTMARE");
+                    string[] confirm = ArchiveCollection.Definitions.Language.GetMessages("$NIGHTMARE");
                     var messageMenu = new MessageMenu(config, Console, soundManager, ArchiveCollection, confirm, true);
                     messageMenu.Cleared += MessageMenu_Cleared;
                     return messageMenu;

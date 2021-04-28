@@ -119,7 +119,7 @@ namespace Helion.Layer
             m_musicPlayer.Stop();
 
             string musicName = m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.IntermissionMusic;
-            musicName = m_archiveCollection.Definitions.Language.GetDefaultMessage(musicName);
+            musicName = m_archiveCollection.Definitions.Language.GetMessage(musicName);
             
             Entry? entry = m_archiveCollection.Entries.FindByName(musicName);
             if (entry == null)

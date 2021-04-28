@@ -53,12 +53,7 @@ namespace Helion.Util.Parser
             foreach (string line in m_lines)
             {
                 if (!isQuote)
-                {
-                    isQuote = false;
-                    quotedString = false;
-                    split = false;
-                    startLine = lineCount;
-                }
+                    ResetQuote();
 
                 startIndex = 0;
 
@@ -117,7 +112,8 @@ namespace Helion.Util.Parser
                                 AddToken(saveStartIndex, startLine, lineCount, i, quotedString);
                             startIndex = i + 1;
                             split = false;
-                            quotedString = false;
+
+                            ResetQuote();
                         }
 
                         // Also add the special char as a token (e.g. '{')
@@ -136,6 +132,23 @@ namespace Helion.Util.Parser
 
                 lineCount++;
             }
+
+            void ResetQuote()
+            {
+                isQuote = false;
+                quotedString = false;
+                split = false;
+                startLine = lineCount;
+            }
+        }
+
+        // Just for debugging purposes
+        public List<string> GetAllTokenStrings()
+        {
+            List<string> tokens = new();
+            for (int i = 0; i < m_tokens.Count; i++)
+                tokens.Add(GetData(i));
+            return tokens;
         }
 
         private static bool IsEndMultiLineComment(string line, int i)
@@ -160,7 +173,7 @@ namespace Helion.Util.Parser
             if (m_parseType != ParseType.Normal)
                 return false;
 
-            return c == '{' || c == '}' || c == '=' || c == ';' || c == ',';
+            return c == '{' || c == '}' || c == '=' || c == ';' || c == ',' || c == '[' || c == ']';
         }
 
         private void AddToken(int startIndex, int currentIndex, int lineCount, bool quotedString)

@@ -44,14 +44,14 @@ namespace Helion.Menus.Impl
             if (quitMessages.Count > 0)
             {
                 TrueRandom random = new TrueRandom();
-                string[] lines = archiveCollection.Definitions.Language.GetDefaultMessages(quitMessages[random.NextByte() % quitMessages.Count]);
+                string[] lines = archiveCollection.Definitions.Language.GetMessages(quitMessages[random.NextByte() % quitMessages.Count]);
                 foreach (string line in lines)
                 {
                     Components = Components.Add(new MenuSmallTextComponent(line));
                     Components = Components.Add(new MenuPaddingComponent(8));
                 }
 
-                Components = Components.Add(new MenuSmallTextComponent(archiveCollection.Definitions.Language.GetDefaultMessage("$DOSY")));
+                Components = Components.Add(new MenuSmallTextComponent(archiveCollection.Definitions.Language.GetMessage("$DOSY")));
             }
             else
             {

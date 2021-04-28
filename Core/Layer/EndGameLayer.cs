@@ -50,7 +50,7 @@ namespace Helion.Layer
             var language = archiveCollection.Definitions.Language;
             
             m_drawer = new(archiveCollection);
-            m_flatImage = language.GetDefaultMessage(cluster.Flat);
+            m_flatImage = language.GetMessage(cluster.Flat);
             m_displayText = LookUpDisplayText(language, cluster);
             
             m_ticker.Start();
@@ -62,7 +62,7 @@ namespace Helion.Layer
             if (cluster.ExitText.Count != 1)
                 return cluster.ExitText;
             
-            string message = language.GetDefaultMessage(cluster.ExitText[0]);
+            string message = language.GetMessage(cluster.ExitText[0]);
             return message.Split("\n").ToList();
         }
 
@@ -77,7 +77,7 @@ namespace Helion.Layer
             if (music.Empty())
                 return;
 
-            music = language.GetDefaultMessage(music);
+            music = language.GetMessage(music);
             
             Entry? entry = archiveCollection.Entries.FindByName(music);
             if (entry == null)

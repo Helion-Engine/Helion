@@ -74,6 +74,7 @@ namespace Helion.Layer
         public void PlayMusic(IAudioSystem audioSystem)
         {
             string entryName = m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.TitleMusic;
+            entryName = m_archiveCollection.Definitions.Language.GetMessage(entryName);
             Entry? entry = m_archiveCollection.Entries.FindByName(entryName);
             if (entry == null) 
                 return;

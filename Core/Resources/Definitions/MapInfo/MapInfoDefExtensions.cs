@@ -1,5 +1,4 @@
 ﻿using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Language;
 
 namespace Helion.Resources.Definitions.MapInfo
 {
@@ -9,10 +8,7 @@ namespace Helion.Resources.Definitions.MapInfo
         {
             string displayName = mapInfo.NiceName;
             if (mapInfo.LookupName.Length > 0)
-            {
-                displayName = archiveCollection.Definitions.Language.GetIWadMessage(mapInfo.LookupName,
-                    archiveCollection.GetIWadInfo().IWadBaseType, IWadLanguageMessageType.LevelName);
-            }
+                displayName = archiveCollection.Definitions.Language.GetMessage(mapInfo.LookupName);
 
             if (mapInfo.MapName.Length > 0 && displayName.StartsWith(mapInfo.MapName))
             {

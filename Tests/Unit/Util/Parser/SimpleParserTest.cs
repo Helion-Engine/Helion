@@ -299,5 +299,19 @@ Line2 Data2";
             parser.ConsumeString().Should().Be(",");
             parser.ConsumeString().Should().Be("Did you like\nthe new\nssg?");
         }
+
+        [Fact(DisplayName = "Consume multiline string if not terminated with quotes in the same line with semicolon")]
+        public void TestMultilineStringWithSemicolon()
+        {
+            string data = "QUITMSG = \"Are you sure you want to\nquit this great game?\";";
+            SimpleParser parser = new();
+            parser.Parse(data);
+
+            parser.ConsumeString().Should().Be("QUITMSG");
+            parser.ConsumeString().Should().Be("=");
+            parser.ConsumeString().Should().Be("Are you sure you want to\nquit this great game?");
+            parser.ConsumeString().Should().Be(";");
+            parser.IsDone().Should().Be(true);
+        }
     }
 }

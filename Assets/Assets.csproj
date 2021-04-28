@@ -94,7 +94,7 @@
     <Content Include="Assets\Graphics\debugbox.lmp" />
     <Content Include="Assets\Graphics\debugboxoriginal.png" />
     <Content Include="Assets\Graphics\helion.png" />
-    <Content Include="Assets\ILanguage.txt" />
+    <Content Include="Assets\Language.txt" />
     <Content Include="Assets\Intermission\in_epi1.txt" />
     <Content Include="Assets\Intermission\in_epi2.txt" />
     <Content Include="Assets\Intermission\in_epi3.txt" />

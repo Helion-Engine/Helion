@@ -63,7 +63,6 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
             m_entryNameToAction["SNDINFO"] = entry => ParseEntry(ParseSoundInfo, entry);
-            m_entryNameToAction["ILANGUAGE"] = entry => ParseEntry(ParseInternalLanguage, entry);
             m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
             m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
             m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
@@ -83,7 +82,6 @@ namespace Helion.Resources.Definitions
         }
 
         private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
-        private void ParseInternalLanguage(string text) => Language.ParseInternal(text);
         private void ParseLanguage(string text) => Language.Parse(text);
         private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
 
@@ -91,17 +89,17 @@ namespace Helion.Resources.Definitions
         {
             string text = entry.ReadDataAsString();
 
-            try
-            {
+            //try
+            //{
                 parseAction(text);
-            }
-            catch (ParserException e)
-            {
-                var logMessages = e.LogToReadableMessage(text);
-                foreach (var message in logMessages)
-                    Log.Error(message);
-                throw;
-            }
+            //}
+            //catch (ParserException e)
+            //{
+            //    var logMessages = e.LogToReadableMessage(text);
+            //    foreach (var message in logMessages)
+            //        Log.Error(message);
+            //    throw;
+            //}
         }
         
         /// <summary>

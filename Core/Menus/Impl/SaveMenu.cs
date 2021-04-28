@@ -75,7 +75,7 @@ namespace Helion.Menus.Impl
 
             if (m_isSave && !hasWorld)
             {
-                string[] text = ArchiveCollection.Definitions.Language.GetDefaultMessages("$SAVEDEAD");
+                string[] text = ArchiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
                 for (int i = 0; i < text.Length; i++)
                 {
                     Components = Components.Add(new MenuSmallTextComponent(text[i]));
@@ -180,7 +180,7 @@ namespace Helion.Menus.Impl
 
         private static void DisplayMessage(IWorld world, string message)
         {
-            world.DisplayMessage(world.EntityManager.Players[0], null, message, LanguageMessageType.None);
+            world.DisplayMessage(world.EntityManager.Players[0], null, message);
         }
 
         private void SetNoSaveGames()

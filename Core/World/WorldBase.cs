@@ -287,7 +287,7 @@ namespace Helion.World
 
                     if (player.Sector.SectorSpecialType == ZDoomSectorSpecialType.Secret)
                     {
-                        DisplayMessage(player, null, "$SECRETMESSAGE", LanguageMessageType.Default);
+                        DisplayMessage(player, null, "$SECRETMESSAGE");
                         SoundManager.PlayStaticSound("misc/secret");
                         player.Sector.SetSectorSpecialType(ZDoomSectorSpecialType.None);
                         LevelStats.SecretCount++;
@@ -497,7 +497,7 @@ namespace Helion.World
             if (entity is Player player && lockFail != null)
             {
                 player.PlayUseFailSound();
-                DisplayMessage(player, null, GetLockFailMessage(line, lockFail), LanguageMessageType.Lock);
+                DisplayMessage(player, null, GetLockFailMessage(line, lockFail));
             }
             return success;
         }
@@ -812,7 +812,7 @@ namespace Helion.World
             if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
                 message = healthProperty.Value.LowMessage;
 
-            DisplayMessage(player, null, message, LanguageMessageType.Pickup);
+            DisplayMessage(player, null, message);
             EntityManager.Destroy(item);
 
             if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
@@ -983,12 +983,12 @@ namespace Helion.World
                 obituary = obituarySource.Definition.Properties.Obituary;
 
             if (!string.IsNullOrEmpty(obituary))
-                DisplayMessage(player, killer as Player, obituary, LanguageMessageType.Obituary);
+                DisplayMessage(player, killer as Player, obituary);
         }
 
-        public virtual void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type)
+        public virtual void DisplayMessage(Player player, Player? other, string message)
         {
-            message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message, type);
+            message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
             if (message.Length > 0)
                 Log.Error(message);
         }
@@ -1425,7 +1425,7 @@ namespace Helion.World
             else
                 msg = cheat.CheatName;
 
-            DisplayMessage(player, null, msg, LanguageMessageType.None);
+            DisplayMessage(player, null, msg);
         }
 
         public int EntityAliveCount(int editorId, bool deathStateComplete)

@@ -43,7 +43,7 @@ namespace Helion.Menus.Impl
                 if (ArchiveCollection.GetIWadInfo().IWadType == IWadType.DoomShareware && 
                     !episode.StartMap.Equals("e1m1", StringComparison.OrdinalIgnoreCase))
                 {
-                    string[] lines = archiveCollection.Definitions.Language.GetDefaultMessages("$SWSTRING");
+                    string[] lines = archiveCollection.Definitions.Language.GetMessages("$SWSTRING");
                     return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2",
                         () => new MessageMenu(config, Console, soundManager, ArchiveCollection, lines));
                 }

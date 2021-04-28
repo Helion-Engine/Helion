@@ -83,7 +83,7 @@ namespace Helion.World
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
             double speed, double destZ, CrushData? crush);
         void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
-        void DisplayMessage(Player player, Player? other, string message, LanguageMessageType type);
+        void DisplayMessage(Player player, Player? other, string message);
         // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
         bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
         bool IsPositionBlocked(Entity entity);
