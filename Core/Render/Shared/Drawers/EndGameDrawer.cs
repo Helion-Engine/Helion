@@ -25,7 +25,7 @@ namespace Helion.Render.Shared.Drawers
             m_archiveCollection = archiveCollection;
         }
 
-        public void Draw(string flat, List<string> displayText, Ticker ticker, bool showAllText, RenderCommands renderCommands)
+        public void Draw(string flat, IList<string> displayText, Ticker ticker, bool showAllText, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
 

@@ -34,7 +34,7 @@ namespace Helion.Layer
         public MapInfoDef? NextMapInfo { get; private set; }
 
         private readonly string m_flatImage;
-        private readonly List<string> m_displayText;
+        private readonly IList<string> m_displayText;
         private readonly Ticker m_ticker = new(LettersPerSecond);
         private readonly EndGameDrawer m_drawer;
         private bool m_showAllText;
@@ -57,13 +57,12 @@ namespace Helion.Layer
             PlayMusic(archiveCollection, musicPlayer, cluster, language);
         }
 
-        private static List<string> LookUpDisplayText(LanguageDefinition language, ClusterDef cluster)
+        private static IList<string> LookUpDisplayText(LanguageDefinition language, ClusterDef cluster)
         {
             if (cluster.ExitText.Count != 1)
                 return cluster.ExitText;
             
-            string message = language.GetMessage(cluster.ExitText[0]);
-            return message.Split("\n").ToList();
+            return language.GetMessages(cluster.ExitText[0]);
         }
 
         private static void PlayMusic(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, ClusterDef cluster,
