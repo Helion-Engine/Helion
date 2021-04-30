@@ -239,15 +239,14 @@ namespace Helion.Client
             if (newLayer == null)
                 return;
 
-            m_globalData.VisitedMaps.Add(mapInfoDef);
+            if (!m_globalData.VisitedMaps.Contains(mapInfoDef))
+                m_globalData.VisitedMaps.Add(mapInfoDef);
             newLayer.World.LevelExit += World_LevelExit;
             m_layerManager.Add(newLayer);
             newLayer.World.Start();
 
             m_layerManager.RemoveAllBut<WorldLayer>();
-        }
-
-     
+        }     
 
         private void World_LevelExit(object? sender, LevelChangeEvent e)
         {
