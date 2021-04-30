@@ -57,6 +57,7 @@ namespace Helion.Audio.Sounds
 
         public void Dispose()
         {
+            ClearSounds();
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
