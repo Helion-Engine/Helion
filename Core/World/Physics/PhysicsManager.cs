@@ -123,7 +123,7 @@ namespace Helion.World.Physics
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
                 if (moveType == SectorPlaneType.Floor && startZ > destZ && -speed < SetEntityToFloorSpeedMax &&
-                    entity.OnGround && !entity.Flags.NoGravity && entity.HighestFloorSector == sector)
+                    entity.OnGround          && entity.HighestFloorSector == sector)
                 {
                     entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
                     // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
