@@ -17,6 +17,7 @@ namespace Helion.Resources.Definitions.MapInfo
         public string BorderFlat { get; set; } = string.Empty;
         public string IntermissionMusic { get; set; } = string.Empty;
         public int TitleTime { get; set; } = 5;
+        public int PageTime { get; set; } = 5;
         public bool DrawReadThis { get; set; }
     }
 }

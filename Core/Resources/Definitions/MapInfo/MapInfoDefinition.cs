@@ -45,6 +45,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string GameQuitMessagesName = "quitmessages";
         private static readonly string GameTitleMusicName = "titlemusic";
         private static readonly string GameTitleTimeName = "titletime";
+        private static readonly string GamePageTimeName = "pagetime";
         private static readonly string GameFinaleMusicName = "finalemusic";
         private static readonly string GameFinaleFlatName = "finaleflat";
         private static readonly string GameQuitSoundName = "quitsound";
@@ -61,6 +62,7 @@ namespace Helion.Resources.Definitions.MapInfo
             GameQuitMessagesName,
             GameTitleMusicName,
             GameTitleTimeName,
+            GamePageTimeName,
             GameFinaleMusicName,
             GameFinaleFlatName,
             GameQuitSoundName,
@@ -555,6 +557,8 @@ namespace Helion.Resources.Definitions.MapInfo
                         gameDef.TitleMusic = parser.ConsumeString();
                     else if (item.Equals(GameTitleTimeName, StringComparison.OrdinalIgnoreCase))
                         gameDef.TitleTime = parser.ConsumeInteger();
+                    else if (item.Equals(GamePageTimeName, StringComparison.OrdinalIgnoreCase))
+                        gameDef.PageTime = parser.ConsumeInteger();
                     else if (item.Equals(GameFinaleMusicName, StringComparison.OrdinalIgnoreCase))
                         gameDef.FinaleMusic = parser.ConsumeString();
                     else if (item.Equals(GameFinaleFlatName, StringComparison.OrdinalIgnoreCase))
