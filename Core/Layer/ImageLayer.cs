@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using Helion.Render.Commands;
+using Helion.Render.Shared.Drawers.Helper;
 
 namespace Helion.Layer
 {
@@ -16,8 +17,13 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands commands)
         {
-            var (width, height) = commands.ResolutionInfo.VirtualDimensions;
-            commands.DrawImage(Image, 0, 0, width, height, Color.White);
+            DrawHelper draw = new(commands);
+            draw.FillWindow(Color.Black);
+            var area = draw.DrawInfoProvider.GetImageDimension(Image);
+            draw.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
+            {
+                commands.DrawImage(Image, 0, 0, area.Width, area.Height, Color.White);
+            });
             
             base.Render(commands);
         }

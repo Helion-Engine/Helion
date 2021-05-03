@@ -58,7 +58,7 @@ namespace Helion.Client
             if (!m_layerManager.Empty) 
                 return;
 
-            TitlepicLayer layer = new(m_layerManager, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager);
+            TitlepicLayer layer = new(m_layerManager, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_audioSystem);
             m_layerManager.Add(layer);
         }
 

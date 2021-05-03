@@ -55,9 +55,6 @@ namespace Helion.Layer
 
         public override void Add(GameLayer layer)
         {
-            if (layer is TitlepicLayer titlepicLayer)
-                titlepicLayer.PlayMusic(m_audioSystem);
-            
             if (layer is SinglePlayerWorldLayer)
             {
                 Layers.ForEach(l => l.Dispose());
