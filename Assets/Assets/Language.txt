@@ -2,14 +2,14 @@
 
 QUITMSG = "Are you sure you want to
 quit this great game?";
-QUITMSG1 = "Please don't leave =  there's more
+QUITMSG1 = "Please don't leave, there's more
 demons to toast!";
 QUITMSG2 = "Let's beat it -- this is turning
 into a bloodbath!";
 QUITMSG3 = "I wouldn't leave if I were you.
 DOS is much worse.";
 QUITMSG4 = "You're trying to say you like DOS
-better than me,  right?";
+better than me, right?";
 QUITMSG5 = "Don't leave yet -- there's a
 demon around that corner!";
 QUITMSG6 = "Ya know, next time you come in here

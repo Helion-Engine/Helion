@@ -94,6 +94,9 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string MapSuckName = "sucktime";
         private static readonly string MapMusicName = "music";
         private static readonly string MapEndGame = "endgame";
+        private static readonly string MapEnterPicName = "enterpic";
+        private static readonly string MapExitPicName = "exitpic";
+        private static readonly string MapEndPicName = "endpic";
 
         private static readonly HashSet<string> MapNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -106,7 +109,10 @@ namespace Helion.Resources.Definitions.MapInfo
             MapClusterName,
             MapParName,
             MapSuckName,
-            MapMusicName
+            MapMusicName,
+            MapEnterPicName,
+            MapExitPicName,
+            MapEndPicName
         };
 
         private static readonly string ClusterEnterTextName = "entertext";
@@ -297,6 +303,8 @@ namespace Helion.Resources.Definitions.MapInfo
                         mapDef.Next = parser.ConsumeString();
                         if (mapDef.Next.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
                             mapDef.EndGame = ParseEndGame(parser);
+                        else if (mapDef.Next.Equals(MapEndPicName, StringComparison.OrdinalIgnoreCase))
+                            mapDef.EndPic = ParseEndPic(parser);
                     }
                     else if (item.Equals(MapSecretName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -316,6 +324,10 @@ namespace Helion.Resources.Definitions.MapInfo
                         mapDef.SuckTime = parser.ConsumeInteger();
                     else if (item.Equals(MapMusicName, StringComparison.OrdinalIgnoreCase))
                         mapDef.Music = parser.ConsumeString();
+                    else if (item.Equals(MapEnterPicName, StringComparison.OrdinalIgnoreCase))
+                        mapDef.EnterPic = parser.ConsumeString();
+                    else if (item.Equals(MapExitPicName, StringComparison.OrdinalIgnoreCase))
+                        mapDef.ExitPic = parser.ConsumeString();
                 }
                 else if (item.Equals("nointermission", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapOptions |= MapOptions.NoIntermission;
@@ -352,6 +364,12 @@ namespace Helion.Resources.Definitions.MapInfo
 
             ConsumeBrace(parser, false);
             return mapDef;
+        }
+
+        private static string ParseEndPic(SimpleParser parser)
+        {
+            parser.ConsumeString(",");
+            return parser.ConsumeString();
         }
 
         private EndGameDef ParseEndGame(SimpleParser parser)
