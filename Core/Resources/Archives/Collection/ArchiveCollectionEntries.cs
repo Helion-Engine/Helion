@@ -37,9 +37,15 @@ namespace Helion.Resources.Archives.Collection
         /// <param name="entry">The entry to track.</param>
         public void Track(Entry entry)
         {
+            ResourceNamespace ns = entry.Namespace;
+            // If this entry has no namespace and was previously defined with one, use that
+            // e.g. RSKY1 in a PWAD
+            if (ns == ResourceNamespace.Global && m_nameToEntries.ContainsKey(entry.Path.Name))
+                ns = m_nameToEntries[entry.Path.Name].Namespace;
+
             m_pathToEntry[entry.Path.FullPath] = entry;
             m_nameToEntries[entry.Path.Name] = entry;
-            m_namespaceNameEntries.Insert(entry.Path.Name, entry.Namespace, entry);
+            m_namespaceNameEntries.Insert(entry.Path.Name, ns, entry);
         }
         
         /// <summary>
