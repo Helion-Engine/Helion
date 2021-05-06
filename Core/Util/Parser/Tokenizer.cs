@@ -190,7 +190,7 @@ namespace Helion.Util.Parser
             m_textIndex--;
             m_lineCharOffset--;
 
-            Postcondition(double.TryParse(text, out double _), "Returning a number token but cannot parse a number out of it");
+            Postcondition(SimpleParser.TryParseDouble(text, out double _), "Returning a number token but cannot parse a number out of it");
         }
         
         private void ConsumeSlashTokenOrComments()

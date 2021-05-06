@@ -446,7 +446,7 @@ namespace Helion.Util.Parser
         /// </exception>
         protected double ConsumeFloat()
         {
-            if (PeekFloat() && double.TryParse(Tokens[CurrentTokenIndex++].Text, out double number))
+            if (PeekFloat() && SimpleParser.TryParseDouble(Tokens[CurrentTokenIndex++].Text, out double number))
                 return number;
 
             Token token = Tokens[CurrentTokenIndex];

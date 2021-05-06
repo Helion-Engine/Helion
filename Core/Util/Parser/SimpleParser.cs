@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Helion.Util.Parser
@@ -30,6 +31,14 @@ namespace Helion.Util.Parser
         private string[] m_lines = Array.Empty<string>();
 
         private int m_index = 0;
+
+        private static readonly NumberFormatInfo DecimalFormat = new NumberFormatInfo { NumberDecimalSeparator = "." };
+
+        public static bool TryParseDouble(string text, out double d) =>
+            double.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out d);
+
+        public static bool TryParseFloat(string text, out float f) =>
+            float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
 
         public SimpleParser(ParseType parseType = ParseType.Normal)
         {
@@ -298,7 +307,7 @@ namespace Helion.Util.Parser
 
             ParserToken token = m_tokens[m_index];
             string data = GetData(m_index);
-            if (double.TryParse(data, out double d))
+            if (TryParseDouble(data, out double d))
             {
                 m_index++;
                 return d;

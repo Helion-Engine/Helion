@@ -1,4 +1,6 @@
-﻿namespace Helion.Util.Configs.Values
+﻿using Helion.Util.Parser;
+
+namespace Helion.Util.Configs.Values
 {
     public class ConfigValueDouble : ConfigValue<double>
     {
@@ -36,7 +38,7 @@
                 return true;
 
             case string s:
-                if (!double.TryParse(s, out double newValue))
+                if (!SimpleParser.TryParseDouble(s, out double newValue))
                     return false;
                 Value = newValue;
                 EmitEventIfChanged(oldValue);
