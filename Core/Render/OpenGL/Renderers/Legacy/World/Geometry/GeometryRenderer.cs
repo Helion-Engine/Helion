@@ -272,11 +272,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
         private void RenderTwoSidedLower(TwoSided facingSide, Side otherSide, bool isFrontSide)
         {
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-            SectorPlane plane = otherSide.Sector.Floor;
-            bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle);
             Wall lowerWall = facingSide.Lower;
-
+            bool isSky = TextureManager.Instance.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
             bool skyRender = isSky && TextureManager.Instance.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
+
             if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
                 return;
 
