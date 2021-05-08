@@ -23,6 +23,9 @@ namespace Helion.Resources.Definitions.MapInfo
         public MapOptions MapOptions { get; set; }
         public EndGameDef? EndGame { get; set; }
         public EndGameDef? EndGameSecret { get; set; }
+        public string EnterPic { get; set; } = string.Empty;
+        public string ExitPic { get; set; } = string.Empty;
+        public string EndPic { get; set; } = string.Empty;
 
         public object Clone()
         {
@@ -43,6 +46,9 @@ namespace Helion.Resources.Definitions.MapInfo
                 MapSpecialAction = MapSpecialAction,
                 MapOptions = MapOptions,
                 EndGame = EndGame,
+                EnterPic = EnterPic,
+                ExitPic = ExitPic,
+                EndPic = EndPic,
 
                 Sky1 = (SkyDef)Sky1.Clone(),
                 Sky2 = (SkyDef)Sky2.Clone()

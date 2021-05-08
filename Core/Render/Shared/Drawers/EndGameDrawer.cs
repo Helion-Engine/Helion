@@ -22,22 +22,40 @@ namespace Helion.Render.Shared.Drawers
 
         public EndGameDrawer(ArchiveCollection archiveCollection)
         {
-            m_archiveCollection = archiveCollection;
+            m_archiveCollection = archiveCollection;          
         }
 
-        public void Draw(string flat, IList<string> displayText, Ticker ticker, bool showAllText, RenderCommands renderCommands)
+        public void Draw(string flat, IList<string> displayText, Ticker ticker, bool showAllText, RenderCommands renderCommands, DrawHelper draw)
         {
-            DrawHelper helper = new(renderCommands);
-
             renderCommands.ClearDepth();
-            
-            helper.FillWindow(Color.Black);
 
-            helper.AtResolution(Resolution, () =>
+            draw.FillWindow(Color.Black);
+            draw.AtResolution(Resolution, () =>
             {
-                DrawBackground(flat, helper);
-                DrawText(displayText, ticker, showAllText, helper);
+                DrawBackground(flat, draw);
+                DrawText(displayText, ticker, showAllText, draw);
             });
+        }
+
+        public void DrawBackgroundImages(IList<string> images, int xOffset, RenderCommands renderCommands, DrawHelper draw)
+        {
+            renderCommands.ClearDepth();
+
+            draw.FillWindow(Color.Black);
+
+            int widthDrawn = 0;
+
+            foreach (string image in images)
+            {
+                var area = draw.DrawInfoProvider.GetImageDimension(image);
+                draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
+                {
+                    renderCommands.DrawImage(image, xOffset, 0, area.Width, area.Height, Color.White);
+                });
+
+                xOffset -= area.Width;
+                widthDrawn += area.Width + xOffset;
+            }
         }
 
         private static void DrawBackground(string flat, DrawHelper helper)
@@ -46,6 +64,11 @@ namespace Helion.Render.Shared.Drawers
             var dimension = helper.DrawInfoProvider.GetImageDimension(flat, ResourceNamespace.Flats);
             int repeatX = Resolution.VirtualDimensions.Width / dimension.Width;
             int repeatY = Resolution.VirtualDimensions.Height / dimension.Height;
+
+            if (Resolution.VirtualDimensions.Width % dimension.Width != 0)
+                repeatX++;
+            if (Resolution.VirtualDimensions.Height % dimension.Height != 0)
+                repeatY++;
 
             Vec2I drawCoordinate = Vec2I.Zero;
             for (int y = 0; y < repeatY; y++)

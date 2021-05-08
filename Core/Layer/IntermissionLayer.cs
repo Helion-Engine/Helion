@@ -68,7 +68,7 @@ namespace Helion.Layer
             m_stopwatch.Start();
             m_totalLevelTime = World.LevelTime / (int)Constants.TicksPerSecond;
 
-            IntermissionPic = "INTERPIC";
+            IntermissionPic = string.IsNullOrEmpty(currentMapInfo.ExitPic) ? "INTERPIC" : currentMapInfo.ExitPic;
             CalculatePercentages();
             CheckEpisodeIntermission();
             Tick();

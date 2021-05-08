@@ -11,6 +11,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Util.Parser;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
@@ -164,7 +165,7 @@ namespace Helion.Client
 
         private void SetSoundVolume(IList<string> args)
         {
-            if (args.Empty() || !float.TryParse(args[0], out float volume))
+            if (args.Empty() || !SimpleParser.TryParseFloat(args[0], out float volume))
             {
                 Log.Info("Usage: soundvolume <volume>");
                 return;
@@ -176,7 +177,7 @@ namespace Helion.Client
 
         private void SetMusicVolume(IList<string> args)
         {
-            if (args.Empty() || !float.TryParse(args[0], out float volume))
+            if (args.Empty() || !SimpleParser.TryParseFloat(args[0], out float volume))
             {
                 Log.Info("Usage: musicvolume <volume>");
                 return;
@@ -345,7 +346,7 @@ namespace Helion.Client
             if (cluster == null)
                 return;
 
-            EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, world, cluster, nextMapInfo);
+            EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextMapInfo);
             endGameLayer.Exited += EndGameLayer_Exited;
             m_layerManager.Add(endGameLayer);
         }
