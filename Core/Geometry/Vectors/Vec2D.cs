@@ -116,6 +116,10 @@ namespace Helion.Geometry.Vectors
         public Vec2D RotateRight90() => new(Y, -X);
         public Vec2D RotateLeft90() => new(-Y, X);
         public static Vec2D UnitCircle(double radians) => new(Math.Cos(radians), Math.Sin(radians));
+        public double Angle(in Vec2D other) => Math.Atan2(other.Y - Y, other.X - X);
+        public double Angle(Vector2D other) => Math.Atan2(other.Y - Y, other.X - X);
+        public double Angle(in Vec3D other) => Math.Atan2(other.Y - Y, other.X - X);
+        public double Angle(Vector3D other) => Math.Atan2(other.Y - Y, other.X - X);
 
         private IEnumerable<double> GetEnumerableValues()
         {

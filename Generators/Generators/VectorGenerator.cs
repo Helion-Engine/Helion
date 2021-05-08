@@ -366,6 +366,10 @@ namespace Generators.Generators
                     w.WriteLine($"public {StructType} RotateRight90() => new(Y, -X);");
                     w.WriteLine($"public {StructType} RotateLeft90() => new(-Y, X);");
                     w.WriteLine($"public static {StructType} UnitCircle({m_type.PrimitiveType()} radians) => new({MathClass}.Cos(radians), {MathClass}.Sin(radians));");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {StructType} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle({InstanceType} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {GetStructDim(3)} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
+                    w.WriteLine($"public {m_type.PrimitiveType()} Angle({GetInstanceDim(3)} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
                 }
 
                 if (m_dimension == 3)

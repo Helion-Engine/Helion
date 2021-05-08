@@ -51,6 +51,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             PreloadAllTextures(world);
         }
 
+        private HashSet<Vec2D> m_renderPositions = new();
+
         public void Clear(WorldBase world, double tickFraction, Entity cameraEntity)
         {
             // I'm hitching a ride here so we don't keep making a bunch of
@@ -64,6 +66,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             m_cameraEntity = cameraEntity;
             m_EntityDrawnTracker.Reset(world);
             m_alphaEntities.Clear();
+            m_renderPositions.Clear();
         }
 
         public void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
@@ -239,6 +242,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
         private void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
         {
+            const double NudgeFactor = 0.0001;
             Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
             Vec2D entityPos = centerBottom.XY;
 
@@ -254,6 +258,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             else
             {
                 rotation = 0;
+            }
+
+            if (m_renderPositions.Contains(entityPos))
+            {
+                double nudge = NudgeFactor * entityPos.Distance(position);
+                Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
+                centerBottom.X += nudgeAmount.X;
+                centerBottom.Y += nudgeAmount.Y;
+
+                while (m_renderPositions.Contains(centerBottom.XY))
+                {
+                    centerBottom.X += nudgeAmount.X;
+                    centerBottom.Y += nudgeAmount.Y;
+                }
+
+                m_renderPositions.Add(centerBottom.XY);
+            }
+            else
+            {
+                m_renderPositions.Add(entityPos);
             }
 
             SpriteRotation spriteRotation;
