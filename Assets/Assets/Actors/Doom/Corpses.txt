@@ -1,11 +1,12 @@
 actor GibbedMarine
 {
-  States
-  {
-  Spawn:
+    +CORPSE
+    States
+    {
+    Spawn:
     PLAY W -1
     Stop
-  }
+    }
 }
 
 actor GibbedCorpse : GibbedMarine 10
@@ -18,6 +19,7 @@ actor GibbedMarineExtra : GibbedMarine 12
 
 actor DeadMarine 15
 {
+    +CORPSE
     States
     {
     Spawn:
@@ -28,6 +30,7 @@ actor DeadMarine 15
 
 actor DeadZombieMan : ZombieMan 18
 {
+    +CORPSE
     DropItem None
     Skip_Super
     
@@ -40,6 +43,7 @@ actor DeadZombieMan : ZombieMan 18
 
 actor DeadShotgunGuy : ShotgunGuy 19
 {
+    +CORPSE
     DropItem None
     Skip_Super
     
@@ -52,6 +56,7 @@ actor DeadShotgunGuy : ShotgunGuy 19
 
 actor DeadDoomImp : DoomImp 20
 {
+    +CORPSE
     Skip_Super
     
     States
@@ -63,6 +68,7 @@ actor DeadDoomImp : DoomImp 20
 
 actor DeadDemon : Demon 21
 {
+    +CORPSE
     Skip_Super
     
     States
@@ -74,6 +80,7 @@ actor DeadDemon : Demon 21
 
 actor DeadCacodemon : Cacodemon 22
 {
+    +CORPSE
     Skip_Super
     
     States
@@ -86,6 +93,7 @@ actor DeadCacodemon : Cacodemon 22
 // Doing this because ZDoom does it...
 actor DeadLostSoul : LostSoul 23
 {
+    +CORPSE
     Skip_Super
     
     States

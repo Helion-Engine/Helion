@@ -28,5 +28,17 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
         public readonly ConfigValueBoolean FakeContrast = new(true);
+
+        [ConfigInfo("If any sprite should clip the floor.")]
+        public readonly ConfigValueBoolean SpriteClip = new(false);
+
+        [ConfigInfo("If corpse sprites should clip the floor.")]
+        public readonly ConfigValueBoolean SpriteClipCorpse = new(true);
+
+        [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
+        public readonly ConfigValueInt SpriteClipMin = new(16);
+
+        [ConfigInfo("Max percentage of height allowed to clip the floor.")]
+        public readonly ConfigValueDouble SpriteClipFactorMax = new ConfigValueDouble(0.05);
     }
 }

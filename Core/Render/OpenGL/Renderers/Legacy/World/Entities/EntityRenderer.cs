@@ -155,7 +155,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             Vec2F left = entityCenterXY - halfWidth;
             Vec2F right = entityCenterXY + halfWidth;
 
-            float bottomZ = (float)entityCenterBottom.Z + texture.Metadata.Offset.Y;
+            float bottomZ = (float)entityCenterBottom.Z;
+
+            if (ShouldApplyOffsetZ(entity, texture, out float offsetAmount))
+                bottomZ += offsetAmount;
+
             float topZ = bottomZ + texture.Height;
             float leftU = mirror ? 1.0f : 0.0f;
             float rightU = mirror ? 0.0f : 1.0f;
@@ -176,6 +180,27 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             renderWorldData.Vbo.Add(topRight);
             renderWorldData.Vbo.Add(bottomLeft);
             renderWorldData.Vbo.Add(bottomRight);
+        }
+
+        private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
+        {
+            offsetAmount = texture.Metadata.Offset.Y;
+            if (entity.Flags.Projectile || texture.Metadata.Offset.Y >= 0)
+                return true;
+
+            if (texture.Height < m_config.Render.SpriteClipMin)
+                return false;
+
+            bool clipped = entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Metadata.Offset.Y;
+            if (clipped && 
+                (m_config.Render.SpriteClip || (m_config.Render.SpriteClipCorpse && entity.Flags.Corpse)))
+            {
+                if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
+                    offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
+                return true;
+            }
+
+            return !clipped;
         }
 
         private void AddSpriteDebugBox(Entity entity)
