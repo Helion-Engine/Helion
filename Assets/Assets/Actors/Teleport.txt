@@ -5,6 +5,7 @@ actor TeleportFog
     +NOBLOCKMAP
     +NOGRAVITY
     +NOTELEPORT
+    Alpha 0.6
     
     States
     {
