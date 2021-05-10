@@ -189,7 +189,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             if (entity.Flags.Projectile || texture.Metadata.Offset.Y >= 0)
                 return true;
 
-            if (!m_config.Render.SpriteClip && m_config.Render.SpriteClipCorpse)
+            if (!m_config.Render.SpriteClip && !m_config.Render.SpriteClipCorpse)
                 return false;
 
             if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsType(EntityDefinitionType.Inventory) ||
