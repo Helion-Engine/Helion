@@ -42,15 +42,6 @@ namespace Helion.World.Entities.Definition
         /// <returns>True if it is the type, false if not.</returns>
         public bool IsType(string className) => ParentClassLookup.Contains(className);
         
-        /// <summary>
-        /// Checks if the definition is a descendant or class of the type
-        /// provided.
-        /// </summary>
-        /// <param name="definitionType">The enumeration type for common types.
-        /// </param>
-        /// <returns>True if it is the type, false if not.</returns>
-        public bool IsType(EntityDefinitionType definitionType) => IsType(definitionType.ToString());
-        
         public override string ToString() => $"{Name} (id = {Id}, editorId = {EditorId})";
     }
 }

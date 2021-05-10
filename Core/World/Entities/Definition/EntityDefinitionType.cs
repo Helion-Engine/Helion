@@ -1,13 +1,13 @@
 namespace Helion.World.Entities.Definition
 {
-    public enum EntityDefinitionType
+    public static class EntityDefinitionType
     {
-        Ammo,
-        Armor,
-        BackpackItem,
-        Health,
-        Inventory,
-        Key,
-        Weapon,
+        public const string Ammo = "Ammo";
+        public const string Armor = "Armor";
+        public const string BackpackItem = "BackpackItem";
+        public const string Health = "Health";
+        public const string Inventory = "Inventory";
+        public const string Key = "Key";
+        public const string Weapon = "Weapon";
     }
 }
