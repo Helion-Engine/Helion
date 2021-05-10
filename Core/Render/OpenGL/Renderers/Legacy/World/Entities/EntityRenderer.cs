@@ -10,6 +10,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Subsectors;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
@@ -188,19 +189,30 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
             if (entity.Flags.Projectile || texture.Metadata.Offset.Y >= 0)
                 return true;
 
-            if (texture.Height < m_config.Render.SpriteClipMin)
+            if (!m_config.Render.SpriteClip && m_config.Render.SpriteClipCorpse)
                 return false;
 
-            bool clipped = entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Metadata.Offset.Y;
-            if (clipped && 
-                (m_config.Render.SpriteClip || (m_config.Render.SpriteClipCorpse && entity.Flags.Corpse)))
+            if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsType(EntityDefinitionType.Inventory) ||
+                (entity.Flags.Monster && !entity.Flags.Corpse))
+                return false;
+
+            if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Metadata.Offset.Y)
             {
-                if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
-                    offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
-                return true;
+                if (m_config.Render.SpriteClipCorpse && entity.Flags.Corpse)
+                {
+                    if (-offsetAmount > texture.Height * m_config.Render.SpriteClipCorpseFactorMax)
+                        offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipCorpseFactorMax;
+                    return true;
+                }
+                else if (m_config.Render.SpriteClip)
+                {
+                    if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
+                        offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
+                    return true;
+                }
             }
 
-            return !clipped;
+            return false;
         }
 
         private void AddSpriteDebugBox(Entity entity)

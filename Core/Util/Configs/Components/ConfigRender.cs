@@ -30,15 +30,18 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValueBoolean FakeContrast = new(true);
 
         [ConfigInfo("If any sprite should clip the floor.")]
-        public readonly ConfigValueBoolean SpriteClip = new(false);
+        public readonly ConfigValueBoolean SpriteClip = new(true);
 
         [ConfigInfo("If corpse sprites should clip the floor.")]
         public readonly ConfigValueBoolean SpriteClipCorpse = new(true);
 
         [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
-        public readonly ConfigValueInt SpriteClipMin = new(16);
+        public readonly ConfigValueInt SpriteClipMin = new(16, 0);
 
-        [ConfigInfo("Max percentage of height allowed to clip the floor.")]
-        public readonly ConfigValueDouble SpriteClipFactorMax = new ConfigValueDouble(0.05);
+        [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
+        public readonly ConfigValueDouble SpriteClipFactorMax = new ConfigValueDouble(0.05, 0, 1);
+
+        [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
+        public readonly ConfigValueDouble SpriteClipCorpseFactorMax = new ConfigValueDouble(0.01, 0, 1);
     }
 }
