@@ -4,7 +4,7 @@ namespace Helion.Util.Configs.Values
 {
     public class ConfigValueDouble : ConfigValue<double>
     {
-        private double m_min, m_max;
+        private readonly double m_min, m_max;
 
         public ConfigValueDouble(double value = default, double min = double.MinValue, double max = double.MaxValue) : base(value)
         {
@@ -20,33 +20,33 @@ namespace Helion.Util.Configs.Values
 
             switch (obj)
             {
-            case bool b:
-                Value = b ? 1.0 : 0.0;
-                EmitEventIfChanged(oldValue);
-                return true;
+                case bool b:
+                    Value = b ? 1.0 : 0.0;
+                    break;
 
-            case int i:
-                Value = i;
-                EmitEventIfChanged(oldValue);
-                return true;
+                case int i:
+                    Value = i;
+                    break;
 
-            case double d:
-                if (!double.IsFinite(d))
+                case double d:
+                    if (!double.IsFinite(d))
+                        return false;
+                    Value = d;
+                    break;
+
+                case string s:
+                    if (!SimpleParser.TryParseDouble(s, out double newValue))
+                        return false;
+                    Value = newValue;
+                    break;
+
+                default:
                     return false;
-                Value = MathHelper.Clamp((double)obj, m_min, m_max);
-                EmitEventIfChanged(oldValue);
-                return true;
-
-            case string s:
-                if (!SimpleParser.TryParseDouble(s, out double newValue))
-                    return false;
-                Value = newValue;
-                EmitEventIfChanged(oldValue);
-                return true;
-
-            default:
-                return false;
             }
+
+            Value = MathHelper.Clamp(Value, m_min, m_max);
+            EmitEventIfChanged(oldValue);
+            return true;
         }
     }
 }
