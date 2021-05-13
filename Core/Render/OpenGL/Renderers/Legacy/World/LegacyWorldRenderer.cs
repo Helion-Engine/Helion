@@ -1,4 +1,5 @@
 using System;
+using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
@@ -199,10 +200,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
             m_shaderProgram.BoundTexture.Set(gl, 0);
             m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
-            m_shaderProgram.LightLevelMix.Set(gl, mix);
-            m_shaderProgram.LightLevelValue.Set(gl, value);
             m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
             m_shaderProgram.TimeFrac.Set(gl, timeFrac);
+            m_shaderProgram.Camera.Set(gl, new vec3((float)renderInfo.ViewerEntity.Position.X, (float)renderInfo.ViewerEntity.Position.Y, 
+                (float)renderInfo.ViewerEntity.ViewZ));
+            m_shaderProgram.LookingAngle.Set(gl, renderInfo.Camera.YawRadians);
         }
 
         private void RenderWorldData(RenderInfo renderInfo)

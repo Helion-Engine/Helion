@@ -10,10 +10,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
     {
         public readonly UniformInt BoundTexture = new();
         public readonly UniformInt HasInvulnerability = new();
-        public readonly UniformFloat LightLevelMix = new();
-        public readonly UniformFloat LightLevelValue = new();
         public readonly UniformMatrix4 Mvp = new();
         public readonly UniformFloat TimeFrac = new();
+        public readonly UniformVec3 Camera = new();
+        public readonly UniformFloat LookingAngle = new();
 
         public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
             base(functions, builder, attributes)
@@ -26,6 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 #version 130
 
                 in vec3 pos;
+                in vec3 looking;
                 in vec2 uv;
                 in float lightLevel;
                 in float alpha;
@@ -36,8 +37,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 flat out float lightLevelFrag;
                 flat out float alphaFrag;
                 out vec3 colorMulFrag;
-                flat out float fuzzFrag;
-
+                flat out float fuzzFrag;      
+                out vec2 posFrag;
+                
                 uniform mat4 mvp;
 
                 void main() {
@@ -48,6 +50,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     fuzzFrag = fuzz;
 
                     gl_Position = mvp * vec4(pos, 1.0);
+                    posFrag = pos.xy;
                 }
             ";
 
@@ -59,31 +62,15 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 flat in float alphaFrag;
                 in vec3 colorMulFrag;
                 flat in float fuzzFrag;
+                in vec2 posFrag;
 
                 out vec4 fragColor;
 
                 uniform int hasInvulnerability;
                 uniform float timeFrac;
-                uniform float lightLevelMix;
-                uniform float lightLevelValue;
                 uniform sampler2D boundTexture;
-
-                float calculateLightLevel() {
-                    float lightLevel = lightLevelFrag;
-
-                    if (lightLevel <= 0.75) {
-	                    if (lightLevel > 0.4) {
-		                    lightLevel = -0.6375 + (1.85 * lightLevel);
-		                    if (lightLevel < 0.08) {
-			                    lightLevel = 0.08 + (lightLevel * 0.2);
-		                    }
-	                    } else {
-		                    lightLevel /= 5.0;
-	                    }
-                    }
-  
-                    return mix(clamp(lightLevel, 0.0, 1.0), lightLevelValue, lightLevelMix);
-                }
+                uniform vec3 camera;
+                uniform float lookingAngle;
 
                 // These two functions are found here:
                 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -102,10 +89,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 	                return res * res;
                 }
 
+                const int colorMaps = 32;
+                const int colorMapClamp = 31;
+                const int scaleCount = 16;
+                const int maxLightScale = 47;
+                const float lightChangeDist = 8;
+
+                int getLightLevel(float lightLevel, int add)
+                {
+                    int index = clamp(int(lightLevel * 256 / scaleCount), 0, scaleCount - 1);
+                    int startMap = ((scaleCount - index - 1) * 2) * colorMaps/scaleCount;
+                    add = maxLightScale - clamp(add, 0, maxLightScale);
+                    return clamp(startMap - (add / 2), 0, colorMapClamp);
+                }
+
                 void main() {
+                    float lightLevel = lightLevelFrag;
+                    float c = distance(posFrag, camera.xy);
+                    float angle = atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
+                    float b = c * sin(angle);
+                    float a = sqrt((c * c) - (b * b));
+
+                    int newIndex = getLightLevel(lightLevel, int(a/lightChangeDist));
+                    lightLevel = float(colorMapClamp - newIndex) / colorMapClamp;
+
                     fragColor = texture(boundTexture, uvFrag.st);
                     fragColor.xyz *= colorMulFrag;
-                    fragColor.xyz *= calculateLightLevel();
+                    fragColor.xyz *= lightLevel;
                     fragColor.w *= alphaFrag;
 
                     if (fuzzFrag > 0) {
@@ -118,7 +128,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     }
 
                     if (fragColor.w <= 0.0)
-                        discard;
+                        discard;					
 
                     // If invulnerable, grayscale everything and crank the brightness.
                     // Note: The 1.5x is a visual guess to make it look closer to vanilla.
