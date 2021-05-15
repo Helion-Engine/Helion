@@ -93,7 +93,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 const int colorMapClamp = 31;
                 const int scaleCount = 16;
                 const int maxLightScale = 47;
-                const float lightChangeDist = 8;
+
+                int getLightLevelAdd(float d)
+                {
+                    // Light changes do not start until 56 units in front
+                    d = clamp(d - 56, 0, d);
+                    return int(21.53536 + (-0.09935881 - 21.53536)/(1 + pow((d/48.46036), 0.9737408)));
+                }
 
                 int getLightLevel(float lightLevel, int add)
                 {
@@ -110,7 +116,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     float b = c * sin(angle);
                     float a = sqrt((c * c) - (b * b));
 
-                    int newIndex = getLightLevel(lightLevel, int(a/lightChangeDist));
+                    int newIndex = getLightLevel(lightLevel, getLightLevelAdd(a)*2);
                     lightLevel = float(colorMapClamp - newIndex) / colorMapClamp;
 
                     fragColor = texture(boundTexture, uvFrag.st);
