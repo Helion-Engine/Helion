@@ -14,6 +14,20 @@ namespace Helion.Render.OpenGL.Util
         /// </summary>
         public const int GLTrue = 1;
 
+        // Defined in LegacyShader as well
+        const int ColorMaps = 32;
+        const int ColorMapClamp = 31;
+        const int ScaleCount = 16;
+        const int MaxLightScale = 47;
+
+        private static int GetLightLevelIndex(int lightLevel, int add)
+        {
+            int index = Math.Clamp(lightLevel / ScaleCount, 0, ScaleCount - 1);
+            int startMap = (ScaleCount - index - 1) * 2 * ColorMaps / ScaleCount;
+            add = MaxLightScale - Math.Clamp(add, 0, MaxLightScale);
+            return Math.Clamp(startMap - (add / 2), 0, ColorMapClamp);
+        }
+
         /// <summary>
         /// Converts a light level to the doom light level color. This is used
         /// since the mapping of light levels to visible color is usually not
@@ -23,31 +37,8 @@ namespace Helion.Render.OpenGL.Util
         /// <param name="lightLevel">The light level.</param>
         /// <returns>A value between 0.0 and 1.0 that looks close to vanilla
         /// doom.</returns>
-        public static double DoomLightLevelToColor(int lightLevel)
-        {
-            double lightLevelFrac = Math.Clamp(lightLevel, 0, 255) / 255.0f;
-
-            switch (lightLevelFrac)
-            {
-            case > 0.75:
-                break;
-
-            case > 0.4:
-            {
-                lightLevelFrac = -0.6375 + (1.85 * lightLevelFrac);
-                if (lightLevelFrac < 0.08)
-                    lightLevelFrac = 0.08 + (lightLevelFrac * 0.2);
-
-                break;
-            }
-
-            default:
-                lightLevelFrac /= 5.0;
-                break;
-            }
-
-            return Math.Clamp(lightLevelFrac, 0.0, 1.0);
-        }
+        public static double DoomLightLevelToColor(int lightLevel) =>
+            (double)(ColorMapClamp - GetLightLevelIndex(lightLevel, 15)) / ColorMapClamp;
 
         /// <summary>
         /// Throws an exception of glGetError() returns an error value.

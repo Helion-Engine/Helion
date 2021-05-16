@@ -14,6 +14,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public readonly UniformFloat TimeFrac = new();
         public readonly UniformVec3 Camera = new();
         public readonly UniformFloat LookingAngle = new();
+        public readonly UniformFloat LightLevelMix = new();
+        public readonly UniformFloat LightLevelValue = new();
 
         public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
             base(functions, builder, attributes)
@@ -71,6 +73,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 uniform sampler2D boundTexture;
                 uniform vec3 camera;
                 uniform float lookingAngle;
+                uniform float lightLevelMix;
+                uniform float lightLevelValue;
 
                 // These two functions are found here:
                 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -89,6 +93,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 	                return res * res;
                 }
 
+                // Defined in GLHelper as well
                 const int colorMaps = 32;
                 const int colorMapClamp = 31;
                 const int scaleCount = 16;
@@ -101,10 +106,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     return int(21.53536 + (-0.09935881 - 21.53536)/(1 + pow((d/48.46036), 0.9737408)));
                 }
 
-                int getLightLevel(float lightLevel, int add)
+                int getLightLevelIndex(float lightLevel, int add)
                 {
                     int index = clamp(int(lightLevel * 256 / scaleCount), 0, scaleCount - 1);
-                    int startMap = ((scaleCount - index - 1) * 2) * colorMaps/scaleCount;
+                    int startMap = (scaleCount - index - 1) * 2 * colorMaps/scaleCount;
                     add = maxLightScale - clamp(add, 0, maxLightScale);
                     return clamp(startMap - (add / 2), 0, colorMapClamp);
                 }
@@ -116,8 +121,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     float b = c * sin(angle);
                     float a = sqrt((c * c) - (b * b));
 
-                    int newIndex = getLightLevel(lightLevel, getLightLevelAdd(a)*2);
-                    lightLevel = float(colorMapClamp - newIndex) / colorMapClamp;
+                    int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a)*2);
+                    lightLevel = float(colorMapClamp - index) / colorMapClamp;
+                    lightLevel = mix(clamp(lightLevel, 0.0, 1.0), lightLevelValue, lightLevelMix);
 
                     fragColor = texture(boundTexture, uvFrag.st);
                     fragColor.xyz *= colorMulFrag;
