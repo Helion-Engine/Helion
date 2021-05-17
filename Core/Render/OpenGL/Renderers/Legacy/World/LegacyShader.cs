@@ -93,16 +93,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 	                return res * res;
                 }
 
+                const float halfPi = 1.57079632679489661923;
+
                 // Defined in GLHelper as well
                 const int colorMaps = 32;
                 const int colorMapClamp = 31;
                 const int scaleCount = 16;
-                const int maxLightScale = 47;
+                const int maxLightScale = 23;
+                const int lightFadeStart = 56;
 
                 int getLightLevelAdd(float d)
                 {
-                    // Light changes do not start until 56 units in front
-                    d = clamp(d - 56, 0, d);
+                    d = clamp(d - lightFadeStart, 0, d);                  
                     return int(21.53536 + (-0.09935881 - 21.53536)/(1 + pow((d/48.46036), 0.9737408)));
                 }
 
@@ -111,18 +113,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     int index = clamp(int(lightLevel * 256 / scaleCount), 0, scaleCount - 1);
                     int startMap = (scaleCount - index - 1) * 2 * colorMaps/scaleCount;
                     add = maxLightScale - clamp(add, 0, maxLightScale);
-                    return clamp(startMap - (add / 2), 0, colorMapClamp);
+                    return clamp(startMap - add, 0, colorMapClamp);
                 }
 
                 void main() {
                     float lightLevel = lightLevelFrag;
                     float c = distance(posFrag, camera.xy);
-                    float angle = atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
-                    float b = c * sin(angle);
-                    float a = sqrt((c * c) - (b * b));
+                    float angle = halfPi + atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
+                    float a = c * sin(angle);
 
-                    int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a)*2);
-                    lightLevel = float(colorMapClamp - index) / colorMapClamp;
+                    int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a));
+                    lightLevel = float(colorMaps - index) / colorMaps;
                     lightLevel = mix(clamp(lightLevel, 0.0, 1.0), lightLevelValue, lightLevelMix);
 
                     fragColor = texture(boundTexture, uvFrag.st);

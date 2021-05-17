@@ -18,14 +18,14 @@ namespace Helion.Render.OpenGL.Util
         const int ColorMaps = 32;
         const int ColorMapClamp = 31;
         const int ScaleCount = 16;
-        const int MaxLightScale = 47;
+        const int MaxLightScale = 23;
 
         private static int GetLightLevelIndex(int lightLevel, int add)
         {
             int index = Math.Clamp(lightLevel / ScaleCount, 0, ScaleCount - 1);
             int startMap = (ScaleCount - index - 1) * 2 * ColorMaps / ScaleCount;
             add = MaxLightScale - Math.Clamp(add, 0, MaxLightScale);
-            return Math.Clamp(startMap - (add / 2), 0, ColorMapClamp);
+            return Math.Clamp(startMap - add, 0, ColorMapClamp);
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Helion.Render.OpenGL.Util
         /// <returns>A value between 0.0 and 1.0 that looks close to vanilla
         /// doom.</returns>
         public static double DoomLightLevelToColor(int lightLevel) =>
-            (double)(ColorMapClamp - GetLightLevelIndex(lightLevel, 15)) / ColorMapClamp;
+            (double)(ColorMapClamp - GetLightLevelIndex(lightLevel, 8)) / ColorMapClamp;
 
         /// <summary>
         /// Throws an exception of glGetError() returns an error value.

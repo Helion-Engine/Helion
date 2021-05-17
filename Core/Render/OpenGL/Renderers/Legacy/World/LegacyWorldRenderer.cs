@@ -202,8 +202,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
             m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
             m_shaderProgram.TimeFrac.Set(gl, timeFrac);
-            m_shaderProgram.Camera.Set(gl, new vec3((float)renderInfo.ViewerEntity.Position.X, (float)renderInfo.ViewerEntity.Position.Y, 
-                (float)renderInfo.ViewerEntity.ViewZ));
+            m_shaderProgram.Camera.Set(gl, new vec3(renderInfo.Camera.Position.X, renderInfo.Camera.Position.Y,
+                renderInfo.Camera.Position.Z));
             m_shaderProgram.LookingAngle.Set(gl, renderInfo.Camera.YawRadians);
             m_shaderProgram.LightLevelValue.Set(gl, value);
             m_shaderProgram.LightLevelMix.Set(gl, mix);
