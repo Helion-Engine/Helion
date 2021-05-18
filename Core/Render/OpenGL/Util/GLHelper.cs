@@ -35,10 +35,10 @@ namespace Helion.Render.OpenGL.Util
         /// used in the shader as well.
         /// </summary>
         /// <param name="lightLevel">The light level.</param>
-        /// <returns>A value between 0.0 and 1.0 that looks close to vanilla
-        /// doom.</returns>
-        public static double DoomLightLevelToColor(int lightLevel) =>
-            (double)(ColorMaps - GetLightLevelIndex(lightLevel, 8)) / ColorMaps;
+        /// <param name="extraLight">The extra light value from the player.</param>
+        /// <returns>A value between 0 and 255.</returns>
+        public static int DoomLightLevelToColor(int lightLevel, int extraLight) =>
+            Math.Clamp((ColorMaps - GetLightLevelIndex(lightLevel, 8 - extraLight)) * ScaleCount, 0, 255);
 
         /// <summary>
         /// Throws an exception of glGetError() returns an error value.

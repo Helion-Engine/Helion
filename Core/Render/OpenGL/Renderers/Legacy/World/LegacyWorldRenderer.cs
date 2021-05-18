@@ -165,18 +165,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_entityRenderer.RenderSubsector(subsector, position, viewDirection);
         }
 
-        private static (float mix, float value) GetLightLevelWeaponModifier(RenderInfo renderInfo)
-        {
-            if (renderInfo.ViewerEntity is Player player)
-                return (player.ExtraLight * Constants.ExtraLightFactor / 256.0f, 1.0f);
-            else
-                return (0.0f, 1.0f);
-        }
-
         private void SetUniforms(RenderInfo renderInfo)
         {
             int drawInvulnerability = 0;
-            (float mix, float value) = GetLightLevelWeaponModifier(renderInfo);
 
             // We divide by 4 to make it so the noise changes every four ticks.
             // We then mod by 8 so that the number stays small (or else when it
@@ -189,6 +180,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             const int ticksPerFrame = 4;
             const int differentFrames = 8;
             float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / ticksPerFrame) % differentFrames) + 1;
+            int extraLight = 0;
+            float mix = 0.0f;
 
             if (renderInfo.ViewerEntity is Player player)
             {
@@ -196,6 +189,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     mix = 1.0f;
                 if (player.DrawInvulnerableColorMap())
                     drawInvulnerability = 1;
+
+                extraLight = player.ExtraLight * Constants.ExtraLightFactor;
             }
 
             m_shaderProgram.BoundTexture.Set(gl, 0);
@@ -205,8 +200,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             m_shaderProgram.Camera.Set(gl, new vec3(renderInfo.Camera.Position.X, renderInfo.Camera.Position.Y,
                 renderInfo.Camera.Position.Z));
             m_shaderProgram.LookingAngle.Set(gl, renderInfo.Camera.YawRadians);
-            m_shaderProgram.LightLevelValue.Set(gl, value);
             m_shaderProgram.LightLevelMix.Set(gl, mix);
+            m_shaderProgram.ExtraLight.Set(gl, extraLight);
         }
 
         private void RenderWorldData(RenderInfo renderInfo)

@@ -318,8 +318,7 @@ namespace Helion.Render.Shared.Drawers
             DrawHelper draw, int yOffset)
         {
             int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
-                (int)(GLHelper.DoomLightLevelToColor(player.Sector.LightLevel + (player.ExtraLight * Constants.ExtraLightFactor) + Constants.ExtraLightFactor) * 255);
-
+                GLHelper.DoomLightLevelToColor(player.Sector.LightLevel, player.ExtraLight * Constants.ExtraLightFactor);
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 

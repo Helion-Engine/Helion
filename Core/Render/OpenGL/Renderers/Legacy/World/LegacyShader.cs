@@ -15,7 +15,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public readonly UniformVec3 Camera = new();
         public readonly UniformFloat LookingAngle = new();
         public readonly UniformFloat LightLevelMix = new();
-        public readonly UniformFloat LightLevelValue = new();
+        public readonly UniformInt ExtraLight = new();
 
         public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
             base(functions, builder, attributes)
@@ -74,7 +74,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 uniform vec3 camera;
                 uniform float lookingAngle;
                 uniform float lightLevelMix;
-                uniform float lightLevelValue;
+                uniform int extraLight;
 
                 // These two functions are found here:
                 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -122,9 +122,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     float angle = halfPi + atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
                     float a = c * sin(angle);
 
-                    int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a));
+                    int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a) - extraLight);
                     lightLevel = float(colorMaps - index) / colorMaps;
-                    lightLevel = mix(clamp(lightLevel, 0.0, 1.0), lightLevelValue, lightLevelMix);
+                    lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
 
                     fragColor = texture(boundTexture, uvFrag.st);
                     fragColor.xyz *= colorMulFrag;
