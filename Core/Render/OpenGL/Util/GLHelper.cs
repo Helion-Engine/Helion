@@ -38,7 +38,7 @@ namespace Helion.Render.OpenGL.Util
         /// <returns>A value between 0.0 and 1.0 that looks close to vanilla
         /// doom.</returns>
         public static double DoomLightLevelToColor(int lightLevel) =>
-            (double)(ColorMapClamp - GetLightLevelIndex(lightLevel, 8)) / ColorMapClamp;
+            (double)(ColorMaps - GetLightLevelIndex(lightLevel, 8)) / ColorMaps;
 
         /// <summary>
         /// Throws an exception of glGetError() returns an error value.

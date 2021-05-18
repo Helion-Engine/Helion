@@ -31,7 +31,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
             Z = z;
             U = u;
             V = v;
-            LightLevelUnit = lightLevel / 256.0f;
+            LightLevelUnit = lightLevel;
             Alpha = alpha;
             R = color.R / 255.0f;
             G = color.G / 255.0f;

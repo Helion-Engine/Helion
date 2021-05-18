@@ -198,12 +198,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
             if (side.OffsetChanged || side.Sector.DataChanged || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
-                data = GetWallVertices(wall, GetRenderLightLevel(side) / 256.0f);
+                data = GetWallVertices(wall, GetRenderLightLevel(side));
                 m_vertexLookup[side.Id] = data;
             }
             else if (side.Sector.LightingChanged)
             {
-                SetLightToVertices(data, GetRenderLightLevel(side) / 256.0f);
+                SetLightToVertices(data, GetRenderLightLevel(side));
             }
 
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
@@ -304,12 +304,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
-                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide) / 256.0f);
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide));
                     m_vertexLowerLookup[facingSide.Id] = data;
                 }
                 else if (facingSide.Sector.LightingChanged)
                 {
-                    SetLightToVertices(data, GetRenderLightLevel(facingSide) / 256.0f);
+                    SetLightToVertices(data, GetRenderLightLevel(facingSide));
                 }
 
                 // See RenderOneSided() for an ASCII image of why we do this.
@@ -364,12 +364,12 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
-                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide) / 256.0f);
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide));
                     m_vertexUpperLookup[facingSide.Id] = data;
                 }
                 else if (facingSide.Sector.LightingChanged)
                 {
-                    SetLightToVertices(data, GetRenderLightLevel(facingSide) / 256.0f);
+                    SetLightToVertices(data, GetRenderLightLevel(facingSide));
                 }
 
                 // See RenderOneSided() for an ASCII image of why we do this.
@@ -430,13 +430,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 if (nothingVisible)
                     data = Array.Empty<LegacyVertex>();
                 else
-                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide) / 256.0f);
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide));
 
                 m_vertexLookup[facingSide.Id] = data;
             }
             else if (facingSide.Sector.LightingChanged)
             {
-                SetLightToVertices(data, GetRenderLightLevel(facingSide) / 256.0f);
+                SetLightToVertices(data, GetRenderLightLevel(facingSide));
             }
 
             // See RenderOneSided() for an ASCII image of why we do this.
@@ -515,7 +515,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                     {
                         WorldVertex second = m_subsectorVertices[i];
                         WorldVertex third = m_subsectorVertices[i + 1];
-                        subData.AddRange(GetFlatVertices(ref root, ref second, ref third, flat.LightLevel / 256.0f));
+                        subData.AddRange(GetFlatVertices(ref root, ref second, ref third, flat.LightLevel));
                     }
 
                     data = subData.ToArray();
@@ -526,7 +526,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry
                 }
                 else if (flat.Sector.LightingChanged)
                 {
-                    SetLightToVertices(data, flat.Sector.LightLevel / 256.0f);
+                    SetLightToVertices(data, flat.Sector.LightLevel);
                 }
 
                 renderData.Vbo.Add(data);

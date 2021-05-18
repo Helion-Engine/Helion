@@ -46,7 +46,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 void main() {
                     uvFrag = uv;    
-                    lightLevelFrag = clamp(lightLevel, 0.0, 1.0);
+                    lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
                     alphaFrag = alpha;
                     colorMulFrag = colorMul;
                     fuzzFrag = fuzz;
@@ -110,7 +110,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
 
                 int getLightLevelIndex(float lightLevel, int add)
                 {
-                    int index = clamp(int(lightLevel * 256 / scaleCount), 0, scaleCount - 1);
+                    int index = clamp(int(lightLevel / scaleCount), 0, scaleCount - 1);
                     int startMap = (scaleCount - index - 1) * 2 * colorMaps/scaleCount;
                     add = maxLightScale - clamp(add, 0, maxLightScale);
                     return clamp(startMap - add, 0, colorMapClamp);
