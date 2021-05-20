@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
 using Helion.Menus;
 using Helion.Menus.Base;
@@ -17,9 +18,11 @@ namespace Helion.Render.Shared.Drawers
 {
     public class MenuDrawer
     {
-        private const int SelectedImagePadding = 8;
         private const int ActiveMillis = 500;
-        
+
+        private const int SelectedOffsetX = -32;
+        private const int SelectedOffsetY = 5;
+
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Stopwatch m_stopwatch = new();
 
@@ -36,7 +39,6 @@ namespace Helion.Render.Shared.Drawers
             helper.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
             {
                 int offsetY = menu.TopPixelPadding;
-                int? maxWidth = CalculateMaxWidth(helper, menu);
                 
                 foreach (IMenuComponent component in menu)
                 {
@@ -45,16 +47,16 @@ namespace Helion.Render.Shared.Drawers
                     switch (component)
                     {
                     case MenuImageComponent imageComponent:
-                        DrawImage(helper, imageComponent, isSelected, maxWidth, ref offsetY);
+                        DrawImage(helper, imageComponent, isSelected, ref offsetY);
                         break;
                     case MenuPaddingComponent paddingComponent:
                         offsetY += paddingComponent.PixelAmount;
                         break;
                     case MenuSmallTextComponent smallTextComponent:
-                        DrawText(helper, smallTextComponent, isSelected, ref offsetY);
+                        DrawText(helper, smallTextComponent, ref offsetY);
                         break;
                     case MenuLargeTextComponent largeTextComponent:
-                        DrawText(helper, largeTextComponent, isSelected, ref offsetY);
+                        DrawText(helper, largeTextComponent, ref offsetY);
                         break;
                     case MenuSaveRowComponent saveRowComponent:
                         DrawSaveRow(helper, saveRowComponent, isSelected, ref offsetY);
@@ -65,38 +67,8 @@ namespace Helion.Render.Shared.Drawers
                 }
             });
         }
-        
-        private static int? CalculateMaxWidth(DrawHelper helper, Menu menu)
-        {
-            if (!menu.LeftAlign)
-                return null;
 
-            int maxWidth = 0;
-
-            foreach (IMenuComponent menuComponent in menu)
-            {
-                // This is done this way to keep the logic simple, as we will
-                // eventually replace this UI with something better.
-                switch (menuComponent)
-                {
-                    case MenuImageComponent imageComponent:
-                    {
-                        int width = helper.DrawInfoProvider.GetImageDimension(imageComponent.ImageName.ToString()).Width;
-                        maxWidth = Math.Max(maxWidth, width);
-                        break;
-                    }
-                    case MenuSaveRowComponent:
-                    {
-                        maxWidth = Math.Max(maxWidth, MenuSaveRowComponent.PixelWidth);
-                        break;
-                    }
-                }
-            }
-
-            return maxWidth;
-        }
-
-        private void DrawText(DrawHelper helper, MenuTextComponent text, bool isSelected, ref int offsetY)
+        private void DrawText(DrawHelper helper, MenuTextComponent text, ref int offsetY)
         {
             Font? font = m_archiveCollection.GetFont(text.FontName);
             if (font == null)
@@ -106,25 +78,28 @@ namespace Helion.Render.Shared.Drawers
             offsetY += area.Height;
         }
 
-        private void DrawImage(DrawHelper helper, MenuImageComponent image, bool isSelected, int? maxWidth,
-            ref int offsetY)
+        private void DrawImage(DrawHelper helper, MenuImageComponent image, bool isSelected, ref int offsetY)
         {
-            string name = image.ImageName.ToString();
-            int imageWidth = helper.DrawInfoProvider.GetImageDimension(image.ImageName.ToString()).Width;
-            int offsetX = -((maxWidth - imageWidth) / 2 ?? 0) + image.OffsetX;
-            
-            helper.Image(name, offsetX, offsetY, out Dimension area, both: Align.TopMiddle);
+            var dimension = helper.DrawInfoProvider.GetImageDimension(image.ImageName);
+            Vec2I offset = helper.DrawInfoProvider.GetImageOffset(image.ImageName);
+            helper.TranslateDoomOffset(ref offset, dimension);
+            int offsetX = image.OffsetX + offset.X;
+
+            helper.Image(image.ImageName, offsetX, offsetY + offset.Y, out Dimension area, both: image.ImageAlign);
 
             if (isSelected)
             {
-                string selectedName = (ShouldDrawActive() ? image.ActiveImage : image.InactiveImage) ?? "";
-                var (_, w) = helper.DrawInfoProvider.GetImageDimension(selectedName);
-                offsetX -= (area.Width / 2) + (w / 2) + SelectedImagePadding;
-                
-                helper.Image(selectedName, offsetX, offsetY, both: Align.TopMiddle);
+                string selectedName = (ShouldDrawActive() ? image.ActiveImage : image.InactiveImage) ?? string.Empty;
+                dimension = helper.DrawInfoProvider.GetImageDimension(selectedName);
+                offsetX += SelectedOffsetX;
+                Vec2I selectedOffset = helper.DrawInfoProvider.GetImageOffset(selectedName);
+                helper.TranslateDoomOffset(ref selectedOffset, dimension);
+
+                helper.Image(selectedName, offsetX + selectedOffset.X, 
+                    offsetY + selectedOffset.Y + image.PaddingY - SelectedOffsetY, both: image.ImageAlign);
             }
             
-            offsetY += area.Height + image.PaddingY;
+            offsetY += area.Height + offset.Y + image.PaddingY;
         }
 
         private bool ShouldDrawActive() => (m_stopwatch.ElapsedMilliseconds % ActiveMillis) <= ActiveMillis / 2;

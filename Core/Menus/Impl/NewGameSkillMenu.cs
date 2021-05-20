@@ -2,6 +2,7 @@
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
+using Helion.Render.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
@@ -16,6 +17,9 @@ namespace Helion.Menus.Impl
         private readonly HelionConsole m_console;
         private readonly string? m_episode;
 
+        private const int OffsetX = 48;
+        private const int PaddingY = 1;
+
         public NewGameSkillMenu(Config config, HelionConsole console, SoundManager soundManager, 
                 ArchiveCollection archiveCollection, string? episode) : 
             base(config, console, soundManager, archiveCollection, 16, true)
@@ -26,9 +30,8 @@ namespace Helion.Menus.Impl
 
             Components = Components.AddRange(new[] 
             {
-                // TODO: X offsets are hardcoded for now (and are probably not even right).
-                CreateMenuOption("M_NEWG", 24, 10),
-                CreateMenuOption("M_SKILL", 8, 10),
+                CreateMenuOption("M_NEWG", 96, 8),
+                CreateMenuOption("M_SKILL", 54, 8),
             });
 
             var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
@@ -44,11 +47,11 @@ namespace Helion.Menus.Impl
                 if (skill.MustConfirm)
                 {
                     m_confirmSkillLevel = skillLevel;
-                    component = CreateMenuOption(skill.PicName, 0, 2, Confirm());
+                    component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, Confirm());
                 }
                 else
                 {
-                    component = CreateMenuOption(skill.PicName, 0, 2, CreateWorld(skillLevel));
+                    component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, CreateWorld(skillLevel));
                 }
 
                 Components = Components.Add(component);
@@ -61,7 +64,7 @@ namespace Helion.Menus.Impl
 
             IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null)
             {
-                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
+                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, imageAlign: Align.TopLeft);
             }
 
             Func<Menu?> Confirm()

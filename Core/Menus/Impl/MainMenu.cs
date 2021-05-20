@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer;
 using Helion.Menus.Base;
+using Helion.Render.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
@@ -15,6 +16,9 @@ namespace Helion.Menus.Impl
     public class MainMenu : Menu
     {
         private readonly GameLayer m_parent;
+
+        private const int OffsetX = 97;
+        private const int PaddingY = 1;
         
         public MainMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveManager)
@@ -24,16 +28,16 @@ namespace Helion.Menus.Impl
 
             List<IMenuComponent> components = new()
             {
-                new MenuImageComponent("M_DOOM", paddingY: 8),
-                CreateMenuOption("M_NGAME", -6, 2, CreateNewGameMenu()),
-                CreateMenuOption("M_OPTION", -15, 2, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
-                CreateMenuOption("M_LOADG", 1, 2, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false)),
-                CreateMenuOption("M_SAVEG", 1, 2, CreateSaveMenu(saveManager)),
+                new MenuImageComponent("M_DOOM", offsetX: 94, paddingY: PaddingY, imageAlign: Align.TopLeft),
+                CreateMenuOption("M_NGAME", OffsetX, PaddingY, CreateNewGameMenu()),
+                CreateMenuOption("M_OPTION", OffsetX, PaddingY, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
+                CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false)),
+                CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager)),
             };
 
             if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
-                components.Add(CreateMenuOption("M_RDTHIS", 1, 2, ShowReadThis()));
-            components.Add(CreateMenuOption("M_QUITG", -3, 2, () => new QuitGameMenu(config, Console, soundManager, ArchiveCollection)));
+                components.Add(CreateMenuOption("M_RDTHIS", OffsetX, PaddingY, ShowReadThis()));
+            components.Add(CreateMenuOption("M_QUITG", OffsetX, PaddingY, () => new QuitGameMenu(config, Console, soundManager, ArchiveCollection)));
 
             Components = Components.AddRange(components);
 
@@ -41,7 +45,7 @@ namespace Helion.Menus.Impl
 
             static IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?> action)
             {
-                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action);
+                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, imageAlign: Align.TopLeft);
             }
         }
 

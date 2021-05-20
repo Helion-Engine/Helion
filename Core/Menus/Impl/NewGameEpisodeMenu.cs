@@ -1,6 +1,7 @@
 ﻿using Helion.Audio.Sounds;
 using Helion.Layer;
 using Helion.Menus.Base;
+using Helion.Render.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
@@ -15,8 +16,11 @@ namespace Helion.Menus.Impl
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        private const int OffsetX = 48;
+        private const int PaddingY = 1;
+
         public NewGameEpisodeMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
-            base(config, console, soundManager, archiveCollection, 40, true)
+            base(config, console, soundManager, archiveCollection, 63, true)
         {
             var episodes = archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;
             if (episodes.Count == 0)
@@ -25,7 +29,7 @@ namespace Helion.Menus.Impl
                 return;
             }
             
-            Components = Components.Add(new MenuImageComponent("M_EPISOD", 12, 12));
+            Components = Components.Add(new MenuImageComponent("M_EPISOD", 54, 8, imageAlign: Align.TopLeft));
             
             foreach (EpisodeDef episode in episodes)
             {
@@ -44,12 +48,14 @@ namespace Helion.Menus.Impl
                     !episode.StartMap.Equals("e1m1", StringComparison.OrdinalIgnoreCase))
                 {
                     string[] lines = archiveCollection.Definitions.Language.GetMessages("$SWSTRING");
-                    return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2",
-                        () => new MessageMenu(config, Console, soundManager, ArchiveCollection, lines));
+                    return new(episode.PicName, OffsetX, PaddingY, "M_SKULL1", "M_SKULL2",
+                        () => new MessageMenu(config, Console, soundManager, ArchiveCollection, lines),
+                        imageAlign: Align.TopLeft);
                 }
 
-                return new(episode.PicName, 0, 2, "M_SKULL1", "M_SKULL2", 
-                        () => new NewGameSkillMenu(config, console, soundManager, archiveCollection, episode.StartMap));
+                return new(episode.PicName, OffsetX, PaddingY, "M_SKULL1", "M_SKULL2", 
+                        () => new NewGameSkillMenu(config, console, soundManager, archiveCollection, episode.StartMap),
+                        imageAlign: Align.TopLeft);
             }
         }
     }
