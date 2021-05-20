@@ -299,7 +299,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
 
             if (m_renderPositions.Contains(entityPos))
             {
-                double nudge = NudgeFactor * entityPos.Distance(position);
+                double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
                 Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
                 centerBottom.X += nudgeAmount.X;
                 centerBottom.Y += nudgeAmount.Y;
@@ -311,6 +311,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities
                 }
 
                 m_renderPositions.Add(centerBottom.XY);
+
             }
             else
             {
