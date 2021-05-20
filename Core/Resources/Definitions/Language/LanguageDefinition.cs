@@ -35,7 +35,7 @@ namespace Helion.Resources.Definitions.Language
 
                 parser.ConsumeString(";");
 
-                m_lookup.Add(key, sb.ToString());
+                m_lookup[key] = sb.ToString();
             }
         }
 
