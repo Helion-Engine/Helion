@@ -1,9 +1,6 @@
 ﻿using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Impl.Components;
-using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
-using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Container;
 using Helion.World.Entities;
@@ -11,6 +8,9 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System.Collections.Generic;
+using Helion.Render.OpenGL.Legacy.Context;
+using Helion.Render.OpenGL.Legacy.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Legacy.Texture.Legacy;
 
 namespace Helion.Util
 {

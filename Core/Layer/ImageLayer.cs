@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
-using Helion.Render.Commands;
-using Helion.Render.Shared.Drawers.Helper;
+using Helion.Render.OpenGL.Legacy.Commands;
+using Helion.Render.OpenGL.Legacy.Shared.Drawers.Helper;
 
 namespace Helion.Layer
 {

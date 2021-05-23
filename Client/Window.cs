@@ -4,7 +4,8 @@ using Helion.Geometry;
 using Helion.Input;
 using Helion.Render;
 using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Legacy;
+using Helion.Render.OpenGL.Legacy.Context;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -26,7 +27,7 @@ namespace Helion.Client
         /// <summary>
         /// The renderer for this window.
         /// </summary>
-        public readonly IRenderer Renderer;
+        public readonly ILegacyRenderer LegacyRenderer;
 
         /// <summary>
         /// The input management for this window.
@@ -53,7 +54,7 @@ namespace Helion.Client
             m_config = config;
 
             CursorVisible = !config.Mouse.Focus;
-            Renderer = new GLRenderer(config, archiveCollection, new OpenTKGLFunctions());
+            LegacyRenderer = new GlLegacyRenderer(config, archiveCollection, new OpenTKGLFunctions());
             IgnoreMouseMovement = config.Mouse.RawInput;
             CursorGrabbed = config.Mouse.Focus;
             VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;

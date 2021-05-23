@@ -1,7 +1,6 @@
 ﻿using Helion.Audio.Sounds;
 using Helion.Layer;
 using Helion.Menus.Base;
-using Helion.Render.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
@@ -9,6 +8,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using NLog;
 using System;
+using Helion.Render.OpenGL.Legacy.Commands.Alignment;
 
 namespace Helion.Menus.Impl
 {

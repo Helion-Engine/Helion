@@ -1,9 +1,6 @@
 using Helion.Audio;
 using Helion.Input;
 using Helion.Maps;
-using Helion.Render.Commands;
-using Helion.Render.Shared;
-using Helion.Render.Shared.Drawers;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
@@ -21,6 +18,9 @@ using Helion.World.StatusBar;
 using NLog;
 using System;
 using System.Drawing;
+using Helion.Render.OpenGL.Legacy.Commands;
+using Helion.Render.OpenGL.Legacy.Shared;
+using Helion.Render.OpenGL.Legacy.Shared.Drawers;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 

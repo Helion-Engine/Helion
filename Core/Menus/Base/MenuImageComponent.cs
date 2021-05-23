@@ -1,5 +1,5 @@
-﻿using Helion.Render.Commands.Alignment;
-using System;
+﻿using System;
+using Helion.Render.OpenGL.Legacy.Commands.Alignment;
 
 namespace Helion.Menus.Base
 {

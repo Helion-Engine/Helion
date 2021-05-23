@@ -4,7 +4,7 @@ using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer;
 using Helion.Menus.Base;
-using Helion.Render.Commands.Alignment;
+using Helion.Render.OpenGL.Legacy.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;

@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using Helion.Input;
-using Helion.Render.Commands;
-using Helion.Render.Shared.Drawers;
+using Helion.Render.OpenGL.Legacy.Commands;
+using Helion.Render.OpenGL.Legacy.Shared.Drawers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;

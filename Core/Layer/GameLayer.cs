@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Input;
-using Helion.Render.Commands;
+using Helion.Render.OpenGL.Legacy.Commands;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 

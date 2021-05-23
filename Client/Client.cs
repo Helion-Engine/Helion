@@ -12,7 +12,8 @@ using Helion.Geometry;
 using Helion.Input;
 using Helion.Layer;
 using Helion.Render;
-using Helion.Render.Commands;
+using Helion.Render.OpenGL.Legacy;
+using Helion.Render.OpenGL.Legacy.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -96,14 +97,14 @@ namespace Helion.Client
         private void PerformRender()
         {
             Dimension windowDimension = m_window.Dimension;
-            IRenderer renderer = m_window.Renderer;
-            RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
+            ILegacyRenderer legacyRenderer = m_window.LegacyRenderer;
+            RenderCommands renderCommands = new(m_config, windowDimension, legacyRenderer.ImageDrawInfoProvider, m_fpsTracker);
             
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();
             m_layerManager.Render(renderCommands);
 
-            renderer.Render(renderCommands);
+            legacyRenderer.Render(renderCommands);
         }
 
         private void Render()
