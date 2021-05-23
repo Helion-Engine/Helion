@@ -7,7 +7,7 @@ using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 using Helion.Render.Common.World;
 using Helion.World;
 
@@ -66,7 +66,7 @@ namespace Helion.Render.Common.Renderers
         
         void DrawImage(IRenderableTexture texture, Quad3D quad, Color? color);
         
-        void DrawFrameBuffer(IFrameBuffer frameBuffer, Quad3D quad, Color? color);
+        void DrawFrameBuffer(IFramebuffer framebuffer, Quad3D quad, Color? color);
         
         void Render(WorldRenderContext context);
     }

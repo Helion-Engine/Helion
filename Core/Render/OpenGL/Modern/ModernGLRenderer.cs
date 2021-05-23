@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Render.Common;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Modern.FrameBuffers;
 using Helion.Render.OpenGL.Modern.Textures;
@@ -23,12 +23,12 @@ namespace Helion.Render.OpenGL.Modern
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public IWindow Window { get; }
-        public IFrameBuffer Default => m_defaultFrameBuffer;
+        public IFramebuffer Default => m_defaultFramebuffer;
         public readonly ModernGLTextureManager Textures;
         private readonly Config m_config;
         private readonly GLCapabilities m_capabilities;
-        private readonly ModernGLDefaultFrameBuffer m_defaultFrameBuffer;
-        private readonly Dictionary<string, ModernGLFrameBuffer> m_framebuffers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly ModernGlDefaultFramebuffer m_defaultFramebuffer;
+        private readonly Dictionary<string, ModernGlFramebuffer> m_framebuffers = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
         
         /// <summary>
@@ -48,7 +48,7 @@ namespace Helion.Render.OpenGL.Modern
             m_capabilities = capabilities;
             Window = window;
             Textures = new ModernGLTextureManager(capabilities, config, archiveCollection);
-            m_defaultFrameBuffer = new ModernGLDefaultFrameBuffer(window, Textures);
+            m_defaultFramebuffer = new ModernGlDefaultFramebuffer(window, Textures);
 
             PrintGLInfo();
             SetGLDebugger();
@@ -158,27 +158,27 @@ namespace Helion.Render.OpenGL.Modern
             }
         }
 
-        private ModernGLFrameBuffer CreateFramebuffer(string name, Dimension dimension)
+        private ModernGlFramebuffer CreateFramebuffer(string name, Dimension dimension)
         {
             Precondition(!m_framebuffers.ContainsKey(name), "Trying to create a framebuffer with name that exists");
 
-            ModernGLTextureFrameBuffer frameBuffer = new(name, dimension, Textures, this);
-            m_framebuffers[name] = frameBuffer;
-            return frameBuffer;
+            ModernGlTextureFramebuffer framebuffer = new(name, dimension, Textures, this);
+            m_framebuffers[name] = framebuffer;
+            return framebuffer;
         }
         
-        public IFrameBuffer GetOrCreateFrameBuffer(string name, Dimension dimension)
+        public IFramebuffer GetOrCreateFrameBuffer(string name, Dimension dimension)
         {
-            IFrameBuffer? existingFrameBuffer = GetFrameBuffer(name);
+            IFramebuffer? existingFrameBuffer = GetFrameBuffer(name);
             if (existingFrameBuffer != null)
                 return existingFrameBuffer;
             
             return CreateFramebuffer(name, dimension);
         }
 
-        public IFrameBuffer? GetFrameBuffer(string name)
+        public IFramebuffer? GetFrameBuffer(string name)
         {
-            return m_framebuffers.TryGetValue(name, out ModernGLFrameBuffer? fb) ? fb : null;
+            return m_framebuffers.TryGetValue(name, out ModernGlFramebuffer? fb) ? fb : null;
         }
 
         public void Dispose()
@@ -194,10 +194,10 @@ namespace Helion.Render.OpenGL.Modern
 
             Textures.Dispose();
 
-            foreach ((_, ModernGLFrameBuffer fb) in m_framebuffers)
+            foreach ((_, ModernGlFramebuffer fb) in m_framebuffers)
                 fb.Dispose();
             m_framebuffers.Clear();
-            m_defaultFrameBuffer.Dispose();
+            m_defaultFramebuffer.Dispose();
 
             m_disposed = true;
         }

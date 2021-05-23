@@ -11,7 +11,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
 using Helion.Render.Common;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Modern.Renderers.Hud.Primitives;
@@ -265,7 +265,7 @@ namespace Helion.Render.OpenGL.Modern.Renderers.World
             // TODO
         }
 
-        public void DrawFrameBuffer(IFrameBuffer frameBuffer, Quad3D quad, Color? color)
+        public void DrawFrameBuffer(IFramebuffer framebuffer, Quad3D quad, Color? color)
         {
             // TODO
         }

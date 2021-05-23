@@ -8,7 +8,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Modern.FrameBuffers;
@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL.Modern.Renderers.Hud
 {
     public class ModernGLHudRenderer : IHudRenderer
     {
-        private readonly IFrameBuffer m_frameBuffer;
+        private readonly IFramebuffer m_framebuffer;
         private readonly ModernGLTextureManager m_textureManager;
         private readonly PrimitiveRenderPipeline m_pointsPipeline;
         private readonly PrimitiveRenderPipeline m_linesPipeline;
@@ -37,15 +37,15 @@ namespace Helion.Render.OpenGL.Modern.Renderers.Hud
         private int m_depthIndex;
         private bool m_disposed;
 
-        public ModernGLHudRenderer(IFrameBuffer frameBuffer, ModernGLTextureManager textureManager)
+        public ModernGLHudRenderer(IFramebuffer framebuffer, ModernGLTextureManager textureManager)
         {
-            m_frameBuffer = frameBuffer;
+            m_framebuffer = framebuffer;
             m_textureManager = textureManager;
-            m_pointsPipeline = new($"[{frameBuffer.Name}] HUD point renderer", PrimitiveType.Points);
-            m_linesPipeline = new($"[{frameBuffer.Name}] HUD line renderer", PrimitiveType.Lines);
-            m_shapesPipeline = new($"[{frameBuffer.Name}] HUD shape renderer", PrimitiveType.Triangles);
-            m_texturePipeline = new($"[{frameBuffer.Name}] HUD texture renderer", BufferUsageHint.StreamDraw, PrimitiveType.Triangles);
-            m_framebufferTexturePipeline = new($"[{frameBuffer.Name}] HUD framebuffer renderer");
+            m_pointsPipeline = new($"[{framebuffer.Name}] HUD point renderer", PrimitiveType.Points);
+            m_linesPipeline = new($"[{framebuffer.Name}] HUD line renderer", PrimitiveType.Lines);
+            m_shapesPipeline = new($"[{framebuffer.Name}] HUD shape renderer", PrimitiveType.Triangles);
+            m_texturePipeline = new($"[{framebuffer.Name}] HUD texture renderer", BufferUsageHint.StreamDraw, PrimitiveType.Triangles);
+            m_framebufferTexturePipeline = new($"[{framebuffer.Name}] HUD framebuffer renderer");
         }
 
         ~ModernGLHudRenderer()
@@ -66,13 +66,13 @@ namespace Helion.Render.OpenGL.Modern.Renderers.Hud
             // If there is no virtual dimension, then our point only needs to
             // be translated relative to the parent viewport.
             if (!m_renderDimensions.TryPeek(out RenderDimensions renderDim))
-                return align.Translate(point, m_frameBuffer.Dimension);
+                return align.Translate(point, m_framebuffer.Dimension);
             
             // Otherwise, translate it relative to the virtual viewport, and
             // then scale/adjust that point from the virtual viewport into the
             // parent viewport.
             point = align.Translate(point, renderDim);
-            return renderDim.Translate(point, m_frameBuffer.Dimension);
+            return renderDim.Translate(point, m_framebuffer.Dimension);
         }
         
         private Box2I Translate(Vec2I point, Dimension dimension, Align align)
@@ -89,7 +89,7 @@ namespace Helion.Render.OpenGL.Modern.Renderers.Hud
 
         private Dimension GetViewport()
         {
-            return m_renderDimensions.TryPeek(out RenderDimensions dim) ? dim : m_frameBuffer.Dimension;
+            return m_renderDimensions.TryPeek(out RenderDimensions dim) ? dim : m_framebuffer.Dimension;
         }
 
         public void Clear(Color color)
@@ -279,12 +279,12 @@ namespace Helion.Render.OpenGL.Modern.Renderers.Hud
             m_depthIndex++;
         }
 
-        public void FrameBuffer(IFrameBuffer frameBuffer, Vec2I origin, Dimension? dimension = null,
+        public void FrameBuffer(IFramebuffer framebuffer, Vec2I origin, Dimension? dimension = null,
             Align window = Align.TopLeft,
             Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
         {
-            if (frameBuffer is not ModernGLFrameBuffer glFrameBuffer)
-                throw new Exception($"Framebuffer is not the expected type (expecting modern OpenGL, got {frameBuffer.GetType().Name})");
+            if (framebuffer is not ModernGlFramebuffer glFrameBuffer)
+                throw new Exception($"Framebuffer is not the expected type (expecting modern OpenGL, got {framebuffer.GetType().Name})");
 
             Align windowAlign = both ?? window;
             Align imageAlign = both ?? image;

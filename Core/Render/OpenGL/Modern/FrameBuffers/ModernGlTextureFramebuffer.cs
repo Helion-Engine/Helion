@@ -8,7 +8,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Modern.FrameBuffers
 {
-    public class ModernGLTextureFrameBuffer : ModernGLFrameBuffer
+    public class ModernGlTextureFramebuffer : ModernGlFramebuffer
     {
         public override Dimension Dimension { get; }
         public override GLTexture Texture { get; }
@@ -18,7 +18,7 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
         private int m_framebufferName;
         private bool m_disposed;
         
-        public ModernGLTextureFrameBuffer(string name, Dimension dimension, ModernGLTextureManager textureManager,
+        public ModernGlTextureFramebuffer(string name, Dimension dimension, ModernGLTextureManager textureManager,
             ModernGLRenderer renderer) 
             : base(name, textureManager)
         {
@@ -43,7 +43,7 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
             m_renderbuffer.SetDebugLabel(name);
         }
 
-        ~ModernGLTextureFrameBuffer()
+        ~ModernGlTextureFramebuffer()
         { 
             FailedToDispose(this);
             PerformDispose();

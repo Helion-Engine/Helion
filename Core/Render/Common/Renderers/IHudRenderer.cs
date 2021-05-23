@@ -5,7 +5,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 
 namespace Helion.Render.Common.Renderers
 {
@@ -37,7 +37,7 @@ namespace Helion.Render.Common.Renderers
 
         void Text(string text, string font, int height, Vec2I origin, Color? color = null);
         
-        void FrameBuffer(IFrameBuffer frameBuffer, Vec2I origin, Dimension? dimension = null, Align window = Align.TopLeft, 
+        void FrameBuffer(IFramebuffer framebuffer, Vec2I origin, Dimension? dimension = null, Align window = Align.TopLeft, 
             Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
 
         /// <summary>

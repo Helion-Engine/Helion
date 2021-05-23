@@ -1,13 +1,13 @@
 ﻿using System;
 using Helion.Geometry;
 
-namespace Helion.Render.Common.FrameBuffer
+namespace Helion.Render.Common.Framebuffer
 {
     /// <summary>
     /// A collection of pixels that can be presented to the monitor, or drawn
     /// onto another framebuffer as a texture.
     /// </summary>
-    public interface IFrameBuffer : IDisposable
+    public interface IFramebuffer : IDisposable
     {
         /// <summary>
         /// The name the default framebuffer uses.
@@ -31,6 +31,6 @@ namespace Helion.Render.Common.FrameBuffer
         /// the context provided.
         /// </summary>
         /// <param name="action">The rendering actions.</param>
-        public void Render(Action<FrameBufferRenderContext> action);
+        public void Render(Action<FramebufferRenderContext> action);
     }
 }

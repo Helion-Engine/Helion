@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using Helion.Geometry;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 
 namespace Helion.Render
 {
@@ -25,7 +25,7 @@ namespace Helion.Render
         /// Gets the default framebuffer, which is what will be rendered to the
         /// screen at the end.
         /// </summary>
-        IFrameBuffer Default { get; }
+        IFramebuffer Default { get; }
 
         /// <summary>
         /// Gets a framebuffer with a specific name, or creates a new one with
@@ -38,7 +38,7 @@ namespace Helion.Render
         /// </param>
         /// <returns>An existing framebuffer with the same name, or a new one
         /// with the name.</returns>
-        IFrameBuffer GetOrCreateFrameBuffer(string name, Dimension dimension);
+        IFramebuffer GetOrCreateFrameBuffer(string name, Dimension dimension);
         
         /// <summary>
         /// Gets an existing framebuffer, or returns null if none is found.
@@ -46,6 +46,6 @@ namespace Helion.Render
         /// <param name="name">The name of the framebuffer.</param>
         /// <returns>The framebuffer that matches the name, or null otherwise.
         /// </returns>
-        IFrameBuffer? GetFrameBuffer(string name);
+        IFramebuffer? GetFrameBuffer(string name);
     }
 }

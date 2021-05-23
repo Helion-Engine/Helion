@@ -8,24 +8,24 @@ using Helion.Render.Common.World;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.Common.FrameBuffer
+namespace Helion.Render.Common.Framebuffer
 {
     /// <summary>
     /// A collection of commands to render with the framebuffer.
     /// </summary>
-    public class FrameBufferRenderContext
+    public class FramebufferRenderContext
     {
-        private readonly IFrameBuffer m_frameBuffer;
+        private readonly IFramebuffer m_framebuffer;
         private readonly IHudRenderer m_hudRenderer;
         private readonly IWorldRenderer m_worldRenderer;
         private Box2I m_viewport;
         private Box2I m_scissor;
 
-        public Dimension Dimension => m_frameBuffer.Dimension;
+        public Dimension Dimension => m_framebuffer.Dimension;
 
-        public FrameBufferRenderContext(IFrameBuffer frameBuffer, IHudRenderer hudRenderer, IWorldRenderer worldRenderer)
+        public FramebufferRenderContext(IFramebuffer framebuffer, IHudRenderer hudRenderer, IWorldRenderer worldRenderer)
         {
-            m_frameBuffer = frameBuffer;
+            m_framebuffer = framebuffer;
             m_hudRenderer = hudRenderer;
             m_worldRenderer = worldRenderer;
             m_viewport = ((0, 0), Dimension.Vector);

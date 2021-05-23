@@ -1,6 +1,6 @@
 ﻿using System;
 using Helion.Geometry;
-using Helion.Render.Common.FrameBuffer;
+using Helion.Render.Common.Framebuffer;
 using Helion.Render.OpenGL.Modern.Renderers.Hud;
 using Helion.Render.OpenGL.Modern.Renderers.World;
 using Helion.Render.OpenGL.Modern.Textures;
@@ -10,7 +10,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Modern.FrameBuffers
 {
-    public abstract class ModernGLFrameBuffer : IFrameBuffer
+    public abstract class ModernGlFramebuffer : IFramebuffer
     {
         protected const int DefaultFramebufferName = 0;
         
@@ -21,14 +21,14 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
         private readonly ModernGLWorldRenderer m_worldRenderer;
         private bool m_disposed;
         
-        protected ModernGLFrameBuffer(string name, ModernGLTextureManager textureManager)
+        protected ModernGlFramebuffer(string name, ModernGLTextureManager textureManager)
         {
             Name = name;
             m_hudRenderer = new ModernGLHudRenderer(this, textureManager);
             m_worldRenderer = new ModernGLWorldRenderer(textureManager);
         }
 
-        ~ModernGLFrameBuffer()
+        ~ModernGlFramebuffer()
         {
             FailedToDispose(this);
             PerformDispose();
@@ -44,7 +44,7 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
             Unbind();
         }
         
-        public void Render(Action<FrameBufferRenderContext> action)
+        public void Render(Action<FramebufferRenderContext> action)
         {
             Bind();
             
@@ -52,7 +52,7 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
             GL.Viewport(0, 0, w, h);
             GL.Scissor(0, 0, w, h);
             
-            FrameBufferRenderContext ctx = new(this, m_hudRenderer, m_worldRenderer);
+            FramebufferRenderContext ctx = new(this, m_hudRenderer, m_worldRenderer);
             action(ctx);
             
             Unbind();
