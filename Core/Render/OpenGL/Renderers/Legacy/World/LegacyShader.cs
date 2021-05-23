@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
     {
         public readonly UniformInt BoundTexture = new();
         public readonly UniformInt HasInvulnerability = new();
+        public readonly UniformInt DepthDarkness = new();
         public readonly UniformMatrix4 Mvp = new();
         public readonly UniformFloat TimeFrac = new();
         public readonly UniformVec3 Camera = new();
@@ -69,6 +70,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                 out vec4 fragColor;
 
                 uniform int hasInvulnerability;
+                uniform int depthDarkness;
                 uniform float timeFrac;
                 uniform sampler2D boundTexture;
                 uniform vec3 camera;
@@ -116,14 +118,37 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
                     return clamp(startMap - add, 0, colorMapClamp);
                 }
 
+             float calculateLightLevel(float lightLevel) {
+                    if (lightLevel <= 0.75) {
+	                    if (lightLevel > 0.4) {
+		                    lightLevel = -0.6375 + (1.85 * lightLevel);
+		                    if (lightLevel < 0.08) {
+			                    lightLevel = 0.08 + (lightLevel * 0.2);
+		                    }
+	                    } else {
+		                    lightLevel /= 5.0;
+	                    }
+                    }
+                    return lightLevel;
+                }
+
                 void main() {
                     float lightLevel = lightLevelFrag;
-                    float c = distance(posFrag, camera.xy);
-                    float angle = halfPi + atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
-                    float a = c * sin(angle);
 
-                    int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a) - extraLight);
-                    lightLevel = float(colorMaps - index) / colorMaps;
+                    if (depthDarkness > 0)
+                    {
+                        float c = distance(posFrag, camera.xy);
+                        float angle = halfPi + atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
+                        float a = c * sin(angle);
+                        int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a) - extraLight);
+                        lightLevel = float(colorMaps - index) / colorMaps;
+                    }
+                    else
+                    {
+                        lightLevel += extraLight * 8;
+                        lightLevel = calculateLightLevel(lightLevel / 256.0);
+                    }
+
                     lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
 
                     fragColor = texture(boundTexture, uvFrag.st);

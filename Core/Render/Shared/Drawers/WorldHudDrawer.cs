@@ -86,9 +86,9 @@ namespace Helion.Render.Shared.Drawers
             {
                 // Doom pushes the gun sprite up when the status bar is showing
                 int yOffset = config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
-                DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FrameState, draw, yOffset);
+                DrawHudWeapon(player, config, tickFraction, player.AnimationWeapon.FrameState, draw, yOffset);
                 if (player.AnimationWeapon.FlashState.Frame.BranchType != Resources.Definitions.Decorate.States.ActorStateBranch.Stop)
-                    DrawHudWeapon(player, tickFraction, player.AnimationWeapon.FlashState, draw, yOffset);
+                    DrawHudWeapon(player, config, tickFraction, player.AnimationWeapon.FlashState, draw, yOffset);
             }
 
             if (!drawAutomap)
@@ -314,11 +314,24 @@ namespace Helion.Render.Shared.Drawers
             }
         }
 
-        private static void DrawHudWeapon(Player player, float tickFraction, FrameState frameState,
+        private static void DrawHudWeapon(Player player, Config config, float tickFraction, FrameState frameState,
             DrawHelper draw, int yOffset)
         {
-            int lightLevel = frameState.Frame.Properties.Bright || player.DrawFullBright() ? 255 :
-                GLHelper.DoomLightLevelToColor(player.Sector.LightLevel, player.ExtraLight * Constants.ExtraLightFactor);
+            int lightLevel;
+
+            if (frameState.Frame.Properties.Bright || player.DrawFullBright())
+            {
+                lightLevel = 255;
+            }
+            else
+            {
+                int extraLight = player.ExtraLight * Constants.ExtraLightFactor;
+                if (config.Render.DepthDarkness)
+                    lightLevel = GLHelper.DoomLightLevelToColor(player.Sector.LightLevel, extraLight);
+                else
+                    lightLevel = (int)(GLHelper.DoomLightLevelToColorStatic(player.Sector.LightLevel, extraLight) * 255);
+            }
+
             Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
             string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 

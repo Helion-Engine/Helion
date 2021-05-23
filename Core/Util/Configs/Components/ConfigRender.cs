@@ -29,6 +29,9 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
         public readonly ConfigValueBoolean FakeContrast = new(true);
 
+        [ConfigInfo("Emulate depth darkness like vanilla Doom.")]
+        public readonly ConfigValueBoolean DepthDarkness = new(true);
+
         [ConfigInfo("If any sprite should clip the floor.")]
         public readonly ConfigValueBoolean SpriteClip = new(true);
 

@@ -40,6 +40,32 @@ namespace Helion.Render.OpenGL.Util
         public static int DoomLightLevelToColor(int lightLevel, int extraLight) =>
             Math.Clamp((ColorMaps - GetLightLevelIndex(lightLevel, 8 - extraLight)) * ScaleCount, 0, 255);
 
+        public static double DoomLightLevelToColorStatic(int lightLevel, int extraLight)
+        {
+            double lightLevelFrac = Math.Clamp(lightLevel + extraLight * 16, 0, 255) / 255.0f;
+
+            switch (lightLevelFrac)
+            {
+                case > 0.75:
+                    break;
+
+                case > 0.4:
+                    {
+                        lightLevelFrac = -0.6375 + (1.85 * lightLevelFrac);
+                        if (lightLevelFrac < 0.08)
+                            lightLevelFrac = 0.08 + (lightLevelFrac * 0.2);
+
+                        break;
+                    }
+
+                default:
+                    lightLevelFrac /= 5.0;
+                    break;
+            }
+
+            return Math.Clamp(lightLevelFrac, 0.0, 1.0);
+        }
+
         /// <summary>
         /// Throws an exception of glGetError() returns an error value.
         /// </summary>
