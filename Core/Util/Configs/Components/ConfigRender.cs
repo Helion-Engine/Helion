@@ -1,4 +1,4 @@
-﻿using Helion.Render.OpenGL.Legacy.Shared;
+﻿using Helion.Render.Common;
 using Helion.Util.Configs.Components.Renderer;
 using Helion.Util.Configs.Values;
 

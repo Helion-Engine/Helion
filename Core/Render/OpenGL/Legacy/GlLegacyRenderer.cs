@@ -4,6 +4,7 @@ using System.Drawing;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Render.Common;
 using Helion.Render.OpenGL.Legacy.Commands;
 using Helion.Render.OpenGL.Legacy.Commands.Types;
 using Helion.Render.OpenGL.Legacy.Context;

@@ -106,6 +106,20 @@ namespace Helion.Util.Container
 
             Length += elements.Length;
         }
+        
+        /// <summary>
+        /// Adds elements to the array.
+        /// </summary>
+        /// <param name="elements">The elements to add.</param>
+        public void AddRange(IList<T> elements)
+        {
+            EnsureCapacity(Length + elements.Count);
+
+            for (int i = 0; i < elements.Count; i++)
+                Data[Length + i] = elements[i];
+
+            Length += elements.Count;
+        }
 
         /// <summary>
         /// Removes the last element, if any.

@@ -10,5 +10,8 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("If rendering should have debugging information drawn.")]
         public readonly ConfigValueBoolean RenderDebug = new();
+        
+        [ConfigInfo("If the modern renderer should be used even without the required capabilities.")]
+        public readonly ConfigValueBoolean ForceModernRenderer = new();
     }
 }

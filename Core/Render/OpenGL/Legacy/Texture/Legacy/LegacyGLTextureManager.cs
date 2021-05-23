@@ -1,6 +1,7 @@
 using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Render.Common;
 using Helion.Render.OpenGL.Legacy.Context;
 using Helion.Render.OpenGL.Legacy.Context.Types;
 using Helion.Render.OpenGL.Legacy.Shared;
@@ -87,7 +88,7 @@ namespace Helion.Render.OpenGL.Legacy.Texture.Legacy
         /// <returns>A newly allocated font texture.</returns>
         protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, string name)
         {
-            GLLegacyTexture texture = GenerateTexture(font.Atlas, $"[FONT] {name}", ResourceNamespace.Fonts);
+            GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts);
             GLFontTexture<GLLegacyTexture> fontTexture = new(texture, font);
             return fontTexture;
         }

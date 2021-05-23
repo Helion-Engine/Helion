@@ -14,36 +14,14 @@ namespace Helion.Graphics.Fonts
     /// <summary>
     /// A collection of a set of glyphs for some font.
     /// </summary>
-    public class Font : IEnumerable<FontGlyph>
+    public class Font : IFont, IEnumerable<FontGlyph>
     {
-        /// <summary>
-        /// The character to use when a letter cannot be found.
-        /// </summary>
-        public const char DefaultChar = '?';
-
-        /// <summary>
-        /// The name of the font.
-        /// </summary>
-        public readonly string Name;
-
-        /// <summary>
-        /// The metrics for the entire font.
-        /// </summary>
-        public readonly FontMetrics Metrics;
-
-        /// <summary>
-        /// The image atlas of all the glyphs (aka: the image that contains all
-        /// the compiled glyphs). They can be looked up with the character for
-        /// their location in this.
-        /// </summary>
-        public readonly Image Atlas;
-
+        public FontMetrics Metrics { get; }
+        public Image Image { get; }
         private readonly Dictionary<char, FontGlyph> m_glyphs = new();
 
-        /// <summary>
-        /// The maximum height of any glyph.
-        /// </summary>
-        public int MaxHeight => Atlas.Height;
+        public string Name { get; }
+        public int MaxHeight => Image.Height;
 
         /// <summary>
         /// Creates a new font from a series of glyphs.
@@ -68,7 +46,7 @@ namespace Helion.Graphics.Fonts
                 PopulateGlyphs(glyphs, imageArea);
             }
 
-            Atlas = CreateImage(imageArea);
+            Image = CreateImage(imageArea);
         }
 
         /// <summary>
@@ -78,6 +56,18 @@ namespace Helion.Graphics.Fonts
         public FontGlyph this[char c] => m_glyphs.TryGetValue(c, out FontGlyph? glyph) ?
             glyph :
             m_glyphs.Values.First();
+        
+        public Glyph Get(char c)
+        {
+            // TODO: Implement when the time comes
+            throw new NotImplementedException();
+        }
+
+        public bool TryGet(char c, out Glyph glyph)
+        {
+            // TODO: Implement when the time comes
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Tries to get the value. See the Dictionary for analogous usage.
@@ -97,7 +87,7 @@ namespace Helion.Graphics.Fonts
             imageArea = new ImageBox2I(0, 0, image.Width, image.Height);
             ImageBox2D uv = new(Vec2D.Zero, Vec2D.One);
 
-            m_glyphs[DefaultChar] = new FontGlyph(DefaultChar, image, imageArea, uv);
+            m_glyphs[IFont.DefaultChar] = new FontGlyph(IFont.DefaultChar, image, imageArea, uv);
         }
 
         private static ImageBox2I CalculateImageArea(IEnumerable<Glyph> glyphs)
