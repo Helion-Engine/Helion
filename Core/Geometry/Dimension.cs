@@ -18,7 +18,7 @@ namespace Helion.Geometry
         public Dimension(Vec2I dimensions) : this(dimensions.X, dimensions.Y)
         {
         }
-        
+
         public Dimension(int width, int height)
         {
             Precondition(width >= 0, "Dimension width should not be negative");
@@ -26,6 +26,11 @@ namespace Helion.Geometry
 
             Width = width;
             Height = height;
+        }
+
+        public static implicit operator Dimension(ValueTuple<int, int> tuple)
+        {
+            return new(tuple.Item1, tuple.Item2);
         }
 
         public static bool operator==(Dimension first, Dimension second)

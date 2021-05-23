@@ -8,7 +8,7 @@ namespace Helion.Util.Extensions
 {
     public static class PrimitiveExtensions
     {
-        public static double Clamp(this byte value, byte low, byte high) => value < low ? low : (value > high ? high : value);
+        public static byte Clamp(this byte value, byte low, byte high) => value < low ? low : (value > high ? high : value);
 
         public static (byte min, byte max) MinMax(byte first, byte second) => (first.Min(second), first.Max(second));
 
@@ -24,7 +24,7 @@ namespace Helion.Util.Extensions
 
         public static bool DifferentSign(this short first, short second) => (first ^ second) < 0;
 
-        public static double Clamp(this short value, short low, short high) => value < low ? low : (value > high ? high : value);
+        public static short Clamp(this short value, short low, short high) => value < low ? low : (value > high ? high : value);
 
         public static (short min, short max) MinMax(short first, short second) => (first.Min(second), first.Max(second));
 
@@ -43,7 +43,7 @@ namespace Helion.Util.Extensions
             return Math.Abs(self);
         }
 
-        public static double Clamp(this ushort value, ushort low, ushort high) => value < low ? low : (value > high ? high : value);
+        public static ushort Clamp(this ushort value, ushort low, ushort high) => value < low ? low : (value > high ? high : value);
 
         public static (ushort min, ushort max) MinMax(ushort first, ushort second) => (first.Min(second), first.Max(second));
 
@@ -59,7 +59,7 @@ namespace Helion.Util.Extensions
 
         public static bool DifferentSign(this int first, int second) => (first ^ second) < 0;
 
-        public static double Clamp(this int value, int low, int high) => value < low ? low : (value > high ? high : value);
+        public static int Clamp(this int value, int low, int high) => value < low ? low : (value > high ? high : value);
 
         public static (int min, int max) MinMax(int first, int second) => (first.Min(second), first.Max(second));
 
@@ -78,7 +78,7 @@ namespace Helion.Util.Extensions
             return Math.Abs(self);
         }
 
-        public static double Clamp(this uint value, uint low, uint high) => value < low ? low : (value > high ? high : value);
+        public static uint Clamp(this uint value, uint low, uint high) => value < low ? low : (value > high ? high : value);
 
         public static (uint min, uint max) MinMax(uint first, uint second) => (first.Min(second), first.Max(second));
 
@@ -94,7 +94,7 @@ namespace Helion.Util.Extensions
 
         public static bool DifferentSign(this long first, long second) => (first ^ second) < 0;
 
-        public static double Clamp(this long value, long low, long high) => value < low ? low : (value > high ? high : value);
+        public static long Clamp(this long value, long low, long high) => value < low ? low : (value > high ? high : value);
 
         public static (long min, long max) MinMax(long first, long second) => (first.Min(second), first.Max(second));
 
@@ -113,7 +113,7 @@ namespace Helion.Util.Extensions
             return Math.Abs(self);
         }
 
-        public static double Clamp(this ulong value, ulong low, ulong high) => value < low ? low : (value > high ? high : value);
+        public static ulong Clamp(this ulong value, ulong low, ulong high) => value < low ? low : (value > high ? high : value);
 
         public static (ulong min, ulong max) MinMax(ulong first, ulong second) => (first.Min(second), first.Max(second));
 
@@ -156,7 +156,7 @@ namespace Helion.Util.Extensions
 
         public static bool InNormalRange(this float value) => value >= 0 && value <= 1;
 
-        public static double Clamp(this float value, float low, float high) => value < low ? low : (value > high ? high : value);
+        public static float Clamp(this float value, float low, float high) => value < low ? low : (value > high ? high : value);
 
         public static (float min, float max) MinMax(float first, float second) => (first.Min(second), first.Max(second));
 

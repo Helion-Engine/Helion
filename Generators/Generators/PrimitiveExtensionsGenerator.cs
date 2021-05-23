@@ -64,7 +64,7 @@ namespace Generators.Generators
 
             if (type != Types.Fixed)
             {
-                w.WriteLine($"public static double Clamp(this {primitive} value, {primitive} low, {primitive} high) => value < low ? low : (value > high ? high : value);");
+                w.WriteLine($"public static {primitive} Clamp(this {primitive} value, {primitive} low, {primitive} high) => value < low ? low : (value > high ? high : value);");
                 w.WriteLine();
                 
                 w.WriteLine($"public static ({primitive} min, {primitive} max) MinMax({primitive} first, {primitive} second) => (first.Min(second), first.Max(second));");
