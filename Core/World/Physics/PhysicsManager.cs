@@ -158,7 +158,6 @@ namespace Helion.World.Physics
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
                     if (entity.Flags.Dropped)
@@ -189,7 +188,7 @@ namespace Helion.World.Physics
                         status = SectorMoveStatus.Crush;
                         crushEntities.Add(entity);
                     }
-                    else
+                    else if (CheckSectorMoveBlock(entity, sector, moveType))
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -200,11 +199,16 @@ namespace Helion.World.Physics
 
             if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead)
             {
-                double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
-                // Set the sector Z to the difference of the blocked height
-                double diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
-                if (speed < 0)
-                    diff = -diff;
+                double diff = 0;
+                // This only works if the entity is not being crushed
+                if (!highestBlockEntity.IsCrushing())
+                {
+                    double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
+                    // Set the sector Z to the difference of the blocked height
+                    diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
+                    if (speed < 0)
+                        diff = -diff;
+                }
 
                 sectorPlane.Z = startZ + diff;
                 sectorPlane.Plane.MoveZ(startZ - destZ + diff);
@@ -225,6 +229,34 @@ namespace Helion.World.Physics
                 CrushEntities(crushEntities, sector, crush);
 
             return status;
+        }
+
+        private bool CheckSectorMoveBlock(Entity entity, Sector sector, SectorPlaneType moveType)
+        {
+            if (moveType == SectorPlaneType.Floor && IsConnectedToFloor(entity, sector))
+                return true;
+
+            return false;
+        }
+
+        private bool IsConnectedToFloor(Entity entity, Sector sector)
+        {
+            if (!entity.OnGround)
+                return false;
+
+            Entity? currentEntity = entity;
+            while (currentEntity != null)
+            {
+                if (currentEntity.HighestFloorObject == sector)
+                    return true;
+
+                if (currentEntity.OnEntity != null)
+                    currentEntity = currentEntity.OnEntity;
+                else
+                    currentEntity = null;
+            }
+
+            return false;
         }
 
         private void CrushEntities(List<Entity> crushEntities, Sector sector, CrushData crush)
@@ -387,7 +419,8 @@ namespace Helion.World.Physics
             double highestFloor = entity.HighestFloorZ;
             double floorZ = entity.Sector.ToFloorZ(entity.Position);
 
-            if (lowestCeil - entity.Height >= floorZ && entity.Box.Top > lowestCeil)
+            //if (lowestCeil - entity.Height >= floorZ && entity.Box.Top > lowestCeil)
+            if (entity.Box.Top > lowestCeil)
             {
                 entity.Velocity.Z = 0;
                 entity.SetZ(lowestCeil - entity.Height, false);
