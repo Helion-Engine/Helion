@@ -233,7 +233,10 @@ namespace Helion.World.Physics
 
         private bool CheckSectorMoveBlock(Entity entity, Sector sector, SectorPlaneType moveType)
         {
-            if (moveType == SectorPlaneType.Floor && IsConnectedToFloor(entity, sector))
+            if (moveType == SectorPlaneType.Ceiling)
+                return true;
+
+            if (IsConnectedToFloor(entity, sector))
                 return true;
 
             return false;
