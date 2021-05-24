@@ -21,9 +21,11 @@ namespace Helion.World.Entities.Players
 {
     public class Player : Entity
     {
-        public const double ForwardMovementSpeed = 1.5625;
-        public const double SideMovementSpeed = 1.25;
         public const double MaxMovement = 30.0;
+        private const double ForwardMovementSpeedWalk = 0.71875;
+        private const double ForwardMovementSpeedRun = 1.5625;
+        private const double SideMovementSpeedWalk = 0.75;
+        private const double SideMovementSpeedRun = 1.25;
         private const double PlayerViewDivider = 8.0;
         private const double ViewHeightMin = 4.0;
         private const double DeathHeight = 8.0;
@@ -547,6 +549,22 @@ namespace Helion.World.Entities.Players
 
             if (armor.Any())
                 GiveItem(armor.First(), null, pickupFlash: false);
+        }
+
+        public double GetForwardMovementSpeed()
+        {
+            if (World.Config.Game.AlwaysRun || TickCommand.Has(TickCommands.Run))
+                return ForwardMovementSpeedRun;
+
+            return ForwardMovementSpeedWalk;
+        }
+
+        public double GetSideMovementSpeed()
+        {
+            if (World.Config.Game.AlwaysRun || TickCommand.Has(TickCommands.Run))
+                return SideMovementSpeedRun;
+
+            return SideMovementSpeedWalk;
         }
 
         private EntityDefinition? GetArmorDefinition(EntityDefinition definition)

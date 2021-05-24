@@ -9,6 +9,9 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("Whether vertical autoaiming should be used.")]
         public readonly ConfigValueBoolean AutoAim = new(true);
 
+        [ConfigInfo("If the player should always run.")]
+        public readonly ConfigValueBoolean AlwaysRun = new(true);
+
         [ConfigInfo("The skill level to use when starting a map.", save: false)]
         public readonly ConfigValueEnum<SkillLevel> Skill = new(SkillLevel.None);
 

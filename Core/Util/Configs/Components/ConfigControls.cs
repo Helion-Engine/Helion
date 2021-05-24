@@ -21,6 +21,12 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("The key for use")]
         public readonly ConfigValueEnum<Key> Use = new(Key.E);
 
+        [ConfigInfo("The key to run")]
+        public readonly ConfigValueEnum<Key> Run = new(Key.ShiftLeft);
+
+        [ConfigInfo("The alt key to run")]
+        public readonly ConfigValueEnum<Key> RunAlt = new(Key.ShiftRight);
+
         [ConfigInfo("The key for jump")]
         public readonly ConfigValueEnum<Key> Jump = new(Key.Space);
 
@@ -75,7 +81,7 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("The key for decreasing automap size")]
         public readonly ConfigValueEnum<Key> AutoMapDecrease = new(Key.Minus);
 
-        public readonly ConfigValueEnum<Key> AutoMapUp= new(Key.Up);
+        public readonly ConfigValueEnum<Key> AutoMapUp = new(Key.Up);
         public readonly ConfigValueEnum<Key> AutoMapDown = new(Key.Down);
         public readonly ConfigValueEnum<Key> AutoMapLeft = new(Key.Left);
         public readonly ConfigValueEnum<Key> AutoMapRight = new(Key.Right);

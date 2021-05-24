@@ -224,7 +224,7 @@ namespace Helion.World.Impl.SinglePlayer
                     {
                         // This z velocity overrides z movement velocity
                         movement.Z = 0;
-                        Player.Velocity.Z = Player.ForwardMovementSpeed * 2;
+                        Player.Velocity.Z = Player.GetForwardMovementSpeed() * 2;
                     }
                     else
                     {
@@ -339,21 +339,23 @@ namespace Helion.World.Impl.SinglePlayer
 
         private static Vec3D CalculateForwardMovement(Player player)
         {
-            double x = Math.Cos(player.AngleRadians) * Player.ForwardMovementSpeed;
-            double y = Math.Sin(player.AngleRadians) * Player.ForwardMovementSpeed;
+            double speed = player.GetForwardMovementSpeed();
+            double x = Math.Cos(player.AngleRadians) * speed;
+            double y = Math.Sin(player.AngleRadians) * speed;
             double z = 0;
 
             if (player.Flags.NoGravity)
-               z = Player.ForwardMovementSpeed * player.PitchRadians;
+               z = speed * player.PitchRadians;
 
             return new Vec3D(x, y, z);
         }
 
-        private static Vec3D CalculateStrafeRightMovement(Entity entity)
+        private static Vec3D CalculateStrafeRightMovement(Player player)
         {
-            double rightRotateAngle = entity.AngleRadians - MathHelper.HalfPi;
-            double x = Math.Cos(rightRotateAngle) * Player.SideMovementSpeed;
-            double y = Math.Sin(rightRotateAngle) * Player.SideMovementSpeed;
+            double speed = player.GetSideMovementSpeed();
+            double rightRotateAngle = player.AngleRadians - MathHelper.HalfPi;
+            double x = Math.Cos(rightRotateAngle) * speed;
+            double y = Math.Sin(rightRotateAngle) * speed;
 
             return new Vec3D(x, y, 0);
         }
