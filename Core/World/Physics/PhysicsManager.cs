@@ -114,7 +114,8 @@ namespace Helion.World.Physics
             sectorPlane.Plane.MoveZ(destZ - startZ);
 
             // Move lower entities first to handle stacked entities
-            var entities = sector.Entities.OrderBy(x => x.Box.Bottom);
+            // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
+            var entities = sector.Entities.OrderBy(x => x.Box.Bottom).ThenBy(x => x.Id);
             foreach (Entity entity in entities)
             {
                 entity.SaveZ = entity.Position.Z;
