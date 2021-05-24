@@ -8,9 +8,9 @@ using Helion.Render.OpenGL.Textures;
 using OpenTK.Graphics.OpenGL4;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Modern.FrameBuffers
+namespace Helion.Render.OpenGL.Modern.Framebuffers
 {
-    public abstract class ModernGlFramebuffer : IFramebuffer
+    public abstract class ModernGLFramebuffer : IFramebuffer
     {
         protected const int DefaultFramebufferName = 0;
         
@@ -21,14 +21,14 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
         private readonly ModernGLWorldRenderer m_worldRenderer;
         private bool m_disposed;
         
-        protected ModernGlFramebuffer(string name, ModernGLTextureManager textureManager)
+        protected ModernGLFramebuffer(string name, ModernGLTextureManager textureManager)
         {
             Name = name;
             m_hudRenderer = new ModernGLHudRenderer(this, textureManager);
             m_worldRenderer = new ModernGLWorldRenderer(textureManager);
         }
 
-        ~ModernGlFramebuffer()
+        ~ModernGLFramebuffer()
         {
             FailedToDispose(this);
             PerformDispose();

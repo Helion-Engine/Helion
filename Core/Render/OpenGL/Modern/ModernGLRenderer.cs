@@ -5,7 +5,7 @@ using Helion.Geometry;
 using Helion.Render.Common;
 using Helion.Render.Common.Framebuffer;
 using Helion.Render.OpenGL.Capabilities;
-using Helion.Render.OpenGL.Modern.FrameBuffers;
+using Helion.Render.OpenGL.Modern.Framebuffers;
 using Helion.Render.OpenGL.Modern.Textures;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
@@ -28,7 +28,7 @@ namespace Helion.Render.OpenGL.Modern
         private readonly Config m_config;
         private readonly GLCapabilities m_capabilities;
         private readonly ModernGlDefaultFramebuffer m_defaultFramebuffer;
-        private readonly Dictionary<string, ModernGlFramebuffer> m_framebuffers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ModernGLFramebuffer> m_framebuffers = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
         
         /// <summary>
@@ -158,11 +158,11 @@ namespace Helion.Render.OpenGL.Modern
             }
         }
 
-        private ModernGlFramebuffer CreateFramebuffer(string name, Dimension dimension)
+        private ModernGLFramebuffer CreateFramebuffer(string name, Dimension dimension)
         {
             Precondition(!m_framebuffers.ContainsKey(name), "Trying to create a framebuffer with name that exists");
 
-            ModernGlTextureFramebuffer framebuffer = new(name, dimension, Textures, this);
+            ModernGLTextureFramebuffer framebuffer = new(name, dimension, Textures, this);
             m_framebuffers[name] = framebuffer;
             return framebuffer;
         }
@@ -178,7 +178,7 @@ namespace Helion.Render.OpenGL.Modern
 
         public IFramebuffer? GetFrameBuffer(string name)
         {
-            return m_framebuffers.TryGetValue(name, out ModernGlFramebuffer? fb) ? fb : null;
+            return m_framebuffers.TryGetValue(name, out ModernGLFramebuffer? fb) ? fb : null;
         }
 
         public void Dispose()
@@ -194,7 +194,7 @@ namespace Helion.Render.OpenGL.Modern
 
             Textures.Dispose();
 
-            foreach ((_, ModernGlFramebuffer fb) in m_framebuffers)
+            foreach ((_, ModernGLFramebuffer fb) in m_framebuffers)
                 fb.Dispose();
             m_framebuffers.Clear();
             m_defaultFramebuffer.Dispose();

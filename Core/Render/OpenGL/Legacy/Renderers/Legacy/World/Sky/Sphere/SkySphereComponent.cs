@@ -60,7 +60,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World.Sky.Sphere
         {
             m_geometryShaderProgram.Bind();
 
-            m_geometryShaderProgram.Mvp.Set(gl, GlLegacyRenderer.CalculateMvpMatrix(renderInfo));
+            m_geometryShaderProgram.Mvp.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo));
 
             m_geometryVbo.UploadIfNeeded();
 

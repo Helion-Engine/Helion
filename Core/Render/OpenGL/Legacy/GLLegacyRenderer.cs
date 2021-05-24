@@ -5,6 +5,7 @@ using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
+using Helion.Render.Common.Framebuffer;
 using Helion.Render.OpenGL.Legacy.Commands;
 using Helion.Render.OpenGL.Legacy.Commands.Types;
 using Helion.Render.OpenGL.Legacy.Context;
@@ -24,11 +25,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Legacy
 {
-    public class GlLegacyRenderer : ILegacyRenderer, IDisposable
+    public class GLLegacyRenderer : ILegacyRenderer
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static bool InfoPrinted;
 
+        public IWindow Window { get; }
+        public IFramebuffer Default { get; }
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
@@ -39,8 +42,10 @@ namespace Helion.Render.OpenGL.Legacy
 
         public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-        public GlLegacyRenderer(Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
+        public GLLegacyRenderer(IWindow window, Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
+            Window = window;
+            Default = new GLLegacyFramebuffer(window);
             m_config = config;
             m_archiveCollection = archiveCollection;
             m_capabilities = new GLCapabilities(functions);
@@ -57,7 +62,7 @@ namespace Helion.Render.OpenGL.Legacy
             m_hudRenderer = CreateHudRenderer(renderType);
         }
 
-        ~GlLegacyRenderer()
+        ~GLLegacyRenderer()
         {
             FailedToDispose(this);
             ReleaseUnmanagedResources();
@@ -91,6 +96,10 @@ namespace Helion.Render.OpenGL.Legacy
                     Log.Warn("Anisotropic filter should be paired with trilinear filtering (you have {0}), you will not get the best results!", config.Render.TextureFilter);
             }
         }
+        
+        public IFramebuffer GetOrCreateFrameBuffer(string name, Dimension dimension) => Default;
+
+        public IFramebuffer GetFrameBuffer(string name) => Default;
 
         public void Render(RenderCommands renderCommands)
         {

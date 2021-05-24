@@ -6,9 +6,9 @@ using Helion.Render.OpenGL.Textures;
 using OpenTK.Graphics.OpenGL4;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Modern.FrameBuffers
+namespace Helion.Render.OpenGL.Modern.Framebuffers
 {
-    public class ModernGlTextureFramebuffer : ModernGlFramebuffer
+    public class ModernGLTextureFramebuffer : ModernGLFramebuffer
     {
         public override Dimension Dimension { get; }
         public override GLTexture Texture { get; }
@@ -18,7 +18,7 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
         private int m_framebufferName;
         private bool m_disposed;
         
-        public ModernGlTextureFramebuffer(string name, Dimension dimension, ModernGLTextureManager textureManager,
+        public ModernGLTextureFramebuffer(string name, Dimension dimension, ModernGLTextureManager textureManager,
             ModernGLRenderer renderer) 
             : base(name, textureManager)
         {
@@ -43,7 +43,7 @@ namespace Helion.Render.OpenGL.Modern.FrameBuffers
             m_renderbuffer.SetDebugLabel(name);
         }
 
-        ~ModernGlTextureFramebuffer()
+        ~ModernGLTextureFramebuffer()
         { 
             FailedToDispose(this);
             PerformDispose();

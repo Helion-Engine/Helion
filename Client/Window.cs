@@ -3,9 +3,9 @@ using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Input;
 using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Legacy;
 using Helion.Render.OpenGL.Legacy.Context;
+using Helion.Render.OpenGL.Modern;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -22,25 +22,12 @@ namespace Helion.Client
     /// <remarks>
     /// Allows us to override and extend the underlying game window as needed.
     /// </remarks>
-    public class Window : GameWindow
+    public class Window : GameWindow, IWindow
     {
-        /// <summary>
-        /// The renderer for this window.
-        /// </summary>
-        public readonly ILegacyRenderer LegacyRenderer;
-
-        /// <summary>
-        /// The input management for this window.
-        /// </summary>
-        public readonly InputManager Input = new();
-
-        /// <summary>
-        /// If true, ignores the mouse input. This means we will source the
-        /// mouse movement from somewhere else (ex: raw input).
-        /// </summary>
-        public bool IgnoreMouseMovement { get; set; }
-
+        public InputManager InputManager { get; } = new();
+        public IRenderer Renderer { get; }
         private readonly Config m_config;
+        private readonly bool IgnoreMouseEvents;
         private bool m_disposed;
 
         /// <summary>
@@ -54,8 +41,8 @@ namespace Helion.Client
             m_config = config;
 
             CursorVisible = !config.Mouse.Focus;
-            LegacyRenderer = new GlLegacyRenderer(config, archiveCollection, new OpenTKGLFunctions());
-            IgnoreMouseMovement = config.Mouse.RawInput;
+            Renderer = CreateRenderer(config, archiveCollection);
+            IgnoreMouseEvents = config.Mouse.RawInput;
             CursorGrabbed = config.Mouse.Focus;
             VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
 
@@ -65,6 +52,13 @@ namespace Helion.Client
             MouseMove += Window_MouseMove;
             MouseUp += Window_MouseUp;
             MouseWheel += Window_MouseWheel;
+        }
+
+        private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection)
+        {
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("newrenderer")))
+                return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions());
+            return ModernGLRenderer.Create(this, config, archiveCollection) ?? throw new Exception("Modern renderer not supported");
         }
 
         ~Window()
@@ -91,49 +85,49 @@ namespace Helion.Client
         {
             Key key = OpenTKInputAdapter.ToKey(args.Key);
             if (key != Key.Unknown)
-                Input.SetKeyUp(key);
+                InputManager.SetKeyUp(key);
         }
 
         private void Window_KeyDown(KeyboardKeyEventArgs args)
         {
             Key key = OpenTKInputAdapter.ToKey(args.Key);
             if (key != Key.Unknown)
-                Input.SetKeyDown(key, args.Shift, args.IsRepeat);
+                InputManager.SetKeyDown(key, args.Shift, args.IsRepeat);
         }
 
         private void Window_MouseDown(MouseButtonEventArgs args)
         {
             Key key = OpenTKInputAdapter.ToMouseKey(args.Button);
             if (key != Key.Unknown)
-                Input.SetKeyDown(key, false, false);
+                InputManager.SetKeyDown(key, false, false);
         }
 
         private void Window_MouseMove(MouseMoveEventArgs args)
         {
-            if (IgnoreMouseMovement)
+            if (IgnoreMouseEvents)
                 return;
 
             if (m_config.Mouse.Focus)
             {
                 int centerX = Size.X / 2;
                 int centerY = Size.Y / 2;
-                Input.AddMouseMovement(centerX - MouseState.X, centerY - MouseState.Y);
+                InputManager.AddMouseMovement(centerX - MouseState.X, centerY - MouseState.Y);
                 MousePosition = new Vector2(centerX, centerY);
             }
             else
-                Input.AddMouseMovement(-args.Delta.X, -args.Delta.Y);
+                InputManager.AddMouseMovement(-args.Delta.X, -args.Delta.Y);
         }
 
         private void Window_MouseUp(MouseButtonEventArgs args)
         {
             Key key = OpenTKInputAdapter.ToMouseKey(args.Button);
             if (key != Key.Unknown)
-                Input.SetKeyUp(key);
+                InputManager.SetKeyUp(key);
         }
 
         private void Window_MouseWheel(MouseWheelEventArgs args)
         {
-            Input.AddScroll(args.OffsetY);
+            InputManager.AddScroll(args.OffsetY);
         }
 
         private void PerformDispose()

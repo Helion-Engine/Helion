@@ -11,7 +11,6 @@ using Helion.Client.Music;
 using Helion.Geometry;
 using Helion.Input;
 using Helion.Layer;
-using Helion.Render;
 using Helion.Render.OpenGL.Legacy;
 using Helion.Render.OpenGL.Legacy.Commands;
 using Helion.Resources.Archives.Collection;
@@ -80,7 +79,7 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            InputEvent inputEvent = m_window.Input.PollInput();
+            InputEvent inputEvent = m_window.InputManager.PollInput();
             m_layerManager.HandleInput(inputEvent);
         }
 
@@ -96,15 +95,17 @@ namespace Helion.Client
 
         private void PerformRender()
         {
+            if (m_window.Renderer is not ILegacyRenderer renderer)
+                throw new NotImplementedException("Only rendering with the legacy renderer");
+
             Dimension windowDimension = m_window.Dimension;
-            ILegacyRenderer legacyRenderer = m_window.LegacyRenderer;
-            RenderCommands renderCommands = new(m_config, windowDimension, legacyRenderer.ImageDrawInfoProvider, m_fpsTracker);
+            RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
             
             renderCommands.Viewport(windowDimension);
             renderCommands.Clear();
             m_layerManager.Render(renderCommands);
 
-            legacyRenderer.Render(renderCommands);
+            renderer.Render(renderCommands);
         }
 
         private void Render()
@@ -144,7 +145,7 @@ namespace Helion.Client
             if (!m_window.IsFocused)
                 return;
 
-            m_window.Input.AddMouseMovement(-deltaX, -deltaY);
+            m_window.InputManager.AddMouseMovement(-deltaX, -deltaY);
 
             int x = m_window.Location.X + (m_window.Size.X / 2);
             int y = m_window.Location.Y + (m_window.Size.Y / 2);

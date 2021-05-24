@@ -6,7 +6,7 @@ namespace Helion.Render.OpenGL.Legacy
     /// <summary>
     /// A renderer that can consume rendering commands and draw the results.
     /// </summary>
-    public interface ILegacyRenderer
+    public interface ILegacyRenderer : IRenderer
     {
         /// <summary>
         /// A helper class that will calculate the draw area when trying to

@@ -6,9 +6,9 @@ using Helion.Render.OpenGL.Textures;
 using OpenTK.Graphics.OpenGL4;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Modern.FrameBuffers
+namespace Helion.Render.OpenGL.Modern.Framebuffers
 {
-    public class ModernGlDefaultFramebuffer : ModernGlFramebuffer
+    public class ModernGlDefaultFramebuffer : ModernGLFramebuffer
     {
         public override Dimension Dimension => m_window.Dimension;
         public override GLTexture Texture { get; }

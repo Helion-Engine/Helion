@@ -11,7 +11,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Framebuffer;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Buffers;
-using Helion.Render.OpenGL.Modern.FrameBuffers;
+using Helion.Render.OpenGL.Modern.Framebuffers;
 using Helion.Render.OpenGL.Modern.Renderers.Hud.Framebuffers;
 using Helion.Render.OpenGL.Modern.Renderers.Hud.Primitives;
 using Helion.Render.OpenGL.Modern.Renderers.Hud.Textures;
@@ -283,7 +283,7 @@ namespace Helion.Render.OpenGL.Modern.Renderers.Hud
             Align window = Align.TopLeft,
             Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
         {
-            if (framebuffer is not ModernGlFramebuffer glFrameBuffer)
+            if (framebuffer is not ModernGLFramebuffer glFrameBuffer)
                 throw new Exception($"Framebuffer is not the expected type (expecting modern OpenGL, got {framebuffer.GetType().Name})");
 
             Align windowAlign = both ?? window;
