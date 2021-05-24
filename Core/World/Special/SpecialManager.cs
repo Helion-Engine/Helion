@@ -725,6 +725,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.PlatPerpetualRaiseLip:
                     return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args.Arg3);
 
+                case ZDoomLineSpecialType.LiftPerpetual:
+                    return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, 8);
+
                 case ZDoomLineSpecialType.StairsBuildUpDoom:
                     return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Args.Arg3, false);
 
