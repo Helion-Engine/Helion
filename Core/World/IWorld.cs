@@ -92,6 +92,7 @@ namespace Helion.World
         bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
         bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
         int EntityAliveCount(int editorId, bool deathStateComplete);
+        void NoiseAlert(Entity target);
 
         WorldModel ToWorldModel();
         GameFilesModel GetGameFilesModel();

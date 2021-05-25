@@ -22,14 +22,19 @@ namespace Helion.World.Entities.Players
     public class Player : Entity
     {
         public const double MaxMovement = 30.0;
-        private const double ForwardMovementSpeedWalk = 0.71875;
-        private const double ForwardMovementSpeedRun = 1.5625;
-        private const double SideMovementSpeedWalk = 0.75;
-        private const double SideMovementSpeedRun = 1.25;
+        public const double ForwardMovementSpeedWalk = 0.71875;
+        public const double ForwardMovementSpeedRun = 1.5625;
+        public const double SideMovementSpeedWalk = 0.75;
+        public const double SideMovementSpeedRun = 1.25;
+        public const double AirControl = 0.00390625;
         private const double PlayerViewDivider = 8.0;
         private const double ViewHeightMin = 4.0;
         private const double DeathHeight = 8.0;
+        private const double SlowTurnSpeed = 1.7578125 / 180 * Math.PI;
+        private const double NormalTurnSpeed = 3.515625 / 180 * Math.PI;
+        private const double FastTurnSpeed = 7.03125 / 180 * Math.PI;
         private const int JumpDelayTicks = 7;
+        private const int SlowTurnTicks = 6;
         private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
 
         public readonly int PlayerNumber;
@@ -38,6 +43,7 @@ namespace Helion.World.Entities.Players
         public int BonusCount;
         public TickCommand TickCommand = new();
         public int ExtraLight;
+        public int TurnTics;
         public int KillCount;
         public int ItemCount;
         public int SecretsFound;
@@ -54,6 +60,7 @@ namespace Helion.World.Entities.Players
         private double m_deltaViewHeight;
         private double m_bob;
         private Entity? m_killer;
+        private bool m_interpolateAngle;
 
         public Inventory Inventory { get; private set; }
         public Weapon? Weapon { get; private set; }
@@ -344,15 +351,21 @@ namespace Helion.World.Entities.Players
             BringupWeapon();
         }
 
-        public void AddToYaw(double delta)
+        public void AddToYaw(double delta, bool isMouse)
         {
-            AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
+            if (!TickCommand.Has(TickCommands.Strafe))
+                AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
+
+            if (isMouse)
+                TickCommand.MouseAngle += delta;
         }
 
-        public void AddToPitch(double delta)
+        public void AddToPitch(double delta, bool isMouse)
         {
             const double notQuiteVertical = MathHelper.HalfPi - 0.001;
             PitchRadians = MathHelper.Clamp(PitchRadians + delta, -notQuiteVertical, notQuiteVertical);
+            if (isMouse)
+                TickCommand.MousePitch += delta;
         }
 
         public Camera GetCamera(double t)
@@ -365,9 +378,21 @@ namespace Helion.World.Entities.Players
             // the player rotates from 359 degrees -> 2 degrees since that will
             // interpolate in the wrong direction.
 
-            if (IsDead)
+            if (m_interpolateAngle)
             {
-                float yaw = (float)(m_prevAngle + t * (AngleRadians - m_prevAngle));
+                double prev = MathHelper.GetPositiveAngle(m_prevAngle);
+                double current = MathHelper.GetPositiveAngle(AngleRadians);
+                double diff = Math.Abs(prev - current);
+
+                if (diff >= MathHelper.Pi)
+                {
+                    if (prev > AngleRadians)
+                        prev -= MathHelper.TwoPi;
+                    else
+                        current -= MathHelper.TwoPi;
+                }
+
+                float yaw = (float)(prev + t * (current - prev));
                 float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
 
                 return new Camera(position.Float, yaw, pitch);
@@ -387,11 +412,15 @@ namespace Helion.World.Entities.Players
             Inventory.Tick();
             AnimationWeapon?.Tick();
 
+            m_interpolateAngle = TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead;
             m_prevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
             m_prevViewZ = m_viewZ;
 
             PrevWeaponOffset = WeaponOffset;
+
+            HandleTickCommand();
+            TickCommand.Clear();
 
             if (m_jumpTics > 0)
                 m_jumpTics--;
@@ -421,6 +450,142 @@ namespace Helion.World.Entities.Players
 
             StatusBar.Tick();
             m_hasNewWeapon = false;
+        }
+
+        private void HandleTickCommand()
+        {
+            if (IsDead || IsFrozen)
+                return;
+
+            if (TickCommand.AngleTurn != 0 && !TickCommand.Has(TickCommands.Strafe))
+                AddToYaw(TickCommand.AngleTurn, false);
+
+            if (TickCommand.PitchTurn != 0)
+                AddToPitch(TickCommand.PitchTurn, false);
+
+            Vec3D movement = Vec3D.Zero;
+            movement += CalculateForwardMovement(TickCommand.ForwardMoveSpeed);
+            movement += CalculateStrafeMovement(TickCommand.SideMoveSpeed);
+
+            if (TickCommand.Has(TickCommands.Jump))
+            {
+                if (Flags.NoGravity)
+                {
+                    // This z velocity overrides z movement velocity
+                    movement.Z = 0;
+                    Velocity.Z = GetForwardMovementSpeed() * 2;
+                }
+                else
+                {
+                    Jump();
+                }
+            }
+
+            if (movement != Vec3D.Zero)
+            {
+                if (!OnGround && !Flags.NoGravity)
+                    movement *= AirControl;
+
+                Velocity.X += MathHelper.Clamp(movement.X, -MaxMovement, MaxMovement);
+                Velocity.Y += MathHelper.Clamp(movement.Y, -MaxMovement, MaxMovement);
+                Velocity.Z += MathHelper.Clamp(movement.Z, -MaxMovement, MaxMovement);
+            }
+
+            if (TickCommand.Has(TickCommands.Attack))
+            {
+                if (FireWeapon())
+                    World.NoiseAlert(this);
+            }
+            else
+            {
+                Refire = false;
+            }
+
+            if (TickCommand.Has(TickCommands.NextWeapon))
+            {
+                var slot = Inventory.Weapons.GetNextSlot(this);
+                ChangePlayerWeaponSlot(slot);
+            }
+            else if (TickCommand.Has(TickCommands.PreviousWeapon))
+            {
+                var slot = Inventory.Weapons.GetPreviousSlot(this);
+                ChangePlayerWeaponSlot(slot);
+            }
+            else if (GetWeaponSlotCommand(TickCommand) != TickCommands.None)
+            {
+                TickCommands weaponSlotCommand = GetWeaponSlotCommand(TickCommand);
+                int slot = GetWeaponSlot(weaponSlotCommand);
+                Weapon? weapon;
+                if (WeaponSlot == slot)
+                {
+                    int subslotCount = Inventory.Weapons.GetSubSlots(slot);
+                    int subslot = (WeaponSubSlot + 1) % subslotCount;
+                    weapon = Inventory.Weapons.GetWeapon(this, slot, subslot);
+                }
+                else
+                {
+                    weapon = Inventory.Weapons.GetWeapon(this, slot);
+                }
+
+                if (weapon != null)
+                    ChangeWeapon(weapon);
+            }
+
+            if (TickCommand.Has(TickCommands.Use))
+                World.EntityUse(this);
+        }
+
+        private Vec3D CalculateForwardMovement(double speed)
+        {
+            double x = Math.Cos(AngleRadians) * speed;
+            double y = Math.Sin(AngleRadians) * speed;
+            double z = 0;
+
+            if (Flags.NoGravity)
+                z = speed * PitchRadians;
+
+            return new Vec3D(x, y, z);
+        }
+
+        private Vec3D CalculateStrafeMovement(double speed)
+        {
+            double rightRotateAngle = AngleRadians - MathHelper.HalfPi;
+            double x = Math.Cos(rightRotateAngle) * speed;
+            double y = Math.Sin(rightRotateAngle) * speed;
+
+            return new Vec3D(x, y, 0);
+        }
+
+        private static int GetWeaponSlot(TickCommands tickCommand) =>
+            (int)tickCommand - (int)TickCommands.WeaponSlot1 + 1;
+
+        private static readonly TickCommands[] WeaponSlotCommands = new TickCommands[]
+        {
+            TickCommands.WeaponSlot1,
+            TickCommands.WeaponSlot2,
+            TickCommands.WeaponSlot3,
+            TickCommands.WeaponSlot4,
+            TickCommands.WeaponSlot5,
+            TickCommands.WeaponSlot6,
+            TickCommands.WeaponSlot7,
+        };
+
+        private TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
+        {
+            TickCommands? command = WeaponSlotCommands.FirstOrDefault(x => tickCommand.Has(x));
+            if (command != null)
+                return command.Value;
+            return TickCommands.None;
+        }
+
+        private void ChangePlayerWeaponSlot((int, int) slot)
+        {
+            if (slot.Item1 != WeaponSlot || slot.Item2 != WeaponSubSlot)
+            {
+                var weapon = Inventory.Weapons.GetWeapon(this, slot.Item1, slot.Item2);
+                if (weapon != null)
+                    ChangeWeapon(weapon);
+            }
         }
 
         private void DeathTick()
@@ -553,7 +718,7 @@ namespace Helion.World.Entities.Players
 
         public double GetForwardMovementSpeed()
         {
-            if (World.Config.Game.AlwaysRun || TickCommand.Has(TickCommands.Run))
+            if (TickCommand.IsFastSpeed(World.Config.Game.AlwaysRun))
                 return ForwardMovementSpeedRun;
 
             return ForwardMovementSpeedWalk;
@@ -561,10 +726,20 @@ namespace Helion.World.Entities.Players
 
         public double GetSideMovementSpeed()
         {
-            if (World.Config.Game.AlwaysRun || TickCommand.Has(TickCommands.Run))
+            if (TickCommand.IsFastSpeed(World.Config.Game.AlwaysRun))
                 return SideMovementSpeedRun;
 
             return SideMovementSpeedWalk;
+        }
+
+        public double GetTurnAngle()
+        {
+            if (TurnTics < SlowTurnTicks)
+                return SlowTurnSpeed;
+            if (TickCommand.IsFastSpeed(World.Config.Game.AlwaysRun))
+                return FastTurnSpeed;
+
+            return NormalTurnSpeed;
         }
 
         private EntityDefinition? GetArmorDefinition(EntityDefinition definition)

@@ -56,15 +56,21 @@ namespace Helion.Layer.WorldLayers
 
             m_consumeDownKeys = new[]
             {
-                (config.Controls.Forward,  TickCommands.Forward),
-                (config.Controls.Left,     TickCommands.Left),
-                (config.Controls.Backward, TickCommands.Backward),
-                (config.Controls.Right,    TickCommands.Right),
-                (config.Controls.Jump,     TickCommands.Jump),
-                (config.Controls.Crouch,   TickCommands.Crouch),
-                (config.Controls.Attack,   TickCommands.Attack),
-                (config.Controls.Run,      TickCommands.Run),
-                (config.Controls.RunAlt,   TickCommands.Run),
+                (config.Controls.Forward,   TickCommands.Forward),
+                (config.Controls.Backward,  TickCommands.Backward),
+                (config.Controls.Left,      TickCommands.Left),
+                (config.Controls.Right,     TickCommands.Right),
+                (config.Controls.TurnLeft,  TickCommands.TurnLeft),
+                (config.Controls.TurnRight, TickCommands.TurnRight),
+                (config.Controls.LookDown,  TickCommands.LookDown),
+                (config.Controls.LookUp,    TickCommands.LookUp),
+                (config.Controls.Jump,      TickCommands.Jump),
+                (config.Controls.Crouch,    TickCommands.Crouch),
+                (config.Controls.Attack,    TickCommands.Attack),
+                (config.Controls.AttackAlt, TickCommands.Attack),
+                (config.Controls.Run,       TickCommands.Speed),
+                (config.Controls.RunAlt,    TickCommands.Speed),
+                (config.Controls.Strafe,    TickCommands.Strafe),
             };
 
             m_consumePressedKeys = new[]
@@ -188,8 +194,7 @@ namespace Helion.Layer.WorldLayers
             if (ticksToRun <= 0)
                 return;
 
-            m_world.HandleTickCommand(m_tickCommand);
-            m_tickCommand = new TickCommand();
+            m_world.SetTickCommand(m_tickCommand);
 
             if (ticksToRun > TickOverflowThreshold)
             {

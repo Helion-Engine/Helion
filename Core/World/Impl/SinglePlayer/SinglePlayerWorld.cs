@@ -29,7 +29,6 @@ namespace Helion.World.Impl.SinglePlayer
 {
     public class SinglePlayerWorld : WorldBase
     {
-        private const double AirControl = 0.00390625;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public override Vec3D ListenerPosition => Player.Position;
@@ -199,126 +198,47 @@ namespace Helion.World.Impl.SinglePlayer
             HandleMouseLook(input);
         }
 
-        public void HandleTickCommand(TickCommand tickCommand)
+        public void SetTickCommand(TickCommand tickCommand)
         {
             Player.TickCommand = tickCommand;
 
-            if (Player.IsFrozen)
-                return;
+            if (tickCommand.HasTurnKey() || tickCommand.HasLookKey())
+                Player.TurnTics++;
+            else
+                Player.TurnTics = 0;
 
-            if (!Player.IsDead)
+            if (tickCommand.Has(TickCommands.TurnLeft))
+                tickCommand.AngleTurn += Player.GetTurnAngle();
+            if (tickCommand.Has(TickCommands.TurnRight))
+                tickCommand.AngleTurn -= Player.GetTurnAngle();
+
+            if (tickCommand.Has(TickCommands.LookUp))
+                tickCommand.PitchTurn += Player.GetTurnAngle();
+            if (tickCommand.Has(TickCommands.LookDown))
+                tickCommand.PitchTurn -= Player.GetTurnAngle();
+
+            if (tickCommand.Has(TickCommands.Forward))
+                tickCommand.ForwardMoveSpeed += Player.GetForwardMovementSpeed();
+            if (tickCommand.Has(TickCommands.Backward))
+                tickCommand.ForwardMoveSpeed -= Player.GetForwardMovementSpeed();
+            if (tickCommand.Has(TickCommands.Right))
+                tickCommand.SideMoveSpeed += Player.GetSideMovementSpeed();
+            if (tickCommand.Has(TickCommands.Left))
+                tickCommand.SideMoveSpeed -= Player.GetSideMovementSpeed();
+
+            if (tickCommand.Has(TickCommands.Strafe))
             {
-                Vec3D movement = Vec3D.Zero;
-                if (tickCommand.Has(TickCommands.Forward))
-                    movement += CalculateForwardMovement(Player);
-                if (tickCommand.Has(TickCommands.Backward))
-                    movement -= CalculateForwardMovement(Player);
-                if (tickCommand.Has(TickCommands.Right))
-                    movement += CalculateStrafeRightMovement(Player);
-                if (tickCommand.Has(TickCommands.Left))
-                    movement -= CalculateStrafeRightMovement(Player);
+                if (tickCommand.Has(TickCommands.TurnRight))
+                    tickCommand.SideMoveSpeed += Player.GetSideMovementSpeed();
+                if (tickCommand.Has(TickCommands.TurnLeft))
+                    tickCommand.SideMoveSpeed -= Player.GetSideMovementSpeed();
 
-                if (tickCommand.Has(TickCommands.Jump))
-                {
-                    if (Player.Flags.NoGravity)
-                    {
-                        // This z velocity overrides z movement velocity
-                        movement.Z = 0;
-                        Player.Velocity.Z = Player.GetForwardMovementSpeed() * 2;
-                    }
-                    else
-                    {
-                        Player.Jump();
-                    }
-                }
-
-                if (movement != Vec3D.Zero)
-                {
-                    if (!Player.OnGround && !Player.Flags.NoGravity)
-                        movement *= AirControl;
-
-                    Player.Velocity.X += MathHelper.Clamp(movement.X, -Player.MaxMovement, Player.MaxMovement);
-                    Player.Velocity.Y += MathHelper.Clamp(movement.Y, -Player.MaxMovement, Player.MaxMovement);
-                    Player.Velocity.Z += MathHelper.Clamp(movement.Z, -Player.MaxMovement, Player.MaxMovement);
-                }
-
-                if (tickCommand.Has(TickCommands.Attack))
-                {
-                    if (Player.FireWeapon())
-                        NoiseAlert(Player);
-                }
-                else
-                {
-                    Player.Refire = false;
-                }
-
-                if (tickCommand.Has(TickCommands.NextWeapon))
-                {
-                    var slot = Player.Inventory.Weapons.GetNextSlot(Player);
-                    ChangePlayerWeaponSlot(slot);
-                }
-                else if (tickCommand.Has(TickCommands.PreviousWeapon))
-                {
-                    var slot = Player.Inventory.Weapons.GetPreviousSlot(Player);
-                    ChangePlayerWeaponSlot(slot);
-                }
-                else if (GetWeaponSlotCommand(tickCommand) != TickCommands.None)
-                {
-                    TickCommands weaponSlotCommand = GetWeaponSlotCommand(tickCommand);
-                    int slot = GetWeaponSlot(weaponSlotCommand);
-                    Weapon? weapon;
-                    if (Player.WeaponSlot == slot)
-                    {
-                        int subslotCount = Player.Inventory.Weapons.GetSubSlots(slot);
-                        int subslot = (Player.WeaponSubSlot + 1) % subslotCount;
-                        weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, subslot);
-                    }
-                    else
-                    {
-                        weapon = Player.Inventory.Weapons.GetWeapon(Player, slot);
-                    }
-
-                    if (weapon != null)
-                        Player.ChangeWeapon(weapon);
-                }
+                tickCommand.SideMoveSpeed -= tickCommand.MouseAngle * 16;
             }
 
-            if (tickCommand.Has(TickCommands.Use))
-                EntityUse(Player);
-        }
-
-        private int GetWeaponSlot(TickCommands tickCommand)
-        {
-            return (int)tickCommand - (int)TickCommands.WeaponSlot1 + 1;
-        }
-
-        private static readonly TickCommands[] WeaponSlotCommands = new TickCommands[]
-        {
-            TickCommands.WeaponSlot1,
-            TickCommands.WeaponSlot2,
-            TickCommands.WeaponSlot3,
-            TickCommands.WeaponSlot4,
-            TickCommands.WeaponSlot5,
-            TickCommands.WeaponSlot6,
-            TickCommands.WeaponSlot7,
-        };
-
-        private TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
-        {
-            TickCommands? command = WeaponSlotCommands.FirstOrDefault(x => tickCommand.Has(x));
-            if (command != null)
-                return command.Value;
-            return TickCommands.None;
-        }
-
-        private void ChangePlayerWeaponSlot((int, int) slot)
-        {
-            if (slot.Item1 != Player.WeaponSlot || slot.Item2 != Player.WeaponSubSlot)
-            {
-                var weapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Item1, slot.Item2);
-                if (weapon != null)
-                    Player.ChangeWeapon(weapon);
-            }
+            // SR-50 bug is that side movement speed was clamped by the forward run speed
+            tickCommand.SideMoveSpeed = Math.Clamp(tickCommand.SideMoveSpeed, -Player.ForwardMovementSpeedRun, Player.ForwardMovementSpeedRun);
+            tickCommand.ForwardMoveSpeed = Math.Clamp(tickCommand.ForwardMoveSpeed, -Player.ForwardMovementSpeedRun, Player.ForwardMovementSpeedRun);
         }
 
         public override bool EntityUse(Entity entity)
@@ -335,29 +255,6 @@ namespace Helion.World.Impl.SinglePlayer
             EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
 
             base.PerformDispose();
-        }
-
-        private static Vec3D CalculateForwardMovement(Player player)
-        {
-            double speed = player.GetForwardMovementSpeed();
-            double x = Math.Cos(player.AngleRadians) * speed;
-            double y = Math.Sin(player.AngleRadians) * speed;
-            double z = 0;
-
-            if (player.Flags.NoGravity)
-               z = speed * player.PitchRadians;
-
-            return new Vec3D(x, y, z);
-        }
-
-        private static Vec3D CalculateStrafeRightMovement(Player player)
-        {
-            double speed = player.GetSideMovementSpeed();
-            double rightRotateAngle = player.AngleRadians - MathHelper.HalfPi;
-            double x = Math.Cos(rightRotateAngle) * speed;
-            double y = Math.Sin(rightRotateAngle) * speed;
-
-            return new Vec3D(x, y, 0);
         }
 
         private void Instance_CheatActivationChanged(object? sender, CheatEventArgs e)
@@ -383,10 +280,10 @@ namespace Helion.World.Impl.SinglePlayer
                 moveDelta.X *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Yaw);
                 moveDelta.Y *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Pitch);
 
-                Player.AddToYaw(moveDelta.X);
+                Player.AddToYaw(moveDelta.X, true);
 
                 if (Config.Mouse.Look)
-                    Player.AddToPitch(moveDelta.Y);
+                    Player.AddToPitch(moveDelta.Y, true);
             }
         }
     }

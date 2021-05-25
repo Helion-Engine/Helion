@@ -27,6 +27,21 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("The alt key to run")]
         public readonly ConfigValueEnum<Key> RunAlt = new(Key.ShiftRight);
 
+        [ConfigInfo("The alt key to strafe")]
+        public readonly ConfigValueEnum<Key> Strafe = new(Key.AltLeft);
+
+        [ConfigInfo("The key to turn left")]
+        public readonly ConfigValueEnum<Key> TurnLeft = new(Key.Left);
+
+        [ConfigInfo("The key to turn right")]
+        public readonly ConfigValueEnum<Key> TurnRight = new(Key.Right);
+
+        [ConfigInfo("The key to look up")]
+        public readonly ConfigValueEnum<Key> LookUp = new(Key.O);
+
+        [ConfigInfo("The key to turn down")]
+        public readonly ConfigValueEnum<Key> LookDown = new(Key.L);
+
         [ConfigInfo("The key for jump")]
         public readonly ConfigValueEnum<Key> Jump = new(Key.Space);
 
@@ -38,6 +53,9 @@ namespace Helion.Util.Configs.Components
 
         [ConfigInfo("The key for attacking")]
         public readonly ConfigValueEnum<Key> Attack = new(Key.MouseLeft);
+
+        [ConfigInfo("The alt key for attacking")]
+        public readonly ConfigValueEnum<Key> AttackAlt = new(Key.ControlRight);
 
         [ConfigInfo("The key for switching to the next weapon")]
         public readonly ConfigValueEnum<Key> NextWeapon = new(Key.Up);
