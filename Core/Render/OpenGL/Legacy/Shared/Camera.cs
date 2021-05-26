@@ -86,10 +86,10 @@ namespace Helion.Render.OpenGL.Legacy.Shared
         /// Creates a view matrix for a camera information object.
         /// </summary>
         /// <returns>The view matrix for the camera information.</returns>
-        public mat4 CalculateViewMatrix()
+        public mat4 CalculateViewMatrix(bool onlyXY = false)
         {
             vec3 pos = Position.GlmVector;
-            vec3 eye = pos + Direction.GlmVector;
+            vec3 eye = pos + Direction.WithZ(onlyXY ? 0 : Direction.Z).GlmVector;
             return mat4.LookAt(pos, eye, UpGlm);
         }
         

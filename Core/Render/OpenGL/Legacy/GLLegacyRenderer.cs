@@ -68,14 +68,14 @@ namespace Helion.Render.OpenGL.Legacy
             ReleaseUnmanagedResources();
         }
 
-        public static mat4 CalculateMvpMatrix(RenderInfo renderInfo)
+        public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)
         {
             float w = renderInfo.Viewport.Width;
             float h = renderInfo.Viewport.Height * 0.825f;
             float fovY = (float)MathHelper.ToRadians(63.2);
 
             mat4 model = mat4.Identity;
-            mat4 view = renderInfo.Camera.CalculateViewMatrix();
+            mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
             // TODO: Should base this off of the actor radius and config view
             //       distance or the length of the level.
             float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);

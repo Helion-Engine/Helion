@@ -12,9 +12,8 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
         public readonly UniformInt HasInvulnerability = new();
         public readonly UniformInt DepthDarkness = new();
         public readonly UniformMatrix4 Mvp = new();
+        public readonly UniformMatrix4 MvpNoPitch = new();
         public readonly UniformFloat TimeFrac = new();
-        public readonly UniformVec3 Camera = new();
-        public readonly UniformFloat LookingAngle = new();
         public readonly UniformFloat LightLevelMix = new();
         public readonly UniformInt ExtraLight = new();
 
@@ -41,9 +40,10 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
                 flat out float alphaFrag;
                 out vec3 colorMulFrag;
                 flat out float fuzzFrag;      
-                out vec2 posFrag;
+                out float dist;
                 
                 uniform mat4 mvp;
+                uniform mat4 mvpNoPitch;
 
                 void main() {
                     uvFrag = uv;    
@@ -52,8 +52,9 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
                     colorMulFrag = colorMul;
                     fuzzFrag = fuzz;
 
-                    gl_Position = mvp * vec4(pos, 1.0);
-                    posFrag = pos.xy;
+                    vec4 pos_ = vec4(pos, 1.0);
+                    gl_Position = mvp * pos_;
+                    dist = (mvpNoPitch * pos_).z;
                 }
             ";
 
@@ -65,7 +66,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
                 flat in float alphaFrag;
                 in vec3 colorMulFrag;
                 flat in float fuzzFrag;
-                in vec2 posFrag;
+                in float dist;
 
                 out vec4 fragColor;
 
@@ -73,8 +74,6 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
                 uniform int depthDarkness;
                 uniform float timeFrac;
                 uniform sampler2D boundTexture;
-                uniform vec3 camera;
-                uniform float lookingAngle;
                 uniform float lightLevelMix;
                 uniform int extraLight;
 
@@ -95,30 +94,15 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
 	                return res * res;
                 }
 
-                const float halfPi = 1.57079632679489661923;
-
                 // Defined in GLHelper as well
                 const int colorMaps = 32;
                 const int colorMapClamp = 31;
                 const int scaleCount = 16;
+                const int scaleCountClamp = 15;
                 const int maxLightScale = 23;
                 const int lightFadeStart = 56;
 
-                int getLightLevelAdd(float d)
-                {
-                    d = clamp(d - lightFadeStart, 0, d);                  
-                    return int(21.53536 + (-0.09935881 - 21.53536)/(1 + pow((d/48.46036), 0.9737408)));
-                }
-
-                int getLightLevelIndex(float lightLevel, int add)
-                {
-                    int index = clamp(int(lightLevel / scaleCount), 0, scaleCount - 1);
-                    int startMap = (scaleCount - index - 1) * 2 * colorMaps/scaleCount;
-                    add = maxLightScale - clamp(add, 0, maxLightScale);
-                    return clamp(startMap - add, 0, colorMapClamp);
-                }
-
-             float calculateLightLevel(float lightLevel) {
+                float calculateLightLevel(float lightLevel) {
                     if (lightLevel <= 0.75) {
 	                    if (lightLevel > 0.4) {
 		                    lightLevel = -0.6375 + (1.85 * lightLevel);
@@ -137,10 +121,11 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
 
                     if (depthDarkness > 0)
                     {
-                        float c = distance(posFrag, camera.xy);
-                        float angle = halfPi + atan(posFrag.y - camera.y, posFrag.x - camera.x) - lookingAngle;
-                        float a = c * sin(angle);
-                        int index = getLightLevelIndex(lightLevel, getLightLevelAdd(a) - extraLight);
+                        float d = clamp(dist - lightFadeStart, 0, dist);
+                        int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
+                        int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
+                        sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
+                        index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
                         lightLevel = float(colorMaps - index) / colorMaps;
                     }
                     else
