@@ -129,6 +129,8 @@ namespace Helion.Layer.WorldLayers
             return null;
         }
 
+        public bool ShouldFocus() => !m_world.Paused;
+
         public override void HandleInput(InputEvent input)
         {
             if (m_drawAutomap)

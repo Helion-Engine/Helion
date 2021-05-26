@@ -54,6 +54,8 @@ namespace Helion.Client
             MouseWheel += Window_MouseWheel;
         }
 
+        public void SetGrabCursor(bool set) => CursorGrabbed = set;
+
         private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection)
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("newrenderer")))

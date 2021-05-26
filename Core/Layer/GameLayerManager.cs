@@ -44,6 +44,20 @@ namespace Helion.Layer
             m_saveGameManager = saveGameManager;
         }
 
+        public bool ShouldFocus()
+        {
+            if (Contains<ConsoleLayer>())
+                return false;
+
+            if (Get<TitlepicLayer>() is TitlepicLayer titlepicLayer)
+                return titlepicLayer.ShouldFocus();
+
+            if (Get<SinglePlayerWorldLayer>() is SinglePlayerWorldLayer worldLayer)
+                return worldLayer.ShouldFocus();
+
+            return true;
+        }
+
         public static SaveMenu CreateSaveMenu(GameLayer parent, Config config, HelionConsole console, 
             SoundManager soundManager, ArchiveCollection archiveCollection, SaveGameManager saveManager, bool isSave)
         {

@@ -142,7 +142,10 @@ namespace Helion.Client
 
         private void HandleWinMouseMove(int deltaX, int deltaY)
         {
-            if (!m_window.IsFocused)
+            bool focus = m_window.IsFocused && m_layerManager.ShouldFocus();
+            m_window.SetGrabCursor(focus);
+
+            if (!focus)
                 return;
 
             m_window.InputManager.AddMouseMovement(-deltaX, -deltaY);

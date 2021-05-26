@@ -56,7 +56,9 @@ namespace Helion.Layer
 
             PlayMusic(m_audioSystem);
         }
-        
+
+        public bool ShouldFocus() => !Parent.Contains<MenuLayer>();
+
         public override void HandleInput(InputEvent input)
         {
             base.HandleInput(input);
