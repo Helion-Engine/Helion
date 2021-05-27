@@ -203,8 +203,6 @@ namespace Helion.Client
 
         private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
         {
-            m_audioSystem.Music.Stop();
-
             IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
             if (map == null)
             {
