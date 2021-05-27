@@ -49,8 +49,8 @@ namespace Helion.Layer
             if (Contains<ConsoleLayer>())
                 return false;
 
-            if (Get<TitlepicLayer>() is TitlepicLayer titlepicLayer)
-                return titlepicLayer.ShouldFocus();
+            if (Get<TitlepicLayer>() is TitlepicLayer)
+                return !Contains<MenuLayer>();
 
             if (Get<SinglePlayerWorldLayer>() is SinglePlayerWorldLayer worldLayer)
                 return worldLayer.ShouldFocus();

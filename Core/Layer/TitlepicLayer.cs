@@ -33,6 +33,7 @@ namespace Helion.Layer
         private TimeSpan m_pageDuration;
         private int m_pageIndex;
         private bool m_initRenderPages;
+        private bool m_disposed;
         
         protected override double Priority => 0.1;
 
@@ -57,10 +58,27 @@ namespace Helion.Layer
             PlayMusic(m_audioSystem);
         }
 
-        public bool ShouldFocus() => !Parent.Contains<MenuLayer>();
+        public override void Dispose()
+        {
+            PerformDispose();
+            GC.SuppressFinalize(this);
+            base.Dispose();
+        }
+
+        protected new void PerformDispose()
+        {
+            if (m_disposed)
+                return;
+
+            m_disposed = true;
+            m_stopwatch.Stop();
+        }
 
         public override void HandleInput(InputEvent input)
         {
+            if (m_disposed)
+                return;
+
             base.HandleInput(input);
 
             if (input.HasAnyKeyPressed() && Parent?.Count == 1)
@@ -75,6 +93,9 @@ namespace Helion.Layer
 
         public override void Render(RenderCommands commands)
         {
+            if (m_disposed)
+                return;
+
             DrawHelper draw = new(commands);
             if (!m_initRenderPages)
             {

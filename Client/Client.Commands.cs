@@ -203,6 +203,8 @@ namespace Helion.Client
 
         private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
         {
+            m_audioSystem.Music.Stop();
+
             IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
             if (map == null)
             {
@@ -243,10 +245,11 @@ namespace Helion.Client
             if (!m_globalData.VisitedMaps.Contains(mapInfoDef))
                 m_globalData.VisitedMaps.Add(mapInfoDef);
             newLayer.World.LevelExit += World_LevelExit;
-            m_layerManager.Add(newLayer);
-            newLayer.World.Start();
 
+            m_layerManager.Add(newLayer);
             m_layerManager.RemoveAllBut<WorldLayer>();
+
+            newLayer.World.Start();
         }     
 
         private void World_LevelExit(object? sender, LevelChangeEvent e)

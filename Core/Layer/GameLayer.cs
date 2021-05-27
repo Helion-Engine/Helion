@@ -189,7 +189,7 @@ namespace Helion.Layer
         /// <returns>True if so, false if not.</returns>
         public bool IsTopLayer(GameLayer layer) => !Layers.Empty() && ReferenceEquals(Layers.Last(), layer);
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             GC.SuppressFinalize(this);
             PerformDispose();
