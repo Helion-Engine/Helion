@@ -195,7 +195,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
 
             m_shaderProgram.BoundTexture.Set(gl, 0);
             m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
-            m_shaderProgram.DepthDarkness.Set(gl, m_config.Render.DepthDarkness ? 1 : 0);
+            m_shaderProgram.LightDropoff.Set(gl, m_config.Render.LightDropoff ? 1 : 0);
             m_shaderProgram.Mvp.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo));
             m_shaderProgram.MvpNoPitch.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo, true));
             m_shaderProgram.TimeFrac.Set(gl, timeFrac);

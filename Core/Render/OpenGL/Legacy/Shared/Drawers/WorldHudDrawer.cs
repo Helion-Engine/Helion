@@ -326,7 +326,7 @@ namespace Helion.Render.OpenGL.Legacy.Shared.Drawers
             else
             {
                 int extraLight = player.ExtraLight * Constants.ExtraLightFactor;
-                if (config.Render.DepthDarkness)
+                if (config.Render.LightDropoff)
                     lightLevel = GLHelper.DoomLightLevelToColor(player.Sector.LightLevel, extraLight);
                 else
                     lightLevel = (int)(GLHelper.DoomLightLevelToColorStatic(player.Sector.LightLevel, extraLight) * 255);

@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
     {
         public readonly UniformInt BoundTexture = new();
         public readonly UniformInt HasInvulnerability = new();
-        public readonly UniformInt DepthDarkness = new();
+        public readonly UniformInt LightDropoff = new();
         public readonly UniformMatrix4 Mvp = new();
         public readonly UniformMatrix4 MvpNoPitch = new();
         public readonly UniformFloat TimeFrac = new();
@@ -71,7 +71,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
                 out vec4 fragColor;
 
                 uniform int hasInvulnerability;
-                uniform int depthDarkness;
+                uniform int lightDropoff;
                 uniform float timeFrac;
                 uniform sampler2D boundTexture;
                 uniform float lightLevelMix;
@@ -119,7 +119,7 @@ namespace Helion.Render.OpenGL.Legacy.Renderers.Legacy.World
                 void main() {
                     float lightLevel = lightLevelFrag;
 
-                    if (depthDarkness > 0)
+                    if (lightDropoff > 0)
                     {
                         float d = clamp(dist - lightFadeStart, 0, dist);
                         int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
