@@ -1,5 +1,4 @@
 ﻿using Helion.Audio.Sounds;
-using Helion.Layer;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
@@ -20,7 +19,7 @@ namespace Helion.Menus.Impl
         private const int PaddingY = 1;
 
         public NewGameEpisodeMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
-            base(config, console, soundManager, archiveCollection, 63, true)
+            base(config, console, soundManager, archiveCollection, 30, true)
         {
             var episodes = archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;
             if (episodes.Count == 0)
@@ -29,7 +28,7 @@ namespace Helion.Menus.Impl
                 return;
             }
             
-            Components = Components.Add(new MenuImageComponent("M_EPISOD", 54, 8, imageAlign: Align.TopLeft));
+            Components = Components.Add(new MenuImageComponent("M_EPISOD", 54, 8, imageAlign: Align.TopLeft, paddingBottomY: 8));
             
             foreach (EpisodeDef episode in episodes)
             {

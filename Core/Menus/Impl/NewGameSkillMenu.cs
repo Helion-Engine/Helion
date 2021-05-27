@@ -22,7 +22,7 @@ namespace Helion.Menus.Impl
 
         public NewGameSkillMenu(Config config, HelionConsole console, SoundManager soundManager, 
                 ArchiveCollection archiveCollection, string? episode) : 
-            base(config, console, soundManager, archiveCollection, 16, true)
+            base(config, console, soundManager, archiveCollection, 6, true)
         {
             m_config = config;
             m_console = console;
@@ -31,7 +31,7 @@ namespace Helion.Menus.Impl
             Components = Components.AddRange(new[] 
             {
                 CreateMenuOption("M_NEWG", 96, 8),
-                CreateMenuOption("M_SKILL", 54, 8),
+                CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8),
             });
 
             var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
@@ -62,9 +62,10 @@ namespace Helion.Menus.Impl
             SetToFirstActiveComponent();
             ComponentIndex += indexOffset;
 
-            IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null)
+            IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0)
             {
-                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, imageAlign: Align.TopLeft);
+                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, 
+                    imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY);
             }
 
             Func<Menu?> Confirm()
