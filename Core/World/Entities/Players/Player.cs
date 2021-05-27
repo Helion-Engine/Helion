@@ -454,6 +454,9 @@ namespace Helion.World.Entities.Players
 
         private void HandleTickCommand()
         {
+            if (TickCommand.Has(TickCommands.Use))
+                World.EntityUse(this);
+
             if (IsDead || IsFrozen)
                 return;
 
@@ -530,9 +533,6 @@ namespace Helion.World.Entities.Players
                 if (weapon != null)
                     ChangeWeapon(weapon);
             }
-
-            if (TickCommand.Has(TickCommands.Use))
-                World.EntityUse(this);
         }
 
         private Vec3D CalculateForwardMovement(double speed)
