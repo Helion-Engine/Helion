@@ -6,6 +6,7 @@ using Helion.Layer;
 using Helion.Menus.Base;
 using Helion.Render.OpenGL.Legacy.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
@@ -22,18 +23,21 @@ namespace Helion.Menus.Impl
         
         public MainMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveManager)
-            : base(config, console, soundManager, archiveCollection, 8)
+            : base(config, console, soundManager, archiveCollection, 0)
         {
             m_parent = parent;
 
-            List<IMenuComponent> components = new()
-            {
-                new MenuImageComponent("M_DOOM", offsetX: 94, paddingY: PaddingY, imageAlign: Align.TopLeft),
-                CreateMenuOption("M_NGAME", OffsetX, PaddingY, CreateNewGameMenu()),
-                CreateMenuOption("M_OPTION", OffsetX, PaddingY, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)),
-                CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false)),
-                CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager)),
-            };
+            int offsetY = 64;
+            if (archiveCollection.IWadType != IWadBaseType.Doom1 && archiveCollection.IWadType != IWadBaseType.ChexQuest)
+                offsetY += 8;
+
+            List<IMenuComponent> components = new();
+
+            components.Add(new MenuImageComponent("M_DOOM", offsetX: 94, paddingTopY: 2, imageAlign: Align.TopLeft, addToOffsetY: false));
+            components.Add(CreateMenuOption("M_NGAME", OffsetX, offsetY, CreateNewGameMenu()));
+            components.Add(CreateMenuOption("M_OPTION", OffsetX, PaddingY, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)));
+            components.Add(CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false)));
+            components.Add(CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager)));
 
             if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
                 components.Add(CreateMenuOption("M_RDTHIS", OffsetX, PaddingY, ShowReadThis()));

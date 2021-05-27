@@ -80,12 +80,16 @@ namespace Helion.Render.OpenGL.Legacy.Shared.Drawers
 
         private void DrawImage(DrawHelper helper, MenuImageComponent image, bool isSelected, ref int offsetY)
         {
+            int drawY = image.PaddingTopY + offsetY;
+            if (image.AddToOffsetY)
+                offsetY += image.PaddingTopY;
+
             var dimension = helper.DrawInfoProvider.GetImageDimension(image.ImageName);
             Vec2I offset = helper.DrawInfoProvider.GetImageOffset(image.ImageName);
             helper.TranslateDoomOffset(ref offset, dimension);
             int offsetX = image.OffsetX + offset.X;
 
-            helper.Image(image.ImageName, offsetX, offsetY + offset.Y, out Dimension area, both: image.ImageAlign);
+            helper.Image(image.ImageName, offsetX, drawY + offset.Y, out Dimension area, both: image.ImageAlign);
 
             if (isSelected)
             {
@@ -95,11 +99,12 @@ namespace Helion.Render.OpenGL.Legacy.Shared.Drawers
                 Vec2I selectedOffset = helper.DrawInfoProvider.GetImageOffset(selectedName);
                 helper.TranslateDoomOffset(ref selectedOffset, dimension);
 
-                helper.Image(selectedName, offsetX + selectedOffset.X, 
-                    offsetY + selectedOffset.Y + image.PaddingY - SelectedOffsetY, both: image.ImageAlign);
+                helper.Image(selectedName, offsetX + selectedOffset.X,
+                    drawY + selectedOffset.Y - SelectedOffsetY, both: image.ImageAlign);
             }
             
-            offsetY += area.Height + offset.Y + image.PaddingY;
+            if (image.AddToOffsetY)
+                offsetY += area.Height + offset.Y + image.PaddingBottomY;
         }
 
         private bool ShouldDrawActive() => (m_stopwatch.ElapsedMilliseconds % ActiveMillis) <= ActiveMillis / 2;

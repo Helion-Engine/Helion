@@ -7,23 +7,28 @@ namespace Helion.Menus.Base
     {
         public readonly string ImageName;
         public readonly int OffsetX;
-        public readonly int PaddingY;
+        public readonly int PaddingTopY;
+        public readonly int PaddingBottomY;
         public readonly string? ActiveImage;
         public readonly string? InactiveImage;
         public readonly Align ImageAlign;
+        public readonly bool AddToOffsetY;
+
         public Func<Menu?>? Action { get; }
 
-        public MenuImageComponent(string imageName, int offsetX = 0, int paddingY = 0, 
+        public MenuImageComponent(string imageName, int offsetX = 0, int paddingTopY = 0, 
             string? activeImage = null, string? inactiveImage = null, Func<Menu?>? action = null,
-            Align imageAlign = Align.TopMiddle)
+            Align imageAlign = Align.TopMiddle, int paddingBottomY = 0, bool addToOffsetY = true)
         {
             ImageName = imageName;
             OffsetX = offsetX;
-            PaddingY = paddingY;
+            PaddingTopY = paddingTopY;
+            PaddingBottomY = paddingBottomY;
             ActiveImage = activeImage;
             InactiveImage = inactiveImage;
             Action = action;
             ImageAlign = imageAlign;
+            AddToOffsetY = addToOffsetY;
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Helion.Menus.Impl
 
         public SaveMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
             ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave) 
-            : base(config, console, soundManager, archiveCollection, 16, true)
+            : base(config, console, soundManager, archiveCollection, 8, true)
         {
             m_parent = parent;
             m_saveGameManager = saveManager;
@@ -55,7 +55,7 @@ namespace Helion.Menus.Impl
 
         private void CreateLoadRows(List<SaveGame> savedGames)
         {
-            Components = Components.Add(new MenuImageComponent(LoadHeaderImage, paddingY: 16));
+            Components = Components.Add(new MenuImageComponent(LoadHeaderImage, paddingBottomY: 8));
 
             if (savedGames.Empty())
             {
@@ -71,7 +71,7 @@ namespace Helion.Menus.Impl
 
         private void CreateSaveRows(List<SaveGame> savedGames, bool hasWorld)
         {
-            Components = Components.Add(new MenuImageComponent(SaveHeaderImage, paddingY: 16));
+            Components = Components.Add(new MenuImageComponent(SaveHeaderImage, paddingBottomY: 8));
 
             if (m_isSave && !hasWorld)
             {
