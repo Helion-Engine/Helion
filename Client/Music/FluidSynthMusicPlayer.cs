@@ -13,7 +13,7 @@ namespace Helion.Client.Music
         private bool m_disposed;
         private string m_lastDataHash = string.Empty;
 
-        private readonly Synth m_synth;
+        private readonly string m_soundFontFile;
         private readonly Settings m_settings;
 
         private Player? m_player;
@@ -27,13 +27,9 @@ namespace Helion.Client.Music
         
         public FluidSynthMusicPlayer(string soundFontFile)
         {
+            m_soundFontFile = soundFontFile;
             m_settings = new Settings();
             m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
-
-            m_synth = new Synth(m_settings);
-            m_synth.LoadSoundFont(soundFontFile, true);
-            for (int i = 0; i < 16; i++)
-                m_synth.SoundFontSelect(i, 0);
         }
 
         ~FluidSynthMusicPlayer()
@@ -78,15 +74,22 @@ namespace Helion.Client.Music
             if (param is not PlayParams playParams)
                 return;
 
-            using (m_player = new Player(m_synth))
+            using (Synth synth = new Synth(m_settings))
             {
-                using (var adriver = new AudioDriver(m_synth.Settings, m_synth))
+                synth.LoadSoundFont(m_soundFontFile, true);
+                for (int i = 0; i < 16; i++)
+                    synth.SoundFontSelect(i, 0);
+
+                using (m_player = new Player(synth))
                 {
-                    if (playParams.Loop)
-                        m_player.SetLoop(-1);
-                    m_player.Add(playParams.File);           
-                    m_player.Play();
-                    m_player.Join();
+                    using (var adriver = new AudioDriver(synth.Settings, synth))
+                    {
+                        if (playParams.Loop)
+                            m_player.SetLoop(-1);
+                        m_player.Add(playParams.File);
+                        m_player.Play();
+                        m_player.Join();
+                    }
                 }
             }
 
@@ -112,7 +115,6 @@ namespace Helion.Client.Music
                 return;
 
             Stop();
-            m_synth.Dispose();
             m_settings.Dispose();
             m_disposed = true;
         }
