@@ -265,15 +265,15 @@ namespace Helion.World
                 {
                     entity.Tick();
 
+                    if (WorldState == WorldState.Exit)
+                        return;
+
                     // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
                     if (!entity.IsDisposed)
                         PhysicsManager.Move(entity);
 
                     if (entity.Respawn)
                         HandleRespawn(entity);
-
-                    if (WorldState == WorldState.Exit)
-                        return;
                 }
 
                 foreach (Player player in EntityManager.Players)
@@ -281,6 +281,9 @@ namespace Helion.World
                     // Doom did not apply sector damage to voodoo dolls
                     if (player.IsVooDooDoll)
                         continue;
+
+                    player.HandleTickCommand();
+                    player.TickCommand.Clear();
 
                     if (player.Sector.SectorDamageSpecial != null)
                         player.Sector.SectorDamageSpecial.Tick(player);

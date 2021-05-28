@@ -419,9 +419,6 @@ namespace Helion.World.Entities.Players
 
             PrevWeaponOffset = WeaponOffset;
 
-            HandleTickCommand();
-            TickCommand.Clear();
-
             if (m_jumpTics > 0)
                 m_jumpTics--;
 
@@ -452,7 +449,7 @@ namespace Helion.World.Entities.Players
             m_hasNewWeapon = false;
         }
 
-        private void HandleTickCommand()
+        public void HandleTickCommand()
         {
             if (TickCommand.Has(TickCommands.Use))
                 World.EntityUse(this);
