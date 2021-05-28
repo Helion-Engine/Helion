@@ -150,7 +150,12 @@ namespace Helion.Layer
         /// <param name="input">The input.</param>
         public virtual void HandleInput(InputEvent input)
         {
-            Layers.ForEachReverse(layer => layer.HandleInput(input));
+            for (int i = Layers.Count - 1; i >= 0; i--)
+            {
+                var layer = Layers[i];
+                if (!layer.Disposed)
+                    layer.HandleInput(input);
+            }
             OrderLayers();
         }
 
@@ -162,7 +167,13 @@ namespace Helion.Layer
         /// </remarks>
         public virtual void RunLogic()
         {
-            Layers.ForEachReverse(layer => layer.RunLogic());
+            for (int i = Layers.Count - 1; i >= 0; i--)
+            {
+                var layer = Layers[i];
+                if (!layer.Disposed)
+                    layer.RunLogic();
+            }
+
             OrderLayers();
         }
         
@@ -178,7 +189,8 @@ namespace Helion.Layer
         {
             OrderLayers();
             foreach (GameLayer layer in Layers)
-                layer.Render(renderCommands);
+                if (!layer.Disposed)
+                    layer.Render(renderCommands);
         }
 
         /// <summary>
