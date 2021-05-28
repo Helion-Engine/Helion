@@ -19,7 +19,11 @@ namespace Helion.Tests.Unit.Util.Warp
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E1M1");
 
-            MapWarp.GetMap("11", mapInfo, out mapInfoDef).Should().BeTrue();
+            MapWarp.GetMap("1 1", mapInfo, out mapInfoDef).Should().BeTrue();
+            mapInfoDef.Should().NotBeNull();
+            mapInfoDef.MapName.Should().Be("E1M1");
+
+            MapWarp.GetMap("1", mapInfo, out mapInfoDef).Should().BeTrue();
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E1M1");
         }
@@ -33,7 +37,11 @@ namespace Helion.Tests.Unit.Util.Warp
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E1M2");
 
-            MapWarp.GetMap("12", mapInfo, out mapInfoDef).Should().BeTrue();
+            MapWarp.GetMap("1 2", mapInfo, out mapInfoDef).Should().BeTrue();
+            mapInfoDef.Should().NotBeNull();
+            mapInfoDef.MapName.Should().Be("E1M2");
+
+            MapWarp.GetMap("2", mapInfo, out mapInfoDef).Should().BeTrue();
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E1M2");
         }
@@ -47,7 +55,7 @@ namespace Helion.Tests.Unit.Util.Warp
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E2M1");
 
-            MapWarp.GetMap("21", mapInfo, out mapInfoDef).Should().BeTrue();
+            MapWarp.GetMap("2 1", mapInfo, out mapInfoDef).Should().BeTrue();
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E2M1");
         }
@@ -61,7 +69,7 @@ namespace Helion.Tests.Unit.Util.Warp
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E2M8");
 
-            MapWarp.GetMap("28", mapInfo, out mapInfoDef).Should().BeTrue();
+            MapWarp.GetMap("2 8", mapInfo, out mapInfoDef).Should().BeTrue();
             mapInfoDef.Should().NotBeNull();
             mapInfoDef.MapName.Should().Be("E2M8");
         }

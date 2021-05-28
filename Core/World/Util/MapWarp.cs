@@ -1,4 +1,5 @@
 ﻿using Helion.Resources.Definitions.MapInfo;
+using System;
 using System.Text.RegularExpressions;
 
 namespace Helion.World.Util
@@ -7,11 +8,18 @@ namespace Helion.World.Util
     {
         public static bool GetMap(string warpString, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
         {
-            if (!int.TryParse(warpString, out int warp))
+            mapInfoDef = null;
+            if (warpString.Contains(' '))
             {
-                mapInfoDef = null;
+                string[] items = warpString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (items.Length >= 2 && int.TryParse(items[0], out int ep) && int.TryParse(items[1], out int level))
+                    return GetMap(ep, level, mapInfo, out mapInfoDef);
+
                 return false;
             }
+
+            if (!int.TryParse(warpString, out int warp))
+                return false;
 
             return GetMap(warp, mapInfo, out mapInfoDef);
         }
@@ -25,7 +33,35 @@ namespace Helion.World.Util
 
         private static bool GetMap(int episode, int level, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
         {
-            string mapName = string.Empty;
+            if (!GetMapName(episode, level, mapInfo, out mapInfoDef))
+                GetEpisodeMapName(episode, level, mapInfo, out mapInfoDef);
+
+            return mapInfoDef != null;
+        }
+
+        private static bool GetMapName(int episode, int level, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
+        {
+            mapInfoDef = null;
+            if (mapInfo.Episodes.Count > 0)
+            {
+                Regex mapRegex = new Regex(@"(?<map>[^\s\d]+)\d+");
+                var episodeDef = mapInfo.Episodes[0];
+                var match = mapRegex.Match(episodeDef.StartMap);
+                if (match.Success)
+                {
+                    string mapName = match.Groups["map"] + episode.ToString() + level.ToString();
+                    mapInfoDef = mapInfo.GetMap(mapName);
+                    return mapInfoDef != null;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool GetEpisodeMapName(int episode, int level, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
+        {
+            mapInfoDef = null;
+            episode = Math.Clamp(episode, 1, int.MaxValue);
             int episodeIndex = episode - 1;
             if (episodeIndex >= 0 && episodeIndex < mapInfo.Episodes.Count)
             {
@@ -34,22 +70,14 @@ namespace Helion.World.Util
                 var match = epRegex.Match(episodeDef.StartMap);
                 if (match.Success)
                 {
-                    mapName = match.Groups["episode"].Value + episode.ToString() +
+                    string mapName = match.Groups["episode"].Value + episode.ToString() +
                         match.Groups["map"].Value + level.ToString();
+                    mapInfoDef = mapInfo.GetMap(mapName);
+                    return mapInfoDef != null;
                 }
             }
 
-            if (mapName.Length == 0 && mapInfo.Episodes.Count > 0)
-            {
-                Regex mapRegex = new Regex(@"(?<map>[^\s\d]+)\d+");
-                var episodeDef = mapInfo.Episodes[0];
-                var match = mapRegex.Match(episodeDef.StartMap);
-                if (match.Success)
-                    mapName = match.Groups["map"] + episode.ToString() + level.ToString();
-            }
-
-            mapInfoDef = mapInfo.GetMap(mapName);
-            return mapInfoDef != null;
+            return false;
         }
     }
 }
