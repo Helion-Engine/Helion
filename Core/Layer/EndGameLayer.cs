@@ -161,6 +161,9 @@ namespace Helion.Layer
             if (!m_forceState && (m_drawState == DrawState.Complete || !m_stopwatch.IsRunning || m_stopwatch.Elapsed < m_timespan))
                 return;
 
+            if (m_drawState == DrawState.TextComplete && NextMapInfo != null)
+                return;
+
             if (m_drawState == DrawState.TextComplete)
             {
                 if (m_shouldScroll)
