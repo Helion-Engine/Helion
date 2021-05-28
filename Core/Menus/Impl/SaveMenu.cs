@@ -55,7 +55,7 @@ namespace Helion.Menus.Impl
 
         private void CreateLoadRows(List<SaveGame> savedGames)
         {
-            Components = Components.Add(new MenuImageComponent(LoadHeaderImage, paddingBottomY: 8));
+            Components = Components.Add(new MenuImageComponent(LoadHeaderImage));
 
             if (savedGames.Empty())
             {
@@ -71,7 +71,7 @@ namespace Helion.Menus.Impl
 
         private void CreateSaveRows(List<SaveGame> savedGames, bool hasWorld)
         {
-            Components = Components.Add(new MenuImageComponent(SaveHeaderImage, paddingBottomY: 8));
+            Components = Components.Add(new MenuImageComponent(SaveHeaderImage));
 
             if (m_isSave && !hasWorld)
             {

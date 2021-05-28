@@ -113,9 +113,10 @@ namespace Helion.Render.OpenGL.Legacy.Shared.Drawers
             ref int offsetY)
         {
             const int LeftOffset = 64;
-            const int RowVerticalPadding = 8;
+            const int RowVerticalPadding = 4;
             const int SelectionOffsetX = 4;
-            
+            const int RowOffsetY = 7; // Vanilla offsets by 7...
+
             Font? font = m_archiveCollection.GetFont("SmallFont");
             if (font == null)
                 return;
@@ -123,32 +124,35 @@ namespace Helion.Render.OpenGL.Legacy.Shared.Drawers
             if (isSelected)
             {
                 string selectedName = ShouldDrawActive() ? Constants.MenuSelectIconActive : Constants.MenuSelectIconInactive;
-                var (w, _) = helper.DrawInfoProvider.GetImageDimension(selectedName);
-                
-                helper.Image(selectedName, LeftOffset - w - SelectionOffsetX, offsetY);
+                var dimension = helper.DrawInfoProvider.GetImageDimension(selectedName);
+                Vec2I offset = helper.DrawInfoProvider.GetImageOffset(selectedName);
+                helper.TranslateDoomOffset(ref offset, dimension);
+
+                helper.Image(selectedName, LeftOffset - dimension.Width - SelectionOffsetX + offset.X, offsetY + offset.Y);
             }
 
-            var (leftWidth, leftHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSLEFT");
-            var (middleWidth, middleHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSCNTR");
-            var (rightWidth, rightHeight) = helper.DrawInfoProvider.GetImageDimension("M_LSRGHT");
+            var leftDimension = helper.DrawInfoProvider.GetImageDimension("M_LSLEFT");
+            var midDimension = helper.DrawInfoProvider.GetImageDimension("M_LSCNTR");
+            var rightDimension = helper.DrawInfoProvider.GetImageDimension("M_LSRGHT");
             int offsetX = LeftOffset;
 
-            helper.Image("M_LSLEFT", offsetX, offsetY);
-            offsetX += leftWidth;
+            helper.Image("M_LSLEFT", offsetX, offsetY + RowOffsetY);
+            offsetX += leftDimension.Width;
 
-            int blocks = (int)Math.Ceiling((MenuSaveRowComponent.PixelWidth - leftWidth - rightWidth) / (double)middleWidth); 
+            int blocks = (int)Math.Ceiling((MenuSaveRowComponent.PixelWidth - leftDimension.Width - rightDimension.Width) / (double)midDimension.Width) + 1; 
             for (int i = 0; i < blocks; i++)
             {
-                helper.Image("M_LSCNTR", offsetX, offsetY);
-                offsetX += middleWidth;
+                helper.Image("M_LSCNTR", offsetX, offsetY + RowOffsetY);
+                offsetX += midDimension.Width;
             }
             
-            helper.Image("M_LSRGHT", offsetX, offsetY);
+            helper.Image("M_LSRGHT", offsetX, offsetY + RowOffsetY);
 
-            ColoredString text = ColoredStringBuilder.From(Color.Red, saveRowComponent.Text);
-            helper.Text(text, font, 8, out Dimension area, LeftOffset + leftWidth + 4, offsetY + 3);
+            string saveText = saveRowComponent.Text.Length > blocks ? saveRowComponent.Text.Substring(0, blocks) : saveRowComponent.Text;
+            ColoredString text = ColoredStringBuilder.From(Color.Red, saveText);
+            helper.Text(text, font, 8, out Dimension area, LeftOffset + leftDimension.Width + 4, offsetY + 3 + RowOffsetY);
 
-            offsetY += MathHelper.Max(area.Height, leftHeight, middleHeight, rightHeight) + RowVerticalPadding;
+            offsetY += MathHelper.Max(area.Height, leftDimension.Height, midDimension.Height, rightDimension.Width) + RowVerticalPadding;
         }
     }
 }
