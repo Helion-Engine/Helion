@@ -48,7 +48,7 @@ namespace Helion.Render.OpenGL.Legacy.Shared.Drawers
             foreach (string image in images)
             {
                 var area = draw.DrawInfoProvider.GetImageDimension(image);
-                draw.AtResolution(DoomHudHelper.DoomResolutionInfo, () =>
+                draw.AtResolution(DoomHudHelper.DoomResolutionInfoCenter, () =>
                 {
                     renderCommands.DrawImage(image, xOffset, 0, area.Width, area.Height, Color.White);
                 });

@@ -200,9 +200,13 @@ namespace Helion.Layer
                     m_soundManager.PlayStaticSound("weapons/pistol");
                 }
             }
-            else
+            else if (m_drawState < DrawState.Complete)
             {
-                m_drawState++;
+                // This is cluster text and does not proceded further
+                if (NextMapInfo != null)
+                    m_drawState = DrawState.TextComplete;
+                else
+                    m_drawState++;
             }
 
             if (m_drawState == DrawState.ImageScroll)
