@@ -16,7 +16,7 @@ namespace Helion.Maps.Specials.Vanilla
         public const byte DoorFastSpeed = 64;
 
         public const byte StairSlowSpeed = 2;
-        public const byte StairFastSpeed = 16;
+        public const byte StairFastSpeed = 32;
 
         public const byte DonutSpeed = 4;
 
