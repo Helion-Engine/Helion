@@ -306,12 +306,12 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.CeilingCrushStop;
 
-                case VanillaLineSpecialType.W1_CloseDoorThirtySeconds:
-                case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.W1_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.WR_CloseDoorOpenThirtySeconds:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
-                    // TODO verify if this is actually the correct function
-                    return ZDoomLineSpecialType.DoorWaitClose;
+                    argsToMutate.Arg2 = 35 * 30; // Wait tics
+                    return ZDoomLineSpecialType.DoorCloseWaitOpen;
 
                 case VanillaLineSpecialType.W1_BlinkLightStartEveryOneSecond:
                     argsToMutate.Arg0 = tag;
@@ -609,7 +609,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_DoorOpenStay:
                 case VanillaLineSpecialType.W1_CloseDoor:
                 case VanillaLineSpecialType.W1_DoorOpenClose:
-                case VanillaLineSpecialType.W1_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.W1_CloseDoorOpenThirtySeconds:
                 case VanillaLineSpecialType.S1_OpenDoorClose:
                 case VanillaLineSpecialType.D1_OpenDoorStay:
                 case VanillaLineSpecialType.SR_CloseDoor:
@@ -618,7 +618,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_OpenDoorStay:
                 case VanillaLineSpecialType.SR_OpenDoorClose:
                 case VanillaLineSpecialType.WR_CloseDoor:
-                case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.WR_CloseDoorOpenThirtySeconds:
                 case VanillaLineSpecialType.WR_OpenDoorStay:
                 case VanillaLineSpecialType.WR_OpenDoorClose:
                 case VanillaLineSpecialType.S1_OpenDoorStay:
@@ -751,7 +751,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_RaiseStairs8:
                 case VanillaLineSpecialType.W1_LightLevelMatchBrightness:
                 case VanillaLineSpecialType.W1_LightOnMaxBrightness:
-                case VanillaLineSpecialType.W1_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.W1_CloseDoorOpenThirtySeconds:
                 case VanillaLineSpecialType.W1_BlinkLightStartEveryOneSecond:
                 case VanillaLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
                 case VanillaLineSpecialType.W1_RaiseFloorToMatchNextHigherChangeTexture:
@@ -775,7 +775,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
                 case VanillaLineSpecialType.WR_StopCrusherCeiling:
                 case VanillaLineSpecialType.WR_CloseDoor:
-                case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.WR_CloseDoorOpenThirtySeconds:
                 case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
                 case VanillaLineSpecialType.WR_LightOffMinBrightness:
                 case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:
@@ -871,7 +871,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
                 case VanillaLineSpecialType.WR_StopCrusherCeiling:
                 case VanillaLineSpecialType.WR_CloseDoor:
-                case VanillaLineSpecialType.WR_CloseDoorThirtySeconds:
+                case VanillaLineSpecialType.WR_CloseDoorOpenThirtySeconds:
                 case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
                 case VanillaLineSpecialType.WR_LightOffMinBrightness:
                 case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:

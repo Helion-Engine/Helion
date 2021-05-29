@@ -174,10 +174,11 @@ namespace Helion.World.Special
             }
         }
 
-        public void AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
+        public ISpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
         {
             special.SetDelayTics(delayTics);
             m_specials.AddLast(special);
+            return special;
         }
 
         public void AddSpecial(ISpecial special)
@@ -780,6 +781,9 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.CeilingRaiseToHighest:
                     return CreateCeilingRaiseSpecial(sector, SectorDest.HighestAdjacentCeiling, line.Args.Arg1 * SpeedFactor);
+
+                case ZDoomLineSpecialType.DoorWaitClose:
+                    return AddDelayedSpecial(CreateDoorCloseSpecial(sector, line.Args.Arg1 * SpeedFactor), line.Args.Arg2);
             }
 
             return null;
