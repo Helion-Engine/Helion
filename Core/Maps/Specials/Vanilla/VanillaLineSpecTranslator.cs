@@ -272,7 +272,6 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg2 = 16;
                     return ZDoomLineSpecialType.StairsBuildUpDoomCrush;
 
-                // TODO
                 case VanillaLineSpecialType.W1_LightOnMaxBrightness:
                 case VanillaLineSpecialType.WR_LightOnMaxBrightness:
                 case VanillaLineSpecialType.SR_LightOnMaxBrightness:
@@ -321,8 +320,6 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_Donut:
                     argsToMutate.Arg0 = tag;
-
-                    // TODO verify these speeds
                     argsToMutate.Arg1 = VanillaConstants.DonutSpeed; // Pillar speed
                     argsToMutate.Arg2 = VanillaConstants.DonutSpeed; // Surrounding speed
                     return ZDoomLineSpecialType.FloorDonut;
@@ -533,31 +530,23 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
                 case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
                 case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
+                case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
+                case VanillaLineSpecialType.S1_RaiseFloorToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_RaiseFloor512:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
                     return VanillaConstants.SectorSlowSpeed;
 
-                case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
-                case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
-                case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
                 case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
                 case VanillaLineSpecialType.W1_QuietCrusherCeilingFastDamage:
-                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
-                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
-                case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
-                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorToLowestAdjacentCeiling:
-                case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
-                case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
-                case VanillaLineSpecialType.S1_RaiseFloorToNextHigherFloor:
-                case VanillaLineSpecialType.S1_RaiseFloor512:
                 case VanillaLineSpecialType.W1_LowerCeilingToFloor:
                 case VanillaLineSpecialType.SR_LowerCeilingToFloor:
                 case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
@@ -568,15 +557,16 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
                     return VanillaConstants.FloorSlowSpeed;
 
-                // TODO verify these!
                 case VanillaLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
                 case VanillaLineSpecialType.WR_LowerFloorToHighestAdjacentFloor:
                 case VanillaLineSpecialType.SR_LowerFloorToHighestAdjacentFloor:
                 case VanillaLineSpecialType.S1_LowerFloorToHighestAdjacentFloor:
-                case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
-                case VanillaLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
                 case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloor:
                 case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloor:
@@ -591,6 +581,12 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_LowerLiftRaise:
                 case VanillaLineSpecialType.W1_LowerFloorEightAboveHighestAdjacentFloor:
                 case VanillaLineSpecialType.WR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_LowerFloorToEightAboveHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.SR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
+                case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
                     return VanillaConstants.LiftFastSpeed;
 
                 case VanillaLineSpecialType.WR_LowerLiftFastRaise:
