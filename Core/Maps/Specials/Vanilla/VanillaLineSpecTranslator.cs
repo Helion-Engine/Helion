@@ -178,7 +178,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 10; // Damage
-                    argsToMutate.Arg3 = (byte)ZDoomCrushMode.Hexen;
+                    argsToMutate.Arg3 = (byte)ZDoomCrushMode.DoomNoSlowDown;
                     return ZDoomLineSpecialType.FloorRaiseAndCrushDoom;
 
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
