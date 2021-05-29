@@ -124,7 +124,7 @@ namespace Helion.World.Special
         {
             sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
-                new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0));
+                new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
         }
 
         public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
