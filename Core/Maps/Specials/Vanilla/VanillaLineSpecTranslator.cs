@@ -272,6 +272,12 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg2 = 16;
                     return ZDoomLineSpecialType.StairsBuildUpDoomCrush;
 
+                case VanillaLineSpecialType.S1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                    return ZDoomLineSpecialType.CeilingLowerToFloor;
+
                 case VanillaLineSpecialType.W1_LightOnMaxBrightness:
                 case VanillaLineSpecialType.WR_LightOnMaxBrightness:
                 case VanillaLineSpecialType.SR_LightOnMaxBrightness:
@@ -539,6 +545,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
                 case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
                 case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.SR_LowerCeilingToFloor:
                     return VanillaConstants.SectorSlowSpeed;
 
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
@@ -547,8 +554,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.W1_LowerCeilingToFloor:
-                case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.S1_LowerCeilingToFloor:
                 case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                     return VanillaConstants.SectorFastSpeed;
 
@@ -737,6 +743,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_LightOnMaxBrightness:
                 case VanillaLineSpecialType.SR_LightOffMinBrightness:
                 case VanillaLineSpecialType.S1_RaiseFloor512:
+                case VanillaLineSpecialType.S1_LowerCeilingToFloor:
                     return ActivationType.PlayerUse;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
@@ -757,7 +764,6 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
                 case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
-                case VanillaLineSpecialType.W1_LowerCeilingToFloor:
                 case VanillaLineSpecialType.W1_LowerCeilingToEightAboveFloor:
                 case VanillaLineSpecialType.W_EndLevel:
                 case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:

@@ -43,7 +43,7 @@ namespace Helion.Maps.Specials.Vanilla
         W1_LowerFloorToLowestAdjacentFloor,
         W1_Teleport,
         W1_RaiseCeilingToHighestAdjacentCeiling,
-        W1_LowerCeilingToFloor,
+        S1_LowerCeilingToFloor,
         SR_CloseDoor,
         SR_LowerCeilingToFloor,
         W1_LowerCeilingToEightAboveFloor,
