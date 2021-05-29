@@ -186,7 +186,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 8; // Distance above floor
                     argsToMutate.Arg2 = GetSectorMoveSpeed(type);
-                    argsToMutate.Arg3 = 8; // Damage
+                    argsToMutate.Arg3 = 10; // Damage
                     argsToMutate.Arg4 = (byte)ZDoomCrushMode.DoomNoSlowDown;
                     return ZDoomLineSpecialType.CeilingCrushAndRaiseDist;
 
@@ -546,6 +546,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
                 case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
                 case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                     return VanillaConstants.SectorSlowSpeed;
 
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
@@ -555,7 +556,6 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
                 case VanillaLineSpecialType.S1_LowerCeilingToFloor:
-                case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                     return VanillaConstants.SectorFastSpeed;
 
                 case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigherChangeTexture:
