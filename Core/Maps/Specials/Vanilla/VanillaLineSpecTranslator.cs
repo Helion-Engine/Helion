@@ -745,7 +745,6 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
                 case VanillaLineSpecialType.W1_CloseDoor:
-                case VanillaLineSpecialType.W1_DoorOpenClose:
                 case VanillaLineSpecialType.W1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
                 case VanillaLineSpecialType.W1_RaiseStairs8:
@@ -824,6 +823,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_Teleport:
                 case VanillaLineSpecialType.WR_LowerLiftRaise:
                 case VanillaLineSpecialType.W1_LowerLiftRaise:
+                case VanillaLineSpecialType.W1_DoorOpenClose:
                     return ActivationType.PlayerOrMonsterLineCross;
 
                 case VanillaLineSpecialType.W1_MonsterTeleport:
