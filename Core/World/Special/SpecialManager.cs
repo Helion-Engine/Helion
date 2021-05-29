@@ -784,6 +784,9 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.DoorWaitClose:
                     return AddDelayedSpecial(CreateDoorCloseSpecial(sector, line.Args.Arg1 * SpeedFactor), line.Args.Arg2);
+
+                case ZDoomLineSpecialType.LightStrobeDoom:
+                    return new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), line.Args.Arg1, line.Args.Arg2, false);
             }
 
             return null;
