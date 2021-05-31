@@ -5,15 +5,15 @@ namespace Helion.Render.OpenGL.Capabilities
 {
     public class GLExtensions
     {
-        public readonly bool TextureFilterAnisotropic;
-        public readonly bool BindlessTextures;
-        public readonly bool GpuShader5;
-        public readonly bool ShaderImageLoadStore;
-        private readonly HashSet<string> m_extensions = new();
+        public static readonly bool TextureFilterAnisotropic;
+        public static readonly bool BindlessTextures;
+        public static readonly bool GpuShader5;
+        public static readonly bool ShaderImageLoadStore;
+        private static readonly HashSet<string> m_extensions = new();
 
-        public int Count => m_extensions.Count;
+        public static int Count => m_extensions.Count;
         
-        public GLExtensions()
+        static GLExtensions()
         {
             PopulateExtensions();
             
@@ -23,9 +23,9 @@ namespace Helion.Render.OpenGL.Capabilities
             ShaderImageLoadStore = Supports("GL_ARB_shader_image_load_store");
         }
 
-        public bool Supports(string extensionName) => m_extensions.Contains(extensionName);
+        public static bool Supports(string extensionName) => m_extensions.Contains(extensionName);
 
-        private void PopulateExtensions()
+        private static void PopulateExtensions()
         {
             int count = GL.GetInteger(GetPName.NumExtensions);
             for (var i = 0; i < count; i++)

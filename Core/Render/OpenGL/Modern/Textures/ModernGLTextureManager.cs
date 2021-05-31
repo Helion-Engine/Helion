@@ -18,7 +18,6 @@ namespace Helion.Render.OpenGL.Modern.Textures
     public class ModernGLTextureManager : IDisposable
     {
         public readonly ModernGLTexture NullTexture;
-        private readonly GLCapabilities m_capabilities; 
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Dictionary<string, ModernGLFontTexture> m_fonts = new(StringComparer.OrdinalIgnoreCase);
@@ -28,9 +27,8 @@ namespace Helion.Render.OpenGL.Modern.Textures
         
         public TextureManager ArchiveTextureManager => TextureManager.Instance; 
 
-        public ModernGLTextureManager(GLCapabilities capabilities, Config config, ArchiveCollection archiveCollection)
+        public ModernGLTextureManager(Config config, ArchiveCollection archiveCollection)
         {
-            m_capabilities = capabilities;
             m_config = config;
             m_archiveCollection = archiveCollection;
             NullTexture = CreateNullTexture();
@@ -240,10 +238,10 @@ namespace Helion.Render.OpenGL.Modern.Textures
                 return;
 
             float value = m_config.Render.Anisotropy.UseMaxSupported ?
-                m_capabilities.Limits.MaxAnisotropy :
+                GLLimits.MaxAnisotropy :
                 (float)m_config.Render.Anisotropy.Value;
             
-            value = value.Clamp(1.0f, m_capabilities.Limits.MaxAnisotropy);
+            value = value.Clamp(1.0f, GLLimits.MaxAnisotropy);
             GL.TexParameter(target, (TextureParameterName)0x84FE, value);
         }
         

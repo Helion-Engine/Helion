@@ -4,9 +4,9 @@ namespace Helion.Render.OpenGL.Capabilities
 {
     public class GLLimits
     {
-        public readonly float MaxAnisotropy;
+        public static readonly float MaxAnisotropy;
         
-        public GLLimits()
+        static GLLimits()
         {
             // Source: https://github.com/opentk/opentk/issues/212
             GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out MaxAnisotropy);

@@ -4,11 +4,11 @@ namespace Helion.Render.OpenGL.Capabilities
 {
     public class GLInfo
     {
-        public readonly string Vendor;
-        public readonly string ShadingVersion;
-        public readonly string Renderer;
+        public static readonly string Vendor;
+        public static readonly string ShadingVersion;
+        public static readonly string Renderer;
 
-        public GLInfo()
+        static GLInfo()
         {
             Renderer = GL.GetString(StringName.Renderer);
             ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);

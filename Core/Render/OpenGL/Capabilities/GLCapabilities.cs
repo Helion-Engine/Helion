@@ -4,27 +4,21 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Capabilities
 {
-    public class GLCapabilities
+    public static class GLCapabilities
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Regex VersionRegex = new(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public readonly GLVersion Version;
-        public readonly GLInfo Info;
-        public readonly GLLimits Limits;
-        public readonly GLExtensions Extensions;
+        public static readonly GLVersion Version;
         
-        public bool SupportsObjectLabels => Version.Supports(4, 3);
-        public bool SupportsModernRenderer => Version.Supports(4, 4) &&
-                                              Extensions.BindlessTextures &&
-                                              Extensions.GpuShader5 &&
-                                              Extensions.ShaderImageLoadStore;
-        public GLCapabilities()
+        public static bool SupportsObjectLabels => Version.Supports(4, 3);
+        public static bool SupportsModernRenderer => Version.Supports(4, 4) &&
+                                                     GLExtensions.BindlessTextures &&
+                                                     GLExtensions.GpuShader5 &&
+                                                     GLExtensions.ShaderImageLoadStore;
+        static GLCapabilities()
         {
             Version = DiscoverVersion();
-            Info = new GLInfo();
-            Limits = new GLLimits();
-            Extensions = new GLExtensions();
         }
 
         private static GLVersion DiscoverVersion()

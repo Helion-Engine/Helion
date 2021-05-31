@@ -26,7 +26,6 @@ namespace Helion.Render.OpenGL.Modern
         public IFramebuffer Default => m_defaultFramebuffer;
         public readonly ModernGLTextureManager Textures;
         private readonly Config m_config;
-        private readonly GLCapabilities m_capabilities;
         private readonly ModernGlDefaultFramebuffer m_defaultFramebuffer;
         private readonly Dictionary<string, ModernGLFramebuffer> m_framebuffers = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
@@ -41,13 +40,11 @@ namespace Helion.Render.OpenGL.Modern
         /// </remarks>
         private DebugProc? m_lastCallbackProcReference;
 
-        private ModernGLRenderer(GLCapabilities capabilities, IWindow window, Config config, 
-            ArchiveCollection archiveCollection)
+        private ModernGLRenderer(IWindow window, Config config, ArchiveCollection archiveCollection)
         {
             m_config = config;
-            m_capabilities = capabilities;
             Window = window;
-            Textures = new ModernGLTextureManager(capabilities, config, archiveCollection);
+            Textures = new ModernGLTextureManager(config, archiveCollection);
             m_defaultFramebuffer = new ModernGlDefaultFramebuffer(window, Textures);
 
             PrintGLInfo();
@@ -66,11 +63,10 @@ namespace Helion.Render.OpenGL.Modern
         /// <returns>The renderer, or null if it cannot be used.</returns>
         public static ModernGLRenderer? Create(IWindow window, Config config, ArchiveCollection archiveCollection)
         {
-            GLCapabilities capabilities = new();
-            if (!config.Developer.ForceModernRenderer && !capabilities.SupportsModernRenderer)
+            if (!config.Developer.ForceModernRenderer && !GLCapabilities.SupportsModernRenderer)
                 return null;
 
-            return new ModernGLRenderer(capabilities, window, config, archiveCollection);
+            return new ModernGLRenderer(window, config, archiveCollection);
         }
 
         ~ModernGLRenderer()
@@ -81,11 +77,11 @@ namespace Helion.Render.OpenGL.Modern
 
         private void PrintGLInfo()
         {
-            Log.Info($"OpenGL v{m_capabilities.Version}");
-            Log.Info($"OpenGL Shading Language: {m_capabilities.Info.ShadingVersion}");
-            Log.Info($"OpenGL Vendor: {m_capabilities.Info.Vendor}");
-            Log.Info($"OpenGL Hardware: {m_capabilities.Info.Renderer}");
-            Log.Info($"OpenGL Extensions: {m_capabilities.Extensions.Count}");
+            Log.Info($"OpenGL v{GLCapabilities.Version}");
+            Log.Info($"OpenGL Shading Language: {GLInfo.ShadingVersion}");
+            Log.Info($"OpenGL Vendor: {GLInfo.Vendor}");
+            Log.Info($"OpenGL Hardware: {GLInfo.Renderer}");
+            Log.Info($"OpenGL Extensions: {GLExtensions.Count}");
         }
 
         private void SetGLStates()
