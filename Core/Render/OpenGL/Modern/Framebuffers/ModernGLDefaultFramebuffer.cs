@@ -8,14 +8,14 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Modern.Framebuffers
 {
-    public class ModernGlDefaultFramebuffer : ModernGLFramebuffer
+    public class ModernGLDefaultFramebuffer : ModernGLFramebuffer
     {
         public override Dimension Dimension => m_window.Dimension;
         public override GLTexture Texture { get; }
         private readonly IWindow m_window;
         private bool m_disposed;
         
-        public ModernGlDefaultFramebuffer(IWindow window, ModernGLTextureManager textureManager) : 
+        public ModernGLDefaultFramebuffer(IWindow window, ModernGLTextureManager textureManager) : 
             base(IFramebuffer.DefaultName, textureManager)
         {
             m_window = window;
@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL.Modern.Framebuffers
             Texture.SetDebugLabel("Default framebuffer texture (do not use)");
         }
         
-        ~ModernGlDefaultFramebuffer()
+        ~ModernGLDefaultFramebuffer()
         { 
             FailedToDispose(this);
             PerformDispose();

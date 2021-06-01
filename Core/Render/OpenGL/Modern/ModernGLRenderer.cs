@@ -26,7 +26,7 @@ namespace Helion.Render.OpenGL.Modern
         public IFramebuffer Default => m_defaultFramebuffer;
         public readonly ModernGLTextureManager Textures;
         private readonly Config m_config;
-        private readonly ModernGlDefaultFramebuffer m_defaultFramebuffer;
+        private readonly ModernGLDefaultFramebuffer m_defaultFramebuffer;
         private readonly Dictionary<string, ModernGLFramebuffer> m_framebuffers = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
         
@@ -45,7 +45,7 @@ namespace Helion.Render.OpenGL.Modern
             m_config = config;
             Window = window;
             Textures = new ModernGLTextureManager(config, archiveCollection);
-            m_defaultFramebuffer = new ModernGlDefaultFramebuffer(window, Textures);
+            m_defaultFramebuffer = new ModernGLDefaultFramebuffer(window, Textures);
 
             PrintGLInfo();
             SetGLDebugger();
