@@ -16,6 +16,7 @@ using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Extensions;
+using Helion.World.Entities.Definition.Composer;
 using NLog;
 
 namespace Helion.Resources.Archives.Collection
@@ -31,6 +32,8 @@ namespace Helion.Resources.Archives.Collection
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
+        public readonly EntityDefinitionComposer DefinitionComposer;
+
         public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();
@@ -40,6 +43,7 @@ namespace Helion.Resources.Archives.Collection
         {
             m_archiveLocator = archiveLocator;
             Definitions = new DefinitionEntries(this);
+            DefinitionComposer = new(this);
         }
 
         public void Dispose()
@@ -51,7 +55,7 @@ namespace Helion.Resources.Archives.Collection
             }
         }
 
-        public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true)
+        public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null)
         {
             List<string> filePaths = new();
             Archive? iwadArchive = null;
@@ -90,6 +94,22 @@ namespace Helion.Resources.Archives.Collection
 
             ProcessAndIndexEntries(iwadArchive, m_archives);
             IWadType = GetIWadInfo().IWadBaseType;
+
+            // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
+            DefinitionComposer.LoadAllDefinitions();
+
+            if (dehackedPatch != null)
+            {
+                try
+                {
+                    Definitions.ApplyDehackedPatch(File.ReadAllText(dehackedPatch));
+                }
+                catch (IOException)
+                {
+                    Log.Error($"Unable to open dehacked patch {dehackedPatch}");
+                    return false;
+                }
+            }
 
             return true;
         }

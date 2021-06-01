@@ -36,8 +36,10 @@ namespace Helion.World.Entities.Definition.Composer
         public EntityDefinitionComposer(ArchiveCollection archiveCollection)
         {
             m_archiveCollection = archiveCollection;
+        }
 
-            // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
+        public void LoadAllDefinitions()
+        {
             foreach (ActorDefinition definition in m_archiveCollection.Definitions.Decorate.GetActorDefinitions())
                 ComposeNewDefinition(definition);
         }
@@ -47,6 +49,23 @@ namespace Helion.World.Entities.Definition.Composer
             if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
                 return definition;
 
+            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
+            if (actorDefinition == null)
+                return null;
+
+            definition = ComposeNewDefinition(actorDefinition);
+            if (definition == null)
+                return null;
+
+            m_listDefinitions.Add(definition);
+            m_definitions[definition.Name] = definition;
+            if (definition.EditorId != null)
+                m_editorNumToDefinition[definition.EditorId.Value] = definition;
+            return definition;
+        }
+
+        public EntityDefinition? GetNewDefinition(string name)
+        {
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
@@ -151,10 +170,6 @@ namespace Helion.World.Entities.Definition.Composer
 
             // TODO: Handle 'replaces'.
 
-            m_listDefinitions.Add(definition);
-            m_definitions[definition.Name] = definition;
-            if (definition.EditorId != null)
-                m_editorNumToDefinition[definition.EditorId.Value] = definition;
             
             return definition;
         }

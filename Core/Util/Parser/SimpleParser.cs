@@ -281,7 +281,10 @@ namespace Helion.Util.Parser
                 return null;
 
             if (PeekInteger(out int i))
+            {
+                ConsumeString();
                 return i;
+            }
 
             return null;
         }
@@ -354,6 +357,22 @@ namespace Helion.Util.Parser
             int startLine = m_tokens[m_index].Line;
             while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
                 m_index++;
+
+            return m_lines[token.Line][token.Index..];
+        }
+
+        /// <summary>
+        /// Returns all tokens until the next line is hit.
+        /// </summary>
+        public string PeekLine()
+        {
+            AssertData();
+            int index = m_index;
+
+            ParserToken token = m_tokens[index];
+            int startLine = m_tokens[index].Line;
+            while (index < m_tokens.Count && m_tokens[index].Line == startLine)
+                index++;
 
             return m_lines[token.Line][token.Index..];
         }

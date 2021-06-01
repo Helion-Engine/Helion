@@ -19,6 +19,7 @@ using static Helion.Util.Assertion.Assert;
 using NLog;
 using Helion.Util.Parser;
 using Helion.Resources.Definitions.Boom;
+using Helion.Dehacked;
 
 namespace Helion.Resources.Definitions
 {
@@ -66,6 +67,14 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
             m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
             m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
+            m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
+        }
+
+        public bool ApplyDehackedPatch(string data)
+        {
+            DehackedDefinition dehacked = new DehackedDefinition(m_archiveCollection.DefinitionComposer);
+            dehacked.Parse(data);
+            return true;
         }
 
         public bool LoadMapInfo(Archive archive, string entryName)
@@ -84,6 +93,7 @@ namespace Helion.Resources.Definitions
         private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
         private void ParseLanguage(string text) => Language.Parse(text);
         private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+        private void ParseDehacked(string text) => ApplyDehackedPatch(text);
 
         private static void ParseEntry(Action<string> parseAction, Entry entry)
         {

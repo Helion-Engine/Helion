@@ -21,6 +21,7 @@ namespace Helion.Util.CommandLine
         public bool LevelStat { get; set; }
         public string? LoadGame { get; set; }
         public bool SV_FastMonsters { get; set; }
+        public string? DehackedPatch { get; set; }
 
         /// <summary>
         /// Parses the command line arguments and returns an object with the
@@ -56,6 +57,8 @@ namespace Helion.Util.CommandLine
                     commandLineArgs.LoadGame = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
                     commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
+                else if (IsArgMatch(parsedArg, "-deh"))
+                    commandLineArgs.DehackedPatch = GetString(commandLineArgs, parsedArg);
                 else
                     commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
             }
