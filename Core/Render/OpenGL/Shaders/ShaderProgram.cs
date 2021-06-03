@@ -141,7 +141,10 @@ namespace Helion.Render.OpenGL.Shaders
             {
                 GL.GetActiveAttrib((uint)m_program, (uint)i, maxNameLength, out _, 
                     out int size, out ActiveAttribType attribType, out string name);
+                
                 int location = GL.GetAttribLocation(m_program, name);
+                if (location == VertexShaderAttribute.NoLocation)
+                    throw new Exception("Unable to get attribute location in shader (should never happen)");
                 
                 VertexShaderAttribute attribute = new(location, name, i, size, attribType);
                 m_attributes.Add(attribute);
