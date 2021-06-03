@@ -11,11 +11,11 @@ namespace Helion.Render.OpenGL.Renderers
     public class GLRenderableSurface : IRenderableSurface
     {
         private readonly GLRenderer m_renderer;
+        private readonly GLHudRenderer m_hudRenderer;
+        private readonly GLWorldRenderer m_worldRenderer;
         private Box2I m_viewport;
         private Box2I m_scissor;
         private bool m_disposed;
-        private GLHudRenderer m_hudRenderer;
-        private GLWorldRenderer m_worldRenderer;
 
         public Dimension Dimension => m_renderer.Window.Dimension;
 
