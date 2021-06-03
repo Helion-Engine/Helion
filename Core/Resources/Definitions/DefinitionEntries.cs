@@ -72,8 +72,10 @@ namespace Helion.Resources.Definitions
 
         public bool ApplyDehackedPatch(string data)
         {
-            DehackedDefinition dehacked = new DehackedDefinition(m_archiveCollection.DefinitionComposer);
+            DehackedDefinition dehacked = new();
             dehacked.Parse(data);
+
+            DehackedApplier.Apply(dehacked, this, m_archiveCollection.DefinitionComposer);
             return true;
         }
 

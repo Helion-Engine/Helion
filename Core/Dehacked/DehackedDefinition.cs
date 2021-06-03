@@ -79,7 +79,7 @@ namespace Helion.Dehacked
         private static readonly string AmmoCheat = "Ammo";
         private static readonly string NoClip1 = "No Clipping 1";
         private static readonly string NoClip2 = "No Clipping 2";
-        private static readonly string Invincibility = "Invincibility ";
+        private static readonly string Invincibility = "Invincibility";
         private static readonly string Berserk = "Berserk";
         private static readonly string Invisibility = "Invisibility";
         private static readonly string RadSuit = "Radiation Suit";
@@ -97,13 +97,6 @@ namespace Helion.Dehacked
         public readonly List<DehackedString> Strings = new();
         public DehackedCheat? Cheat { get; private set; }
 
-        private readonly EntityDefinitionComposer m_entityDefinitionComposer;
-
-        public DehackedDefinition(EntityDefinitionComposer composer)
-        {
-            m_entityDefinitionComposer = composer;
-        }
-
         public void Parse(string data)
         {
             SimpleParser parser = new SimpleParser();
@@ -117,6 +110,11 @@ namespace Helion.Dehacked
                 {
                     parser.ConsumeLine();
                     continue;
+                }
+
+                if (item.Equals("Text 23 19"))
+                {
+                    int lol = 1;
                 }
 
                 if (BaseTypes.Contains(item))
@@ -133,143 +131,10 @@ namespace Helion.Dehacked
                 else if (item.Equals(CheatName, StringComparison.OrdinalIgnoreCase))
                     ParseCheat(parser);
                 else if (item.Equals(TextName, StringComparison.OrdinalIgnoreCase))
-                    ParseText(parser, data);
+                    ParseText(parser);
                 else
                     parser.ConsumeLine();
             }
-
-            ApplyThings();
-        }
-
-        private void ApplyThings()
-        {
-            foreach (var thing in Things)
-            {
-                int index = thing.Number - 1;
-                if (index < 0 || index >= ActorNames.Length)
-                {
-                    // Log.Error
-                    continue;
-                }
-
-                string actorName = ActorNames[index];
-                var definition = m_entityDefinitionComposer.GetByName(actorName);
-                if (definition == null)
-                    continue;
-
-                var properties = definition.Properties;
-                if (thing.Hitpoints.HasValue)
-                    properties.Health = thing.Hitpoints.Value;
-                if (thing.ReactionTime.HasValue)
-                    properties.ReactionTime = thing.ReactionTime.Value;
-                if (thing.PainChance.HasValue)
-                    properties.PainChance = thing.PainChance.Value;
-                if (thing.Speed.HasValue)
-                    properties.Speed = thing.Speed.Value;
-                if (thing.Width.HasValue)
-                    properties.Radius = GetDouble(thing.Width.Value);
-                if (thing.Height.HasValue)
-                    properties.Height = GetDouble(thing.Height.Value);
-                if (thing.Mass.HasValue)
-                    properties.Mass = thing.Mass.Value;
-                if (thing.MisileDamage.HasValue)
-                    properties.Damage.Value = thing.MisileDamage.Value;
-                if (thing.Bits.HasValue)
-                    SetActorFlags(definition, thing.Bits.Value);
-
-                if (thing.AlertSound.HasValue)
-                    properties.SeeSound = GetSound(thing.AlertSound.Value);
-                if (thing.AttackSound.HasValue)
-                    properties.AttackSound = GetSound(thing.AttackSound.Value);
-                if (thing.PainSound.HasValue)
-                    properties.PainSound = GetSound(thing.PainSound.Value);
-                if (thing.DeathSound.HasValue)
-                    properties.DeathSound = GetSound(thing.DeathSound.Value);
-            }
-        }
-  
-
-        private static void SetActorFlags(EntityDefinition def, uint value)
-        {
-            def.Flags.ClearAll();
-            ThingProperties thingProperties = (ThingProperties)value;
-            if (thingProperties.HasFlag(ThingProperties.SPECIAL))
-                def.Flags.Special = true;
-            if (thingProperties.HasFlag(ThingProperties.SOLID))
-                def.Flags.Solid = true;
-            if (thingProperties.HasFlag(ThingProperties.SHOOTABLE))
-                def.Flags.Shootable = true;
-            if (thingProperties.HasFlag(ThingProperties.NOSECTOR))
-                def.Flags.NoSector = true;
-            if (thingProperties.HasFlag(ThingProperties.NOBLOCKMAP))
-                def.Flags.NoBlockmap = true;
-            if (thingProperties.HasFlag(ThingProperties.AMBUSH))
-                def.Flags.Ambush = true;
-            if (thingProperties.HasFlag(ThingProperties.JUSTHIT))
-                def.Flags.JustHit = true;
-            if (thingProperties.HasFlag(ThingProperties.JUSTATTACKED))
-                def.Flags.JustAttacked = true;
-            if (thingProperties.HasFlag(ThingProperties.SPAWNCEILING))
-                def.Flags.SpawnCeiling = true;
-            if (thingProperties.HasFlag(ThingProperties.NOGRAVITY))
-                def.Flags.NoGravity = true;
-            if (thingProperties.HasFlag(ThingProperties.DROPOFF))
-                def.Flags.Dropoff = true;
-            if (thingProperties.HasFlag(ThingProperties.PICKUP))
-                def.Flags.Pickup = true;
-            if (thingProperties.HasFlag(ThingProperties.NOCLIP))
-                def.Flags.NoClip = true;
-            if (thingProperties.HasFlag(ThingProperties.SLIDE))
-                def.Flags.SlidesOnWalls = true;
-            if (thingProperties.HasFlag(ThingProperties.FLOAT))
-                def.Flags.Float = true;
-            if (thingProperties.HasFlag(ThingProperties.TELEPORT))
-                def.Flags.Teleport = true;
-            if (thingProperties.HasFlag(ThingProperties.MISSILE))
-                def.Flags.Missile = true;
-            if (thingProperties.HasFlag(ThingProperties.DROPPED))
-                def.Flags.Dropped = true;
-            if (thingProperties.HasFlag(ThingProperties.SHADOW))
-                def.Flags.Shadow = true;
-            if (thingProperties.HasFlag(ThingProperties.NOBLOOD))
-                def.Flags.NoBlood = true;
-            if (thingProperties.HasFlag(ThingProperties.CORPSE))
-                def.Flags.Corpse = true;
-            if (thingProperties.HasFlag(ThingProperties.COUNTKILL))
-                def.Flags.CountKill = true;
-            if (thingProperties.HasFlag(ThingProperties.COUNTITEM))
-                def.Flags.CountItem = true;
-            if (thingProperties.HasFlag(ThingProperties.SKULLFLY))
-                def.Flags.Skullfly = true;
-            if (thingProperties.HasFlag(ThingProperties.NOTDMATCH))
-                def.Flags.NotDMatch = true;
-            if (thingProperties.HasFlag(ThingProperties.NOTDMATCH))
-                def.Flags.NotDMatch = true;
-            if (thingProperties.HasFlag(ThingProperties.TOUCHY))
-                def.Flags.Touchy = true;
-            if (thingProperties.HasFlag(ThingProperties.BOUNCES))
-                def.Flags.MbfBouncer = true;
-            if (thingProperties.HasFlag(ThingProperties.FRIEND))
-                def.Flags.Friendly = true;
-            
-            // TODO can we support these?
-            //if (thingProperties.HasFlag(ThingProperties.TRANSLATION1))
-            //if (thingProperties.HasFlag(ThingProperties.TRANSLATION2))
-            //if (thingProperties.HasFlag(ThingProperties.INFLOAT))
-            //    def.Flags.InFloat = true;
-        }
-
-        private static double GetDouble(int value) => value / 65536.0;
-
-        private static string GetSound(int sound)
-        {
-            if (sound < 0 || sound >= SoundStrings.Length)
-            {
-                // Log.Error
-                return string.Empty;
-            }
-
-            return SoundStrings[sound];
         }
 
         private void ParseThing(SimpleParser parser)
@@ -455,7 +320,7 @@ namespace Helion.Dehacked
             }
         }
 
-        private void ParseText(SimpleParser parser, string data)
+        private void ParseText(SimpleParser parser)
         {
             DehackedString text = new();
             text.OldSize = parser.ConsumeInteger();
@@ -478,7 +343,6 @@ namespace Helion.Dehacked
                 return;
             }
 
-
             string sbText = sb.ToString();
             text.OldString = sbText.Substring(0, text.OldSize);
             text.NewString = sbText.Substring(text.OldSize);
@@ -486,8 +350,18 @@ namespace Helion.Dehacked
             Strings.Add(text);
         }
 
-        private static bool IsBlockComplete(SimpleParser parser) =>
-            parser.IsDone() || BaseTypes.Contains(parser.PeekString());
+        private static bool IsBlockComplete(SimpleParser parser)
+        {
+            if (parser.IsDone())
+                return true;
+
+            // Dehacked base types are all proceeded by a number, check to not confuse with random text
+            if (BaseTypes.Contains(parser.PeekString()) && parser.PeekString(1, out string? data) && 
+                int.TryParse(data, out _))
+                    return true;
+
+            return false;
+        }
 
         private static uint GetThingBits(SimpleParser parser, string property)
         {

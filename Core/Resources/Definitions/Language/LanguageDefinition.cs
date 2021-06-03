@@ -39,6 +39,9 @@ namespace Helion.Resources.Definitions.Language
             }
         }
 
+        public void SetValue(string key, string value) =>
+            m_lookup[key] = value;
+
         private string GetCurrentLanguageSection(string data)
         {
             Regex currentLanguage = new Regex(string.Format("\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
@@ -93,6 +96,28 @@ namespace Helion.Resources.Definitions.Language
             }
 
             return message;
+        }
+
+        public bool GetKeyByValue(string text, out string? key)
+        {
+            const int Length = 32;
+            key = null;
+            if (text.Length > Length)
+                text = text.Substring(0, Length);
+
+            foreach (var data in m_lookup)
+            {
+                if (data.Value.Length < Length)
+                    continue;
+
+                if (data.Value.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    key = data.Key;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string AddMessageParams(Player player, Player? other, string message)

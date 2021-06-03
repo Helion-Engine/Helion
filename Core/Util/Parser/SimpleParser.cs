@@ -245,6 +245,16 @@ namespace Helion.Util.Parser
             return GetData(m_index);
         }
 
+        public bool PeekString(int offset, out string? data)
+        {
+            data = null;
+            if (m_index + offset > m_tokens.Count)
+                return false;
+
+            data = GetData(m_index + offset);
+            return true;
+        }
+
         public bool PeekInteger(out int i)
         {
             AssertData();
