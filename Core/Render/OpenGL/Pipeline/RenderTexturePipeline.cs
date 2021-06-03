@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Helion.Render.OpenGL.Shaders;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util.Container;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Pipeline
 {

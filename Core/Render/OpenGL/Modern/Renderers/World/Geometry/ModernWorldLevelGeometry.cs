@@ -16,7 +16,7 @@ using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Modern.Renderers.World.Geometry

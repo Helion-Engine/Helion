@@ -2,7 +2,7 @@
 using Helion.Render.OpenGL.Attributes;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Shaders;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Pipeline

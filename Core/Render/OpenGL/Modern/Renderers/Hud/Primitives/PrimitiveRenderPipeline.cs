@@ -1,5 +1,5 @@
 ﻿using Helion.Render.OpenGL.Pipeline;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Modern.Renderers.Hud.Primitives
 {

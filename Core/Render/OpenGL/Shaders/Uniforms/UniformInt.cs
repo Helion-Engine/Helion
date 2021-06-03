@@ -1,4 +1,4 @@
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shaders.Uniforms

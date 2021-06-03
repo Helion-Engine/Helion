@@ -3,7 +3,7 @@ using Helion.Geometry;
 using Helion.Render.Common.Framebuffer;
 using Helion.Render.OpenGL.Modern.Textures;
 using Helion.Render.OpenGL.Textures;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Modern.Framebuffers

@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using Helion.Graphics;
-using Helion.Graphics.Fonts;
 using Helion.Render.Common;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
-using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
+using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Helion.Render.OpenGL.Modern.Textures
 {
@@ -20,7 +19,7 @@ namespace Helion.Render.OpenGL.Modern.Textures
         public readonly ModernGLTexture NullTexture;
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly Dictionary<string, ModernGLFontTexture> m_fonts = new(StringComparer.OrdinalIgnoreCase);
+        // private readonly Dictionary<string, ModernGLFontTexture> m_fonts = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<Texture, ModernGLTexture> m_textures = new();
         private readonly ResourceTracker<ModernGLTexture> m_lookupTable = new();
         private bool m_disposed;
@@ -66,17 +65,17 @@ namespace Helion.Render.OpenGL.Modern.Textures
         /// <param name="name">The font name (case insensitive).</param>
         /// <returns>The font texture, or null if no texture exists in the
         /// resources.</returns>
-        public ModernGLFontTexture? GetFont(string name)
-        {
-            if (m_fonts.TryGetValue(name, out ModernGLFontTexture? existingTexture))
-                return existingTexture;
-
-            IFont? font = m_archiveCollection.GetFont(name);
-            if (font == null)
-                return null;
-
-            return CreateAndTrackFontTexture(name, font);
-        }
+        // public ModernGLFontTexture? GetFont(string name)
+        // {
+        //     if (m_fonts.TryGetValue(name, out ModernGLFontTexture? existingTexture))
+        //         return existingTexture;
+        //
+        //     IFont? font = m_archiveCollection.GetFont(name);
+        //     if (font == null)
+        //         return null;
+        //
+        //     return CreateAndTrackFontTexture(name, font);
+        // }
 
         /// <summary>
         /// Creates a completely new, untracked texture. It is the caller's
@@ -121,14 +120,14 @@ namespace Helion.Render.OpenGL.Modern.Textures
             return texture;
         }
 
-        private ModernGLFontTexture CreateAndTrackFontTexture(string name, IFont font)
-        {
-            ModernGLFontTexture texture = new(name, font);
-            SetTextureDataAndProperties(texture, $"(Font) {font.Name}", font.Image, TextureTarget.Texture2D);
-            m_fonts[name] = texture;
-
-            return texture;
-        }
+        // private ModernGLFontTexture CreateAndTrackFontTexture(string name, IFont font)
+        // {
+        //     ModernGLFontTexture texture = new(name, font);
+        //     SetTextureDataAndProperties(texture, $"(Font) {font.Name}", font.Image, TextureTarget.Texture2D);
+        //     m_fonts[name] = texture;
+        //
+        //     return texture;
+        // }
 
         private void SetTextureDataAndProperties(ModernGLTexture texture, string debugName, Image image, 
             TextureTarget target)
@@ -259,9 +258,9 @@ namespace Helion.Render.OpenGL.Modern.Textures
             // Note that this data structure is only for weak references.
             m_lookupTable.Clear();
             
-            foreach (ModernGLFontTexture fontTexture in m_fonts.Values)
-                fontTexture.Dispose();
-            m_fonts.Clear();
+            // foreach (ModernGLFontTexture fontTexture in m_fonts.Values)
+            //     fontTexture.Dispose();
+            // m_fonts.Clear();
 
             foreach (ModernGLTexture texture in m_textures.Values)
                 texture.Dispose();

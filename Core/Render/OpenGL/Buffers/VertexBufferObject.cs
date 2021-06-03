@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Buffers

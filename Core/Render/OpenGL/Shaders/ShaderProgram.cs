@@ -33,7 +33,7 @@ namespace Helion.Render.OpenGL.Shaders
 
         public void SetDebugLabel(string name)
         {
-            GLUtil.Label($"Shader: {name}", OpenTK.Graphics.OpenGL4.ObjectLabelIdentifier.Program, m_program);
+            GLUtil.Label($"Shader: {name}", ObjectLabelIdentifier.Program, m_program);
         }
         
         protected abstract string VertexShader();
