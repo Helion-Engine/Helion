@@ -238,10 +238,10 @@ namespace Helion.Render.OpenGL.Modern.Textures
                 return;
 
             float value = m_config.Render.Anisotropy.UseMaxSupported ?
-                GLLimits.MaxAnisotropy :
+                GLCapabilities.Limits.MaxAnisotropy :
                 (float)m_config.Render.Anisotropy.Value;
             
-            value = value.Clamp(1.0f, GLLimits.MaxAnisotropy);
+            value = value.Clamp(1.0f, GLCapabilities.Limits.MaxAnisotropy);
             GL.TexParameter(target, (TextureParameterName)0x84FE, value);
         }
         

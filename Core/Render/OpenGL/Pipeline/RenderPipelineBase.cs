@@ -1,5 +1,5 @@
 ﻿using System;
-using Helion.Render.OpenGL.Arrays;
+using Helion.Render.OpenGL.Attributes;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Shaders;
 using OpenTK.Graphics.OpenGL4;
@@ -19,7 +19,7 @@ namespace Helion.Render.OpenGL.Pipeline
     {
         public readonly TShader Shader;
         public readonly VertexBufferObject<TVertex> Vbo;
-        public readonly VertexArrayObject<TVertex> Vao;
+        public readonly VertexAttributeCollection Attributes;
         protected readonly BufferUsageHint Hint;
         protected readonly PrimitiveType DrawType;
         private bool m_disposed;
@@ -30,13 +30,11 @@ namespace Helion.Render.OpenGL.Pipeline
             DrawType = drawType;
             Shader = new TShader();
             Vbo = new VertexBufferObject<TVertex>(hint);
-            Vao = new VertexArrayObject<TVertex>();
+            Attributes = new VertexAttributeCollection(Shader);
             
-            Vao.BindAttributes(Vbo);
-            Shader.CheckVertexAttributesOrThrow<TVertex>();
+            Attributes.EnableAttributesOnVboOrThrow(Vbo);
             
             Vbo.SetDebugLabel(name);
-            Vao.SetDebugLabel(name);
             Shader.SetDebugLabel(name);
         }
 
@@ -66,7 +64,6 @@ namespace Helion.Render.OpenGL.Pipeline
             if (m_disposed)
                 return;
 
-            Vao.Dispose();
             Vbo.Dispose();
             Shader.Dispose();
 

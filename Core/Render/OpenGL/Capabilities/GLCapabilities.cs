@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Helion.Render.Common.Enums;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 
@@ -10,15 +11,24 @@ namespace Helion.Render.OpenGL.Capabilities
         private static readonly Regex VersionRegex = new(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static readonly GLVersion Version;
-        
+        public static readonly GLExtensions Extensions;
+        public static readonly GLInfo Info;
+        public static readonly GLLimits Limits;
+
+        public static bool HasSufficientGpu => Version.Supports(2, 0);
+        public static bool SupportsFramebufferObjects => Version.Supports(3, 0) || Extensions.Framebuffers.HasSupport;
         public static bool SupportsObjectLabels => Version.Supports(4, 3);
-        public static bool SupportsModernRenderer => Version.Supports(4, 4) &&
-                                                     GLExtensions.BindlessTextures &&
-                                                     GLExtensions.GpuShader5 &&
-                                                     GLExtensions.ShaderImageLoadStore;
+        public static bool SupportsBindlessTextures => Info.Vendor == GpuVendor.Nvidia &&
+                                                       Version.Supports(4, 4) &&
+                                                       Extensions.BindlessTextures &&
+                                                       Extensions.GpuShader5 &&
+                                                       Extensions.ShaderImageLoadStore;
         static GLCapabilities()
         {
             Version = DiscoverVersion();
+            Extensions = new GLExtensions();
+            Info = new GLInfo();
+            Limits = new GLLimits();
         }
 
         private static GLVersion DiscoverVersion()

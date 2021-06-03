@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Helion.Render.OpenGL.Arrays;
+using Helion.Render.OpenGL.Attributes;
+using Helion.Render.OpenGL.Shaders.Attributes;
 using Helion.Render.OpenGL.Shaders.Uniforms;
 using OpenTK.Graphics.OpenGL4;
 using static Helion.Util.Assertion.Assert;
@@ -12,6 +14,9 @@ namespace Helion.Render.OpenGL.Shaders
     {
         private int m_glName;
         private bool m_disposed;
+        private readonly List<VertexShaderAttribute> m_attributes = new();
+
+        public IReadOnlyList<VertexShaderAttribute> Attributes => m_attributes;
 
         protected ShaderProgram()
         {
@@ -19,6 +24,7 @@ namespace Helion.Render.OpenGL.Shaders
 
             CreateAndCompileShaderOrThrow();
             AssignIndicesToUniformsOrThrow();
+            RetrieveAttributes();
         }
 
         ~ShaderProgram()
@@ -127,17 +133,22 @@ namespace Helion.Render.OpenGL.Shaders
 
             throw new ShaderException($"Encountered uniform '{name}' which has no backing field in the class: {GetType().Name}");
         }
-
-        public void CheckVertexAttributesOrThrow<TVertex>() where TVertex : struct
+        
+        private void RetrieveAttributes()
         {
-            int attributeCount = VertexArrayAttribute.FindAttributes<TVertex>().Count;
-            GL.GetProgram(m_glName, GetProgramParameterName.ActiveAttributes, out int attribCount);
-            
-            // For now, we only check if the attributes match.
-            // TODO: Support checking types as well.
-            if (attribCount != attributeCount)
-                throw new Exception($"Shader has {attributeCount}, but vertices have {attribCount} attributes");
+            throw new NotImplementedException();
         }
+
+        // public void CheckVertexAttributesOrThrow<TVertex>() where TVertex : struct
+        // {
+        //     int attributeCount = VertexArrayAttribute.FindAttributes<TVertex>().Count;
+        //     GL.GetProgram(m_glName, GetProgramParameterName.ActiveAttributes, out int attribCount);
+        //     
+        //     // For now, we only check if the attributes match.
+        //     // TODO: Support checking types as well.
+        //     if (attribCount != attributeCount)
+        //         throw new Exception($"Shader has {attributeCount}, but vertices have {attribCount} attributes");
+        // }
 
         public void Bind()
         {

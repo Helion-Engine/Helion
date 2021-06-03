@@ -63,7 +63,7 @@ namespace Helion.Render.OpenGL.Modern
         /// <returns>The renderer, or null if it cannot be used.</returns>
         public static ModernGLRenderer? Create(IWindow window, Config config, ArchiveCollection archiveCollection)
         {
-            if (!config.Developer.ForceModernRenderer && !GLCapabilities.SupportsModernRenderer)
+            if (!config.Developer.ForceModernRenderer && !GLCapabilities.SupportsBindlessTextures)
                 return null;
 
             return new ModernGLRenderer(window, config, archiveCollection);
@@ -78,10 +78,10 @@ namespace Helion.Render.OpenGL.Modern
         private void PrintGLInfo()
         {
             Log.Info($"OpenGL v{GLCapabilities.Version}");
-            Log.Info($"OpenGL Shading Language: {GLInfo.ShadingVersion}");
-            Log.Info($"OpenGL Vendor: {GLInfo.Vendor}");
-            Log.Info($"OpenGL Hardware: {GLInfo.Renderer}");
-            Log.Info($"OpenGL Extensions: {GLExtensions.Count}");
+            Log.Info($"OpenGL Shading Language: {GLCapabilities.Info.ShadingVersion}");
+            Log.Info($"OpenGL Vendor: {GLCapabilities.Info.Vendor}");
+            Log.Info($"OpenGL Hardware: {GLCapabilities.Info.Renderer}");
+            Log.Info($"OpenGL Extensions: {GLCapabilities.Extensions.Count}");
         }
 
         private void SetGLStates()

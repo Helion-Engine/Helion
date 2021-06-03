@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using Helion.Render.OpenGL.Capabilities;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Helion.Render.OpenGL
 {
@@ -8,7 +9,8 @@ namespace Helion.Render.OpenGL
         
         public static void Label(string label, ObjectLabelIdentifier type, int name)
         {
-            GL.ObjectLabel(type, name, label.Length, label);
+            if (GLCapabilities.SupportsObjectLabels)
+                GL.ObjectLabel(type, name, label.Length, label);
         }
 
         public static bool IsStream(this BufferUsageHint hint)

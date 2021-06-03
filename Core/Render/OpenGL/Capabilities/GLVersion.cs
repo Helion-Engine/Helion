@@ -14,7 +14,12 @@ namespace Helion.Render.OpenGL.Capabilities
             new(4, 2),
             new(4, 1),
             new(4, 0),
-            new(3, 3)
+            new(3, 3),
+            new(3, 2),
+            new(3, 1),
+            new(3, 0),
+            new(2, 1),
+            new(2, 0)
         };
         
         public readonly int Major;

@@ -64,7 +64,7 @@ namespace Helion.Render.OpenGL.Pipeline
             if (Vbo.Count > 0)
             {
                 Shader.Bind();
-                Vao.Bind();
+                Attributes.Bind();
             
                 action(Shader);
 
@@ -77,7 +77,7 @@ namespace Helion.Render.OpenGL.Pipeline
                     GL.BindTexture(info.Target, 0);
                 }
             
-                Vao.Unbind();
+                Attributes.Unbind();
                 Shader.Unbind();
             }
 

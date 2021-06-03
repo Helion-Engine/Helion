@@ -31,8 +31,8 @@ namespace Helion.Render.OpenGL.Arrays
             Bind();
             vbo.Bind();
 
-            foreach (var vaoAttribute in VertexArrayAttribute.FindAttributes<TVertex>())
-                vaoAttribute.EnableAttribute();
+            // foreach (var vaoAttribute in VertexArrayAttribute.FindAttributes<TVertex>())
+            //     vaoAttribute.EnableAttribute();
             
             vbo.Unbind();
             Unbind();
