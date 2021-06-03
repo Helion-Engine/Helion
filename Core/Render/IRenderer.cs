@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using Helion.Geometry;
-using Helion.Render.Common.Framebuffer;
+using Helion.Render.Common.Renderers;
 
 namespace Helion.Render
 {
@@ -22,30 +22,16 @@ namespace Helion.Render
         IWindow Window { get; }
 
         /// <summary>
-        /// Gets the default framebuffer, which is what will be rendered to the
-        /// screen at the end.
-        /// </summary>
-        IFramebuffer Default { get; }
-
-        /// <summary>
-        /// Gets a framebuffer with a specific name, or creates a new one with
+        /// Gets a surface with a specific name, or creates a new one with
         /// a name if it does not exist.
         /// </summary>
-        /// <param name="name">The name of the framebuffer. This is used for
-        /// looking up because framebuffers are expensive.</param>
-        /// <param name="dimension">The dimensions of the framebuffer. This is
+        /// <param name="name">The name of the surface. This is used for
+        /// looking up because surfaces are expensive.</param>
+        /// <param name="dimension">The dimensions of the surface. This is
         /// for new texture framebuffers, and should have positive dimensions.
         /// </param>
-        /// <returns>An existing framebuffer with the same name, or a new one
+        /// <returns>An existing surface with the same name, or a new one
         /// with the name.</returns>
-        IFramebuffer GetOrCreateFrameBuffer(string name, Dimension dimension);
-        
-        /// <summary>
-        /// Gets an existing framebuffer, or returns null if none is found.
-        /// </summary>
-        /// <param name="name">The name of the framebuffer.</param>
-        /// <returns>The framebuffer that matches the name, or null otherwise.
-        /// </returns>
-        IFramebuffer? GetFrameBuffer(string name);
+        IRenderableSurface GetOrCreateSurface(string name, Dimension dimension);
     }
 }

@@ -5,7 +5,7 @@ using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
-using Helion.Render.Common.Framebuffer;
+using Helion.Render.Common.Renderers;
 using Helion.Render.Legacy.Commands;
 using Helion.Render.Legacy.Commands.Types;
 using Helion.Render.Legacy.Context;
@@ -31,7 +31,8 @@ namespace Helion.Render.Legacy
         private static bool InfoPrinted;
 
         public IWindow Window { get; }
-        public IFramebuffer Default { get; }
+
+        public IRenderableSurface Default { get; }
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
@@ -45,7 +46,7 @@ namespace Helion.Render.Legacy
         public GLLegacyRenderer(IWindow window, Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
         {
             Window = window;
-            Default = new GLLegacyFramebuffer(window);
+            Default = new GLLegacySurface(window);
             m_config = config;
             m_archiveCollection = archiveCollection;
             m_capabilities = new GLCapabilities(functions);
@@ -97,9 +98,7 @@ namespace Helion.Render.Legacy
             }
         }
         
-        public IFramebuffer GetOrCreateFrameBuffer(string name, Dimension dimension) => Default;
-
-        public IFramebuffer GetFrameBuffer(string name) => Default;
+        public IRenderableSurface GetOrCreateSurface(string name, Dimension dimension) => Default;
 
         public void Render(RenderCommands renderCommands)
         {

@@ -1,21 +1,21 @@
 ﻿using System;
 using Helion.Geometry;
-using Helion.Render.Common.Framebuffer;
+using Helion.Render.Common.Renderers;
 
 namespace Helion.Render.Legacy
 {
-    public class GLLegacyFramebuffer : IFramebuffer
+    public class GLLegacySurface : IRenderableSurface
     {
-        public string Name => IFramebuffer.DefaultName;
+        public string Name => IRenderableSurface.DefaultName;
         public Dimension Dimension => m_window.Dimension;
         private readonly IWindow m_window;
 
-        public GLLegacyFramebuffer(IWindow window)
+        public GLLegacySurface(IWindow window)
         {
             m_window = window;
         }
-
-        public void Render(Action<FramebufferRenderContext> action)
+        
+        public void Render(Action<IRenderableSurfaceContext> action)
         {
             // TODO
         }

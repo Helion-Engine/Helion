@@ -5,7 +5,7 @@ using Helion.Input;
 using Helion.Render;
 using Helion.Render.Legacy;
 using Helion.Render.Legacy.Context;
-using Helion.Render.OpenGL.Modern;
+using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -60,7 +60,8 @@ namespace Helion.Client
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("newrenderer")))
                 return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions());
-            return ModernGLRenderer.Create(this, config, archiveCollection) ?? throw new Exception("Modern renderer not supported");
+            
+            return new GLRenderer(config, this, archiveCollection);
         }
 
         ~Window()
