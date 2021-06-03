@@ -111,13 +111,16 @@ namespace Helion.Dehacked
 
             while (!parser.IsDone())
             {
-                string item = parser.ConsumeString();
+                string item = parser.PeekString();
 
                 if (item.StartsWith('#'))
                 {
                     parser.ConsumeLine();
                     continue;
                 }
+
+                if (BaseTypes.Contains(item))
+                    parser.ConsumeString();
 
                 if (item.Equals(ThingName, StringComparison.OrdinalIgnoreCase))
                     ParseThing(parser);
@@ -136,11 +139,6 @@ namespace Helion.Dehacked
             }
 
             ApplyThings();
-        }
-
-        private int GetNextBlockIndex(int startIndex, string data)
-        {
-            throw new NotImplementedException();
         }
 
         private void ApplyThings()
