@@ -2,7 +2,7 @@
 
 namespace Helion.Render.OpenGL.Attributes
 {
-    public record VertexAttributeArrayElement(string Name, int Size, bool Normalized, int Offset, 
+    public record VertexAttributeElement(int Location, string Name, int Size, bool Normalized, int Offset, 
         int Stride, VertexAttribPointerType Type)
     {
     }

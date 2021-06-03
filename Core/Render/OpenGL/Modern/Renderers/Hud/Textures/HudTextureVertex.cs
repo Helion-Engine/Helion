@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using GlmSharp;
-using Helion.Render.OpenGL.Arrays;
+using Helion.Render.OpenGL.Attributes;
 using Helion.Render.OpenGL.Primitives;
 
 namespace Helion.Render.OpenGL.Modern.Renderers.Hud.Textures

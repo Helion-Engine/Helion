@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Helion.Render.OpenGL.Arrays;
-using Helion.Render.OpenGL.Attributes;
 using Helion.Render.OpenGL.Shaders.Attributes;
 using Helion.Render.OpenGL.Shaders.Uniforms;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shaders
 {
     public abstract class ShaderProgram : IDisposable
     {
-        private int m_glName;
+        private int m_program;
         private bool m_disposed;
         private readonly List<VertexShaderAttribute> m_attributes = new();
 
@@ -20,7 +18,7 @@ namespace Helion.Render.OpenGL.Shaders
 
         protected ShaderProgram()
         {
-            m_glName = GL.CreateProgram();
+            m_program = GL.CreateProgram();
 
             CreateAndCompileShaderOrThrow();
             AssignIndicesToUniformsOrThrow();
@@ -35,7 +33,7 @@ namespace Helion.Render.OpenGL.Shaders
 
         public void SetDebugLabel(string name)
         {
-            GLUtil.Label($"Shader: {name}", ObjectLabelIdentifier.Program, m_glName);
+            GLUtil.Label($"Shader: {name}", OpenTK.Graphics.OpenGL4.ObjectLabelIdentifier.Program, m_program);
         }
         
         protected abstract string VertexShader();
@@ -48,12 +46,12 @@ namespace Helion.Render.OpenGL.Shaders
             
             IEnumerable<int> shaderHandles = CompileShadersOrThrow();
 
-            GL.LinkProgram(m_glName);
+            GL.LinkProgram(m_program);
             ThrowIfLinkFailure();
 
             foreach (int shaderHandle in shaderHandles)
             {
-                GL.DetachShader(m_glName, shaderHandle);
+                GL.DetachShader(m_program, shaderHandle);
                 GL.DeleteShader(shaderHandle);
             }
         }
@@ -67,11 +65,11 @@ namespace Helion.Render.OpenGL.Shaders
 
         private void ThrowIfLinkFailure()
         {
-            GL.GetProgram(m_glName, GetProgramParameterName.LinkStatus, out int status);
+            GL.GetProgram(m_program, GetProgramParameterName.LinkStatus, out int status);
             if (status == GLUtil.GLTrue) 
                 return;
             
-            string errorMsg = GL.GetProgramInfoLog(m_glName);
+            string errorMsg = GL.GetProgramInfoLog(m_program);
             throw new ShaderException($"Error linking shader: {errorMsg}");
         }
 
@@ -82,7 +80,7 @@ namespace Helion.Render.OpenGL.Shaders
             GL.CompileShader(shaderHandle);
             ThrowIfShaderCompileFailure(shaderHandle, type);
 
-            GL.AttachShader(m_glName, shaderHandle);
+            GL.AttachShader(m_program, shaderHandle);
             return shaderHandle;
         }
 
@@ -98,12 +96,12 @@ namespace Helion.Render.OpenGL.Shaders
 
         private void AssignIndicesToUniformsOrThrow()
         {
-            GL.GetProgram(m_glName, GetProgramParameterName.ActiveUniforms, out int uniformCount);
+            GL.GetProgram(m_program, GetProgramParameterName.ActiveUniforms, out int uniformCount);
             
             for (int i = 0; i < uniformCount; i++)
             {
-                string name = GL.GetActiveUniform(m_glName, i, out _, out _);
-                int location = GL.GetUniformLocation(m_glName, name);
+                string name = GL.GetActiveUniform(m_program, i, out _, out _);
+                int location = GL.GetUniformLocation(m_program, name);
                 Invariant(location != -1, $"Unable to index shader uniform (index {i}): {name}");
 
                 FindAndSetUniformFieldIndexOrThrow(name, location);
@@ -136,23 +134,23 @@ namespace Helion.Render.OpenGL.Shaders
         
         private void RetrieveAttributes()
         {
-            throw new NotImplementedException();
-        }
+            GL.GetProgram(m_program, GetProgramParameterName.ActiveAttributes, out int attribCount);
+            GL.GetProgram(m_program, GetProgramParameterName.ActiveAttributeMaxLength, out int maxNameLength);
 
-        // public void CheckVertexAttributesOrThrow<TVertex>() where TVertex : struct
-        // {
-        //     int attributeCount = VertexArrayAttribute.FindAttributes<TVertex>().Count;
-        //     GL.GetProgram(m_glName, GetProgramParameterName.ActiveAttributes, out int attribCount);
-        //     
-        //     // For now, we only check if the attributes match.
-        //     // TODO: Support checking types as well.
-        //     if (attribCount != attributeCount)
-        //         throw new Exception($"Shader has {attributeCount}, but vertices have {attribCount} attributes");
-        // }
+            for (int i = 0; i < attribCount; i++)
+            {
+                GL.GetActiveAttrib((uint)m_program, (uint)i, maxNameLength, out _, 
+                    out int size, out ActiveAttribType attribType, out string name);
+                int location = GL.GetAttribLocation(m_program, name);
+                
+                VertexShaderAttribute attribute = new(location, name, i, size, attribType);
+                m_attributes.Add(attribute);
+            }
+        }
 
         public void Bind()
         {
-            GL.UseProgram(m_glName);            
+            GL.UseProgram(m_program);            
         }
 
         public void Unbind()
@@ -178,8 +176,8 @@ namespace Helion.Render.OpenGL.Shaders
             if (m_disposed)
                 return;
             
-            GL.DeleteProgram(m_glName);
-            m_glName = 0;
+            GL.DeleteProgram(m_program);
+            m_program = 0;
 
             m_disposed = true;
         }
