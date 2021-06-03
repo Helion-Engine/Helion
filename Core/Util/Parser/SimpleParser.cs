@@ -45,10 +45,11 @@ namespace Helion.Util.Parser
             m_parseType = parseType;
         }
 
-        public void Parse(string data)
+        public void Parse(string data, bool keepEmptyLines = false, bool splitSpecialChars = true)
         {
             m_index = 0;
-            m_lines = data.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            m_lines = data.Split(new string[] { "\r\n", "\n" }, 
+                keepEmptyLines ?  StringSplitOptions.None : StringSplitOptions.RemoveEmptyEntries);
             bool multiLineComment = false;
             int lineCount = 0;
             int startLine = 0;
@@ -61,6 +62,13 @@ namespace Helion.Util.Parser
 
             foreach (string line in m_lines)
             {
+                if (line.Length == 0 && keepEmptyLines)
+                {
+                    m_tokens.Add(new ParserToken(lineCount, 0, 0));
+                    lineCount++;
+                    continue;
+                }
+
                 if (!isQuote)
                     ResetQuote();
 
@@ -95,7 +103,7 @@ namespace Helion.Util.Parser
                     if (multiLineComment)
                         continue;
 
-                    if (line[i] == '"')
+                    if (splitSpecialChars && line[i] == '"')
                     {
                         quotedString = true;
                         isQuote = !isQuote;
@@ -112,7 +120,7 @@ namespace Helion.Util.Parser
 
                     if (!isQuote)
                     {
-                        bool special = CheckSpecial(line[i]);
+                        bool special = splitSpecialChars && CheckSpecial(line[i]);
                         if (split || special || CheckSplit(line[i]))
                         {
                             if (startLine == lineCount)
