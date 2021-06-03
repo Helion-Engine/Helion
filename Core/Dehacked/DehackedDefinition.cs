@@ -4,30 +4,31 @@ using Helion.World.Entities.Definition.Composer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Helion.Dehacked
 {
     public partial class DehackedDefinition
     {
-        private static readonly string Thing = "Thing";
-        private static readonly string Frame = "Frame";
-        private static readonly string Sound = "Sound";
-        private static readonly string Ammo = "Ammo";
-        private static readonly string Weapon = "Weapon";
-        private static readonly string Cheat = "Cheat";
-        private static readonly string Misc = "Misc";
-        private static readonly string Text = "Text";
+        private static readonly string ThingName = "Thing";
+        private static readonly string FrameName = "Frame";
+        private static readonly string SoundName = "Sound";
+        private static readonly string AmmoName = "Ammo";
+        private static readonly string WeaponName = "Weapon";
+        private static readonly string CheatName = "Cheat";
+        private static readonly string MiscName = "Misc";
+        private static readonly string TextName = "Text";
 
         private static readonly HashSet<string> BaseTypes = new(StringComparer.OrdinalIgnoreCase)
         {
-            Thing,
-            Frame,
-            Sound,
-            Ammo,
-            Weapon,
-            Cheat,
-            Misc,
-            Text
+            ThingName,
+            FrameName,
+            SoundName,
+            AmmoName,
+            WeaponName,
+            CheatName,
+            MiscName,
+            TextName
         };
 
         private static readonly string IDNumber = "ID #";
@@ -54,7 +55,47 @@ namespace Helion.Dehacked
         private static readonly string Bits = "Bits";
         private static readonly string RespawnFrame = "Respawn frame";
 
+        private static readonly string Duration = "Duration";
+        private static readonly string SpriteNum = "Sprite number";
+        private static readonly string SpriteSubNum = "Sprite subnumber";
+        private static readonly string NextFrame = "Next frame";
+        private static readonly string Unknown1 = "Unknown 1";
+        private static readonly string Unknown2 = "Unknown 2";
+
+        private static readonly string MaxAmmo = "Max ammo";
+        private static readonly string PerAmmo = "Per ammo";
+
+        private static readonly string AmmoType = "Ammo type";
+        private static readonly string DeselectFrame = "Deselect frame";
+        private static readonly string SelectFrame = "Select frame";
+        private static readonly string BobbingFrame = "Bobbing frame";
+        private static readonly string ShootingFrame = "Shooting frame";
+        private static readonly string FiringFrame = "Firing frame";
+
+        private static readonly string ChangeMusic = "Change music";
+        private static readonly string Chainsaw = "Chainsaw";
+        private static readonly string God = "God mode";
+        private static readonly string AmmoAndKeys = "Ammo & Keys";
+        private static readonly string AmmoCheat = "Ammo";
+        private static readonly string NoClip1 = "No Clipping 1";
+        private static readonly string NoClip2 = "No Clipping 2";
+        private static readonly string Invincibility = "Invincibility ";
+        private static readonly string Berserk = "Berserk";
+        private static readonly string Invisibility = "Invisibility";
+        private static readonly string RadSuit = "Radiation Suit";
+        private static readonly string AutoMap = "Auto-map";
+        private static readonly string LiteAmp = "Lite-amp Goggles";
+        private static readonly string Behold = "BEHOLD menu";
+        private static readonly string LevelWarp = "Level Warp";
+        private static readonly string MapCheat = "Map cheat";
+        private static readonly string PlayerPos = "Player Position";
+
         public readonly List<DehackedThing> Things = new();
+        public readonly List<DehackedFrame> Frames = new();
+        public readonly List<DehackedAmmo> Ammo = new();
+        public readonly List<DehackedWeapon> Weapons = new();
+        public readonly List<DehackedString> Strings = new();
+        public DehackedCheat? Cheat { get; private set; }
 
         private readonly EntityDefinitionComposer m_entityDefinitionComposer;
 
@@ -66,7 +107,7 @@ namespace Helion.Dehacked
         public void Parse(string data)
         {
             SimpleParser parser = new SimpleParser();
-            parser.Parse(data);
+            parser.Parse(data, keepEmptyLines: true, splitSpecialChars: false);
 
             while (!parser.IsDone())
             {
@@ -78,11 +119,28 @@ namespace Helion.Dehacked
                     continue;
                 }
 
-                if (item.Equals(Thing, StringComparison.OrdinalIgnoreCase))
+                if (item.Equals(ThingName, StringComparison.OrdinalIgnoreCase))
                     ParseThing(parser);
+                else if (item.Equals(FrameName, StringComparison.OrdinalIgnoreCase))
+                    ParseFrame(parser);
+                else if (item.Equals(AmmoName, StringComparison.OrdinalIgnoreCase))
+                    ParseAmmo(parser);
+                else if (item.Equals(WeaponName, StringComparison.OrdinalIgnoreCase))
+                    ParseWeapon(parser);
+                else if (item.Equals(CheatName, StringComparison.OrdinalIgnoreCase))
+                    ParseCheat(parser);
+                else if (item.Equals(TextName, StringComparison.OrdinalIgnoreCase))
+                    ParseText(parser, data);
+                else
+                    parser.ConsumeLine();
             }
 
             ApplyThings();
+        }
+
+        private int GetNextBlockIndex(int startIndex, string data)
+        {
+            throw new NotImplementedException();
         }
 
         private void ApplyThings()
@@ -223,7 +281,7 @@ namespace Helion.Dehacked
             if (parser.Peek('('))
                 thing.Name = parser.ConsumeLine();
 
-            while (!BaseTypes.Contains(parser.PeekString()))
+            while (!IsBlockComplete(parser))
             {
                 string line = parser.PeekLine();
                 if (line.StartsWith(IDNumber, StringComparison.OrdinalIgnoreCase))
@@ -279,6 +337,160 @@ namespace Helion.Dehacked
             Things.Add(thing);
         }
 
+        private void ParseFrame(SimpleParser parser)
+        {
+            DehackedFrame frame = new();
+            frame.Frame = parser.ConsumeInteger();
+
+            while (!IsBlockComplete(parser))
+            {
+                string line = parser.PeekLine();
+                if (line.StartsWith(SpriteNum, StringComparison.OrdinalIgnoreCase))
+                    frame.SpriteNumber = GetIntProperty(parser, SpriteNum);
+                else if (line.StartsWith(SpriteSubNum, StringComparison.OrdinalIgnoreCase))
+                    frame.SpriteSubNumber = GetIntProperty(parser, SpriteSubNum);
+                else if (line.StartsWith(Duration, StringComparison.OrdinalIgnoreCase))
+                    frame.Duration = GetIntProperty(parser, Duration);
+                else if (line.StartsWith(NextFrame, StringComparison.OrdinalIgnoreCase))
+                    frame.Duration = GetIntProperty(parser, NextFrame);
+                else if (line.StartsWith(Unknown1, StringComparison.OrdinalIgnoreCase))
+                    frame.Unknown1 = GetIntProperty(parser, Unknown1);
+                else if (line.StartsWith(Unknown2, StringComparison.OrdinalIgnoreCase))
+                    frame.Unknown2 = GetIntProperty(parser, Unknown2);
+                else
+                    parser.ConsumeLine();
+            }
+
+            Frames.Add(frame);
+        }
+
+        private void ParseAmmo(SimpleParser parser)
+        {
+            DehackedAmmo ammo = new();
+            ammo.AmmoNumber = parser.ConsumeInteger();
+
+            while (!IsBlockComplete(parser))
+            {
+                string line = parser.PeekLine();
+                if (line.StartsWith(MaxAmmo, StringComparison.OrdinalIgnoreCase))
+                    ammo.MaxAmmo = GetIntProperty(parser, MaxAmmo);
+                else if (line.StartsWith(PerAmmo, StringComparison.OrdinalIgnoreCase))
+                    ammo.PerAmmo = GetIntProperty(parser, PerAmmo);
+                else
+                    parser.ConsumeLine();
+            }
+
+            Ammo.Add(ammo);
+        }
+
+        private void ParseWeapon(SimpleParser parser)
+        {
+            DehackedWeapon weapon = new();
+            weapon.WeaponNumber = parser.ConsumeInteger();
+
+            while (!IsBlockComplete(parser))
+            {
+                string line = parser.PeekLine();
+                if (line.StartsWith(DeselectFrame, StringComparison.OrdinalIgnoreCase))
+                    weapon.DeselectFrame = GetIntProperty(parser, DeselectFrame);
+                else if (line.StartsWith(SelectFrame, StringComparison.OrdinalIgnoreCase))
+                    weapon.SelectFrame = GetIntProperty(parser, SelectFrame);
+                else if (line.StartsWith(AmmoType, StringComparison.OrdinalIgnoreCase))
+                    weapon.AmmoType = GetIntProperty(parser, AmmoType);
+                else if (line.StartsWith(BobbingFrame, StringComparison.OrdinalIgnoreCase))
+                    weapon.BobbingFrame = GetIntProperty(parser, BobbingFrame);
+                else if (line.StartsWith(ShootingFrame, StringComparison.OrdinalIgnoreCase))
+                    weapon.ShootingFrame = GetIntProperty(parser, ShootingFrame);
+                else if (line.StartsWith(FiringFrame, StringComparison.OrdinalIgnoreCase))
+                    weapon.FiringFrame = GetIntProperty(parser, FiringFrame);
+                else
+                    parser.ConsumeLine();
+            }
+
+            Weapons.Add(weapon);
+        }
+
+        private void ParseCheat(SimpleParser parser)
+        {
+            Cheat = new();
+            parser.ConsumeInteger();
+
+            while (!IsBlockComplete(parser))
+            {
+                string line = parser.PeekLine();
+                if (line.StartsWith(ChangeMusic, StringComparison.OrdinalIgnoreCase))
+                    Cheat.ChangeMusic = GetStringProperty(parser, ChangeMusic);
+                else if (line.StartsWith(Chainsaw, StringComparison.OrdinalIgnoreCase))
+                    Cheat.Chainsaw = GetStringProperty(parser, Chainsaw);
+                else if (line.StartsWith(God, StringComparison.OrdinalIgnoreCase))
+                    Cheat.God = GetStringProperty(parser, God);
+                else if (line.StartsWith(AmmoAndKeys, StringComparison.OrdinalIgnoreCase))
+                    Cheat.AmmoAndKeys = GetStringProperty(parser, AmmoAndKeys);
+                else if (line.StartsWith(AmmoCheat, StringComparison.OrdinalIgnoreCase))
+                    Cheat.Ammo = GetStringProperty(parser, AmmoCheat);
+                else if (line.StartsWith(NoClip1, StringComparison.OrdinalIgnoreCase))
+                    Cheat.NoClip1 = GetStringProperty(parser, NoClip1);
+                else if (line.StartsWith(NoClip2, StringComparison.OrdinalIgnoreCase))
+                    Cheat.NoClip2 = GetStringProperty(parser, NoClip2);
+                else if (line.StartsWith(Invincibility, StringComparison.OrdinalIgnoreCase))
+                    Cheat.Invincibility = GetStringProperty(parser, Invincibility);
+                else if (line.StartsWith(Invisibility, StringComparison.OrdinalIgnoreCase))
+                    Cheat.Invisibility = GetStringProperty(parser, Invisibility);
+                else if (line.StartsWith(RadSuit, StringComparison.OrdinalIgnoreCase))
+                    Cheat.RadSuit = GetStringProperty(parser, RadSuit);
+                else if (line.StartsWith(AutoMap, StringComparison.OrdinalIgnoreCase))
+                    Cheat.AutoMap = GetStringProperty(parser, AutoMap);
+                else if (line.StartsWith(LiteAmp, StringComparison.OrdinalIgnoreCase))
+                    Cheat.LiteAmp = GetStringProperty(parser, LiteAmp);
+                else if (line.StartsWith(Behold, StringComparison.OrdinalIgnoreCase))
+                    Cheat.Behold = GetStringProperty(parser, Behold);
+                else if (line.StartsWith(LevelWarp, StringComparison.OrdinalIgnoreCase))
+                    Cheat.LevelWarp = GetStringProperty(parser, LevelWarp);
+                else if (line.StartsWith(MapCheat, StringComparison.OrdinalIgnoreCase))
+                    Cheat.LevelWarp = GetStringProperty(parser, MapCheat);
+                else if (line.StartsWith(PlayerPos, StringComparison.OrdinalIgnoreCase))
+                    Cheat.PlayerPos = GetStringProperty(parser, PlayerPos);
+                else if (line.StartsWith(Berserk, StringComparison.OrdinalIgnoreCase))
+                    Cheat.Berserk = GetStringProperty(parser, Berserk);
+                else
+                    parser.ConsumeLine();
+            }
+        }
+
+        private void ParseText(SimpleParser parser, string data)
+        {
+            DehackedString text = new();
+            text.OldSize = parser.ConsumeInteger();
+            text.NewSize = parser.ConsumeInteger();
+
+            StringBuilder sb = new();
+
+            while (!IsBlockComplete(parser))
+            {
+                sb.Append(parser.ConsumeLine());
+                sb.Append('\n');
+            }
+
+            while (sb.Length > 0 && sb[sb.Length - 1] == '\n')
+                sb.Length--;
+
+            if (text.OldSize > sb.Length)
+            {
+                // uh oh
+                return;
+            }
+
+
+            string sbText = sb.ToString();
+            text.OldString = sbText.Substring(0, text.OldSize);
+            text.NewString = sbText.Substring(text.OldSize);
+
+            Strings.Add(text);
+        }
+
+        private static bool IsBlockComplete(SimpleParser parser) =>
+            parser.IsDone() || BaseTypes.Contains(parser.PeekString());
+
         private static uint GetThingBits(SimpleParser parser, string property)
         {
             ConsumeProperty(parser, property);
@@ -300,6 +512,13 @@ namespace Helion.Dehacked
             }
 
             return bits;
+        }
+
+        private static string GetStringProperty(SimpleParser parser, string property)
+        {
+            ConsumeProperty(parser, property);
+            parser.ConsumeString("=");
+            return parser.ConsumeString();
         }
 
         private static int GetIntProperty(SimpleParser parser, string property)
