@@ -19,7 +19,7 @@ namespace Helion.Render.OpenGL.Pipeline
     {
         public readonly TShader Shader;
         public readonly VertexBufferObject<TVertex> Vbo;
-        public readonly VertexAttributeCollection<TVertex> Attributes;
+        public readonly VertexAttributeCollection Attributes;
         protected readonly BufferUsageHint Hint;
         protected readonly PrimitiveType DrawType;
         private bool m_disposed;
@@ -30,8 +30,10 @@ namespace Helion.Render.OpenGL.Pipeline
             DrawType = drawType;
             Shader = new TShader();
             Vbo = new VertexBufferObject<TVertex>(hint);
-            Attributes = VertexAttributeCollection<TVertex>.CreateOrThrow(Shader, Vbo);
+            Attributes = VertexAttributeCollection.CreateOrThrow<TVertex>(Shader);
 
+            Attributes.BindAttributesToVbo(Vbo);
+            
             Vbo.SetDebugLabel(name);
             Shader.SetDebugLabel(name);
         }
