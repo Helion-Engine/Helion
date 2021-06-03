@@ -18,9 +18,9 @@ using Helion.World.StatusBar;
 using NLog;
 using System;
 using System.Drawing;
-using Helion.Render.OpenGL.Legacy.Commands;
-using Helion.Render.OpenGL.Legacy.Shared;
-using Helion.Render.OpenGL.Legacy.Shared.Drawers;
+using Helion.Render.Legacy.Commands;
+using Helion.Render.Legacy.Shared;
+using Helion.Render.Legacy.Shared.Drawers;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 

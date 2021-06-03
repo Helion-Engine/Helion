@@ -5,7 +5,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
-using Helion.Render.OpenGL.Legacy.Commands.Alignment;
+using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Util.Extensions;
 
 namespace Helion.Graphics.Fonts.Renderable

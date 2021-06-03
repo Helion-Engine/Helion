@@ -3,7 +3,7 @@ using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Util;
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Legacy.Commands;
+using Helion.Render.Legacy.Commands;
 
 namespace Helion.Layer
 {
