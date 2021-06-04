@@ -903,10 +903,10 @@ namespace Helion.World
             return  status != TraversalPitchStatus.Blocked;
         }
 
-        public virtual void RadiusExplosion(Entity source, int radius)
+        public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius)
         {
-            Thrust thrust = source.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
-            Vec2D pos2D = source.Position.XY;
+            Thrust thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
+            Vec2D pos2D = damageSource.Position.XY;
             Vec2D radius2D = new Vec2D(radius, radius);
             Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
 
@@ -915,8 +915,9 @@ namespace Helion.World
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
-                if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, source))
-                    ApplyExplosionDamageAndThrust(source, bi.Entity, radius, thrust, source.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
+                if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, damageSource))
+                    ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, thrust,
+                        damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
             }
 
             DataCache.Instance.FreeBlockmapIntersectList(intersections);
@@ -1045,7 +1046,7 @@ namespace Helion.World
             return false;
         }
 
-        private void ApplyExplosionDamageAndThrust(Entity source, Entity entity, double radius, Thrust thrust, 
+        private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, Thrust thrust, 
             bool approxDistance2D)
         {
             double distance;
@@ -1075,7 +1076,10 @@ namespace Helion.World
             if (damage <= 0)
                 return;
 
+            Entity? originalOwner = source.Owner;
+            source.Owner = attackSource;
             DamageEntity(entity, source, damage, thrust);
+            source.Owner = originalOwner;
         }
 
         protected void ChangeToLevel(int number)

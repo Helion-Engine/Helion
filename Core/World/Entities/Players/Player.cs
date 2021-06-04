@@ -990,7 +990,7 @@ namespace Helion.World.Entities.Players
             bool damageApplied = base.Damage(source, damage, setPainState);
             if (damageApplied)
             {
-                Attacker = source;
+                Attacker = source?.Owner ?? source;
                 PlayPainSound();
                 DamageCount += damage;
                 DamageCount = Math.Min(DamageCount, Definition.Properties.Health);
