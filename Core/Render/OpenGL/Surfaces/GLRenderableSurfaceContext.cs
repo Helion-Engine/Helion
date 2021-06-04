@@ -2,19 +2,21 @@
 using System.Drawing;
 using Helion.Geometry.Boxes;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Renderers.Hud;
+using Helion.Render.OpenGL.Renderers.World;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.OpenGL.Renderers
+namespace Helion.Render.OpenGL.Surfaces
 {
     public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     {
         public IRenderableSurface Surface { get; }
-        private readonly IHudRenderer m_hudRenderer;
-        private readonly IWorldRenderer m_worldRenderer;
+        private readonly GLHudRenderer m_hudRenderer;
+        private readonly GLWorldRenderer m_worldRenderer;
         private Box2I m_viewport;
         private Box2I m_scissor;
 
-        public GLRenderableSurfaceContext(IRenderableSurface surface, IHudRenderer hud, IWorldRenderer world)
+        internal GLRenderableSurfaceContext(GLRenderableSurface surface, GLHudRenderer hud, GLWorldRenderer world)
         {
             Surface = surface;
             m_hudRenderer = hud;
