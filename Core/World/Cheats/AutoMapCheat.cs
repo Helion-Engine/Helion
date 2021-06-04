@@ -5,7 +5,7 @@ namespace Helion.World.Cheats
     class AutoMapCheat : ExactMatchCheat, ICheat
     {
         public AutoMapCheat(string name, string code, CheatType cheatType) :
-            base(name, code, cheatType)
+            base(name, string.Empty, code, cheatType)
         {
 
         }

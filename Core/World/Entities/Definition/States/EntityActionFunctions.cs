@@ -959,7 +959,9 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Explode(Entity entity)
         {
-            entity.World.RadiusExplosion(entity, 128);
+            // Pass through owner if set (usually a projectile)
+            // Barrels pass through who shot them (Target)
+            entity.World.RadiusExplosion(entity, entity.Owner ?? entity.Target, 128);
         }
 
         private static void A_ExtChase(Entity entity)
@@ -2510,7 +2512,7 @@ namespace Helion.World.Entities.Definition.States
             newPos.Y -= unit.Y * 24;
 
             entity.Tracer.SetPosition(newPos);
-            entity.World.RadiusExplosion(entity.Tracer, 70);
+            entity.World.RadiusExplosion(entity.Tracer, entity, 70);
         }
 
         private static void A_VileChase(Entity entity)

@@ -1,6 +1,6 @@
 ﻿using System;
 using Helion.Render.OpenGL.Shaders;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Pipeline
 {
@@ -33,12 +33,12 @@ namespace Helion.Render.OpenGL.Pipeline
             if (Vbo.Count > 0)
             {
                 Shader.Bind();
-                Vao.Bind();
+                Attributes.Bind();
             
                 action(Shader);
                 GL.DrawArrays(DrawType, 0, Vbo.Count);
             
-                Vao.Unbind();
+                Attributes.Unbind();
                 Shader.Unbind();
             }
 

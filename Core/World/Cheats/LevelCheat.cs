@@ -2,7 +2,8 @@
 {
     public class LevelCheat : ICheat
     {
-        public string CheatName { get; private set; }
+        public string CheatOn { get; private set; }
+        public string CheatOff => string.Empty;
         public string? ConsoleCommand => null;
         public CheatType CheatType { get; private set; }
         public bool Activated { get; set; }
@@ -15,7 +16,7 @@
         public LevelCheat(string name, string code, CheatType cheatType)
         {
             m_code = code;
-            CheatName = name;
+            CheatOn = name;
             CheatType = cheatType;
         }
 

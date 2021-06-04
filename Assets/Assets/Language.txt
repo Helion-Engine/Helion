@@ -401,11 +401,28 @@ GOTLAUNCHER = "You got the rocket launcher!";
 GOTPLASMA = "You got the plasma gun!";
 GOTSHOTGUN = "You got the shotgun!";
 GOTSHOTGUN2 = "You got the super shotgun!";
+GOTBFG9000 = "You got the BFG9000!  Oh, yes."
 PICKUP_PISTOL_DROPPED = "Picked up a pistol.";
 BETA_BONUS1 = "You pick up a demonic dagger.";
 BETA_BONUS2 = "You pick up a skullchest.";
 BETA_BONUS3 = "You pick up an evil sceptre.";
 BETA_BONUS4 = "You pick up an unholy bible.";
+
+// Cheats
+STSTR_MUS = "Change music";
+STSTR_DQDON = "Degreelessness mode on";
+STSTR_DQDOFF = "Degreelessness mode off";
+STSTR_KFAADDED = "Very happy ammo added";
+STSTR_FAADDED = "Ammo (no keys) added";
+STSTR_NCON = "No clipping mode on";
+STSTR_NCOFF = "No clipping mode off";
+STSTR_CHOPPERS = "... Doesn't Suck - GM";
+STSTR_BEHOLD = "inVuln, Str, Inviso, Rad, Allmap, or Lite-amp";
+STSTR_BEHOLDX = "Power-up Toggled";
+STSTR_CLEV = "Changing level...";
+STSTR_FLY = "Fly";
+STSTR_DIE = "Die";
+STSTR_RES = "Resurrect";
 
 // Locks
 PD_BLUEO = "You need a blue key to activate this object";

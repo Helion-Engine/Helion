@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Helion.Render.OpenGL.Shaders;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util.Container;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Pipeline
 {
@@ -64,7 +64,7 @@ namespace Helion.Render.OpenGL.Pipeline
             if (Vbo.Count > 0)
             {
                 Shader.Bind();
-                Vao.Bind();
+                Attributes.Bind();
             
                 action(Shader);
 
@@ -77,7 +77,7 @@ namespace Helion.Render.OpenGL.Pipeline
                     GL.BindTexture(info.Target, 0);
                 }
             
-                Vao.Unbind();
+                Attributes.Unbind();
                 Shader.Unbind();
             }
 

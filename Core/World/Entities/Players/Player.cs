@@ -4,7 +4,7 @@ using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.Render.OpenGL.Legacy.Shared;
+using Helion.Render.Legacy.Shared;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -349,6 +349,7 @@ namespace Helion.World.Entities.Players
             base.SetRaiseState();
             PendingWeapon = Weapon;
             BringupWeapon();
+            m_killer = null;
         }
 
         public void AddToYaw(double delta, bool isMouse)
@@ -990,7 +991,7 @@ namespace Helion.World.Entities.Players
             bool damageApplied = base.Damage(source, damage, setPainState);
             if (damageApplied)
             {
-                Attacker = source;
+                Attacker = source?.Owner ?? source;
                 PlayPainSound();
                 DamageCount += damage;
                 DamageCount = Math.Min(DamageCount, Definition.Properties.Health);

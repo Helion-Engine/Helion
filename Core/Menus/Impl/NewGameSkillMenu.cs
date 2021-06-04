@@ -2,7 +2,7 @@
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
-using Helion.Render.OpenGL.Legacy.Commands.Alignment;
+using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;

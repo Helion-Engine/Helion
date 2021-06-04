@@ -2,7 +2,7 @@
 using System.Linq;
 using FluentAssertions;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Legacy.Shared.World.ViewClipping;
+using Helion.Render.Legacy.Shared.World.ViewClipping;
 using Xunit;
 
 namespace Helion.Tests.Unit.Render.Shared.World.ViewClipping

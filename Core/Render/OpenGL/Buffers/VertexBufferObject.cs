@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Buffers
@@ -10,15 +10,15 @@ namespace Helion.Render.OpenGL.Buffers
     public class VertexBufferObject<TVertex> : BufferObject<TVertex> where TVertex : struct
     {
         private readonly BufferUsageHint m_hint;
+        private int m_name;
         private bool m_uploaded;
-        private int m_glName;
         private bool m_disposed;
 
         private bool UploadNeeded => !m_uploaded && Count > 0;
 
         public VertexBufferObject(BufferUsageHint hint)
         {
-            m_glName = GL.GenBuffer();
+            m_name = GL.GenBuffer();
             m_hint = hint;
         }
 
@@ -30,7 +30,7 @@ namespace Helion.Render.OpenGL.Buffers
         
         public void SetDebugLabel(string name)
         {
-            GLUtil.Label($"VBO: {name}", ObjectLabelIdentifier.Buffer, m_glName);
+            GLUtil.Label($"VBO: {name}", ObjectLabelIdentifier.Buffer, m_name);
         }
 
         public void Add(TVertex element)
@@ -80,7 +80,7 @@ namespace Helion.Render.OpenGL.Buffers
         
         public void Bind()
         {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, m_glName);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, m_name);
         }
         
         public void Unbind()
@@ -106,8 +106,8 @@ namespace Helion.Render.OpenGL.Buffers
             if (m_disposed)
                 return;
 
-            GL.DeleteBuffer(m_glName);
-            m_glName = 0;
+            GL.DeleteBuffer(m_name);
+            m_name = 0;
 
             m_disposed = true;
         }

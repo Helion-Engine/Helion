@@ -8,9 +8,9 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Legacy.Context;
-using Helion.Render.OpenGL.Legacy.Renderers.Legacy.World.Data;
-using Helion.Render.OpenGL.Legacy.Texture.Legacy;
+using Helion.Render.Legacy.Context;
+using Helion.Render.Legacy.Renderers.Legacy.World.Data;
+using Helion.Render.Legacy.Texture.Legacy;
 
 namespace Helion.Util
 {
