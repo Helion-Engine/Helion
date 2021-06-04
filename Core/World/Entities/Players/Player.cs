@@ -349,6 +349,7 @@ namespace Helion.World.Entities.Players
             base.SetRaiseState();
             PendingWeapon = Weapon;
             BringupWeapon();
+            m_killer = null;
         }
 
         public void AddToYaw(double delta, bool isMouse)
