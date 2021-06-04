@@ -32,7 +32,7 @@ namespace Helion.Render.OpenGL.Capabilities
             int count = GL.GetInteger(GetPName.NumExtensions);
             for (var i = 0; i < count; i++)
             {
-                string extension = GL.GetString(StringName.Extensions, i);
+                string extension = GL.GetString(StringNameIndexed.Extensions, i);
                 m_extensions.Add(extension);
             }
         }
@@ -45,10 +45,10 @@ namespace Helion.Render.OpenGL.Capabilities
             public readonly bool MultisampleExt;
             public readonly bool PackedDepthStencilExt;
 
-            public bool HasSupport => HasExtSupport || HasArbSupport;
+            public bool HasSupport => HasNativeSupport || HasExtSupport;
+            public bool HasNativeSupport => GLCapabilities.Version.Supports(3, 0) || FramebufferArb;
             public bool HasExtSupport => ObjectExt || BlitExt || MultisampleExt || PackedDepthStencilExt;
-            public bool HasArbSupport => FramebufferArb;
-            
+
             public FramebufferExtensions(GLExtensions extensions)
             {
                 FramebufferArb = extensions.Supports("GL_ARB_framebuffer_object");

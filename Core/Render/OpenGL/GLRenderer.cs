@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Renderers.World.Bsp;
@@ -51,6 +52,9 @@ namespace Helion.Render.OpenGL
         {
             if (m_surfaces.TryGetValue(name, out GLRenderableSurface? existingSurface))
                 return existingSurface;
+
+            if (!GLCapabilities.SupportsFramebufferObjects)
+                return m_defaultSurface;
 
             GLRenderableFramebufferTextureSurface surface = new(this, dimension, CreateHudRenderer(), CreateWorldRenderer());
             m_surfaces[name] = surface;

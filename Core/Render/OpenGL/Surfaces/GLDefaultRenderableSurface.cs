@@ -1,9 +1,6 @@
-﻿using System;
-using Helion.Geometry;
-using Helion.Render.Common.Renderers;
+﻿using Helion.Geometry;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
-using OpenTK.Graphics.ES11;
 
 namespace Helion.Render.OpenGL.Surfaces
 {
@@ -19,18 +16,14 @@ namespace Helion.Render.OpenGL.Surfaces
         {
         }
 
-        public override void Render(Action<IRenderableSurfaceContext> action)
+        protected override void Bind()
         {
-            // The window dimension can change at any time, so this must always
-            // be updated before handling various rendering commands.
-            (int w, int h) = Dimension;
-            GL.Viewport(0, 0, w, h);
-            GL.Scissor(0, 0, w, h);
-            
-            // TODO: Re-use one instead of constantly reconstructing one.
-            GLRenderableSurfaceContext context = new(this, HudRenderer, WorldRenderer);
-            
-            action(context);
+            GLUtil.BindFramebuffer(0);
+        }
+
+        protected override void Unbind()
+        {
+            GLUtil.BindFramebuffer(0);
         }
     }
 }

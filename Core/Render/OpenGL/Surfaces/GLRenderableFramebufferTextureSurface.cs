@@ -1,6 +1,4 @@
-﻿using System;
-using Helion.Geometry;
-using Helion.Render.Common.Renderers;
+﻿using Helion.Geometry;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
 
@@ -8,6 +6,8 @@ namespace Helion.Render.OpenGL.Surfaces
 {
     public class GLRenderableFramebufferTextureSurface : GLRenderableSurface
     {
+        // TODO: Framebuffer object goes here.
+        
         public override Dimension Dimension { get; }
 
         public GLRenderableFramebufferTextureSurface(GLRenderer renderer, Dimension dimension, 
@@ -17,7 +17,12 @@ namespace Helion.Render.OpenGL.Surfaces
             Dimension = dimension;
         }
 
-        public override void Render(Action<IRenderableSurfaceContext> action)
+        protected override void Bind()
+        {
+            // TODO
+        }
+
+        protected override void Unbind()
         {
             // TODO
         }
