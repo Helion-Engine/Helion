@@ -281,7 +281,7 @@ namespace Helion.World.Physics
             foreach (Entity crushEntity in stackCrush)
             {
                 if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage) &&
-                    crushEntity.Flags.IsMonster)
+                    !crushEntity.Flags.NoBlood)
                 {
                     Vec3D pos = crushEntity.Position;
                     pos.Z += crushEntity.Height / 2;
