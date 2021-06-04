@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using Helion.Geometry;
-using Helion.Render.Common.Framebuffer;
+using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Hud;
+using Helion.Render.OpenGL.Renderers.World;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
@@ -9,12 +14,14 @@ namespace Helion.Render.OpenGL
     public class GLRenderer : IRenderer
     {
         public IWindow Window { get; }
-        public IFramebuffer Default { get; }
+        private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
+        private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
 
-        public GLRenderer(IWindow window, ArchiveCollection archiveCollection)
+        public GLRenderer(Config config, IWindow window, ArchiveCollection archiveCollection)
         {
+            m_config = config;
             Window = window;
             m_archiveCollection = archiveCollection;
         }
@@ -25,16 +32,24 @@ namespace Helion.Render.OpenGL
             PerformDispose();
         }
 
-        public IFramebuffer GetOrCreateFrameBuffer(string name, Dimension dimension)
+        private GLHudRenderer CreateHudRenderer()
         {
-            // TODO
-            return null;
+            return new();
         }
 
-        public IFramebuffer? GetFrameBuffer(string name)
+        private GLWorldRenderer CreateWorldRenderer()
         {
-            // TODO
-            return null;
+            return new();
+        }
+
+        public IRenderableSurface GetOrCreateSurface(string name, Dimension dimension)
+        {
+            if (m_surfaces.TryGetValue(name, out GLRenderableSurface? existingSurface))
+                return existingSurface;
+
+            GLRenderableSurface surface = new GLRenderableSurface(this, dimension, CreateHudRenderer(), CreateWorldRenderer());
+            m_surfaces[name] = surface;
+            return surface;
         }
 
         public void Dispose()
@@ -48,7 +63,9 @@ namespace Helion.Render.OpenGL
             if (m_disposed)
                 return;
             
-            // TODO
+            foreach (GLRenderableSurface surface in m_surfaces.Values)
+                surface.Dispose();
+            m_surfaces.Clear();
             
             m_disposed = true;
         }
