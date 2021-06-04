@@ -1361,6 +1361,16 @@ namespace Helion.World
 
         public void ActivateCheat(Player player, ICheat cheat)
         {
+            if (!string.IsNullOrEmpty(cheat.CheatOn))
+            {
+                string msg;
+                if (cheat.IsToggleCheat)
+                    msg = player.Cheats.IsCheatActive(cheat.CheatType) ? cheat.CheatOn : cheat.CheatOff;
+                else
+                    msg = cheat.CheatOn;
+                DisplayMessage(player, null, msg);
+            }
+
             if (cheat is LevelCheat levelCheat)
             {
                 if (levelCheat.CheatType == CheatType.ChangeLevel)
@@ -1418,17 +1428,6 @@ namespace Helion.World
                 default:
                     break;
             }
-
-            if (string.IsNullOrEmpty(cheat.CheatName))
-                return;
-
-            string msg;
-            if (cheat.IsToggleCheat)
-                msg = string.Format("{0} {1}", cheat.CheatName, player.Cheats.IsCheatActive(cheat.CheatType) ? "ON" : "OFF");
-            else
-                msg = cheat.CheatName;
-
-            DisplayMessage(player, null, msg);
         }
 
         public int EntityAliveCount(int editorId, bool deathStateComplete)

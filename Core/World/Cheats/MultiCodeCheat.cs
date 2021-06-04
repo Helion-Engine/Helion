@@ -7,17 +7,19 @@ namespace Helion.World.Cheats
     {
         private readonly string[] m_codes;
 
-        public string CheatName { get; }
+        public string CheatOn { get; }
+        public string CheatOff { get; }
         public string? ConsoleCommand { get; }
         public CheatType CheatType { get; }
         public bool Activated { get; set; }
         public bool IsToggleCheat { get; private set; }
         public bool ClearTypedCheatString { get; private set; }
 
-        public MultiCodeCheat(string name, string[] codes, string consoleCommand, CheatType cheatType, bool canToggle = true,
+        public MultiCodeCheat(string on, string off, string[] codes, string consoleCommand, CheatType cheatType, bool canToggle = true,
             bool clearTypedCheatString = true)
         {
-            CheatName = name;
+            CheatOn = on;
+            CheatOff = off;
             ConsoleCommand = consoleCommand;
             m_codes = codes;
             CheatType = cheatType;

@@ -4,7 +4,8 @@ namespace Helion.World.Cheats
 {
     public interface ICheat
     {
-        string CheatName { get; }
+        string CheatOn { get; }
+        string CheatOff { get; }
         string? ConsoleCommand { get; }
         CheatType CheatType { get; }
         bool IsToggleCheat { get; }

@@ -6,23 +6,25 @@ namespace Helion.World.Cheats
     {
         private readonly string m_code;
 
-        public string CheatName { get; }
+        public string CheatOn { get; }
+        public string CheatOff { get; }
         public string? ConsoleCommand { get; }
         public CheatType CheatType { get; }
         public bool Activated { get; set; }
         public bool IsToggleCheat { get; private set; }
         public bool ClearTypedCheatString { get; private set; }
         
-        public ExactMatchCheat(string name, string code, CheatType cheatType, bool canToggle = true,
+        public ExactMatchCheat(string on, string off, string code, CheatType cheatType, bool canToggle = true,
             bool clearTypedCheatString = true) : 
-            this(name, code, "", cheatType, canToggle, clearTypedCheatString)
+            this(on, off, code, "", cheatType, canToggle, clearTypedCheatString)
         {
         }
 
-        public ExactMatchCheat(string name, string code, string consoleCommand, CheatType cheatType, bool canToggle = true,
+        public ExactMatchCheat(string on, string off, string code, string consoleCommand, CheatType cheatType, bool canToggle = true,
             bool clearTypedCheatString = true)
         {
-            CheatName = name;
+            CheatOn = on;
+            CheatOff = off;
             ConsoleCommand = consoleCommand;
             m_code = code;
             CheatType = cheatType;
