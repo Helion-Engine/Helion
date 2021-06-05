@@ -4,7 +4,7 @@ namespace Helion.World.Cheats
 {
     public class ExactMatchCheat : ICheat
     {
-        private readonly string m_code;
+        private string m_code;
 
         public string CheatOn { get; }
         public string CheatOff { get; }
@@ -31,6 +31,8 @@ namespace Helion.World.Cheats
             IsToggleCheat = canToggle;
             ClearTypedCheatString = clearTypedCheatString;
         }
+
+        public void SetCode(string code, int index = 0) => m_code = code;
 
         public bool IsMatch(string str) => m_code.Equals(str, StringComparison.InvariantCultureIgnoreCase);
 
