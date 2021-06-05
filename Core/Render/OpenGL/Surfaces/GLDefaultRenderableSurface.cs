@@ -1,7 +1,10 @@
-﻿using Helion.Geometry;
+﻿using System;
+using System.Diagnostics;
+using Helion.Geometry;
 using Helion.Render.OpenGL.Framebuffers;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Surfaces
 {
@@ -15,6 +18,14 @@ namespace Helion.Render.OpenGL.Surfaces
         public GLDefaultRenderableSurface(GLRenderer renderer, GLHudRenderer hud, GLWorldRenderer world) : 
             base(renderer, hud, world)
         {
+        }
+
+        [Conditional("DEBUG")]
+        public static void ThrowIfGLError()
+        {
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
+                throw new Exception($"OpenGL error detected; {error}");
         }
 
         protected override void Bind()

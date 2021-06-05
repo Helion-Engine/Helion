@@ -7,6 +7,7 @@ using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
+using Helion.Render.Common.Context;
 using Helion.Render.OpenGL.Pipeline;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -139,6 +140,11 @@ namespace Helion.Render.OpenGL.Renderers.World.Primitives
         }
 
         public void FillSpheres(Sphere3D[] spheres, Color color)
+        {
+            // TODO
+        }
+
+        public void Render(WorldRenderContext context)
         {
             // TODO
         }

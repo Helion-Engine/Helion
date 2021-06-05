@@ -95,6 +95,9 @@ namespace Helion.Render.OpenGL
             if (m_disposed)
                 return;
             
+            // This is a bit of a hack until it is exposed in a more reasonable place.
+            GLDefaultRenderableSurface.ThrowIfGLError();
+            
             m_hudRenderer.Dispose();
             m_worldRenderer.Dispose();
             m_textureManager.Dispose();
