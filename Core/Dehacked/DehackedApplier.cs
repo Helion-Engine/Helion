@@ -3,7 +3,6 @@ using Helion.Resources.Definitions.Language;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
-using System;
 using System.Text.RegularExpressions;
 using static Helion.Dehacked.DehackedDefinition;
 
@@ -14,6 +13,7 @@ namespace Helion.Dehacked
         public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
         {
             ApplyThings(dehacked, composer);
+            ApplyAmmo(dehacked, composer);
             ApplyText(dehacked, definitionEntries.Language);
             ApplyCheats(dehacked);
         }
@@ -62,6 +62,43 @@ namespace Helion.Dehacked
                     properties.PainSound = GetSound(thing.PainSound.Value);
                 if (thing.DeathSound.HasValue)
                     properties.DeathSound = GetSound(thing.DeathSound.Value);
+            }
+        }
+
+        private static void ApplyAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer)
+        {
+            foreach (var ammo in dehacked.Ammo)
+            {
+                if (ammo.AmmoNumber < 0 || ammo.AmmoNumber >= AmmoNames.Length)
+                    continue;
+
+                var definition = composer.GetByName(AmmoNames[ammo.AmmoNumber]);
+                ApplyAmmo(definition, ammo, 1);
+
+                if (ammo.AmmoNumber >= AmmoDoubleNames.Length)
+                    continue;
+
+                definition = composer.GetByName(AmmoDoubleNames[ammo.AmmoNumber]);
+                ApplyAmmo(definition, ammo, 2);
+            }
+        }
+
+        private static void ApplyAmmo(EntityDefinition? definition, DehackedAmmo ammo, int multiplier)
+        {
+            if (definition == null)
+                return;
+
+            var inventory = definition.Properties.Inventory;
+            if (ammo.PerAmmo.HasValue)
+            {
+                inventory.Amount = ammo.PerAmmo.Value * multiplier;
+                definition.Properties.Ammo.BackpackAmount = ammo.PerAmmo.Value * multiplier;
+            }
+
+            if (ammo.MaxAmmo.HasValue)
+            {
+                inventory.MaxAmount = ammo.MaxAmmo.Value;
+                definition.Properties.Ammo.BackpackMaxAmount = ammo.MaxAmmo.Value * 2;
             }
         }
 

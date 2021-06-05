@@ -5,7 +5,23 @@ namespace Helion.Dehacked
 {
     public partial class DehackedDefinition
     {
-		public static readonly string[] ActorNames = new string[]
+        public static readonly string[] AmmoNames = new string[]
+        {
+            "Clip",
+            "Shell",
+            "Cell",
+            "RocketAmmo"
+        };
+
+        public static readonly string[] AmmoDoubleNames = new string[]
+        {
+            "ClipBox",
+            "ShellBox",
+            "CellPack",
+            "RocketBox"
+        };
+
+        public static readonly string[] ActorNames = new string[]
 		{
 			"DoomPlayer",               // MT_PLAYER
 			"ZombieMan",				// MT_POSSESSED
