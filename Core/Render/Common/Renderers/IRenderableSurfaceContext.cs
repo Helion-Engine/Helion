@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using Helion.Geometry.Boxes;
+using Helion.Render.Common.Context;
+using Helion.Render.Common.World;
 
 namespace Helion.Render.Common.Renderers
 {
@@ -55,13 +57,15 @@ namespace Helion.Render.Common.Renderers
         /// <summary>
         /// Begins hud rendering actions.
         /// </summary>
+        /// <param name="context">Contextual rendering information.</param>
         /// <param name="action">The hud rendering actions to issue.</param>
-        void Hud(Action<IHudRenderContext> action);
+        void Hud(HudRenderContext context, Action<IHudRenderContext> action);
 
         /// <summary>
         /// Begins world rendering actions.
         /// </summary>
+        /// <param name="context">Contextual rendering information.</param>
         /// <param name="action">The world rendering actions to issue.</param>
-        void World(Action<IWorldRenderContext> action);
+        void World(WorldRenderContext context, Action<IWorldRenderContext> action);
     }
 }

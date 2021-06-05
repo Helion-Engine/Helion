@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using Helion.Geometry.Boxes;
+using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
@@ -64,18 +65,16 @@ namespace Helion.Render.OpenGL.Surfaces
             GL.Scissor(m_scissor.Min.X, m_scissor.Min.Y, m_scissor.Max.X, m_scissor.Max.Y);
         }
 
-        public void Hud(Action<IHudRenderContext> action)
+        public void Hud(HudRenderContext context, Action<IHudRenderContext> action)
         {
-            m_hudRenderer.Begin();
             action(m_hudRenderer);
-            m_hudRenderer.End();
+            m_hudRenderer.Render(context);
         }
 
-        public void World(Action<IWorldRenderContext> action)
+        public void World(WorldRenderContext context, Action<IWorldRenderContext> action)
         {
-            m_worldRenderer.Begin();
             action(m_worldRenderer);
-            m_worldRenderer.End();
+            m_worldRenderer.Render(context);
         }
     }
 }

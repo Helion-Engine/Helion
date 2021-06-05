@@ -1,6 +1,6 @@
 ﻿using Helion.Geometry;
 
-namespace Helion.Render.Common.World
+namespace Helion.Render.Common.Context
 {
     public class WorldRenderContext
     {

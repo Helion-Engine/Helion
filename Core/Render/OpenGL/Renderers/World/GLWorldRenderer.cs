@@ -7,6 +7,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
 using Helion.Render.Common;
+using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
 using Helion.World;
@@ -42,9 +43,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         public abstract void FillSphere(Sphere3D sphere, Color color);
         public abstract void FillSpheres(Sphere3D[] spheres, Color color);
         public abstract void DrawImage(IRenderableTexture texture, Quad3D quad, Color? color);
-        public abstract void Render(WorldRenderContext context);
-        internal abstract void Begin();
-        internal abstract void End();
+        internal abstract void Render(WorldRenderContext context);
         public abstract void Dispose();
     }
 }

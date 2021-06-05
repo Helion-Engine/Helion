@@ -85,11 +85,5 @@ namespace Helion.Render.Common.Renderers
         /// it will do nothing if the stack is empty.
         /// </summary>
         void PopVirtualDimension();
-
-        /// <summary>
-        /// Renders all of the accumulated commands.
-        /// </summary>
-        /// <param name="viewport">The dimensions of the viewport.</param>
-        void Render(Dimension viewport);
     }
 }

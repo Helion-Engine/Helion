@@ -97,6 +97,7 @@ namespace Helion.Render.OpenGL
             
             m_hudRenderer.Dispose();
             m_worldRenderer.Dispose();
+            m_textureManager.Dispose();
             
             foreach (GLRenderableSurface surface in m_surfaces.Values)
                 surface.Dispose();
