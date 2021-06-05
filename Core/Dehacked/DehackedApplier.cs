@@ -1,5 +1,6 @@
 ﻿using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Language;
+using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using System;
@@ -14,6 +15,7 @@ namespace Helion.Dehacked
         {
             ApplyThings(dehacked, composer);
             ApplyText(dehacked, definitionEntries.Language);
+            ApplyCheats(dehacked);
         }
 
         private static void ApplyThings(DehackedDefinition dehacked, EntityDefinitionComposer composer)
@@ -118,6 +120,42 @@ namespace Helion.Dehacked
             //if (thingProperties.HasFlag(ThingProperties.TRANSLATION1))
             //if (thingProperties.HasFlag(ThingProperties.TRANSLATION2))
             //if (thingProperties.HasFlag(ThingProperties.INFLOAT))
+        }
+
+        private static void ApplyCheats(DehackedDefinition dehacked)
+        {
+            if (dehacked.Cheat == null)
+                return;
+
+            var cheat = dehacked.Cheat;
+            if (cheat.Chainsaw != null)
+                CheatManager.Instance.SetCheatCode(CheatType.Chainsaw, cheat.Chainsaw);
+            if (cheat.God != null)
+                CheatManager.Instance.SetCheatCode(CheatType.God, cheat.God);
+            if (cheat.AmmoAndKeys != null)
+                CheatManager.Instance.SetCheatCode(CheatType.GiveAll, cheat.AmmoAndKeys);
+            if (cheat.Ammo != null)
+                CheatManager.Instance.SetCheatCode(CheatType.GiveAllNoKeys, cheat.Ammo);
+            if (cheat.NoClip1 != null)
+                CheatManager.Instance.SetCheatCode(CheatType.NoClip, cheat.NoClip1, 0);
+            if (cheat.NoClip2 != null)
+                CheatManager.Instance.SetCheatCode(CheatType.NoClip, cheat.NoClip2, 1);
+            if (cheat.Behold != null)
+                CheatManager.Instance.SetCheatCode(CheatType.Behold, cheat.Behold);
+            if (cheat.Invincibility != null)
+                CheatManager.Instance.SetCheatCode(CheatType.BeholdInvulnerability, cheat.Invincibility);
+            if (cheat.Invisibility != null)
+                CheatManager.Instance.SetCheatCode(CheatType.BeholdPartialInvisibility, cheat.Invisibility);
+            if (cheat.RadSuit != null)
+                CheatManager.Instance.SetCheatCode(CheatType.BeholdRadSuit, cheat.RadSuit);
+            if (cheat.AutoMap != null)
+                CheatManager.Instance.SetCheatCode(CheatType.BeholdComputerAreaMap, cheat.AutoMap);
+            if (cheat.LiteAmp != null)
+                CheatManager.Instance.SetCheatCode(CheatType.BeholdLightAmp, cheat.LiteAmp);
+            if (cheat.LevelWarp != null)
+                CheatManager.Instance.SetCheatCode(CheatType.ChangeLevel, cheat.LevelWarp);
+            if (cheat.PlayerPos != null)
+                CheatManager.Instance.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
         }
 
         private static double GetDouble(int value) => value / 65536.0;

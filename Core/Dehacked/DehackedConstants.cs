@@ -1442,5 +1442,88 @@ namespace Helion.Dehacked
             S_TECH2LAMP3,
             S_TECH2LAMP4,
         };
-	}
+
+        private static readonly string DoomVersionName = "Doom version";
+        private static readonly string PatchFormatName = "Patch format";
+
+        private static readonly string ThingName = "Thing";
+        private static readonly string FrameName = "Frame";
+        private static readonly string SoundName = "Sound";
+        private static readonly string AmmoName = "Ammo";
+        private static readonly string WeaponName = "Weapon";
+        private static readonly string CheatName = "Cheat";
+        private static readonly string MiscName = "Misc";
+        private static readonly string TextName = "Text";
+
+        private static readonly HashSet<string> BaseTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ThingName,
+            FrameName,
+            SoundName,
+            AmmoName,
+            WeaponName,
+            CheatName,
+            MiscName,
+            TextName
+        };
+
+        private static readonly string IDNumber = "ID #";
+        private static readonly string InitFrame = "Initial frame";
+        private static readonly string Hitpoints = "Hit points";
+        private static readonly string FirstMovingFrame = "First moving frame";
+        private static readonly string AlertSound = "Alert sound";
+        private static readonly string ReactionTime = "Reaction time";
+        private static readonly string AttackSound = "Attack sound";
+        private static readonly string InjuryFrame = "Injury frame";
+        private static readonly string PainChance = "Pain chance";
+        private static readonly string PainSound = "Pain sound";
+        private static readonly string CloseAttackFrame = "Close attack frame";
+        private static readonly string FarAttackFrame = "Far attack frame";
+        private static readonly string DeathFrame = "Death frame";
+        private static readonly string ExplodingFrame = "Exploding frame";
+        private static readonly string DeathSound = "Death sound";
+        private static readonly string Speed = "Speed";
+        private static readonly string Width = "Width";
+        private static readonly string Height = "Height";
+        private static readonly string Mass = "Mass";
+        private static readonly string MisileDamage = "Missile damage";
+        private static readonly string ActionSound = "Action sound";
+        private static readonly string Bits = "Bits";
+        private static readonly string RespawnFrame = "Respawn frame";
+
+        private static readonly string Duration = "Duration";
+        private static readonly string SpriteNum = "Sprite number";
+        private static readonly string SpriteSubNum = "Sprite subnumber";
+        private static readonly string NextFrame = "Next frame";
+        private static readonly string Unknown1 = "Unknown 1";
+        private static readonly string Unknown2 = "Unknown 2";
+
+        private static readonly string MaxAmmo = "Max ammo";
+        private static readonly string PerAmmo = "Per ammo";
+
+        private static readonly string AmmoType = "Ammo type";
+        private static readonly string DeselectFrame = "Deselect frame";
+        private static readonly string SelectFrame = "Select frame";
+        private static readonly string BobbingFrame = "Bobbing frame";
+        private static readonly string ShootingFrame = "Shooting frame";
+        private static readonly string FiringFrame = "Firing frame";
+
+        private static readonly string ChangeMusic = "Change music";
+        private static readonly string Chainsaw = "Chainsaw";
+        private static readonly string God = "God mode";
+        private static readonly string AmmoAndKeys = "Ammo & Keys";
+        private static readonly string AmmoCheat = "Ammo";
+        private static readonly string NoClip1 = "No Clipping 1";
+        private static readonly string NoClip2 = "No Clipping 2";
+        private static readonly string Invincibility = "Invincibility";
+        private static readonly string Berserk = "Berserk";
+        private static readonly string Invisibility = "Invisibility";
+        private static readonly string RadSuit = "Radiation Suit";
+        private static readonly string AutoMap = "Auto-map";
+        private static readonly string LiteAmp = "Lite-amp Goggles";
+        private static readonly string Behold = "BEHOLD menu";
+        private static readonly string LevelWarp = "Level Warp";
+        private static readonly string MapCheat = "Map cheat";
+        private static readonly string PlayerPos = "Player Position";
+    }
 }

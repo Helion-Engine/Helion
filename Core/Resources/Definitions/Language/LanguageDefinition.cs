@@ -107,7 +107,7 @@ namespace Helion.Resources.Definitions.Language
 
             foreach (var data in m_lookup)
             {
-                if (data.Value.Length < Length)
+                if (data.Value.Length < text.Length)
                     continue;
 
                 if (data.Value.StartsWith(text, StringComparison.OrdinalIgnoreCase))
