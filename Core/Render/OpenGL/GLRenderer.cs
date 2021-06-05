@@ -7,6 +7,8 @@ using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Renderers.World.Bsp;
 using Helion.Render.OpenGL.Surfaces;
+using Helion.Render.OpenGL.Textures;
+using Helion.Render.OpenGL.Textures.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
@@ -23,6 +25,7 @@ namespace Helion.Render.OpenGL
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
+        private readonly IGLTextureManager m_textureManager;
         private readonly GLDefaultRenderableSurface m_defaultSurface;
         private readonly GLHudRenderer m_hudRenderer;
         private readonly GLWorldRenderer m_worldRenderer;
@@ -33,6 +36,7 @@ namespace Helion.Render.OpenGL
             m_config = config;
             Window = window;
             m_archiveCollection = archiveCollection;
+            m_textureManager = new GLLegacyTextureManager(archiveCollection);
             m_hudRenderer = new GLHudRenderer();
             m_worldRenderer = new GLBspWorldRenderer();
             m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);

@@ -1,6 +1,8 @@
 ﻿using System;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Capabilities;
+using Helion.Util.Atlas;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -11,14 +13,17 @@ namespace Helion.Render.OpenGL.Textures.Legacy
     /// </summary>
     public class LegacyCubeGLTexture : GLTexture
     {
-        public Vec3I Dimensions { get; set; }
-        
-        public LegacyCubeGLTexture(int depth) : base(TextureTarget.Texture3D)
-        {
-            Precondition(depth > 0, "Legacy cube GL texture needs a positive depth");
+        public Vec3I Dimensions { get; private set; }
+        private readonly Atlas3D m_atlas3D;
 
+        public LegacyCubeGLTexture(int depth = 64) : base(TextureTarget.Texture3D)
+        {
             int dim = GLCapabilities.Limits.MaxTexture3DSize;
+            Precondition(depth > 0, "Legacy 3D GL texture needs a positive depth");
+            Precondition(depth <= dim, "Not enough layers to support 3D texture depth");
+
             Dimensions = (dim, dim, depth);
+            m_atlas3D = new Atlas3D((dim, dim), dim);
             
             BindAnd(() =>
             {
@@ -32,6 +37,11 @@ namespace Helion.Render.OpenGL.Textures.Legacy
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             });
+        }
+
+        internal void Upload(Image image)
+        {
+            // TODO
         }
     }
 }

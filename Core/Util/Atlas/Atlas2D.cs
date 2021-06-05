@@ -10,13 +10,9 @@ namespace Helion.Util.Atlas
     /// </summary>
     public class Atlas2D
     {
-        /// <summary>
-        /// The dimensions of the atlas.
-        /// </summary>
         public Dimension Dimension;
-
         private readonly int m_maxSize;
-        private readonly HashSet<AtlasHandle> m_handles = new HashSet<AtlasHandle>();
+        private readonly HashSet<AtlasHandle> m_handles = new();
         private AtlasNode m_root;
 
         /// <summary>
@@ -31,9 +27,7 @@ namespace Helion.Util.Atlas
         {
             Precondition(initialDimension.Width > 0 && initialDimension.Height > 0, "Bad atlas dimensions");
             
-            if (maxSize == null)
-                maxSize = Math.Min(initialDimension.Width, initialDimension.Height);
-                
+            maxSize ??= Math.Min(initialDimension.Width, initialDimension.Height);
             Dimension = initialDimension;
             m_maxSize = maxSize.Value;
             m_root = new AtlasNode(initialDimension);
@@ -56,7 +50,7 @@ namespace Helion.Util.Atlas
             if (node == null)
                 return null;
 
-            AtlasHandle handle = new AtlasHandle(node);
+            AtlasHandle handle = new(node);
             m_handles.Add(handle);
             return handle;
         }
@@ -86,7 +80,7 @@ namespace Helion.Util.Atlas
             if (node != null)
                 return node;
 
-            Dimension nextDimension = FindSmallestAccomodatingDimension(dimension);
+            Dimension nextDimension = FindSmallestAccommodatingDimension(dimension);
             if (TooLarge(nextDimension))
                 return null;
 
@@ -97,7 +91,7 @@ namespace Helion.Util.Atlas
             return node;
         }
 
-        private Dimension FindSmallestAccomodatingDimension(Dimension dimension)
+        private Dimension FindSmallestAccommodatingDimension(Dimension dimension)
         {
             Precondition(dimension.Width > 0 || dimension.Height > 0, "Dimension for atlas cannot be negative or zero");
             Precondition(dimension.Width < int.MaxValue / 2, "Width too large for atlas component, risking integer overflow");
