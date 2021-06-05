@@ -56,12 +56,12 @@ namespace Helion.Render.Common.Renderers
         /// Begins hud rendering actions.
         /// </summary>
         /// <param name="action">The hud rendering actions to issue.</param>
-        void Hud(Action<IHudRenderer> action);
+        void Hud(Action<IHudRenderContext> action);
 
         /// <summary>
         /// Begins world rendering actions.
         /// </summary>
         /// <param name="action">The world rendering actions to issue.</param>
-        void World(Action<IWorldRenderer> action);
+        void World(Action<IWorldRenderContext> action);
     }
 }

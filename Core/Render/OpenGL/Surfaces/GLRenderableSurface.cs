@@ -4,7 +4,6 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Surfaces
 {
@@ -13,7 +12,6 @@ namespace Helion.Render.OpenGL.Surfaces
         protected readonly GLRenderer Renderer;
         protected readonly GLHudRenderer HudRenderer;
         protected readonly GLWorldRenderer WorldRenderer;
-        private bool m_disposed;
         
         public abstract Dimension Dimension { get; }
 
@@ -22,12 +20,6 @@ namespace Helion.Render.OpenGL.Surfaces
             Renderer = renderer;
             HudRenderer = hud;
             WorldRenderer = world;
-        }
-
-        ~GLRenderableSurface()
-        {
-            FailedToDispose(this);
-            PerformDispose();
         }
 
         protected abstract void Bind();
@@ -49,21 +41,6 @@ namespace Helion.Render.OpenGL.Surfaces
             Unbind();
         }
 
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            PerformDispose();
-        }
-
-        protected virtual void PerformDispose()
-        {
-            if (m_disposed)
-                return;
-
-            HudRenderer.Dispose();
-            WorldRenderer.Dispose();
-            
-            m_disposed = true;
-        }
+        public abstract void Dispose();
     }
 }

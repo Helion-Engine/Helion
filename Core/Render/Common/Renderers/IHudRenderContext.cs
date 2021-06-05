@@ -11,7 +11,7 @@ namespace Helion.Render.Common.Renderers
     /// <summary>
     /// Performs HUD drawing commands. 
     /// </summary>
-    public interface IHudRenderer : IDisposable
+    public interface IHudRenderContext : IDisposable
     {
         void Clear(Color color);
         

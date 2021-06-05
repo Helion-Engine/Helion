@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry;
+using Helion.Render.OpenGL.Framebuffers;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
 
@@ -18,12 +19,17 @@ namespace Helion.Render.OpenGL.Surfaces
 
         protected override void Bind()
         {
-            GLUtil.BindFramebuffer(0);
+            GLFramebuffer.PerformBind(0);
         }
 
         protected override void Unbind()
         {
-            GLUtil.BindFramebuffer(0);
+            GLFramebuffer.PerformBind(0);
+        }
+
+        public override void Dispose()
+        {
+            // Does nothing, no components to dispose.
         }
     }
 }

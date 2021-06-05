@@ -15,7 +15,7 @@ namespace Helion.Render.Common.Renderers
     /// <summary>
     /// Performs world drawing commands. 
     /// </summary>
-    public interface IWorldRenderer : IDisposable
+    public interface IWorldRenderContext : IDisposable
     {
         void Draw(IWorld world);
         

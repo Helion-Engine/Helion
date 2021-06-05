@@ -6,10 +6,11 @@ namespace Helion.Render.OpenGL.Capabilities
     public class GLExtensions
     {
         public readonly FramebufferExtensions Framebuffers;
-        public readonly bool TextureFilterAnisotropic;
         public readonly bool BindlessTextures;
         public readonly bool GpuShader5;
         public readonly bool ShaderImageLoadStore;
+        public readonly bool SeamlessCubeMap;
+        public readonly bool TextureFilterAnisotropic;
         private readonly HashSet<string> m_extensions = new();
 
         public int Count => m_extensions.Count;
@@ -19,10 +20,11 @@ namespace Helion.Render.OpenGL.Capabilities
             PopulateExtensions();
 
             Framebuffers = new FramebufferExtensions(this);
-            TextureFilterAnisotropic = Supports("GL_EXT_texture_filter_anisotropic");
             BindlessTextures = Supports("GL_ARB_bindless_texture");
             GpuShader5 = Supports("GL_NV_gpu_shader5");
+            SeamlessCubeMap = Supports("ARB_seamless_cube_map");
             ShaderImageLoadStore = Supports("GL_ARB_shader_image_load_store");
+            TextureFilterAnisotropic = Supports("GL_EXT_texture_filter_anisotropic");
         }
         
         public bool Supports(string extensionName) => m_extensions.Contains(extensionName);

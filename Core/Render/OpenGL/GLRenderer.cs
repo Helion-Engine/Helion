@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Renderers.World.Bsp;
 using Helion.Render.OpenGL.Surfaces;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
@@ -20,6 +21,8 @@ namespace Helion.Render.OpenGL
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
         private readonly GLDefaultRenderableSurface m_defaultSurface;
+        private readonly GLHudRenderer m_hudRenderer;
+        private readonly GLWorldRenderer m_worldRenderer;
         private bool m_disposed;
 
         public GLRenderer(Config config, IWindow window, ArchiveCollection archiveCollection)
@@ -27,9 +30,13 @@ namespace Helion.Render.OpenGL
             m_config = config;
             Window = window;
             m_archiveCollection = archiveCollection;
-            m_defaultSurface = new(this, CreateHudRenderer(), CreateWorldRenderer());
+            m_hudRenderer = new GLHudRenderer();
+            m_worldRenderer = new GLBspWorldRenderer();
+            m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
 
             m_surfaces[IRenderableSurface.DefaultName] = m_defaultSurface;
+
+            InitializeStates();
         }
 
         ~GLRenderer()
@@ -38,14 +45,23 @@ namespace Helion.Render.OpenGL
             PerformDispose();
         }
 
-        private GLHudRenderer CreateHudRenderer()
+        private void InitializeStates()
         {
-            return new();
-        }
+            GL.Enable(EnableCap.DepthTest);
 
-        private GLWorldRenderer CreateWorldRenderer()
-        {
-            return new GLBspWorldRenderer();
+            if (m_config.Render.Multisample.Enable)
+                GL.Enable(EnableCap.Multisample);
+            
+            if (GLCapabilities.SupportsSeamlessCubeMap)
+                GL.Enable(EnableCap.TextureCubeMapSeamless);
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            GL.Enable(EnableCap.CullFace);
+            GL.FrontFace(FrontFaceDirection.Ccw);
+            GL.CullFace(CullFaceMode.Back);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
         }
 
         public IRenderableSurface GetOrCreateSurface(string name, Dimension dimension)
@@ -53,10 +69,10 @@ namespace Helion.Render.OpenGL
             if (m_surfaces.TryGetValue(name, out GLRenderableSurface? existingSurface))
                 return existingSurface;
 
-            if (!GLCapabilities.SupportsFramebufferObjects)
+            var surface = GLRenderableFramebufferTextureSurface.Create(this, dimension, m_hudRenderer, m_worldRenderer);
+            if (surface == null)
                 return m_defaultSurface;
-
-            GLRenderableFramebufferTextureSurface surface = new(this, dimension, CreateHudRenderer(), CreateWorldRenderer());
+            
             m_surfaces[name] = surface;
             return surface;
         }
@@ -71,6 +87,9 @@ namespace Helion.Render.OpenGL
         {
             if (m_disposed)
                 return;
+            
+            m_hudRenderer.Dispose();
+            m_worldRenderer.Dispose();
             
             foreach (GLRenderableSurface surface in m_surfaces.Values)
                 surface.Dispose();

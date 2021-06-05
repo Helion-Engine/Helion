@@ -8,25 +8,11 @@ namespace Helion.Render.OpenGL
         public const int GLTrue = 1;
 
         /// <summary>
-        /// Will properly select the binding function based on the version of
-        /// of OpenGL available.
+        /// Attaches a label if the OpenGL version supports it.
         /// </summary>
-        /// <param name="fbo">The framebuffer object index.</param>
-        /// <param name="target">The framebuffer target.</param>
-        /// <returns>True if it could bind, false if it could not due to a low
-        /// opengl version.</returns>
-        public static bool BindFramebuffer(int fbo, FramebufferTarget target = FramebufferTarget.Framebuffer)
-        {
-            if (GLCapabilities.Extensions.Framebuffers.HasNativeSupport)
-                GL.BindFramebuffer(target, fbo);
-            else if (GLCapabilities.Extensions.Framebuffers.HasExtSupport)
-                GL.Ext.BindFramebuffer(target, fbo);
-            else
-                return false;
-
-            return true;
-        }
-        
+        /// <param name="label">The label to attach.</param>
+        /// <param name="type">The type of label.</param>
+        /// <param name="name">The GL name.</param>
         public static void Label(string label, ObjectLabelIdentifier type, int name)
         {
             if (GLCapabilities.SupportsObjectLabels)

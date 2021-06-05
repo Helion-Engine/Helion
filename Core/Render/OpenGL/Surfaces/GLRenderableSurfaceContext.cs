@@ -64,18 +64,22 @@ namespace Helion.Render.OpenGL.Surfaces
             GL.Scissor(m_scissor.Min.X, m_scissor.Min.Y, m_scissor.Max.X, m_scissor.Max.Y);
         }
 
-        public void Hud(Action<IHudRenderer> action)
+        public void Hud(Action<IHudRenderContext> action)
         {
-            // TODO
-            action(m_hudRenderer);
-            // TODO
+            GLHudRenderContext context = m_hudRenderer.Context;
+
+            context.Begin();
+            action(context);
+            context.End();
         }
 
-        public void World(Action<IWorldRenderer> action)
+        public void World(Action<IWorldRenderContext> action)
         {
-            // TODO
-            action(m_worldRenderer);
-            // TODO
+            GLWorldRenderContext context = m_worldRenderer.Context;
+
+            context.Begin();
+            action(context);
+            context.End();
         }
     }
 }

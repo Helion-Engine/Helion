@@ -16,6 +16,7 @@ namespace Helion.Render.OpenGL.Capabilities
         public static readonly GLLimits Limits;
 
         public static bool HasSufficientGpu => Version.Supports(2, 0);
+        public static bool SupportsSeamlessCubeMap => Version.Supports(3, 2) || Extensions.SeamlessCubeMap;
         public static bool SupportsFramebufferObjects => Version.Supports(3, 0) || Extensions.Framebuffers.HasSupport;
         public static bool SupportsObjectLabels => Version.Supports(4, 3);
         public static bool SupportsBindlessTextures => Info.Vendor == GpuVendor.Nvidia &&

@@ -1,5 +1,4 @@
-﻿using Helion.Render.Common.World;
-using Helion.World;
+﻿using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World.Bsp
@@ -13,40 +12,34 @@ namespace Helion.Render.OpenGL.Renderers.World.Bsp
     public class GLBspWorldRenderer : GLWorldRenderer
     {
         private bool m_disposed;
+        
+        internal override GLWorldRenderContext Context { get; }
 
         public GLBspWorldRenderer()
         {
-            // TODO
+            Context = new GLBspWorldRenderContext();
         }
-        
+
         ~GLBspWorldRenderer()
         {
             FailedToDispose(this);
             PerformDispose();
         }
         
-        public override void Draw(IWorld world)
+        public override void Dispose()
         {
-            // TODO
+            GC.SuppressFinalize(this);
+            PerformDispose();
         }
 
-        public override void Render(WorldRenderContext context)
-        {
-            // TODO
-            
-            base.Render(context);
-        }
-
-        protected override void PerformDispose()
+        private void PerformDispose()
         {
             if (m_disposed)
                 return;
             
-            // TODO
+            Context.Dispose();
 
             m_disposed = true;
-            
-            base.PerformDispose();
         }
     }
 }

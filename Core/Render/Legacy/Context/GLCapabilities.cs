@@ -22,7 +22,7 @@ namespace Helion.Render.Legacy.Context
             Limits = new GLLimits(functions);
             Extensions = new GLExtensions(functions);
         }
-
+        
         public bool SupportsModernRenderer()
         {
             return Version.Supports(4, 4) &&
