@@ -5,6 +5,9 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Framebuffers
 {
+    /// <summary>
+    /// A renderbuffer that is used with a framebuffer.
+    /// </summary>
     public class GLRenderbuffer : IDisposable
     {
         public int RenderbufferName { get; private set; }

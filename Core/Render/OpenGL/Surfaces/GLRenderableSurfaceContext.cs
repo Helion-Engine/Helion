@@ -66,20 +66,16 @@ namespace Helion.Render.OpenGL.Surfaces
 
         public void Hud(Action<IHudRenderContext> action)
         {
-            GLHudRenderContext context = m_hudRenderer.Context;
-
-            context.Begin();
-            action(context);
-            context.End();
+            m_hudRenderer.Begin();
+            action(m_hudRenderer);
+            m_hudRenderer.End();
         }
 
         public void World(Action<IWorldRenderContext> action)
         {
-            GLWorldRenderContext context = m_worldRenderer.Context;
-
-            context.Begin();
-            action(context);
-            context.End();
+            m_worldRenderer.Begin();
+            action(m_worldRenderer);
+            m_worldRenderer.End();
         }
     }
 }

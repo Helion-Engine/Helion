@@ -14,6 +14,9 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
 {
+    /// <summary>
+    /// The main renderer for handling all OpenGL calls.
+    /// </summary>
     public class GLRenderer : IRenderer
     {
         public IWindow Window { get; }

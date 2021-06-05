@@ -6,6 +6,9 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Framebuffers
 {
+    /// <summary>
+    /// A representation of a non-default framebuffer.
+    /// </summary>
     public class GLFramebuffer : IDisposable
     {
         public readonly Dimension Dimension;
