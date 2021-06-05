@@ -5,7 +5,6 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
-using Helion.Render.OpenGL.Renderers.World.Bsp;
 using Helion.Render.OpenGL.Surfaces;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Legacy;
@@ -38,7 +37,7 @@ namespace Helion.Render.OpenGL
             m_archiveCollection = archiveCollection;
             m_textureManager = new GLLegacyTextureManager(archiveCollection);
             m_hudRenderer = new GLHudRenderer();
-            m_worldRenderer = new GLBspWorldRenderer();
+            m_worldRenderer = new GLWorldRenderer();
             m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
 
             m_surfaces[IRenderableSurface.DefaultName] = m_defaultSurface;

@@ -10,6 +10,7 @@ using Helion.Geometry.Triangles;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Renderers.World.Bsp;
 using Helion.Render.OpenGL.Renderers.World.Images;
 using Helion.Render.OpenGL.Renderers.World.Primitives;
 using Helion.World;
@@ -18,13 +19,20 @@ using static Helion.Util.Assertion.Assert;
 namespace Helion.Render.OpenGL.Renderers.World
 {
     /// <summary>
-    /// A renderer that renders the world.
+    /// A renderer that renders the world and its components. It primarily
+    /// coordinates a lot of modules to perform the rendering.
     /// </summary>
-    public abstract class GLWorldRenderer : IWorldRenderContext
+    public class GLWorldRenderer : IWorldRenderContext
     {
         private readonly GLPrimitiveWorldRenderer m_primitiveRenderer = new();
         private readonly GLImageWorldRenderer m_imageRenderer = new();
+        private readonly IGLWorldRenderer m_worldRenderer;
         private bool m_disposed;
+
+        public GLWorldRenderer()
+        {
+            m_worldRenderer = new GLBspWorldRenderer();
+        }
         
         ~GLWorldRenderer()
         {
@@ -32,8 +40,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             PerformDispose();
         }
 
-        public abstract void Draw(IWorld world);
-        
+        public void Draw(IWorld world) => m_worldRenderer.Draw(world);
         public void DrawLine(Seg3D seg, Color color) => m_primitiveRenderer.DrawLine(seg, color);
         public void DrawLines(Seg3D[] segs, Color color) => m_primitiveRenderer.DrawLines(segs, color);
         public void DrawRay(Ray3D ray, Color color) => m_primitiveRenderer.DrawRay(ray, color);
@@ -60,6 +67,7 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         internal virtual void Render(WorldRenderContext context)
         {
+            m_worldRenderer.Render(context);
             m_primitiveRenderer.Render(context);
             m_imageRenderer.Render(context);
         }
@@ -75,6 +83,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             if (m_disposed)
                 return;
             
+            m_worldRenderer.Dispose();
             m_primitiveRenderer.Dispose();
             m_imageRenderer.Dispose();
 
