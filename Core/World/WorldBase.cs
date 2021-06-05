@@ -45,6 +45,7 @@ using Helion.World.Stats;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
+using Helion.Resources.IWad;
 
 namespace Helion.World
 {
@@ -969,6 +970,9 @@ namespace Helion.World
 
         private void HandleObituary(Player player, Entity deathSource)
         {
+            if (ArchiveCollection.IWadType == IWadBaseType.ChexQuest)
+                return;
+
             // If the player killed themself then don't display the obituary message
             // There is probably a special string for this in multiplayer for later
             Entity killer = deathSource.Owner ?? deathSource;
