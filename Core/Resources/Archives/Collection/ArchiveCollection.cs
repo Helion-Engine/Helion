@@ -98,13 +98,14 @@ namespace Helion.Resources.Archives.Collection
 
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
             DefinitionComposer.LoadAllDefinitions();
-            DehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, DefinitionComposer);
+            ApplyDehackedPatch();
 
             if (dehackedPatch != null)
             {
                 try
                 {
-                    Definitions.ApplyDehackedPatch(File.ReadAllText(dehackedPatch));
+                    Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
+                    ApplyDehackedPatch();
                 }
                 catch (IOException)
                 {
@@ -114,6 +115,15 @@ namespace Helion.Resources.Archives.Collection
             }
 
             return true;
+        }
+
+        private void ApplyDehackedPatch()
+        {
+            if (Definitions.DehackedDefinition != null)
+            {
+                DehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, DefinitionComposer);
+                Definitions.DehackedDefinition = null;
+            }
         }
 
         private Archive? LoadSpecial(string file, ArchiveType archiveType)

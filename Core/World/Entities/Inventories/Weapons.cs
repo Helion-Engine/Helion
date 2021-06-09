@@ -120,11 +120,12 @@ namespace Helion.World.Entities.Inventories
         /// </summary>
         /// <param name="definition">The definition of the weapon.</param>
         /// <param name="owner">The player that owns this weapon.</param>
+        /// <param name="table">Master entity frame table.</param>
         /// <param name="entityManager">The entity manager that the weapon will
         /// use when being fired.</param>
         /// <param name="frameStateModel">Frame state model to apply.</param>
         /// <param name="flashStateModel">Flash state model to apply.</param>
-        public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,
+        public Weapon? Add(EntityDefinition definition, Player owner, EntityFrameTable table, EntityManager entityManager,
             FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null)
         {
             if (OwnsWeapon(definition.Name))
@@ -132,7 +133,7 @@ namespace Helion.World.Entities.Inventories
 
             var (slot, subslot) = GetWeaponSlot(definition.Name);
 
-            Weapon weapon = new Weapon(definition, owner, entityManager, frameStateModel, flashStateModel);
+            Weapon weapon = new Weapon(definition, owner, table, entityManager, frameStateModel, flashStateModel);
             if (!m_weaponSlots.TryGetValue(slot, out Dictionary<int, Weapon>? weapons))
             {
                 m_weaponSlots[slot] = new Dictionary<int, Weapon>();

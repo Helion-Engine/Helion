@@ -17,40 +17,40 @@ namespace Helion.Dehacked
 
         public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
         {
-            ApplyThings(dehacked, composer);
-            ApplyPointers(dehacked);
-            ApplyFrames(dehacked);
+            ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
+            ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
+            ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
             ApplyAmmo(dehacked, composer);
-            ApplyText(dehacked, definitionEntries.Language);
+            ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
             ApplyCheats(dehacked);
         }
 
-        private static void ApplyPointers(DehackedDefinition dehacked)
+        private static void ApplyPointers(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
         {
             foreach (var pointer in dehacked.Pointers)
             {
-                if (!GetFrameIndex(pointer.Frame, out int frameIndex))
+                if (!GetFrameIndex(dehacked, entityFrameTable, pointer.Frame, out int frameIndex))
                     continue;
 
-                var entityFrame = EntityFrameTable.Frames[frameIndex];
-                if (ActionFunctionLookup.TryGetValue((ThingState)pointer.CodePointerFrame, out string? function))
+                var entityFrame = entityFrameTable.Frames[frameIndex];
+                if (dehacked.ActionFunctionLookup.TryGetValue((ThingState)pointer.CodePointerFrame, out string? function))
                     entityFrame.ActionFunction = EntityActionFunctions.Find(function);
                 else
                     entityFrame.ActionFunction = null;
             }
         }
 
-        private static void ApplyFrames(DehackedDefinition dehacked)
+        private static void ApplyFrames(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
         {
             foreach (var frame in dehacked.Frames)
             {
-                if (!GetFrameIndex(frame.Frame, out int frameIndex))
+                if (!GetFrameIndex(dehacked, entityFrameTable, frame.Frame, out int frameIndex))
                     continue;
 
-                var entityFrame = EntityFrameTable.Frames[frameIndex];
+                var entityFrame = entityFrameTable.Frames[frameIndex];
 
-                if (frame.SpriteNumber.HasValue && frame.SpriteNumber >= 0 && frame.SpriteNumber < Sprites.Length)
-                    entityFrame.SetSprite(Sprites[frame.SpriteNumber.Value]);
+                if (frame.SpriteNumber.HasValue && frame.SpriteNumber >= 0 && frame.SpriteNumber < dehacked.Sprites.Length)
+                    entityFrame.SetSprite(dehacked.Sprites[frame.SpriteNumber.Value]);
                 if (frame.Duration.HasValue)
                     entityFrame.Ticks = frame.Duration.Value;
                 if (frame.SpriteSubNumber.HasValue)
@@ -59,23 +59,23 @@ namespace Helion.Dehacked
                     entityFrame.Properties.Bright = (frame.SpriteSubNumber.Value & FullBright) > 0;
                 }
 
-                if (frame.NextFrame.HasValue && GetFrameIndex(frame.NextFrame.Value, out int nextFrameIndex))
+                if (frame.NextFrame.HasValue && GetFrameIndex(dehacked, entityFrameTable, frame.NextFrame.Value, out int nextFrameIndex))
                     entityFrame.NextFrameIndex = nextFrameIndex;
             }
         }
 
-        private static bool GetFrameIndex(int frame, out int frameIndex)
+        private static bool GetFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
         {
             frameIndex = -1;
-            if (frame < 0 || frame > ThingStateLookups.Length)
+            if (frame < 0 || frame > dehacked.ThingStateLookups.Length)
                 return false;
 
-            var lookup = ThingStateLookups[frame];
+            var lookup = dehacked.ThingStateLookups[frame];
             int baseFrame = -1;
 
-            for (int i = 0; i < EntityFrameTable.Frames.Count; i++)
+            for (int i = 0; i < entityFrameTable.Frames.Count; i++)
             {
-                var frameItem = EntityFrameTable.Frames[i];
+                var frameItem = entityFrameTable.Frames[i];
                 if (lookup.Frame != null && lookup.Frame != frameItem.Frame)
                     continue;
 
@@ -96,11 +96,11 @@ namespace Helion.Dehacked
             return true;
         }
 
-        private static void ApplyThings(DehackedDefinition dehacked, EntityDefinitionComposer composer)
+        private static void ApplyThings(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
         {
             foreach (var thing in dehacked.Things)
             {
-                var definition = GetEntityDefinition(thing.Number, composer);
+                var definition = GetEntityDefinition(dehacked, thing.Number, composer);
                 if (definition == null)
                     continue;
 
@@ -125,39 +125,40 @@ namespace Helion.Dehacked
                     SetActorFlags(definition, thing.Bits.Value);
 
                 if (thing.AlertSound.HasValue)
-                    properties.SeeSound = GetSound(thing.AlertSound.Value);
+                    properties.SeeSound = GetSound(dehacked, thing.AlertSound.Value);
                 if (thing.AttackSound.HasValue)
-                    properties.AttackSound = GetSound(thing.AttackSound.Value);
+                    properties.AttackSound = GetSound(dehacked, thing.AttackSound.Value);
                 if (thing.PainSound.HasValue)
-                    properties.PainSound = GetSound(thing.PainSound.Value);
+                    properties.PainSound = GetSound(dehacked, thing.PainSound.Value);
                 if (thing.DeathSound.HasValue)
-                    properties.DeathSound = GetSound(thing.DeathSound.Value);
+                    properties.DeathSound = GetSound(dehacked, thing.DeathSound.Value);
 
                 if (thing.CloseAttackFrame.HasValue)
-                    ApplyThingFrame(definition, thing.CloseAttackFrame.Value, "melee");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.CloseAttackFrame.Value, "melee");
                 if (thing.FarAttackFrame.HasValue)
-                    ApplyThingFrame(definition, thing.FarAttackFrame.Value, "missile");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FarAttackFrame.Value, "missile");
                 if (thing.DeathFrame.HasValue)
-                    ApplyThingFrame(definition, thing.DeathFrame.Value, "death");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.DeathFrame.Value, "death");
                 if (thing.ExplodingFrame.HasValue)
-                    ApplyThingFrame(definition, thing.ExplodingFrame.Value, "xdeath");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.ExplodingFrame.Value, "xdeath");
                 if (thing.InitFrame.HasValue)
-                    ApplyThingFrame(definition, thing.InitFrame.Value, "spawn");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.InitFrame.Value, "spawn");
                 if (thing.InjuryFrame.HasValue)
-                    ApplyThingFrame(definition, thing.InjuryFrame.Value, "pain");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.InjuryFrame.Value, "pain");
                 if (thing.FirstMovingFrame.HasValue)
-                    ApplyThingFrame(definition, thing.FirstMovingFrame.Value, "see");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FirstMovingFrame.Value, "see");
                 if (thing.RespawnFrame.HasValue)
-                    ApplyThingFrame(definition, thing.RespawnFrame.Value, "raise");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, "raise");
             }
         }
 
-        private static void ApplyThingFrame(EntityDefinition definition, int frame, string actionLabel)
+        private static void ApplyThingFrame(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, 
+            EntityDefinition definition, int frame, string actionLabel)
         {
-            if (!FrameLookup.TryGetValue((ThingState)frame, out FrameStateLookup? frameLookup))
+            if (!dehacked.FrameLookup.TryGetValue((ThingState)frame, out FrameStateLookup? frameLookup))
                 return;
 
-            if (!EntityFrameTable.FrameSets.TryGetValue(frameLookup.Label, out FrameSet? frameSet))
+            if (!entityFrameTable.FrameSets.TryGetValue(frameLookup.Label, out FrameSet? frameSet))
                 return;
 
             RemoveActionLabels(definition, actionLabel);
@@ -185,13 +186,13 @@ namespace Helion.Dehacked
             RemoveLabels.ForEach(x => definition.States.Labels.Remove(x));
         }
 
-        private static EntityDefinition? GetEntityDefinition(int thingNumber, EntityDefinitionComposer composer)
+        private static EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, int thingNumber, EntityDefinitionComposer composer)
         {
             int index = thingNumber - 1;
-            if (index < 0 || index >= ActorNames.Length)
+            if (index < 0 || index >= dehacked.ActorNames.Length)
                 return null;
 
-            string actorName = ActorNames[index];
+            string actorName = dehacked.ActorNames[index];
             return composer.GetByName(actorName);           
         }
 
@@ -199,16 +200,16 @@ namespace Helion.Dehacked
         {
             foreach (var ammo in dehacked.Ammo)
             {
-                if (ammo.AmmoNumber < 0 || ammo.AmmoNumber >= AmmoNames.Length)
+                if (ammo.AmmoNumber < 0 || ammo.AmmoNumber >= dehacked.AmmoNames.Length)
                     continue;
 
-                var definition = composer.GetByName(AmmoNames[ammo.AmmoNumber]);
+                var definition = composer.GetByName(dehacked.AmmoNames[ammo.AmmoNumber]);
                 ApplyAmmo(definition, ammo, 1);
 
-                if (ammo.AmmoNumber >= AmmoDoubleNames.Length)
+                if (ammo.AmmoNumber >= dehacked.AmmoDoubleNames.Length)
                     continue;
 
-                definition = composer.GetByName(AmmoDoubleNames[ammo.AmmoNumber]);
+                definition = composer.GetByName(dehacked.AmmoDoubleNames[ammo.AmmoNumber]);
                 ApplyAmmo(definition, ammo, 2);
             }
         }
@@ -232,14 +233,14 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void ApplyText(DehackedDefinition dehacked, LanguageDefinition language)
+        private static void ApplyText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, LanguageDefinition language)
         {
             string levelRegex = @"level \d+: ";
             foreach (var text in dehacked.Strings)
             {
-                if (SpriteNames.Contains(text.OldString))
+                if (dehacked.SpriteNames.Contains(text.OldString))
                 {
-                    UpdateSpriteText(text);
+                    UpdateSpriteText(entityFrameTable, text);
                     continue;
                 }
 
@@ -256,9 +257,9 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void UpdateSpriteText(DehackedString text)
+        private static void UpdateSpriteText(EntityFrameTable entityFrameTable, DehackedString text)
         {
-            foreach (var frame in EntityFrameTable.Frames)
+            foreach (var frame in entityFrameTable.Frames)
             {
                 if (!frame.Sprite.Equals(text.OldString))
                     continue;
@@ -344,15 +345,15 @@ namespace Helion.Dehacked
 
         private static double GetDouble(int value) => value / 65536.0;
 
-        private static string GetSound(int sound)
+        private static string GetSound(DehackedDefinition dehacked, int sound)
         {
-            if (sound < 0 || sound >= SoundStrings.Length)
+            if (sound < 0 || sound >= dehacked.SoundStrings.Length)
             {
                 // Log.Error
                 return string.Empty;
             }
 
-            return SoundStrings[sound];
+            return dehacked.SoundStrings[sound];
         }
     }
 }

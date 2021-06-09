@@ -37,7 +37,6 @@ namespace Helion.World.Entities
             public readonly Dictionary<int, Entity> Entities;
         }
 
-
         public const int NoTid = 0;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -46,7 +45,7 @@ namespace Helion.World.Entities
         public readonly WorldBase World;
 
         private readonly WorldSoundManager m_soundManager;
-        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();      
+        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();   
 
         public readonly EntityDefinitionComposer DefinitionComposer;
         public readonly List<Player> Players = new List<Player>();
@@ -85,7 +84,8 @@ namespace Helion.World.Entities
             int id = m_id++;
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, in position, zHeight);
-            Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
+            Entity entity = new Entity(id, tid, definition, World.ArchiveCollection.Definitions.EntityFrameTable, 
+                position, angle, sector, this, m_soundManager, World);
 
             if (entity.Definition.Properties.FastSpeed > 0 && World.SkillDefinition.IsFastMonsters(entity.World.Config))
                 entity.Properties.Speed = entity.Definition.Properties.FastSpeed;              
@@ -192,7 +192,7 @@ namespace Helion.World.Entities
                 var definition = DefinitionComposer.GetByName(entityModel.Name);
                 if (definition != null)
                 {
-                    var entity = new Entity(entityModel, definition, this, m_soundManager, World);
+                    var entity = new Entity(entityModel, definition, World.ArchiveCollection.Definitions.EntityFrameTable, this, m_soundManager, World);
                     var node = Entities.Add(entity);
                     entity.EntityListNode = node;
 
@@ -233,7 +233,8 @@ namespace Helion.World.Entities
             var playerDefinition = DefinitionComposer.GetByName(playerModel.Name);
             if (playerDefinition != null)
             {
-                Player player = new Player(playerModel, entities, playerDefinition, this, m_soundManager, World);
+                Player player = new Player(playerModel, entities, playerDefinition, World.ArchiveCollection.Definitions.EntityFrameTable, 
+                    this, m_soundManager, World);
                 player.IsVooDooDoll = isVoodooDoll;
 
                 var node = Entities.Add(player);
@@ -320,7 +321,8 @@ namespace Helion.World.Entities
             int id = m_id++;
             Sector sector = World.BspTree.ToSector(position);
             position.Z = GetPositionZ(sector, position, zHeight);
-            Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
+            Player player = new Player(id, 0, definition, World.ArchiveCollection.Definitions.EntityFrameTable,
+                position, angle, sector, this, m_soundManager, World, playerNumber);
 
             var armor = DefinitionComposer.GetByName(Inventory.ArmorClassName);
             if (armor != null)

@@ -164,7 +164,7 @@ namespace Helion.World.Entities.Definition.Composer
             EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
             ApplyFlagsAndPropertiesFrom(definition, definitions);
-            DefinitionStateApplier.Apply(definition, definitions);
+            DefinitionStateApplier.Apply(m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);
 
             // TODO: Check if well formed after everything was added.
 

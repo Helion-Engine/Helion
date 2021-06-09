@@ -14,29 +14,33 @@ namespace Helion.World.Entities.Definition.States
         private const int InfiniteLoopLimit = 10000;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public EntityFrame Frame => EntityFrameTable.Frames[m_frameIndex];
+        public EntityFrame Frame => m_frameTable.Frames[m_frameIndex];
         private readonly Entity m_entity;
         private readonly EntityDefinition m_definition;
         private readonly EntityManager m_entityManager;
+        private readonly EntityFrameTable m_frameTable;
         private readonly bool m_destroyOnStop;
         private int m_frameIndex;
         private int m_tics;
 
         public int CurrentTick => m_tics;
 
-        public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager, bool destroyOnStop = true)
+        public FrameState(Entity entity, EntityDefinition definition, EntityFrameTable entityFrameTable,
+            EntityManager entityManager, bool destroyOnStop = true)
         {
             m_entity = entity;
             m_definition = definition;
+            m_frameTable = entityFrameTable;
             m_entityManager = entityManager;
             m_destroyOnStop = destroyOnStop;
         }
 
-        public FrameState(Entity entity, EntityDefinition definition, EntityManager entityManager, 
-            FrameStateModel frameStateModel)
+        public FrameState(Entity entity, EntityDefinition definition, EntityFrameTable entityFrameTable, 
+            EntityManager entityManager, FrameStateModel frameStateModel)
         {
             m_entity = entity;
             m_definition = definition;
+            m_frameTable = entityFrameTable;
             m_entityManager = entityManager;
             m_frameIndex = frameStateModel.FrameIndex;
             m_tics = frameStateModel.Tics;
@@ -46,7 +50,7 @@ namespace Helion.World.Entities.Definition.States
         public EntityFrame? GetStateFrame(string label)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
-                return EntityFrameTable.Frames[index];
+                return m_frameTable.Frames[index];
 
             return null;
         }
@@ -55,7 +59,7 @@ namespace Helion.World.Entities.Definition.States
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
             {
-                if (index + offset >= 0 && index + offset < EntityFrameTable.Frames.Count)
+                if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
                     SetFrameIndex(index + offset);
                 else
                     SetFrameIndex(index);
@@ -98,7 +102,7 @@ namespace Helion.World.Entities.Definition.States
 
         public void Tick()
         {
-            Precondition(m_frameIndex >= 0 && m_frameIndex < EntityFrameTable.Frames.Count, "Out of range frame index for entity");
+            Precondition(m_frameIndex >= 0 && m_frameIndex < m_frameTable.Frames.Count, "Out of range frame index for entity");
 
             if (m_tics == -1)
                 return;

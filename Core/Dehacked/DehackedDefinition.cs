@@ -316,7 +316,7 @@ namespace Helion.Dehacked
             Pointers.Add(pointer);
         }
 
-        private static bool IsBlockComplete(SimpleParser parser)
+        private bool IsBlockComplete(SimpleParser parser)
         {
             if (parser.IsDone())
                 return true;
@@ -329,7 +329,7 @@ namespace Helion.Dehacked
             return false;
         }
 
-        private static uint GetThingBits(SimpleParser parser, string property)
+        private uint GetThingBits(SimpleParser parser, string property)
         {
             ConsumeProperty(parser, property);
             parser.ConsumeString("=");
@@ -340,7 +340,7 @@ namespace Helion.Dehacked
             return ParseThingStringBits(parser);
         }
 
-        private static uint ParseThingStringBits(SimpleParser parser)
+        private uint ParseThingStringBits(SimpleParser parser)
         {
             uint bits = 0;
             while (!BaseTypes.Contains(parser.PeekString()))

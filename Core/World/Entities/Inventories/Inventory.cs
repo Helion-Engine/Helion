@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Models;
-using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
@@ -73,9 +72,11 @@ namespace Helion.World.Entities.Inventories
                 if (definition != null)
                 {
                     if (weaponName.Equals(playerModel.AnimationWeapon, StringComparison.OrdinalIgnoreCase))
-                        Weapons.Add(definition, owner, owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
+                        Weapons.Add(definition, owner, owner.World.ArchiveCollection.Definitions.EntityFrameTable, 
+                            owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
                     else
-                        Weapons.Add(definition, owner, owner.World.EntityManager);
+                        Weapons.Add(definition, owner, owner.World.ArchiveCollection.Definitions.EntityFrameTable, 
+                            owner.World.EntityManager);
                 }
             }
 

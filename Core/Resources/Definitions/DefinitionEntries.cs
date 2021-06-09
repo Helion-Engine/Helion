@@ -20,6 +20,7 @@ using NLog;
 using Helion.Util.Parser;
 using Helion.Resources.Definitions.Boom;
 using Helion.Dehacked;
+using Helion.World.Entities.Definition;
 
 namespace Helion.Resources.Definitions
 {
@@ -41,7 +42,8 @@ namespace Helion.Resources.Definitions
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
-        public readonly DehackedDefinition DehackedDefinition = new DehackedDefinition();
+        public readonly EntityFrameTable EntityFrameTable = new();
+        public DehackedDefinition? DehackedDefinition;
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
@@ -71,10 +73,12 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
         }
 
-        public bool ApplyDehackedPatch(string data)
+        public void ParseDehackedPatch(string data)
         {
+            if (DehackedDefinition == null)
+                DehackedDefinition = new();
+
             DehackedDefinition.Parse(data);
-            return true;
         }
 
         public bool LoadMapInfo(Archive archive, string entryName)
@@ -93,7 +97,7 @@ namespace Helion.Resources.Definitions
         private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
         private void ParseLanguage(string text) => Language.Parse(text);
         private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
-        private void ParseDehacked(string text) => ApplyDehackedPatch(text);
+        private void ParseDehacked(string text) => ParseDehackedPatch(text);
 
         private static void ParseEntry(Action<string> parseAction, Entry entry)
         {
