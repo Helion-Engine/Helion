@@ -3,6 +3,9 @@ using Helion.Resources.Definitions.Language;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
+using Helion.World.Entities.Definition.States;
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using static Helion.Dehacked.DehackedDefinition;
 
@@ -10,27 +13,94 @@ namespace Helion.Dehacked
 {
     public static class DehackedApplier
     {
+        private static readonly List<string> RemoveLabels = new();
+
         public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
         {
             ApplyThings(dehacked, composer);
+            ApplyPointers(dehacked);
+            ApplyFrames(dehacked);
             ApplyAmmo(dehacked, composer);
             ApplyText(dehacked, definitionEntries.Language);
             ApplyCheats(dehacked);
+        }
+
+        private static void ApplyPointers(DehackedDefinition dehacked)
+        {
+            foreach (var pointer in dehacked.Pointers)
+            {
+                if (!GetFrameIndex(pointer.Frame, out int frameIndex))
+                    continue;
+
+                var entityFrame = EntityFrameTable.Frames[frameIndex];
+                if (ActionFunctionLookup.TryGetValue((ThingState)pointer.CodePointerFrame, out string? function))
+                    entityFrame.ActionFunction = EntityActionFunctions.Find(function);
+                else
+                    entityFrame.ActionFunction = null;
+            }
+        }
+
+        private static void ApplyFrames(DehackedDefinition dehacked)
+        {
+            foreach (var frame in dehacked.Frames)
+            {
+                if (!GetFrameIndex(frame.Frame, out int frameIndex))
+                    continue;
+
+                var entityFrame = EntityFrameTable.Frames[frameIndex];
+
+                if (frame.SpriteNumber.HasValue && frame.SpriteNumber >= 0 && frame.SpriteNumber < Sprites.Length)
+                    entityFrame.SetSprite(Sprites[frame.SpriteNumber.Value]);
+                if (frame.Duration.HasValue)
+                    entityFrame.Ticks = frame.Duration.Value;
+                if (frame.SpriteSubNumber.HasValue)
+                {
+                    entityFrame.Frame = frame.SpriteSubNumber.Value & FrameMask;
+                    entityFrame.Properties.Bright = (frame.SpriteSubNumber.Value & FullBright) > 0;
+                }
+
+                if (frame.NextFrame.HasValue && GetFrameIndex(frame.NextFrame.Value, out int nextFrameIndex))
+                    entityFrame.NextFrameIndex = nextFrameIndex;
+            }
+        }
+
+        private static bool GetFrameIndex(int frame, out int frameIndex)
+        {
+            frameIndex = -1;
+            if (frame < 0 || frame > ThingStateLookups.Length)
+                return false;
+
+            var lookup = ThingStateLookups[frame];
+            int baseFrame = -1;
+
+            for (int i = 0; i < EntityFrameTable.Frames.Count; i++)
+            {
+                var frameItem = EntityFrameTable.Frames[i];
+                if (lookup.Frame != null && lookup.Frame != frameItem.Frame)
+                    continue;
+
+                if (lookup.ActorName != null && !lookup.ActorName.Equals(frameItem.VanillaActorName))
+                    continue;
+
+                if (frameItem.Sprite.Equals(lookup.Sprite, StringComparison.OrdinalIgnoreCase))
+                {
+                    baseFrame = i;
+                    break;
+                }
+            }
+
+            if (baseFrame == -1)
+                return false;
+
+            frameIndex = baseFrame + lookup.Offset;
+            return true;
         }
 
         private static void ApplyThings(DehackedDefinition dehacked, EntityDefinitionComposer composer)
         {
             foreach (var thing in dehacked.Things)
             {
-                int index = thing.Number - 1;
-                if (index < 0 || index >= ActorNames.Length)
-                {
-                    // Log.Error
-                    continue;
-                }
-
-                string actorName = ActorNames[index];
-                var definition = composer.GetByName(actorName);
+                var definition = GetEntityDefinition(thing.Number, composer);
                 if (definition == null)
                     continue;
 
@@ -62,7 +132,67 @@ namespace Helion.Dehacked
                     properties.PainSound = GetSound(thing.PainSound.Value);
                 if (thing.DeathSound.HasValue)
                     properties.DeathSound = GetSound(thing.DeathSound.Value);
+
+                if (thing.CloseAttackFrame.HasValue)
+                    ApplyThingFrame(definition, thing.CloseAttackFrame.Value, "melee");
+                if (thing.FarAttackFrame.HasValue)
+                    ApplyThingFrame(definition, thing.FarAttackFrame.Value, "missile");
+                if (thing.DeathFrame.HasValue)
+                    ApplyThingFrame(definition, thing.DeathFrame.Value, "death");
+                if (thing.ExplodingFrame.HasValue)
+                    ApplyThingFrame(definition, thing.ExplodingFrame.Value, "xdeath");
+                if (thing.InitFrame.HasValue)
+                    ApplyThingFrame(definition, thing.InitFrame.Value, "spawn");
+                if (thing.InjuryFrame.HasValue)
+                    ApplyThingFrame(definition, thing.InjuryFrame.Value, "pain");
+                if (thing.FirstMovingFrame.HasValue)
+                    ApplyThingFrame(definition, thing.FirstMovingFrame.Value, "see");
+                if (thing.RespawnFrame.HasValue)
+                    ApplyThingFrame(definition, thing.RespawnFrame.Value, "raise");
             }
+        }
+
+        private static void ApplyThingFrame(EntityDefinition definition, int frame, string actionLabel)
+        {
+            if (!FrameLookup.TryGetValue((ThingState)frame, out FrameStateLookup? frameLookup))
+                return;
+
+            if (!EntityFrameTable.FrameSets.TryGetValue(frameLookup.Label, out FrameSet? frameSet))
+                return;
+
+            RemoveActionLabels(definition, actionLabel);
+
+            if (!frameLookup.Label.Equals("Actor::null", StringComparison.OrdinalIgnoreCase))
+            {
+                definition.States.Labels[actionLabel] = frameSet.StartFrameIndex + frameLookup.Offset;
+                definition.States.Labels[frameLookup.Label] = frameSet.StartFrameIndex + frameLookup.Offset;
+            }
+        }
+
+        private static void RemoveActionLabels(EntityDefinition definition, string actionLabel)
+        {
+            RemoveLabels.Clear();
+            foreach (var pair in definition.States.Labels)
+            {
+                int index = pair.Key.IndexOf("::");
+                if (index == -1 && !pair.Key.Equals(actionLabel, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                else if (index != -1 && !pair.Key[(index + 2)..].Equals(actionLabel, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                RemoveLabels.Add(pair.Key);
+            }
+
+            RemoveLabels.ForEach(x => definition.States.Labels.Remove(x));
+        }
+
+        private static EntityDefinition? GetEntityDefinition(int thingNumber, EntityDefinitionComposer composer)
+        {
+            int index = thingNumber - 1;
+            if (index < 0 || index >= ActorNames.Length)
+                return null;
+
+            string actorName = ActorNames[index];
+            return composer.GetByName(actorName);           
         }
 
         private static void ApplyAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer)
@@ -107,6 +237,12 @@ namespace Helion.Dehacked
             string levelRegex = @"level \d+: ";
             foreach (var text in dehacked.Strings)
             {
+                if (SpriteNames.Contains(text.OldString))
+                {
+                    UpdateSpriteText(text);
+                    continue;
+                }
+
                 var match = Regex.Match(text.OldString, levelRegex);
                 if (match.Success)
                     text.OldString = text.OldString.Replace(match.Value, string.Empty);
@@ -117,6 +253,17 @@ namespace Helion.Dehacked
 
                 if (language.GetKeyByValue(text.OldString, out string? key) && key != null)
                     language.SetValue(key, text.NewString);
+            }
+        }
+
+        private static void UpdateSpriteText(DehackedString text)
+        {
+            foreach (var frame in EntityFrameTable.Frames)
+            {
+                if (!frame.Sprite.Equals(text.OldString))
+                    continue;
+
+                frame.SetSprite(text.NewString);
             }
         }
 
@@ -207,6 +354,5 @@ namespace Helion.Dehacked
 
             return SoundStrings[sound];
         }
-
     }
 }

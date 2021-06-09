@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Helion.Dehacked;
 using Helion.Graphics.Fonts;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
@@ -97,6 +98,7 @@ namespace Helion.Resources.Archives.Collection
 
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
             DefinitionComposer.LoadAllDefinitions();
+            DehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, DefinitionComposer);
 
             if (dehackedPatch != null)
             {

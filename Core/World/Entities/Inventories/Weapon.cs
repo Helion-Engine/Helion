@@ -77,7 +77,7 @@ namespace Helion.World.Entities.Inventories
 
             AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
             if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
-                AmmoSprite = AmmoDefinition.States.Frames[frame].Sprite + "A0";
+                AmmoSprite = EntityFrameTable.Frames[frame].Sprite + "A0";
             else
                 AmmoSprite = string.Empty;
 

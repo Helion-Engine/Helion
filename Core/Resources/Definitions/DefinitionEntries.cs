@@ -41,6 +41,7 @@ namespace Helion.Resources.Definitions
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
+        public readonly DehackedDefinition DehackedDefinition = new DehackedDefinition();
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
@@ -72,10 +73,7 @@ namespace Helion.Resources.Definitions
 
         public bool ApplyDehackedPatch(string data)
         {
-            DehackedDefinition dehacked = new();
-            dehacked.Parse(data);
-
-            DehackedApplier.Apply(dehacked, this, m_archiveCollection.DefinitionComposer);
+            DehackedDefinition.Parse(data);
             return true;
         }
 

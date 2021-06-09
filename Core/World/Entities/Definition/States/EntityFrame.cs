@@ -8,20 +8,24 @@ namespace Helion.World.Entities.Definition.States
 {
     public class EntityFrame
     {
-        public readonly string Sprite;
-        public readonly int Frame;
-        public int Ticks { get; private set; }
+        public string VanillaActorName { get; private set; }
+        public string Sprite { get; private set; }
+        public int Frame { get; set; }
+        public int Ticks { get; set; }
         public bool IsInvisible { get; private set; }
         public readonly EntityFrameProperties Properties;
-        public readonly ActionFunction? ActionFunction;
-        public int NextFrameIndex;
-        public ActorStateBranch BranchType;
+        public  ActionFunction? ActionFunction { get; set; }
+        public int NextFrameIndex { get; set; }
+        public ActorStateBranch BranchType { get; set; }
+
+        public int MasterFrameIndex { get; set; }
 
         public EntityFrame(string sprite, int frame, int ticks, EntityFrameProperties properties,
-            ActionFunction? actionFunction, int nextFrameIndex)
+            ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName)
         {
             Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");
-            
+
+            VanillaActorName = vanillaActorName;
             Sprite = sprite;
             Frame = frame;
             Ticks = ticks;
@@ -29,11 +33,23 @@ namespace Helion.World.Entities.Definition.States
             ActionFunction = actionFunction;
             NextFrameIndex = nextFrameIndex;
             BranchType = ActorStateBranch.None;
-            IsInvisible = sprite.Equals(Constants.InvisibleSprite, StringComparison.OrdinalIgnoreCase);
+            CheckSetInvisible();
+        }
+
+        public void SetSprite(string sprite)
+        {
+            Sprite = sprite;
+            CheckSetInvisible();
         }
 
         public void SetTicks(int tics) => Ticks = tics;
         
-        public override string ToString() => $"{Sprite} {Frame} {Ticks} action={ActionFunction != null} flow={BranchType}]";
+        public override string ToString() => $"{Sprite} {Frame} {Ticks} action={ActionString} flow={BranchType} next={NextFrameIndex}]";
+
+        private string ActionString =>
+            ActionFunction == null ? "none" : ActionFunction.Method.Name.ToString();
+
+        private void CheckSetInvisible() =>
+            IsInvisible = Sprite.Equals(Constants.InvisibleSprite, StringComparison.OrdinalIgnoreCase);
     }
 }

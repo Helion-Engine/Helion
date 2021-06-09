@@ -13,6 +13,8 @@ namespace Helion.Dehacked
         public readonly List<DehackedAmmo> Ammo = new();
         public readonly List<DehackedWeapon> Weapons = new();
         public readonly List<DehackedString> Strings = new();
+        public readonly List<DehackedPointer> Pointers = new();
+
         public DehackedCheat? Cheat { get; private set; }
         public int DoomVersion { get; private set; }
         public int PatchFormat { get; set; }
@@ -48,6 +50,8 @@ namespace Helion.Dehacked
                     ParseCheat(parser);
                 else if (item.Equals(TextName, StringComparison.OrdinalIgnoreCase))
                     ParseText(parser);
+                else if (item.Equals(PointerName, StringComparison.OrdinalIgnoreCase))
+                    ParsePointer(parser);
                 else
                     parser.ConsumeLine();
             }
@@ -151,7 +155,7 @@ namespace Helion.Dehacked
                 else if (line.StartsWith(Duration, StringComparison.OrdinalIgnoreCase))
                     frame.Duration = GetIntProperty(parser, Duration);
                 else if (line.StartsWith(NextFrame, StringComparison.OrdinalIgnoreCase))
-                    frame.Duration = GetIntProperty(parser, NextFrame);
+                    frame.NextFrame = GetIntProperty(parser, NextFrame);
                 else if (line.StartsWith(Unknown1, StringComparison.OrdinalIgnoreCase))
                     frame.Unknown1 = GetIntProperty(parser, Unknown1);
                 else if (line.StartsWith(Unknown2, StringComparison.OrdinalIgnoreCase))
@@ -284,6 +288,32 @@ namespace Helion.Dehacked
             text.NewString = sbText.Substring(text.OldSize);
 
             Strings.Add(text);
+        }
+
+        private void ParsePointer(SimpleParser parser)
+        {
+            DehackedPointer pointer = new();
+            pointer.Number = parser.ConsumeInteger();
+
+            parser.ConsumeString("(Frame");
+            string frame = parser.ConsumeString().Replace(")", string.Empty);
+
+            if (!int.TryParse(frame, out int frameNumber))
+            {
+                return;
+            }
+
+            pointer.Frame = frameNumber;
+
+            while (!IsBlockComplete(parser))
+            {
+                string line = parser.PeekLine();
+                if (line.StartsWith("Codep Frame", StringComparison.OrdinalIgnoreCase))
+                    pointer.CodePointerFrame = GetIntProperty(parser, DeselectFrame);
+                parser.ConsumeLine();
+            }
+
+            Pointers.Add(pointer);
         }
 
         private static bool IsBlockComplete(SimpleParser parser)
