@@ -504,8 +504,7 @@ namespace Helion.World.Entities
         public virtual bool CanDamage(Entity source)
         {
             Entity damageSource = source.Owner ?? source;
-
-            if (damageSource is Player || !Flags.IsMonster)
+            if (damageSource is Player)
                 return true;
 
             // Not a projectile, always damage
