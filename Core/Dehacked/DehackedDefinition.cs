@@ -1,4 +1,5 @@
 ﻿using Helion.Util.Parser;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,8 @@ namespace Helion.Dehacked
 {
     public partial class DehackedDefinition
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public readonly List<DehackedThing> Things = new();
         public readonly List<DehackedFrame> Frames = new();
         public readonly List<DehackedAmmo> Ammo = new();
@@ -53,8 +56,17 @@ namespace Helion.Dehacked
                 else if (item.Equals(PointerName, StringComparison.OrdinalIgnoreCase))
                     ParsePointer(parser);
                 else
-                    parser.ConsumeLine();
+                    UnknownWarning(parser, "type");
             }
+        }
+
+        private static void UnknownWarning(SimpleParser parser, string type)
+        {
+            string line = parser.ConsumeLine();
+            if (string.IsNullOrWhiteSpace(line))
+                return;
+            int lineNumber = parser.GetCurrentLine();
+            Log.Warn($"Dehacked: Skipping unknown {type}: {line} line:{lineNumber}");
         }
 
         private void ParseHeader(SimpleParser parser)
@@ -134,7 +146,7 @@ namespace Helion.Dehacked
                 else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
                     thing.Bits = GetThingBits(parser, Bits);
                 else
-                    parser.ConsumeLine();
+                    UnknownWarning(parser, "thing type");
             }
 
             Things.Add(thing);
@@ -161,7 +173,7 @@ namespace Helion.Dehacked
                 else if (line.StartsWith(Unknown2, StringComparison.OrdinalIgnoreCase))
                     frame.Unknown2 = GetIntProperty(parser, Unknown2);
                 else
-                    parser.ConsumeLine();
+                    UnknownWarning(parser, "frame type");
             }
 
             Frames.Add(frame);
@@ -180,7 +192,7 @@ namespace Helion.Dehacked
                 else if (line.StartsWith(PerAmmo, StringComparison.OrdinalIgnoreCase))
                     ammo.PerAmmo = GetIntProperty(parser, PerAmmo);
                 else
-                    parser.ConsumeLine();
+                    UnknownWarning(parser, "ammo type");
             }
 
             Ammo.Add(ammo);
@@ -207,7 +219,7 @@ namespace Helion.Dehacked
                 else if (line.StartsWith(FiringFrame, StringComparison.OrdinalIgnoreCase))
                     weapon.FiringFrame = GetIntProperty(parser, FiringFrame);
                 else
-                    parser.ConsumeLine();
+                    UnknownWarning(parser, "weapon type");
             }
 
             Weapons.Add(weapon);
@@ -256,7 +268,7 @@ namespace Helion.Dehacked
                 else if (line.StartsWith(Berserk, StringComparison.OrdinalIgnoreCase))
                     Cheat.Berserk = GetStringProperty(parser, Berserk);
                 else
-                    parser.ConsumeLine();
+                    UnknownWarning(parser, "cheat type");
             }
         }
 
@@ -279,7 +291,7 @@ namespace Helion.Dehacked
 
             if (text.OldSize > sb.Length)
             {
-                // uh oh
+                Log.Warn($"Dehacked: Invalid dehacked string length:{text.OldSize} line:{parser.GetCurrentLine()}");
                 return;
             }
 
@@ -300,6 +312,7 @@ namespace Helion.Dehacked
 
             if (!int.TryParse(frame, out int frameNumber))
             {
+                Log.Warn($"Dehacked: Invalid frame:{frame} line:{parser.GetCurrentLine()}");
                 return;
             }
 
@@ -310,6 +323,9 @@ namespace Helion.Dehacked
                 string line = parser.PeekLine();
                 if (line.StartsWith("Codep Frame", StringComparison.OrdinalIgnoreCase))
                     pointer.CodePointerFrame = GetIntProperty(parser, DeselectFrame);
+                else
+                    UnknownWarning(parser, "pointer type");
+
                 parser.ConsumeLine();
             }
 
@@ -345,8 +361,11 @@ namespace Helion.Dehacked
             uint bits = 0;
             while (!BaseTypes.Contains(parser.PeekString()))
             {
-                if (ThingPropertyStrings.TryGetValue(parser.ConsumeString(), out uint flag))
+                string stringFlag = parser.ConsumeString();
+                if (ThingPropertyStrings.TryGetValue(stringFlag, out uint flag))
                     bits |= flag;
+                else
+                    Log.Warn($"Dehacked: Invalid thing flag {stringFlag}.");
             }
 
             return bits;

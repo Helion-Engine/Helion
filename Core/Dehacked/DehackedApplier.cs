@@ -4,6 +4,7 @@ using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.States;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -13,6 +14,7 @@ namespace Helion.Dehacked
 {
     public static class DehackedApplier
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly List<string> RemoveLabels = new();
 
         public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
@@ -30,7 +32,10 @@ namespace Helion.Dehacked
             foreach (var pointer in dehacked.Pointers)
             {
                 if (!GetFrameIndex(dehacked, entityFrameTable, pointer.Frame, out int frameIndex))
+                {
+                    Warning($"Invalid pointer frame {pointer.Frame}");
                     continue;
+                }
 
                 var entityFrame = entityFrameTable.Frames[frameIndex];
                 if (dehacked.ActionFunctionLookup.TryGetValue((ThingState)pointer.CodePointerFrame, out string? function))
@@ -45,7 +50,10 @@ namespace Helion.Dehacked
             foreach (var frame in dehacked.Frames)
             {
                 if (!GetFrameIndex(dehacked, entityFrameTable, frame.Frame, out int frameIndex))
+                {
+                    Warning($"Invalid frame {frame.Frame}");
                     continue;
+                }
 
                 var entityFrame = entityFrameTable.Frames[frameIndex];
 
@@ -102,7 +110,10 @@ namespace Helion.Dehacked
             {
                 var definition = GetEntityDefinition(dehacked, thing.Number, composer);
                 if (definition == null)
+                {
+                    Warning($"Invalid thing {thing.Number}");
                     continue;
+                }
 
                 var properties = definition.Properties;
                 if (thing.Hitpoints.HasValue)
@@ -156,10 +167,16 @@ namespace Helion.Dehacked
             EntityDefinition definition, int frame, string actionLabel)
         {
             if (!dehacked.FrameLookup.TryGetValue((ThingState)frame, out FrameStateLookup? frameLookup))
+            {
+                Warning($"Invalid thing frame {frame} for {definition.Name}");
                 return;
+            }
 
             if (!entityFrameTable.FrameSets.TryGetValue(frameLookup.Label, out FrameSet? frameSet))
+            {
+                Warning($"Invalid thing frame {frame} for {definition.Name}");
                 return;
+            }
 
             RemoveActionLabels(definition, actionLabel);
 
@@ -201,7 +218,10 @@ namespace Helion.Dehacked
             foreach (var ammo in dehacked.Ammo)
             {
                 if (ammo.AmmoNumber < 0 || ammo.AmmoNumber >= dehacked.AmmoNames.Length)
+                {
+                    Warning($"Invalid ammo {ammo.AmmoNumber}");
                     continue;
+                }
 
                 var definition = composer.GetByName(dehacked.AmmoNames[ammo.AmmoNumber]);
                 ApplyAmmo(definition, ammo, 1);
@@ -254,6 +274,8 @@ namespace Helion.Dehacked
 
                 if (language.GetKeyByValue(text.OldString, out string? key) && key != null)
                     language.SetValue(key, text.NewString);
+                else
+                    Warning($"Invalid text {text.OldString}");
             }
         }
 
@@ -349,11 +371,16 @@ namespace Helion.Dehacked
         {
             if (sound < 0 || sound >= dehacked.SoundStrings.Length)
             {
-                // Log.Error
+                Warning($"Invalid sound {sound}");
                 return string.Empty;
             }
 
             return dehacked.SoundStrings[sound];
+        }
+
+        private static void Warning(string warning)
+        {
+            Log.Warn($"Dehacked: {warning}");
         }
     }
 }
