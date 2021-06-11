@@ -20,12 +20,16 @@ namespace Helion.World.Entities.Definition.States
         public ActorStateBranch BranchType { get; set; }
 
         public int MasterFrameIndex { get; set; }
+        public int VanillaIndex { get; set; }
+        public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];
 
-        public EntityFrame(string sprite, int frame, int ticks, EntityFrameProperties properties,
+        private readonly EntityFrameTable m_table;
+
+        public EntityFrame(EntityFrameTable table, string sprite, int frame, int ticks, EntityFrameProperties properties,
             ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName)
         {
             Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");
-
+            m_table = table;
             VanillaActorName = vanillaActorName;
             Sprite = sprite;
             OriginalSprite = sprite;

@@ -1987,7 +1987,7 @@ namespace Helion.Dehacked
         public readonly ThingStateLookup[] ThingStateLookups = new[]
         {
             new ThingStateLookup("TNT1", 0),                 // NULL,         
-            new ThingStateLookup("SHTG", 0, "Inventory"),    // LIGHTDONE,
+            new ThingStateLookup("SHTG", 0, "Weapon"),       // LIGHTDONE,
             new ThingStateLookup("PUNG", 0),                 // PUNCH,
             new ThingStateLookup("PUNG", 1),                 // PUNCHDOWN,
             new ThingStateLookup("PUNG", 2),                 // PUNCHUP,
@@ -2058,8 +2058,8 @@ namespace Helion.Dehacked
             new ThingStateLookup("SAWG", 2),                 // SAWDOWN,
             new ThingStateLookup("SAWG", 3),                 // SAWUP,
             new ThingStateLookup("SAWG", 4),                 // SAW1,
-            new ThingStateLookup("SAWG", 6),                 // SAW2,
-            new ThingStateLookup("SAWG", 7),                 // SAW3,
+            new ThingStateLookup("SAWG", 5),                 // SAW2,
+            new ThingStateLookup("SAWG", 6),                 // SAW3,
             new ThingStateLookup("PLSG", 0),                 // PLASMA,
             new ThingStateLookup("PLSG", 1),                 // PLASMADOWN,
             new ThingStateLookup("PLSG", 2),                 // PLASMAUP,
@@ -2871,7 +2871,7 @@ namespace Helion.Dehacked
             new ThingStateLookup("LAUN", 0),                 // LAUN,
             new ThingStateLookup("PLAS", 0),                 // PLAS,
             new ThingStateLookup("SHOT", 0),                 // SHOT,
-            new ThingStateLookup("SHOT2", 0),                // SHOT2,
+            new ThingStateLookup("SGN2", 0),                // SHOT2,
             new ThingStateLookup("COLU", 0),                 // COLU,
             new ThingStateLookup("SMIT", 0),                 // STALAG,
             new ThingStateLookup("GOR1", 0),                 // BLOODYTWITCH,
@@ -2946,13 +2946,13 @@ namespace Helion.Dehacked
             new ThingStateLookup("POB2", 0),                 // SMALLPOOL,
             new ThingStateLookup("BRS1", 0),                 // BRAINSTEM,
             new ThingStateLookup("TLMP", 0),                 // TECHLAMP,
-            new ThingStateLookup("TLMP", 0),                 // TECHLAMP2,
-            new ThingStateLookup("TLMP", 0),                 // TECHLAMP3,
-            new ThingStateLookup("TLMP", 0),                 // TECHLAMP4,
+            new ThingStateLookup("TLMP", 1),                 // TECHLAMP2,
+            new ThingStateLookup("TLMP", 2),                 // TECHLAMP3,
+            new ThingStateLookup("TLMP", 3),                 // TECHLAMP4,
             new ThingStateLookup("TLP2", 0),                 // TECH2LAMP,
-            new ThingStateLookup("TLP2", 0),                 // TECH2LAMP2,
-            new ThingStateLookup("TLP2", 0),                 // TECH2LAMP3,
-            new ThingStateLookup("TLP2", 0),                 // TECH2LAMP4,
+            new ThingStateLookup("TLP2", 1),                 // TECH2LAMP2,
+            new ThingStateLookup("TLP2", 2),                 // TECH2LAMP3,
+            new ThingStateLookup("TLP2", 3),                 // TECH2LAMP4,
         };
 
         public enum ThingState

@@ -1,4 +1,5 @@
 ﻿using Helion.Resources.Definitions;
+using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.Language;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
@@ -7,6 +8,7 @@ using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static Helion.Dehacked.DehackedDefinition;
 
@@ -19,6 +21,8 @@ namespace Helion.Dehacked
 
         public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
         {
+            ApplyVanillaIndex(dehacked, definitionEntries.EntityFrameTable);
+
             ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
             ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
             ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
@@ -27,8 +31,19 @@ namespace Helion.Dehacked
             ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
             ApplyCheats(dehacked);
 
-            ModifiedPointers.Clear();
             RemoveLabels.Clear();
+        }
+
+        [Conditional("DEBUG")]
+        private static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
+        {
+            for (int i = 0; i < typeof(ThingState).GetEnumValues().Length; i++)
+            {
+                if (!GetFrameIndex(dehacked, table, i, out int frameIndex))
+                    continue;
+
+                table.Frames[frameIndex].VanillaIndex = i;
+            }
         }
 
         private static void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
@@ -107,8 +122,6 @@ namespace Helion.Dehacked
             return null;
         }
 
-        private static Dictionary<ThingState, string?> ModifiedPointers = new();
-
         private static void ApplyPointers(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
         {
             foreach (var pointer in dehacked.Pointers)
@@ -145,6 +158,7 @@ namespace Helion.Dehacked
                     entityFrame.SetSprite(dehacked.Sprites[frame.SpriteNumber.Value]);
                 if (frame.Duration.HasValue)
                     entityFrame.Ticks = frame.Duration.Value;
+
                 if (frame.SpriteSubNumber.HasValue)
                 {
                     entityFrame.Frame = frame.SpriteSubNumber.Value & FrameMask;
@@ -154,9 +168,14 @@ namespace Helion.Dehacked
                 if (frame.NextFrame.HasValue)
                 {
                     if (GetFrameIndex(dehacked, entityFrameTable, frame.NextFrame.Value, out int nextFrameIndex))
+                    {
                         entityFrame.NextFrameIndex = nextFrameIndex;
+                        entityFrame.BranchType = ActorStateBranch.None;
+                    }
                     else
+                    {
                         Warning($"Invalid next frame {frame.NextFrame.Value}");
+                    }
                 }
             }
         }

@@ -98,7 +98,7 @@ namespace Helion.World.Entities.Definition.Composer
 
                 EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
                 ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
-                EntityFrame entityFrame = new EntityFrame(frame.Sprite, frame.Frame, frame.Ticks, properties,
+                EntityFrame entityFrame = new EntityFrame(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
                     actionFunction, entityFrameTable.Frames.Count + 1, vanillaActorName);
 
                 HandleNonGotoFlowControl(frame, entityFrame, startingFrameOffset, lastLabelIndex, unresolvedGotoFrames);
