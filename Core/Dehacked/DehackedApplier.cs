@@ -20,17 +20,101 @@ namespace Helion.Dehacked
         public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
         {
             ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
-            ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
             ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
+            ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
+            ApplyWeapons(dehacked, definitionEntries.EntityFrameTable, composer);
             ApplyAmmo(dehacked, composer);
             ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
             ApplyCheats(dehacked);
+
+            ModifiedPointers.Clear();
+            RemoveLabels.Clear();
         }
+
+        private static void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
+        {
+            foreach (var weapon in dehacked.Weapons)
+            {
+                EntityDefinition? weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
+                if (weaponDef == null)
+                    return;
+
+                // Deselect and select are backwards in dehacked...
+                if (weapon.DeselectFrame.HasValue)
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.DeselectFrame.Value, "select");
+                if (weapon.SelectFrame.HasValue)
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.SelectFrame.Value, "deselect");
+                if (weapon.BobbingFrame.HasValue)
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.BobbingFrame.Value, "ready");
+                if (weapon.ShootingFrame.HasValue)
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.ShootingFrame.Value, "fire");
+                if (weapon.FiringFrame.HasValue)
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.FiringFrame.Value, "flash");
+                if (weapon.AmmoType.HasValue)
+                    SetWeaponAmmo(weaponDef, weapon.AmmoType.Value);
+            }
+        }
+
+        private static void SetWeaponAmmo(EntityDefinition weaponDef, int ammoType)
+        {
+            switch (ammoType)
+            {
+                case 0:
+                    weaponDef.Properties.Weapons.AmmoType = "Clip";
+                    break;
+                case 1:
+                    weaponDef.Properties.Weapons.AmmoType = "Shell";
+                    break;
+                case 2:
+                    weaponDef.Properties.Weapons.AmmoType = "Cell";
+                    break;
+                case 3:
+                    weaponDef.Properties.Weapons.AmmoType = "RocketAmmo";
+                    break;
+                case 5:
+                    weaponDef.Properties.Weapons.AmmoType = string.Empty;
+                    break;
+            }
+
+            Warning($"Invalid ammo type {ammoType}");
+        }
+
+        private static EntityDefinition? GetWeaponDefinition(int weaponNumber, EntityDefinitionComposer composer)
+        {
+            switch (weaponNumber)
+            {
+                case 0:
+                    return composer.GetByName("Fist");
+                case 1:
+                    return composer.GetByName("Pistol");
+                case 2:
+                    return composer.GetByName("Shotgun");
+                case 3:
+                    return composer.GetByName("Chaingun");
+                case 4:
+                    return composer.GetByName("RocketLauncher");
+                case 5:
+                    return composer.GetByName("PlasmaRifle");
+                case 6:
+                    return composer.GetByName("BFG9000");
+                case 7:
+                    return composer.GetByName("Chainsaw");
+                case 8:
+                    return composer.GetByName("SuperShotgun");
+            }
+
+            Warning($"Invalid weapon {weaponNumber}");
+            return null;
+        }
+
+        private static Dictionary<ThingState, string?> ModifiedPointers = new();
 
         private static void ApplyPointers(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
         {
             foreach (var pointer in dehacked.Pointers)
             {
+                ThingState fromState = (ThingState)pointer.CodePointerFrame;
+
                 if (!GetFrameIndex(dehacked, entityFrameTable, pointer.Frame, out int frameIndex))
                 {
                     Warning($"Invalid pointer frame {pointer.Frame}");
@@ -38,7 +122,7 @@ namespace Helion.Dehacked
                 }
 
                 var entityFrame = entityFrameTable.Frames[frameIndex];
-                if (dehacked.ActionFunctionLookup.TryGetValue((ThingState)pointer.CodePointerFrame, out string? function))
+                if (dehacked.ActionFunctionLookup.TryGetValue(fromState, out string? function))
                     entityFrame.ActionFunction = EntityActionFunctions.Find(function);
                 else
                     entityFrame.ActionFunction = null;
@@ -67,8 +151,13 @@ namespace Helion.Dehacked
                     entityFrame.Properties.Bright = (frame.SpriteSubNumber.Value & FullBright) > 0;
                 }
 
-                if (frame.NextFrame.HasValue && GetFrameIndex(dehacked, entityFrameTable, frame.NextFrame.Value, out int nextFrameIndex))
-                    entityFrame.NextFrameIndex = nextFrameIndex;
+                if (frame.NextFrame.HasValue)
+                {
+                    if (GetFrameIndex(dehacked, entityFrameTable, frame.NextFrame.Value, out int nextFrameIndex))
+                        entityFrame.NextFrameIndex = nextFrameIndex;
+                    else
+                        Warning($"Invalid next frame {frame.NextFrame.Value}");
+                }
             }
         }
 
@@ -90,7 +179,7 @@ namespace Helion.Dehacked
                 if (lookup.ActorName != null && !lookup.ActorName.Equals(frameItem.VanillaActorName))
                     continue;
 
-                if (frameItem.Sprite.Equals(lookup.Sprite, StringComparison.OrdinalIgnoreCase))
+                if (frameItem.OriginalSprite.Equals(lookup.Sprite, StringComparison.OrdinalIgnoreCase))
                 {
                     baseFrame = i;
                     break;
@@ -183,7 +272,7 @@ namespace Helion.Dehacked
             if (!frameLookup.Label.Equals("Actor::null", StringComparison.OrdinalIgnoreCase))
             {
                 definition.States.Labels[actionLabel] = frameSet.StartFrameIndex + frameLookup.Offset;
-                definition.States.Labels[frameLookup.Label] = frameSet.StartFrameIndex + frameLookup.Offset;
+                definition.States.Labels[$"{definition.Name}::{actionLabel}"] = frameSet.StartFrameIndex + frameLookup.Offset;
             }
         }
 

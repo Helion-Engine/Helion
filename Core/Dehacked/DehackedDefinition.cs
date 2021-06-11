@@ -202,6 +202,7 @@ namespace Helion.Dehacked
         {
             DehackedWeapon weapon = new();
             weapon.WeaponNumber = parser.ConsumeInteger();
+            parser.ConsumeLine();
 
             while (!IsBlockComplete(parser))
             {
@@ -326,7 +327,8 @@ namespace Helion.Dehacked
                 else
                     UnknownWarning(parser, "pointer type");
 
-                parser.ConsumeLine();
+                if (!parser.IsDone())
+                    parser.ConsumeLine();
             }
 
             Pointers.Add(pointer);

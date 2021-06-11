@@ -63,7 +63,7 @@ namespace Helion.Dehacked
 			"BulletPuff",				// MT_PUFF        
 			"Blood",					// MT_BLOOD       
 			"TeleportFog",				// MT_TFOG        
-			"TeleportFog",				// MT_IFOG ? TODO 
+			"ItemFog",				    // MT_IFOG 
 			"TeleportDest",				// MT_TELEPORTMAN 
 			"BFGExtra",					// MT_EXTRABFG    
 			"GreenArmor",				// MT_MISC0       
@@ -667,13 +667,13 @@ namespace Helion.Dehacked
             { ThingState.TFOG9,         new("TeleportFog::spawn",           10) },
             { ThingState.TFOG10,        new("TeleportFog::spawn",           11) },
 
-            { ThingState.IFOG,          new("TeleportFog::spawn",           0) },
-            { ThingState.IFOG01,        new("TeleportFog::spawn",           1) },
-            { ThingState.IFOG02,        new("TeleportFog::spawn",           2) },
-            { ThingState.IFOG2,         new("TeleportFog::spawn",           3) },
-            { ThingState.IFOG3,         new("TeleportFog::spawn",           4) },
-            { ThingState.IFOG4,         new("TeleportFog::spawn",           5) },
-            { ThingState.IFOG5,         new("TeleportFog::spawn",           6) },
+            { ThingState.IFOG,          new("ItemFog::spawn",               0) },
+            { ThingState.IFOG01,        new("ItemFog::spawn",               1) },
+            { ThingState.IFOG02,        new("ItemFog::spawn",               2) },
+            { ThingState.IFOG2,         new("ItemFog::spawn",               3) },
+            { ThingState.IFOG3,         new("ItemFog::spawn",               4) },
+            { ThingState.IFOG4,         new("ItemFog::spawn",               5) },
+            { ThingState.IFOG5,         new("ItemFog::spawn",               6) },
 
             { ThingState.PLAY,          new("DoomPlayer::spawn",            0) },
             { ThingState.PLAY_RUN1,     new("DoomPlayer::see",              0) },
@@ -1172,7 +1172,7 @@ namespace Helion.Dehacked
 
             { ThingState.BSPI_STND,     new("Arachnotron::spawn",           0) },
             { ThingState.BSPI_STND2,    new("Arachnotron::spawn",           1) },
-            { ThingState.BSPI_SIGHT,    new("Arachnotron::see",             0) }, // TODO
+            { ThingState.BSPI_SIGHT,    new("Arachnotron::see",             0) },
             { ThingState.BSPI_RUN1,     new("Arachnotron::see",             0) },
             { ThingState.BSPI_RUN2,     new("Arachnotron::see",             1) },
             { ThingState.BSPI_RUN3,     new("Arachnotron::see",             2) },
@@ -1987,7 +1987,7 @@ namespace Helion.Dehacked
         public readonly ThingStateLookup[] ThingStateLookups = new[]
         {
             new ThingStateLookup("TNT1", 0),                 // NULL,         
-            new ThingStateLookup("SHTG", 0),                 // LIGHTDONE,
+            new ThingStateLookup("SHTG", 0, "Inventory"),    // LIGHTDONE,
             new ThingStateLookup("PUNG", 0),                 // PUNCH,
             new ThingStateLookup("PUNG", 1),                 // PUNCHDOWN,
             new ThingStateLookup("PUNG", 2),                 // PUNCHUP,
@@ -2004,18 +2004,18 @@ namespace Helion.Dehacked
             new ThingStateLookup("PISG", 5),                 // PISTOL3,
             new ThingStateLookup("PISG", 6),                 // PISTOL4,
             new ThingStateLookup("PISF", 0),                 // PISTOLFLASH,
-            new ThingStateLookup("SHTG", 0),                 // SGUN,
-            new ThingStateLookup("SHTG", 1),                 // SGUNDOWN,
-            new ThingStateLookup("SHTG", 2),                 // SGUNUP,
-            new ThingStateLookup("SHTG", 3),                 // SGUN1,
-            new ThingStateLookup("SHTG", 4),                 // SGUN2,
-            new ThingStateLookup("SHTG", 5),                 // SGUN3,
-            new ThingStateLookup("SHTG", 6),                 // SGUN4,
-            new ThingStateLookup("SHTG", 7),                 // SGUN5,
-            new ThingStateLookup("SHTG", 8),                 // SGUN6,
-            new ThingStateLookup("SHTG", 9),                 // SGUN7,
-            new ThingStateLookup("SHTG", 10),                // SGUN8,
-            new ThingStateLookup("SHTG", 11),                // SGUN9,
+            new ThingStateLookup("SHTG", 0, "Shotgun"),      // SGUN,
+            new ThingStateLookup("SHTG", 1, "Shotgun"),      // SGUNDOWN,
+            new ThingStateLookup("SHTG", 2, "Shotgun"),      // SGUNUP,
+            new ThingStateLookup("SHTG", 3, "Shotgun"),      // SGUN1,
+            new ThingStateLookup("SHTG", 4, "Shotgun"),      // SGUN2,
+            new ThingStateLookup("SHTG", 5, "Shotgun"),      // SGUN3,
+            new ThingStateLookup("SHTG", 6, "Shotgun"),      // SGUN4,
+            new ThingStateLookup("SHTG", 7, "Shotgun"),      // SGUN5,
+            new ThingStateLookup("SHTG", 8, "Shotgun"),      // SGUN6,
+            new ThingStateLookup("SHTG", 9, "Shotgun"),      // SGUN7,
+            new ThingStateLookup("SHTG", 10, "Shotgun"),     // SGUN8,
+            new ThingStateLookup("SHTG", 11, "Shotgun"),     // SGUN9,
             new ThingStateLookup("SHTF", 0),                 // SGUNFLASH1,
             new ThingStateLookup("SHTF", 1),                 // SGUNFLASH2,
             new ThingStateLookup("SHT2", 0),                 // DSGUN,
@@ -2044,11 +2044,11 @@ namespace Helion.Dehacked
             new ThingStateLookup("CHGF", 0),                 // CHAINFLASH1,
             new ThingStateLookup("CHGF", 1),                 // CHAINFLASH2,
             new ThingStateLookup("MISG", 0),                 // MISSILE,
-            new ThingStateLookup("MISG", 0),                 // MISSILEDOWN,
-            new ThingStateLookup("MISG", 0),                 // MISSILEUP,
-            new ThingStateLookup("MISG", 0),                 // MISSILE1,
-            new ThingStateLookup("MISG", 0),                 // MISSILE2,
-            new ThingStateLookup("MISG", 0),                 // MISSILE3,
+            new ThingStateLookup("MISG", 1),                 // MISSILEDOWN,
+            new ThingStateLookup("MISG", 2),                 // MISSILEUP,
+            new ThingStateLookup("MISG", 3),                 // MISSILE1,
+            new ThingStateLookup("MISG", 4),                 // MISSILE2,
+            new ThingStateLookup("MISG", 5),                 // MISSILE3,
             new ThingStateLookup("MISF", 0),                 // MISSILEFLASH1,
             new ThingStateLookup("MISF", 1),                 // MISSILEFLASH2,
             new ThingStateLookup("MISF", 2),                 // MISSILEFLASH3,
@@ -2873,7 +2873,7 @@ namespace Helion.Dehacked
             new ThingStateLookup("SHOT", 0),                 // SHOT,
             new ThingStateLookup("SHOT2", 0),                // SHOT2,
             new ThingStateLookup("COLU", 0),                 // COLU,
-            new ThingStateLookup("STALAG", 0),               // STALAG,
+            new ThingStateLookup("SMIT", 0),                 // STALAG,
             new ThingStateLookup("GOR1", 0),                 // BLOODYTWITCH,
             new ThingStateLookup("GOR1", 1),                 // BLOODYTWITCH2,
             new ThingStateLookup("GOR1", 2),                 // BLOODYTWITCH3,

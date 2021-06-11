@@ -38,12 +38,7 @@ namespace Helion.World.Entities.Definition.Composer
             //
             // which are eligible to be overwritten.
             Dictionary<string, int> masterLabelTable = new(StringComparer.OrdinalIgnoreCase);
-
-            string vanillaActorName;
-            if (actorDefinitions.Count > 1)
-                vanillaActorName = actorDefinitions.Skip(1).First().Name;
-            else
-                vanillaActorName = actorDefinitions.First.Value.Name;
+            string vanillaActorName = actorDefinitions.Last().Name;
 
             // We always have to apply the first definition to it, which should
             // be the Actor class. However to reduce code duplication, we'll be

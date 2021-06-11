@@ -10,6 +10,7 @@ namespace Helion.World.Entities.Definition.States
     {
         public string VanillaActorName { get; private set; }
         public string Sprite { get; private set; }
+        public string OriginalSprite { get; private set; }
         public int Frame { get; set; }
         public int Ticks { get; set; }
         public bool IsInvisible { get; private set; }
@@ -27,6 +28,7 @@ namespace Helion.World.Entities.Definition.States
 
             VanillaActorName = vanillaActorName;
             Sprite = sprite;
+            OriginalSprite = sprite;
             Frame = frame;
             Ticks = ticks;
             Properties = properties;

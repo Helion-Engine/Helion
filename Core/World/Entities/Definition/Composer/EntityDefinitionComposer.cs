@@ -41,7 +41,7 @@ namespace Helion.World.Entities.Definition.Composer
         public void LoadAllDefinitions()
         {
             foreach (ActorDefinition definition in m_archiveCollection.Definitions.Decorate.GetActorDefinitions())
-                ComposeNewDefinition(definition);
+                GetByName(definition.Name);
         }
 
         public EntityDefinition? GetByName(string name)
