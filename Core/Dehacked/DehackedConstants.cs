@@ -141,7 +141,7 @@ namespace Helion.Dehacked
 			"DeadLostSoul",				// MT_MISC65      
 			"DeadDoomImp",				// MT_MISC66      
 			"DeadShotgunGuy",			// MT_MISC67      
-			"GibbedMarine",				// MT_MISC68      
+			"GibbedCorpse",				// MT_MISC68      
 			"GibbedMarineExtra",		// MT_MISC69      
 			"HeadsOnAStick",			// MT_MISC70      
 			"Gibs",						// MT_MISC71      
