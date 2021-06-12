@@ -12,6 +12,7 @@ namespace Helion.World.Entities.Definition.States
     public class FrameState : ITickable
     {
         private const int InfiniteLoopLimit = 10000;
+        private const int StackLimit = 100;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public EntityFrame Frame => m_frameTable.Frames[m_frameIndex];
@@ -22,6 +23,7 @@ namespace Helion.World.Entities.Definition.States
         private readonly bool m_destroyOnStop;
         private int m_frameIndex;
         private int m_tics;
+        private int m_stackCount;
 
         public int CurrentTick => m_tics;
 
@@ -97,13 +99,30 @@ namespace Helion.World.Entities.Definition.States
             if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
                 m_tics *= 2;
 
+            m_stackCount++;
+            if (m_stackCount > StackLimit)
+            {
+                LogStackError();
+                return;
+            }
+
             Frame.ActionFunction?.Invoke(m_entity);
+        }
+
+        private void LogStackError()
+        {
+            string method = string.Empty;
+            if (Frame.ActionFunction != null)
+                method = $"function '{Frame.ActionFunction.Method.Name}'";
+
+            Log.Error($"Stack limit reached for '{m_entity.Definition.Name}' {method}");
         }
 
         public void Tick()
         {
             Precondition(m_frameIndex >= 0 && m_frameIndex < m_frameTable.Frames.Count, "Out of range frame index for entity");
 
+            m_stackCount = 0;
             if (m_tics == -1)
                 return;
 
