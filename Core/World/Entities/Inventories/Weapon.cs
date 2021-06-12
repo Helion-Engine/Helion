@@ -100,17 +100,17 @@ namespace Helion.World.Entities.Inventories
 
         public void SetFireState()
         {
-            FrameState.SetState("FIRE");
+            FrameState.SetState(Constants.FrameStates.Fire);
         }
 
         public void SetFlashState(int offset = 0)
         {
-            FlashState.SetState("FLASH", offset);
+            FlashState.SetState(Constants.FrameStates.Flash, offset);
         }
 
         public void SetReadyState()
         {
-            FrameState.SetState("READY");
+            FrameState.SetState(Constants.FrameStates.Ready);
         }
 
         public void Tick()
