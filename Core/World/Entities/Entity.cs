@@ -426,14 +426,20 @@ namespace Helion.World.Entities
 
         public void SetDeathState(Entity? source)
         {
-            if (FrameState.SetState(Constants.FrameStates.Death))
+            if (Definition.States.Labels.ContainsKey(Constants.FrameStates.Death))
+            {
                 SetDeath(source, false);
+                FrameState.SetState(Constants.FrameStates.Death);
+            }
         }
 
         public void SetXDeathState(Entity? source)
         {
-            if (FrameState.SetState(Constants.FrameStates.XDeath))
+            if (Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath))
+            {
                 SetDeath(source, true);
+                FrameState.SetState(Constants.FrameStates.XDeath);
+            }
         }
 
         public bool SetCrushState()
@@ -555,7 +561,6 @@ namespace Helion.World.Entities
                 if (Definition.Properties.PainSound.Length > 0)
                     SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
             }
-
 
             // Skullfly is not turned off here as the original game did not do this
             if (Flags.Skullfly)
