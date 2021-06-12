@@ -94,9 +94,9 @@ namespace Helion.World.Entities.Players
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
         public override bool IsInvulnerable => Flags.Invulnerable || Inventory.IsPowerupActive(PowerupType.Invulnerable);
 
-        public Player(int id, int thingId, EntityDefinition definition, EntityFrameTable table, in Vec3D position, double angleRadians,
+        public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world, int playerNumber)
-            : base(id, thingId, definition, table, position, angleRadians, sector, entityManager, soundManager, world)
+            : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
         {
             Precondition(playerNumber >= 0, "Player number should not be negative");
 
@@ -118,8 +118,8 @@ namespace Helion.World.Entities.Players
         }
 
         public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition,
-            EntityFrameTable table, EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
-            : base(playerModel, definition, table, entityManager, soundManager, world)
+            EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
+            : base(playerModel, definition, entityManager, soundManager, world)
         {
             Precondition(playerModel.Number >= 0, "Player number should not be negative");
 
@@ -850,7 +850,7 @@ namespace Helion.World.Entities.Players
         {
             if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition.Name))
             {
-                Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, World.ArchiveCollection.Definitions.EntityFrameTable, EntityManager);
+                Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
                 if (giveDefaultAmmo)
                     GiveItemBase(definition, null, autoSwitch);
 

@@ -27,22 +27,22 @@ namespace Helion.World.Entities.Definition.States
 
         public int CurrentTick => m_tics;
 
-        public FrameState(Entity entity, EntityDefinition definition, EntityFrameTable entityFrameTable,
+        public FrameState(Entity entity, EntityDefinition definition,
             EntityManager entityManager, bool destroyOnStop = true)
         {
             m_entity = entity;
             m_definition = definition;
-            m_frameTable = entityFrameTable;
+            m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
             m_entityManager = entityManager;
             m_destroyOnStop = destroyOnStop;
         }
 
-        public FrameState(Entity entity, EntityDefinition definition, EntityFrameTable entityFrameTable, 
+        public FrameState(Entity entity, EntityDefinition definition,
             EntityManager entityManager, FrameStateModel frameStateModel)
         {
             m_entity = entity;
             m_definition = definition;
-            m_frameTable = entityFrameTable;
+            m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
             m_entityManager = entityManager;
             m_frameIndex = frameStateModel.FrameIndex;
             m_tics = frameStateModel.Tics;

@@ -129,7 +129,7 @@ namespace Helion.World.Entities
         /// <param name="soundManager">The sound manager to which we can play
         /// any sounds with.</param>
         /// <param name="world">The world this entity belongs to.</param>
-        public Entity(int id, int thingId, EntityDefinition definition, EntityFrameTable table, in Vec3D position, double angleRadians,
+        public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
         {
             Health = definition.Properties.Health;
@@ -142,7 +142,7 @@ namespace Helion.World.Entities
             Threshold = Properties.Threshold;
             ReactionTime = Properties.ReactionTime;
 
-            FrameState = new FrameState(this, definition, table, entityManager);
+            FrameState = new FrameState(this, definition, entityManager);
             World = world;
             EntityManager = entityManager;
             SoundManager = soundManager;
@@ -162,7 +162,7 @@ namespace Helion.World.Entities
             Properties.Threshold = 0;
         }
 
-        public Entity(EntityModel entityModel, EntityDefinition definition, EntityFrameTable table, EntityManager entityManager,
+        public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager,
             WorldSoundManager soundManager, IWorld world)
         {
             Id = entityModel.Id;
@@ -176,7 +176,7 @@ namespace Helion.World.Entities
             Health = entityModel.Health;
             Armor = entityModel.Armor;
 
-            FrameState = new FrameState(this, definition, table, entityManager, entityModel.Frame);
+            FrameState = new FrameState(this, definition, entityManager, entityModel.Frame);
             World = world;
             EntityManager = entityManager;
             SoundManager = soundManager;

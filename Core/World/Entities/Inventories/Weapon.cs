@@ -57,7 +57,7 @@ namespace Helion.World.Entities.Inventories
         private bool m_tryingToFire;
         private double m_raiseFraction;
 
-        public Weapon(EntityDefinition definition, Player owner, EntityFrameTable table, EntityManager entityManager,
+        public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager,
             FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null) :
             base(definition, 1)
         {
@@ -66,18 +66,18 @@ namespace Helion.World.Entities.Inventories
             Owner = owner;
 
             if (frameStateModel == null)
-                FrameState = new FrameState(owner, definition, table, entityManager, false);
+                FrameState = new FrameState(owner, definition, entityManager, false);
             else
-                FrameState = new FrameState(owner, definition, table, entityManager, frameStateModel);
+                FrameState = new FrameState(owner, definition, entityManager, frameStateModel);
 
             if (flashStateModel == null)
-                FlashState = new FrameState(owner, definition, table, entityManager, false);
+                FlashState = new FrameState(owner, definition, entityManager, false);
             else
-                FlashState = new FrameState(owner, definition, table, entityManager, flashStateModel);
+                FlashState = new FrameState(owner, definition, entityManager, flashStateModel);
 
             AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
             if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
-                AmmoSprite = table.Frames[frame].Sprite + "A0";
+                AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
             else
                 AmmoSprite = string.Empty;
 

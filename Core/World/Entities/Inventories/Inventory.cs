@@ -72,11 +72,9 @@ namespace Helion.World.Entities.Inventories
                 if (definition != null)
                 {
                     if (weaponName.Equals(playerModel.AnimationWeapon, StringComparison.OrdinalIgnoreCase))
-                        Weapons.Add(definition, owner, owner.World.ArchiveCollection.Definitions.EntityFrameTable, 
-                            owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
+                        Weapons.Add(definition, owner, owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
                     else
-                        Weapons.Add(definition, owner, owner.World.ArchiveCollection.Definitions.EntityFrameTable, 
-                            owner.World.EntityManager);
+                        Weapons.Add(definition, owner, owner.World.EntityManager);
                 }
             }
 
