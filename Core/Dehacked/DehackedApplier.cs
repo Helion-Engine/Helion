@@ -1,6 +1,7 @@
 ﻿using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.Language;
+using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -56,15 +57,15 @@ namespace Helion.Dehacked
 
                 // Deselect and select are backwards in dehacked...
                 if (weapon.DeselectFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.DeselectFrame.Value, "select");
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.DeselectFrame.Value, Constants.FrameStates.Select);
                 if (weapon.SelectFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.SelectFrame.Value, "deselect");
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.SelectFrame.Value, Constants.FrameStates.Deselect);
                 if (weapon.BobbingFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.BobbingFrame.Value, "ready");
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.BobbingFrame.Value, Constants.FrameStates.Ready);
                 if (weapon.ShootingFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.ShootingFrame.Value, "fire");
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.ShootingFrame.Value, Constants.FrameStates.Fire);
                 if (weapon.FiringFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.FiringFrame.Value, "flash");
+                    ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.FiringFrame.Value, Constants.FrameStates.Flash);
                 if (weapon.AmmoType.HasValue)
                     SetWeaponAmmo(weaponDef, weapon.AmmoType.Value);
             }
@@ -253,21 +254,21 @@ namespace Helion.Dehacked
                     properties.DeathSound = GetSound(dehacked, thing.DeathSound.Value);
 
                 if (thing.CloseAttackFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.CloseAttackFrame.Value, "melee");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.CloseAttackFrame.Value, Constants.FrameStates.Melee);
                 if (thing.FarAttackFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FarAttackFrame.Value, "missile");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FarAttackFrame.Value, Constants.FrameStates.Missile);
                 if (thing.DeathFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.DeathFrame.Value, "death");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.DeathFrame.Value, Constants.FrameStates.Death);
                 if (thing.ExplodingFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.ExplodingFrame.Value, "xdeath");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.ExplodingFrame.Value, Constants.FrameStates.XDeath);
                 if (thing.InitFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.InitFrame.Value, "spawn");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.InitFrame.Value, Constants.FrameStates.Spawn);
                 if (thing.InjuryFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.InjuryFrame.Value, "pain");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.InjuryFrame.Value, Constants.FrameStates.Pain);
                 if (thing.FirstMovingFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FirstMovingFrame.Value, "see");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FirstMovingFrame.Value, Constants.FrameStates.See);
                 if (thing.RespawnFrame.HasValue)
-                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, "raise");
+                    ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, Constants.FrameStates.Raise);
             }
         }
 

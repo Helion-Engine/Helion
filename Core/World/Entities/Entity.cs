@@ -588,12 +588,12 @@ namespace Helion.World.Entities
         protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
         protected static bool IsAmmo(EntityDefinition definition) => definition.IsType(Inventory.AmmoClassName);
 
-        public bool HasMissileState() => Definition.States.Labels.ContainsKey("MISSILE");
-        public bool HasMeleeState() => Definition.States.Labels.ContainsKey("MELEE");
-        public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
-        public bool HasRaiseState() => Definition.States.Labels.ContainsKey("RAISE");
-        public bool HasSeeState() => Definition.States.Labels.ContainsKey("SEE");
-        public bool HasPainState() => Definition.States.Labels.ContainsKey("PAIN");
+        public bool HasMissileState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Missile);
+        public bool HasMeleeState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Melee);
+        public bool HasXDeathState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath);
+        public bool HasRaiseState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Raise);
+        public bool HasSeeState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.See);
+        public bool HasPainState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Pain);
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
         public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
 

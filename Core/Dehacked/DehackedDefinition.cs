@@ -24,6 +24,7 @@ namespace Helion.Dehacked
 
         public void Parse(string data)
         {
+            data = data.Replace('\0', ' ');
             SimpleParser parser = new SimpleParser();
             parser.Parse(data, keepEmptyLines: true, splitSpecialChars: false);
 
