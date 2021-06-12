@@ -344,7 +344,7 @@ namespace Helion.World.Physics
 
         private static int CalculateSteps(Vec2D velocity, double radius)
         {
-            Invariant(radius > 0.5, "Actor radius too small for safe XY physics movement");
+            InvariantWarning(radius > 0.5, "Actor radius too small for safe XY physics movement");
 
             // We want to pick some atomic distance to keep moving our bounding
             // box. It can't be bigger than the radius because we could end up
