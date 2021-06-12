@@ -174,6 +174,7 @@ namespace Helion.World
         {
             AddMapSpecial();
             InitBossBrainTargets();
+            SetEntitySpawnStates();
         }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
@@ -383,6 +384,9 @@ namespace Helion.World
                 .Reverse()
                 .ToArray();
         }
+
+        private void SetEntitySpawnStates() =>
+            EntityManager.Entities.ForEach(x => x.SetSpawnState());
 
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {

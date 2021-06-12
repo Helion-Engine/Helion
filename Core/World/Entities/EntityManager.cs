@@ -52,6 +52,7 @@ namespace Helion.World.Entities
         public readonly List<Player> VoodooDolls = new List<Player>();
 
         private int m_id;
+        private bool m_init;
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
         {
@@ -139,6 +140,7 @@ namespace Helion.World.Entities
 
         public void PopulateFrom(IMap map, LevelStats levelStats)
         {
+            m_init = true;
             List<Entity> relinkEntities = new List<Entity>();
 
             foreach (IThing mapThing in map.GetThings())
@@ -180,6 +182,8 @@ namespace Helion.World.Entities
                 World.Link(relinkEntities[i]);
                 relinkEntities[i].PrevPosition = relinkEntities[i].Position;
             }
+
+            m_init = false;
         }
 
         public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
@@ -299,8 +303,10 @@ namespace Helion.World.Entities
             }
 
             entity.ResetInterpolation();
-            entity.SetSpawnState();
             entity.SpawnPoint = entity.Position;
+
+            if (!m_init)
+                entity.SetSpawnState();
         }
 
         private void PostProcessEntity(Entity entity)
