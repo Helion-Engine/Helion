@@ -232,7 +232,7 @@ namespace Helion.Dehacked
                 if (thing.PainChance.HasValue)
                     properties.PainChance = thing.PainChance.Value;
                 if (thing.Speed.HasValue)
-                    properties.Speed = thing.Speed.Value;
+                    properties.Speed = GetThingSpeed(thing.Speed.Value, definition);
                 if (thing.Width.HasValue)
                     properties.Radius = GetDouble(thing.Width.Value);
                 if (thing.Height.HasValue)
@@ -270,6 +270,13 @@ namespace Helion.Dehacked
                 if (thing.RespawnFrame.HasValue)
                     ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, Constants.FrameStates.Raise);
             }
+        }
+
+        private static int GetThingSpeed(int speed, EntityDefinition definition)
+        {
+            if (definition.Flags.Missile)
+                return (int)GetDouble(speed);
+            return speed;
         }
 
         private static void ApplyThingFrame(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, 
