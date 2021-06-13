@@ -81,6 +81,15 @@ namespace Helion.World.Entities.Definition.Composer
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
 
+        public void ChangeEntityEditorID(EntityDefinition definition, int newID)
+        {
+            if (definition.EditorId.HasValue)
+                m_editorNumToDefinition.Remove(definition.EditorId.Value);
+
+            definition.EditorId = newID;
+            m_editorNumToDefinition[newID] = definition;
+        }
+
         private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
         {
             // This entire function is needed to support Skip_Super. Thanks

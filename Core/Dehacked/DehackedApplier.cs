@@ -225,6 +225,8 @@ namespace Helion.Dehacked
                 }
 
                 var properties = definition.Properties;
+                if (thing.ID.HasValue)
+                    composer.ChangeEntityEditorID(definition, thing.ID.Value);
                 if (thing.Hitpoints.HasValue)
                     properties.Health = thing.Hitpoints.Value;
                 if (thing.ReactionTime.HasValue)
