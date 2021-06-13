@@ -164,10 +164,10 @@ namespace Helion.World.Impl.SinglePlayer
             PerformDispose();
         }
 
-        public override void Start()
+        public override void Start(WorldModel? worldModel)
         {
+            base.Start(worldModel);
             PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection);
-            base.Start();
         }
 
         public static void PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)

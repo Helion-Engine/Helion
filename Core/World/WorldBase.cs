@@ -170,11 +170,14 @@ namespace Helion.World
             PerformDispose();
         }
 
-        public virtual void Start()
+        public virtual void Start(WorldModel? worldModel)
         {
             AddMapSpecial();
             InitBossBrainTargets();
-            SetEntitySpawnStates();
+
+            // Initializing a new game - set all entities to spawn state
+            if (worldModel == null)
+                SetEntitySpawnStates();
         }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
