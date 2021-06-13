@@ -67,6 +67,7 @@ namespace Helion.Render.OpenGL.Surfaces
 
         public void Hud(HudRenderContext context, Action<IHudRenderContext> action)
         {
+            m_hudRenderer.Begin(context);
             action(m_hudRenderer);
             m_hudRenderer.Render(context);
         }
