@@ -9,11 +9,11 @@ namespace Helion.Render.OpenGL.Textures.Legacy
     public class GLLegacyTextureManager : IGLTextureManager
     {
         public GLTextureHandle NullHandle { get; }
-        public GLFontTextureHandle NullFontHandle { get; }
+        public GLFontTexture NullFont { get; }
         private readonly ArchiveCollection m_archiveCollection;
         private readonly LegacyCubeGLTexture m_cubeTexture;
         private readonly List<GLTextureHandle> m_handles = new();
-        private readonly List<GLFontTextureHandle> m_fontHandles = new();
+        private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
 
         public GLLegacyTextureManager(ArchiveCollection archiveCollection)
@@ -25,7 +25,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             NullHandle = m_handles[0];
             
             // TODO: Make font handle.
-            NullFontHandle = m_fontHandles[0];
+            NullFont = m_fontHandles[0];
         }
 
         ~GLLegacyTextureManager()
@@ -46,10 +46,10 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             return NullHandle;
         }
 
-        public GLFontTextureHandle GetFont(string name)
+        public GLFontTexture GetFont(string name)
         {
             // TODO
-            return NullFontHandle;
+            return NullFont;
         }
 
         public void Dispose()

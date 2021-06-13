@@ -9,7 +9,11 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     {
         public readonly Vec3F Pos;
         public readonly ByteColor Color;
-        public readonly float Alpha;
 
+        public GLHudVertex(Vec3F pos, ByteColor color)
+        {
+            Pos = pos;
+            Color = color;
+        }
     }
 }

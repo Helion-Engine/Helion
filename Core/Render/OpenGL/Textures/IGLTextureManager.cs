@@ -18,7 +18,7 @@ namespace Helion.Render.OpenGL.Textures
         /// The null font handle. This is always returned from any font query
         /// functions if they cannot be found.
         /// </summary>
-        GLFontTextureHandle NullFontHandle { get; }
+        GLFontTexture NullFont { get; }
 
         /// <summary>
         /// Gets a texture with a name and priority namespace. If it cannot
@@ -42,12 +42,12 @@ namespace Helion.Render.OpenGL.Textures
         
         /// <summary>
         /// Gets a font, or uploads it if it finds one and it has not been
-        /// uploaded yet. If none can be found, the <see cref="NullFontHandle"/>
-        /// is returned.
+        /// uploaded yet. If none can be found, the <see cref="NullFont"/> is
+        /// returned.
         /// </summary>
         /// <param name="name">The font name, case insensitive.</param>
-        /// <returns>The font handle, or <see cref="NullFontHandle"/> if no font
+        /// <returns>The font handle, or <see cref="NullFont"/> if no font
         /// resource can be found.</returns>
-        GLFontTextureHandle GetFont(string name);
+        GLFontTexture GetFont(string name);
     }
 }
