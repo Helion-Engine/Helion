@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 
@@ -7,11 +6,13 @@ namespace Helion.Resources
 {
     public class SpriteDefinition
     {
-        public string Name;
-        public bool HasRotations;
         private const int MaxFrames = 29;
         private const int MaxRotations = 8;
-        private SpriteRotation[,] m_spriteRotations = new SpriteRotation[MaxFrames, MaxRotations];
+
+        public readonly string Name;
+        public bool HasRotations { get; private set; }
+
+        private readonly SpriteRotation?[,] m_spriteRotations = new SpriteRotation[MaxFrames, MaxRotations];
 
         public SpriteDefinition(string name, List<Entry> entries, ArchiveImageRetriever imageRetriever)
         {
@@ -36,10 +37,8 @@ namespace Helion.Resources
             }
         }
 
-        public SpriteRotation GetSpriteRotation(int frame, uint rotation)
-        {
-            return m_spriteRotations[frame, rotation];
-        }
+        public SpriteRotation? GetSpriteRotation(int frame, uint rotation) =>
+            m_spriteRotations[frame, rotation];
 
         private void CreateRotations(Entry entry, ArchiveImageRetriever imageRetriever, int frame, int rotation, bool mirror)
         {
@@ -52,8 +51,9 @@ namespace Helion.Resources
             // Does not have any rotations, just fill all 8 with the same texture for easier lookups
             if (rotation == 0)
             {
+                SpriteRotation sr = new SpriteRotation(texture, mirror);
                 for (int i = 0; i < 8; i++)
-                    m_spriteRotations[frame, i] = new SpriteRotation(texture, mirror);
+                    m_spriteRotations[frame, i] = sr;
             }
             else
             {
