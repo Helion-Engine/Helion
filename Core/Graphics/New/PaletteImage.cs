@@ -20,10 +20,12 @@ namespace Helion.Graphics.New
 
         public readonly ushort[] Indices;
         public Dimension Dimension { get; }
+        public int Width => Dimension.Width;
+        public int Height => Dimension.Height;
         public ImageType ImageType => ImageType.Palette;
         public Vec2I Offset { get; }
         public ResourceNamespace Namespace { get; }
-        
+
         public PaletteImage(Dimension dimension, ushort fillIndex = TransparentIndex, Vec2I offset = default, 
             ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
@@ -54,13 +56,59 @@ namespace Helion.Graphics.New
         /// Draws the current image on top of the first argument, at the offset
         /// provided.
         /// </summary>
-        /// <param name="image">The image on the bottom, meaning it will have
-        /// the current image drawn on top of this.</param>
+        /// <param name="image">The image on the bottom (destination), meaning it
+        /// will have the current image drawn on top of this.</param>
         /// <param name="offset">The offset to which the image will be drawn
         /// at.</param>
         public void DrawOnTopOf(PaletteImage image, Vec2I offset)
         {
-            // TODO
+            // This makes sure that we are at least drawing one pixel. This is
+            // an invariant used throughout the code later on.
+            if (offset.X >= Width || offset.Y >= Height || offset.X + image.Width <= 0 || offset.Y + image.Height <= 0)
+                return;
+
+            ushort[] src = Indices;
+            ushort[] dest = image.Indices;
+            Vec2I srcStart = Vec2I.Zero;
+            Vec2I srcEnd = (Width, Height);
+            Vec2I destStart = (offset.X.Max(0), offset.Y.Max(0));
+
+            // If the offset is negative, set our starting point inside of the
+            // source image so it matches up with (0, 0) of the destination.
+            if (offset.X < 0)
+                srcStart.X -= offset.X;
+            if (offset.Y < 0)
+                srcStart.Y -= offset.Y;
+
+            // Calculate how many pixels we want to draw in each direction by
+            // the source image. Then see if we'd run over the bounds of the
+            // destination, and if so, reduce the range.
+            // For example, if we want to draw 4 pixels, but our available size
+            // is only 3 pixels, then we must only draw 3 pixels.
+            Vec2I drawSize = srcEnd - srcStart;
+            Vec2I availableSize = image.Dimension.Vector - destStart;
+            if (drawSize.X > availableSize.X)
+                srcEnd.X = srcStart.X + availableSize.X;
+            if (drawSize.Y > availableSize.Y)
+                srcEnd.Y = srcStart.Y + availableSize.Y;
+
+            int destY = destStart.Y;
+            for (int srcY = srcStart.Y; srcY < srcEnd.Y; srcY++)
+            {
+                int srcOffset = (srcY * Width) + srcStart.X;
+                int destOffset = (destY * image.Width) + destStart.X;
+                
+                for (int srcX = srcStart.X; srcX < srcEnd.X; srcX++)
+                {
+                    if (src[srcOffset] != TransparentIndex)
+                        dest[destOffset] = src[srcOffset];
+                    
+                    srcOffset++;
+                    destOffset++;
+                }
+
+                destY++;
+            }
         }
         
         /// <summary>

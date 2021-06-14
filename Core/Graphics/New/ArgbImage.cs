@@ -1,10 +1,10 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
-using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.New
@@ -15,7 +15,9 @@ namespace Helion.Graphics.New
     public class ArgbImage : IImage
     {
         public readonly Bitmap Bitmap;
-        public Dimension Dimension => (Bitmap.Width, Bitmap.Height);
+        public Dimension Dimension => (Width, Height);
+        public int Width { get; }
+        public int Height { get; }
         public ImageType ImageType => ImageType.Argb;
         public Vec2I Offset { get; }
         public ResourceNamespace Namespace { get; }
@@ -25,15 +27,17 @@ namespace Helion.Graphics.New
             Precondition(bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Only support 32-bit ARGB image formats");
             
             Bitmap = bitmap;
+            Width = bitmap.Width;
+            Height = bitmap.Height;
             Offset = offset;
             Namespace = resourceNamespace;
         }
 
         public ArgbImage(Dimension dimension, Color color, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
-            (int w, int h) = (dimension.Width.Max(1), dimension.Height.Max(1));
-            
-            Bitmap = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+            Width = Math.Max(dimension.Width, 1);
+            Height = Math.Max(dimension.Height, 1);
+            Bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
             Offset = Vec2I.Zero;
             Namespace = resourceNamespace;
             

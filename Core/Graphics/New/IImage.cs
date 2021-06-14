@@ -10,11 +10,10 @@ namespace Helion.Graphics.New
     public interface IImage
     {
         Dimension Dimension { get; }
+        int Width { get; }
+        int Height { get; }
         ImageType ImageType { get; }
         Vec2I Offset { get; }
         ResourceNamespace Namespace { get; }
-
-        int Width => Dimension.Width;
-        int Height => Dimension.Height;
     }
 }
