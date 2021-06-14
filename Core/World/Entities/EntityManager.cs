@@ -37,7 +37,6 @@ namespace Helion.World.Entities
             public readonly Dictionary<int, Entity> Entities;
         }
 
-
         public const int NoTid = 0;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -46,20 +45,21 @@ namespace Helion.World.Entities
         public readonly WorldBase World;
 
         private readonly WorldSoundManager m_soundManager;
-        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();      
+        private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();   
 
         public readonly EntityDefinitionComposer DefinitionComposer;
         public readonly List<Player> Players = new List<Player>();
         public readonly List<Player> VoodooDolls = new List<Player>();
 
         private int m_id;
+        private bool m_init;
 
         public EntityManager(WorldBase world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
         {
             World = world;
             m_soundManager = soundManager;
             SpawnLocations = new SpawnLocations(world);
-            DefinitionComposer = new EntityDefinitionComposer(archiveCollection);
+            DefinitionComposer = archiveCollection.DefinitionComposer;
         }
 
         public static bool ZHeightSet(double z)
@@ -139,6 +139,7 @@ namespace Helion.World.Entities
 
         public void PopulateFrom(IMap map, LevelStats levelStats)
         {
+            m_init = true;
             List<Entity> relinkEntities = new List<Entity>();
 
             foreach (IThing mapThing in map.GetThings())
@@ -180,6 +181,8 @@ namespace Helion.World.Entities
                 World.Link(relinkEntities[i]);
                 relinkEntities[i].PrevPosition = relinkEntities[i].Position;
             }
+
+            m_init = false;
         }
 
         public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
@@ -298,8 +301,10 @@ namespace Helion.World.Entities
             }
 
             entity.ResetInterpolation();
-            entity.SetSpawnState();
             entity.SpawnPoint = entity.Position;
+
+            if (!m_init)
+                entity.SetSpawnState();
         }
 
         private void PostProcessEntity(Entity entity)

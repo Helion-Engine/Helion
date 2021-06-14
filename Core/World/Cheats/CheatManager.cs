@@ -48,6 +48,15 @@ namespace Helion.World.Cheats
             m_cheatLookup = Cheats.ToDictionary(cheat => cheat.CheatType);
         }
 
+        public void SetCheatCode(CheatType type, string code, int index = 0)
+        {
+            ICheat? cheat = Cheats.FirstOrDefault(x => x.CheatType == type);
+            if (cheat == null)
+                return;
+
+            cheat.SetCode(code, index);
+        }
+
         public void ActivateCheat(Player player, CheatType cheatType)
         {
             if (!m_cheatLookup.ContainsKey(cheatType))

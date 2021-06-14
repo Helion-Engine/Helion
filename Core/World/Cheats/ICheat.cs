@@ -11,6 +11,7 @@ namespace Helion.World.Cheats
         bool IsToggleCheat { get; }
         bool ClearTypedCheatString { get; }
 
+        void SetCode(string code, int index = 0);
         bool IsMatch(string str);
         bool PartialMatch(string str);
 

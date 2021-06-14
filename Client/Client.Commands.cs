@@ -247,7 +247,7 @@ namespace Helion.Client
             m_layerManager.Add(newLayer);
             m_layerManager.RemoveAllBut<WorldLayer>();
 
-            newLayer.World.Start();
+            newLayer.World.Start(worldModel);
         }     
 
         private void World_LevelExit(object? sender, LevelChangeEvent e)

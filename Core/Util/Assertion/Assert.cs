@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using NLog;
+using System.Diagnostics;
 
 namespace Helion.Util.Assertion
 {
@@ -7,6 +8,8 @@ namespace Helion.Util.Assertion
     /// </summary>
     public static class Assert
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Should be called when a state should never be reached. Will not be
         /// called in release mode.
@@ -57,6 +60,13 @@ namespace Helion.Util.Assertion
         {
             if (!invariant)
                 Fail(reason);
+        }
+
+        [Conditional("DEBUG")]
+        public static void InvariantWarning(bool invariant, string reason)
+        {
+            if (!invariant)
+                Log.Warn(reason);
         }
 
         /// <summary>

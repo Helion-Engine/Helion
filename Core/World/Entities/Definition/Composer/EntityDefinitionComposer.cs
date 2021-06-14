@@ -36,10 +36,12 @@ namespace Helion.World.Entities.Definition.Composer
         public EntityDefinitionComposer(ArchiveCollection archiveCollection)
         {
             m_archiveCollection = archiveCollection;
+        }
 
-            // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
+        public void LoadAllDefinitions()
+        {
             foreach (ActorDefinition definition in m_archiveCollection.Definitions.Decorate.GetActorDefinitions())
-                ComposeNewDefinition(definition);
+                GetByName(definition.Name);
         }
 
         public EntityDefinition? GetByName(string name)
@@ -47,6 +49,23 @@ namespace Helion.World.Entities.Definition.Composer
             if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
                 return definition;
 
+            ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
+            if (actorDefinition == null)
+                return null;
+
+            definition = ComposeNewDefinition(actorDefinition);
+            if (definition == null)
+                return null;
+
+            m_listDefinitions.Add(definition);
+            m_definitions[definition.Name] = definition;
+            if (definition.EditorId != null)
+                m_editorNumToDefinition[definition.EditorId.Value] = definition;
+            return definition;
+        }
+
+        public EntityDefinition? GetNewDefinition(string name)
+        {
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
@@ -60,6 +79,15 @@ namespace Helion.World.Entities.Definition.Composer
 
             ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[id];
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
+        }
+
+        public void ChangeEntityEditorID(EntityDefinition definition, int newID)
+        {
+            if (definition.EditorId.HasValue)
+                m_editorNumToDefinition.Remove(definition.EditorId.Value);
+
+            definition.EditorId = newID;
+            m_editorNumToDefinition[newID] = definition;
         }
 
         private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
@@ -145,16 +173,12 @@ namespace Helion.World.Entities.Definition.Composer
             EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
             ApplyFlagsAndPropertiesFrom(definition, definitions);
-            DefinitionStateApplier.Apply(definition, definitions);
+            DefinitionStateApplier.Apply(m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);
 
             // TODO: Check if well formed after everything was added.
 
             // TODO: Handle 'replaces'.
 
-            m_listDefinitions.Add(definition);
-            m_definitions[definition.Name] = definition;
-            if (definition.EditorId != null)
-                m_editorNumToDefinition[definition.EditorId.Value] = definition;
             
             return definition;
         }

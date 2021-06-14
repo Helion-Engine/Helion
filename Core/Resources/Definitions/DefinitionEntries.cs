@@ -19,6 +19,8 @@ using static Helion.Util.Assertion.Assert;
 using NLog;
 using Helion.Util.Parser;
 using Helion.Resources.Definitions.Boom;
+using Helion.Dehacked;
+using Helion.World.Entities.Definition;
 
 namespace Helion.Resources.Definitions
 {
@@ -40,6 +42,9 @@ namespace Helion.Resources.Definitions
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
+        public readonly EntityFrameTable EntityFrameTable = new();
+        public DehackedDefinition? DehackedDefinition { get; set; }
+
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
@@ -66,6 +71,15 @@ namespace Helion.Resources.Definitions
             m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
             m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
             m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
+            m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
+        }
+
+        public void ParseDehackedPatch(string data)
+        {
+            if (DehackedDefinition == null)
+                DehackedDefinition = new();
+
+            DehackedDefinition.Parse(data);
         }
 
         public bool LoadMapInfo(Archive archive, string entryName)
@@ -84,6 +98,7 @@ namespace Helion.Resources.Definitions
         private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
         private void ParseLanguage(string text) => Language.Parse(text);
         private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+        private void ParseDehacked(string text) => ParseDehackedPatch(text);
 
         private static void ParseEntry(Action<string> parseAction, Entry entry)
         {

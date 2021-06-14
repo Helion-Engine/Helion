@@ -170,7 +170,9 @@ namespace Helion.Render.Legacy.Texture
         /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
         public SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation)
         {
-            SpriteRotation spriteRotation = spriteDefinition.GetSpriteRotation(frame, rotation);
+            SpriteRotation? spriteRotation = spriteDefinition.GetSpriteRotation(frame, rotation);
+            if (spriteRotation == null)
+                return NullSpriteRotation;
 
             if (spriteRotation.Texture.RenderStore == null)
                 spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image);
