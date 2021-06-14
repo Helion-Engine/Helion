@@ -43,7 +43,8 @@ namespace Helion.Resources.Definitions
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
         public readonly EntityFrameTable EntityFrameTable = new();
-        public DehackedDefinition? DehackedDefinition;
+        public DehackedDefinition? DehackedDefinition { get; set; }
+
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();

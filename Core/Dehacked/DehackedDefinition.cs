@@ -18,6 +18,8 @@ namespace Helion.Dehacked
         public readonly List<DehackedString> Strings = new();
         public readonly List<DehackedPointer> Pointers = new();
 
+        public readonly List<BexString> BexStrings = new();
+
         public DehackedCheat? Cheat { get; private set; }
         public int DoomVersion { get; private set; }
         public int PatchFormat { get; set; }
@@ -56,6 +58,8 @@ namespace Helion.Dehacked
                     ParseText(parser);
                 else if (item.Equals(PointerName, StringComparison.OrdinalIgnoreCase))
                     ParsePointer(parser);
+                else if (item.Equals(BexStringName, StringComparison.OrdinalIgnoreCase))
+                    ParseBexText(parser);
                 else
                     UnknownWarning(parser, "type");
             }
@@ -335,9 +339,32 @@ namespace Helion.Dehacked
             Pointers.Add(pointer);
         }
 
+        private void ParseBexText(SimpleParser parser)
+        {
+            parser.ConsumeString();
+            StringBuilder sb = new();
+
+            while (!IsBlockComplete(parser))
+            {
+                if (string.IsNullOrEmpty(parser.PeekString()))
+                    break;
+
+                BexString bexString = new();
+                sb.Length = 0;
+
+                bexString.Mnemonic = parser.ConsumeString();
+                parser.ConsumeString("=");
+                bexString.Value = parser.ConsumeLine();
+                BexStrings.Add(bexString);
+            }
+        }
+
         private bool IsBlockComplete(SimpleParser parser)
         {
             if (parser.IsDone())
+                return true;
+
+            if (BexBaseTypes.Contains(parser.PeekString()))
                 return true;
 
             // Dehacked base types are all proceeded by a number, check to not confuse with random text

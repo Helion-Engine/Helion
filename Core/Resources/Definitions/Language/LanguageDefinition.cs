@@ -39,8 +39,14 @@ namespace Helion.Resources.Definitions.Language
             }
         }
 
-        public void SetValue(string key, string value) =>
+        public bool SetValue(string key, string value)
+        {
+            if (!m_lookup.ContainsKey(key))
+                return false;
+
             m_lookup[key] = value;
+            return true;
+        }
 
         private string GetCurrentLanguageSection(string data)
         {

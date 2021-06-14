@@ -248,7 +248,7 @@ namespace Helion.Util.Parser
         public bool PeekString(int offset, out string? data)
         {
             data = null;
-            if (m_index + offset > m_tokens.Count)
+            if (m_index + offset >= m_tokens.Count)
                 return false;
 
             data = GetData(m_index + offset);

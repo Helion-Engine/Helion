@@ -32,6 +32,8 @@ namespace Helion.Dehacked
             ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
             ApplyCheats(dehacked);
 
+            ApplyBexText(dehacked, definitionEntries.Language);
+
             RemoveLabels.Clear();
         }
 
@@ -481,6 +483,15 @@ namespace Helion.Dehacked
                 CheatManager.Instance.SetCheatCode(CheatType.ChangeLevel, cheat.LevelWarp);
             if (cheat.PlayerPos != null)
                 CheatManager.Instance.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
+        }
+
+        private static void ApplyBexText(DehackedDefinition dehacked, LanguageDefinition language)
+        {
+            foreach (var text in dehacked.BexStrings)
+            {
+                if (!language.SetValue(text.Mnemonic, text.Value))
+                    Log.Warn($"Unknown bex string mnemonic:{text.Mnemonic}");
+            }
         }
 
         private static double GetDouble(int value) => value / 65536.0;
