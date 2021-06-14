@@ -77,7 +77,7 @@ namespace Helion.World.Entities.Inventories
 
             AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
             if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
-                AmmoSprite = AmmoDefinition.States.Frames[frame].Sprite + "A0";
+                AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
             else
                 AmmoSprite = string.Empty;
 
@@ -100,17 +100,17 @@ namespace Helion.World.Entities.Inventories
 
         public void SetFireState()
         {
-            FrameState.SetState("FIRE");
+            FrameState.SetState(Constants.FrameStates.Fire);
         }
 
         public void SetFlashState(int offset = 0)
         {
-            FlashState.SetState("FLASH", offset);
+            FlashState.SetState(Constants.FrameStates.Flash, offset);
         }
 
         public void SetReadyState()
         {
-            FrameState.SetState("READY");
+            FrameState.SetState(Constants.FrameStates.Ready);
         }
 
         public void Tick()

@@ -11,7 +11,7 @@
         public bool ClearTypedCheatString => true;
         public int LevelNumber { get; private set; } = 1;
 
-        private readonly string m_code;
+        private string m_code;
 
         public LevelCheat(string name, string code, CheatType cheatType)
         {
@@ -19,6 +19,8 @@
             CheatOn = name;
             CheatType = cheatType;
         }
+
+        public void SetCode(string code, int index = 0) => m_code = code;
 
         public bool IsMatch(string str)
         {

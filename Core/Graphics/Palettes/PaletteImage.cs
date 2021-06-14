@@ -105,7 +105,7 @@ namespace Helion.Graphics.Palettes
             if (metadata != null)
                 Metadata = metadata;
 
-            if (width * height == indices.Length)
+            if (Width * Height == indices.Length)
                 Indices = indices;
             else
             {

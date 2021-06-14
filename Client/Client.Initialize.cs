@@ -64,7 +64,8 @@ namespace Helion.Client
 
         private void LoadFiles()
         {
-            if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad()))
+            if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad(), 
+                dehackedPatch: m_commandLineArgs.DehackedPatch))
             {
                 if (m_archiveCollection.GetAssets() == null)
                     ShowFatalError($"Failed to load {Constants.AssetsFileName}.");

@@ -173,7 +173,7 @@ namespace Helion.Maps.Doom
                 ushort sectorIndex = reader.ReadUInt16();
 
                 if (sectorIndex >= sectors.Count)
-                    return null;
+                    continue;
 
                 DoomSide side = new DoomSide(id, offset, upperTexture, middleTexture, lowerTexture, sectors[sectorIndex]);
                 sides[id] = side;
@@ -241,11 +241,11 @@ namespace Helion.Maps.Doom
                 ushort leftSidedef = lineReader.ReadUInt16();
 
                 if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
-                    return null;
+                    continue;
                 if (rightSidedef >= sides.Count)
-                    return null;
+                    continue;
                 if (leftSidedef >= sides.Count && leftSidedef != NoSidedef)
-                    return null;
+                    continue;
 
                 DoomVertex startVertex = vertices[startVertexId];
                 DoomVertex endVertex = vertices[endVertexId];

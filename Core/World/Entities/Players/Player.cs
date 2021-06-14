@@ -940,7 +940,7 @@ namespace Helion.World.Entities.Players
             {
                 if (setTop)
                     SetWeaponTop();
-                Weapon.FrameState.SetState("DESELECT");
+                Weapon.FrameState.SetState(Constants.FrameStates.Deselect);
             }
         }
 
@@ -962,7 +962,7 @@ namespace Helion.World.Entities.Players
             AnimationWeapon = PendingWeapon;
             PendingWeapon = null;
             WeaponOffset.Y = Constants.WeaponBottom;
-            AnimationWeapon.FrameState.SetState("SELECT");
+            AnimationWeapon.FrameState.SetState(Constants.FrameStates.Select);
         }
 
         public void SetWeaponUp()

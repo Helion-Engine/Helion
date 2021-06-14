@@ -45,6 +45,7 @@ using Helion.World.Stats;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
+using Helion.Resources.IWad;
 
 namespace Helion.World
 {
@@ -169,10 +170,14 @@ namespace Helion.World
             PerformDispose();
         }
 
-        public virtual void Start()
+        public virtual void Start(WorldModel? worldModel)
         {
             AddMapSpecial();
             InitBossBrainTargets();
+
+            // Initializing a new game - set all entities to spawn state
+            if (worldModel == null)
+                SetEntitySpawnStates();
         }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
@@ -382,6 +387,9 @@ namespace Helion.World
                 .Reverse()
                 .ToArray();
         }
+
+        private void SetEntitySpawnStates() =>
+            EntityManager.Entities.ForEach(x => x.SetSpawnState());
 
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {
@@ -949,6 +957,9 @@ namespace Helion.World
 
         private void CheckDropItem(Entity deathEntity)
         {
+            if (ArchiveCollection.IWadType == IWadBaseType.ChexQuest)
+                return;
+
             if (deathEntity.Definition.Properties.DropItem != null &&
                 (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
                     m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
@@ -969,6 +980,9 @@ namespace Helion.World
 
         private void HandleObituary(Player player, Entity deathSource)
         {
+            if (ArchiveCollection.IWadType == IWadBaseType.ChexQuest)
+                return;
+
             // If the player killed themself then don't display the obituary message
             // There is probably a special string for this in multiplayer for later
             Entity killer = deathSource.Owner ?? deathSource;

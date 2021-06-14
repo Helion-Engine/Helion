@@ -45,10 +45,11 @@ namespace Helion.Util.Parser
             m_parseType = parseType;
         }
 
-        public void Parse(string data)
+        public void Parse(string data, bool keepEmptyLines = false, bool splitSpecialChars = true)
         {
             m_index = 0;
-            m_lines = data.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            m_lines = data.Split(new string[] { "\r\n", "\n" }, 
+                keepEmptyLines ?  StringSplitOptions.None : StringSplitOptions.RemoveEmptyEntries);
             bool multiLineComment = false;
             int lineCount = 0;
             int startLine = 0;
@@ -61,6 +62,13 @@ namespace Helion.Util.Parser
 
             foreach (string line in m_lines)
             {
+                if (line.Length == 0 && keepEmptyLines)
+                {
+                    m_tokens.Add(new ParserToken(lineCount, 0, 0));
+                    lineCount++;
+                    continue;
+                }
+
                 if (!isQuote)
                     ResetQuote();
 
@@ -95,7 +103,7 @@ namespace Helion.Util.Parser
                     if (multiLineComment)
                         continue;
 
-                    if (line[i] == '"')
+                    if (splitSpecialChars && line[i] == '"')
                     {
                         quotedString = true;
                         isQuote = !isQuote;
@@ -112,7 +120,7 @@ namespace Helion.Util.Parser
 
                     if (!isQuote)
                     {
-                        bool special = CheckSpecial(line[i]);
+                        bool special = splitSpecialChars && CheckSpecial(line[i]);
                         if (split || special || CheckSplit(line[i]))
                         {
                             if (startLine == lineCount)
@@ -237,6 +245,16 @@ namespace Helion.Util.Parser
             return GetData(m_index);
         }
 
+        public bool PeekString(int offset, out string? data)
+        {
+            data = null;
+            if (m_index + offset >= m_tokens.Count)
+                return false;
+
+            data = GetData(m_index + offset);
+            return true;
+        }
+
         public bool PeekInteger(out int i)
         {
             AssertData();
@@ -281,7 +299,10 @@ namespace Helion.Util.Parser
                 return null;
 
             if (PeekInteger(out int i))
+            {
+                ConsumeString();
                 return i;
+            }
 
             return null;
         }
@@ -354,6 +375,22 @@ namespace Helion.Util.Parser
             int startLine = m_tokens[m_index].Line;
             while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
                 m_index++;
+
+            return m_lines[token.Line][token.Index..];
+        }
+
+        /// <summary>
+        /// Returns all tokens until the next line is hit.
+        /// </summary>
+        public string PeekLine()
+        {
+            AssertData();
+            int index = m_index;
+
+            ParserToken token = m_tokens[index];
+            int startLine = m_tokens[index].Line;
+            while (index < m_tokens.Count && m_tokens[index].Line == startLine)
+                index++;
 
             return m_lines[token.Line][token.Index..];
         }

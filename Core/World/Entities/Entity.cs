@@ -426,14 +426,20 @@ namespace Helion.World.Entities
 
         public void SetDeathState(Entity? source)
         {
-            if (FrameState.SetState(Constants.FrameStates.Death))
+            if (Definition.States.Labels.ContainsKey(Constants.FrameStates.Death))
+            {
                 SetDeath(source, false);
+                FrameState.SetState(Constants.FrameStates.Death);
+            }
         }
 
         public void SetXDeathState(Entity? source)
         {
-            if (FrameState.SetState(Constants.FrameStates.XDeath))
+            if (Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath))
+            {
                 SetDeath(source, true);
+                FrameState.SetState(Constants.FrameStates.XDeath);
+            }
         }
 
         public bool SetCrushState()
@@ -504,8 +510,7 @@ namespace Helion.World.Entities
         public virtual bool CanDamage(Entity source)
         {
             Entity damageSource = source.Owner ?? source;
-
-            if (damageSource is Player || !Flags.IsMonster)
+            if (damageSource is Player)
                 return true;
 
             // Not a projectile, always damage
@@ -557,7 +562,6 @@ namespace Helion.World.Entities
                     SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
             }
 
-
             // Skullfly is not turned off here as the original game did not do this
             if (Flags.Skullfly)
                 Velocity = Vec3D.Zero;
@@ -584,12 +588,12 @@ namespace Helion.World.Entities
         protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
         protected static bool IsAmmo(EntityDefinition definition) => definition.IsType(Inventory.AmmoClassName);
 
-        public bool HasMissileState() => Definition.States.Labels.ContainsKey("MISSILE");
-        public bool HasMeleeState() => Definition.States.Labels.ContainsKey("MELEE");
-        public bool HasXDeathState() => Definition.States.Labels.ContainsKey("XDEATH");
-        public bool HasRaiseState() => Definition.States.Labels.ContainsKey("RAISE");
-        public bool HasSeeState() => Definition.States.Labels.ContainsKey("SEE");
-        public bool HasPainState() => Definition.States.Labels.ContainsKey("PAIN");
+        public bool HasMissileState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Missile);
+        public bool HasMeleeState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Melee);
+        public bool HasXDeathState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath);
+        public bool HasRaiseState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Raise);
+        public bool HasSeeState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.See);
+        public bool HasPainState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Pain);
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
         public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
 

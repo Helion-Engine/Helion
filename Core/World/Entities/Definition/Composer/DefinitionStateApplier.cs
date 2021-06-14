@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Decorate.States;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
 using MoreLinq.Extensions;
@@ -15,7 +15,11 @@ namespace Helion.World.Entities.Definition.Composer
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Apply(EntityDefinition definition, LinkedList<ActorDefinition> actorDefinitions)
+        private static readonly Dictionary<string, EntityFrame> ProcessedFrames = new();
+        private static readonly List<UnresolvedGotoFrame> UnresolvedGotoFrames = new();
+        private static readonly List<string> ModifiedLabels = new();
+
+        public static void Apply(EntityFrameTable entityFrameTable, EntityDefinition definition, LinkedList<ActorDefinition> actorDefinitions)
         {
             if (actorDefinitions.Count < 2 || actorDefinitions.First == null)
             {
@@ -34,20 +38,24 @@ namespace Helion.World.Entities.Definition.Composer
             //
             // which are eligible to be overwritten.
             Dictionary<string, int> masterLabelTable = new(StringComparer.OrdinalIgnoreCase);
-            
+            string vanillaActorName = actorDefinitions.Last().Name;
+
             // We always have to apply the first definition to it, which should
             // be the Actor class. However to reduce code duplication, we'll be
             // passing itself as the parent. There should be no recursion nor
             // should there be any Super::Label goto's, so this is okay unless
             // the user has done something critically wrong.
+            int offset = 0;
             ActorDefinition baseActor = actorDefinitions.First.Value;
-            ApplyActorDefinition(definition, baseActor, baseActor, masterLabelTable);
-            
+            ApplyActorDefinition(entityFrameTable, definition, baseActor, baseActor, masterLabelTable, offset, vanillaActorName);
+            offset += baseActor.States.Frames.Count;
+
             actorDefinitions.Window(2).ForEach(list =>
             {
                 ActorDefinition parent = list[0];
                 ActorDefinition current = list[1];
-                ApplyActorDefinition(definition, current, parent, masterLabelTable);
+                ApplyActorDefinition(entityFrameTable, definition, current, parent, masterLabelTable, offset, vanillaActorName);
+                offset += current.States.Frames.Count;
             });
 
             // Now that all the labels have been handled/added/pruned/linked,
@@ -60,32 +68,76 @@ namespace Helion.World.Entities.Definition.Composer
             masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value);
         }
 
-        private static void AddFrameAndNonGotoFlowControl(EntityDefinition definition, ActorDefinition current, 
-            int startingFrameOffset, IList<UnresolvedGotoFrame> unresolvedGotoFrames)
+        private static void AddFrameAndNonGotoFlowControl(EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
+            IList<UnresolvedGotoFrame> unresolvedGotoFrames, Dictionary<string, int> masterLabelTable, int offset,
+            string vanillaActorName)
         {
             // The following are used for knowing where to jump back to if we
             // encounter the `loop` control flow.
             int lastLabelIndex = 0;
             HashSet<int> indicesWithLabels = new HashSet<int>();
-            current.States.Labels.Values.ForEach(index => indicesWithLabels.Add(index));
+            current.States.Labels.Values.ForEach(index => indicesWithLabels.Add(index + offset));
+
+            int startingFrameOffset = entityFrameTable.Frames.Count;
+            FrameSet? currentFrameSet = null;
 
             for (int localFrameOffset = 0; localFrameOffset < current.States.Frames.Count; localFrameOffset++)
             {
-                int absoluteFrameOffset = startingFrameOffset + localFrameOffset;
+                int currentFrameOffset = localFrameOffset + offset;
+                string key = $"{current.Name}::{currentFrameOffset}";
+                if (ProcessedFrames.TryGetValue(key, out EntityFrame? existingFrame))
+                {
+                    if (indicesWithLabels.Contains(currentFrameOffset))
+                        UpdateMasterLabelTable(currentFrameOffset, existingFrame, masterLabelTable, out _);
+                    continue;
+                }
                 
                 ActorFrame frame = current.States.Frames[localFrameOffset];
-                if (indicesWithLabels.Contains(localFrameOffset))
-                    lastLabelIndex = absoluteFrameOffset;
+                if (indicesWithLabels.Contains(currentFrameOffset))
+                    lastLabelIndex = startingFrameOffset + localFrameOffset;
 
-                int absoluteNextFrameIndex = absoluteFrameOffset + 1;
                 EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
                 ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
-                EntityFrame entityFrame = new EntityFrame(frame.Sprite, frame.Frame, frame.Ticks, properties,
-                    actionFunction, absoluteNextFrameIndex);
+                EntityFrame entityFrame = new EntityFrame(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
+                    actionFunction, entityFrameTable.Frames.Count + 1, vanillaActorName);
 
-                HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
-                
-                definition.States.Frames.Add(entityFrame);
+                HandleNonGotoFlowControl(frame, entityFrame, startingFrameOffset, lastLabelIndex, unresolvedGotoFrames);
+
+                entityFrame.MasterFrameIndex = entityFrameTable.Frames.Count;
+                ProcessedFrames[key] = entityFrame;
+                entityFrameTable.Frames.Add(entityFrame);
+                definition.States.FrameCount++;
+
+                if (indicesWithLabels.Contains(currentFrameOffset))
+                {
+                    UpdateMasterLabelTable(currentFrameOffset, entityFrame, masterLabelTable, out List<string> modifiedLabels);
+                    foreach (var label in modifiedLabels)
+                    {
+                        currentFrameSet = new FrameSet() { VanillActorName = vanillaActorName, StartFrameIndex = entityFrame.MasterFrameIndex, Count = 1 };
+                        entityFrameTable.FrameSets[label] = currentFrameSet;
+                    }
+                }
+                else if (currentFrameSet != null)
+                {
+                    currentFrameSet.Count++;
+                }
+            }
+        }
+
+        private static void UpdateMasterLabelTable(int frameOffset, EntityFrame frame, Dictionary<string, int> masterLabelTable,
+            out List<string> modifiedLabels)
+        {
+            ModifiedLabels.Clear();
+            modifiedLabels = ModifiedLabels;
+
+            // TODO this sucks
+            foreach (var pair in masterLabelTable)
+            {
+                if (pair.Value != frameOffset)
+                    continue;
+
+                masterLabelTable[pair.Key] = frame.MasterFrameIndex;
+                modifiedLabels.Add(pair.Key);
             }
         }
 
@@ -118,15 +170,13 @@ namespace Helion.World.Entities.Definition.Composer
         }
 
         private static void AddLabelsToMasterTable(ActorDefinition definition, IDictionary<string, int> masterLabelTable,
-            string upperActorName, int startingFrameOffset)
+            string upperActorName, int offset)
         {
-            definition.States.Labels.ForEach(pair =>
+            foreach (var pair in definition.States.Labels)
             {
-                masterLabelTable[pair.Key] = startingFrameOffset + pair.Value;
-                
-                string upperFullLabel = $"{upperActorName}::{pair.Key}";
-                masterLabelTable[upperFullLabel] = startingFrameOffset + pair.Value;
-            });
+                masterLabelTable[pair.Key] = pair.Value + offset;
+                masterLabelTable[$"{upperActorName}::{pair.Key}"] = pair.Value + offset;
+            }
         }
 
         private static void PurgeAnyControlFlowStopOverride(ActorDefinition current, IDictionary<string, int> masterLabelTable)
@@ -188,7 +238,7 @@ namespace Helion.World.Entities.Definition.Composer
             }
         }
         
-        private static void ApplyGotoOffsets(IEnumerable<UnresolvedGotoFrame> unresolvedGotoFrames, 
+        private static void ApplyGotoOffsets(EntityFrameTable entityFrameTable, IEnumerable<UnresolvedGotoFrame> unresolvedGotoFrames, 
             Dictionary<string, int> masterLabelTable, string upperImmediateParentName, EntityDefinition definition)
         {
             foreach (UnresolvedGotoFrame unresolved in unresolvedGotoFrames)
@@ -208,7 +258,7 @@ namespace Helion.World.Entities.Definition.Composer
                     if (masterLabelTable.TryGetValue(flowControl.Label, out int offset))
                     {
                         entityFrame.NextFrameIndex = offset + flowControl.Offset;
-                        if (entityFrame.NextFrameIndex < 0 || entityFrame.NextFrameIndex >= definition.States.Frames.Count)
+                        if (entityFrame.NextFrameIndex < 0 || entityFrame.NextFrameIndex >= entityFrameTable.Frames.Count)
                             Log.Error($"Invalid goto offset '{flowControl.Label}' in actor '{definition.Name}'");
                     }
                     else
@@ -230,17 +280,16 @@ namespace Helion.World.Entities.Definition.Composer
             }
         }
 
-        private static void ApplyActorDefinition(EntityDefinition definition, ActorDefinition current,
-            ActorDefinition parent, Dictionary<string, int> masterLabelTable)
+        private static void ApplyActorDefinition(EntityFrameTable entityFrameTable, EntityDefinition definition, ActorDefinition current,
+            ActorDefinition parent, Dictionary<string, int> masterLabelTable, int offset, string vanillaActorName)
         {
-            int startingFrameOffset = definition.States.Frames.Count;
-            List<UnresolvedGotoFrame> unresolvedGotoFrames = new List<UnresolvedGotoFrame>();
-            
-            AddFrameAndNonGotoFlowControl(definition, current, startingFrameOffset, unresolvedGotoFrames);
-            AddLabelsToMasterTable(current, masterLabelTable, current.Name, startingFrameOffset);
+            UnresolvedGotoFrames.Clear();
+
+            AddLabelsToMasterTable(current, masterLabelTable, current.Name, offset);
+            AddFrameAndNonGotoFlowControl(entityFrameTable, current, definition, UnresolvedGotoFrames, masterLabelTable, offset, vanillaActorName);
             PurgeAnyControlFlowStopOverride(current, masterLabelTable);
             HandleGotoFlowOverrides(current, parent.Name, masterLabelTable);
-            ApplyGotoOffsets(unresolvedGotoFrames, masterLabelTable, parent.Name, definition);
+            ApplyGotoOffsets(entityFrameTable, UnresolvedGotoFrames, masterLabelTable, parent.Name, definition);
         }
     }
 }

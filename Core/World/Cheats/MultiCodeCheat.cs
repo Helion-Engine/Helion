@@ -27,6 +27,14 @@ namespace Helion.World.Cheats
             ClearTypedCheatString = clearTypedCheatString;
         }
 
+        public void SetCode(string code, int index = 0)
+        {
+            if (index < 0 || index >= m_codes.Length)
+                return;
+
+            m_codes[index] = code;
+        }
+
         public bool IsMatch(string str) => m_codes.Any(x => x.Equals(str, StringComparison.InvariantCultureIgnoreCase));
 
         public bool PartialMatch(string str) => m_codes.Any(x => x.StartsWith(str, StringComparison.InvariantCultureIgnoreCase));
