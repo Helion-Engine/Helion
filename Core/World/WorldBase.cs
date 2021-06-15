@@ -6,7 +6,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
-using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
@@ -46,6 +45,7 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using Helion.Resources.IWad;
+using Helion.Maps.Specials.Vanilla;
 
 namespace Helion.World
 {
@@ -103,6 +103,7 @@ namespace Helion.World
         private int m_soundCount;
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
+        private List<MonsterCountSpecial> m_bossDeathSpecials = new();
 
         protected WorldBase(GlobalData globalData, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
@@ -344,28 +345,39 @@ namespace Helion.World
             Paused = false;
         }
 
+        public void BossDeath(Entity entity)
+        {
+            if (!entity.Definition.EditorId.HasValue)
+                return;
+
+            if (EntityManager.Players.All(x => x.IsDead))
+                return;
+
+            foreach (var special in m_bossDeathSpecials)
+            {
+                if (special.EntityEditorId == entity.Definition.EditorId)
+                    special.Tick();
+            }
+        }
+
         private void AddMapSpecial()
         {
-            List<MonsterCountSpecial> monsterCountSpecials = new List<MonsterCountSpecial>();
-
             switch (MapInfo.MapSpecial)
             {
                 case MapSpecial.BaronSpecial:
-                    AddMonsterCountSpecial(monsterCountSpecials, "BaronOfHell", 666, MapInfo.MapSpecialAction);
+                    AddMonsterCountSpecial(m_bossDeathSpecials, "BaronOfHell", 666, MapInfo.MapSpecialAction);
                     break;
                 case MapSpecial.CyberdemonSpecial:
-                    AddMonsterCountSpecial(monsterCountSpecials, "Cyberdemon", 666, MapInfo.MapSpecialAction);
+                    AddMonsterCountSpecial(m_bossDeathSpecials, "Cyberdemon", 666, MapInfo.MapSpecialAction);
                     break;
                 case MapSpecial.SpiderMastermindSpecial:
-                    AddMonsterCountSpecial(monsterCountSpecials, "SpiderMastermind", 666, MapInfo.MapSpecialAction);
+                    AddMonsterCountSpecial(m_bossDeathSpecials, "SpiderMastermind", 666, MapInfo.MapSpecialAction);
                     break;
                 case MapSpecial.Map07Special:
-                    AddMonsterCountSpecial(monsterCountSpecials, "Fatso", 666, MapSpecialAction.LowerFloor);
-                    AddMonsterCountSpecial(monsterCountSpecials, "Arachnotron", 667, MapSpecialAction.FloorRaiseByLowestTexture);
+                    AddMonsterCountSpecial(m_bossDeathSpecials, "Fatso", 666, MapSpecialAction.LowerFloor);
+                    AddMonsterCountSpecial(m_bossDeathSpecials, "Arachnotron", 667, MapSpecialAction.FloorRaiseByLowestTexture);
                     break;
             }
-
-            monsterCountSpecials.ForEach(x => SpecialManager.AddSpecial(x));
         }
 
         private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)

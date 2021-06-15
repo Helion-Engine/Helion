@@ -57,7 +57,7 @@ namespace Helion.World.Entities.Definition.States
             return null;
         }
 
-        public bool SetState(string label, int offset = 0)
+        public bool SetState(string label, int offset = 0, bool warn = true)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
             {
@@ -69,7 +69,9 @@ namespace Helion.World.Entities.Definition.States
                 return true;
             }
             
-            Log.Warn("Unable to find state label '{0}' for actor {1}", label, m_definition.Name);
+            if (warn)
+                Log.Warn("Unable to find state label '{0}' for actor {1}", label, m_definition.Name);
+
             return false;
         }
 
