@@ -126,21 +126,6 @@ namespace Helion.Resources.Definitions.Decorate.Parser
             
             Consume('{');
             InvokeUntilAndConsume('}', ConsumeActorStateElement);
-
-            // For whatever reason, default crush state isn't in decorate (which would probably make more sense...)
-            // Check for monster / player definition and add the default crush state here
-            if (!m_currentDefinition.States.Labels.ContainsKey(Constants.ActorCrushState) &&
-                ((m_currentDefinition.Flags.Monster.HasValue && m_currentDefinition.Flags.Monster.Value) || m_currentDefinition.Name.Equals(Constants.PlayerClass, StringComparison.OrdinalIgnoreCase)))
-            {
-                ActorFrame actorFrame = new ActorFrame("POL5", 0, -1, new ActorFrameProperties(), null)
-                {
-                    FlowControl = new ActorFlowControl(ActorStateBranch.Stop)
-                };
-                m_currentDefinition.States.Frames.Add(actorFrame);
-                m_frameIndex++;
-
-                m_currentDefinition.States.Labels.Add(Constants.ActorCrushState, m_frameIndex - 1);
-            }
         }
     }
 }

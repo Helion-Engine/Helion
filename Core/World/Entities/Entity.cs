@@ -444,7 +444,9 @@ namespace Helion.World.Entities
 
         public bool SetCrushState()
         {
-            if (FrameState.SetState(Constants.FrameStates.Crush))
+            // Check if there is a Crush state, otherwise default to GenericCrush
+            if (FrameState.SetState(Constants.FrameStates.Crush, warn: false) || 
+                FrameState.SetState(Constants.FrameStates.GenericCrush, warn: false))
             {
                 Flags.DontGib = true;
                 Flags.Solid = false;
