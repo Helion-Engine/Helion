@@ -1,4 +1,5 @@
-﻿using Helion.Geometry;
+﻿using System.Drawing;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
 
@@ -9,6 +10,7 @@ namespace Helion.Graphics.New
     /// </summary>
     public interface IImage
     {
+        Bitmap Bitmap { get; }
         Dimension Dimension { get; }
         int Width { get; }
         int Height { get; }

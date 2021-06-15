@@ -19,6 +19,7 @@ namespace Helion.Graphics.New
         public const ushort TransparentIndex = 0x0100;
 
         public readonly ushort[] Indices;
+        public Bitmap Bitmap { get; } = null!; // TODO: Bye
         public Dimension Dimension { get; }
         public int Width => Dimension.Width;
         public int Height => Dimension.Height;

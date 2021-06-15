@@ -5,33 +5,71 @@ using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.New
 {
     /// <summary>
-    /// An image that stores ARGB data internally.
+    /// An image, that can either contain ARGB data or palette indices.
     /// </summary>
-    public class ArgbImage : IImage
+    /// <remarks>
+    /// The bitmap, if of ImageType Palette, will have only the alpha and red
+    /// channels set. The alpha channel will be either 255, or 0.
+    /// </remarks>
+    public class Image
     {
-        public Bitmap Bitmap { get; }
-        public Dimension Dimension => (Width, Height);
-        public int Width { get; }
-        public int Height { get; }
-        public ImageType ImageType => ImageType.Argb;
-        public Vec2I Offset { get; }
-        public ResourceNamespace Namespace { get; }
+        public readonly Bitmap Bitmap;
+        public readonly int Width;
+        public readonly int Height;
+        public readonly ImageType ImageType;
+        public readonly Vec2I Offset;
+        public readonly ResourceNamespace Namespace;
 
-        public ArgbImage(Bitmap bitmap, Vec2I offset = default, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public Dimension Dimension => (Width, Height);
+
+        /// <summary>
+        /// Creates a new image that uses the bitmap provided. If it is not in
+        /// 32bpp ARGB, it will be converted.
+        /// </summary>
+        /// <param name="bitmap">The bitmap to use.</param>
+        /// <param name="imageType">The image type.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="resourceNamespace">The resource namespace.</param>
+        public Image(Bitmap bitmap, ImageType imageType, Vec2I offset = default, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
-            Bitmap = ProcessBitmap(bitmap);
+            Bitmap = EnsureExpectedFormat(bitmap);
+            ImageType = imageType;
             Width = bitmap.Width;
             Height = bitmap.Height;
             Offset = offset;
             Namespace = resourceNamespace;
         }
-
-        private static Bitmap ProcessBitmap(Bitmap bitmap)
+        
+        /// <summary>
+        /// Creates a new image filled with some color (transparent by default).
+        /// </summary>
+        /// <param name="width">The width (if less than 1, will be set to 1).
+        /// </param>
+        /// <param name="height">The height (if less than 1, will be set to 1).
+        /// </param>
+        /// <param name="imageType">The image type to use.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="resourceNamespace">The resource namespace.</param>
+        /// <param name="fillColor">The color to use, or transparent by default.
+        /// </param>
+        public Image(int width, int height, ImageType imageType, Vec2I offset = default, 
+            ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? fillColor = null)
+        {
+            Width = Math.Max(width, 1);
+            Height = Math.Max(height, 1);
+            Bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
+            ImageType = imageType;
+            Offset = offset;
+            Namespace = resourceNamespace;
+            
+            Fill(fillColor ?? Color.Transparent);
+        }
+        
+        private static Bitmap EnsureExpectedFormat(Bitmap bitmap)
         {
             if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
                 return bitmap;
@@ -42,17 +80,6 @@ namespace Helion.Graphics.New
             g.DrawImage(bitmap, new Rectangle(0, 0, copy.Width, copy.Height));
 
             return copy;
-        }
-
-        public ArgbImage(Dimension dimension, Color color, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
-        {
-            Width = Math.Max(dimension.Width, 1);
-            Height = Math.Max(dimension.Height, 1);
-            Bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
-            Offset = Vec2I.Zero;
-            Namespace = resourceNamespace;
-            
-            Fill(color);
         }
 
         /// <summary>
@@ -66,12 +93,14 @@ namespace Helion.Graphics.New
         /// <param name="argb">The raw ARGB data. Due to little endianness, the
         /// lower byte may have to be blue and the highest order byte alpha.
         /// </param>
+        /// <param name="imageType">The image type these bytes should be
+        /// interpreted as.</param>
         /// <param name="offset">The offset (zero by default).</param>
         /// <param name="resourceNamespace">The resource namespace.</param>
         /// <returns>The image, or null if the image cannot be made due to data
         /// being of an incorrect size.</returns>
-        public static ArgbImage? FromArgbBytes(Dimension dimension, byte[] argb, Vec2I offset = default,
-            ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public static Image? FromArgbBytes(Dimension dimension, byte[] argb, ImageType imageType, 
+            Vec2I offset = default, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
             (int w, int h) = dimension;
             int numBytes = w * h * 4;
@@ -82,13 +111,13 @@ namespace Helion.Graphics.New
             Bitmap bitmap = new(dimension.Width, dimension.Height, PixelFormat.Format32bppArgb);
             
             Rectangle rect = new Rectangle(0, 0, w, h);
-            BitmapData data = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            Marshal.Copy(argb, 0, data.Scan0, numBytes);
-            bitmap.UnlockBits(data);
+            BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            Marshal.Copy(argb, 0, bitmapData.Scan0, numBytes);
+            bitmap.UnlockBits(bitmapData);
 
-            return new ArgbImage(bitmap, offset, resourceNamespace);
+            return new Image(bitmap, imageType, offset, resourceNamespace);
         }
-        
+
         /// <summary>
         /// Fills the image with the color provided.
         /// </summary>
@@ -108,7 +137,7 @@ namespace Helion.Graphics.New
         /// the current image drawn on top of this.</param>
         /// <param name="offset">The offset to which the image will be drawn
         /// at.</param>
-        public void DrawOnTopOf(ArgbImage image, Vec2I offset)
+        public void DrawOnTopOf(Image image, Vec2I offset)
         {
             using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap);
             g.DrawImage(Bitmap, offset.X, offset.Y);
