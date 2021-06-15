@@ -469,7 +469,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BossDeath(Entity entity)
         {
-             // TODO
+            entity.World.BossDeath(entity);
         }
 
         private static void A_BrainAwake(Entity entity)

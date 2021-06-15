@@ -93,6 +93,7 @@ namespace Helion.World
         bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
         int EntityAliveCount(int editorId, bool deathStateComplete);
         void NoiseAlert(Entity target);
+        void BossDeath(Entity entity);
 
         WorldModel ToWorldModel();
         GameFilesModel GetGameFilesModel();

@@ -11,25 +11,25 @@ namespace Helion.World.Special
     class MonsterCountSpecial : ISpecial
     {
         public readonly int SectorTag;
+        public readonly int EntityEditorId;
         public readonly MapSpecialAction MapSpecialAction;
 
         private readonly IWorld m_world;
         private readonly SpecialManager m_specailManager;
-        private readonly int m_countId;
 
-        public MonsterCountSpecial(IWorld world, SpecialManager specialManager, int countId, int sectorTag, 
+        public MonsterCountSpecial(IWorld world, SpecialManager specialManager, int entityEditorId, int sectorTag, 
             MapSpecialAction mapSpecialAction)
         {
             MapSpecialAction = mapSpecialAction;
             SectorTag = sectorTag;
             m_world = world;
             m_specailManager = specialManager;
-            m_countId = countId;
+            EntityEditorId = entityEditorId;
         }
 
         public SpecialTickStatus Tick()
         {
-            if (m_world.EntityAliveCount(m_countId, true) == 0)
+            if (m_world.EntityAliveCount(EntityEditorId, true) == 0)
             {
                 ExecuteSpecial();
                 return SpecialTickStatus.Destroy;
