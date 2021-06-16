@@ -1,0 +1,11 @@
+﻿ actor Flemoid2 : ShotgunGuy replaces ShotgunGuy 9
+ {
+   DropItem ""
+   States
+   {
+    Missile:
+        Goto See
+    Melee:
+        Goto ShotgunGuy::Missile
+   }
+ }

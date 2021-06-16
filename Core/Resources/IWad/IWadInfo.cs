@@ -9,24 +9,28 @@ namespace Helion.Resources.IWad
         {
             public readonly string Title;
             public readonly string MapInfo;
-            public IWadData(string title, string mapinfo)
+            public readonly string Decorate;
+            public IWadData(string title, string mapinfo, string decorate)
             {
                 Title = title;
                 MapInfo = mapinfo;
+                Decorate = decorate;
             }
         }
 
+        private const string DoomDecorate = "Decorate/DoomDecorate.txt";
+
         private static Dictionary<IWadType, IWadData> IWadDataLookup = new Dictionary<IWadType, IWadData>()
         {
-            { IWadType.None, new(string.Empty, string.Empty) },
-            { IWadType.Doom2, new("Doom II: Hell on Earth", "MapInfo/Doom2.txt") },
-            { IWadType.Plutonia, new("Final Doom: The Plutonia Experiment", "MapInfo/Plutonia.txt") },
-            { IWadType.TNT, new("Final Doom: TNT: Evilution", "MapInfo/Tnt.txt") },
-            { IWadType.UltimateDoom, new("The Ultimate Doom", "MapInfo/DoomRegistered.txt") },
-            { IWadType.ChexQuest, new("Chex Quest", "MapInfo/Chex.txt") },
-            { IWadType.DoomShareware, new("Doom Shareware", "MapInfo/Doom1.txt") },
-            { IWadType.DoomRegistered, new("Doom", "MapInfo/DoomRegistered.txt") },
-            { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt") },
+            { IWadType.None, new(string.Empty, string.Empty, string.Empty) },
+            { IWadType.Doom2, new("Doom II: Hell on Earth", "MapInfo/Doom2.txt", DoomDecorate) },
+            { IWadType.Plutonia, new("Final Doom: The Plutonia Experiment", "MapInfo/Plutonia.txt", DoomDecorate) },
+            { IWadType.TNT, new("Final Doom: TNT: Evilution", "MapInfo/Tnt.txt", DoomDecorate) },
+            { IWadType.UltimateDoom, new("The Ultimate Doom", "MapInfo/DoomRegistered.txt", DoomDecorate) },
+            { IWadType.ChexQuest, new("Chex Quest", "MapInfo/Chex.txt", "Decorate/ChexDecorate.txt") },
+            { IWadType.DoomShareware, new("Doom Shareware", "MapInfo/Doom1.txt", DoomDecorate) },
+            { IWadType.DoomRegistered, new("Doom", "MapInfo/DoomRegistered.txt", DoomDecorate) },
+            { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt", DoomDecorate) },
         };
 
         private static Dictionary<string, IWadType> MD5Lookup = new Dictionary<string, IWadType>()
@@ -73,19 +77,21 @@ namespace Helion.Resources.IWad
             { "25485721882b050afa96a56e5758dd52", IWadType.ChexQuest },
         };
 
-        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, string.Empty);
+        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, string.Empty, string.Empty);
 
         public readonly string Title;
         public readonly IWadBaseType IWadBaseType;
         public readonly IWadType IWadType; 
         public readonly string MapInfoResource;
+        public readonly string DecorateResource;
 
-        public IWadInfo(string title, IWadBaseType baseType, IWadType type, string mapInfo)
+        public IWadInfo(string title, IWadBaseType baseType, IWadType type, string mapInfo, string decorate)
         {
             Title = title;
             IWadBaseType = baseType;
             IWadType = type;
             MapInfoResource = mapInfo;
+            DecorateResource = decorate;
         }
 
         public static IWadInfo? GetIWadInfo(string fileName)
@@ -104,7 +110,7 @@ namespace Helion.Resources.IWad
                 baseType = IWadBaseType.Doom2;
 
             if (IWadDataLookup.TryGetValue(iwadType, out IWadData? data))
-                return new IWadInfo(data.Title, baseType, iwadType, data.MapInfo);
+                return new IWadInfo(data.Title, baseType, iwadType, data.MapInfo, data.Decorate);
 
             return null;
         }

@@ -18,7 +18,7 @@
 #include "Actors/Doom/Monsters/Archvile.txt"
 #include "Actors/Doom/Monsters/BossBrain.txt"
 #include "Actors/Doom/Monsters/Baron.txt"
-#include "Actors/Doom/Monsters/Cacodemon.txt"
+#include "Actors/Doom/Monsters/Cacodemon.txt" 
 #include "Actors/Doom/Monsters/Chaingunner.txt"
 #include "Actors/Doom/Monsters/CommanderKeen.txt"
 #include "Actors/Doom/Monsters/Cyberdemon.txt"

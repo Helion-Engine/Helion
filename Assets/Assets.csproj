@@ -44,6 +44,8 @@
   <ItemGroup>
     <Content Include="Assets\Actors\Base.txt" />
     <Content Include="Assets\Actors\Bridges.txt" />
+    <Content Include="Assets\Actors\Chex\Flemoid2.txt" />
+    <Content Include="Assets\Actors\Chex\FlemoidBoss.txt" />
     <Content Include="Assets\Actors\Constants.txt" />
     <Content Include="Assets\Actors\Doom\Corpses.txt" />
     <Content Include="Assets\Actors\Doom\Decorations.txt" />
@@ -75,6 +77,7 @@
     <Content Include="Assets\Actors\Doom\Monsters\ShotgunGuy.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Spectre.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\SpiderMastermind.txt" />
+    <Content Include="Assets\Actors\Chex\Flemoid1.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\WolfensteinSS.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\ZombieMan.txt" />
     <Content Include="Assets\Actors\Doom\Weapons.txt" />
@@ -87,7 +90,8 @@
     <Content Include="Assets\Ammo\Doom\Clip.txt" />
     <Content Include="Assets\Animdefs.txt" />
     <Content Include="Assets\Compatibility.txt" />
-    <Content Include="Assets\Decorate.txt" />
+    <Content Include="Assets\Decorate\ChexDecorate.txt" />
+    <Content Include="Assets\Decorate\DoomDecorate.txt" />
     <Content Include="Assets\Fonts.txt" />
     <Content Include="Assets\Fonts\console.ttf" />
     <Content Include="Assets\Graphics\cursor.png" />

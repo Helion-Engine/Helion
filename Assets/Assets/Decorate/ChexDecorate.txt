@@ -1,0 +1,4 @@
+#include "Decorate/DoomDecorate.txt"
+#include "Actors/Chex/Flemoid1.txt"
+#include "Actors/Chex/Flemoid2.txt"
+#include "Actors/Chex/FlemoidBoss.txt"

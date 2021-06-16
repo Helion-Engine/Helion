@@ -969,9 +969,6 @@ namespace Helion.World
 
         private void CheckDropItem(Entity deathEntity)
         {
-            if (ArchiveCollection.IWadType == IWadBaseType.ChexQuest)
-                return;
-
             if (deathEntity.Definition.Properties.DropItem != null &&
                 (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
                     m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))

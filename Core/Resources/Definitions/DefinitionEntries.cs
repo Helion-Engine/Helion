@@ -84,14 +84,35 @@ namespace Helion.Resources.Definitions
 
         public bool LoadMapInfo(Archive archive, string entryName)
         {
-            Entry? entry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.Equals(entryName, StringComparison.OrdinalIgnoreCase));
+            if (!GetEntry(archive, entryName, out Entry? entry) || entry == null)
+                return false;
+
+            ParseEntry(ParseMapInfo, entry);
+            return true;
+        }
+
+        public bool LoadDecorate(Archive archive, string entryName)
+        {
+            if (!GetEntry(archive, entryName, out Entry? entry) || entry == null)
+                return false;
+
+            Decorate.AddDecorateDefinitions(entry);
+            return true;
+        }
+
+        private static bool GetEntry(Archive archive, string entryName, out Entry? entry)
+        {
+            if (entryName.Length == 0)
+                entry = null;
+            else
+                entry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.Equals(entryName, StringComparison.OrdinalIgnoreCase));
+
             if (entry == null)
             {
-                Log.Error($"Failed to find map info resource {entryName}");
+                Log.Error($"Failed to find resource {entryName}");
                 return false;
             }
 
-            ParseEntry(ParseMapInfo, entry);
             return true;
         }
 

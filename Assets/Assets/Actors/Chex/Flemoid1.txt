@@ -1,0 +1,11 @@
+﻿ actor Flemoid1 : ZombieMan replaces ZombieMan 3004
+ {
+   DropItem ""
+   States
+   {
+    Missile:
+        Goto See
+    Melee:
+        Goto ZombieMan::Missile
+   }
+ }

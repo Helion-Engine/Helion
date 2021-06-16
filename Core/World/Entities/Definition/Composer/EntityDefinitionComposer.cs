@@ -40,7 +40,14 @@ namespace Helion.World.Entities.Definition.Composer
 
         public void LoadAllDefinitions()
         {
-            foreach (ActorDefinition definition in m_archiveCollection.Definitions.Decorate.GetActorDefinitions())
+            List<ActorDefinition> actorDefinitions = m_archiveCollection.Definitions.Decorate.GetActorDefinitions();
+            var normalDefinitions = actorDefinitions.Where(x => string.IsNullOrEmpty(x.Replaces));
+            var replaceDefinitions = actorDefinitions.Where(x => !string.IsNullOrEmpty(x.Replaces));
+
+            foreach (ActorDefinition definition in normalDefinitions)
+                GetByName(definition.Name);
+
+            foreach (ActorDefinition definition in replaceDefinitions)
                 GetByName(definition.Name);
         }
 
@@ -58,9 +65,14 @@ namespace Helion.World.Entities.Definition.Composer
                 return null;
 
             m_listDefinitions.Add(definition);
-            m_definitions[definition.Name] = definition;
+            if (!string.IsNullOrEmpty(actorDefinition.Replaces))      
+                m_definitions[actorDefinition.Replaces] = definition;
+            else
+                m_definitions[definition.Name] = definition;
+
             if (definition.EditorId != null)
                 m_editorNumToDefinition[definition.EditorId.Value] = definition;
+
             return definition;
         }
 

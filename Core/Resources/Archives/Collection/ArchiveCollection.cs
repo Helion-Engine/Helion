@@ -266,6 +266,7 @@ namespace Helion.Resources.Archives.Collection
                     {
                         iwadArchive.IWadInfo = iwadInfo;
                         Definitions.LoadMapInfo(archive, iwadInfo.MapInfoResource);
+                        Definitions.LoadDecorate(archive, iwadInfo.DecorateResource);
                     }
                 }
             }
