@@ -4,7 +4,9 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 using Helion.Resources;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.New
 {
@@ -142,10 +144,91 @@ namespace Helion.Graphics.New
             using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap);
             g.DrawImage(Bitmap, offset.X, offset.Y);
         }
+
+        /// <summary>
+        /// Gets the underlying bitmap pointer by locking, performing the
+        /// provided action, and then unlocking.
+        /// </summary>
+        /// <remarks>
+        /// Intended for low level operations like uploading the data raw to
+        /// a rendering interface. The data may be read or written to as well.
+        /// </remarks>
+        /// <param name="action">The actions to carry out with the locked
+        /// bitmap pointer.</param>
+        /// <param name="lockMode">The mode of locking. By default, is read
+        /// and write.</param>
+        public void GetBitmapPointer(Action<IntPtr> action, ImageLockMode lockMode = ImageLockMode.ReadWrite)
+        {
+            Rectangle rect = new Rectangle(0, 0, Width, Height);
+            BitmapData bitmapData = Bitmap.LockBits(rect, lockMode, PixelFormat.Format32bppArgb);
+            
+            action(bitmapData.Scan0);
+            
+            Bitmap.UnlockBits(bitmapData);
+        }
+
+        /// <summary>
+        /// Converts the palette image to an ARGB image. If this image is
+        /// already in ARGB, it will return itself and nothing new will be
+        /// allocated.
+        /// </summary>
+        /// <param name="palette">The palette to convert with.</param>
+        /// <returns>The converted image, or itself if it is ARGB.</returns>
+        public Image PaletteToArgb(Palette palette)
+        {
+            if (ImageType == ImageType.Argb)
+                return this;
+
+            byte[] argbBytes = new byte[Width * Height * 4];
+            
+            Rectangle rect = new Rectangle(0, 0, Width, Height);
+            BitmapData bitmapData = Bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            int numBytes = bitmapData.Stride * Height;
+            byte[] bytes = new byte[numBytes];
+            Marshal.Copy(bitmapData.Scan0, bytes, 0, numBytes);
+            Bitmap.UnlockBits(bitmapData);
+
+            Color[] colors = palette[0];
+            int offset = 0;
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    // The first of the four bytes is the alpha, and if we have
+                    // alpha, then we have to write the RGB. Otherwise, it is
+                    // already set to transparent so our job would be done.
+                    if (bytes[offset] != 0)
+                    {
+                        int index = bytes[offset + 3];
+                        Color color = colors[index];
+
+                        bytes[offset] = 255;
+                        bytes[offset + 1] = color.R;
+                        bytes[offset + 2] = color.G;
+                        bytes[offset + 3] = color.B;
+                    }
+                    
+                    offset += 4;
+                }
+            }
+
+            Image? image = FromArgbBytes((Width, Height), argbBytes, ImageType.Argb, Offset, Namespace);
+            if (image != null) 
+                return image;
+            
+            Fail("Should never fail to convert to ARGB from palette at this point");
+            return new Image(1, 1, ImageType.Argb);
+        }
         
         /// <summary>
         /// Saves this image to the hard drive at the path provided.
         /// </summary>
+        /// <remarks>
+        /// Note that palette images will be written based on their "AR" color
+        /// channel, meaning it will be a bunch of black to red pixels, and
+        /// any transparency will be either 255 or 0 for the alpha channel. It
+        /// will not write them as a doom column byte formatted file.
+        /// </remarks>
         /// <param name="path">The path to save it at.</param>
         /// <returns>True on success, false on failure.</returns>
         public bool WriteToDisk(string path)

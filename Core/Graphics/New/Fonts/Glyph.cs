@@ -1,4 +1,6 @@
-﻿using Helion.Geometry.Boxes;
+﻿using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Graphics.New.Fonts
 {
@@ -16,6 +18,17 @@ namespace Helion.Graphics.New.Fonts
             Character = character;
             UV = uv;
             Area = area;
+        }
+
+        public Glyph(char character, Vec2I topLeft, Dimension area, Dimension atlasArea)
+        {
+            Character = character;
+            Area = (topLeft, topLeft + (area.Width, area.Height));
+            
+            Vec2F totalArea = atlasArea.Vector.Float;
+            Vec2F uvStart = Area.Min.Float / totalArea;
+            Vec2F uvEnd = Area.Max.Float / totalArea;
+            UV = (uvStart, uvEnd);
         }
     }
 }

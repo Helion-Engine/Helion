@@ -7,7 +7,6 @@ using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
-using Helion.Util;
 using NLog;
 using Image = Helion.Graphics.Image;
 
