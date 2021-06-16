@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using Helion.Geometry.Vectors;
+using Helion.Geometry;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
+using Helion.Resources.Images;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -26,23 +26,20 @@ namespace Helion.Graphics.New.Fonts
 
             try
             {
-                Dictionary<char, IImage> charImages = GetCharacterImages(definition, archiveCollection);
+                Dictionary<char, Image> charImages = GetCharacterImages(definition, archiveCollection,
+                    out int maxHeight, out ImageType imageType);
+                
                 if (charImages.Empty())
                     return null;
                 
                 // For now, if we have all ARGB and get a Palette, or vice-versa,
                 // we will disallow this. In the future if we want, we can convert
                 // it all to ARGB.
-                Type type = charImages.Values.First().GetType();
-                if (NotAllSameImageType(type, charImages))
-                    return null;
 
-                Func<int, int, IImage> transparentAllocator = GetTransparentAllocatorOrThrow(type);
-                int maxHeight = CalculateMaxHeight(charImages);
-                AddSpaceGlyphIfMissing(charImages, definition, maxHeight, transparentAllocator);
-
-                Action<IImage, IImage> imageWriter = GetImageWriterOrThrow(type);
-                var (glyphs, image) = CreateGlyphs(charImages, definition, maxHeight);
+                
+                AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
+                
+                var (glyphs, image) = CreateGlyphs(charImages, maxHeight, imageType);
                 return new Font(definition.Name, glyphs, image);
             }
             catch
@@ -51,44 +48,18 @@ namespace Helion.Graphics.New.Fonts
             }
         }
 
-        private static Func<int, int, IImage> GetTransparentAllocatorOrThrow(Type type)
-        {
-            if (type == typeof(ArgbImage))
-                return (w, h) => new ArgbImage((w, h), Color.Transparent, ResourceNamespace.Fonts);
-            
-            if (type == typeof(PaletteImage))
-                return (w, h) => new PaletteImage((w, h), PaletteImage.TransparentIndex, Vec2I.Zero, ResourceNamespace.Fonts);
-
-            throw new Exception($"Unknown font image transparency allocator type: {type.FullName}");
-        }
-        
-        private static Action<IImage, IImage> GetImageWriterOrThrow(Type type)
-        {
-            if (type == typeof(ArgbImage))
-            {
-                return (src, dest) =>
-                {
-                    if (src is not ArgbImage source || dest is not ArgbImage destination)
-                        throw new Exception("Unexpected image type: {}");
-                };
-
-            }
-
-            throw new Exception($"Unknown font image writer type: {type.FullName}");
-        }
-
-        private static int CalculateMaxHeight(Dictionary<char, IImage> charImages)
+        private static int CalculateMaxHeight(Dictionary<char, Image> charImages)
         {
             return charImages.Values.Select(i => i.Height).Max();
         }
 
-        private static bool NotAllSameImageType(Type type, Dictionary<char, IImage> charImages)
+        private static bool NotAllSameImageType(ImageType type, Dictionary<char, Image> charImages)
         {
-            return charImages.Values.All(i => i.GetType() == type);
+            return charImages.Values.All(i => i.ImageType == type);
         }
 
-        private static void AddSpaceGlyphIfMissing(Dictionary<char, IImage> charImages, FontDefinition definition,
-            int maxHeight, Func<int, int, IImage> transparentImageAllocatorFunc)
+        private static void AddSpaceGlyphIfMissing(Dictionary<char, Image> charImages, FontDefinition definition,
+            int maxHeight, ImageType imageType)
         {
             if (charImages.ContainsKey(' '))
                 return;
@@ -96,86 +67,85 @@ namespace Helion.Graphics.New.Fonts
             Precondition(definition.SpaceWidth != null, "Invalid definition detected, has no space image nor spacing attribute");
             int width = definition.SpaceWidth ?? 1;
             
-            charImages[' '] = transparentImageAllocatorFunc(width, maxHeight);
+            charImages[' '] = new Image(width, maxHeight, imageType);
         }
 
-        private static Dictionary<char, IImage> GetCharacterImages(FontDefinition definition,
-            ArchiveCollection archiveCollection)
+        private static Dictionary<char, Image> GetCharacterImages(FontDefinition definition,
+            ArchiveCollection archiveCollection, out int maxHeight, out ImageType imageType)
         {
-            Dictionary<char, IImage> charImages = new();
+            Dictionary<char, Image> charImages = new();
+            IImageRetriever imageRetriever = new ArchiveImageRetriever(archiveCollection);
 
+            // Unfortunately we need to know the max height, and require all of
+            // the images beforehand to make such a calculation.
             foreach ((char c, CharDefinition charDef) in definition.CharDefinitions)
             {
-                // TODO
+                // TODO:
                 // Image? image = imageRetriever.Get(charDef.ImageName, ResourceNamespace.Graphics);
                 // if (image != null)
-                    // charImages[c] = new GlyphPrototype(image, charDef.Alignment);
+                //     charImages[c] = image;
             }
 
-            return charImages;
+            maxHeight = CalculateMaxHeight(charImages);
+            
+            imageType = charImages.Values.First().ImageType;
+            if (NotAllSameImageType(imageType, charImages))
+                throw new Exception("Mixing different image types when making bitmap font");
+
+            Dictionary<char, Image> processedCharImages = new();
+            foreach ((char c, Image charImage) in charImages)
+                processedCharImages[c] = CreateCharImage(charImage, maxHeight, definition.Alignment, imageType);
+            return processedCharImages;
         }
 
-        private static (Dictionary<char, Glyph>, IImage) CreateGlyphs(Dictionary<char, IImage> charImages, 
-            FontDefinition definition, int maxHeight)
+        private static (Dictionary<char, Glyph>, Image) CreateGlyphs(Dictionary<char, Image> charImages, 
+            int maxHeight, ImageType imageType)
         {
             Dictionary<char, Glyph> glyphs = new();
-            
-            // MSDN says "The order in which the items are returned is undefined"
-            // for dictionaries, so we want a repeatable order for doing separate
-            // passes while requiring the same order.
-
             int offsetX = 0;
             int width = charImages.Values.Select(i => i.Width).Sum();
-            
-            foreach ((char c, IImage charImage) in charImages)
-            {
-                // TODO
 
+            Dimension atlasDimension = (width, maxHeight);
+            Image atlas = new(width, maxHeight, imageType);
+            
+            foreach ((char c, Image charImage) in charImages)
+            {
+                charImage.DrawOnTopOf(atlas, (offsetX, 0));
+                glyphs[c] = new Glyph(c, (offsetX, 0), charImage.Dimension, atlasDimension);
                 offsetX += charImage.Width;
             }
-
-            // foreach ((char c, GlyphPrototype glyphPrototype) in charImages)
-            // {
-            //     FontAlignment alignment = definition.Alignment;
-            //     if (glyphPrototype.Alignment != null)
-            //         alignment = glyphPrototype.Alignment.Value;
-            //
-            //     Glyph glyph = CreateGlyph(c, glyphPrototype.Image, maxHeight, alignment, definition.Grayscale);
-            //     glyphs.Add(glyph);
-            // }
-
-            // TODO
-            IImage atlas = null!; //CreateAtlas();
         
             return (glyphs, atlas);
         }
 
-        // private static Glyph CreateGlyph(char c, Image image, int maxHeight, FontAlignment alignment)
-        // {
-        //     Precondition(maxHeight >= image.Height, "Miscalculated max height when making font");
-        //
-        //     int startY = 0;
-        //     switch (alignment)
-        //     {
-        //     case FontAlignment.Top:
-        //         // We're done, the default value is correct already.
-        //         break;
-        //     case FontAlignment.Center:
-        //         startY = (maxHeight / 2) - (image.Height / 2);
-        //         break;
-        //     case FontAlignment.Bottom:
-        //         startY = maxHeight - image.Height;
-        //         break;
-        //     default:
-        //         throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation");
-        //     }
-        //
-        //     // TODO
-        //     // Image glyphImage = new Image(image.Width, maxHeight, Color.Transparent);
-        //     image.DrawOnTopOf(glyphImage, (0, startY));
-        //
-        //     // TODO
-        //     // return new Glyph(c, glyphImage);
-        // }
+        private static Image CreateCharImage(Image image, int maxHeight, FontAlignment alignment,
+            ImageType imageType)
+        {
+            Precondition(maxHeight >= image.Height, "Miscalculated max height when making font");
+
+            if (image.Height == maxHeight)
+                return image;
+
+            int startY = 0;
+            switch (alignment)
+            {
+            case FontAlignment.Top:
+                // We're done, the default value is correct already.
+                break;
+            case FontAlignment.Center:
+                startY = (maxHeight / 2) - (image.Height / 2);
+                break;
+            case FontAlignment.Bottom:
+                startY = maxHeight - image.Height;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation");
+            }
+        
+            Image glyphImage = new(image.Width, maxHeight, imageType);
+            image.DrawOnTopOf(glyphImage, (0, startY));
+
+            return glyphImage;
+        }
     }
 }

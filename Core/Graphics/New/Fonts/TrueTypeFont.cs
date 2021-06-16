@@ -63,7 +63,7 @@ namespace Helion.Graphics.New.Fonts
                             ctx.DrawText(text, imageSharpFont, Color.White, offset);
                         });
 
-                        Dictionary<char, ArgbImage> charImages = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
+                        Dictionary<char, Image> charImages = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
 
                         var (glyphs, image) = ComposeFontGlyphs(charImages);
                         return new Font(name, glyphs, image);
@@ -83,10 +83,10 @@ namespace Helion.Graphics.New.Fonts
             return string.Join("", chars);
         }
 
-        private static Dictionary<char, ArgbImage> ExtractGlyphs(Image<Rgba32> rgbaImage, int height, PointF offset,
+        private static Dictionary<char, Image> ExtractGlyphs(Image<Rgba32> rgbaImage, int height, PointF offset,
             RendererOptions rendererOptions)
         {
-            Dictionary<char, ArgbImage> glyphs = new();
+            Dictionary<char, Image> glyphs = new();
 
             for (char c = StartCharacter; c <= EndCharacter; c++)
             {
@@ -118,7 +118,7 @@ namespace Helion.Graphics.New.Fonts
 
                 ExtractFromRgbaImage(rgbaImage, startX, width, height, out byte[] argb);
 
-                ArgbImage? image = ArgbImage.FromArgbBytes((width, height), argb, Vec2I.Zero, ResourceNamespace.Fonts);
+                Image? image = Image.FromArgbBytes((width, height), argb, ImageType.Argb, Vec2I.Zero, ResourceNamespace.Fonts);
                 glyphs[c] = image ?? throw new Exception($"Unable to create TTF glyph character: {c}");
 
                 offset.X += size.Width;
@@ -151,17 +151,17 @@ namespace Helion.Graphics.New.Fonts
             }
         }
         
-        private static (Dictionary<char, Glyph>, ArgbImage) ComposeFontGlyphs(Dictionary<char, ArgbImage> charImages)
+        private static (Dictionary<char, Glyph>, Image) ComposeFontGlyphs(Dictionary<char, Image> charImages)
         {
             Dictionary<char, Glyph> glyphs = new();
 
             int width = charImages.Values.Select(i => i.Width).Sum();
             int height = charImages.Values.Select(i => i.Height).Max();
-            ArgbImage image = new((width, height), System.Drawing.Color.Transparent, ResourceNamespace.Fonts);
+            Image image = new(width, height, ImageType.Argb, Vec2I.Zero, ResourceNamespace.Fonts);
 
             int offsetX = 0;
             Vec2F totalDimension = (width, height);
-            foreach ((char c, ArgbImage charImage) in charImages)
+            foreach ((char c, Image charImage) in charImages)
             {
                 Vec2I start = (offsetX, 0);
                 Box2I location = (start, start + (charImage.Width, charImage.Height));
