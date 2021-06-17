@@ -20,7 +20,7 @@ namespace Helion.Resources.IWad
 
         private const string DoomDecorate = "Decorate/DoomDecorate.txt";
 
-        private static Dictionary<IWadType, IWadData> IWadDataLookup = new Dictionary<IWadType, IWadData>()
+        private static readonly Dictionary<IWadType, IWadData> IWadDataLookup = new()
         {
             { IWadType.None, new(string.Empty, string.Empty, string.Empty) },
             { IWadType.Doom2, new("Doom II: Hell on Earth", "MapInfo/Doom2.txt", DoomDecorate) },
@@ -33,7 +33,7 @@ namespace Helion.Resources.IWad
             { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt", DoomDecorate) },
         };
 
-        private static Dictionary<string, IWadType> MD5Lookup = new Dictionary<string, IWadType>()
+        private readonly static Dictionary<string, IWadType> MD5Lookup = new()
         {
             { "90facab21eede7981be10790e3f82da2", IWadType.DoomShareware },
             { "52cbc8882f445573ce421fa5453513c1", IWadType.DoomShareware },
@@ -77,7 +77,7 @@ namespace Helion.Resources.IWad
             { "25485721882b050afa96a56e5758dd52", IWadType.ChexQuest },
         };
 
-        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, string.Empty, string.Empty);
+        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, "MapInfo/Doom2.txt", DoomDecorate);
 
         public readonly string Title;
         public readonly IWadBaseType IWadBaseType;
@@ -94,14 +94,14 @@ namespace Helion.Resources.IWad
             DecorateResource = decorate;
         }
 
-        public static IWadInfo? GetIWadInfo(string fileName)
+        public static IWadInfo GetIWadInfo(string fileName)
         {
             string? md5 = Files.CalculateMD5(fileName);
             if (md5 == null)
-                return null;
+                return DefaultIWadInfo;
 
             if (!MD5Lookup.TryGetValue(md5, out IWadType iwadType))
-                return null;
+                return DefaultIWadInfo;
 
             IWadBaseType baseType = (IWadBaseType)iwadType;
             if (iwadType == IWadType.DoomShareware || iwadType == IWadType.DoomRegistered)
@@ -112,7 +112,7 @@ namespace Helion.Resources.IWad
             if (IWadDataLookup.TryGetValue(iwadType, out IWadData? data))
                 return new IWadInfo(data.Title, baseType, iwadType, data.MapInfo, data.Decorate);
 
-            return null;
+            return DefaultIWadInfo;
         }
     }
 }

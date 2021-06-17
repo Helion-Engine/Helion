@@ -261,13 +261,9 @@ namespace Helion.Resources.Archives.Collection
 
                 if (archive.ArchiveType == ArchiveType.Assets && iwadArchive != null)
                 {
-                    IWadInfo? iwadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
-                    if (iwadInfo != null)
-                    {
-                        iwadArchive.IWadInfo = iwadInfo;
-                        Definitions.LoadMapInfo(archive, iwadInfo.MapInfoResource);
-                        Definitions.LoadDecorate(archive, iwadInfo.DecorateResource);
-                    }
+                    iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
+                    Definitions.LoadMapInfo(archive, iwadArchive.IWadInfo.MapInfoResource);
+                    Definitions.LoadDecorate(archive, iwadArchive.IWadInfo.DecorateResource);
                 }
             }
         }

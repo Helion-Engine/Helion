@@ -21,8 +21,8 @@ namespace Helion.Resources.IWad
                 string[] files = Directory.GetFiles(dir, "*.wad");
                 foreach (var file in files)
                 {
-                    IWadInfo? iwadInfo = IWadInfo.GetIWadInfo(file);
-                    if (iwadInfo != null)
+                    IWadInfo iwadInfo = IWadInfo.GetIWadInfo(file);
+                    if (iwadInfo != IWadInfo.DefaultIWadInfo)
                         iwads.Add((file, iwadInfo));
                 }
             }
