@@ -19,6 +19,7 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
+using Helion.Resources.Definitions.MapInfo;
 
 namespace Helion.World.Entities
 {
@@ -514,6 +515,11 @@ namespace Helion.World.Entities
             Entity damageSource = source.Owner ?? source;
             if (damageSource is Player)
                 return true;
+
+            if (World.MapInfo.Infighting == Infighting.Total)
+                return true;
+            if (World.MapInfo.Infighting == Infighting.None)
+                return false;
 
             // Not a projectile, always damage
             if (source.Owner == null)

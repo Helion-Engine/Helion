@@ -352,6 +352,12 @@ namespace Helion.World.Entities.Players
             m_killer = null;
         }
 
+        public override bool CanDamage(Entity source)
+        {
+            // Always return true for now - this will likely change with multiplayer options
+            return true;
+        }
+
         public void AddToYaw(double delta, bool isMouse)
         {
             if (!TickCommand.Has(TickCommands.Strafe))

@@ -26,6 +26,7 @@ namespace Helion.Resources.Definitions.MapInfo
         public string EnterPic { get; set; } = string.Empty;
         public string ExitPic { get; set; } = string.Empty;
         public string EndPic { get; set; } = string.Empty;
+        public Infighting Infighting { get; set; } = Infighting.Normal;
 
         public object Clone()
         {

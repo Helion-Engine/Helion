@@ -103,7 +103,7 @@ namespace Helion.World
         private int m_soundCount;
         private LevelChangeType m_levelChangeType = LevelChangeType.Next;
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
-        private List<MonsterCountSpecial> m_bossDeathSpecials = new();
+        private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
 
         protected WorldBase(GlobalData globalData, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
