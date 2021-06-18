@@ -59,6 +59,7 @@ namespace Helion.Resources.Definitions.MapInfo
             {
                 int defLine = parser.GetCurrentLine();
                 mapDef.MapName = parser.ConsumeString();
+
                 if (parser.Peek("lookup"))
                 {
                     parser.ConsumeString();
@@ -121,23 +122,7 @@ namespace Helion.Resources.Definitions.MapInfo
                         mapDef.EnterPic = parser.ConsumeString();
                     else if (item.Equals(MapExitPicName, StringComparison.OrdinalIgnoreCase))
                         mapDef.ExitPic = parser.ConsumeString();
-                    else if (item.Equals(MapNormalInfightingName, StringComparison.OrdinalIgnoreCase))
-                        mapDef.Infighting = Infighting.Normal;
-                    else if (item.Equals(MapNoInfightingName, StringComparison.OrdinalIgnoreCase))
-                        mapDef.Infighting = Infighting.None;
-                    else if (item.Equals(MapTotalInfightingName, StringComparison.OrdinalIgnoreCase))
-                        mapDef.Infighting = Infighting.Total;
                 }
-                else if (item.Equals("nointermission", StringComparison.OrdinalIgnoreCase))
-                    mapDef.MapOptions |= MapOptions.NoIntermission;
-                else if (item.Equals("needclustertext", StringComparison.OrdinalIgnoreCase))
-                    mapDef.MapOptions |= MapOptions.NeedClusterText;
-                else if (item.Equals("allowmonstertelefrags", StringComparison.OrdinalIgnoreCase))
-                    mapDef.MapOptions |= MapOptions.AllowMonsterTelefrags;
-                else if (item.Equals("nocrouch", StringComparison.OrdinalIgnoreCase))
-                    mapDef.MapOptions |= MapOptions.NoCrouch;
-                else if (item.Equals("nojump", StringComparison.OrdinalIgnoreCase))
-                    mapDef.MapOptions |= MapOptions.NoJump;
                 else if (item.Equals("nosoundclipping", StringComparison.OrdinalIgnoreCase))
                     continue; // Deprecated, no longer used
                 else if (item.Equals("baronspecial", StringComparison.OrdinalIgnoreCase))
@@ -154,6 +139,25 @@ namespace Helion.Resources.Definitions.MapInfo
                     mapDef.MapSpecialAction = MapSpecialAction.ExitLevel;
                 else if (item.Equals("specialaction_opendoor", StringComparison.OrdinalIgnoreCase))
                     mapDef.MapSpecialAction = MapSpecialAction.OpenDoor;
+                else if (item.Equals("normalinfighting", StringComparison.OrdinalIgnoreCase))
+                {
+                    mapDef.SetOption(MapOptions.NoInfighting, false);
+                    mapDef.SetOption(MapOptions.TotalInfighting, false);
+                }
+                else if (item.Equals("noinfighting", StringComparison.OrdinalIgnoreCase))
+                {
+                    mapDef.SetOption(MapOptions.NoInfighting, true);
+                    mapDef.SetOption(MapOptions.TotalInfighting, false);
+                }
+                else if (item.Equals("totalinfighting", StringComparison.OrdinalIgnoreCase))
+                {
+                    mapDef.SetOption(MapOptions.NoInfighting, false);
+                    mapDef.SetOption(MapOptions.TotalInfighting, true);
+                }
+                else if (MapOptionsLookup.TryGetValue(item, out MapOptionSet? set))
+                {
+                    mapDef.SetOption(set.Option, set.Value);
+                }
                 else
                 {
                     // Warn we do not know what this is

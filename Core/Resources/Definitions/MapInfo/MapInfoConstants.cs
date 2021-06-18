@@ -16,7 +16,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string SkillName = "skill";
         private static readonly string ClearSkillsName = "clearskills";
 
-        private static readonly HashSet<string> HighLevelNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> HighLevelNames = new(StringComparer.OrdinalIgnoreCase)
         {
             GameInfoName,
             ClearEpisodesName,
@@ -45,7 +45,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string GameIntermissionMusicName = "intermissionmusic";
         private static readonly string GameWeaponSlotName = "WeaponSlot";
 
-        private static readonly HashSet<string> GameInfoNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> GameInfoNames = new(StringComparer.OrdinalIgnoreCase)
         {
             GameCreditPageName,
             GameFinalePageName,
@@ -67,7 +67,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string EpisodeEpName = "name";
         private static readonly string EpisodeKeyName = "key";
 
-        private static readonly HashSet<string> EpisodeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> EpisodeNames = new(StringComparer.OrdinalIgnoreCase)
         {
             EpisodePicName,
             EpisodeEpName,
@@ -88,11 +88,8 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string MapEnterPicName = "enterpic";
         private static readonly string MapExitPicName = "exitpic";
         private static readonly string MapEndPicName = "endpic";
-        private static readonly string MapNoInfightingName = "noinfighting";
-        private static readonly string MapNormalInfightingName = "normalinfighting";
-        private static readonly string MapTotalInfightingName = "totalinfighting";
 
-        private static readonly HashSet<string> MapNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> MapNames = new(StringComparer.OrdinalIgnoreCase)
         {
             MapLevelNumName,
             MapTitlePatchName,
@@ -107,9 +104,6 @@ namespace Helion.Resources.Definitions.MapInfo
             MapEnterPicName,
             MapExitPicName,
             MapEndPicName,
-            MapNoInfightingName,
-            MapNormalInfightingName,
-            MapTotalInfightingName
         };
 
         private static readonly string ClusterEnterTextName = "entertext";
@@ -121,7 +115,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string ClusterHubName = "hub";
         private static readonly string ClusterAllowIntermissionName = "allowintermission";
 
-        private static readonly HashSet<string> ClusterNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> ClusterNames = new(StringComparer.OrdinalIgnoreCase)
         {
             ClusterEnterTextName,
             ClusterExitTextName,
@@ -165,7 +159,7 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string Skill_NoMenuName = "NoMenu";
         private static readonly string Skill_PlayerRespawnName = "PlayerRespawn";
 
-        private static readonly HashSet<string> SkillNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> SkillNames = new(StringComparer.OrdinalIgnoreCase)
         {
             Skill_AmmoFactorName,
             Skill_DropAmmoFactorName,
@@ -208,13 +202,33 @@ namespace Helion.Resources.Definitions.MapInfo
         private static readonly string EndGame_VScollName = "vscroll";
         private static readonly string EndGame_CastName = "cast";
 
-        private static readonly HashSet<string> EndGameNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> EndGameNames = new(StringComparer.OrdinalIgnoreCase)
         {
             EndGame_PicName,
             EndGame_MusicName,
             EndGame_HScrollName,
             EndGame_VScollName,
             EndGame_CastName
+        };
+
+        private class MapOptionSet
+        {
+            public MapOptions Option { get; set; }
+            public bool Value { get; set; }
+        }
+
+        private static readonly Dictionary<string, MapOptionSet> MapOptionsLookup = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "nojump",             new MapOptionSet { Option = MapOptions.NoJump, Value = true } },
+            { "allowjump",          new MapOptionSet { Option = MapOptions.NoJump, Value = false } },
+            { "nocrouch",           new MapOptionSet { Option = MapOptions.NoCrouch, Value = true } },
+            { "allowcouch",         new MapOptionSet { Option = MapOptions.NoCrouch, Value = false } },
+            { "nofreelook",         new MapOptionSet { Option = MapOptions.NoFreelook, Value = true } },
+            { "allowfreelook",      new MapOptionSet { Option = MapOptions.NoFreelook, Value = false } },
+            { "nointermission",     new MapOptionSet { Option = MapOptions.NoIntermission, Value = true } },
+            { "allowintermission",  new MapOptionSet { Option = MapOptions.NoIntermission, Value = false } },
+            { "noclustertext",      new MapOptionSet { Option = MapOptions.NeedClusterText, Value = false } },
+            { "needclustertext",    new MapOptionSet { Option = MapOptions.NeedClusterText, Value = true } },
         };
     }
 }

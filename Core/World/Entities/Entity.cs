@@ -516,9 +516,9 @@ namespace Helion.World.Entities
             if (damageSource is Player)
                 return true;
 
-            if (World.MapInfo.Infighting == Infighting.Total)
+            if (World.MapInfo.HasOption(MapOptions.TotalInfighting))
                 return true;
-            if (World.MapInfo.Infighting == Infighting.None)
+            if (World.MapInfo.HasOption(MapOptions.NoInfighting))
                 return false;
 
             // Not a projectile, always damage

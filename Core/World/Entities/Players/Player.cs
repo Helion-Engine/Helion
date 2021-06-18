@@ -16,6 +16,7 @@ using Helion.World.Sound;
 using Helion.World.StatusBar;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Cheats;
+using Helion.Resources.Definitions.MapInfo;
 
 namespace Helion.World.Entities.Players
 {
@@ -369,6 +370,9 @@ namespace Helion.World.Entities.Players
 
         public void AddToPitch(double delta, bool isMouse)
         {
+            if (World.MapInfo.HasOption(MapOptions.NoFreelook))
+                return;
+
             const double notQuiteVertical = MathHelper.HalfPi - 0.001;
             PitchRadians = MathHelper.Clamp(PitchRadians + delta, -notQuiteVertical, notQuiteVertical);
             if (isMouse)
@@ -1094,6 +1098,6 @@ namespace Helion.World.Entities.Players
             m_viewZ = MathHelper.Clamp(m_viewHeight + m_bob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
         }
 
-        private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !IsClippedWithEntity();
+        private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
     }
 }
