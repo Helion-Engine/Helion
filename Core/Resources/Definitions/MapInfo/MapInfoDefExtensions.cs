@@ -16,6 +16,9 @@ namespace Helion.Resources.Definitions.MapInfo
                 displayName = displayName.TrimStart(':').TrimStart('-').Trim();
             }
 
+            if (string.IsNullOrWhiteSpace(displayName))
+                displayName = "Unknown";
+
             return displayName;
         }
 

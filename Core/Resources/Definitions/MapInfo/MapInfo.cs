@@ -85,7 +85,9 @@ namespace Helion.Resources.Definitions.MapInfo
             if (mapInfoDef != null)
                 return mapInfoDef;
 
-            return DefaultMap;
+            mapInfoDef =  (MapInfoDef)DefaultMap.Clone();
+            mapInfoDef.MapName = mapName.ToUpperInvariant();
+            return mapInfoDef;
         }
         
         public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;

@@ -49,11 +49,6 @@ episode e4m1
 
 // Registered/Retail Episode 1
 
-defaultmap
-{
-	sucktime = 1
-}
-
 map E1M1 lookup "HUSTR_E1M1"
 {
 	levelnum = 1

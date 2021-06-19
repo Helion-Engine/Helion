@@ -14,11 +14,6 @@ episode level01
 	optional
 }
 
-defaultmap
-{
-	sucktime = 1
-}
-
 map MAP01 lookup "HUSTR_1"
 {
 	titlepatch = "CWILV00"

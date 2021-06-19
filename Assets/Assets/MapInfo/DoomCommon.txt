@@ -78,3 +78,9 @@ skill nightmare
 	MustConfirm
 	Key = "n"
 }
+
+defaultmap
+{
+	sky1 = "SKY1"
+	sucktime = 1
+}
