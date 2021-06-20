@@ -91,17 +91,18 @@ namespace Helion.World.Entities.Definition.Composer
                         UpdateMasterLabelTable(currentFrameOffset, existingFrame, masterLabelTable, out _);
                     continue;
                 }
-                
+
+                int absoluteFrameOffset = startingFrameOffset + localFrameOffset;
                 ActorFrame frame = current.States.Frames[localFrameOffset];
                 if (indicesWithLabels.Contains(currentFrameOffset))
-                    lastLabelIndex = startingFrameOffset + localFrameOffset;
+                    lastLabelIndex = absoluteFrameOffset;
 
                 EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
                 ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
                 EntityFrame entityFrame = new EntityFrame(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
                     actionFunction, entityFrameTable.Frames.Count + 1, vanillaActorName);
 
-                HandleNonGotoFlowControl(frame, entityFrame, startingFrameOffset, lastLabelIndex, unresolvedGotoFrames);
+                HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
 
                 entityFrame.MasterFrameIndex = entityFrameTable.Frames.Count;
                 ProcessedFrames[key] = entityFrame;
