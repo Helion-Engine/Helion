@@ -45,7 +45,6 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using Helion.Resources.IWad;
-using Helion.Maps.Specials.Vanilla;
 
 namespace Helion.World
 {
@@ -585,7 +584,7 @@ namespace Helion.World
 
                 // TryMoveXY will use the velocity of the projectile
                 // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-                if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY, true).Success))
+                if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success))
                 {
                     projectile.Velocity = velocity;
                     return projectile;
@@ -943,8 +942,8 @@ namespace Helion.World
             DataCache.Instance.FreeBlockmapIntersectList(intersections);
         }
 
-        public virtual TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
-            => PhysicsManager.TryMoveXY(entity, position, stepMove);
+        public virtual TryMoveData TryMoveXY(Entity entity, Vec2D position)
+            => PhysicsManager.TryMoveXY(entity, position);
 
         public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
             double speed, double destZ, CrushData? crush)

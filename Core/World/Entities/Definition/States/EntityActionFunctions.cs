@@ -1595,7 +1595,7 @@ namespace Helion.World.Entities.Definition.States
             skull.SetPosition(skullPos);
             skull.Flags.CountKill = false;
 
-            if (!entity.World.TryMoveXY(skull, skullPos.XY, false).Success)
+            if (!entity.World.TryMoveXY(skull, skullPos.XY).Success)
             {
                 skull.Kill(null);
                 return;

@@ -47,7 +47,6 @@ namespace Helion.World.Entities
         private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
         private MoveDir m_direction = MoveDir.None;
-        private bool m_enemyMove;
 
         public bool BlockFloating;
 
@@ -224,10 +223,7 @@ namespace Helion.World.Entities
             }
 
             Vec2D nextPos = GetNextEnemyPos();
-
-            m_enemyMove = true;
-            tryMove = World.TryMoveXY(this, nextPos, false);
-            m_enemyMove = false;
+            tryMove = World.TryMoveXY(this, nextPos);
 
             if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
             {

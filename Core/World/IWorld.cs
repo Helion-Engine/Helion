@@ -79,7 +79,7 @@ namespace Helion.World
         void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
         bool CheckLineOfSight(Entity from, Entity to);
         void RadiusExplosion(Entity damageSource, Entity attackSource, int radius);
-        TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true);
+        TryMoveData TryMoveXY(Entity entity, Vec2D position);
         SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
             double speed, double destZ, CrushData? crush);
         void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);

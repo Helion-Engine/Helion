@@ -620,7 +620,7 @@ namespace Helion.World.Physics
             entity.Velocity.Y = 0;
         }
 
-        public TryMoveData TryMoveXY(Entity entity, Vec2D position, bool stepMove = true)
+        public TryMoveData TryMoveXY(Entity entity, Vec2D position)
         {
             m_tryMoveData.SetPosition(position);
             if (entity.Flags.NoClip)
@@ -643,53 +643,40 @@ namespace Helion.World.Physics
                 return m_tryMoveData;
             }
 
+            // We advance in small steps that are smaller than the radius of
+            // the actor so we don't skip over any lines or things due to fast
+            // entity speed.
+            int slidesLeft = MaxSlides;
+            Vec2D velocity = position - entity.Position.XY;
+            int numMoves = CalculateSteps(velocity, entity.Radius);
+            Vec2D stepDelta = velocity / numMoves;
             bool success = true;
 
-            if (stepMove)
+            for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
             {
-                // We advance in small steps that are smaller than the radius of
-                // the actor so we don't skip over any lines or things due to fast
-                // entity speed.
-                int slidesLeft = MaxSlides;
-                Vec2D velocity = position - entity.Position.XY;
-                int numMoves = CalculateSteps(velocity, entity.Radius);
-                Vec2D stepDelta = velocity / numMoves;
-
-                for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
-                {
-                    if (stepDelta == Vec2D.Zero || m_world.WorldState == WorldState.Exit)
-                        break;
-
-                    Vec2D nextPosition = entity.Position.XY + stepDelta;
-
-                    if (IsPositionValid(entity, nextPosition, m_tryMoveData))
-                    {
-                        entity.MoveLinked = true;
-                        MoveTo(entity, nextPosition, m_tryMoveData);
-                        continue;
-                    }
-
-                    if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
-                    {
-                        HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
-                        slidesLeft--;
-                        success = false;
-                        continue;
-                    }
-
-                    success = false;
-                    ClearVelocityXY(entity);
+                if (stepDelta == Vec2D.Zero || m_world.WorldState == WorldState.Exit)
                     break;
-                }
-            }
-            else
-            {
-                success = IsPositionValid(entity, position, m_tryMoveData);
-                if (success)
+
+                Vec2D nextPosition = entity.Position.XY + stepDelta;
+
+                if (IsPositionValid(entity, nextPosition, m_tryMoveData))
                 {
                     entity.MoveLinked = true;
-                    MoveTo(entity, position, m_tryMoveData);
+                    MoveTo(entity, nextPosition, m_tryMoveData);
+                    continue;
                 }
+
+                if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
+                {
+                    HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
+                    slidesLeft--;
+                    success = false;
+                    continue;
+                }
+
+                success = false;
+                ClearVelocityXY(entity);
+                break;
             }
 
             if (success && entity.OverEntity != null)
@@ -743,7 +730,8 @@ namespace Helion.World.Physics
             }
             else
             {
-                tryMove.HighestFloorZ = tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
+                Sector sector = m_bspTree.ToSubsector(position.To3D(0)).Sector;
+                tryMove.HighestFloorZ = tryMove.DropOffZ = sector.ToFloorZ(position);
             }
 
             Box2D nextBox = new(position, entity.Radius);
