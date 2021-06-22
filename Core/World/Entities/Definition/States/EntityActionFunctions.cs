@@ -513,7 +513,7 @@ namespace Helion.World.Entities.Definition.States
             Entity? rocket = entity.EntityManager.Create("BossRocket", pos);
             if (rocket != null)
             {
-                rocket.FrameState.SetTics(entity.World.Random.NextByte() & 7);
+                rocket.SetRandomizeTicks(7);
                 rocket.Velocity.Z = (entity.World.Random.NextByte() << 9) / 65536.0;
             }
         }
@@ -2375,7 +2375,7 @@ namespace Helion.World.Entities.Definition.States
             if (puff != null)
             {
                 puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * Constants.PuffRandZ), false);
-                puff.FrameState.SetTics(entity.World.Random.NextByte() & 3);
+                puff.SetRandomizeTicks();
                 puff.Velocity.Z = 1;
             }
         }

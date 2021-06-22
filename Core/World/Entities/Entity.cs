@@ -431,6 +431,9 @@ namespace Helion.World.Entities
             {
                 SetDeath(source, false);
                 FrameState.SetState(Constants.FrameStates.Death);
+
+                if (Flags.Randomize)
+                    SetRandomizeTicks();
             }
         }
 
@@ -576,6 +579,9 @@ namespace Helion.World.Entities
 
             return true;
         }
+
+        public void SetRandomizeTicks(int opAnd = 3) =>
+            FrameState.SetTics(FrameState.CurrentTick - (World.Random.NextByte() & opAnd));
 
         private int ApplyArmorDamage(int damage)
         {

@@ -582,6 +582,9 @@ namespace Helion.World
                 projectile.Owner = shooter;
                 projectile.PlaySeeSound();
 
+                if (projectile.Flags.Randomize)
+                    projectile.SetRandomizeTicks();
+
                 // TryMoveXY will use the velocity of the projectile
                 // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
                 if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success))
@@ -1157,7 +1160,8 @@ namespace Helion.World
             if (bulletPuff)
             {
                 entity.Velocity.Z = 1;
-                entity.FrameState.SetTics(entity.FrameState.CurrentTick - (Random.NextByte() & 3));
+                if (entity.Flags.Randomize)
+                    entity.SetRandomizeTicks();
 
                 // Doom would skip the initial sparking state of the bullet puff for punches
                 // Bulletpuff decorate has a MELEESTATE for this
@@ -1167,7 +1171,6 @@ namespace Helion.World
             else
             {
                 entity.Velocity.Z = 2;
-                entity.FrameState.SetTics(Random.NextByte() & 3);
 
                 int offset = 0;
                 if (damage <= 12 && damage >= 9)
@@ -1175,11 +1178,14 @@ namespace Helion.World
                 else if (damage < 9)
                     offset = 2;
 
-                entity.FrameState.SetState("SPAWN", offset);
+                if (offset == 0)
+                    entity.SetRandomizeTicks();
+                else
+                    entity.FrameState.SetState(Constants.FrameStates.Spawn, offset);
             }
         }
 
-        private void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
+        private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
         {
             distXY -= 2.0;
             intersect.X = start.X + (Math.Cos(angle) * distXY);
