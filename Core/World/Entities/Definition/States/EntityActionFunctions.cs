@@ -1561,11 +1561,6 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
-        private static void A_Pain(Entity entity)
-        {
-             // TODO
-        }
-
         private static void A_PainAttack(Entity entity)
         {
             if (entity.Target == null)
@@ -1616,11 +1611,6 @@ namespace Helion.World.Entities.Definition.States
         }
 
         private static void A_PlayWeaponSound(Entity entity)
-        {
-             // TODO
-        }
-
-        private static void A_PlayerScream(Entity entity)
         {
              // TODO
         }
@@ -1911,9 +1901,44 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
+        private static void A_Pain(Entity entity)
+        {
+            if (entity.Definition.Properties.PainSound.Length == 0)
+                return;
+
+            entity.SoundManager.CreateSoundOn(entity, entity.Definition.Properties.PainSound, SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(entity));
+        }
+
+        private static void A_PlayerScream(Entity entity)
+        {
+            if (entity is not Player || entity.Definition.Properties.DeathSound.Length > 0)
+            {
+                A_Scream(entity);
+                return;
+            }
+
+            string deathSound =  entity.Health > -50 ? "*death" : "*xdeath";
+            entity.SoundManager.CreateSoundOn(entity, deathSound, SoundChannelType.Voice, DataCache.Instance.GetSoundParams(entity));
+        }
+
         private static void A_Scream(Entity entity)
         {
-             // TODO
+            if (entity.Definition.Properties.DeathSound.Length == 0)
+                return;
+
+            Attenuation attenuation = entity.Flags.Boss ? Attenuation.None : Attenuation.Default;
+            entity.SoundManager.CreateSoundOn(entity, entity.Definition.Properties.DeathSound, SoundChannelType.Auto,
+                DataCache.Instance.GetSoundParams(entity, attenuation: attenuation));
+        }
+
+        private static void A_XScream(Entity entity)
+        {
+            if (entity is Player)
+                entity.SoundManager.CreateSoundOn(entity, "*gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+            else
+                entity.SoundManager.CreateSoundOn(entity, "misc/gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+
         }
 
         private static void A_ScreamAndUnblock(Entity entity)
@@ -2593,11 +2618,6 @@ namespace Helion.World.Entities.Definition.States
         }
 
         private static void A_WolfAttack(Entity entity)
-        {
-             // TODO
-        }
-
-        private static void A_XScream(Entity entity)
         {
              // TODO
         }

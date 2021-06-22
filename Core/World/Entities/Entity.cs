@@ -105,7 +105,7 @@ namespace Helion.World.Entities
         public double Height => Box.Height;
         public double Radius => Definition.Properties.Radius;
         public bool IsFrozen => FrozenTics > 0;
-        public bool IsDead => Health == 0;
+        public bool IsDead => Health <= 0;
         public EntityFrame Frame => FrameState.Frame;
         public virtual double ViewZ => 8.0;
         public bool IsDeathStateFinished => IsDead && Frame.Ticks == -1;
@@ -403,8 +403,10 @@ namespace Helion.World.Entities
 
         public void Kill(Entity? source)
         {
+            if (Health > 0)
+                Health = 0;
+
             bool gib = Health < -Properties.Health;
-            Health = 0;
             SetHeight(Definition.Properties.Height / 4.0);
 
             if (gib && HasXDeathState())
@@ -569,8 +571,6 @@ namespace Helion.World.Entities
             {
                 Flags.JustHit = true;
                 FrameState.SetState(Constants.FrameStates.Pain);
-                if (Definition.Properties.PainSound.Length > 0)
-                    SoundManager.CreateSoundOn(this, Definition.Properties.PainSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
             }
 
             // Skullfly is not turned off here as the original game did not do this
@@ -783,13 +783,11 @@ namespace Helion.World.Entities
 
         protected virtual void SetDeath(Entity? source, bool gibbed)
         {
-            if (gibbed)
-                SoundManager.CreateSoundOn(this, "misc/gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
-            else if (Definition.Properties.DeathSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
-
             if (Flags.Missile)
             {
+                if (Definition.Properties.DeathSound.Length > 0)
+                    SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
+
                 Flags.Missile = false;
                 Velocity = Vec3D.Zero;
             }

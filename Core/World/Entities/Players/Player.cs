@@ -1044,14 +1044,6 @@ namespace Helion.World.Entities.Players
         protected override void SetDeath(Entity? source, bool gibbed)
         {
             base.SetDeath(source, gibbed);
-
-            string deathSound = "*death";
-            if (gibbed)
-                deathSound = "*gibbed";
-            else if (Health <= -50)
-                deathSound = "*xdeath";
-
-            SoundManager.CreateSoundOn(this, deathSound, SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
             m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
             if (source != null)
