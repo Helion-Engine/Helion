@@ -21,7 +21,6 @@ namespace Helion.Render.Legacy
         {
             ctx.Begin();
             action(ctx);
-            ctx.End();
         }
 
         public void Dispose()

@@ -11,6 +11,8 @@ namespace Helion.Render.Legacy
     {
         public IRenderableSurface Surface { get; }
         public readonly RenderCommands Commands;
+        private readonly GLLegacyHudRenderContext m_hudRenderContext;
+        private readonly GLLegacyWorldRenderContext m_worldRenderContext;
         private Box2I m_viewport;
 
         internal GLLegacyRenderableSurfaceContext(GLLegacyRenderer renderer, GLLegacySurface surface)
@@ -18,18 +20,16 @@ namespace Helion.Render.Legacy
             Surface = surface;
             Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension, 
                 renderer.ImageDrawInfoProvider, renderer.m_fpsTracker);
+
+            m_hudRenderContext = new GLLegacyHudRenderContext(Commands);
+            m_worldRenderContext = new GLLegacyWorldRenderContext(Commands);
         }
 
         internal void Begin()
         {
             Commands.Begin();
         }
-        
-        internal void End()
-        {
-            // Nothing for now.
-        }
-        
+
         public void Clear(Color color, bool depth, bool stencil)
         {
             Commands.Clear(color);
@@ -69,12 +69,14 @@ namespace Helion.Render.Legacy
 
         public void Hud(HudRenderContext context, Action<IHudRenderContext> action)
         {
-            // TODO
+            m_hudRenderContext.Begin(context);
+            action(m_hudRenderContext);
         }
 
         public void World(WorldRenderContext context, Action<IWorldRenderContext> action)
         {
-            // TODO
+            m_worldRenderContext.Begin(context);
+            action(m_worldRenderContext);
         }
     }
 }
