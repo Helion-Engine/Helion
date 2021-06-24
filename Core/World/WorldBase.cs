@@ -174,10 +174,6 @@ namespace Helion.World
         {
             AddMapSpecial();
             InitBossBrainTargets();
-
-            // Initializing a new game - set all entities to spawn state
-            if (worldModel == null)
-                SetEntitySpawnStates();
         }
 
         public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
@@ -398,9 +394,6 @@ namespace Helion.World
                 .Reverse()
                 .ToArray();
         }
-
-        private void SetEntitySpawnStates() =>
-            EntityManager.Entities.ForEach(x => x.SetSpawnState());
 
         public IEnumerable<Sector> FindBySectorTag(int tag)
         {
@@ -1034,7 +1027,6 @@ namespace Helion.World
                 CreateTeleportFog(entity.Position);
                 CreateTeleportFog(entity.SpawnPoint);
 
-                newEntity.SetSpawnState();
                 newEntity.AngleRadians = entity.AngleRadians;
                 newEntity.ReactionTime = 18;
 

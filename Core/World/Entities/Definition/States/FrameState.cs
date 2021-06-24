@@ -3,6 +3,7 @@ using Helion.Models;
 using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
+using System;
 
 namespace Helion.World.Entities.Definition.States
 {
@@ -57,14 +58,14 @@ namespace Helion.World.Entities.Definition.States
             return null;
         }
 
-        public bool SetState(string label, int offset = 0, bool warn = true)
+        public bool SetState(string label, int offset = 0, bool warn = true, bool executeActionFunction = true)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))
             {
                 if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
-                    SetFrameIndex(index + offset);
+                    SetFrameIndex(index + offset, executeActionFunction);
                 else
-                    SetFrameIndex(index);
+                    SetFrameIndex(index, executeActionFunction);
 
                 return true;
             }
@@ -90,7 +91,7 @@ namespace Helion.World.Entities.Definition.States
             m_tics = tics;
         }
 
-        private void SetFrameIndex(int index)
+        private void SetFrameIndex(int index, bool executeActionFunction)
         {
             m_frameIndex = index;
             m_tics = Frame.Ticks;
@@ -101,14 +102,16 @@ namespace Helion.World.Entities.Definition.States
             if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
                 m_tics *= 2;
 
-            m_stackCount++;
-            if (m_stackCount > StackLimit)
+            if (executeActionFunction)
             {
-                LogStackError();
-                return;
+                m_stackCount++;
+                if (m_stackCount > StackLimit)
+                {
+                    LogStackError();
+                    return;
+                }
+                Frame.ActionFunction?.Invoke(m_entity);
             }
-
-            Frame.ActionFunction?.Invoke(m_entity);
         }
 
         private void LogStackError()
@@ -145,7 +148,7 @@ namespace Helion.World.Entities.Definition.States
                         return;
                     }
 
-                    SetFrameIndex(frame.NextFrameIndex);
+                    SetFrameIndex(frame.NextFrameIndex, true);
                 }
 
                 // We need to keep looping if this frame has no tick length
