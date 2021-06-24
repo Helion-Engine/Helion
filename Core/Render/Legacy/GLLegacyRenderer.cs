@@ -20,6 +20,7 @@ using Helion.Render.Legacy.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Timing;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -33,7 +34,8 @@ namespace Helion.Render.Legacy
         public IWindow Window { get; }
         public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface Default { get; }
-        private readonly Config m_config;
+        internal readonly Config m_config;
+        internal readonly FpsTracker m_fpsTracker;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
         private readonly IGLFunctions gl;
@@ -43,24 +45,27 @@ namespace Helion.Render.Legacy
 
         public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-        public GLLegacyRenderer(IWindow window, Config config, ArchiveCollection archiveCollection, IGLFunctions functions)
+        public GLLegacyRenderer(IWindow window, Config config, ArchiveCollection archiveCollection, IGLFunctions functions,
+            FpsTracker fpsTracker)
         {
             Window = window;
-            Default = new GLLegacySurface(window);
+            gl = functions;
+            m_capabilities = new GLCapabilities(functions);
             m_config = config;
             m_archiveCollection = archiveCollection;
-            m_capabilities = new GLCapabilities(functions);
-            gl = functions;
-
-            PrintGLInfo(m_capabilities);
-            SetGLDebugger();
-            SetGLStates();
-            WarnForInvalidStates(config);
+            m_fpsTracker = fpsTracker;
 
             GLRenderType renderType = GetRenderTypeFromCapabilities();
             m_textureManager = CreateTextureManager(renderType, archiveCollection);
             m_worldRenderer = CreateWorldRenderer(renderType);
             m_hudRenderer = CreateHudRenderer(renderType);
+            
+            Default = new GLLegacySurface(window, this);
+
+            PrintGLInfo(m_capabilities);
+            SetGLDebugger();
+            SetGLStates();
+            WarnForInvalidStates(config);
         }
 
         ~GLLegacyRenderer()

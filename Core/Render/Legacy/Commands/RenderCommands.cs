@@ -22,6 +22,7 @@ namespace Helion.Render.Legacy.Commands
         public readonly FpsTracker FpsTracker;
         public ResolutionInfo ResolutionInfo { get; private set; }
         private readonly List<IRenderCommand> m_commands = new();
+        private readonly Dimension m_windowDimensions;
         private Vec2D m_scale = Vec2D.One;
         private int m_centeringOffsetX;
 
@@ -33,6 +34,15 @@ namespace Helion.Render.Legacy.Commands
             ResolutionInfo = new ResolutionInfo { VirtualDimensions = windowDimensions };
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
+            m_windowDimensions = windowDimensions;
+        }
+        
+        public void Begin()
+        {
+            ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
+            m_commands.Clear(); 
+            m_scale = Vec2D.One;
+            m_centeringOffsetX = 0;
         }
 
         public void Clear()

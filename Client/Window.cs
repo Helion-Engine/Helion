@@ -9,6 +9,7 @@ using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Timing;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -35,13 +36,13 @@ namespace Helion.Client
         /// </summary>
         public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
 
-        public Window(Config config, ArchiveCollection archiveCollection) :
+        public Window(Config config, ArchiveCollection archiveCollection, FpsTracker tracker) :
             base(new GameWindowSettings(), MakeNativeWindowSettings(config))
         {
             m_config = config;
 
             CursorVisible = !config.Mouse.Focus;
-            Renderer = CreateRenderer(config, archiveCollection);
+            Renderer = CreateRenderer(config, archiveCollection, tracker);
             IgnoreMouseEvents = config.Mouse.RawInput;
             CursorGrabbed = config.Mouse.Focus;
             VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
@@ -56,10 +57,10 @@ namespace Helion.Client
 
         public void SetGrabCursor(bool set) => CursorGrabbed = set;
 
-        private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection)
+        private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection, FpsTracker tracker)
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("newrenderer")))
-                return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions());
+                return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
             
             return new GLRenderer(config, this, archiveCollection);
         }

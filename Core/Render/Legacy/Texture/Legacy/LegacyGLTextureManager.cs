@@ -23,7 +23,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
             ArchiveCollection archiveCollection)
             : base(config, capabilities, functions, archiveCollection)
         {
-            ImageDrawInfoProvider = new GlLegacyImageDrawInfoProvider(this);
+            ImageDrawInfoProvider = new GLLegacyImageDrawInfoProvider(this);
 
             // TODO: Listen for config changes to filtering/anisotropic.
         }
