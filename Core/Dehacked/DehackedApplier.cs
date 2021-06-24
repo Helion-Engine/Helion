@@ -256,6 +256,8 @@ namespace Helion.Dehacked
                     properties.PainSound = GetSound(dehacked, thing.PainSound.Value);
                 if (thing.DeathSound.HasValue)
                     properties.DeathSound = GetSound(dehacked, thing.DeathSound.Value);
+                if (thing.ActionSound.HasValue)
+                    properties.ActiveSound = GetSound(dehacked, thing.ActionSound.Value);
 
                 if (thing.CloseAttackFrame.HasValue)
                     ApplyThingFrame(dehacked, entityFrameTable, definition, thing.CloseAttackFrame.Value, Constants.FrameStates.Melee);
@@ -412,6 +414,8 @@ namespace Helion.Dehacked
 
         private static void SetActorFlags(EntityDefinition def, uint value)
         {
+            bool hadShadow = def.Flags.Shadow;
+
             ThingProperties thingProperties = (ThingProperties)value;
             def.Flags.Special = thingProperties.HasFlag(ThingProperties.SPECIAL);
             def.Flags.Solid = thingProperties.HasFlag(ThingProperties.SOLID);
@@ -443,10 +447,28 @@ namespace Helion.Dehacked
             def.Flags.MbfBouncer = thingProperties.HasFlag(ThingProperties.BOUNCES);
             def.Flags.Friendly = thingProperties.HasFlag(ThingProperties.FRIEND);
 
+            // Apply correct alpha with shadow flag changes
+            if (hadShadow && !def.Flags.Shadow)
+                def.Properties.Alpha = 1;
+            else if (!hadShadow && def.Flags.Shadow)
+                def.Properties.Alpha = 0.4;
+
             // TODO can we support these?
             //if (thingProperties.HasFlag(ThingProperties.TRANSLATION1))
             //if (thingProperties.HasFlag(ThingProperties.TRANSLATION2))
             //if (thingProperties.HasFlag(ThingProperties.INFLOAT))
+        }
+
+        private static List<ThingProperties> GetThingProperties(ThingProperties properties)
+        {
+            List<ThingProperties> list = new();
+            foreach (ThingProperties type in Enum.GetValues(typeof(ThingProperties)))
+            {
+                if (properties.HasFlag(type))
+                    list.Add(type);
+            }
+
+            return list;
         }
 
         private static void ApplyCheats(DehackedDefinition dehacked)
