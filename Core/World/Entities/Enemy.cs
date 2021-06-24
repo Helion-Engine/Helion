@@ -55,29 +55,27 @@ namespace Helion.World.Entities
         public bool SetNewTarget(bool allaround)
         {
             Entity? newTarget = null;
-            if (ValidEnemyTarget(Target))
+
+            if (Sector.SoundTarget != null && ValidEnemyTarget(Sector.SoundTarget))
+            {
+                if (Flags.Ambush)
+                {
+                    // Ambush enemies will set target based on SoundTarget reguardless of FOV.
+                    if (EntityManager.World.CheckLineOfSight(this, Sector.SoundTarget))
+                        newTarget = Sector.SoundTarget;
+                }
+                else
+                {
+                    newTarget = Sector.SoundTarget;
+                }
+            }
+            else if (ValidEnemyTarget(Target))
             {
                 newTarget = Target;
             }
             else
             {
-                if (Sector.SoundTarget != null && ValidEnemyTarget(Sector.SoundTarget))
-                {
-                    if (Flags.Ambush)
-                    {
-                        // Ambush enemies will set target based on SoundTarget reguardless of FOV.
-                        if (EntityManager.World.CheckLineOfSight(this, Sector.SoundTarget))
-                            newTarget = Sector.SoundTarget;
-                    }
-                    else
-                    {
-                        newTarget = Sector.SoundTarget;
-                    }
-                }
-                else
-                {
-                    newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
-                }
+                newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
             }
 
             if (newTarget != null)
