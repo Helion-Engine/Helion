@@ -4,7 +4,6 @@ using System.Drawing;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Render.Common;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Commands;
@@ -32,7 +31,7 @@ namespace Helion.Render.Legacy
         private static bool InfoPrinted;
 
         public IWindow Window { get; }
-
+        public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface Default { get; }
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;

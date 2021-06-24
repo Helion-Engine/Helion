@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
@@ -21,6 +22,7 @@ namespace Helion.Render.OpenGL
     public class GLRenderer : IRenderer
     {
         public IWindow Window { get; }
+        public IRendererTextureManager Textures => m_textureManager;
         private readonly Config m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
