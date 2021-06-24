@@ -159,8 +159,13 @@ namespace Helion.Dehacked
 
         private void ParseFrame(SimpleParser parser)
         {
+            int startLine = parser.GetCurrentLine();
             DehackedFrame frame = new();
             frame.Frame = parser.ConsumeInteger();
+
+            // Sometimes there is text after the frame. eg. Frame 10 (description)
+            if (parser.GetCurrentLine() == startLine)
+                parser.ConsumeLine();
 
             while (!IsBlockComplete(parser))
             {
@@ -186,8 +191,12 @@ namespace Helion.Dehacked
 
         private void ParseAmmo(SimpleParser parser)
         {
+            int startLine = parser.GetCurrentLine();
             DehackedAmmo ammo = new();
             ammo.AmmoNumber = parser.ConsumeInteger();
+
+            if (parser.GetCurrentLine() == startLine)
+                parser.ConsumeLine();
 
             while (!IsBlockComplete(parser))
             {
