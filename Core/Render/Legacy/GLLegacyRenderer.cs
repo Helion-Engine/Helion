@@ -6,6 +6,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Commands;
 using Helion.Render.Legacy.Commands.Types;
 using Helion.Render.Legacy.Context;

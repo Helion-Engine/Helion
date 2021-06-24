@@ -2,6 +2,7 @@ using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common;
+using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Shared;

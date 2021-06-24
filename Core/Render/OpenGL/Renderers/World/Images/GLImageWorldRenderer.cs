@@ -3,6 +3,7 @@ using System.Drawing;
 using Helion.Geometry.Quads;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -26,7 +27,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Images
             PerformDispose();
         }
 
-        public void DrawImage(IRenderableTexture texture, Quad3D quad, Color? color)
+        public void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color)
         {
             // TODO
         }

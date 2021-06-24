@@ -4,6 +4,10 @@ using Helion.Render.Common.Enums;
 
 namespace Helion.Render.Common
 {
+    /// <summary>
+    /// Cached information that lets a HUD renderer apply transformations for
+    /// an image based on offsets for a virtual dimension.
+    /// </summary>
     public readonly struct RenderDimensions
     {
         public readonly int Width;

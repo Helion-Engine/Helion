@@ -1,4 +1,4 @@
-namespace Helion.Render.Common
+namespace Helion.Render.Common.Textures
 {
     public enum FilterType
     {

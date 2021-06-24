@@ -8,11 +8,11 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 {
     public class GLLegacyTextureManager : IGLTextureManager
     {
-        public GLTextureHandle NullHandle { get; }
+        public GLTextureHandleHandle NullHandleHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly ArchiveCollection m_archiveCollection;
         private readonly LegacyCubeGLTexture m_cubeTexture;
-        private readonly List<GLTextureHandle> m_handles = new();
+        private readonly List<GLTextureHandleHandle> m_handles = new();
         private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
 
@@ -22,7 +22,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             m_cubeTexture = new LegacyCubeGLTexture();
             
             // TODO: Make null texture.
-            NullHandle = m_handles[0];
+            NullHandleHandle = m_handles[0];
             
             // TODO: Make font handle.
             NullFont = m_fontHandles[0];
@@ -34,16 +34,23 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             PerformDispose();
         }
 
-        public GLTextureHandle Get(string name, ResourceNamespace priority)
+        public bool HasImage(string name, ResourceNamespace? specificNamespace = null)
         {
-            // TODO
-            return NullHandle;
+            // TODO: This is not correct and is only temporary.
+            Texture texture = TextureManager.Instance.GetTexture(name, specificNamespace ?? ResourceNamespace.Global);
+            return texture.Image == null;
         }
 
-        public GLTextureHandle Get(Texture texture)
+        public GLTextureHandleHandle Get(string name, ResourceNamespace priority)
         {
             // TODO
-            return NullHandle;
+            return NullHandleHandle;
+        }
+
+        public GLTextureHandleHandle Get(Texture texture)
+        {
+            // TODO
+            return NullHandleHandle;
         }
 
         public GLFontTexture GetFont(string name)
