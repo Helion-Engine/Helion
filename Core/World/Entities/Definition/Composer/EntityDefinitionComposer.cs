@@ -95,9 +95,6 @@ namespace Helion.World.Entities.Definition.Composer
 
         public void ChangeEntityEditorID(EntityDefinition definition, int newID)
         {
-            if (definition.EditorId.HasValue)
-                m_editorNumToDefinition.Remove(definition.EditorId.Value);
-
             definition.EditorId = newID;
             m_editorNumToDefinition[newID] = definition;
         }
