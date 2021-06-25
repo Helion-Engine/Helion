@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
@@ -23,6 +24,7 @@ namespace Helion.Geometry.Boxes
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+
             Min = min;
             Max = max;
         }
@@ -31,6 +33,7 @@ namespace Helion.Geometry.Boxes
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+
             Min = min;
             Max = max.Struct;
         }
@@ -39,6 +42,7 @@ namespace Helion.Geometry.Boxes
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+
             Min = min.Struct;
             Max = max;
         }
@@ -47,6 +51,7 @@ namespace Helion.Geometry.Boxes
         {
             Precondition(min.X <= max.X, "Bounding box min X > max X");
             Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+
             Min = min.Struct;
             Max = max.Struct;
         }
