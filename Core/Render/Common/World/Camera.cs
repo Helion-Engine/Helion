@@ -4,7 +4,7 @@ using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.World.Entities.Players;
 
-namespace Helion.Render.Common
+namespace Helion.Render.Common.World
 {
     /// <summary>
     /// A camera in a world.

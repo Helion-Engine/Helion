@@ -34,6 +34,13 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             PerformDispose();
         }
 
+        public bool HasImage(string name, ResourceNamespace? specificNamespace = null)
+        {
+            // TODO: This is not correct and is only temporary.
+            Texture texture = TextureManager.Instance.GetTexture(name, specificNamespace ?? ResourceNamespace.Global);
+            return texture.Image == null;
+        }
+
         public GLTextureHandle Get(string name, ResourceNamespace priority)
         {
             // TODO

@@ -7,6 +7,7 @@ using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
+using Helion.Render.Common.Textures;
 using Helion.World;
 
 namespace Helion.Render.Common.Renderers
@@ -39,6 +40,6 @@ namespace Helion.Render.Common.Renderers
         void DrawSpheres(Sphere3D[] spheres, Color color);
         void FillSphere(Sphere3D sphere, Color color);
         void FillSpheres(Sphere3D[] spheres, Color color);
-        void DrawImage(IRenderableTexture texture, Quad3D quad, Color? color);
+        void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color);
     }
 }

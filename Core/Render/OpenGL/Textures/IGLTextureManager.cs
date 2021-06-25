@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Helion.Render.Common.Textures;
 using Helion.Resources;
 
 namespace Helion.Render.OpenGL.Textures
@@ -6,7 +6,7 @@ namespace Helion.Render.OpenGL.Textures
     /// <summary>
     /// A manager of GL textures.
     /// </summary>
-    public interface IGLTextureManager : IDisposable
+    public interface IGLTextureManager : IRendererTextureManager
     {
         /// <summary>
         /// The null texture handle. This is always returned from any texture

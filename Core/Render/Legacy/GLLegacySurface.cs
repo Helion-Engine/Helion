@@ -9,15 +9,18 @@ namespace Helion.Render.Legacy
         public string Name => IRenderableSurface.DefaultName;
         public Dimension Dimension => m_window.Dimension;
         private readonly IWindow m_window;
+        private readonly GLLegacyRenderableSurfaceContext ctx;
 
-        public GLLegacySurface(IWindow window)
+        public GLLegacySurface(IWindow window, GLLegacyRenderer renderer)
         {
             m_window = window;
+            ctx = new GLLegacyRenderableSurfaceContext(renderer, this);
         }
         
         public void Render(Action<IRenderableSurfaceContext> action)
         {
-            // TODO
+            ctx.Begin();
+            action(ctx);
         }
 
         public void Dispose()

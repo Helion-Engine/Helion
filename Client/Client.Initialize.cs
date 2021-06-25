@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Helion.Layer;
@@ -44,7 +43,7 @@ namespace Helion.Client
 
             if (m_commandLineArgs.LoadGame != null)
             {
-                HandleLoadGame(new string[] { m_commandLineArgs.LoadGame });
+                HandleLoadGame(new[] { m_commandLineArgs.LoadGame });
             }
             else
             {

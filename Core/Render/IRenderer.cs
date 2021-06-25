@@ -2,6 +2,7 @@
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 
 namespace Helion.Render
 {
@@ -15,6 +16,11 @@ namespace Helion.Render
         /// black so that we can see if there's a failure to draw.
         /// </summary>
         public static Color DefaultBackground => Color.FromArgb(16, 16, 16);
+        
+        /// <summary>
+        /// The texture manager for the renderer.
+        /// </summary>
+        IRendererTextureManager Textures { get; }
         
         /// <summary>
         /// The window that this renderer belongs to.

@@ -1,4 +1,5 @@
 ﻿using Helion.Render.Common;
+using Helion.Render.Common.Textures;
 using Helion.Util.Configs.Components.Renderer;
 using Helion.Util.Configs.Values;
 

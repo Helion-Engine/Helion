@@ -10,6 +10,7 @@ using Helion.Geometry.Triangles;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.World.Bsp;
 using Helion.Render.OpenGL.Renderers.World.Images;
 using Helion.Render.OpenGL.Renderers.World.Primitives;
@@ -63,7 +64,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         public void DrawSpheres(Sphere3D[] spheres, Color color) => m_primitiveRenderer.DrawSpheres(spheres, color);
         public void FillSphere(Sphere3D sphere, Color color) => m_primitiveRenderer.FillSphere(sphere, color);
         public void FillSpheres(Sphere3D[] spheres, Color color) => m_primitiveRenderer.FillSpheres(spheres, color);
-        public void DrawImage(IRenderableTexture texture, Quad3D quad, Color? color) => m_imageRenderer.DrawImage(texture, quad, color);
+        public void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color) => m_imageRenderer.DrawImage(textureHandle, quad, color);
 
         internal virtual void Render(WorldRenderContext context)
         {

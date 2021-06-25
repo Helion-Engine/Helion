@@ -15,7 +15,8 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Texture
 {
-    public abstract class GLTextureManager<GLTextureType> : IGLTextureManager where GLTextureType : GLTexture
+    public abstract class GLTextureManager<GLTextureType> : IGLTextureManager 
+        where GLTextureType : GLTexture
     {
         protected readonly Config Config;
         protected readonly ArchiveCollection ArchiveCollection;
@@ -74,6 +75,11 @@ namespace Helion.Render.Legacy.Texture
         {
             FailedToDispose(this);
             Dispose();
+        }
+        
+        public bool HasImage(string name, ResourceNamespace? specificNamespace = null)
+        {
+            return TryGet(name, specificNamespace ?? ResourceNamespace.Global, out _);
         }
 
         /// <summary>

@@ -8,11 +8,11 @@ using Helion.Resources;
 
 namespace Helion.Render.Legacy.Texture.Legacy
 {
-    public class GlLegacyImageDrawInfoProvider : IImageDrawInfoProvider
+    public class GLLegacyImageDrawInfoProvider : IImageDrawInfoProvider
     {
         private readonly LegacyGLTextureManager m_textureManager;
 
-        public GlLegacyImageDrawInfoProvider(LegacyGLTextureManager textureManager)
+        public GLLegacyImageDrawInfoProvider(LegacyGLTextureManager textureManager)
         {
             m_textureManager = textureManager;
         }
