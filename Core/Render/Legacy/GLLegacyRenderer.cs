@@ -36,7 +36,7 @@ namespace Helion.Render.Legacy
         public IRenderableSurface Default { get; }
         internal readonly Config m_config;
         internal readonly FpsTracker m_fpsTracker;
-        private readonly ArchiveCollection m_archiveCollection;
+        internal readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
         private readonly IGLFunctions gl;
         private readonly IGLTextureManager m_textureManager;

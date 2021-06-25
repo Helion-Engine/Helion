@@ -34,7 +34,9 @@ namespace Helion.Render.Common.Renderers
         void Image(string texture, Vec2I origin, Dimension? dimension = null, Align window = Align.TopLeft, 
             Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
 
-        void Text(string text, string font, int height, Vec2I origin, Color? color = null);
+        void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left, 
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
+            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f);
 
         /// <summary>
         /// See <see cref="PushVirtualDimension"/>. Designed such that it will
