@@ -797,7 +797,9 @@ namespace Helion.World.Physics
                             tryMove.IntersectEntities2D.Add(nextEntity);
                             bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
 
-                            if (overlapsZ && entity.Flags.Pickup && nextEntity.Definition.IsType(EntityDefinitionType.Inventory))
+                            // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
+                            // This flag can be modified by dehacked
+                            if (overlapsZ && entity.Flags.Pickup && nextEntity.Flags.Special)
                             {
                                 // Set the next node - this pickup can be removed from the list
                                 entityNode = entityNode.Next;
