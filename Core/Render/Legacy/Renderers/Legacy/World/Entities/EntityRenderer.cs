@@ -301,13 +301,13 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             {
                 double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
                 Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
-                centerBottom.X += nudgeAmount.X;
-                centerBottom.Y += nudgeAmount.Y;
+                centerBottom.X -= nudgeAmount.X;
+                centerBottom.Y -= nudgeAmount.Y;
 
                 while (m_renderPositions.Contains(centerBottom.XY))
                 {
-                    centerBottom.X += nudgeAmount.X;
-                    centerBottom.Y += nudgeAmount.Y;
+                    centerBottom.X -= nudgeAmount.X;
+                    centerBottom.Y -= nudgeAmount.Y;
                 }
 
                 m_renderPositions.Add(centerBottom.XY);
