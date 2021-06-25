@@ -6,6 +6,9 @@ namespace Helion.World.Entities.Definition.Composer
     {
         public static void Apply(EntityDefinition definition, ActorProperties properties)
         {
+            if (definition.IsType(EntityDefinitionType.Inventory))
+                definition.Flags.Special = true;
+
             if (properties.Alpha != null)
                 definition.Properties.Alpha = properties.Alpha.Value;
 
