@@ -162,6 +162,46 @@ namespace Helion.Dehacked
 			"BrainStem",				// MT_MISC86      
 		};
 
+        public readonly Dictionary<string, string> PickupLookup = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "ARM1", "GreenArmor" },
+            { "ARM2", "BlueArmor" },
+            { "BON1", "HealthBonus" },
+            { "BON2", "ArmorBonus" },
+            { "SOUL", "Soulsphere" },
+            { "MEGA", "Megasphere" },
+            { "BKEY", "BlueCard" },
+            { "YKEY", "YellowCard" },
+            { "RKEY", "RedCard" },
+            { "BSKU", "BlueSkull" },
+            { "YSKU", "YellowSkull" },
+            { "RSKU", "RedSkull" },
+            { "STIM", "Stimpack" },
+            { "MEDI", "Medikit" },
+            { "PINV", "InvulnerabilitySphere" },
+            { "PSTR", "Berserk" },
+            { "PINS", "BlurSphere" },
+            { "SUIT", "RadSuit" },
+            { "PMAP", "Allmap" },
+            { "PVIS", "Infrared" },
+            { "CLIP", "Clip" },
+            { "AMMO", "ClipBox" },
+            { "ROCK", "RocketAmmo" },
+            { "BROK", "RocketBox" },
+            { "CELL", "Cell" },
+            { "CELP", "CellPack" },
+            { "SHEL", "Shell" },
+            { "SBOX", "ShellBox" },
+            { "BPAK", "Backpack" },
+            { "BFUG", "BFG9000" },
+            { "MGUN", "Chaingun" },
+            { "CSAW", "Chainsaw" },
+            { "LAUN", "RocketLauncher" },
+            { "PLAS", "PlasmaRifle" },
+            { "SHOT", "Shotgun" },
+            { "SGN2", "SuperShotgun" },
+        };
+
         public readonly HashSet<string> SpriteNames = new(StringComparer.OrdinalIgnoreCase)
         {
             "TROO",

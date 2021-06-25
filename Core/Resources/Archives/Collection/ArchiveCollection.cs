@@ -120,10 +120,7 @@ namespace Helion.Resources.Archives.Collection
         private void ApplyDehackedPatch()
         {
             if (Definitions.DehackedDefinition != null)
-            {
                 DehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, DefinitionComposer);
-                Definitions.DehackedDefinition = null;
-            }
         }
 
         private Archive? LoadSpecial(string file, ArchiveType archiveType)

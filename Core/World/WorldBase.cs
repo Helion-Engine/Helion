@@ -45,6 +45,7 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using Helion.Resources.IWad;
+using Helion.Dehacked;
 
 namespace Helion.World
 {
@@ -804,10 +805,32 @@ namespace Helion.World
             return true;
         }
 
-        public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true)
+        public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
         {
+            definition = item.Definition;
             GiveVooDooItem(player, item, flags, pickupFlash);
+
+            if (ArchiveCollection.Definitions.DehackedDefinition != null)
+            {
+                EntityDefinition? vanillaDef = GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item);
+                if (vanillaDef != null)
+                {
+                    definition = vanillaDef;
+                    return player.GiveItem(vanillaDef, flags, pickupFlash);
+                }
+            }
+
             return player.GiveItem(item.Definition, flags, pickupFlash);
+        }
+
+        private EntityDefinition? GetDehackedPickup(DehackedDefinition dehacked, Entity item)
+        {
+            // Vanilla determined pickups by the sprite name
+            // E.g. batman doom has an enemy that drops a shotgun with the blue key sprite
+            if (!dehacked.PickupLookup.TryGetValue(item.Frame.Sprite, out string? def))
+                return null;
+
+            return ArchiveCollection.DefinitionComposer.GetByName(def);
         }
 
         public virtual void PerformItemPickup(Entity entity, Entity item)
@@ -816,7 +839,7 @@ namespace Helion.World
                 return;
 
             int health = player.Health;
-            if (!GiveItem(player, item, item.Flags))
+            if (!GiveItem(player, item, item.Flags, out EntityDefinition definition))
                 return;
 
             if (item.Flags.CountItem)
@@ -825,17 +848,17 @@ namespace Helion.World
                 player.ItemCount++;
             }
 
-            string message = item.Definition.Properties.Inventory.PickupMessage;
-            var healthProperty = item.Definition.Properties.HealthProperty;
+            string message = definition.Properties.Inventory.PickupMessage;
+            var healthProperty = definition.Properties.HealthProperty;
             if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
                 message = healthProperty.Value.LowMessage;
 
             DisplayMessage(player, null, message);
             EntityManager.Destroy(item);
 
-            if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+            if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
             {
-                SoundManager.CreateSoundOn(entity, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
+                SoundManager.CreateSoundOn(entity, definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
                     DataCache.Instance.GetSoundParams(entity));
             }
         }

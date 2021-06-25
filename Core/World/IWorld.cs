@@ -23,6 +23,7 @@ using Helion.World.Entities.Definition.Flags;
 using Helion.World.Cheats;
 using Helion.World.Stats;
 using Helion.World.Special;
+using Helion.World.Entities.Definition;
 
 namespace Helion.World
 {
@@ -74,7 +75,7 @@ namespace Helion.World
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
         bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
-        bool GiveItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash = true);
+        bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
         void PerformItemPickup(Entity entity, Entity item);
         void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
         bool CheckLineOfSight(Entity from, Entity to);
