@@ -201,7 +201,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_elementsDrawn++;
         }
 
-        public void Text(string text, string font, int height, Vec2I origin, Color? color = null)
+        public void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left, 
+            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
+            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f)
         {
             // TODO
             
