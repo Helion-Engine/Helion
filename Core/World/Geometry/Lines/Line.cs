@@ -151,7 +151,11 @@ namespace Helion.World.Geometry.Lines
         /// otherwise.</returns>
         public bool BlocksEntity(Entity entity)
         {
-            return OneSided || (entity.Flags.Monster && Flags.Blocking.Monsters) || (entity is Player && Flags.Blocking.Players);
+            if (OneSided)
+                return true;
+
+            bool isPlayer = entity is Player;
+            return (!isPlayer && Flags.Blocking.Monsters) || (isPlayer && Flags.Blocking.Players);
         }
 
         public void MarkSeenOnAutomap()
