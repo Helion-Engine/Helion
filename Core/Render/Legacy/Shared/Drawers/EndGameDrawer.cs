@@ -88,7 +88,7 @@ namespace Helion.Render.Legacy.Shared.Drawers
         {
             const int LineSpacing = 4;
             
-            Font? font = m_archiveCollection.GetFont(Font);
+            Font? font = m_archiveCollection.GetFontDeprecated(Font);
             if (font == null)
                 return;
 

@@ -45,7 +45,7 @@ namespace Helion.Render.Legacy.Shared.Drawers
         public void Draw(IntermissionLayer layer, RenderCommands commands, int tics)
         {
             DrawHelper draw = new(commands);
-            Font? intermissionFont = m_world.ArchiveCollection.GetFont(Font);
+            Font? intermissionFont = m_world.ArchiveCollection.GetFontDeprecated(Font);
 
             commands.ClearDepth();
 

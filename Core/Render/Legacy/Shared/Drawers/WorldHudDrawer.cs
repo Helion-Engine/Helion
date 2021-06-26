@@ -64,9 +64,9 @@ namespace Helion.Render.Legacy.Shared.Drawers
             m_padding = (int)(4 * m_scale);
             m_fontHeight = (int)(16 * m_scale);
             DrawHelper draw = new(cmd);
-            Font? smallFont = m_archiveCollection.GetFont(SmallHudFont);
-            Font? largeFont = m_archiveCollection.GetFont(LargeHudFont);
-            Font? consoleFont = m_archiveCollection.GetFont(ConsoleFont);
+            Font? smallFont = m_archiveCollection.GetFontDeprecated(SmallHudFont);
+            Font? largeFont = m_archiveCollection.GetFontDeprecated(LargeHudFont);
+            Font? consoleFont = m_archiveCollection.GetFontDeprecated(ConsoleFont);
 
             cmd.ClearDepth();
 
@@ -226,7 +226,7 @@ namespace Helion.Render.Legacy.Shared.Drawers
 
         private  void DrawFullTotalAmmo(Player player, DrawHelper draw)
         {
-            Font? yellowFont = m_archiveCollection.GetFont("HudYellowNumbers");
+            Font? yellowFont = m_archiveCollection.GetFontDeprecated("HudYellowNumbers");
             if (yellowFont == null)
                 return;
 

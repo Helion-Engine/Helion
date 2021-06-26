@@ -106,7 +106,7 @@ namespace Helion.Render.Legacy
             if (m_context == null)
                 return;
 
-            Graphics.Fonts.Font? font = m_archiveCollection.GetFont(fontName);
+            Graphics.Fonts.Font? font = m_archiveCollection.GetFontDeprecated(fontName);
             if (font == null)
                 return;
             

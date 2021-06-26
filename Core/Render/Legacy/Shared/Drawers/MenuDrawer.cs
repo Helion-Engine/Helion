@@ -70,7 +70,7 @@ namespace Helion.Render.Legacy.Shared.Drawers
 
         private void DrawText(DrawHelper helper, MenuTextComponent text, ref int offsetY)
         {
-            Font? font = m_archiveCollection.GetFont(text.FontName);
+            Font? font = m_archiveCollection.GetFontDeprecated(text.FontName);
             if (font == null)
                 return;
             
@@ -117,7 +117,7 @@ namespace Helion.Render.Legacy.Shared.Drawers
             const int SelectionOffsetX = 4;
             const int RowOffsetY = 7; // Vanilla offsets by 7...
 
-            Font? font = m_archiveCollection.GetFont("SmallFont");
+            Font? font = m_archiveCollection.GetFontDeprecated("SmallFont");
             if (font == null)
                 return;
             
