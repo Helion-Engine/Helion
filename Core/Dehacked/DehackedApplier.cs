@@ -129,8 +129,6 @@ namespace Helion.Dehacked
         {
             foreach (var pointer in dehacked.Pointers)
             {
-                ThingState fromState = (ThingState)pointer.CodePointerFrame;
-
                 if (!GetFrameIndex(dehacked, entityFrameTable, pointer.Frame, out int frameIndex))
                 {
                     Warning($"Invalid pointer frame {pointer.Frame}");
@@ -138,10 +136,30 @@ namespace Helion.Dehacked
                 }
 
                 var entityFrame = entityFrameTable.Frames[frameIndex];
-                if (dehacked.ActionFunctionLookup.TryGetValue(fromState, out string? function))
-                    entityFrame.ActionFunction = EntityActionFunctions.Find(function);
+                if (pointer.CodePointerMnemonic != null)
+                {
+                    if (pointer.CodePointerMnemonic.Equals("NULL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        entityFrame.ActionFunction = null;
+                    }
+                    else
+                    {
+                        string functionName = "A_" + pointer.CodePointerMnemonic;
+                        var function = EntityActionFunctions.Find(functionName);
+                        if (function != null)
+                            entityFrame.ActionFunction = function;
+                        else
+                            Warning($"Invalid pointer mnemonic {pointer.CodePointerMnemonic}");
+                    }
+                }
                 else
-                    entityFrame.ActionFunction = null;
+                {
+                    ThingState fromState = (ThingState)pointer.CodePointerFrame;
+                    if (dehacked.ActionFunctionLookup.TryGetValue(fromState, out string? function))
+                        entityFrame.ActionFunction = EntityActionFunctions.Find(function);
+                    else
+                        entityFrame.ActionFunction = null;
+                }
             }
         }
 

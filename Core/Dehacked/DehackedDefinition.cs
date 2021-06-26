@@ -60,6 +60,8 @@ namespace Helion.Dehacked
                     ParsePointer(parser);
                 else if (item.Equals(BexStringName, StringComparison.OrdinalIgnoreCase))
                     ParseBexText(parser);
+                else if (item.Equals(BexPointerName, StringComparison.OrdinalIgnoreCase))
+                    ParseBexPointer(parser);
                 else
                     UnknownWarning(parser, "type");
             }
@@ -106,7 +108,7 @@ namespace Helion.Dehacked
                 string line = parser.PeekLine();
                 if (line.StartsWith(IDNumber, StringComparison.OrdinalIgnoreCase))
                     thing.ID = GetIntProperty(parser, IDNumber);
-                else if(line.StartsWith(InitFrame, StringComparison.OrdinalIgnoreCase))
+                else if (line.StartsWith(InitFrame, StringComparison.OrdinalIgnoreCase))
                     thing.InitFrame = GetIntProperty(parser, InitFrame);
                 else if (line.StartsWith(Hitpoints, StringComparison.OrdinalIgnoreCase))
                     thing.Hitpoints = GetIntProperty(parser, Hitpoints);
@@ -368,6 +370,17 @@ namespace Helion.Dehacked
             }
         }
 
+        private void ParseBexPointer(SimpleParser parser)
+        {
+            parser.ConsumeString();
+            parser.ConsumeString("Frame");
+            int frame = parser.ConsumeInteger();
+            parser.ConsumeString("=");
+            string name = parser.ConsumeString();
+
+            Pointers.Add(new DehackedPointer() { Frame = frame, CodePointerMnemonic = name });
+        }
+
         private bool IsBlockComplete(SimpleParser parser)
         {
             if (parser.IsDone())
@@ -377,9 +390,9 @@ namespace Helion.Dehacked
                 return true;
 
             // Dehacked base types are all proceeded by a number, check to not confuse with random text
-            if (BaseTypes.Contains(parser.PeekString()) && parser.PeekString(1, out string? data) && 
+            if (BaseTypes.Contains(parser.PeekString()) && parser.PeekString(1, out string? data) &&
                 int.TryParse(data, out _))
-                    return true;
+                return true;
 
             return false;
         }

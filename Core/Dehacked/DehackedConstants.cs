@@ -4149,6 +4149,7 @@ namespace Helion.Dehacked
         private static readonly string PointerName = "Pointer";
 
         private static readonly string BexStringName = "[Strings]";
+        private static readonly string BexPointerName = "[CodePtr]";
 
         private readonly HashSet<string> BaseTypes = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -4165,7 +4166,8 @@ namespace Helion.Dehacked
 
         private readonly HashSet<string> BexBaseTypes = new(StringComparer.OrdinalIgnoreCase)
         {
-            BexStringName
+            BexStringName,
+            BexPointerName
         };
 
         private static readonly string IDNumber = "ID #";
