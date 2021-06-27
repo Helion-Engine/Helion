@@ -41,6 +41,16 @@ namespace Helion.Render.Legacy
                 Commands.Clear();
         }
 
+        public void ClearDepth()
+        {
+            Commands.ClearDepth();
+        }
+
+        public void ClearStencil()
+        {
+            // Not used.
+        }
+
         public void Viewport(Box2I area)
         {
             m_viewport = area;

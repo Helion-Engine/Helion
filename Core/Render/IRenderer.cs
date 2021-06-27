@@ -12,6 +12,13 @@ namespace Helion.Render
     public interface IRenderer : IDisposable
     {
         /// <summary>
+        /// The name of the default surface which will always be guaranteed to
+        /// exist. With certain hardware rendering implementations, this is the
+        /// name for the default framebuffer.
+        /// </summary>
+        public const string DefaultSurfaceName = "Default";
+        
+        /// <summary>
         /// The default color that is drawn as the background. It's not exactly
         /// black so that we can see if there's a failure to draw.
         /// </summary>
@@ -26,11 +33,23 @@ namespace Helion.Render
         /// The window that this renderer belongs to.
         /// </summary>
         IWindow Window { get; }
+        
+        /// <summary>
+        /// Gets the default renderable surface. This will be the one that is
+        /// drawn to the screen as the final result. All drawing commands on
+        /// different framebuffers that are intended to be displayed to the
+        /// end user should be rendered to this surface at some point.
+        /// </summary>
+        IRenderableSurface DefaultSurface { get; }
 
         /// <summary>
         /// Gets a surface with a specific name, or creates a new one with
         /// a name if it does not exist.
         /// </summary>
+        /// <remarks>
+        /// If this is the <see cref="DefaultSurfaceName"/>, then the dimension
+        /// may be ignored.
+        /// </remarks>
         /// <param name="name">The name of the surface. This is used for
         /// looking up because surfaces are expensive.</param>
         /// <param name="dimension">The dimensions of the surface. This is

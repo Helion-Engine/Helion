@@ -22,6 +22,7 @@ namespace Helion.Render.OpenGL
     public class GLRenderer : IRenderer
     {
         public IWindow Window { get; }
+        public IRenderableSurface DefaultSurface => m_defaultSurface;
         public IRendererTextureManager Textures => m_textureManager;
         private readonly Config m_config;
         private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);

@@ -45,7 +45,7 @@ namespace Helion.Render.Common.Renderers
         /// <param name="dimension">The dimension to render at.</param>
         /// <param name="action">The actions to do with the virtual resolution.
         /// </param>
-        void Virtual(Dimension dimension, Action action)
+        void VirtualDimension(Dimension dimension, Action action)
         {
             PushVirtualDimension(dimension);
             action();
@@ -61,7 +61,7 @@ namespace Helion.Render.Common.Renderers
         /// resolution scale, or if none exists, uses None.</param>
         /// <param name="action">The actions to do with the virtual resolution.
         /// </param>
-        void Virtual(Dimension dimension, ResolutionScale scale, Action action)
+        void VirtualDimension(Dimension dimension, ResolutionScale scale, Action action)
         {
             PushVirtualDimension(dimension, scale);
             action();

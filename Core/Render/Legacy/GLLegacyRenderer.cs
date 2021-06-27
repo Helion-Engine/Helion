@@ -32,6 +32,7 @@ namespace Helion.Render.Legacy
         private static bool InfoPrinted;
 
         public IWindow Window { get; }
+        public IRenderableSurface DefaultSurface => Default;
         public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface Default { get; }
         internal readonly Config m_config;
