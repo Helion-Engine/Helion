@@ -2,7 +2,7 @@
 using Helion.Render.Common.Renderers;
 using Helion.Util.Timing;
 
-namespace Helion.Layer.New.Console
+namespace Helion.Layer.New.Consoles
 {
     public partial class ConsoleLayerNew
     {

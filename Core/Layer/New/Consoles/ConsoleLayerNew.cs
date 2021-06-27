@@ -3,7 +3,7 @@ using Helion.Util.Consoles;
 using Helion.Util.Timing;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Layer.New.Console
+namespace Helion.Layer.New.Consoles
 {
     public partial class ConsoleLayerNew : IDisposable
     {

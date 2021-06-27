@@ -2,7 +2,7 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Input;
-using Helion.Layer.New.Console;
+using Helion.Layer.New.Consoles;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using static Helion.Util.Assertion.Assert;

@@ -4,7 +4,7 @@ using Helion.Input;
 using Helion.Util.Extensions;
 using TextCopy;
 
-namespace Helion.Layer.New.Console
+namespace Helion.Layer.New.Consoles
 {
     public partial class ConsoleLayerNew
     {
