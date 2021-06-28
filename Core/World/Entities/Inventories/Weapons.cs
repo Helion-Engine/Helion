@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Models;
-using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
+using NLog;
 
 namespace Helion.World.Entities.Inventories
 {
@@ -13,6 +13,8 @@ namespace Helion.World.Entities.Inventories
     /// </summary>
     public class Weapons
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private const int MinSlot = 1;
         private const int MaxSlot = 7;
         private static readonly (int, int) DefaultSlot = (-1, -1);
@@ -139,8 +141,13 @@ namespace Helion.World.Entities.Inventories
                 weapons = m_weaponSlots[slot];
             }
 
-            weapons.Add(subslot, weapon);
+            if (weapons.ContainsKey(subslot))
+            {
+                Log.Warn($"Weapon subslot {subslot} already exists");
+                return weapon;
+            }
 
+            weapons.Add(subslot, weapon);
             return weapon;
         }
         
