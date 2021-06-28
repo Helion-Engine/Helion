@@ -204,7 +204,7 @@ namespace Helion.Dehacked
         private static bool GetFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
         {
             frameIndex = -1;
-            if (frame < 0 || frame > dehacked.ThingStateLookups.Length)
+            if (frame < 0 || frame >= dehacked.ThingStateLookups.Length)
                 return false;
 
             var lookup = dehacked.ThingStateLookups[frame];
