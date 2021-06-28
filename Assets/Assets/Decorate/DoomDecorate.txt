@@ -34,3 +34,4 @@
 #include "Actors/Doom/Monsters/SpiderMastermind.txt"
 #include "Actors/Doom/Monsters/WolfensteinSS.txt"
 #include "Actors/Doom/Monsters/ZombieMan.txt"
+#include "Actors/Doom/Monsters/MBFHelperDog.txt"

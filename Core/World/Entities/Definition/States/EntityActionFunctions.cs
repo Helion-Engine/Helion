@@ -351,6 +351,7 @@ namespace Helion.World.Entities.Definition.States
             ["A_XSCREAM"] = A_XScream,
             ["A_ZOOMFACTOR"] = A_ZoomFactor,
             ["HEALTHING"] = HealThing,
+            ["A_RandomJump"] = A_RandomJump,
         };
 
         public static ActionFunction? Find(string? actionFuncName)
@@ -2628,6 +2629,11 @@ namespace Helion.World.Entities.Definition.States
         }
 
         private static void HealThing(Entity entity)
+        {
+            // TODO
+        }
+
+        private static void A_RandomJump(Entity entity)
         {
             // TODO
         }
