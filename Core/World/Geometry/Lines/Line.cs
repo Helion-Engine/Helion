@@ -19,9 +19,9 @@ namespace Helion.World.Geometry.Lines
         public readonly Side Front;
         public readonly Side? Back;
         public readonly Side[] Sides;
-        public readonly SpecialArgs Args;
-        public readonly LineFlags Flags;
-        public readonly LineSpecial Special;
+        public SpecialArgs Args { get; set; }
+        public LineFlags Flags { get; set; }
+        public LineSpecial Special { get; set; }
         public bool Activated { get; private set; }
         public LineDataTypes DataChanges { get; set; }
         public bool DataChanged => DataChanges > 0;
@@ -155,7 +155,7 @@ namespace Helion.World.Geometry.Lines
                 return true;
 
             bool isPlayer = entity is Player;
-            return (!isPlayer && Flags.Blocking.Monsters) || (isPlayer && Flags.Blocking.Players);
+            return (!isPlayer && Flags.Blocking.Monsters && !entity.Flags.Projectile) || (isPlayer && Flags.Blocking.Players);
         }
 
         public void MarkSeenOnAutomap()
