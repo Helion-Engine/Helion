@@ -60,7 +60,7 @@ namespace Helion.Render.Legacy
             m_textureManager = CreateTextureManager(renderType, archiveCollection);
             m_worldRenderer = CreateWorldRenderer(renderType);
             m_hudRenderer = CreateHudRenderer(renderType);
-            
+
             Default = new GLLegacySurface(window, this);
 
             PrintGLInfo(m_capabilities);

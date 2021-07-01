@@ -5,6 +5,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
+using Helion.Resources;
 
 namespace Helion.Render.Common.Renderers
 {
@@ -13,6 +14,22 @@ namespace Helion.Render.Common.Renderers
     /// </summary>
     public interface IHudRenderContext : IDisposable
     {
+        /// <summary>
+        /// The current (virtual) window dimension.
+        /// </summary>
+        Dimension Dimension { get; }
+
+        int Width => Dimension.Width;
+        int Height => Dimension.Width;
+        
+        /// <summary>
+        /// Checks if an image exists. If true, then it can be drawn from with
+        /// the image drawing commands.
+        /// </summary>
+        /// <param name="name">The case insensitive name.</param>
+        /// <returns>True if such an image exists, false otherwise.</returns>
+        bool ImageExists(string name);
+        
         void Clear(Color color);
         
         void Point(Vec2I point, Color color, Align window = Align.TopLeft);

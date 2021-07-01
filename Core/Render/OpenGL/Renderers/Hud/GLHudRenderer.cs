@@ -12,6 +12,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
+using Helion.Render.OpenGL.Textures;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -23,18 +24,22 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     /// </summary>
     public class GLHudRenderer : IHudRenderContext
     {
+        private readonly IGLTextureManager m_glTextureManager;
         private readonly RenderPipeline<GLHudShader, GLHudVertex> m_pointPrimitivePipeline;
         private readonly RenderPipeline<GLHudShader, GLHudVertex> m_linePrimitivePipeline;
         private readonly RenderPipeline<GLHudShader, GLHudVertex> m_trianglePrimitivePipeline;
         private readonly RenderTexturePipeline<GLHudShader, GLHudVertex> m_texturePipeline;
         private readonly Stack<VirtualResolutionInfo> m_resolutionStack = new();
-        private Dimension m_parentDimension;
-        private VirtualResolutionInfo m_currentResolutionInfo;
+        private Dimension m_parentDimension = (800, 600);
+        private VirtualResolutionInfo m_currentResolutionInfo = new((800, 600), ResolutionScale.None, (800, 600));
         private int m_elementsDrawn;
         private bool m_disposed;
 
-        public GLHudRenderer()
+        public Dimension Dimension => m_currentResolutionInfo.Dimension;
+
+        public GLHudRenderer(IGLTextureManager glTextureManager)
         {
+            m_glTextureManager = glTextureManager;
             m_pointPrimitivePipeline = new("Hud shader points", BufferUsageHint.StreamDraw, PrimitiveType.Points);
             m_linePrimitivePipeline = new("Hud shader lines", BufferUsageHint.StreamDraw, PrimitiveType.Lines);
             m_trianglePrimitivePipeline = new("Hud shader triangles", BufferUsageHint.StreamDraw, PrimitiveType.Triangles);
@@ -56,6 +61,11 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             VirtualResolutionInfo info = new(context.Dimension, ResolutionScale.None, m_parentDimension);
             m_resolutionStack.Push(info);
             m_currentResolutionInfo = info;
+        }
+
+        public bool ImageExists(string name)
+        {
+            return m_glTextureManager.HasImage(name);
         }
 
         public void Clear(Color color)

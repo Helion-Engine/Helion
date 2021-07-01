@@ -23,6 +23,8 @@ namespace Helion.Render.Legacy
         private readonly ArchiveCollection m_archiveCollection;
         private HudRenderContext? m_context;
 
+        public Dimension Dimension => m_context?.Dimension ?? (800, 600);
+
         public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands)
         {
             m_archiveCollection = archiveCollection;
@@ -33,6 +35,8 @@ namespace Helion.Render.Legacy
         {
             m_context = context;
         }
+
+        public bool ImageExists(string name) => m_commands.ImageDrawInfoProvider.ImageExists(name);
 
         public void Clear(Color color)
         {
