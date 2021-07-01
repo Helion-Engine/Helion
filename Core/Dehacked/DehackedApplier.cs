@@ -9,7 +9,6 @@ using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static Helion.Dehacked.DehackedDefinition;
 
@@ -37,7 +36,6 @@ namespace Helion.Dehacked
             RemoveLabels.Clear();
         }
 
-        [Conditional("DEBUG")]
         private static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
         {
             for (int i = 0; i < typeof(ThingState).GetEnumValues().Length; i++)
@@ -46,6 +44,7 @@ namespace Helion.Dehacked
                     continue;
 
                 table.Frames[frameIndex].VanillaIndex = i;
+                table.VanillaFrameMap[i] = table.Frames[frameIndex];
             }
         }
 
@@ -198,6 +197,11 @@ namespace Helion.Dehacked
                         Warning($"Invalid next frame {frame.NextFrame.Value}");
                     }
                 }
+
+                if (frame.Unknown1.HasValue)
+                    entityFrame.DehackedMisc1 = frame.Unknown1.Value;
+                if (frame.Unknown2.HasValue)
+                    entityFrame.DehackedMisc2 = frame.Unknown2.Value;
             }
         }
 

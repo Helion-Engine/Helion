@@ -12,5 +12,7 @@ namespace Helion.World.Entities.Definition
 
         // Master frame table
         public List<EntityFrame> Frames = new();
+        // Lookup by vanilla frame index
+        public Dictionary<int, EntityFrame> VanillaFrameMap = new();
     }
 }

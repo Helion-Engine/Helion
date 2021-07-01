@@ -19,6 +19,8 @@ namespace Helion.World.Entities.Definition.States
         public int NextFrameIndex { get; set; }
         public ActorStateBranch BranchType { get; set; }
 
+        public int DehackedMisc1 { get; set; }
+        public int DehackedMisc2 { get; set; }
         public int MasterFrameIndex { get; set; }
         public int VanillaIndex { get; set; }
         public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];

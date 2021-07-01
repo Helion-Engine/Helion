@@ -2,13 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
+using Helion.Dehacked;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
+using Helion.Maps.Specials;
+using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
@@ -352,6 +362,11 @@ namespace Helion.World.Entities.Definition.States
             ["A_ZOOMFACTOR"] = A_ZoomFactor,
             ["HEALTHING"] = HealThing,
             ["A_RandomJump"] = A_RandomJump,
+            ["A_LineEffect"] = A_LineEffect,
+            ["A_Spawn"] = A_Spawn,
+            ["A_Face"] = A_Face,
+            ["A_Turn"] = A_Turn,
+            ["A_Scratch"] = A_Scratch,
         };
 
         public static ActionFunction? Find(string? actionFuncName)
@@ -933,16 +948,6 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
-        private static void A_Detonate(Entity entity)
-        {
-             // TODO
-        }
-
-        private static void A_Die(Entity entity)
-        {
-             // TODO
-        }
-
         private static void A_DropInventory(Entity entity)
         {
              // TODO
@@ -962,7 +967,8 @@ namespace Helion.World.Entities.Definition.States
         {
             // Pass through owner if set (usually a projectile)
             // Barrels pass through who shot them (Target)
-            entity.World.RadiusExplosion(entity, entity.Owner ?? entity.Target, 128);
+            Entity? attackSource = entity.Owner ?? entity.Target;
+            entity.World.RadiusExplosion(entity, attackSource ?? entity, 128);
         }
 
         private static void A_ExtChase(Entity entity)
@@ -1517,11 +1523,6 @@ namespace Helion.World.Entities.Definition.States
              // TODO
         }
 
-        private static void A_Mushroom(Entity entity)
-        {
-             // TODO
-        }
-
         private static void A_NoBlocking(Entity entity)
         {
             entity.Flags.Solid = false;
@@ -1599,11 +1600,6 @@ namespace Helion.World.Entities.Definition.States
 
             skull.Target = entity.Target;
             A_SkullAttack(skull);
-        }
-
-        private static void A_PlaySound(Entity entity)
-        {
-             // TODO
         }
 
         private static void A_PlaySoundEx(Entity entity)
@@ -2633,9 +2629,154 @@ namespace Helion.World.Entities.Definition.States
             // TODO
         }
 
+        private static void A_Die(Entity entity)
+        {
+            entity.Kill(null);
+        }
+
         private static void A_RandomJump(Entity entity)
         {
-            // TODO
+            var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
+            if (entity.World.Random.NextByte() < entity.Frame.DehackedMisc2 &&
+                entityFrameTable.VanillaFrameMap.TryGetValue(entity.Frame.DehackedMisc1, out EntityFrame? newFrame))
+            {
+                entity.FrameState.SetState(newFrame);
+            }
+        }
+
+        private static void A_PlaySound(Entity entity)
+        {
+            var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
+            int soundIndex = entity.Frame.DehackedMisc1;
+            if (dehacked == null)
+                return;
+
+            Attenuation attenuation = entity.Frame.DehackedMisc2 > 0 ? Attenuation.None : Attenuation.Default;
+            PlayDehackedSound(dehacked, entity, soundIndex, attenuation);
+        }
+
+        private static void PlayDehackedSound(DehackedDefinition dehacked, Entity entity, int soundIndex, Attenuation attenuation)
+        {
+            if (soundIndex < 0 || soundIndex >= dehacked.SoundStrings.Length)
+                return;
+
+            entity.World.SoundManager.CreateSoundOn(entity, dehacked.SoundStrings[soundIndex], SoundChannelType.Auto,
+                DataCache.Instance.GetSoundParams(entity, attenuation: attenuation));
+        }
+
+        private static void A_Detonate(Entity entity)
+        {
+            entity.World.RadiusExplosion(entity, entity.Target ?? entity, entity.Properties.Damage.Value);
+        }
+
+        private static void A_Spawn(Entity entity)
+        {
+            var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
+            int actorIndex = entity.Frame.DehackedMisc1 - 1;
+            if (dehacked == null || actorIndex < 0 || actorIndex >= dehacked.ActorNames.Length)
+                return;
+
+            Vec3D pos = entity.Position;
+            pos.Z += entity.Frame.DehackedMisc2;
+            entity.World.EntityManager.Create(dehacked.ActorNames[actorIndex], pos);
+        }
+
+        private static void A_Face(Entity entity)
+        {
+            entity.AngleRadians = MathHelper.ToRadians(entity.Frame.DehackedMisc1);
+        }
+
+        private static void A_Turn(Entity entity)
+        {
+            entity.AngleRadians += MathHelper.ToRadians(entity.Frame.DehackedMisc1);
+        }
+
+        private static void A_Scratch(Entity entity)
+        {
+            if (entity.Target == null)
+                return;
+
+            A_FaceTarget(entity);
+            if (entity.InMeleeRange(entity.Target))
+            {
+                var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
+                if (dehacked != null)
+                    PlayDehackedSound(dehacked, entity, entity.Frame.DehackedMisc2, Attenuation.Default);
+
+                entity.World.DamageEntity(entity.Target, entity, entity.Frame.DehackedMisc1, Thrust.Horizontal);
+            }
+        }
+
+        private static void A_Mushroom(Entity entity)
+        {
+            int count = entity.Properties.Damage.Value;
+            double misc1 = entity.Frame.DehackedMisc1 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc1) : 4;
+            double misc2 = entity.Frame.DehackedMisc2 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc2) : 0.5;
+
+            Vec3D oldPos = entity.Position;
+            Vec3D firePos = oldPos;
+            double oldAngle = entity.AngleRadians;
+
+            A_Explode(entity);
+
+            for (int i = -count; i <= count; i+=8)
+            {
+                for (int j = -count; j <= count; j+=8)
+                {
+                    firePos.X += i;
+                    firePos.Y += j;
+                    firePos.Z += MathHelper.ApproximateDistance(i, j) * misc1;
+
+                    entity.AngleRadians = entity.Position.Angle(firePos);
+                    double pitch = entity.Position.Pitch(firePos, entity.Position.XY.Distance(firePos.XY));
+                    Entity? projectile = entity.World.FireProjectile(entity, pitch, 0, false, "FatShot");
+                    if (projectile != null)
+                    {
+                        Vec3D velocity = new Vec3D(misc2, misc2, misc2);
+                        projectile.Velocity *= velocity;
+                        projectile.Flags.NoGravity = true;
+                    }
+                }
+            }
+
+            entity.SetPosition(oldPos);
+            entity.AngleRadians = oldAngle;
+        }
+
+        private static Line? m_dummyLine;
+
+        private static void A_LineEffect(Entity entity)
+        {
+            if (entity.World.Sectors.Count == 0)
+                return;
+
+            SpecialArgs specialArgs = new();
+            var flags = new LineFlags(MapLineFlags.Doom(0));
+            var specialType = VanillaLineSpecTranslator.Translate(flags, (VanillaLineSpecialType)entity.Frame.DehackedMisc1, 
+                entity.Frame.DehackedMisc2, ref specialArgs, out LineSpecialCompatibility? compat);
+
+            if (specialType == ZDoomLineSpecialType.None)
+                return;
+
+            LineSpecial lineSpecial = new LineSpecial(specialType, LineActivationType.Any, compat);
+            // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
+            // Because the same line was reused single activations will be broken with further calls of A_LineEffect
+            if (m_dummyLine == null)
+                m_dummyLine = CreateDummyLine(flags, lineSpecial, specialArgs, entity.World.Sectors[0]);
+
+            m_dummyLine.Args = specialArgs;
+            m_dummyLine.Flags = flags;
+
+            EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(ActivationContext.CrossLine, entity, m_dummyLine);
+            entity.World.SpecialManager.TryAddActivatedLineSpecial(args);
+        }
+
+        private static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
+        {
+            var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
+            var side = new Side(0, Vec2I.Zero, wall, sector);
+            var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
+            return new Line(0, 0, seg, side, null, flags, special, args);
         }
     }
 }
