@@ -16,6 +16,7 @@ using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Bytes;
+using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Composer;
 using NLog;
@@ -40,10 +41,10 @@ namespace Helion.Resources.Archives.Collection
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
 
-        public ArchiveCollection(IArchiveLocator archiveLocator)
+        public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
         {
             m_archiveLocator = archiveLocator;
-            Definitions = new DefinitionEntries(this);
+            Definitions = new DefinitionEntries(this, config);
             DefinitionComposer = new(this);
         }
 

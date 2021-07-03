@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Models;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.IWad;
@@ -50,5 +52,8 @@ namespace Helion.Resources.Archives
                 MD5 = MD5
             };
         }
+
+        public Entry? GetEntryByName(string name) => Entries.FirstOrDefault(x => x.Path.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        public bool AnyEntryByName(string name) => Entries.Any(x => x.Path.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 }

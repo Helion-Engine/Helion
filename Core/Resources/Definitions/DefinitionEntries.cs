@@ -21,6 +21,7 @@ using Helion.Util.Parser;
 using Helion.Resources.Definitions.Boom;
 using Helion.Dehacked;
 using Helion.World.Entities.Definition;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Resources.Definitions
 {
@@ -47,21 +48,25 @@ namespace Helion.Resources.Definitions
 
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
+        private readonly ConfigCompat m_configCompat;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
+        private bool m_parseDehacked;
+        private bool m_parseDecorate;
 
         /// <summary>
         /// Creates a definition entries data structure which has no tracked
         /// data.
         /// </summary>
-        public DefinitionEntries(ArchiveCollection archiveCollection)
+        public DefinitionEntries(ArchiveCollection archiveCollection, ConfigCompat config)
         {
             m_archiveCollection = archiveCollection;
+            m_configCompat = config;
             Decorate = new DecorateDefinitions(archiveCollection);
 
             m_entryNameToAction["ANIMATED"] = entry => BoomAnimated.Parse(entry);
             m_entryNameToAction["ANIMDEFS"] = entry => Animdefs.AddDefinitions(entry);
             m_entryNameToAction["COMPATIBILITY"] = entry => Compatibility.AddDefinitions(entry);
-            m_entryNameToAction["DECORATE"] = entry => Decorate.AddDecorateDefinitions(entry);
+            m_entryNameToAction["DECORATE"] = entry => ParseDecorate(entry);
             m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
             m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.AddPnames(entry);
             m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
@@ -119,7 +124,22 @@ namespace Helion.Resources.Definitions
         private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
         private void ParseLanguage(string text) => Language.Parse(text);
         private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
-        private void ParseDehacked(string text) => ParseDehackedPatch(text);
+
+        private void ParseDehacked(string text)
+        {
+            if (!m_parseDehacked)
+                return;
+
+            ParseDehackedPatch(text);
+        }
+
+        private void ParseDecorate(Entry entry)
+        {
+            if (!m_parseDecorate)
+                return;
+
+            Decorate.AddDecorateDefinitions(entry);
+        }
 
         private static void ParseEntry(Action<string> parseAction, Entry entry)
         {
@@ -145,6 +165,15 @@ namespace Helion.Resources.Definitions
         /// definitions.</param>
         public void Track(Archive archive)
         {
+            m_parseDecorate = true;
+            m_parseDehacked = true;
+
+            bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
+            if (m_configCompat.PreferDehacked && hasBoth)
+                m_parseDecorate = false;
+            else if (!m_configCompat.PreferDehacked && hasBoth)
+                m_parseDehacked = false;
+
             m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
             foreach (Entry entry in archive.Entries)

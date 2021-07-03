@@ -42,7 +42,7 @@ namespace Helion.Client
 
                 Log.Info("Loading compiled map...");
                 m_stopwatch.Restart();
-                m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator());
+                m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator(), m_config.Compatibility);
                 if (!m_lastBspCollection.Load(new string[] { outputFile }, loadDefaultAssets: false))
                     return false;
 
