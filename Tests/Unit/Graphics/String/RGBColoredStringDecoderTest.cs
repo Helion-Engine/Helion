@@ -24,7 +24,7 @@ namespace Helion.Tests.Unit.Graphics.String
                 for (int i = startIndex; i < endIndex; i++)
                 {
                     char expectedChar = str[i - startIndex];
-                    colorStr[i].Character.Should().Be(expectedChar);
+                    colorStr[i].Char.Should().Be(expectedChar);
                     colorStr[i].Color.Should().Be(color);
                 }
 

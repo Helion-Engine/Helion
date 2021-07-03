@@ -5,21 +5,14 @@ namespace Helion.Graphics.String
     /// <summary>
     /// A character that also contains a color.
     /// </summary>
-    public struct ColoredChar
+    public readonly struct ColoredChar
     {
-        /// <summary>
-        /// The character value.
-        /// </summary>
-        public char Character { get; }
-
-        /// <summary>
-        /// The color for the character.
-        /// </summary>
-        public Color Color { get; }
+        public readonly char Char;
+        public readonly Color Color;
 
         public ColoredChar(char c, Color color)
         {
-            Character = c;
+            Char = c;
             Color = color;
         }
     }

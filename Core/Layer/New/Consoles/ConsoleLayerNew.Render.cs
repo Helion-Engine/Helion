@@ -1,23 +1,22 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Util.Consoles;
 using Helion.Util.Timing;
 
 namespace Helion.Layer.New.Consoles
 {
     public partial class ConsoleLayerNew
     {
+        private const int FontSize = 32;
+        private const string FontName = "Console";
         private const long FlashSpanNanos = 500 * 1000L * 1000L;
         private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
-        private const string FontName = "Console";
-        private const int FontSize = 32;
-        
-        private const int LeftEdgeOffset = 8;
-        private const int InputToMessagePadding = 8;
-        private const int BetweenMessagePadding = 3;
         private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
         
@@ -70,21 +69,46 @@ namespace Helion.Layer.New.Consoles
 
         private void RenderInputCursorFlash(IHudRenderContext hud, Dimension drawArea)
         {
-            const int BarHeight = FontSize - 2;
             const int CaretWidth = 2;
 
             if (!IsCursorFlashTime)
                 return;
             
             Vec2I origin = (m_console.Input == "" ? 4 : 6, 0);
-            Vec2I dimension = (CaretWidth, BarHeight);
+            Vec2I dimension = (CaretWidth, drawArea.Height);
             HudBox area = (origin, origin + dimension);
             hud.FillBox(area, InputFlashColor, Align.MiddleLeft, Align.BottomLeft);
         }
 
         private void RenderMessages(IHudRenderContext hud, int inputHeight)
         {
-            // TODO
+            const int InputToMessagePadding = 8;
+            const int BetweenMessagePadding = 3;
+
+            int bottomY = inputHeight - InputToMessagePadding;
+            
+            foreach (ConsoleMessage message in m_console.Messages)
+            {
+                if (bottomY <= 0)
+                    break;
+
+                int offsetX = 0;
+                int maxDrawHeight = 0;
+                
+                foreach (ColoredChar coloredChar in message.Message)
+                {
+                    hud.Text(coloredChar.Char.ToString(), FontName, FontSize, (offsetX, bottomY), 
+                        out Dimension drawArea, anchor: Align.BottomLeft, color: coloredChar.Color);
+                    
+                    offsetX += drawArea.Width;
+                    maxDrawHeight = Math.Max(maxDrawHeight, drawArea.Height);
+
+                    if (offsetX > hud.Width)
+                        break;
+                }
+
+                bottomY -= maxDrawHeight + BetweenMessagePadding;
+            }
         }
     }
 }

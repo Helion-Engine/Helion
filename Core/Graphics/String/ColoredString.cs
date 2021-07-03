@@ -46,8 +46,8 @@ namespace Helion.Graphics.String
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder(Length);
-            m_characters.Select(coloredChar => coloredChar.Character).ForEach(c => builder.Append(c));
+            StringBuilder builder = new(Length);
+            m_characters.Select(coloredChar => coloredChar.Char).ForEach(c => builder.Append(c));
             return builder.ToString();
         }
 

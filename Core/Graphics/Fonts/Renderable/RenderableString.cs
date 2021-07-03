@@ -63,7 +63,7 @@ namespace Helion.Graphics.Fonts.Renderable
 
             foreach (ColoredChar c in str)
             {
-                FontGlyph fontGlyph = font[c.Character];
+                FontGlyph fontGlyph = font[c.Char];
 
                 int endX = currentWidth + (int)(fontGlyph.Location.Width * scale);
                 int endY = currentHeight + (int)(fontGlyph.Location.Height * scale);
@@ -81,7 +81,7 @@ namespace Helion.Graphics.Fonts.Renderable
                 // We use a dummy box temporarily, and calculate it at the end
                 // properly (for code clarity reasons).
                 ImageBox2I drawLocation = new(currentWidth, currentHeight, endLocation.X, endLocation.Y);
-                RenderableGlyph glyph = new(c.Character, drawLocation, ImageBox2D.ZeroToOne, fontGlyph.UV, c.Color);
+                RenderableGlyph glyph = new(c.Char, drawLocation, ImageBox2D.ZeroToOne, fontGlyph.UV, c.Color);
                 currentSentence.Add(glyph);
 
                 currentWidth = endLocation.X;
